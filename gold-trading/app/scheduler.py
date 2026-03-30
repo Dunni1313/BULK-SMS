@@ -65,6 +65,16 @@ def _upsert_candles(label: str, interval: str) -> None:
 
     except Exception as exc:
         logger.error("[%s] DB upsert failed: %s", label, exc)
+        return
+
+    # Compute indicators + signals after a successful candle upsert
+    try:
+        from app.signals import compute_and_store_signals  # local import avoids circular deps
+        with SessionLocal() as session:
+            compute_and_store_signals(label, session)
+        logger.info("[%s] Signals recomputed successfully.", label)
+    except Exception as exc:
+        logger.error("[%s] Signal computation failed (candles are safe): %s", label, exc)
 
 
 def build_scheduler() -> BackgroundScheduler:

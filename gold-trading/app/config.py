@@ -28,6 +28,11 @@ LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
 SYMBOL = "XAU/USD"
 CANDLE_LIMIT = 200
 
+# Signal layer
+SIGNAL_THRESHOLD: float = float(os.getenv("SIGNAL_THRESHOLD", "30"))
+ATR_MIN_PCT: float      = float(os.getenv("ATR_MIN_PCT", "0.001"))
+INDICATOR_LOOKBACK: int = int(os.getenv("INDICATOR_LOOKBACK", "200"))
+
 # (interval_label, twelvedata_interval, scheduler_trigger_kwargs)
 TIMEFRAMES = [
     ("15min", "15min", {"minutes": 15}),
