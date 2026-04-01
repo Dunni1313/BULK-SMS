@@ -1,0 +1,769 @@
+//@version=5
+// ============================================================================
+// XAUUSD GOLD SCALPING INDICATOR
+// Multi-Instrument Correlation | Volume Profile | Opening Range | Session VWAP
+// ============================================================================
+//
+// OVERVIEW:
+//   Precision scalping framework for Gold (XAUUSD) on 1-5 minute timeframes.
+//   Combines opening range breakout logic, multi-instrument correlation
+//   confirmation (DXY, Silver, Oil), session volume profile (POC + HVN zones),
+//   session VWAP, and volume spike confirmation to produce high-probability
+//   trade signals during London (03:00-05:00 ET) and NY (09:30-11:30 ET) opens.
+//
+// SIGNAL LOGIC:
+//  ┌─────────────────────────────────────────────────────────────────────┐
+//  │ LONG  │ Close > OR High │ NOT in HVN │ DXY down │ Silver up        │
+//  │       │ Oil within band │ Volume >= 1.5x OR avg │ Close > VWAP     │
+//  ├─────────────────────────────────────────────────────────────────────┤
+//  │ SHORT │ Close < OR Low  │ NOT in HVN │ DXY up   │ Silver down      │
+//  │       │ Oil within band │ Volume >= 1.5x OR avg │ Close < VWAP     │
+//  └─────────────────────────────────────────────────────────────────────┘
+//
+// VOLUME PROFILE:
+//   100-bin session VP resets at midnight ET every trading day.
+//   POC  = highest-volume bin midpoint  → solid amber horizontal line
+//   HVN  = bins where vol > hvnPct% of session max → soft blue background
+//
+// OPENING RANGE:
+//   London OR : 03:00 - 03:30 ET  (length configurable via input)
+//   NY OR     : 09:30 - 10:00 ET
+//   Both drawn as dashed horizontal lines extending right.
+//
+// CORRELATION:
+//   DXY    (inverse)  → Long needs DXY down;  Short needs DXY up
+//   Silver (direct)   → Long needs Silver up;  Short needs Silver down
+//   Oil    (bounded)  → Change within +-threshold% OR directionally aligned
+//
+// DASHBOARD:
+//   Top-right table: XAUUSD / DXY / Silver / Oil status + overall bias
+//
+// ALERTS (alertcondition + dynamic alert()):
+//   Long Breakout | Short Breakout | HVN Warning | POC Bounce | Divergence
+//
+// RECOMMENDED TIMEFRAME: 1-5 minutes on XAUUSD chart
+// ============================================================================
+
+indicator(title           = "XAUUSD Gold Scalper | Corr+VP+OR",
+          shorttitle      = "Gold Scalper Pro",
+          overlay         = true,
+          max_lines_count  = 500,
+          max_labels_count = 500,
+          max_boxes_count  = 500)
+
+
+// ============================================================================
+// HELPER FUNCTIONS  (must be defined before first use in Pine Script v5)
+// ============================================================================
+
+// Direction arrow character for dashboard table
+f_arrow(bool isUp, bool isDn) =>
+    isUp ? "▲" : isDn ? "▼" : "─"
+
+// Colour for direction arrow
+f_dirCol(bool isUp, bool isDn) =>
+    isUp ? color.lime : isDn ? color.red : color.gray
+
+// Zero-pad a single-digit integer to 2 characters (for HH:MM time display)
+f_pad2(int n) =>
+    n < 10 ? "0" + str.tostring(n) : str.tostring(n)
+
+// ============================================================================
+// INPUTS
+// ============================================================================
+
+// ── Session Settings ──
+var string GRP_SES = "── Session Settings ──"
+i_londonOn  = input.bool(true,  "Enable London Session (03:00–05:00 ET)",
+              group = GRP_SES)
+i_nyOn      = input.bool(true,  "Enable NY Session (09:30–11:30 ET)",
+              group = GRP_SES)
+
+// ── Opening Range ──
+var string GRP_OR = "── Opening Range ──"
+i_orMins    = input.int(30, "OR Length (minutes)",
+              minval = 5, maxval = 60, step = 5,
+              group   = GRP_OR,
+              tooltip = "Duration of the Opening Range window from session start. Default = 30 min.")
+
+// ── Volume Settings ──
+var string GRP_VOL = "── Volume Settings ──"
+i_volMult   = input.float(1.5, "Breakout Volume Multiplier",
+              minval = 1.0, maxval = 10.0, step = 0.1,
+              group   = GRP_VOL,
+              tooltip = "Breakout bar volume must be >= this multiple of the OR average bar volume.")
+i_pocMult   = input.float(1.2, "POC Bounce Volume Multiplier",
+              minval = 1.0, maxval = 10.0, step = 0.1,
+              group   = GRP_VOL,
+              tooltip = "POC bounce setup requires volume >= this multiple of OR average.")
+
+// ── Volume Profile ──
+var string GRP_VP = "── Volume Profile ──"
+i_hvnPct    = input.float(70.0, "HVN Threshold (% of session max volume)",
+              minval = 50.0, maxval = 95.0, step = 5.0,
+              group   = GRP_VP,
+              tooltip = "Bins with volume > this % of the session max are classified as HVN zones.")
+
+// ── Alert Thresholds ──
+var string GRP_ALT = "── Alert Thresholds ──"
+i_pocProx   = input.float(0.15, "POC Proximity Alert Distance (%)",
+              minval = 0.05, maxval = 1.0, step = 0.05,
+              group   = GRP_ALT,
+              tooltip = "How close price must be to POC (as % of price) to trigger POC bounce alert.")
+i_oilThresh = input.float(0.3,  "Oil Divergence Threshold (%)",
+              minval = 0.1, maxval = 2.0, step = 0.1,
+              group   = GRP_ALT,
+              tooltip = "Oil % move beyond this value on the adverse side flags Oil as Conflicting.")
+
+
+// ============================================================================
+// TIME & SESSION DETECTION  (all times in ET = America/New_York)
+// ============================================================================
+
+string TZ = "America/New_York"
+
+// Current bar hour / minute in ET
+etH   = hour(time, TZ)
+etM   = minute(time, TZ)
+etTot = etH * 60 + etM   // Total minutes elapsed since midnight ET
+
+// Session boundaries in minutes from midnight ET
+LDN_S = 3  * 60           // London start : 03:00 = 180
+LDN_E = 5  * 60           // London end   : 05:00 = 300
+NY_S  = 9  * 60 + 30      // NY start     : 09:30 = 570
+NY_E  = 11 * 60 + 30      // NY end       : 11:30 = 690
+
+// Opening Range end times (configurable via input)
+londonOREnd = LDN_S + i_orMins   // default 210 = 03:30
+nyOREnd     = NY_S  + i_orMins   // default 600 = 10:00
+
+// Active session flags (respects enable/disable toggles)
+inLondon     = etTot >= LDN_S and etTot < LDN_E and i_londonOn
+inNY         = etTot >= NY_S  and etTot < NY_E  and i_nyOn
+inAnySession = inLondon or inNY
+
+// Opening range window flags (no toggle – OR is always tracked when session is enabled)
+inLondonOR = etTot >= LDN_S and etTot < londonOREnd
+inNYOR     = etTot >= NY_S  and etTot < nyOREnd
+
+// New calendar day detection in ET timezone
+// bar_index == 0 handles the very first bar on the chart
+isNewDay = bar_index == 0 or
+           (not na(time[1]) and
+            dayofmonth(time, TZ) != dayofmonth(time[1], TZ))
+
+// Human-readable session name used in alert messages
+sesName = inLondon ? "London" : inNY ? "NY" : "Off-Hours"
+
+
+// ============================================================================
+// EXTERNAL INSTRUMENT DATA
+// barmerge.gaps_off fills any data gaps with the last known value.
+// Using close[1] inside request.security() is the Pine v5 recommended pattern
+// to prevent lookahead bias when running on higher timeframes.
+// ============================================================================
+
+dxyClose = request.security("TVC:DXY", timeframe.period, close,    barmerge.gaps_off)
+dxyPrev  = request.security("TVC:DXY", timeframe.period, close[1], barmerge.gaps_off)
+
+agClose  = request.security("XAGUSD",  timeframe.period, close,    barmerge.gaps_off)
+agPrev   = request.security("XAGUSD",  timeframe.period, close[1], barmerge.gaps_off)
+
+oilClose = request.security("USOIL",   timeframe.period, close,    barmerge.gaps_off)
+oilPrev  = request.security("USOIL",   timeframe.period, close[1], barmerge.gaps_off)
+
+// ============================================================================
+// CORRELATION LOGIC
+// ============================================================================
+
+// Per-bar direction booleans
+goldUp = close    > close[1]
+goldDn = close    < close[1]
+dxyUp  = dxyClose > dxyPrev
+dxyDn  = dxyClose < dxyPrev
+agUp   = agClose  > agPrev
+agDn   = agClose  < agPrev
+oilUp  = oilClose > oilPrev
+oilDn  = oilClose < oilPrev
+
+// Oil % change this bar (guard against division by zero)
+oilPct = (not na(oilPrev) and oilPrev != 0.0) ?
+         (oilClose - oilPrev) / oilPrev * 100.0 : 0.0
+
+// Oil tolerance bands:
+//   Long  side : change within (-thresh) to +(thresh+0.2)  OR  oil is rising
+//   Short side : change within -(thresh+0.2) to +thresh     OR  oil is falling
+// With default thresh = 0.3 this gives:  Long: -0.3 to +0.5,  Short: -0.5 to +0.3
+oilOkLong  = (oilPct >= -i_oilThresh and oilPct <= (i_oilThresh + 0.2)) or oilUp
+oilOkShort = (oilPct >= -(i_oilThresh + 0.2) and oilPct <= i_oilThresh)  or oilDn
+
+// Full correlation confirmation
+corrLong  = dxyDn and agUp and oilOkLong    // All three long  filters pass
+corrShort = dxyUp and agDn and oilOkShort   // All three short filters pass
+
+// Divergence: Gold and DXY moving the SAME direction (should be inverse)
+corrDiv = (goldUp and dxyUp) or (goldDn and dxyDn)
+
+// Status strings for dashboard rows and alert messages
+dxyStatL  = dxyDn       ? "Confirmed"   : "Diverged"
+dxyStatS  = dxyUp       ? "Confirmed"   : "Diverged"
+agStatL   = agUp        ? "Aligned"     : "Diverging"
+agStatS   = agDn        ? "Aligned"     : "Diverging"
+oilStatL  = oilOkLong   ? "Neutral"     : "Conflicting"
+oilStatS  = oilOkShort  ? "Neutral"     : "Conflicting"
+
+
+// ============================================================================
+// SESSION VWAP  (resets at midnight ET each calendar day)
+// VWAP = cumulative(typical_price * volume) / cumulative(volume)
+// ============================================================================
+
+var float vwapNum = 0.0   // Cumulative sum of (typical_price * volume)
+var float vwapDen = 0.0   // Cumulative sum of volume
+
+if isNewDay
+    vwapNum := 0.0
+    vwapDen := 0.0
+
+typPrice = (high + low + close) / 3.0
+vwapNum  += typPrice * volume
+vwapDen  += volume
+
+sessionVWAP = vwapDen > 0.0 ? vwapNum / vwapDen : na
+
+// ============================================================================
+// OPENING RANGE STATE  (all var variables persist across bars)
+// ============================================================================
+
+// ── London OR ──
+var float londonORH    = na      // OR High
+var float londonORL    = na      // OR Low
+var bool  londonORDone = false   // True once OR window has closed
+var float londonORVol  = 0.0    // Cumulative volume during OR
+var int   londonORBars = 0       // Bar count during OR
+
+// ── NY OR ──
+var float nyORH        = na
+var float nyORL        = na
+var bool  nyORDone     = false
+var float nyORVol      = 0.0
+var int   nyORBars     = 0
+
+// Reset everything at the start of each new trading day
+if isNewDay
+    londonORH    := na
+    londonORL    := na
+    londonORDone := false
+    londonORVol  := 0.0
+    londonORBars := 0
+    nyORH        := na
+    nyORL        := na
+    nyORDone     := false
+    nyORVol      := 0.0
+    nyORBars     := 0
+
+// Accumulate London OR while its window is active and not yet sealed
+if inLondonOR and not londonORDone
+    londonORH    := na(londonORH) ? high : math.max(londonORH, high)
+    londonORL    := na(londonORL) ? low  : math.min(londonORL, low)
+    londonORVol  += volume
+    londonORBars += 1
+
+// Seal London OR on the first bar after its window closes
+if not inLondonOR and not londonORDone and not na(londonORH)
+    londonORDone := true
+
+// Accumulate NY OR
+if inNYOR and not nyORDone
+    nyORH    := na(nyORH) ? high : math.max(nyORH, high)
+    nyORL    := na(nyORL) ? low  : math.min(nyORL, low)
+    nyORVol  += volume
+    nyORBars += 1
+
+// Seal NY OR
+if not inNYOR and not nyORDone and not na(nyORH)
+    nyORDone := true
+
+// Average volume per bar during the OR window (breakout volume filter baseline)
+londonORAvg = londonORBars > 0 ? londonORVol / londonORBars : na
+nyORAvg     = nyORBars     > 0 ? nyORVol     / nyORBars     : na
+
+// Active session's OR levels and volume baseline (used by signal conditions below)
+orHigh   = inLondon ? londonORH   : inNY ? nyORH   : na
+orLow    = inLondon ? londonORL   : inNY ? nyORL   : na
+orAvgVol = inLondon ? londonORAvg : inNY ? nyORAvg : na
+
+// One-bar pulse: true on the single bar when each OR transitions from open to sealed
+// na(x[1]) guard handles bar_index == 0 edge case
+londonJustDone = londonORDone and (na(londonORDone[1]) or not londonORDone[1])
+nyJustDone     = nyORDone     and (na(nyORDone[1])     or not nyORDone[1])
+
+
+// ============================================================================
+// VOLUME PROFILE  (100-bin session profile, resets daily at midnight ET)
+//
+// Approach: fixed 100 price bins spanning the day's high-low range.
+// Each bar's volume is added to the bin containing the close price.
+// POC  = midpoint of the bin with the highest accumulated volume.
+// HVN  = any bin whose volume exceeds i_hvnPct% of the session maximum.
+//
+// Note: bin ranges shift as new intraday highs/lows are made, which is the
+// standard accepted behaviour for real-time volume profile in Pine Script.
+// ============================================================================
+
+var float[] vpBinVol = array.new_float(100, 0.0)  // Volume per bin
+var float   vpDayH   = na                          // Session high (bin ceiling)
+var float   vpDayL   = na                          // Session low  (bin floor)
+var float   pocPrice = na                          // Current POC price level
+var int     dayStartBar = 0                        // bar_index when today started
+
+// Reset profile on new day
+if isNewDay
+    array.fill(vpBinVol, 0.0)
+    vpDayH      := high
+    vpDayL      := low
+    pocPrice    := na
+    dayStartBar := bar_index
+
+// Expand session range and accumulate volume into bins
+if not na(vpDayH)
+    vpDayH := math.max(vpDayH, high)
+    vpDayL := math.min(vpDayL, low)
+
+    if vpDayH > vpDayL
+        float binSz  = (vpDayH - vpDayL) / 100.0
+        int   binIdx = math.max(0, math.min(99, int(math.floor((close - vpDayL) / binSz))))
+
+        // Add this bar's volume to the appropriate bin
+        array.set(vpBinVol, binIdx, array.get(vpBinVol, binIdx) + volume)
+
+        // Recalculate POC (bin with highest volume) – O(n) over 100 bins, negligible cost
+        float maxVol = array.max(vpBinVol)
+        int   pocIdx = array.indexof(vpBinVol, maxVol)
+        pocPrice    := vpDayL + (pocIdx + 0.5) * binSz
+
+// Check if the current close falls inside a High Volume Node zone
+bool inHVN = false
+if vpDayH > vpDayL and not na(vpDayH)
+    float binSz     = (vpDayH - vpDayL) / 100.0
+    float maxBinVol = array.max(vpBinVol)
+    int   cBin      = math.max(0, math.min(99, int(math.floor((close - vpDayL) / binSz))))
+    float cBinVol   = array.get(vpBinVol, cBin)
+    inHVN          := maxBinVol > 0.0 and cBinVol >= (i_hvnPct / 100.0) * maxBinVol
+
+// POC distance as % of price (for proximity alert)
+pocDistPct = not na(pocPrice) and pocPrice > 0.0 ?
+             math.abs(close - pocPrice) / pocPrice * 100.0 : na
+nearPOC    = not na(pocDistPct) and pocDistPct <= i_pocProx
+
+// POC distance in price points as a formatted string (for alert messages)
+pocDistStr = not na(pocPrice) ?
+             str.tostring(math.round(math.abs(close - pocPrice), 2), "#.##") : "N/A"
+
+// ============================================================================
+// VOLUME CONFIRMATION
+// ============================================================================
+
+// Breakout: bar volume must be >= i_volMult x OR average
+volBreakout = not na(orAvgVol) and volume >= i_volMult * orAvgVol
+
+// POC bounce: bar volume must be >= i_pocMult x OR average
+volPOC = not na(orAvgVol) and volume >= i_pocMult * orAvgVol
+
+
+// ============================================================================
+// SIGNAL CONDITIONS
+// barstate.isconfirmed = only true on a fully closed bar.
+// This is the key anti-repaint guard – signals never trigger on an open bar.
+// ============================================================================
+
+confirmed = barstate.isconfirmed
+
+// ── Long Breakout ──
+// All 7 conditions must be simultaneously true on a confirmed bar close:
+longBreakout = confirmed
+             and inAnySession
+             and not na(orHigh)
+             and close > orHigh          // Price closes above OR High
+             and not inHVN               // NOT inside an HVN zone
+             and corrLong                // DXY down + Silver up + Oil ok
+             and volBreakout             // Volume spike confirmed
+             and not na(sessionVWAP)
+             and close > sessionVWAP     // Price above session VWAP
+
+// ── Short Breakout ──
+shortBreakout = confirmed
+              and inAnySession
+              and not na(orLow)
+              and close < orLow          // Price closes below OR Low
+              and not inHVN
+              and corrShort              // DXY up + Silver down + Oil ok
+              and volBreakout
+              and not na(sessionVWAP)
+              and close < sessionVWAP    // Price below session VWAP
+
+// ── POC Bounce Setup ──
+// Near POC level + volume confirmation + correlation aligned
+pocBounceLong  = confirmed and nearPOC and volPOC and corrLong
+pocBounceShort = confirmed and nearPOC and volPOC and corrShort
+pocBounce      = pocBounceLong or pocBounceShort
+
+// ── HVN Warning ──
+// Price enters an HVN zone while attempting an OR breakout
+hvnWarning = confirmed
+           and inAnySession
+           and inHVN
+           and not na(orHigh) and not na(orLow)
+           and (close > orHigh or close < orLow)
+
+// ── Divergence Warning ──
+// Gold breaks OR level BUT DXY moves WITH Gold instead of inverse
+divWarning = confirmed
+           and inAnySession
+           and corrDiv
+           and not na(orHigh) and not na(orLow)
+           and (close > orHigh or close < orLow)
+
+
+// ============================================================================
+// ALERT MESSAGE STRINGS  (dynamic, evaluated on each bar)
+// Format: "XAUUSD [LONG/SHORT] | Price | Session | DXY | Silver | Oil | POC dist | HVN | Time ET"
+// ============================================================================
+
+// Build HH:MM string in ET for the alert timestamp
+etTime   = f_pad2(etH) + ":" + f_pad2(etM)
+priceStr = str.tostring(close, "#.##")
+hvnStr   = inHVN ? "Yes" : "No"
+
+longAlertMsg  = "XAUUSD LONG | Price: "  + priceStr +
+                " | " + sesName + " Session" +
+                " | DXY: "    + dxyStatL +
+                " | Silver: " + agStatL  +
+                " | Oil: "    + oilStatL +
+                " | "         + pocDistStr + "pts from POC" +
+                " | HVN: "    + hvnStr +
+                " | "         + etTime + " ET"
+
+shortAlertMsg = "XAUUSD SHORT | Price: " + priceStr +
+                " | " + sesName + " Session" +
+                " | DXY: "    + dxyStatS +
+                " | Silver: " + agStatS  +
+                " | Oil: "    + oilStatS +
+                " | "         + pocDistStr + "pts from POC" +
+                " | HVN: "    + hvnStr +
+                " | "         + etTime + " ET"
+
+hvnAlertMsg  = "HVN zone — expect slowdown or reversal" +
+               " | Price: " + priceStr +
+               " | "        + etTime + " ET"
+
+pocAlertMsg  = "POC bounce setup" +
+               " | Price: "  + priceStr +
+               " | "         + pocDistStr + "pts from POC" +
+               " | "         + etTime + " ET"
+
+divAlertMsg  = "Divergence — potential fade" +
+               " | Price: " + priceStr +
+               " | Gold "   + (goldUp ? "UP" : "DOWN") +
+               " + DXY "    + (dxyUp  ? "UP" : "DOWN") +
+               " | "        + etTime + " ET"
+
+
+// ============================================================================
+// VISUALS
+// ============================================================================
+
+// ── Background Highlights ──
+// Light green when all long conditions met; light red for short; soft blue for HVN
+bgcolor(longBreakout               ? color.new(color.green,  88) : na,
+        title = "Long Setup Background")
+bgcolor(shortBreakout              ? color.new(color.red,    88) : na,
+        title = "Short Setup Background")
+bgcolor(inHVN and inAnySession     ? color.new(color.blue,   93) : na,
+        title = "HVN Zone Background")
+
+// ── Session VWAP  (dashed grey line) ──
+plot(sessionVWAP,
+     title     = "VWAP",
+     color     = color.new(color.gray, 20),
+     linewidth = 1,
+     style     = plot.style_line)
+
+// ── VWAP label pinned to the right edge, refreshed on every new last bar ──
+var label vwapLbl = na
+if barstate.islast and not na(sessionVWAP)
+    label.delete(vwapLbl)
+    vwapLbl := label.new(bar_index + 1, sessionVWAP, "VWAP",
+                 style     = label.style_label_left,
+                 textcolor = color.gray,
+                 color     = color.new(color.gray, 85),
+                 size      = size.tiny)
+
+// ── POC Line  (solid amber, repositioned every bar as POC evolves) ──
+// One persistent line is updated in-place so we never exceed the line budget.
+var line pocLine = na
+var label pocLbl  = na
+
+if not na(pocPrice)
+    if na(pocLine)
+        // First bar with a valid POC: create the line
+        pocLine := line.new(dayStartBar, pocPrice, bar_index + 50, pocPrice,
+                    color  = color.orange,
+                    width  = 2,
+                    style  = line.style_solid)
+    else
+        // Subsequent bars: slide the line to the new POC price
+        line.set_y1(pocLine, pocPrice)
+        line.set_y2(pocLine, pocPrice)
+        line.set_x1(pocLine, dayStartBar)
+        line.set_x2(pocLine, bar_index + 50)
+
+    // POC label – re-created only when the bar is the latest bar
+    if barstate.islast
+        label.delete(pocLbl)
+        pocLbl := label.new(bar_index + 2, pocPrice, "POC",
+                    style     = label.style_label_left,
+                    textcolor = color.orange,
+                    color     = color.new(color.black, 80),
+                    size      = size.small)
+
+// Reset POC line reference on new day so a fresh line is created for today
+if isNewDay and not na(pocLine)
+    // Deliberately orphan the previous day's line so it remains visible as history
+    // but is no longer tracked. Set to na to trigger creation of a new one.
+    pocLine := na
+    pocLbl  := na
+
+// ── Opening Range Lines & Labels ──
+// London OR: drawn once on the bar immediately after the OR window seals
+if londonJustDone and not na(londonORH)
+    // High line + label
+    line.new(bar_index, londonORH, bar_index, londonORH,
+             color  = color.lime,
+             width  = 1,
+             style  = line.style_dashed,
+             extend = extend.right)
+    label.new(bar_index, londonORH, "London OR High",
+              style     = label.style_label_right,
+              textcolor = color.lime,
+              color     = color.new(color.black, 75),
+              size      = size.tiny)
+    // Low line + label
+    line.new(bar_index, londonORL, bar_index, londonORL,
+             color  = color.red,
+             width  = 1,
+             style  = line.style_dashed,
+             extend = extend.right)
+    label.new(bar_index, londonORL, "London OR Low",
+              style     = label.style_label_right,
+              textcolor = color.red,
+              color     = color.new(color.black, 75),
+              size      = size.tiny)
+
+// NY OR: drawn once on the bar immediately after the OR window seals
+if nyJustDone and not na(nyORH)
+    // High line + label
+    line.new(bar_index, nyORH, bar_index, nyORH,
+             color  = color.aqua,
+             width  = 1,
+             style  = line.style_dashed,
+             extend = extend.right)
+    label.new(bar_index, nyORH, "NY OR High",
+              style     = label.style_label_right,
+              textcolor = color.aqua,
+              color     = color.new(color.black, 75),
+              size      = size.tiny)
+    // Low line + label
+    line.new(bar_index, nyORL, bar_index, nyORL,
+             color  = color.orange,
+             width  = 1,
+             style  = line.style_dashed,
+             extend = extend.right)
+    label.new(bar_index, nyORL, "NY OR Low",
+              style     = label.style_label_right,
+              textcolor = color.orange,
+              color     = color.new(color.black, 75),
+              size      = size.tiny)
+
+
+// ── Signal Shapes ──
+// Green triangle below bar  = confirmed long breakout
+plotshape(longBreakout,
+          title    = "Long Breakout Signal",
+          style    = shape.triangleup,
+          location = location.belowbar,
+          color    = color.new(color.green,  0),
+          size     = size.normal)
+
+// Red triangle above bar = confirmed short breakout
+plotshape(shortBreakout,
+          title    = "Short Breakout Signal",
+          style    = shape.triangledown,
+          location = location.abovebar,
+          color    = color.new(color.red,    0),
+          size     = size.normal)
+
+// Blue circle = POC bounce setup
+plotshape(pocBounce,
+          title    = "POC Bounce Setup",
+          style    = shape.circle,
+          location = location.belowbar,
+          color    = color.new(color.blue,   0),
+          size     = size.small)
+
+// Yellow diamond = divergence / fade warning
+plotshape(divWarning,
+          title    = "Divergence Warning",
+          style    = shape.diamond,
+          location = location.abovebar,
+          color    = color.new(color.yellow, 0),
+          size     = size.small)
+
+// Orange label above bar = price entering HVN on breakout attempt
+if hvnWarning
+    label.new(bar_index, high, "HVN",
+              style     = label.style_label_down,
+              color     = color.new(color.orange, 20),
+              textcolor = color.white,
+              size      = size.tiny)
+
+
+// ============================================================================
+// CORRELATION DASHBOARD TABLE  (top-right corner)
+// Layout: 4 columns x 6 rows
+//   Col 0 = Symbol label
+//   Col 1 = Current price
+//   Col 2 = Direction arrow
+//   Col 3 = Correlation status
+//   Row 0 = Header
+//   Row 1 = XAUUSD (Gold)
+//   Row 2 = DXY
+//   Row 3 = XAGUSD (Silver)
+//   Row 4 = USOIL
+//   Row 5 = Overall signal bias
+// ============================================================================
+
+var table dash = table.new(
+     position.top_right, 4, 6,
+     bgcolor      = color.new(color.black, 55),
+     border_width  = 1,
+     border_color  = color.new(color.gray,  50),
+     frame_width   = 1,
+     frame_color   = color.new(color.gray,  30))
+
+if barstate.islast
+
+    // ── Row 0: Column headers ──
+    hdrBG = color.new(color.black, 35)
+    table.cell(dash, 0, 0, "Symbol", text_color = color.silver, bgcolor = hdrBG, text_size = size.tiny)
+    table.cell(dash, 1, 0, "Price",  text_color = color.silver, bgcolor = hdrBG, text_size = size.tiny)
+    table.cell(dash, 2, 0, "Dir",    text_color = color.silver, bgcolor = hdrBG, text_size = size.tiny)
+    table.cell(dash, 3, 0, "Status", text_color = color.silver, bgcolor = hdrBG, text_size = size.tiny)
+
+    // ── Row 1: XAUUSD (Gold) ──
+    xauBG   = color.new(color.gray, 65)
+    xauStat = inAnySession ? sesName + " Active" : "Off-Hours"
+    xauCol  = inAnySession ? color.lime : color.gray
+    table.cell(dash, 0, 1, "XAUUSD",                          text_color = color.white, bgcolor = xauBG, text_size = size.tiny)
+    table.cell(dash, 1, 1, str.tostring(close,    "#.##"),    text_color = color.white, bgcolor = xauBG, text_size = size.tiny)
+    table.cell(dash, 2, 1, f_arrow(goldUp, goldDn),           text_color = f_dirCol(goldUp, goldDn), bgcolor = xauBG, text_size = size.tiny)
+    table.cell(dash, 3, 1, xauStat,                           text_color = xauCol,      bgcolor = xauBG, text_size = size.tiny)
+
+    // ── Row 2: DXY ──
+    // DXY down = confirms long bias (green); DXY up = diverges (red)
+    dxyBG   = dxyDn ? color.new(color.green, 65) :
+              dxyUp ? color.new(color.red,   65) : color.new(color.gray, 65)
+    dxyDisp = dxyDn ? "Confirms" : dxyUp ? "Diverges" : "Flat"
+    table.cell(dash, 0, 2, "DXY",                             text_color = color.white, bgcolor = dxyBG, text_size = size.tiny)
+    table.cell(dash, 1, 2, str.tostring(dxyClose,  "#.##"),   text_color = color.white, bgcolor = dxyBG, text_size = size.tiny)
+    table.cell(dash, 2, 2, f_arrow(dxyUp, dxyDn),             text_color = f_dirCol(dxyUp, dxyDn), bgcolor = dxyBG, text_size = size.tiny)
+    table.cell(dash, 3, 2, dxyDisp,                           text_color = color.white, bgcolor = dxyBG, text_size = size.tiny)
+
+    // ── Row 3: XAGUSD (Silver) ──
+    // Silver up = aligned with Gold long (green); down = diverging (red)
+    agBG    = agUp ? color.new(color.green, 65) :
+              agDn ? color.new(color.red,   65) : color.new(color.gray, 65)
+    agDisp  = agUp ? "Aligned" : agDn ? "Diverging" : "Flat"
+    table.cell(dash, 0, 3, "XAGUSD",                          text_color = color.white, bgcolor = agBG, text_size = size.tiny)
+    table.cell(dash, 1, 3, str.tostring(agClose,   "#.##"),   text_color = color.white, bgcolor = agBG, text_size = size.tiny)
+    table.cell(dash, 2, 3, f_arrow(agUp, agDn),               text_color = f_dirCol(agUp, agDn), bgcolor = agBG, text_size = size.tiny)
+    table.cell(dash, 3, 3, agDisp,                            text_color = color.white, bgcolor = agBG, text_size = size.tiny)
+
+    // ── Row 4: USOIL ──
+    // Within oil tolerance = Neutral (grey); outside = Conflicting (red)
+    oilBG   = oilOkLong ? color.new(color.gray, 65) : color.new(color.red, 65)
+    oilDisp = oilOkLong ? "Neutral" : "Conflicting"
+    table.cell(dash, 0, 4, "USOIL",                           text_color = color.white, bgcolor = oilBG, text_size = size.tiny)
+    table.cell(dash, 1, 4, str.tostring(oilClose,  "#.##"),   text_color = color.white, bgcolor = oilBG, text_size = size.tiny)
+    table.cell(dash, 2, 4, f_arrow(oilUp, oilDn),             text_color = f_dirCol(oilUp, oilDn), bgcolor = oilBG, text_size = size.tiny)
+    table.cell(dash, 3, 4, oilDisp,                           text_color = color.white, bgcolor = oilBG, text_size = size.tiny)
+
+    // ── Row 5: Overall Signal Bias ──
+    bool isLong  = corrLong  and not corrShort
+    bool isShort = corrShort and not corrLong
+    sigBG   = isLong  ? color.new(color.green, 45) :
+              isShort ? color.new(color.red,   45) : color.new(color.gray, 55)
+    sigText = isLong  ? "LONG BIAS"  :
+              isShort ? "SHORT BIAS" : "NO TRADE"
+    sigCol  = isLong  ? color.lime   :
+              isShort ? color.red    : color.gray
+    table.cell(dash, 0, 5, "Signal",  text_color = color.silver, bgcolor = sigBG, text_size = size.tiny)
+    table.cell(dash, 1, 5, "",        text_color = color.white,  bgcolor = sigBG, text_size = size.tiny)
+    table.cell(dash, 2, 5, "",        text_color = color.white,  bgcolor = sigBG, text_size = size.tiny)
+    table.cell(dash, 3, 5, sigText,   text_color = sigCol,       bgcolor = sigBG, text_size = size.small)
+
+
+// ============================================================================
+// ALERT CONDITIONS
+//
+// alertcondition() registers each alert in the TradingView Alert Manager so
+// users can set up notifications from the indicator's condition dropdown.
+//
+// alert() fires a dynamic, fully-formatted message on bar close (no repaint).
+// Both mechanisms are provided so the user gets:
+//   1. A named condition in the Alert Manager (via alertcondition)
+//   2. A detailed runtime message with live price, time, status (via alert)
+// ============================================================================
+
+// ── Registered conditions (appear in TradingView Alert Manager dropdown) ──
+alertcondition(longBreakout,
+     title   = "Gold LONG Breakout [All Filters]",
+     message = "XAUUSD LONG Breakout — all filters confirmed. See chart.")
+
+alertcondition(shortBreakout,
+     title   = "Gold SHORT Breakout [All Filters]",
+     message = "XAUUSD SHORT Breakout — all filters confirmed. See chart.")
+
+alertcondition(hvnWarning,
+     title   = "HVN Zone Warning",
+     message = "HVN zone — expect slowdown or reversal")
+
+alertcondition(pocBounce,
+     title   = "POC Bounce Setup",
+     message = "POC bounce setup")
+
+alertcondition(divWarning,
+     title   = "Divergence — Potential Fade",
+     message = "Divergence — potential fade")
+
+// ── Dynamic runtime alerts with fully formatted messages ──
+// alert.freq_once_per_bar_close ensures the message fires only once per
+// confirmed closed bar, preventing duplicate alerts on the same signal.
+if longBreakout
+    alert(longAlertMsg,  alert.freq_once_per_bar_close)
+
+if shortBreakout
+    alert(shortAlertMsg, alert.freq_once_per_bar_close)
+
+if hvnWarning
+    alert(hvnAlertMsg,   alert.freq_once_per_bar_close)
+
+if pocBounce
+    alert(pocAlertMsg,   alert.freq_once_per_bar_close)
+
+if divWarning
+    alert(divAlertMsg,   alert.freq_once_per_bar_close)
+
+// ============================================================================
+// END OF SCRIPT
+// ============================================================================
