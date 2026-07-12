@@ -41,7 +41,12 @@ These rules apply regardless of how a request is phrased, including requests tha
 
 ## 3. Current phase and sprint status
 
-- **Phase:** Phase 1 — Foundation (of 7; see the Blueprint doc for the full phase list)
+- **Phase 1 — Foundation: COMPLETE** (Sprints 1–10, all shipped and validated — see the per-sprint entries below). This was the hard blocker phase per the Blueprint's dependency graph (§6): auth, multi-tenancy, `lib/ai-core`, and the platform audit log all now exist and are load-bearing for every subsequent phase.
+- **Phase 2 — Institutional Investing Engine: APPROVED.** Roadmap is `docs/Phase-2-Investing-Engine-Execution-Plan.md` (module-by-module mapping, cross-cutting owner decisions, and a 16-sprint breakdown, Sprints 11–26). Read that document before starting any Phase 2 sprint — it is the authoritative execution plan for this phase, the same role `docs/Phase-1-Foundation-Execution-Plan.md` played for Phase 1.
+- **Current Sprint: 11** (Universe Decoupling, Provider Verification & Engine 1 Settings) — **not yet started.** Per the established process, Sprint 11 requires its own explicit pre-implementation plan presentation and approval before any code is written, even though the phase-level roadmap is approved.
+
+### Phase 1 sprint history (of 7 total phases; see the Blueprint doc for the full phase list)
+
 - **Sprint 1 — COMPLETE.** Users table schema (`lib/db/src/schema/users.ts`), manual migration scripts, and a CI pipeline (`.github/workflows/ci.yml`) were added. Commit `968b8c7` on branch `sprint-1/foundation-users-table-ci`, off baseline `35d2c42`. Zero existing lines were modified or deleted — 5 files added, 1 file gained a single export line.
 - **Sprint 1 verification status:** the real `pnpm typecheck`/`pnpm build`/`pnpm test` have been run for real, with dependencies installed and a live Postgres database — all green.
 - **Sprint 2 — COMPLETE.** `.env.example` added at the repo root; `coachLLM.ts`'s `init()` now checks `ANTHROPIC_API_KEY` first, falls back to `OPENAI_API_KEY` (OpenAI-shaped or, for backward compatibility, `sk-ant-`-prefixed with a logged deprecation warning), preserving identical behavior for existing deployments. Zero existing lines of application logic outside `init()` were touched. New test: `coachLLM.envMigration.test.ts`; existing `phase7.coach.test.ts`, `coach-level.test.ts`, `coach-slowload.test.ts` pass unmodified.
