@@ -1,13 +1,13 @@
 import { Router, type IRouter } from "express";
 import { db, backtestResultsTable } from "@workspace/db";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import {
   RunBacktestBody,
   RunBacktestResponse,
   ListBacktestResultsResponse,
 } from "@workspace/api-zod";
 import { makeRng } from "../lib/optionsMath.js";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
@@ -63,7 +63,7 @@ router.post("/backtest/run", async (req, res): Promise<void> => {
   const drawdowns = equityCurve.map((p) => p.drawdown || 0);
   const maxDrawdown = Math.min(...drawdowns);
 
-  const userId = await getLegacyOwnerUserId();
+  const userId = await getScopedUserId(req);
   const [result] = await db
     .insert(backtestResultsTable)
     .values({
@@ -96,10 +96,12 @@ router.post("/backtest/run", async (req, res): Promise<void> => {
   );
 });
 
-router.get("/backtest/results", async (_req, res): Promise<void> => {
+router.get("/backtest/results", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   const results = await db
     .select()
     .from(backtestResultsTable)
+    .where(eq(backtestResultsTable.userId, userId))
     .orderBy(desc(backtestResultsTable.createdAt))
     .limit(20);
 

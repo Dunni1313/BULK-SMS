@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, tradesTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import {
   ListTradesResponse,
   GetTradeResponse,
@@ -29,7 +29,7 @@ import { closeTradePosition } from "../lib/tradeClose.js";
 import { evaluateTradeAdjustment, ADJUSTMENT_DISCLAIMER } from "../lib/adjustment.js";
 import { narrateAdjustment, narrateAdjustmentStream } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
@@ -70,9 +70,11 @@ router.get("/trades", async (req, res): Promise<void> => {
   const strategy = req.query.strategy as string | undefined;
   const limit = Number(req.query.limit) || 50;
 
+  const userId = await getScopedUserId(req);
   const all = await db
     .select()
     .from(tradesTable)
+    .where(eq(tradesTable.userId, userId))
     .orderBy(desc(tradesTable.createdAt))
     .limit(limit);
 
@@ -120,9 +122,11 @@ router.post("/trades", async (req, res): Promise<void> => {
   const theta = canonical ? canonical.theta * lots : 0;
   const ravishScore = canonical ? canonical.ravishScore : 0;
 
+  const userId = await getScopedUserId(req);
+
   // Enforce risk rules before the trade can be opened.
-  const settings = await getSettingsRow();
-  const accountValue = await getAccountValue();
+  const settings = await getSettingsRow(userId);
+  const accountValue = await getAccountValue(userId);
   const validation = validateTrade(
     { symbol, strategy, legs: riskLegs, credit, maxLoss },
     accountValue,
@@ -150,7 +154,7 @@ router.post("/trades", async (req, res): Promise<void> => {
   const openTrades = await db
     .select()
     .from(tradesTable)
-    .where(eq(tradesTable.status, "open"));
+    .where(and(eq(tradesTable.status, "open"), eq(tradesTable.userId, userId)));
   const openRisk = openTrades.reduce((s, t) => s + Math.max(0, t.maxLoss), 0);
   const projectedRisk = openRisk + maxLoss;
   const projectedPct = accountValue > 0 ? (projectedRisk / accountValue) * 100 : 0;
@@ -173,7 +177,7 @@ router.post("/trades", async (req, res): Promise<void> => {
   const [trade] = await db
     .insert(tradesTable)
     .values({
-      userId: await getLegacyOwnerUserId(),
+      userId,
       symbol,
       strategy,
       executionMode,
@@ -198,12 +202,13 @@ router.post("/trades", async (req, res): Promise<void> => {
 
 // Registered BEFORE "/trades/:id" so the literal "adjustments" segment is not
 // captured as an :id.
-router.get("/trades/adjustments", async (_req, res): Promise<void> => {
-  const settings = await getSettingsRow();
+router.get("/trades/adjustments", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const settings = await getSettingsRow(userId);
   const open = await db
     .select()
     .from(tradesTable)
-    .where(eq(tradesTable.status, "open"))
+    .where(and(eq(tradesTable.status, "open"), eq(tradesTable.userId, userId)))
     .orderBy(desc(tradesTable.ravishScore));
   const adjustments = open.map((t) => evaluateTradeAdjustment(t, settings));
   res.json(ListTradeAdjustmentsResponse.parse(adjustments));
@@ -217,7 +222,11 @@ router.get("/trades/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [trade] = await db.select().from(tradesTable).where(eq(tradesTable.id, id));
+  const userId = await getScopedUserId(req);
+  const [trade] = await db
+    .select()
+    .from(tradesTable)
+    .where(and(eq(tradesTable.id, id), eq(tradesTable.userId, userId)));
   if (!trade) {
     res.status(404).json({ error: "Trade not found" });
     return;
@@ -234,13 +243,17 @@ router.delete("/trades/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [existing] = await db.select().from(tradesTable).where(eq(tradesTable.id, id));
+  const userId = await getScopedUserId(req);
+  const [existing] = await db
+    .select()
+    .from(tradesTable)
+    .where(and(eq(tradesTable.id, id), eq(tradesTable.userId, userId)));
   if (!existing) {
     res.status(404).json({ error: "Trade not found" });
     return;
   }
 
-  const { trade } = await closeTradePosition(existing);
+  const { trade } = await closeTradePosition(existing, userId);
   res.json(CloseTradeResponse.parse(formatTrade(trade)));
 });
 
@@ -252,13 +265,17 @@ router.get("/trades/:id/monitor", async (req, res): Promise<void> => {
     return;
   }
 
-  const [trade] = await db.select().from(tradesTable).where(eq(tradesTable.id, id));
+  const userId = await getScopedUserId(req);
+  const [trade] = await db
+    .select()
+    .from(tradesTable)
+    .where(and(eq(tradesTable.id, id), eq(tradesTable.userId, userId)));
   if (!trade) {
     res.status(404).json({ error: "Trade not found" });
     return;
   }
 
-  const settings = await getSettingsRow();
+  const settings = await getSettingsRow(userId);
   const g = computeTradeGreeks(trade);
   const maxProfit = trade.maxProfit;
   const stopLoss = computeStopLoss(trade.credit, trade.maxLoss, settings.stopLossMultiplier);
@@ -300,13 +317,17 @@ router.get("/trades/:id/adjustment", async (req, res): Promise<void> => {
     return;
   }
 
-  const [trade] = await db.select().from(tradesTable).where(eq(tradesTable.id, id));
+  const userId = await getScopedUserId(req);
+  const [trade] = await db
+    .select()
+    .from(tradesTable)
+    .where(and(eq(tradesTable.id, id), eq(tradesTable.userId, userId)));
   if (!trade) {
     res.status(404).json({ error: "Trade not found" });
     return;
   }
 
-  const settings = await getSettingsRow();
+  const settings = await getSettingsRow(userId);
   res.json(GetTradeAdjustmentResponse.parse(evaluateTradeAdjustment(trade, settings)));
 });
 
@@ -321,13 +342,17 @@ router.post("/trades/:id/adjustment/stream", async (req, res): Promise<void> => 
     return;
   }
 
-  const [trade] = await db.select().from(tradesTable).where(eq(tradesTable.id, id));
+  const userId = await getScopedUserId(req);
+  const [trade] = await db
+    .select()
+    .from(tradesTable)
+    .where(and(eq(tradesTable.id, id), eq(tradesTable.userId, userId)));
   if (!trade) {
     res.status(404).json({ error: "Trade not found" });
     return;
   }
 
-  const settings = await getSettingsRow();
+  const settings = await getSettingsRow(userId);
   const adj = evaluateTradeAdjustment(trade, settings);
   const level = req.body?.level === "beginner" || req.body?.level === "advanced" ? req.body.level : undefined;
 

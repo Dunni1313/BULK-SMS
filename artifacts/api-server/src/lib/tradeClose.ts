@@ -4,10 +4,9 @@
 // the trigger.
 
 import { db, tradesTable, journalEntriesTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { computeTradeGreeks, getSettingsRow } from "./serverState.js";
 import { computeStopLoss } from "./risk.js";
-import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
 export interface ClosedTrade {
   trade: typeof tradesTable.$inferSelect;
@@ -19,12 +18,18 @@ export interface ClosedTrade {
 // Close one open/pending trade. `exitReasonOverride` lets the auto-adjustment loop
 // label the exit (e.g. "Auto de-risk"); when omitted the reason is derived from the
 // stop-loss / profit-target rules exactly as the manual close did.
+//
+// Phase 1, Sprint 7 — userId is an explicit parameter: the manual DELETE
+// /trades/:id route resolves the real authenticated user (or the legacy-owner
+// stand-in if not logged in); the auto-adjustment loop keeps passing the same
+// legacy-owner id it always has (its real per-user redesign is Sprint 8's job).
 export async function closeTradePosition(
   trade: typeof tradesTable.$inferSelect,
+  userId: string,
   exitReasonOverride?: string,
 ): Promise<ClosedTrade> {
   const g = computeTradeGreeks(trade);
-  const settings = await getSettingsRow();
+  const settings = await getSettingsRow(userId);
   const stopLoss = computeStopLoss(trade.credit, trade.maxLoss, settings.stopLossMultiplier);
   const target75 = trade.maxProfit * (settings.profitTarget75 / 100);
 
@@ -43,11 +48,10 @@ export async function closeTradePosition(
       currentPnl: g.unrealizedPnl,
       currentPnlPercent: g.unrealizedPnlPercent,
     })
-    .where(eq(tradesTable.id, trade.id))
+    .where(and(eq(tradesTable.id, trade.id), eq(tradesTable.userId, userId)))
     .returning();
 
   const pnl = g.unrealizedPnl;
-  const userId = await getLegacyOwnerUserId();
   await db.insert(journalEntriesTable).values({
     userId,
     tradeId: updated.id,

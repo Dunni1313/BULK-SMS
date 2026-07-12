@@ -1,13 +1,13 @@
 import { Router, type IRouter } from "express";
 import { db, scannerResultsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import {
   GetScannerResultsResponse,
   RunScannerResponse,
   GetTopOpportunitiesResponse,
   GetEarningsScanResponse,
 } from "@workspace/api-zod";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 import {
   UNIVERSE,
   UNIVERSE_SYMBOLS,
@@ -53,8 +53,11 @@ function quoteToRow(q: StrategyQuote, userId: string) {
 
 // Scan the universe through the active provider (mock or live), persisting the
 // accepted strategies and caching the health metrics for the health panel.
-async function scanAndPersist(overrides: { shortDelta?: number; defaultDte?: number } = {}) {
-  const settings = await getSettingsRow();
+async function scanAndPersist(
+  userId: string,
+  overrides: { shortDelta?: number; defaultDte?: number } = {},
+) {
+  const settings = await getSettingsRow(userId);
   const { quotes, health } = await runScan(
     {
       scannerMode: settings.scannerMode,
@@ -67,7 +70,6 @@ async function scanAndPersist(overrides: { shortDelta?: number; defaultDte?: num
     UNIVERSE_SYMBOLS,
   );
   setLastScanHealth(health);
-  const userId = await getLegacyOwnerUserId();
   return { rows: quotes.map((q) => quoteToRow(q, userId)), health };
 }
 
@@ -75,9 +77,11 @@ router.get("/scanner/results", async (req, res): Promise<void> => {
   const strategy = req.query.strategy as string | undefined;
   const limit = Number(req.query.limit) || 20;
 
+  const userId = await getScopedUserId(req);
   const results = await db
     .select()
     .from(scannerResultsTable)
+    .where(eq(scannerResultsTable.userId, userId))
     .orderBy(desc(scannerResultsTable.ravishScore))
     .limit(200);
 
@@ -97,9 +101,10 @@ router.post("/scanner/run", async (req, res): Promise<void> => {
   const shortDelta = req.body?.shortDelta != null ? Number(req.body.shortDelta) : undefined;
   const dte = req.body?.daysToExpiry != null ? Number(req.body.daysToExpiry) : undefined;
 
-  const { rows, health } = await scanAndPersist({ shortDelta, defaultDte: dte });
+  const userId = await getScopedUserId(req);
+  const { rows, health } = await scanAndPersist(userId, { shortDelta, defaultDte: dte });
 
-  await db.delete(scannerResultsTable);
+  await db.delete(scannerResultsTable).where(eq(scannerResultsTable.userId, userId));
   if (rows.length > 0) {
     await db.insert(scannerResultsTable).values(rows);
   }
@@ -113,23 +118,24 @@ router.post("/scanner/run", async (req, res): Promise<void> => {
   );
 });
 
-router.get("/scanner/top", async (_req, res): Promise<void> => {
+router.get("/scanner/top", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   let all = await db
     .select()
     .from(scannerResultsTable)
-    .where(eq(scannerResultsTable.status, "active"))
+    .where(and(eq(scannerResultsTable.status, "active"), eq(scannerResultsTable.userId, userId)))
     .orderBy(desc(scannerResultsTable.ravishScore))
     .limit(200);
 
   // Auto-seed on first load so the dashboard is never empty.
   if (all.length === 0) {
-    const { rows } = await scanAndPersist();
+    const { rows } = await scanAndPersist(userId);
     if (rows.length > 0) {
       await db.insert(scannerResultsTable).values(rows);
       all = await db
         .select()
         .from(scannerResultsTable)
-        .where(eq(scannerResultsTable.status, "active"))
+        .where(and(eq(scannerResultsTable.status, "active"), eq(scannerResultsTable.userId, userId)))
         .orderBy(desc(scannerResultsTable.ravishScore))
         .limit(200);
     }

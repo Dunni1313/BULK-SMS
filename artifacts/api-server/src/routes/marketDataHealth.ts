@@ -3,13 +3,15 @@ import { GetMarketDataHealthResponse } from "@workspace/api-zod";
 import { selectProvider } from "../lib/providers/index.js";
 import { getLastScanHealth } from "../lib/marketDataHealth.js";
 import { getSettingsRow } from "../lib/serverState.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
 // Market-data health: live provider/connection status merged with the metrics from
 // the most recent scan (contracts scanned, rejections, positive-EV trades found).
-router.get("/market-data/health", async (_req, res): Promise<void> => {
-  const settings = await getSettingsRow();
+router.get("/market-data/health", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const settings = await getSettingsRow(userId);
   const selection = selectProvider({
     scannerMode: settings.scannerMode,
     marketDataProvider: settings.marketDataProvider,

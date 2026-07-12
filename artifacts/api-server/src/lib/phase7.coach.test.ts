@@ -24,6 +24,8 @@ const harness = vi.hoisted(() => {
   return { dbRows: [] as Record<string, unknown>[] };
 });
 
+const TEST_USER_ID = "test-legacy-owner-id";
+
 // Mock @workspace/db with a chainable, awaitable query builder. Every method
 // returns the same chain; awaiting it resolves to the current `dbRows`. Tables are
 // benign column proxies so drizzle's eq()/desc() never throw on the (ignored)
@@ -275,7 +277,7 @@ describe("safety: every explicit /ai/chat coach mode is read-only (never execute
   it.each(MODES)("mode '%s' returns teaching/data text and never calls previewOptionOrder", async (mode) => {
     // A message that, on the keyword path, WOULD trigger an execution preview —
     // proving the explicit mode short-circuits before any execution branch.
-    const text = await generateAiResponse("review and submit the top trade now", { mode });
+    const text = await generateAiResponse(TEST_USER_ID, "review and submit the top trade now", { mode });
 
     expect(typeof text).toBe("string");
     expect(text.length).toBeGreaterThan(0);
@@ -289,7 +291,7 @@ describe("safety: every explicit /ai/chat coach mode is read-only (never execute
     harness.dbRows = [CANDIDATE];
     for (const mode of MODES) {
       vi.mocked(previewOptionOrder).mockClear();
-      await generateAiResponse("can I take this trade? submit it", { mode });
+      await generateAiResponse(TEST_USER_ID, "can I take this trade? submit it", { mode });
       expect(previewOptionOrder).not.toHaveBeenCalled();
     }
   });
@@ -299,7 +301,7 @@ describe("safety: every explicit /ai/chat coach mode is read-only (never execute
     // ('not called') are meaningful and not vacuously passing.
     harness.dbRows = [CANDIDATE];
     vi.mocked(previewOptionOrder).mockClear();
-    await generateAiResponse("review the top trade for me");
+    await generateAiResponse(TEST_USER_ID, "review the top trade for me");
     expect(previewOptionOrder).toHaveBeenCalledTimes(1);
   });
 });

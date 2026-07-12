@@ -7,7 +7,7 @@ import {
   tradesTable,
   journalEntriesTable,
 } from "@workspace/db";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import {
   ExplainTradeBody,
   TeachGreekBody,
@@ -42,7 +42,7 @@ import {
 import { canonicalQuote } from "../lib/execution.js";
 import { openSse } from "../lib/sse.js";
 import { scannerResultsTable } from "@workspace/db";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
@@ -63,13 +63,14 @@ type ResolvedExplanation =
 // CoachError (handled by the caller); validation failures are returned inline.
 async function resolveTradeExplanation(
   input: ExplainTradeInput,
+  userId: string,
 ): Promise<ResolvedExplanation> {
   const { scannerResultId, symbol, strategy } = input;
   if (scannerResultId != null) {
     const [row] = await db
       .select()
       .from(scannerResultsTable)
-      .where(eq(scannerResultsTable.id, scannerResultId))
+      .where(and(eq(scannerResultsTable.id, scannerResultId), eq(scannerResultsTable.userId, userId)))
       .limit(1);
     if (!row) return { ok: false, status: 404, error: "Scanner result not found" };
     const quote = canonicalQuote(row.symbol, row.strategy);
@@ -87,8 +88,8 @@ async function persistTradeExplanation(
   explanation: TradeExplanation,
   scId: number | null,
   narration: { text: string; source: "llm" | "template" },
+  userId: string,
 ): Promise<number> {
-  const userId = await getLegacyOwnerUserId();
   const [saved] = await db
     .insert(tradeExplanationsTable)
     .values({
@@ -126,14 +127,15 @@ router.post("/coach/explain-trade", async (req, res): Promise<void> => {
     return;
   }
   try {
-    const resolved = await resolveTradeExplanation(parsed.data);
+    const userId = await getScopedUserId(req);
+    const resolved = await resolveTradeExplanation(parsed.data, userId);
     if (!resolved.ok) {
       res.status(resolved.status).json({ error: resolved.error });
       return;
     }
     const { explanation, scId } = resolved;
     const narration = await narrateTradeExplanation(explanation);
-    const id = await persistTradeExplanation(explanation, scId, narration);
+    const id = await persistTradeExplanation(explanation, scId, narration, userId);
 
     res.json({
       id,
@@ -158,9 +160,10 @@ router.post("/coach/explain-trade/stream", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const userId = await getScopedUserId(req);
   let resolved: ResolvedExplanation;
   try {
-    resolved = await resolveTradeExplanation(parsed.data);
+    resolved = await resolveTradeExplanation(parsed.data, userId);
   } catch (err) {
     if (handleCoachError(err, res)) return;
     throw err;
@@ -183,7 +186,7 @@ router.post("/coach/explain-trade/stream", async (req, res): Promise<void> => {
     );
     let id: number | null = null;
     try {
-      id = await persistTradeExplanation(explanation, scId, narration);
+      id = await persistTradeExplanation(explanation, scId, narration, userId);
     } catch (err) {
       req.log.error({ err }, "failed to persist streamed trade explanation");
     }
@@ -205,11 +208,12 @@ router.post("/coach/teach-greek", async (req, res): Promise<void> => {
   }
   const { greek, symbol } = parsed.data;
   try {
+    const userId = await getScopedUserId(req);
     const lesson = teachGreek(greek as GreekName, symbol ?? "SPY");
     const narration = await narrateGreekLesson(lesson);
 
     await db.insert(aiLessonsTable).values({
-      userId: await getLegacyOwnerUserId(),
+      userId,
       kind: "greek",
       topic: lesson.greek,
       title: lesson.title,
@@ -248,6 +252,7 @@ router.post("/coach/teach-greek/stream", async (req, res): Promise<void> => {
 
   const sse = openSse(res);
   try {
+    const userId = await getScopedUserId(req);
     sse.send("meta", {
       lesson,
       source: llmAvailable() ? "llm" : "template",
@@ -258,7 +263,7 @@ router.post("/coach/teach-greek/stream", async (req, res): Promise<void> => {
     );
     try {
       await db.insert(aiLessonsTable).values({
-        userId: await getLegacyOwnerUserId(),
+        userId,
         kind: "greek",
         topic: lesson.greek,
         title: lesson.title,
@@ -308,9 +313,10 @@ router.post("/coach/quiz/grade", async (req, res): Promise<void> => {
   }
   const { quizId, answers } = parsed.data;
   try {
+    const userId = await getScopedUserId(req);
     const result = gradeQuiz(quizId, answers);
     await db.insert(greeksQuizResultsTable).values({
-      userId: await getLegacyOwnerUserId(),
+      userId,
       topic: result.topic,
       score: result.score,
       total: result.total,
@@ -357,10 +363,12 @@ function computeStreak(dayKeys: Set<string>, now: Date): number {
 
 // GET /coach/quiz/progress — recent attempts, best score per topic, overall
 // stats, plus motivational aggregates (improvement vs. first attempt, day streak).
-router.get("/coach/quiz/progress", async (_req, res): Promise<void> => {
+router.get("/coach/quiz/progress", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   const rows = await db
     .select()
     .from(greeksQuizResultsTable)
+    .where(eq(greeksQuizResultsTable.userId, userId))
     .orderBy(desc(greeksQuizResultsTable.createdAt))
     .limit(50);
 
@@ -398,6 +406,7 @@ router.get("/coach/quiz/progress", async (_req, res): Promise<void> => {
       createdAt: greeksQuizResultsTable.createdAt,
     })
     .from(greeksQuizResultsTable)
+    .where(eq(greeksQuizResultsTable.userId, userId))
     .orderBy(asc(greeksQuizResultsTable.createdAt));
 
   const firstPercent = history.length > 0 ? history[0].percent : 0;
@@ -426,11 +435,11 @@ type ResolvedReview =
 
 // Load a CLOSED trade and build its deterministic JournalReviewData. Shared by
 // the JSON and SSE journal-review endpoints. Closed-trade-only by design.
-async function resolveJournalReview(tradeId: number): Promise<ResolvedReview> {
+async function resolveJournalReview(tradeId: number, userId: string): Promise<ResolvedReview> {
   const [trade] = await db
     .select()
     .from(tradesTable)
-    .where(eq(tradesTable.id, tradeId))
+    .where(and(eq(tradesTable.id, tradeId), eq(tradesTable.userId, userId)))
     .limit(1);
   if (!trade) return { ok: false, status: 404, error: "Trade not found" };
   if (trade.status !== "closed") {
@@ -469,9 +478,10 @@ async function persistJournalReview(
   trade: typeof tradesTable.$inferSelect,
   data: JournalReviewData,
   review: { review: string; lessonLearned: string; source: "llm" | "template" },
+  userId: string,
 ): Promise<void> {
   await db.insert(aiLessonsTable).values({
-    userId: await getLegacyOwnerUserId(),
+    userId,
     kind: "journal_review",
     topic: `${trade.symbol} ${data.strategyLabel}`,
     title: `${trade.symbol} ${data.strategyLabel} — trade review`,
@@ -484,7 +494,7 @@ async function persistJournalReview(
   await db
     .update(journalEntriesTable)
     .set({ lessonLearned: review.lessonLearned })
-    .where(eq(journalEntriesTable.tradeId, trade.id));
+    .where(and(eq(journalEntriesTable.tradeId, trade.id), eq(journalEntriesTable.userId, userId)));
 }
 
 // POST /coach/journal-review — coach a CLOSED trade into a review + lesson learned.
@@ -494,7 +504,8 @@ router.post("/coach/journal-review", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const resolved = await resolveJournalReview(parsed.data.tradeId);
+  const userId = await getScopedUserId(req);
+  const resolved = await resolveJournalReview(parsed.data.tradeId, userId);
   if (!resolved.ok) {
     res.status(resolved.status).json({ error: resolved.error });
     return;
@@ -502,7 +513,7 @@ router.post("/coach/journal-review", async (req, res): Promise<void> => {
   const { trade, data } = resolved;
 
   const review = await narrateJournalReview(data);
-  await persistJournalReview(trade, data, review);
+  await persistJournalReview(trade, data, review, userId);
 
   res.json({
     tradeId: trade.id,
@@ -523,7 +534,8 @@ router.post("/coach/journal-review/stream", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const resolved = await resolveJournalReview(parsed.data.tradeId);
+  const userId = await getScopedUserId(req);
+  const resolved = await resolveJournalReview(parsed.data.tradeId, userId);
   if (!resolved.ok) {
     res.status(resolved.status).json({ error: resolved.error });
     return;
@@ -543,7 +555,7 @@ router.post("/coach/journal-review/stream", async (req, res): Promise<void> => {
       sse.send("delta", { text: t }),
     );
     try {
-      await persistJournalReview(trade, data, review);
+      await persistJournalReview(trade, data, review, userId);
     } catch (err) {
       req.log.error({ err }, "failed to persist streamed journal review");
     }
@@ -562,10 +574,12 @@ router.post("/coach/journal-review/stream", async (req, res): Promise<void> => {
 });
 
 // GET /coach/lessons — recent saved coaching output.
-router.get("/coach/lessons", async (_req, res): Promise<void> => {
+router.get("/coach/lessons", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   const rows = await db
     .select()
     .from(aiLessonsTable)
+    .where(eq(aiLessonsTable.userId, userId))
     .orderBy(desc(aiLessonsTable.createdAt))
     .limit(50);
   res.json(

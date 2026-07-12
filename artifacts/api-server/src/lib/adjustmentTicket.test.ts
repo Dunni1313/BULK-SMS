@@ -65,6 +65,10 @@ vi.mock("drizzle-orm", async (importOriginal) => {
     ...actual,
     eq: (_col: unknown, val: unknown) => ({ __op: "eq", val }),
     inArray: (_col: unknown, vals: unknown) => ({ __op: "inArray", vals }),
+    and: (...conds: Array<{ __op: string; val?: unknown; vals?: unknown }>) => ({
+      __op: "and",
+      conds,
+    }),
   };
 });
 
@@ -72,12 +76,29 @@ vi.mock("@workspace/db", () => {
   const db = {
     select: () => ({
       from: () => ({
-        where: (cond: { __op: string; val?: unknown }) => {
+        where: (cond: {
+          __op: string;
+          val?: unknown;
+          conds?: Array<{ __op: string; val?: unknown }>;
+        }) => {
           if (cond.__op === "eq") {
             const t = state.tradeById[cond.val as number];
             return Promise.resolve(t ? [t] : []);
           }
           if (cond.__op === "inArray") return Promise.resolve(state.committedTrades);
+          if (cond.__op === "and") {
+            // Sprint 7 wraps every lookup as and(<primary condition>, eq(userId)) —
+            // the primary condition (inArray membership, or an id eq) still fully
+            // determines which fixture to return; userId scoping is covered by the
+            // dedicated tenant-isolation suite, not this ticket-assembly test.
+            const inArrayCond = cond.conds?.find((c) => c.__op === "inArray");
+            if (inArrayCond) return Promise.resolve(state.committedTrades);
+            const idCond = cond.conds?.find((c) => c.__op === "eq");
+            if (idCond) {
+              const t = state.tradeById[idCond.val as number];
+              return Promise.resolve(t ? [t] : []);
+            }
+          }
           return Promise.resolve([]);
         },
       }),
@@ -174,19 +195,21 @@ vi.mock("./eventRisk.js", () => ({
 
 // Close helper is only reached after a successful open; none of these tests get
 // that far, but stub it so nothing touches a real DB if the path changes.
-const closeSpy = vi.fn(async (trade: MockTrade, _reason: string) => ({
+const closeSpy = vi.fn(async (trade: MockTrade, _userId: string, _reason?: string) => ({
   trade: { ...trade, status: "closed" },
   exitReason: "test",
   realizedPnl: 0,
   realizedPnlPercent: 0,
 }));
 vi.mock("./tradeClose.js", () => ({
-  closeTradePosition: (...args: [MockTrade, string]) => closeSpy(...args),
+  closeTradePosition: (...args: [MockTrade, string, string?]) => closeSpy(...args),
 }));
 
 // Import AFTER the mocks are registered.
 const { resolveAdjustmentTarget, buildAdjustmentTicket, submitAdjustmentOrder, TicketError } =
   await import("./execution.js");
+
+const TEST_USER_ID = "test-legacy-owner-id";
 
 const baseSettings = {
   executionMode: "semi_auto",
@@ -278,22 +301,22 @@ describe("buildAdjustmentTicket — rejection paths", () => {
     state.tradeById[1] = makeTrade();
     state.adjById[1] = { action: "hold", actionLabel: "Hold", rationale: "Healthy." };
 
-    await expect(buildAdjustmentTicket({ tradeId: 1 })).rejects.toMatchObject({
+    await expect(buildAdjustmentTicket({ tradeId: 1 }, TEST_USER_ID)).rejects.toMatchObject({
       status: 409,
     });
-    await expect(buildAdjustmentTicket({ tradeId: 1 })).rejects.toThrow(/not a roll or convert/i);
+    await expect(buildAdjustmentTicket({ tradeId: 1 }, TEST_USER_ID)).rejects.toThrow(/not a roll or convert/i);
   });
 
   it("rejects a closed (non-open) source position", async () => {
     state.tradeById[1] = makeTrade({ status: "closed" });
     state.adjById[1] = rollAdj();
 
-    await expect(buildAdjustmentTicket({ tradeId: 1 })).rejects.toMatchObject({ status: 409 });
-    await expect(buildAdjustmentTicket({ tradeId: 1 })).rejects.toThrow(/Only open positions/i);
+    await expect(buildAdjustmentTicket({ tradeId: 1 }, TEST_USER_ID)).rejects.toMatchObject({ status: 409 });
+    await expect(buildAdjustmentTicket({ tradeId: 1 }, TEST_USER_ID)).rejects.toThrow(/Only open positions/i);
   });
 
   it("rejects when the trade does not exist (404)", async () => {
-    await expect(buildAdjustmentTicket({ tradeId: 999 })).rejects.toMatchObject({ status: 404 });
+    await expect(buildAdjustmentTicket({ tradeId: 999 }, TEST_USER_ID)).rejects.toMatchObject({ status: 404 });
   });
 });
 
@@ -303,7 +326,7 @@ describe("buildAdjustmentTicket — roll context + risk exclusion", () => {
     state.adjById[1] = rollAdj();
     state.committedTrades = [state.tradeById[1]!];
 
-    const ticket = await buildAdjustmentTicket({ tradeId: 1 });
+    const ticket = await buildAdjustmentTicket({ tradeId: 1 }, TEST_USER_ID);
 
     expect(ticket.adjustment).toMatchObject({
       sourceTradeId: 1,
@@ -325,7 +348,7 @@ describe("buildAdjustmentTicket — roll context + risk exclusion", () => {
     state.committedTrades = [source, other2, other3];
     state.accountValue = 100000;
 
-    const ticket = await buildAdjustmentTicket({ tradeId: 1 });
+    const ticket = await buildAdjustmentTicket({ tradeId: 1 }, TEST_USER_ID);
 
     // Existing open risk excluding the source = 3000 + 2000 = 5000 → 5% of 100k.
     // If the source's 5000 were (incorrectly) counted, this would be 10%.
@@ -338,10 +361,10 @@ describe("submitAdjustmentOrder — guards", () => {
   it("requires explicit confirmation (rejects confirm:false before any lookup)", async () => {
     // No trade configured — proves the confirm guard short-circuits first.
     await expect(
-      submitAdjustmentOrder({ tradeId: 1, confirm: false }),
+      submitAdjustmentOrder({ tradeId: 1, confirm: false }, TEST_USER_ID),
     ).rejects.toMatchObject({ status: 400 });
     await expect(
-      submitAdjustmentOrder({ tradeId: 1, confirm: false }),
+      submitAdjustmentOrder({ tradeId: 1, confirm: false }, TEST_USER_ID),
     ).rejects.toThrow(/confirmation is required/i);
     expect(closeSpy).not.toHaveBeenCalled();
   });
@@ -353,10 +376,10 @@ describe("submitAdjustmentOrder — guards", () => {
     state.committedTrades = [state.tradeById[1]!];
 
     await expect(
-      submitAdjustmentOrder({ tradeId: 1, confirm: true }),
+      submitAdjustmentOrder({ tradeId: 1, confirm: true }, TEST_USER_ID),
     ).rejects.toMatchObject({ status: 409 });
     await expect(
-      submitAdjustmentOrder({ tradeId: 1, confirm: true }),
+      submitAdjustmentOrder({ tradeId: 1, confirm: true }, TEST_USER_ID),
     ).rejects.toThrow(/Manual mode is scanner-only/i);
     // The source position is never closed when submission is blocked.
     expect(closeSpy).not.toHaveBeenCalled();
@@ -368,7 +391,7 @@ describe("submitAdjustmentOrder — guards", () => {
     state.adjById[1] = rollAdj();
     state.committedTrades = [state.tradeById[1]!];
 
-    await expect(submitAdjustmentOrder({ tradeId: 1, confirm: true })).rejects.toBeInstanceOf(
+    await expect(submitAdjustmentOrder({ tradeId: 1, confirm: true }, TEST_USER_ID)).rejects.toBeInstanceOf(
       TicketError,
     );
   });

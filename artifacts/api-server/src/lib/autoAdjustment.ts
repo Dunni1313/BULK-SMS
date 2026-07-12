@@ -13,12 +13,13 @@
 // close so flipping the switch off halts the loop in real time.
 
 import { db, tradesTable, autoExecutionLogTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { getSettingsRow } from "./serverState.js";
 import { evaluateTradeAdjustment, AUTO_ACTIONABLE, type AdjustmentAction } from "./adjustment.js";
 import { closeTradePosition } from "./tradeClose.js";
 import { logger } from "./logger.js";
+import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
 // ─── Pure arm gate (no I/O — unit-tested in phase8.adjustment.test.ts) ────────
 
@@ -118,7 +119,13 @@ export async function runAutoAdjustmentCycle(): Promise<AutoAdjustCycleResult> {
 }
 
 async function runAdjustLocked(runId: string, ranAt: string): Promise<AutoAdjustCycleResult> {
-  const settings0 = await getSettingsRow();
+  // Phase 1, Sprint 7 — the scheduler has no request/session context, so it keeps
+  // resolving the same legacy-owner id it always implicitly operated as; making
+  // that resolution explicit here (rather than relying on serverState.ts's old
+  // default) is required now that userId is a mandatory parameter everywhere else.
+  // The scheduler's real per-user redesign is Sprint 8's job (approved plan §4.4).
+  const userId = await getLegacyOwnerUserId();
+  const settings0 = await getSettingsRow(userId);
   const gate0 = autoAdjustAllowed(settings0.executionMode, settings0.autoExecuteEnabled, settings0.autoAdjustEnabled);
   if (!gate0.allowed) {
     const blockRecord: AutoAdjustDecisionRecord = {
@@ -141,7 +148,7 @@ async function runAdjustLocked(runId: string, ranAt: string): Promise<AutoAdjust
   const open = await db
     .select()
     .from(tradesTable)
-    .where(eq(tradesTable.status, "open"))
+    .where(and(eq(tradesTable.status, "open"), eq(tradesTable.userId, userId)))
     .orderBy(desc(tradesTable.ravishScore));
 
   const decisions: AutoAdjustDecisionRecord[] = [];
@@ -160,7 +167,7 @@ async function runAdjustLocked(runId: string, ranAt: string): Promise<AutoAdjust
   for (const t of open) {
     // Re-read the arm gate against LIVE state before every action so the operator
     // flipping the switch off halts the loop immediately.
-    const live = await getSettingsRow();
+    const live = await getSettingsRow(userId);
     const gate = autoAdjustAllowed(live.executionMode, live.autoExecuteEnabled, live.autoAdjustEnabled);
     if (!gate.allowed) {
       await record(null, {
@@ -193,7 +200,10 @@ async function runAdjustLocked(runId: string, ranAt: string): Promise<AutoAdjust
 
     // Confirm the trade is still open right before closing (a manual close may have
     // landed since the open-list snapshot).
-    const [fresh] = await db.select().from(tradesTable).where(eq(tradesTable.id, t.id));
+    const [fresh] = await db
+      .select()
+      .from(tradesTable)
+      .where(and(eq(tradesTable.id, t.id), eq(tradesTable.userId, userId)));
     if (!fresh || fresh.status !== "open") {
       skipped += 1;
       await record(t, {
@@ -209,7 +219,7 @@ async function runAdjustLocked(runId: string, ranAt: string): Promise<AutoAdjust
     }
 
     try {
-      const closed = await closeTradePosition(fresh, exitReasonFor(adj.action));
+      const closed = await closeTradePosition(fresh, userId, exitReasonFor(adj.action));
       executed += 1;
       await record(t, {
         symbol: t.symbol,

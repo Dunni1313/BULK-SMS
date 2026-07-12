@@ -12,7 +12,7 @@ import {
   getLastLiveFetch,
   getFundamentalsProviderStatuses,
 } from "../lib/fundamentals.js";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
@@ -51,8 +51,8 @@ export async function getOrCreateSettings(userId: string) {
   return created;
 }
 
-router.get("/settings", async (_req, res): Promise<void> => {
-  const userId = await getLegacyOwnerUserId();
+router.get("/settings", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   const settings = await getOrCreateSettings(userId);
   // fundamentalsConnected reflects whether a live provider is actually usable
   // (selected provider + matching API key present), never a stale stored value.
@@ -72,7 +72,7 @@ router.patch("/settings", async (req, res): Promise<void> => {
     return;
   }
 
-  const userId = await getLegacyOwnerUserId();
+  const userId = await getScopedUserId(req);
   await getOrCreateSettings(userId);
 
   const [updated] = await db
@@ -93,8 +93,8 @@ router.patch("/settings", async (req, res): Promise<void> => {
 // Live-provider status surface: the most recent rate-limit/outage per live
 // fundamentals provider, so operators see degradation at a glance instead of
 // discovering it one symbol at a time. Observability only — never mutates state.
-router.get("/fundamentals/provider-status", async (_req, res): Promise<void> => {
-  const userId = await getLegacyOwnerUserId();
+router.get("/fundamentals/provider-status", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   const settings = await getOrCreateSettings(userId);
   res.json(
     GetFundamentalsProviderStatusResponse.parse({

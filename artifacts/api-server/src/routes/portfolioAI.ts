@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, dailyReportsTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import {
   GetPortfolioHealthResponse,
   GetMarketBriefingResponse,
@@ -29,7 +29,7 @@ import {
   llmAvailable,
 } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
@@ -41,8 +41,9 @@ function briefingFallback(b: ReturnType<typeof buildMarketBriefing>): string {
   return `${b.headline} ${b.ivEnvironment}${cat}`;
 }
 
-router.get("/portfolio/health", async (_req, res): Promise<void> => {
-  const report = await assembleDailyReport();
+router.get("/portfolio/health", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const report = await assembleDailyReport(userId);
   res.json(GetPortfolioHealthResponse.parse(report.health));
 });
 
@@ -111,15 +112,16 @@ function rowToReport(row: typeof dailyReportsTable.$inferSelect): DailyReport & 
   };
 }
 
-router.post("/reports", async (_req, res): Promise<void> => {
-  const report = await assembleDailyReport();
+router.post("/reports", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const report = await assembleDailyReport(userId);
   const fallback = briefingFallback(report.market);
   const n = await narrateMarketBriefing(report.market, fallback);
 
   const [row] = await db
     .insert(dailyReportsTable)
     .values({
-      userId: await getLegacyOwnerUserId(),
+      userId,
       reportDate: report.date,
       healthScore: report.health.health.score,
       healthLabel: report.health.health.label,
@@ -147,9 +149,11 @@ router.post("/reports", async (_req, res): Promise<void> => {
 
 router.get("/reports", async (req, res): Promise<void> => {
   const limit = Math.min(Number(req.query.limit) || 30, 100);
+  const userId = await getScopedUserId(req);
   const rows = await db
     .select()
     .from(dailyReportsTable)
+    .where(eq(dailyReportsTable.userId, userId))
     .orderBy(desc(dailyReportsTable.createdAt))
     .limit(limit);
   res.json(
@@ -174,8 +178,12 @@ router.get("/reports", async (req, res): Promise<void> => {
 
 // Bulk-clear the entire daily report history in one step. Returns the full
 // deleted rows so the client can offer a short-lived "Undo" (restore) action.
-router.delete("/reports", async (_req, res): Promise<void> => {
-  const rows = await db.delete(dailyReportsTable).returning();
+router.delete("/reports", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const rows = await db
+    .delete(dailyReportsTable)
+    .where(eq(dailyReportsTable.userId, userId))
+    .returning();
   res.json(
     ClearDailyReportsResponse.parse({
       deleted: rows.length,
@@ -212,7 +220,7 @@ router.post("/reports/restore", async (req, res): Promise<void> => {
     res.json(RestoreDailyReportsResponse.parse({ restored: 0 }));
     return;
   }
-  const userId = await getLegacyOwnerUserId();
+  const userId = await getScopedUserId(req);
   await db.insert(dailyReportsTable).values(
     reports.map((r) => ({
       userId,
@@ -248,8 +256,15 @@ router.post("/reports/compare-narration", async (req, res): Promise<void> => {
     return;
   }
 
-  const [rowA] = await db.select().from(dailyReportsTable).where(eq(dailyReportsTable.id, fromId));
-  const [rowB] = await db.select().from(dailyReportsTable).where(eq(dailyReportsTable.id, toId));
+  const userId = await getScopedUserId(req);
+  const [rowA] = await db
+    .select()
+    .from(dailyReportsTable)
+    .where(and(eq(dailyReportsTable.id, fromId), eq(dailyReportsTable.userId, userId)));
+  const [rowB] = await db
+    .select()
+    .from(dailyReportsTable)
+    .where(and(eq(dailyReportsTable.id, toId), eq(dailyReportsTable.userId, userId)));
   if (!rowA || !rowB) {
     res.status(404).json({ error: "One or both reports not found" });
     return;
@@ -283,8 +298,15 @@ router.post("/reports/compare-narration/stream", async (req, res): Promise<void>
     return;
   }
 
-  const [rowA] = await db.select().from(dailyReportsTable).where(eq(dailyReportsTable.id, fromId));
-  const [rowB] = await db.select().from(dailyReportsTable).where(eq(dailyReportsTable.id, toId));
+  const userId = await getScopedUserId(req);
+  const [rowA] = await db
+    .select()
+    .from(dailyReportsTable)
+    .where(and(eq(dailyReportsTable.id, fromId), eq(dailyReportsTable.userId, userId)));
+  const [rowB] = await db
+    .select()
+    .from(dailyReportsTable)
+    .where(and(eq(dailyReportsTable.id, toId), eq(dailyReportsTable.userId, userId)));
   if (!rowA || !rowB) {
     res.status(404).json({ error: "One or both reports not found" });
     return;
@@ -332,7 +354,11 @@ router.get("/reports/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid report id" });
     return;
   }
-  const [row] = await db.select().from(dailyReportsTable).where(eq(dailyReportsTable.id, id));
+  const userId = await getScopedUserId(req);
+  const [row] = await db
+    .select()
+    .from(dailyReportsTable)
+    .where(and(eq(dailyReportsTable.id, id), eq(dailyReportsTable.userId, userId)));
   if (!row) {
     res.status(404).json({ error: "Report not found" });
     return;
@@ -346,9 +372,10 @@ router.delete("/reports/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid report id" });
     return;
   }
+  const userId = await getScopedUserId(req);
   const [row] = await db
     .delete(dailyReportsTable)
-    .where(eq(dailyReportsTable.id, id))
+    .where(and(eq(dailyReportsTable.id, id), eq(dailyReportsTable.userId, userId)))
     .returning({ id: dailyReportsTable.id });
   if (!row) {
     res.status(404).json({ error: "Report not found" });

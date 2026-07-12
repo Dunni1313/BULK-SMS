@@ -14,6 +14,7 @@ import {
   TicketError,
   type ExecutionTicket,
 } from "../lib/execution.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
@@ -38,12 +39,13 @@ router.post("/execution/preview", async (req, res): Promise<void> => {
     return;
   }
   try {
+    const userId = await getScopedUserId(req);
     const ticket = await previewOptionOrder({
       scannerResultId: parsed.data.scannerResultId ?? null,
       symbol: parsed.data.symbol ?? null,
       strategy: parsed.data.strategy ?? null,
       quantity: parsed.data.quantity,
-    });
+    }, userId);
     res.json(PreviewExecutionResponse.parse(publicTicket(ticket)));
   } catch (err) {
     if (err instanceof TicketError) {
@@ -62,13 +64,14 @@ router.post("/execution/submit", async (req, res): Promise<void> => {
     return;
   }
   try {
+    const userId = await getScopedUserId(req);
     const result = await submitOptionOrder({
       scannerResultId: parsed.data.scannerResultId ?? null,
       symbol: parsed.data.symbol ?? null,
       strategy: parsed.data.strategy ?? null,
       quantity: parsed.data.quantity,
       confirm: parsed.data.confirm,
-    });
+    }, userId);
     res.status(201).json({
       orderId: result.orderId,
       status: result.status,
@@ -95,10 +98,11 @@ router.post("/execution/adjustment/preview", async (req, res): Promise<void> => 
     return;
   }
   try {
+    const userId = await getScopedUserId(req);
     const ticket = await previewAdjustmentOrder({
       tradeId: parsed.data.tradeId,
       quantity: parsed.data.quantity ?? null,
-    });
+    }, userId);
     res.json(PreviewExecutionResponse.parse(publicTicket(ticket)));
   } catch (err) {
     if (err instanceof TicketError) {
@@ -117,11 +121,12 @@ router.post("/execution/adjustment/submit", async (req, res): Promise<void> => {
     return;
   }
   try {
+    const userId = await getScopedUserId(req);
     const result = await submitAdjustmentOrder({
       tradeId: parsed.data.tradeId,
       quantity: parsed.data.quantity ?? null,
       confirm: parsed.data.confirm,
-    });
+    }, userId);
     res.status(201).json({
       orderId: result.orderId,
       status: result.status,

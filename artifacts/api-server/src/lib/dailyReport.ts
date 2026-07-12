@@ -7,7 +7,7 @@
 // every number originates in a deterministic engine.
 
 import { db, tradesTable, scannerResultsTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import {
   computeTradeGreeks,
   ensureSeedTrades,
@@ -100,12 +100,12 @@ function round2(x: number): number {
 
 // Build everything except the LLM prose. The route layer adds the narrated
 // briefing text on top (routed through coachLLM.narrate for the disclaimer).
-export async function assembleDailyReport(now: number = Date.now()): Promise<DailyReport> {
-  await ensureSeedTrades();
+export async function assembleDailyReport(userId: string, now: number = Date.now()): Promise<DailyReport> {
+  await ensureSeedTrades(userId);
   const [trades, settings, accountValue] = await Promise.all([
-    db.select().from(tradesTable).where(eq(tradesTable.status, "open")),
-    getSettingsRow(),
-    getAccountValue(),
+    db.select().from(tradesTable).where(and(eq(tradesTable.status, "open"), eq(tradesTable.userId, userId))),
+    getSettingsRow(userId),
+    getAccountValue(userId),
   ]);
 
   // Aggregate Greeks + theta.
@@ -206,6 +206,7 @@ export async function assembleDailyReport(now: number = Date.now()): Promise<Dai
   const scanRows = await db
     .select()
     .from(scannerResultsTable)
+    .where(eq(scannerResultsTable.userId, userId))
     .orderBy(desc(scannerResultsTable.ravishScore))
     .limit(5);
   const opportunities: ReportOpportunity[] = scanRows.map((r) => ({

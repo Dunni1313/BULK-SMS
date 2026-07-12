@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, tradesTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   GetPortfolioPositionsResponse,
   GetPortfolioGreeksResponse,
@@ -19,12 +19,16 @@ import {
   getSettingsRow,
   type StoredLeg,
 } from "../lib/serverState.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
-async function openTrades() {
-  await ensureSeedTrades();
-  return db.select().from(tradesTable).where(eq(tradesTable.status, "open"));
+async function openTrades(userId: string) {
+  await ensureSeedTrades(userId);
+  return db
+    .select()
+    .from(tradesTable)
+    .where(and(eq(tradesTable.status, "open"), eq(tradesTable.userId, userId)));
 }
 
 function daysUntil(dateStr: string | null): number {
@@ -33,8 +37,9 @@ function daysUntil(dateStr: string | null): number {
   return Math.max(1, Math.round(ms / (24 * 60 * 60 * 1000)));
 }
 
-router.get("/portfolio/positions", async (_req, res): Promise<void> => {
-  const trades = await openTrades();
+router.get("/portfolio/positions", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const trades = await openTrades(userId);
   const snapCache = new Map<string, ReturnType<typeof getSnapshot>>();
 
   const positions = trades.map((t) => {
@@ -79,8 +84,9 @@ router.get("/portfolio/positions", async (_req, res): Promise<void> => {
   res.json(GetPortfolioPositionsResponse.parse(positions));
 });
 
-router.get("/portfolio/greeks", async (_req, res): Promise<void> => {
-  const trades = await openTrades();
+router.get("/portfolio/greeks", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const trades = await openTrades(userId);
 
   let totalDelta = 0;
   let totalTheta = 0;
@@ -155,9 +161,10 @@ router.get("/portfolio/greeks", async (_req, res): Promise<void> => {
   );
 });
 
-router.get("/portfolio/summary", async (_req, res): Promise<void> => {
-  const trades = await openTrades();
-  const accountValue = await getAccountValue();
+router.get("/portfolio/summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const trades = await openTrades(userId);
+  const accountValue = await getAccountValue(userId);
 
   let unrealized = 0;
   let riskDollars = 0;
@@ -183,10 +190,11 @@ router.get("/portfolio/summary", async (_req, res): Promise<void> => {
   );
 });
 
-router.get("/portfolio/risk", async (_req, res): Promise<void> => {
-  const trades = await openTrades();
-  const accountValue = await getAccountValue();
-  const settings = await getSettingsRow();
+router.get("/portfolio/risk", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const trades = await openTrades(userId);
+  const accountValue = await getAccountValue(userId);
+  const settings = await getSettingsRow(userId);
 
   const status = computePortfolioRisk(
     trades.map((t) => ({
@@ -211,8 +219,9 @@ router.get("/portfolio/risk", async (_req, res): Promise<void> => {
 });
 
 // Theta income across daily/weekly/monthly/annualized horizons, with breakdowns.
-router.get("/portfolio/theta", async (_req, res): Promise<void> => {
-  const trades = await openTrades();
+router.get("/portfolio/theta", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const trades = await openTrades(userId);
   const positions = trades.map((t) => ({
     symbol: t.symbol,
     strategy: t.strategy,

@@ -7,7 +7,7 @@
 // credentials are configured. It never auto-trades and never bypasses risk checks.
 
 import { db, tradesTable, journalEntriesTable } from "@workspace/db";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
   getSnapshot,
@@ -39,7 +39,6 @@ import {
   type AdjustmentAction,
 } from "./adjustment.js";
 import { closeTradePosition } from "./tradeClose.js";
-import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
 const ALPACA_ORDERS_URL = "https://paper-api.alpaca.markets/v2/orders";
 
@@ -465,7 +464,7 @@ export class TicketError extends Error {
 }
 
 // Resolve the candidate, scale by quantity, build the order, and validate.
-export async function buildTicket(input: TicketInput): Promise<ExecutionTicket> {
+export async function buildTicket(input: TicketInput, userId: string): Promise<ExecutionTicket> {
   const qty = Math.max(1, Math.floor(input.quantity || 1));
 
   let symbol = input.symbol ?? null;
@@ -477,7 +476,7 @@ export async function buildTicket(input: TicketInput): Promise<ExecutionTicket> 
     const [row] = await db
       .select()
       .from(scannerResultsTable)
-      .where(eq(scannerResultsTable.id, scannerResultId));
+      .where(and(eq(scannerResultsTable.id, scannerResultId), eq(scannerResultsTable.userId, userId)));
     if (!row) throw new TicketError("Scanner result not found", 404);
     symbol = row.symbol;
     strategy = row.strategy;
@@ -490,7 +489,7 @@ export async function buildTicket(input: TicketInput): Promise<ExecutionTicket> 
   const quote = canonicalQuote(symbol, strategy);
   if (!quote) throw new TicketError(`Unable to build a ${strategy} quote for ${symbol}`, 400);
 
-  return assembleTicketFromQuote(quote, qty, { scannerResultId });
+  return assembleTicketFromQuote(quote, qty, userId, { scannerResultId });
 }
 
 // Shared ticket assembly: scale a 1-lot canonical quote by quantity, build the
@@ -501,6 +500,7 @@ export async function buildTicket(input: TicketInput): Promise<ExecutionTicket> 
 async function assembleTicketFromQuote(
   quote: StrategyQuote,
   quantity: number,
+  userId: string,
   opts: {
     scannerResultId?: number | null;
     excludeTradeId?: number | null;
@@ -531,18 +531,20 @@ async function assembleTicketFromQuote(
   // Recompute max loss from the scaled legs so multi-lot risk is sized correctly.
   const sizedMaxLoss = maxLossFromLegs(riskLegs, netCredit) || maxLoss;
 
-  const settingsRow = await getSettingsRow();
-  const accountValue = await getAccountValue();
+  const settingsRow = await getSettingsRow(userId);
+  const accountValue = await getAccountValue(userId);
 
   // Count both filled (open) and already-submitted-but-unfilled (pending) trades
   // toward the portfolio cap. Submitted orders persist as "pending", so excluding
   // them would let sequential submits stack risk past the cap before any fill.
   // A roll/convert excludes its source position, which is closed on submit, so the
-  // new structure's risk replaces (not stacks on top of) the old.
+  // new structure's risk replaces (not stacks on top of) the old. Scoped to this
+  // user's own trades only (Sprint 7) — another user's positions must never count
+  // against this user's portfolio-risk cap.
   const committedTrades = await db
     .select()
     .from(tradesTable)
-    .where(inArray(tradesTable.status, ["open", "pending"]));
+    .where(and(inArray(tradesTable.status, ["open", "pending"]), eq(tradesTable.userId, userId)));
   const openRiskDollars = committedTrades
     .filter((t) => excludeTradeId == null || t.id !== excludeTradeId)
     .reduce((s, t) => s + Math.max(0, t.maxLoss), 0);
@@ -628,8 +630,8 @@ async function assembleTicketFromQuote(
   } as ExecutionTicket & { _scannerResultId: number | null };
 }
 
-export async function previewOptionOrder(input: TicketInput): Promise<ExecutionTicket> {
-  return buildTicket(input);
+export async function previewOptionOrder(input: TicketInput, userId: string): Promise<ExecutionTicket> {
+  return buildTicket(input, userId);
 }
 
 // ─── Roll / convert tickets (Task #22) ───────────────────────────────────────
@@ -705,14 +707,18 @@ export interface AdjustmentTicketInput {
 // roll or convert.
 export async function buildAdjustmentTicket(
   input: AdjustmentTicketInput,
+  userId: string,
 ): Promise<ExecutionTicket & { _scannerResultId: number | null }> {
-  const [trade] = await db.select().from(tradesTable).where(eq(tradesTable.id, input.tradeId));
+  const [trade] = await db
+    .select()
+    .from(tradesTable)
+    .where(and(eq(tradesTable.id, input.tradeId), eq(tradesTable.userId, userId)));
   if (!trade) throw new TicketError("Trade not found", 404);
   if (trade.status !== "open") {
     throw new TicketError("Only open positions can be rolled or converted", 409);
   }
 
-  const settingsRow = await getSettingsRow();
+  const settingsRow = await getSettingsRow(userId);
   const adj = evaluateTradeAdjustment(trade, settingsRow);
   if (!ROLLABLE_ACTIONS.has(adj.action)) {
     throw new TicketError(
@@ -806,7 +812,7 @@ export async function buildAdjustmentTicket(
     netCashflow,
   };
 
-  return assembleTicketFromQuote(quote, qty, {
+  return assembleTicketFromQuote(quote, qty, userId, {
     excludeTradeId: trade.id,
     adjustment,
   });
@@ -814,8 +820,9 @@ export async function buildAdjustmentTicket(
 
 export async function previewAdjustmentOrder(
   input: AdjustmentTicketInput,
+  userId: string,
 ): Promise<ExecutionTicket> {
-  return buildAdjustmentTicket(input);
+  return buildAdjustmentTicket(input, userId);
 }
 
 export interface AdjustmentSubmitInput {
@@ -843,15 +850,19 @@ export interface AdjustmentSubmitOutput extends SubmitOutput {
 // portfolio risk, so it modeled the post-roll risk picture, and this is PAPER/MOCK.
 export async function submitAdjustmentOrder(
   input: AdjustmentSubmitInput,
+  userId: string,
 ): Promise<AdjustmentSubmitOutput> {
   if (!input.confirm) {
     throw new TicketError("Explicit confirmation is required to submit an order", 400);
   }
 
-  const ticket = await buildAdjustmentTicket({
-    tradeId: input.tradeId,
-    quantity: input.quantity,
-  });
+  const ticket = await buildAdjustmentTicket(
+    {
+      tradeId: input.tradeId,
+      quantity: input.quantity,
+    },
+    userId,
+  );
   const adjustment = ticket.adjustment;
   if (!adjustment) {
     throw new TicketError("This position no longer has a roll/convert recommendation", 409);
@@ -874,7 +885,7 @@ export async function submitAdjustmentOrder(
   const [existing] = await db
     .select()
     .from(tradesTable)
-    .where(eq(tradesTable.id, adjustment.sourceTradeId));
+    .where(and(eq(tradesTable.id, adjustment.sourceTradeId), eq(tradesTable.userId, userId)));
   if (!existing) throw new TicketError("The position to roll no longer exists", 404);
   if (existing.status !== "open") {
     throw new TicketError("The position to roll is no longer open", 409);
@@ -884,7 +895,7 @@ export async function submitAdjustmentOrder(
     ticket.executionMode === "full_auto" ? "full_auto" : "semi_auto";
 
   // 1. Open the replacement first. If this throws, the source remains open.
-  const result = await executeValidatedTicket(ticket, source);
+  const result = await executeValidatedTicket(ticket, source, userId);
 
   // 2. Close the source. If this fails, roll back the trade we just opened so we
   //    never end up with the new structure orphaned from a still-open source.
@@ -894,12 +905,15 @@ export async function submitAdjustmentOrder(
       : `Rolled to a new ${strategyLabel(adjustment.toStrategy)} (manual)`;
   let closed: Awaited<ReturnType<typeof closeTradePosition>>;
   try {
-    closed = await closeTradePosition(existing, closeReason);
+    closed = await closeTradePosition(existing, userId, closeReason);
   } catch (closeErr) {
-    // Compensating rollback: remove the just-opened trade + journal entry.
+    // Compensating rollback: remove the just-opened trade + journal entry
+    // (both rows we just inserted above for this same userId).
     try {
-      await db.delete(journalEntriesTable).where(eq(journalEntriesTable.id, result.journalId));
-      await db.delete(tradesTable).where(eq(tradesTable.id, result.tradeId));
+      await db
+        .delete(journalEntriesTable)
+        .where(and(eq(journalEntriesTable.id, result.journalId), eq(journalEntriesTable.userId, userId)));
+      await db.delete(tradesTable).where(and(eq(tradesTable.id, result.tradeId), eq(tradesTable.userId, userId)));
     } catch {
       // If even the rollback fails there is nothing more we can do safely here;
       // surface the original close failure below.
@@ -1008,16 +1022,24 @@ export interface PersistResult {
 // + journal entry. Shared by the semi-auto submit endpoint and the full-auto engine
 // so both go through the exact same routing and persistence path. The caller is
 // responsible for having already run the pre-trade validation gate.
+//
+// Phase 1, Sprint 7 — userId is an explicit parameter, not resolved internally,
+// because this function's two callers have different ideas of "current user":
+// the semi-auto HTTP route resolves the real authenticated user (or the
+// legacy-owner stand-in if not logged in); the full-auto scheduler
+// (autoExecution.ts) has no request/session at all and keeps passing the same
+// legacy-owner id it always has — its real per-user redesign is Sprint 8's
+// job (approved plan §4.4), not this one.
 export async function executeValidatedTicket(
   ticket: ExecutionTicket & { _scannerResultId?: number | null },
   source: ExecutionSource,
+  userId: string,
 ): Promise<PersistResult> {
   const order = buildOptionOrderFromTrade(ticket._quote, ticket.quantity);
-  const settingsRow = await getSettingsRow();
+  const settingsRow = await getSettingsRow(userId);
   const result = await routeOrder(order, settingsRow.alpacaApiKey);
 
   const sourceLabel = source === "full_auto" ? "Full-auto" : "Semi-auto";
-  const userId = await getLegacyOwnerUserId();
 
   const [trade] = await db
     .insert(tradesTable)
@@ -1076,12 +1098,12 @@ export async function executeValidatedTicket(
 // Submit an order from the Trade Ticket. Enforces: explicit confirmation,
 // execution-enabled mode (manual is scanner-only), and a fresh pre-trade
 // validation. Persists a pending trade and a journal entry on success.
-export async function submitOptionOrder(input: SubmitInput): Promise<SubmitOutput> {
+export async function submitOptionOrder(input: SubmitInput, userId: string): Promise<SubmitOutput> {
   if (!input.confirm) {
     throw new TicketError("Explicit confirmation is required to submit an order", 400);
   }
 
-  const ticket = (await buildTicket(input)) as ExecutionTicket & {
+  const ticket = (await buildTicket(input, userId)) as ExecutionTicket & {
     _scannerResultId: number | null;
   };
 
@@ -1101,7 +1123,7 @@ export async function submitOptionOrder(input: SubmitInput): Promise<SubmitOutpu
 
   const source: ExecutionSource =
     ticket.executionMode === "full_auto" ? "full_auto" : "semi_auto";
-  const result = await executeValidatedTicket(ticket, source);
+  const result = await executeValidatedTicket(ticket, source, userId);
 
   return {
     orderId: result.orderId,

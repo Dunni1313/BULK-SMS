@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, journalEntriesTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import {
   ListJournalEntriesResponse,
   GetJournalEntryResponse,
@@ -8,7 +8,7 @@ import {
   CreateJournalEntryBody,
   UpdateJournalEntryBody,
 } from "@workspace/api-zod";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
@@ -22,10 +22,12 @@ function formatEntry(e: typeof journalEntriesTable.$inferSelect) {
   };
 }
 
-router.get("/journal", async (_req, res): Promise<void> => {
+router.get("/journal", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   const entries = await db
     .select()
     .from(journalEntriesTable)
+    .where(eq(journalEntriesTable.userId, userId))
     .orderBy(desc(journalEntriesTable.createdAt));
 
   res.json(ListJournalEntriesResponse.parse(entries.map(formatEntry)));
@@ -39,11 +41,12 @@ router.post("/journal", async (req, res): Promise<void> => {
   }
 
   const d = parsed.data;
+  const userId = await getScopedUserId(req);
 
   const [entry] = await db
     .insert(journalEntriesTable)
     .values({
-      userId: await getLegacyOwnerUserId(),
+      userId,
       tradeId: d.tradeId ?? null,
       title: d.title,
       content: d.content,
@@ -73,10 +76,11 @@ router.get("/journal/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  const userId = await getScopedUserId(req);
   const [entry] = await db
     .select()
     .from(journalEntriesTable)
-    .where(eq(journalEntriesTable.id, id));
+    .where(and(eq(journalEntriesTable.id, id), eq(journalEntriesTable.userId, userId)));
 
   if (!entry) {
     res.status(404).json({ error: "Journal entry not found" });
@@ -100,10 +104,11 @@ router.patch("/journal/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  const userId = await getScopedUserId(req);
   const [entry] = await db
     .update(journalEntriesTable)
     .set(parsed.data)
-    .where(eq(journalEntriesTable.id, id))
+    .where(and(eq(journalEntriesTable.id, id), eq(journalEntriesTable.userId, userId)))
     .returning();
 
   if (!entry) {

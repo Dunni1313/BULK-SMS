@@ -13,7 +13,7 @@ import {
   valueWatchlistTable,
   valueQuizResultsTable,
 } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import {
   GetValueUniverseResponse,
   GetValueReportResponse,
@@ -44,7 +44,7 @@ import {
 import { CoachError } from "../lib/coach.js";
 import { narrateValueResearch, narrateValueResearchStream, llmAvailable } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
@@ -133,11 +133,11 @@ function summaryFromReport(report: ValueResearchReport) {
 }
 
 // Persist a research run and return the new history id.
-async function persistResearch(report: ValueResearchReport): Promise<number> {
+async function persistResearch(report: ValueResearchReport, userId: string): Promise<number> {
   const [row] = await db
     .insert(stockAnalysisHistoryTable)
     .values({
-      userId: await getLegacyOwnerUserId(),
+      userId,
       symbol: report.symbol,
       analysisDate: report.asOf,
       businessQualityScore: report.businessQuality.score,
@@ -157,14 +157,17 @@ async function persistResearch(report: ValueResearchReport): Promise<number> {
 
 // ─── Universe headline ratings ────────────────────────────────────────────────
 router.get("/value-universe", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   // Resolve the provider once so the universe loop reuses a single live/simulated
   // selection (and the live in-memory cache) rather than re-reading settings per symbol.
-  const provider = await getFundamentalsProvider();
+  const provider = await getFundamentalsProvider(userId);
   // `forceRefresh=true` bypasses the short-lived live cache for an explicit, user-
   // initiated refresh (still subject to provider rate limits). No-op for simulated.
   const forceRefresh = req.query.forceRefresh === "true" || req.query.forceRefresh === "1";
   const reports = await Promise.all(
-    UNIVERSE.map((u) => buildValueResearchReport(u.symbol, undefined, provider, undefined, { forceRefresh })),
+    UNIVERSE.map((u) =>
+      buildValueResearchReport(u.symbol, undefined, provider, undefined, { forceRefresh }, userId),
+    ),
   );
   const summaries = reports
     .filter((r): r is ValueResearchReport => r !== null)
@@ -179,12 +182,14 @@ router.post("/value-research", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const userId = await getScopedUserId(req);
   const report = await buildValueResearchReport(
     parsed.data.symbol,
     undefined,
     undefined,
     undefined,
     { forceRefresh: parsed.data.forceRefresh },
+    userId,
   );
   if (!report) {
     res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
@@ -192,7 +197,7 @@ router.post("/value-research", async (req, res): Promise<void> => {
   }
   const fallback = narrationFallback(report);
   const n = await narrateValueResearch(narrationContext(report), fallback, `value:${report.symbol}`);
-  const historyId = parsed.data.persist ? await persistResearch(report) : undefined;
+  const historyId = parsed.data.persist ? await persistResearch(report, userId) : undefined;
   res.json(
     GenerateValueResearchResponse.parse({
       report,
@@ -213,12 +218,14 @@ router.post("/value-research/stream", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const userId = await getScopedUserId(req);
   const report = await buildValueResearchReport(
     parsed.data.symbol,
     undefined,
     undefined,
     undefined,
     { forceRefresh: parsed.data.forceRefresh },
+    userId,
   );
   if (!report) {
     res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
@@ -239,7 +246,7 @@ router.post("/value-research/stream", async (req, res): Promise<void> => {
       (t) => sse.send("delta", { text: t }),
       `value:${report.symbol}`,
     );
-    const historyId = parsed.data.persist ? await persistResearch(report) : undefined;
+    const historyId = parsed.data.persist ? await persistResearch(report, userId) : undefined;
     sse.send("done", {
       commentary: n.text,
       commentarySource: n.source,
@@ -256,9 +263,11 @@ router.post("/value-research/stream", async (req, res): Promise<void> => {
 // ─── History ──────────────────────────────────────────────────────────────────
 router.get("/value-history", async (req, res): Promise<void> => {
   const limit = Math.min(Number(req.query.limit) || 50, 200);
+  const userId = await getScopedUserId(req);
   const rows = await db
     .select()
     .from(stockAnalysisHistoryTable)
+    .where(eq(stockAnalysisHistoryTable.userId, userId))
     .orderBy(desc(stockAnalysisHistoryTable.createdAt))
     .limit(limit);
   res.json(
@@ -299,10 +308,12 @@ function watchlistItem(r: typeof valueWatchlistTable.$inferSelect) {
   };
 }
 
-router.get("/value-watchlist", async (_req, res): Promise<void> => {
+router.get("/value-watchlist", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   const rows = await db
     .select()
     .from(valueWatchlistTable)
+    .where(eq(valueWatchlistTable.userId, userId))
     .orderBy(desc(valueWatchlistTable.createdAt));
   res.json(GetValueWatchlistResponse.parse(rows.map(watchlistItem)));
 });
@@ -315,10 +326,11 @@ router.post("/value-watchlist", async (req, res): Promise<void> => {
   }
   const body = parsed.data;
   const symbol = body.symbol.toUpperCase();
+  const userId = await getScopedUserId(req);
 
   // Enrich from a fresh research run when possible (never fabricates fair value:
   // only fills it in when the deterministic valuation is actually available).
-  const report = await buildValueResearchReport(symbol);
+  const report = await buildValueResearchReport(symbol, undefined, undefined, undefined, undefined, userId);
   const fairValueEstimate =
     body.fairValueEstimate ??
     (report && report.valuation.available ? report.valuation.fairValue : null);
@@ -327,7 +339,7 @@ router.post("/value-watchlist", async (req, res): Promise<void> => {
   const [row] = await db
     .insert(valueWatchlistTable)
     .values({
-      userId: await getLegacyOwnerUserId(),
+      userId,
       symbol,
       category: body.category ?? "Researching",
       fairValueEstimate,
@@ -361,10 +373,11 @@ router.patch("/value-watchlist/:id", async (req, res): Promise<void> => {
   if (b.reason !== undefined) patch.reason = b.reason;
   if (b.currentDecision !== undefined) patch.currentDecision = b.currentDecision;
 
+  const userId = await getScopedUserId(req);
   const [row] = await db
     .update(valueWatchlistTable)
     .set(patch)
-    .where(eq(valueWatchlistTable.id, id))
+    .where(and(eq(valueWatchlistTable.id, id), eq(valueWatchlistTable.userId, userId)))
     .returning();
   if (!row) {
     res.status(404).json({ error: "Watchlist item not found" });
@@ -379,9 +392,10 @@ router.delete("/value-watchlist/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid watchlist id" });
     return;
   }
+  const userId = await getScopedUserId(req);
   const [row] = await db
     .delete(valueWatchlistTable)
-    .where(eq(valueWatchlistTable.id, id))
+    .where(and(eq(valueWatchlistTable.id, id), eq(valueWatchlistTable.userId, userId)))
     .returning({ id: valueWatchlistTable.id });
   res.json(DeleteValueWatchlistResponse.parse({ success: !!row }));
 });
@@ -408,9 +422,10 @@ router.post("/value-quiz/grade", async (req, res): Promise<void> => {
     return;
   }
   try {
+    const userId = await getScopedUserId(req);
     const result = gradeValueQuiz(parsed.data.quizId, parsed.data.answers);
     await db.insert(valueQuizResultsTable).values({
-      userId: await getLegacyOwnerUserId(),
+      userId,
       topic: result.topic,
       score: result.score,
       total: result.total,
@@ -427,7 +442,8 @@ router.post("/value-quiz/grade", async (req, res): Promise<void> => {
 // /value/* routes above) ──────────────────────────────────────────────────────
 router.get("/value/:symbol", async (req, res): Promise<void> => {
   // NOTE: kept as /value/:symbol (mounts under /stock-analyst) — see router mount.
-  const report = await buildValueResearchReport(req.params.symbol);
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(req.params.symbol, undefined, undefined, undefined, undefined, userId);
   if (!report) {
     res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
     return;

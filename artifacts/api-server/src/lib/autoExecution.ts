@@ -20,6 +20,7 @@ import {
 import { getAccountValue, getSettingsRow } from "./serverState.js";
 import { getEventRiskForSymbol } from "./eventRisk.js";
 import { logger } from "./logger.js";
+import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
 // ─── Pure guardrail logic (no I/O — unit-tested in phase6.test.ts) ───────────
 
@@ -129,7 +130,7 @@ function startOfUtcDay(d = new Date()): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
-async function countTradesToday(): Promise<number> {
+async function countTradesToday(userId: string): Promise<number> {
   const rows = await db
     .select()
     .from(tradesTable)
@@ -137,24 +138,31 @@ async function countTradesToday(): Promise<number> {
       and(
         eq(tradesTable.executionMode, "full_auto"),
         gte(tradesTable.createdAt, startOfUtcDay()),
+        eq(tradesTable.userId, userId),
       ),
     );
   return rows.length;
 }
 
-async function countConcurrentPositions(): Promise<number> {
+async function countConcurrentPositions(userId: string): Promise<number> {
   const rows = await db
     .select()
     .from(tradesTable)
-    .where(inArray(tradesTable.status, ["open", "pending"]));
+    .where(and(inArray(tradesTable.status, ["open", "pending"]), eq(tradesTable.userId, userId)));
   return rows.length;
 }
 
-async function dailyRealizedPnl(): Promise<number> {
+async function dailyRealizedPnl(userId: string): Promise<number> {
   const rows = await db
     .select()
     .from(tradesTable)
-    .where(and(eq(tradesTable.status, "closed"), gte(tradesTable.closeDate, startOfUtcDay())));
+    .where(
+      and(
+        eq(tradesTable.status, "closed"),
+        gte(tradesTable.closeDate, startOfUtcDay()),
+        eq(tradesTable.userId, userId),
+      ),
+    );
   return rows.reduce((s, t) => s + (t.currentPnl ?? 0), 0);
 }
 
@@ -203,16 +211,16 @@ let cycleInFlight = false;
 // Re-read settings + live counts and re-run the guardrail gate. Called at the top
 // of the cycle AND before every individual execution so the kill switch halts in
 // real time and the caps reflect trades opened earlier in this same loop.
-async function freshGate(): Promise<{
+async function freshGate(userId: string): Promise<{
   gate: AutoGuardrailResult;
   settings: Awaited<ReturnType<typeof getSettingsRow>>;
 }> {
-  const settings = await getSettingsRow();
-  const accountValue = await getAccountValue();
+  const settings = await getSettingsRow(userId);
+  const accountValue = await getAccountValue(userId);
   const [tradesToday, concurrentPositions, realizedPnl] = await Promise.all([
-    countTradesToday(),
-    countConcurrentPositions(),
-    dailyRealizedPnl(),
+    countTradesToday(userId),
+    countConcurrentPositions(userId),
+    dailyRealizedPnl(userId),
   ]);
   const gate = evaluateAutoGuardrails({
     mode: settings.executionMode,
@@ -257,7 +265,13 @@ export async function runAutoExecutionCycle(): Promise<AutoCycleResult> {
 }
 
 async function runCycleLocked(runId: string, ranAt: string): Promise<AutoCycleResult> {
-  const pre = await freshGate();
+  // Phase 1, Sprint 7 — the scheduler has no request/session context, so it keeps
+  // resolving the same legacy-owner id it always implicitly operated as; making
+  // that resolution explicit here (rather than relying on serverState.ts's old
+  // default) is required now that userId is a mandatory parameter everywhere else.
+  // The scheduler's real per-user redesign is Sprint 8's job (approved plan §4.4).
+  const userId = await getLegacyOwnerUserId();
+  const pre = await freshGate(userId);
   const gate = pre.gate;
   let settings = pre.settings;
 
@@ -293,6 +307,7 @@ async function runCycleLocked(runId: string, ranAt: string): Promise<AutoCycleRe
   const candidates = await db
     .select()
     .from(scannerResultsTable)
+    .where(eq(scannerResultsTable.userId, userId))
     .orderBy(desc(scannerResultsTable.ravishScore))
     .limit(20);
 
@@ -316,10 +331,13 @@ async function runCycleLocked(runId: string, ranAt: string): Promise<AutoCycleRe
   for (const c of candidates) {
     let ticket: (ExecutionTicket & { _scannerResultId?: number | null }) | null = null;
     try {
-      ticket = (await buildTicket({
-        scannerResultId: c.id,
-        quantity: settings.autoQuantityPerTrade,
-      })) as ExecutionTicket & { _scannerResultId?: number | null };
+      ticket = (await buildTicket(
+        {
+          scannerResultId: c.id,
+          quantity: settings.autoQuantityPerTrade,
+        },
+        userId,
+      )) as ExecutionTicket & { _scannerResultId?: number | null };
     } catch (err) {
       const reason = err instanceof Error ? err.message : "Unable to build ticket";
       rejected += 1;
@@ -391,7 +409,7 @@ async function runCycleLocked(runId: string, ranAt: string): Promise<AutoCycleRe
     // right before pulling the trigger: trades opened earlier in this loop (or by a
     // manual submit) count now, and an operator flipping the switch off mid-cycle
     // halts immediately rather than after the original capacity is drained.
-    const live = await freshGate();
+    const live = await freshGate(userId);
     settings = live.settings;
     if (!live.gate.allowed) {
       await record({
@@ -407,7 +425,7 @@ async function runCycleLocked(runId: string, ranAt: string): Promise<AutoCycleRe
     }
 
     try {
-      const result = await executeValidatedTicket(ticket, "full_auto");
+      const result = await executeValidatedTicket(ticket, "full_auto", userId);
       executed += 1;
       await record({
         symbol: ticket.symbol,
@@ -472,12 +490,13 @@ export interface AutoExecutionStatus {
 }
 
 export async function getAutoExecutionStatus(): Promise<AutoExecutionStatus> {
-  const settings = await getSettingsRow();
-  const accountValue = await getAccountValue();
+  const userId = await getLegacyOwnerUserId();
+  const settings = await getSettingsRow(userId);
+  const accountValue = await getAccountValue(userId);
   const [tradesToday, concurrentPositions, realizedPnl] = await Promise.all([
-    countTradesToday(),
-    countConcurrentPositions(),
-    dailyRealizedPnl(),
+    countTradesToday(userId),
+    countConcurrentPositions(userId),
+    dailyRealizedPnl(userId),
   ]);
 
   const gate = evaluateAutoGuardrails({

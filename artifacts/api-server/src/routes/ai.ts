@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, aiMessagesTable, tradesTable, scannerResultsTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { AiChatResponse, AiChatBody, GetAiMessagesResponse } from "@workspace/api-zod";
 import { getSnapshot } from "../lib/optionsMath.js";
 import { computeTradeGreeks, ensureSeedTrades, getAccountValue, getSettingsRow } from "../lib/serverState.js";
@@ -18,7 +18,7 @@ import {
   type CoachLevel,
 } from "../lib/coachLLM.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
-import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 import { UNIVERSE } from "../lib/optionsMath.js";
 import { openSse } from "../lib/sse.js";
 
@@ -27,40 +27,42 @@ const router: IRouter = Router();
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 const label = (s: string) => s.replace(/_/g, " ");
 
-async function topCandidate() {
+async function topCandidate(userId: string) {
   const rows = await db
     .select()
     .from(scannerResultsTable)
+    .where(eq(scannerResultsTable.userId, userId))
     .orderBy(desc(scannerResultsTable.ravishScore))
     .limit(1);
   return rows[0] ?? null;
 }
 
-async function bestByStrategy(strategy: string) {
+async function bestByStrategy(userId: string, strategy: string) {
   const rows = await db
     .select()
     .from(scannerResultsTable)
-    .where(eq(scannerResultsTable.strategy, strategy))
+    .where(and(eq(scannerResultsTable.strategy, strategy), eq(scannerResultsTable.userId, userId)))
     .orderBy(desc(scannerResultsTable.ravishScore))
     .limit(1);
   return rows[0] ?? null;
 }
 
-async function bestByEv() {
+async function bestByEv(userId: string) {
   const rows = await db
     .select()
     .from(scannerResultsTable)
+    .where(eq(scannerResultsTable.userId, userId))
     .orderBy(desc(scannerResultsTable.ev))
     .limit(1);
   return rows[0] ?? null;
 }
 
-async function portfolioGreeks() {
-  await ensureSeedTrades();
+async function portfolioGreeks(userId: string) {
+  await ensureSeedTrades(userId);
   const trades = await db
     .select()
     .from(tradesTable)
-    .where(eq(tradesTable.status, "open"));
+    .where(and(eq(tradesTable.status, "open"), eq(tradesTable.userId, userId)));
   let delta = 0;
   let theta = 0;
   let vega = 0;
@@ -101,8 +103,12 @@ function detectGreek(lower: string): GreekName | null {
 // ── Shared coach helpers (used by both the keyword auto-detect path and the
 // explicit-mode path). All are read-only; none ever previews or submits an order.
 
-async function explainTopCandidate(level?: CoachLevel, onToken?: TokenSink): Promise<string> {
-  const r = await topCandidate();
+async function explainTopCandidate(
+  userId: string,
+  level?: CoachLevel,
+  onToken?: TokenSink,
+): Promise<string> {
+  const r = await topCandidate(userId);
   if (!r) return "No scanner candidates yet — run the scanner first, then I can explain one in detail.";
   try {
     const explanation = explainSymbolStrategy(r.symbol, r.strategy);
@@ -127,9 +133,9 @@ async function teachGreekResponse(
   return n.text;
 }
 
-async function portfolioRiskResponse(): Promise<string> {
-  const p = await portfolioGreeks();
-  const account = await getAccountValue();
+async function portfolioRiskResponse(userId: string): Promise<string> {
+  const p = await portfolioGreeks(userId);
+  const account = await getAccountValue(userId);
   const riskDollars = p.trades.reduce((s, t) => s + Math.max(0, t.maxLoss), 0);
   const pct = account > 0 ? (riskDollars / account) * 100 : 0;
   const largest = [...p.trades].sort((a, b) => b.maxLoss - a.maxLoss)[0];
@@ -137,10 +143,11 @@ async function portfolioRiskResponse(): Promise<string> {
 }
 
 // Ravish Strategy Coach — narrates the framework + today's top-ranked setups.
-async function strategyCoachResponse(): Promise<string> {
+async function strategyCoachResponse(userId: string): Promise<string> {
   const rows = await db
     .select()
     .from(scannerResultsTable)
+    .where(eq(scannerResultsTable.userId, userId))
     .orderBy(desc(scannerResultsTable.ravishScore))
     .limit(3);
   if (rows.length === 0)
@@ -200,14 +207,19 @@ function detectSymbol(lower: string): string | null {
 // LLM narrate the thesis around it. Defaults to the highest-quality name when the
 // message names no symbol.
 async function valueResearchResponse(
+  userId: string,
   lower: string,
   level?: CoachLevel,
   onToken?: TokenSink,
 ): Promise<string> {
   const symbol = detectSymbol(lower);
-  let report: ValueResearchReport | null = symbol ? await buildValueResearchReport(symbol) : null;
+  let report: ValueResearchReport | null = symbol
+    ? await buildValueResearchReport(symbol, undefined, undefined, undefined, undefined, userId)
+    : null;
   if (!report) {
-    const reports = await Promise.all(UNIVERSE.map((u) => buildValueResearchReport(u.symbol)));
+    const reports = await Promise.all(
+      UNIVERSE.map((u) => buildValueResearchReport(u.symbol, undefined, undefined, undefined, undefined, userId)),
+    );
     report = reports
       .filter((r): r is ValueResearchReport => r !== null)
       .sort((a, b) => b.businessQuality.score - a.businessQuality.score)[0] ?? null;
@@ -265,6 +277,7 @@ interface AiResponseOpts {
 // mode instead of relying on keyword auto-detect. opts.level threads the desired
 // explanation depth into the narration. Both are optional and backward compatible.
 export async function generateAiResponse(
+  userId: string,
   message: string,
   opts: AiResponseOpts = {},
 ): Promise<string> {
@@ -272,12 +285,12 @@ export async function generateAiResponse(
   const lower = message.toLowerCase();
 
   // Explicit mode wins over keyword auto-detect.
-  if (mode === "explain_trade") return explainTopCandidate(level, onToken);
+  if (mode === "explain_trade") return explainTopCandidate(userId, level, onToken);
   if (mode === "teach_greeks") return teachGreekResponse(detectGreek(lower) ?? "delta", level, onToken);
-  if (mode === "risk_coach") return portfolioRiskResponse();
-  if (mode === "strategy_coach") return strategyCoachResponse();
+  if (mode === "risk_coach") return portfolioRiskResponse(userId);
+  if (mode === "strategy_coach") return strategyCoachResponse(userId);
   if (mode === "quiz") return quizPointer();
-  if (mode === "value_research") return valueResearchResponse(lower, level, onToken);
+  if (mode === "value_research") return valueResearchResponse(userId, lower, level, onToken);
 
   // Phase 5 — execution intents (checked first so they win over generic keywords).
 
@@ -286,7 +299,7 @@ export async function generateAiResponse(
     const pending = await db
       .select()
       .from(tradesTable)
-      .where(eq(tradesTable.status, "pending"));
+      .where(and(eq(tradesTable.status, "pending"), eq(tradesTable.userId, userId)));
     if (pending.length === 0) return "You have no pending orders awaiting fill.";
     const lines = pending
       .map(
@@ -333,8 +346,8 @@ export async function generateAiResponse(
     lower.includes("buy it") ||
     lower.includes("send the order")
   ) {
-    const r = await topCandidate();
-    const settings = await getSettingsRow();
+    const r = await topCandidate(userId);
+    const settings = await getSettingsRow(userId);
     const where = r ? `the Trade Ticket for ${r.symbol} ${label(r.strategy)}` : "the Trade Ticket";
     const modeNote =
       settings.executionMode === "semi_auto"
@@ -356,14 +369,17 @@ export async function generateAiResponse(
     lower.includes("why is it rejected") ||
     lower.includes("rejected")
   ) {
-    const r = await topCandidate();
+    const r = await topCandidate(userId);
     if (!r) return "No scanner candidates yet — run the scanner first, then I can review one for you.";
     try {
-      const ticket = await previewOptionOrder({
-        symbol: r.symbol,
-        strategy: r.strategy,
-        quantity: 1,
-      });
+      const ticket = await previewOptionOrder(
+        {
+          symbol: r.symbol,
+          strategy: r.strategy,
+          quantity: 1,
+        },
+        userId,
+      );
       const v = ticket.validation;
       if (v.valid) {
         return `${r.symbol} ${label(r.strategy)} passes all pre-trade checks ✓ — Ravish Score ${ticket.ravishScore.toFixed(1)} (${label(ticket.ravishTier)}), POP ${ticket.pop.toFixed(0)}%, EV ${ticket.ev >= 0 ? "+" : ""}${money(ticket.ev)}, max risk ${money(ticket.maxLoss)} (${ticket.riskPct}% of account), portfolio risk ${ticket.portfolioRiskBeforePct}% → ${ticket.portfolioRiskAfterPct}% after entry. ${ticket.canSubmit ? "Open the Trade Ticket and confirm to submit." : "Switch to Semi-Auto in Settings to enable submission."}`;
@@ -408,7 +424,7 @@ export async function generateAiResponse(
     // (no symbol) still routes to the portfolio-risk handler.
     (detectSymbol(lower) !== null && lower.includes("risky"))
   ) {
-    return valueResearchResponse(lower, level, onToken);
+    return valueResearchResponse(userId, lower, level, onToken);
   }
 
   // ── Coach / teaching intents (checked before the data lookups so "what is
@@ -440,7 +456,7 @@ export async function generateAiResponse(
       lower.includes("top") ||
       lower.includes("this"))
   ) {
-    return explainTopCandidate(level, onToken);
+    return explainTopCandidate(userId, level, onToken);
   }
 
   // Teach one of the four Greeks.
@@ -453,21 +469,21 @@ export async function generateAiResponse(
 
   // 1. Best iron condor
   if (lower.includes("iron condor") || (lower.includes("condor") && lower.includes("best"))) {
-    const r = await bestByStrategy("iron_condor");
+    const r = await bestByStrategy(userId, "iron_condor");
     if (!r) return "No iron condor candidates yet — run the scanner first.";
     return `Best iron condor today: ${r.symbol} ${r.shortPutStrike}/${r.shortCallStrike} short strikes, ${r.daysToExpiry} DTE. Ravish Score ${r.ravishScore.toFixed(1)} (${label(r.ravishTier)}). Credit ${money(r.credit ?? 0)}, POP ${r.pop.toFixed(0)}%, EV ${r.ev >= 0 ? "+" : ""}${money(r.ev)}, max risk ${money(r.maxLoss)}.`;
   }
 
   // 2. Best calendar spread
   if (lower.includes("calendar")) {
-    const r = await bestByStrategy("calendar_spread");
+    const r = await bestByStrategy(userId, "calendar_spread");
     if (!r) return "No calendar spread candidates yet — run the scanner first.";
     return `Best calendar spread: ${r.symbol} ${r.shortCallStrike}-strike, ${r.daysToExpiry} DTE. Ravish Score ${r.ravishScore.toFixed(1)} (${label(r.ravishTier)}). Net debit ${money(Math.abs(r.credit ?? 0))}, POP ${r.pop.toFixed(0)}%, daily theta ${r.theta.toFixed(1)}, max risk ${money(r.maxLoss)}.`;
   }
 
   // 3. Delta neutral / portfolio greeks
   if (lower.includes("delta") || lower.includes("neutral")) {
-    const p = await portfolioGreeks();
+    const p = await portfolioGreeks(userId);
     const status =
       Math.abs(p.delta) < 0.1 ? "effectively delta neutral" : p.delta > 0 ? "net bullish" : "net bearish";
     return `Your portfolio delta is ${p.delta >= 0 ? "+" : ""}${p.delta} across ${p.trades.length} open positions — ${status}. Directional exposure ≈ ${money(Math.abs(p.directional))} per 1% underlying move. ${Math.abs(p.delta) < 0.1 ? "No adjustment needed." : "Consider an offsetting position to re-center."}`;
@@ -475,31 +491,31 @@ export async function generateAiResponse(
 
   // 4. Portfolio risk
   if (lower.includes("risk")) {
-    return portfolioRiskResponse();
+    return portfolioRiskResponse(userId);
   }
 
   // 5. Highest expected value
   if (lower.includes("expected value") || lower.includes(" ev") || lower.includes("highest ev")) {
-    const r = await bestByEv();
+    const r = await bestByEv(userId);
     if (!r) return "No scanner results yet — run the scanner to rank by expected value.";
     return `Highest EV trade today: ${r.symbol} ${label(r.strategy)} at ${r.ev >= 0 ? "+" : ""}${money(r.ev)} EV per contract (${r.pop.toFixed(0)}% POP × ${money(r.maxProfit)} max profit − ${(100 - r.pop).toFixed(0)}% × ${money(r.maxLoss)} max loss). Ravish Score ${r.ravishScore.toFixed(1)}.`;
   }
 
   // Extra: theta income
   if (lower.includes("theta")) {
-    const p = await portfolioGreeks();
+    const p = await portfolioGreeks(userId);
     return `Your portfolio generates ${money(p.theta)}/day in theta income, projecting ~${money(p.theta * 30)}/month across ${p.trades.length} open positions.`;
   }
 
   // Extra: vega
   if (lower.includes("vega") || lower.includes("volatility") || lower.includes(" iv")) {
-    const p = await portfolioGreeks();
+    const p = await portfolioGreeks(userId);
     return `Portfolio vega is ${p.vega} — you ${p.vega < 0 ? "benefit from falling IV (healthy short-vega premium-selling posture)" : "benefit from rising IV"}. A 1-point IV move shifts P&L by about ${money(Math.abs(p.vega))}.`;
   }
 
   // Extra: open positions
   if (lower.includes("position") || lower.includes("open") || lower.includes("unrealized")) {
-    const p = await portfolioGreeks();
+    const p = await portfolioGreeks(userId);
     const lines = p.trades
       .map((t) => {
         const g = computeTradeGreeks(t);
@@ -514,6 +530,7 @@ export async function generateAiResponse(
     const rows = await db
       .select()
       .from(scannerResultsTable)
+      .where(eq(scannerResultsTable.userId, userId))
       .orderBy(desc(scannerResultsTable.ravishScore))
       .limit(3);
     if (rows.length === 0) return "No scanner results yet — run the scanner to see top Ravish Scores.";
@@ -534,11 +551,11 @@ router.post("/ai/chat", async (req, res): Promise<void> => {
   }
 
   const { message, mode, level } = parsed.data;
-  const userId = await getLegacyOwnerUserId();
+  const userId = await getScopedUserId(req);
 
   await db.insert(aiMessagesTable).values({ userId, role: "user", message });
 
-  const aiResponse = await generateAiResponse(message, { mode, level });
+  const aiResponse = await generateAiResponse(userId, message, { mode, level });
 
   const [aiMsg] = await db
     .insert(aiMessagesTable)
@@ -566,14 +583,14 @@ router.post("/ai/chat/stream", async (req, res): Promise<void> => {
   }
 
   const { message, mode, level } = parsed.data;
-  const userId = await getLegacyOwnerUserId();
+  const userId = await getScopedUserId(req);
 
   await db.insert(aiMessagesTable).values({ userId, role: "user", message });
 
   const sse = openSse(res);
   let streamed = false;
   try {
-    const aiResponse = await generateAiResponse(message, {
+    const aiResponse = await generateAiResponse(userId, message, {
       mode,
       level,
       onToken: (t) => {
@@ -606,10 +623,12 @@ router.post("/ai/chat/stream", async (req, res): Promise<void> => {
   }
 });
 
-router.get("/ai/messages", async (_req, res): Promise<void> => {
+router.get("/ai/messages", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
   const messages = await db
     .select()
     .from(aiMessagesTable)
+    .where(eq(aiMessagesTable.userId, userId))
     .orderBy(desc(aiMessagesTable.createdAt))
     .limit(50);
 

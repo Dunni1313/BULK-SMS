@@ -18,7 +18,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Sentinel "columns" so a mocked `eq` can be introspected ──────────────────
-const COL = { id: "id_col" } as const;
+const COL = { id: "id_col", userId: "userId_col" } as const;
+const TEST_USER_ID = "test-legacy-owner-id";
 
 interface MockTrade {
   id: number;
@@ -49,12 +50,13 @@ const state: {
   journalRows: [],
 };
 
-// ─── drizzle-orm: keep everything real except eq, which we make inspectable ───
+// ─── drizzle-orm: keep everything real except eq/and, which we make inspectable ─
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof import("drizzle-orm")>();
   return {
     ...actual,
     eq: (col: unknown, val: unknown) => ({ __col: col, __val: val }),
+    and: (...conds: Array<{ __col: unknown; __val: unknown }>) => ({ __and: conds }),
   };
 });
 
@@ -65,9 +67,10 @@ vi.mock("@workspace/db", () => {
   const db = {
     update: () => ({
       set: (values: Record<string, unknown>) => ({
-        where: (cond: { __val: number }) => ({
+        where: (cond: { __and: Array<{ __col: unknown; __val: unknown }> }) => ({
           returning: async () => {
-            const id = cond.__val;
+            const idCond = cond.__and.find((c) => c.__col === tradesTable.id);
+            const id = idCond?.__val as number;
             state.updatedRows.push({ id, set: values });
             return [{ ...state.tradeById[id], ...values }];
           },
@@ -82,13 +85,6 @@ vi.mock("@workspace/db", () => {
   };
   return { db, tradesTable, journalEntriesTable };
 });
-
-// closeTradePosition now resolves a legacy-owner userId (Sprint 4 stand-in for
-// real per-request auth — see lib/legacyOwner.ts). Stub it directly so this
-// test stays focused on close-position logic, not user resolution.
-vi.mock("./legacyOwner.js", () => ({
-  getLegacyOwnerUserId: async () => "test-legacy-owner-id",
-}));
 
 vi.mock("./serverState.js", () => ({
   getSettingsRow: vi.fn(async () => state.settings),
@@ -141,6 +137,7 @@ describe("closeTradePosition — explicit exit reason override", () => {
 
     const result = await closeTradePosition(
       trade as never,
+      TEST_USER_ID,
       "Auto de-risk: profit target reached",
     );
 
@@ -167,7 +164,7 @@ describe("closeTradePosition — derived exit reason (no override)", () => {
     const trade = makeTrade();
     state.greeks = { unrealizedPnl: -450, unrealizedPnlPercent: -225 };
 
-    const result = await closeTradePosition(trade as never);
+    const result = await closeTradePosition(trade as never, TEST_USER_ID);
 
     expect(result.exitReason).toBe("Stop loss hit");
   });
@@ -177,7 +174,7 @@ describe("closeTradePosition — derived exit reason (no override)", () => {
     const trade = makeTrade();
     state.greeks = { unrealizedPnl: 160, unrealizedPnlPercent: 80 };
 
-    const result = await closeTradePosition(trade as never);
+    const result = await closeTradePosition(trade as never, TEST_USER_ID);
 
     expect(result.exitReason).toBe("Profit target reached (75%)");
   });
@@ -186,7 +183,7 @@ describe("closeTradePosition — derived exit reason (no override)", () => {
     const trade = makeTrade();
     state.greeks = { unrealizedPnl: 50, unrealizedPnlPercent: 25 };
 
-    const result = await closeTradePosition(trade as never);
+    const result = await closeTradePosition(trade as never, TEST_USER_ID);
 
     expect(result.exitReason).toBe("Manual exit");
   });
@@ -197,7 +194,7 @@ describe("closeTradePosition — journal entry mood + tags", () => {
     const trade = makeTrade();
     state.greeks = { unrealizedPnl: 160, unrealizedPnlPercent: 80 };
 
-    await closeTradePosition(trade as never);
+    await closeTradePosition(trade as never, TEST_USER_ID);
 
     expect(state.journalRows).toHaveLength(1);
     const entry = state.journalRows[0];
@@ -211,7 +208,7 @@ describe("closeTradePosition — journal entry mood + tags", () => {
     const trade = makeTrade();
     state.greeks = { unrealizedPnl: -450, unrealizedPnlPercent: -225 };
 
-    await closeTradePosition(trade as never);
+    await closeTradePosition(trade as never, TEST_USER_ID);
 
     expect(state.journalRows).toHaveLength(1);
     const entry = state.journalRows[0];

@@ -1,7 +1,7 @@
 // Shared server-side state helpers: settings singleton, account valuation,
 // per-trade greeks computed from stored legs, and demo-trade seeding.
 import { db, tradesTable, settingsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   getSnapshot,
   bs,
@@ -41,11 +41,11 @@ export async function getSettingsRow(userId?: string) {
   return created;
 }
 
-export async function getAccountValue(): Promise<number> {
+export async function getAccountValue(userId: string): Promise<number> {
   const closed = await db
     .select()
     .from(tradesTable)
-    .where(eq(tradesTable.status, "closed"));
+    .where(and(eq(tradesTable.status, "closed"), eq(tradesTable.userId, userId)));
   const realized = closed.reduce((s, t) => s + (t.currentPnl ?? 0), 0);
   return ACCOUNT_BASE + realized;
 }
@@ -110,8 +110,12 @@ export function computeTradeGreeks(trade: {
 }
 
 // Seed a few realistic open positions so the portfolio/dashboard isn't empty.
-export async function ensureSeedTrades(): Promise<void> {
-  const existing = await db.select().from(tradesTable).limit(1);
+export async function ensureSeedTrades(userId: string): Promise<void> {
+  const existing = await db
+    .select()
+    .from(tradesTable)
+    .where(eq(tradesTable.userId, userId))
+    .limit(1);
   if (existing[0]) return;
 
   const seeds: { quote: StrategyQuote | null }[] = [
@@ -120,7 +124,6 @@ export async function ensureSeedTrades(): Promise<void> {
     { quote: snapQuote("NVDA", "cal") },
   ];
 
-  const userId = await getLegacyOwnerUserId();
   for (const { quote } of seeds) {
     if (!quote) continue;
     await db.insert(tradesTable).values({

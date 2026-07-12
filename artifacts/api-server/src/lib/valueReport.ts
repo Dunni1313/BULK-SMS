@@ -137,10 +137,11 @@ export async function buildValueResearchReport(
   provider?: FundamentalsProvider,
   fundamentalsOverride?: Fundamentals,
   opts?: FetchOpts,
+  userId?: string,
 ): Promise<ValueResearchReport | null> {
   const f =
     fundamentalsOverride ??
-    (await resolveFundamentals(provider ?? (await getFundamentalsProvider()), symbol, asOf, opts));
+    (await resolveFundamentals(provider ?? (await getFundamentalsProvider(userId)), symbol, asOf, opts));
   if (!f) return null;
   const sim = f.dataSource === "SIMULATED";
   const dataLabel = sim ? "SIMULATED" : "live";

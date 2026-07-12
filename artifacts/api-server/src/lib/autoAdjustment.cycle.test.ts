@@ -47,20 +47,21 @@ const state: {
 };
 
 // closeTradePosition spy — configurable side effect (e.g. flip the kill switch).
-const closeSpy = vi.fn(async (trade: MockTrade, _reason: string) => ({
+const closeSpy = vi.fn(async (trade: MockTrade, _userId: string, _reason?: string) => ({
   trade: { ...trade, status: "closed" },
   exitReason: "test",
   realizedPnl: 123,
   realizedPnlPercent: 12,
 }));
 
-// ─── drizzle-orm: keep everything real except eq/desc, which we make inspectable ─
+// ─── drizzle-orm: keep everything real except eq/desc/and, which we make inspectable ─
 vi.mock("drizzle-orm", async (importOriginal) => {
   const actual = await importOriginal<typeof import("drizzle-orm")>();
   return {
     ...actual,
     eq: (col: unknown, val: unknown) => ({ __col: col, __val: val }),
     desc: (col: unknown) => ({ __desc: col }),
+    and: (...conds: Array<{ __col: unknown; __val: unknown }>) => ({ __and: conds }),
   };
 });
 
@@ -74,10 +75,21 @@ vi.mock("@workspace/db", () => {
         // The open-list query ends in `.orderBy(...)`; the fresh-trade lookup is
         // awaited directly off `.where(...)`. We satisfy both: the returned object
         // has an `.orderBy()` (open list) AND is thenable (single fresh lookup).
-        where: (cond: { __col: unknown; __val: unknown }) => ({
+        // Sprint 7 wraps both queries as and(<primary condition>, eq(userId)) — the
+        // id lookup still just needs to find the eq(tradesTable.id, ...) sub-condition.
+        where: (cond: {
+          __col?: unknown;
+          __val?: unknown;
+          __and?: Array<{ __col: unknown; __val: unknown }>;
+        }) => ({
           orderBy: () => Promise.resolve(state.openTrades),
           then: (onF: (v: MockTrade[]) => unknown, onR?: (e: unknown) => unknown) => {
-            const fresh = state.freshById[cond.__val as number];
+            const idCond = cond.__and
+              ? cond.__and.find((c) => c.__col === tradesTable.id)
+              : cond.__col === tradesTable.id
+                ? cond
+                : undefined;
+            const fresh = idCond ? state.freshById[idCond.__val as number] : undefined;
             return Promise.resolve(fresh ? [fresh] : []).then(onF, onR);
           },
         }),
@@ -96,6 +108,10 @@ vi.mock("./serverState.js", () => ({
   getSettingsRow: vi.fn(async () => state.settings),
 }));
 
+vi.mock("./legacyOwner.js", () => ({
+  getLegacyOwnerUserId: async () => "test-legacy-owner-id",
+}));
+
 // Keep the real AUTO_ACTIONABLE set (so the cycle's defensive double-check is the
 // genuine production set), but drive each trade's recommendation deterministically.
 vi.mock("./adjustment.js", async (importOriginal) => {
@@ -107,7 +123,7 @@ vi.mock("./adjustment.js", async (importOriginal) => {
 });
 
 vi.mock("./tradeClose.js", () => ({
-  closeTradePosition: (...args: [MockTrade, string]) => closeSpy(...args),
+  closeTradePosition: (...args: [MockTrade, string, string?]) => closeSpy(...args),
 }));
 
 // Import AFTER the mocks are registered.
@@ -232,7 +248,7 @@ describe("runAutoAdjustmentCycle — shared close path + audit log", () => {
     // shared helper called with the FRESH trade and a labeled exit reason
     expect(closeSpy).toHaveBeenCalledTimes(1);
     expect(closeSpy.mock.calls[0][0].id).toBe(1);
-    expect(closeSpy.mock.calls[0][1]).toMatch(/profit target/i);
+    expect(closeSpy.mock.calls[0][2]).toMatch(/profit target/i);
 
     // an "executed" audit row was persisted for this trade, carrying realized P&L
     const executedRows = state.insertedRows.filter((row) => row.decision === "executed");
