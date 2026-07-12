@@ -322,7 +322,7 @@ export async function generateAiResponse(
     lower.includes("kill switch") ||
     (lower.includes("auto") && (lower.includes("status") || lower.includes("halt") || lower.includes("stop")))
   ) {
-    const s = await getAutoExecutionStatus();
+    const s = await getAutoExecutionStatus(userId);
     if (lower.includes("halt") || lower.includes("stop") || lower.includes("kill")) {
       return `To halt all auto-execution immediately, turn the master Auto-Execute switch OFF on the AutoPilot page (or set mode away from Full-Auto in Settings). I won't toggle it from chat — that's a deliberate manual control. Current state: ${s.armed ? "ARMED 🔴" : "disarmed"}.`;
     }

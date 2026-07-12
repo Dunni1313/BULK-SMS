@@ -8,7 +8,7 @@
 // circuit breaker). It never bypasses a risk check, and the master switch is a kill
 // switch: with it off, nothing is ever auto-submitted, even in full_auto mode.
 
-import { db, tradesTable, scannerResultsTable, autoExecutionLogTable } from "@workspace/db";
+import { db, tradesTable, scannerResultsTable, autoExecutionLogTable, settingsTable } from "@workspace/db";
 import { and, desc, eq, gte, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import {
@@ -203,10 +203,12 @@ async function logDecision(runId: string, d: AutoDecisionRecord): Promise<void> 
   });
 }
 
-// Single-flight guard. The scheduler tick and the manual /execution/auto/run
-// endpoint share this so two cycles can never run concurrently and double-spend
-// the same capacity snapshot (which would let them both breach the caps).
-let cycleInFlight = false;
+// Single-flight guard, keyed per user (Phase 1, Sprint 8 — the automation
+// scheduler is now per-user; see runAutoExecutionCycleForAllUsers below). The
+// scheduler tick and the manual /execution/auto/run endpoint share this so two
+// cycles for the SAME user can never run concurrently and double-spend that
+// user's capacity snapshot — while two DIFFERENT users' cycles run independently.
+const cycleInFlightUserIds = new Set<string>();
 
 // Re-read settings + live counts and re-run the guardrail gate. Called at the top
 // of the cycle AND before every individual execution so the kill switch halts in
@@ -236,14 +238,19 @@ async function freshGate(userId: string): Promise<{
   return { gate, settings };
 }
 
-// Run one full-auto cycle. Safe to call from the scheduler or an endpoint: it is a
-// no-op (returns blocked) unless mode=full_auto and the master switch is armed, and
-// it is single-flighted so overlapping invocations cannot breach the caps.
-export async function runAutoExecutionCycle(): Promise<AutoCycleResult> {
+// Run one full-auto cycle for a single user. Safe to call from the scheduler (once
+// per armed user — see runAutoExecutionCycleForAllUsers) or a manual-trigger
+// endpoint: it is a no-op (returns blocked) unless mode=full_auto and the master
+// switch is armed for THIS user, and it is single-flighted per userId so two
+// overlapping invocations for the same user cannot breach that user's caps.
+// `userId` defaults to the legacy-owner stand-in when omitted, preserving this
+// function's exact pre-Sprint-8 single-user behavior for existing callers/tests.
+export async function runAutoExecutionCycle(userId?: string): Promise<AutoCycleResult> {
+  const uid = userId ?? (await getLegacyOwnerUserId());
   const runId = randomUUID();
   const ranAt = new Date().toISOString();
 
-  if (cycleInFlight) {
+  if (cycleInFlightUserIds.has(uid)) {
     return {
       runId,
       ranAt,
@@ -256,21 +263,40 @@ export async function runAutoExecutionCycle(): Promise<AutoCycleResult> {
       decisions: [],
     };
   }
-  cycleInFlight = true;
+  cycleInFlightUserIds.add(uid);
   try {
-    return await runCycleLocked(runId, ranAt);
+    return await runCycleLocked(runId, ranAt, uid);
   } finally {
-    cycleInFlight = false;
+    cycleInFlightUserIds.delete(uid);
   }
 }
 
-async function runCycleLocked(runId: string, ranAt: string): Promise<AutoCycleResult> {
-  // Phase 1, Sprint 7 — the scheduler has no request/session context, so it keeps
-  // resolving the same legacy-owner id it always implicitly operated as; making
-  // that resolution explicit here (rather than relying on serverState.ts's old
-  // default) is required now that userId is a mandatory parameter everywhere else.
-  // The scheduler's real per-user redesign is Sprint 8's job (approved plan §4.4).
-  const userId = await getLegacyOwnerUserId();
+// Phase 1, Sprint 8 — the scheduler runs this once per user currently armed
+// (executionMode=full_auto AND autoExecuteEnabled), so the kill switch and every
+// guardrail below are genuinely per-user: a disarmed user's positions are never
+// touched by another user's armed cycle, because each cycle only ever queries and
+// acts on that one user's own scanner results, trades, and settings.
+export async function runAutoExecutionCycleForAllUsers(): Promise<AutoCycleResult[]> {
+  const userIds = await getArmedExecutionUserIds();
+  const results: AutoCycleResult[] = [];
+  for (const uid of userIds) {
+    results.push(await runAutoExecutionCycle(uid));
+  }
+  return results;
+}
+
+// Users currently armed for full-auto OPENING (both switches on). Read fresh from
+// settings on every scheduler tick — never cached — so arming/disarming takes
+// effect on the very next tick.
+async function getArmedExecutionUserIds(): Promise<string[]> {
+  const rows = await db
+    .select({ userId: settingsTable.userId })
+    .from(settingsTable)
+    .where(and(eq(settingsTable.executionMode, "full_auto"), eq(settingsTable.autoExecuteEnabled, true)));
+  return rows.map((r) => r.userId);
+}
+
+async function runCycleLocked(runId: string, ranAt: string, userId: string): Promise<AutoCycleResult> {
   const pre = await freshGate(userId);
   const gate = pre.gate;
   let settings = pre.settings;
@@ -489,14 +515,14 @@ export interface AutoExecutionStatus {
   blockReason: string | null;
 }
 
-export async function getAutoExecutionStatus(): Promise<AutoExecutionStatus> {
-  const userId = await getLegacyOwnerUserId();
-  const settings = await getSettingsRow(userId);
-  const accountValue = await getAccountValue(userId);
+export async function getAutoExecutionStatus(userId?: string): Promise<AutoExecutionStatus> {
+  const uid = userId ?? (await getLegacyOwnerUserId());
+  const settings = await getSettingsRow(uid);
+  const accountValue = await getAccountValue(uid);
   const [tradesToday, concurrentPositions, realizedPnl] = await Promise.all([
-    countTradesToday(userId),
-    countConcurrentPositions(userId),
-    dailyRealizedPnl(userId),
+    countTradesToday(uid),
+    countConcurrentPositions(uid),
+    dailyRealizedPnl(uid),
   ]);
 
   const gate = evaluateAutoGuardrails({

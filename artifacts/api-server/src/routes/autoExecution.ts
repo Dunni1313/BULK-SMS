@@ -12,12 +12,14 @@ import {
   getAutoExecutionLog,
 } from "../lib/autoExecution.js";
 import { runAutoAdjustmentCycle } from "../lib/autoAdjustment.js";
+import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
 router.get("/execution/auto/status", async (req, res): Promise<void> => {
   try {
-    const status = await getAutoExecutionStatus();
+    const userId = await getScopedUserId(req);
+    const status = await getAutoExecutionStatus(userId);
     res.json(GetAutoExecutionStatusResponse.parse(status));
   } catch (err) {
     req.log.error({ err }, "auto status failed");
@@ -54,7 +56,8 @@ router.get("/execution/auto/adjust/log", async (req, res): Promise<void> => {
 
 router.post("/execution/auto/run", async (req, res): Promise<void> => {
   try {
-    const result = await runAutoExecutionCycle();
+    const userId = await getScopedUserId(req);
+    const result = await runAutoExecutionCycle(userId);
     res.json(RunAutoExecutionCycleResponse.parse(result));
   } catch (err) {
     req.log.error({ err }, "auto run failed");
@@ -64,7 +67,8 @@ router.post("/execution/auto/run", async (req, res): Promise<void> => {
 
 router.post("/execution/auto/adjust/run", async (req, res): Promise<void> => {
   try {
-    const result = await runAutoAdjustmentCycle();
+    const userId = await getScopedUserId(req);
+    const result = await runAutoAdjustmentCycle(userId);
     res.json(RunAutoAdjustmentCycleResponse.parse(result));
   } catch (err) {
     req.log.error({ err }, "auto adjust run failed");

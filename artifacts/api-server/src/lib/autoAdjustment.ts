@@ -12,7 +12,7 @@
 // trigger can't overlap, and the arm gate is re-read from live DB state before EVERY
 // close so flipping the switch off halts the loop in real time.
 
-import { db, tradesTable, autoExecutionLogTable } from "@workspace/db";
+import { db, tradesTable, autoExecutionLogTable, settingsTable } from "@workspace/db";
 import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { getSettingsRow } from "./serverState.js";
@@ -91,14 +91,21 @@ async function logDecision(runId: string, t: { ravishScore: number } | null, d: 
   });
 }
 
-// Single-flight guard shared by the scheduler tick and POST /execution/auto/adjust/run.
-let adjustCycleInFlight = false;
+// Single-flight guard, keyed per user (Phase 1, Sprint 8 — see
+// runAutoAdjustmentCycleForAllUsers below). Shared by the scheduler tick and the
+// manual POST /execution/auto/adjust/run trigger so two cycles for the SAME user
+// can never overlap, while different users' cycles run independently.
+const adjustCycleInFlightUserIds = new Set<string>();
 
-export async function runAutoAdjustmentCycle(): Promise<AutoAdjustCycleResult> {
+// Run one auto-adjustment cycle for a single user. `userId` defaults to the
+// legacy-owner stand-in when omitted, preserving this function's exact
+// pre-Sprint-8 single-user behavior for existing callers/tests.
+export async function runAutoAdjustmentCycle(userId?: string): Promise<AutoAdjustCycleResult> {
+  const uid = userId ?? (await getLegacyOwnerUserId());
   const runId = randomUUID();
   const ranAt = new Date().toISOString();
 
-  if (adjustCycleInFlight) {
+  if (adjustCycleInFlightUserIds.has(uid)) {
     return {
       runId,
       ranAt,
@@ -110,21 +117,45 @@ export async function runAutoAdjustmentCycle(): Promise<AutoAdjustCycleResult> {
       decisions: [],
     };
   }
-  adjustCycleInFlight = true;
+  adjustCycleInFlightUserIds.add(uid);
   try {
-    return await runAdjustLocked(runId, ranAt);
+    return await runAdjustLocked(runId, ranAt, uid);
   } finally {
-    adjustCycleInFlight = false;
+    adjustCycleInFlightUserIds.delete(uid);
   }
 }
 
-async function runAdjustLocked(runId: string, ranAt: string): Promise<AutoAdjustCycleResult> {
-  // Phase 1, Sprint 7 — the scheduler has no request/session context, so it keeps
-  // resolving the same legacy-owner id it always implicitly operated as; making
-  // that resolution explicit here (rather than relying on serverState.ts's old
-  // default) is required now that userId is a mandatory parameter everywhere else.
-  // The scheduler's real per-user redesign is Sprint 8's job (approved plan §4.4).
-  const userId = await getLegacyOwnerUserId();
+// Phase 1, Sprint 8 — the scheduler runs this once per user currently armed for
+// auto-adjust (all three switches — see autoAdjustAllowed), so a disarmed user's
+// open positions are never touched by another user's armed cycle: each cycle only
+// ever queries and closes that one user's own trades.
+export async function runAutoAdjustmentCycleForAllUsers(): Promise<AutoAdjustCycleResult[]> {
+  const userIds = await getArmedAdjustmentUserIds();
+  const results: AutoAdjustCycleResult[] = [];
+  for (const uid of userIds) {
+    results.push(await runAutoAdjustmentCycle(uid));
+  }
+  return results;
+}
+
+// Users currently armed for auto-adjust (all three switches on — master before
+// subordinate, mirroring autoAdjustAllowed's own precedence). Read fresh from
+// settings on every scheduler tick — never cached.
+async function getArmedAdjustmentUserIds(): Promise<string[]> {
+  const rows = await db
+    .select({ userId: settingsTable.userId })
+    .from(settingsTable)
+    .where(
+      and(
+        eq(settingsTable.executionMode, "full_auto"),
+        eq(settingsTable.autoExecuteEnabled, true),
+        eq(settingsTable.autoAdjustEnabled, true),
+      ),
+    );
+  return rows.map((r) => r.userId);
+}
+
+async function runAdjustLocked(runId: string, ranAt: string, userId: string): Promise<AutoAdjustCycleResult> {
   const settings0 = await getSettingsRow(userId);
   const gate0 = autoAdjustAllowed(settings0.executionMode, settings0.autoExecuteEnabled, settings0.autoAdjustEnabled);
   if (!gate0.allowed) {
