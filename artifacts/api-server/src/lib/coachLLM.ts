@@ -6,16 +6,29 @@
 // model is unavailable (no key, network/error), it degrades gracefully to a
 // deterministic template so every endpoint always returns a useful answer.
 //
-// Provider-agnostic: ANTHROPIC_API_KEY selects the Anthropic SDK if set. Otherwise,
-// OPENAI_API_KEY is used — normally for the OpenAI SDK, but for backward
-// compatibility with deployments that predate the ANTHROPIC_API_KEY split, it may
-// still hold an Anthropic key (sk-ant-... prefix), in which case a startup warning
-// is logged and the Anthropic SDK is used instead. Prefer ANTHROPIC_API_KEY going
-// forward; the sk-ant- fallback is a deprecated legacy path.
+// Phase 1, Sprint 9 — the provider-agnostic, engine-agnostic machinery (provider
+// detection, timeout/cache/single-flight, the generalized narrate()/narrateStream())
+// now lives in @workspace/ai-core (see docs/Phase-1-Foundation-Execution-Plan.md
+// §5). This file is the thin, options-specific domain layer on top of it: the
+// system prompt wording, the coach disclaimer, every template/prompt, and the
+// value-module safety checks stay here. Every function this file exports keeps
+// its exact pre-Sprint-9 name, signature, and behavior.
 
-import OpenAI from "openai";
-import Anthropic from "@anthropic-ai/sdk";
 import { logger } from "./logger.js";
+import {
+  llmAvailable as aiCoreLlmAvailable,
+  narrate as aiCoreNarrate,
+  narrateStream as aiCoreNarrateStream,
+  complete as aiCoreComplete,
+  extractJsonObject as aiCoreExtractJsonObject,
+  levelInstruction,
+  levelKey,
+  type Narration,
+  type NarrationSource,
+  type CoachLevel,
+  type TokenSink,
+  type WarnHandler,
+} from "@workspace/ai-core";
 import {
   COACH_DISCLAIMER,
   type TradeExplanation,
@@ -23,107 +36,18 @@ import {
 } from "./coach.js";
 import { VALUE_DISCLAIMER } from "./valueReport.js";
 
-const OPENAI_MODEL = process.env.OPENAI_COACH_MODEL || "gpt-4o-mini";
-const ANTHROPIC_MODEL = process.env.ANTHROPIC_COACH_MODEL || "claude-haiku-4-5-20251001";
+export type { NarrationSource, Narration, CoachLevel, TokenSink };
 
-type Provider = "openai" | "anthropic" | null;
-
-let provider: Provider = null;
-let openaiClient: OpenAI | null = null;
-let anthropicClient: Anthropic | null = null;
-let initialized = false;
-
-function init(): void {
-  if (initialized) return;
-  initialized = true;
-
-  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
-  if (anthropicKey) {
-    provider = "anthropic";
-    anthropicClient = new Anthropic({ apiKey: anthropicKey });
-    return;
-  }
-
-  const key = process.env.OPENAI_API_KEY?.trim();
-  if (!key) {
-    provider = null;
-    return;
-  }
-  if (key.startsWith("sk-ant-")) {
-    logger.warn(
-      "coachLLM: OPENAI_API_KEY holds an Anthropic key (sk-ant- prefix). " +
-        "This overload is deprecated — set ANTHROPIC_API_KEY instead. " +
-        "Continuing to work via the legacy fallback for now.",
-    );
-    provider = "anthropic";
-    anthropicClient = new Anthropic({ apiKey: key });
-  } else {
-    provider = "openai";
-    openaiClient = new OpenAI({ apiKey: key });
-  }
-}
+// Bridges @workspace/ai-core's structured-or-plain warning hook to this app's
+// real pino logger, preserving the exact pino call shape each site used before
+// the extraction (a bare message, or a leading structured-fields object).
+const onWarn: WarnHandler = (meta, message) => {
+  if (meta) logger.warn(meta, message);
+  else logger.warn(message);
+};
 
 export function llmAvailable(): boolean {
-  init();
-  return provider !== null;
-}
-
-// ─── Concurrency hardening ───────────────────────────────────────────────────
-// Coach LLM calls take ~10-20s. Under concurrent load they used to pile up and
-// surface as 502 gateway timeouts / blank cards. Three guards prevent that:
-//   1. a hard per-call timeout that aborts a hung request so it degrades to the
-//      deterministic template instead of hanging forever,
-//   2. a short-lived cache keyed by the lesson/trade so repeat asks are instant,
-//   3. single-flight dedup so N concurrent identical asks share ONE LLM call.
-
-const LLM_TIMEOUT_MS = Number(process.env.COACH_LLM_TIMEOUT_MS) || 25_000;
-const CACHE_MAX = 200;
-const CACHE_TTL_MS = 10 * 60 * 1000;
-
-interface CacheEntry {
-  text: string;
-  expires: number;
-  // When this narration was generated (epoch ms). Surfaced to the UI so users
-  // can tell a freshly generated take from a previously cached one.
-  createdAt: number;
-}
-
-// Shared by both the streaming and non-streaming narration paths so a result
-// produced by one serves the other.
-const narrationCache = new Map<string, CacheEntry>();
-// In-flight LLM calls keyed by cache key. Resolves with the final (disclaimer-
-// enforced) text, or null if the LLM produced nothing usable.
-const inflight = new Map<string, Promise<string | null>>();
-
-function cacheGet(key: string): CacheEntry | null {
-  const e = narrationCache.get(key);
-  if (!e) return null;
-  if (Date.now() > e.expires) {
-    narrationCache.delete(key);
-    return null;
-  }
-  // Refresh recency for a simple LRU eviction order.
-  narrationCache.delete(key);
-  narrationCache.set(key, e);
-  return e;
-}
-
-function cacheSet(key: string, text: string): void {
-  narrationCache.set(key, { text, expires: Date.now() + CACHE_TTL_MS, createdAt: Date.now() });
-  while (narrationCache.size > CACHE_MAX) {
-    const oldest = narrationCache.keys().next().value;
-    if (oldest === undefined) break;
-    narrationCache.delete(oldest);
-  }
-}
-
-// Abort signal that fires after `ms`, with a cleanup to clear the timer once the
-// call settles. Aborting makes the SDK throw, which our catch turns into a
-// template fallback.
-function withTimeout(ms: number): { signal: AbortSignal; done: () => void } {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), ms);
-  return { signal: ctrl.signal, done: () => clearTimeout(timer) };
+  return aiCoreLlmAvailable(onWarn);
 }
 
 const SYSTEM_PROMPT = `You are the Ravish Trading Coach — a patient, rigorous options-trading TUTOR. Your job is to TEACH and EXPLAIN, never to advise.
@@ -135,85 +59,40 @@ Hard rules:
 - Be concise and structured. Prefer short paragraphs or tight bullet points.
 - The Ravish Engine never executes trades automatically; any order is a manual decision the user makes on the Trade Ticket. Reinforce this if execution comes up.`;
 
-export type NarrationSource = "llm" | "template";
-
-export interface Narration {
-  text: string;
-  source: NarrationSource;
-  // True when the text was served from the in-memory cache rather than freshly
-  // generated this call. Undefined for the deterministic template path.
-  cached?: boolean;
-  // When the narration was generated (epoch ms). Present on the LLM path only.
-  generatedAt?: number;
+// Thin wrappers over @workspace/ai-core's generalized narrate()/narrateStream(),
+// binding this engine's SYSTEM_PROMPT + COACH_DISCLAIMER + logger so every
+// caller below stays exactly as simple as it was pre-extraction.
+async function narrate(
+  userPrompt: string,
+  data: unknown,
+  fallback: string,
+  cacheKey?: string,
+  bustCache = false,
+): Promise<Narration> {
+  return aiCoreNarrate(userPrompt, data, fallback, {
+    systemPrompt: SYSTEM_PROMPT,
+    disclaimer: COACH_DISCLAIMER,
+    cacheKey,
+    bustCache,
+    onWarn,
+  });
 }
 
-// Optional explanation depth. Threaded into the prompt and the cache key so a
-// beginner and an advanced ask for the same lesson don't share a cached answer.
-export type CoachLevel = "beginner" | "advanced";
-
-function levelInstruction(level?: CoachLevel): string {
-  if (level === "beginner")
-    return " Explain at a BEGINNER depth: assume little prior options knowledge, define any jargon you use, and keep it simple and encouraging.";
-  if (level === "advanced")
-    return " Explain at an ADVANCED depth: assume the reader already knows options basics; be concise, precise, and focus on the nuanced trade-offs.";
-  return "";
-}
-
-function levelKey(level?: CoachLevel): string {
-  return level ? `:${level}` : "";
-}
-
-// Callback that receives incremental text chunks as the model streams them.
-export type TokenSink = (chunk: string) => void;
-
-// Unified single-shot completion across providers. Returns null on any failure
-// so callers fall back to their deterministic template.
-async function complete(
-  userContent: string,
-  maxTokens: number,
-  opts: { json?: boolean } = {},
-): Promise<string | null> {
-  init();
-  const { signal, done } = withTimeout(LLM_TIMEOUT_MS);
-  try {
-    if (provider === "anthropic" && anthropicClient) {
-      const sys = opts.json
-        ? `${SYSTEM_PROMPT}\n\nRespond ONLY with a single valid JSON object, no prose or code fences.`
-        : SYSTEM_PROMPT;
-      const resp = await anthropicClient.messages.create(
-        {
-          model: ANTHROPIC_MODEL,
-          max_tokens: maxTokens,
-          system: sys,
-          messages: [{ role: "user", content: userContent }],
-        },
-        { signal },
-      );
-      const block = resp.content.find((b) => b.type === "text");
-      return block && block.type === "text" ? block.text.trim() : null;
-    }
-    if (provider === "openai" && openaiClient) {
-      const resp = await openaiClient.chat.completions.create(
-        {
-          model: OPENAI_MODEL,
-          max_completion_tokens: maxTokens,
-          ...(opts.json ? { response_format: { type: "json_object" as const } } : {}),
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: userContent },
-          ],
-        },
-        { signal },
-      );
-      return resp.choices[0]?.message?.content?.trim() ?? null;
-    }
-    return null;
-  } catch (err) {
-    logger.warn({ err, provider }, "coach LLM completion failed; using template fallback");
-    return null;
-  } finally {
-    done();
-  }
+async function narrateStream(
+  userPrompt: string,
+  data: unknown,
+  fallback: string,
+  onToken: TokenSink,
+  cacheKey?: string,
+  bustCache = false,
+): Promise<Narration> {
+  return aiCoreNarrateStream(userPrompt, data, fallback, onToken, {
+    systemPrompt: SYSTEM_PROMPT,
+    disclaimer: COACH_DISCLAIMER,
+    cacheKey,
+    bustCache,
+    onWarn,
+  });
 }
 
 // Safety invariant: every narration must carry the coach disclaimer — on BOTH the
@@ -262,196 +141,12 @@ function enforceValueSafety(n: Narration, fallback: string): Narration {
   return { ...n, text: enforceValueDisclaimer(text), source };
 }
 
-async function narrate(
-  userPrompt: string,
-  data: unknown,
-  fallback: string,
-  cacheKey?: string,
-  bustCache = false,
-): Promise<Narration> {
-  if (!llmAvailable()) return { text: enforceDisclaimer(fallback), source: "template" };
-  // Explicit refresh: drop any cached narration (and skip joining an in-flight
-  // pre-refresh call) so a brand-new LLM call runs and re-populates the cache.
-  if (cacheKey && bustCache) narrationCache.delete(cacheKey);
-  if (cacheKey && !bustCache) {
-    const cached = cacheGet(cacheKey);
-    if (cached) return { text: cached.text, source: "llm", cached: true, generatedAt: cached.createdAt };
-  }
-  const content = `${userPrompt}\n\nDATA (authoritative — use these exact numbers, do not invent others):\n${JSON.stringify(data)}`;
-  const run = async (): Promise<string | null> => {
-    const text = await complete(content, 900);
-    if (!text) return null;
-    const withDisclaimer = enforceDisclaimer(text);
-    if (cacheKey) cacheSet(cacheKey, withDisclaimer);
-    return withDisclaimer;
-  };
-  // Single-flight: concurrent identical asks share one LLM call.
-  let finalText: string | null;
-  if (cacheKey) {
-    // On an explicit refresh, start a fresh leader instead of joining any
-    // pre-refresh in-flight call so the caller always gets new prose.
-    let p = bustCache ? undefined : inflight.get(cacheKey);
-    if (!p) {
-      p = run();
-      inflight.set(cacheKey, p);
-      void p.finally(() => inflight.delete(cacheKey));
-    }
-    finalText = await p;
-  } else {
-    finalText = await run();
-  }
-  if (!finalText) return { text: enforceDisclaimer(fallback), source: "template" };
-  return { text: finalText, source: "llm", cached: false, generatedAt: Date.now() };
-}
-
-// Streaming counterpart of complete(). Pushes text chunks through onToken as the
-// model produces them and resolves with the full text, or null on any failure
-// so callers fall back to their deterministic template.
-async function completeStream(
-  userContent: string,
-  maxTokens: number,
-  onToken: TokenSink,
-): Promise<string | null> {
-  init();
-  const { signal, done } = withTimeout(LLM_TIMEOUT_MS);
-  try {
-    if (provider === "anthropic" && anthropicClient) {
-      const stream = anthropicClient.messages.stream(
-        {
-          model: ANTHROPIC_MODEL,
-          max_tokens: maxTokens,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: userContent }],
-        },
-        { signal },
-      );
-      let acc = "";
-      for await (const event of stream) {
-        if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-          acc += event.delta.text;
-          onToken(event.delta.text);
-        }
-      }
-      const trimmed = acc.trim();
-      return trimmed.length > 0 ? trimmed : null;
-    }
-    if (provider === "openai" && openaiClient) {
-      const stream = await openaiClient.chat.completions.create(
-        {
-          model: OPENAI_MODEL,
-          max_completion_tokens: maxTokens,
-          stream: true,
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: userContent },
-          ],
-        },
-        { signal },
-      );
-      let acc = "";
-      for await (const chunk of stream) {
-        const delta = chunk.choices[0]?.delta?.content ?? "";
-        if (delta) {
-          acc += delta;
-          onToken(delta);
-        }
-      }
-      const trimmed = acc.trim();
-      return trimmed.length > 0 ? trimmed : null;
-    }
-    return null;
-  } catch (err) {
-    logger.warn({ err, provider }, "coach LLM stream failed; using template fallback");
-    return null;
-  } finally {
-    done();
-  }
-}
-
-// Streaming counterpart of narrate(). When the LLM is unavailable it emits the
-// deterministic template in one shot (no streaming) and returns source:template.
-// On the LLM path it streams tokens live and enforces the same disclaimer
-// invariant as narrate(). If the stream errors before producing any text, it
-// degrades to the template; if it errors mid-stream, it finalizes whatever was
-// already emitted (so the frontend never double-renders).
-async function narrateStream(
-  userPrompt: string,
-  data: unknown,
-  fallback: string,
-  onToken: TokenSink,
-  cacheKey?: string,
-  bustCache = false,
-): Promise<Narration> {
-  if (!llmAvailable()) {
-    const fb = enforceDisclaimer(fallback);
-    onToken(fb);
-    return { text: fb, source: "template" };
-  }
-  // Explicit refresh: drop any cached narration so a fresh LLM call runs and
-  // re-streams new prose, bypassing both the cache and any pre-refresh in-flight
-  // call (which would otherwise replay stale text in a single chunk).
-  if (cacheKey && bustCache) narrationCache.delete(cacheKey);
-  // Cache hit: emit the finished narration as a single chunk (no LLM call).
-  if (cacheKey && !bustCache) {
-    const cached = cacheGet(cacheKey);
-    if (cached) {
-      onToken(cached.text);
-      return { text: cached.text, source: "llm", cached: true, generatedAt: cached.createdAt };
-    }
-    // Single-flight: a concurrent identical ask is already streaming. Wait for
-    // its result and emit it in one chunk rather than firing a second LLM call.
-    const existing = inflight.get(cacheKey);
-    if (existing) {
-      const text = await existing;
-      if (text) {
-        onToken(text);
-        return { text, source: "llm", cached: false, generatedAt: Date.now() };
-      }
-      const fb = enforceDisclaimer(fallback);
-      onToken(fb);
-      return { text: fb, source: "template" };
-    }
-  }
-  const content = `${userPrompt}\n\nDATA (authoritative — use these exact numbers, do not invent others):\n${JSON.stringify(data)}`;
-  let streamed = "";
-  // The leader streams tokens live to its own client and resolves the shared
-  // promise with the final (disclaimer-enforced) text for any followers.
-  const leader = (async (): Promise<string | null> => {
-    const text = await completeStream(content, 900, (t) => {
-      streamed += t;
-      onToken(t);
-    });
-    if (!text) return null;
-    const withDisclaimer = enforceDisclaimer(text);
-    if (cacheKey) cacheSet(cacheKey, withDisclaimer);
-    return withDisclaimer;
-  })();
-  if (cacheKey) {
-    inflight.set(cacheKey, leader);
-    void leader.finally(() => inflight.delete(cacheKey));
-  }
-  const text = await leader;
-  if (!text) {
-    if (streamed.length === 0) {
-      const fb = enforceDisclaimer(fallback);
-      onToken(fb);
-      return { text: fb, source: "template" };
-    }
-    const partial = enforceDisclaimer(streamed);
-    return { text: partial.trim(), source: "llm", cached: false, generatedAt: Date.now() };
-  }
-  return { text, source: "llm", cached: false, generatedAt: Date.now() };
-}
-
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 
 // Models sometimes wrap JSON in ```json fences or surrounding prose. Pull out
 // the first balanced {...} object so JSON.parse has a clean target.
 function extractJsonObject(raw: string): string | null {
-  const start = raw.indexOf("{");
-  const end = raw.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) return null;
-  return raw.slice(start, end + 1);
+  return aiCoreExtractJsonObject(raw);
 }
 
 // ─── Trade explanation ───────────────────────────────────────────────────────
@@ -686,7 +381,7 @@ export async function narrateJournalReview(d: JournalReviewData): Promise<Journa
   const tpl = reviewTemplate(d);
   if (!llmAvailable()) return { ...tpl, source: "template" };
   const content = `Review this CLOSED options trade like a coach doing a post-mortem. Reply as strict JSON with two string fields: "review" (2-4 sentence coaching review of how the trade went and what the process teaches) and "lessonLearned" (one concise, durable takeaway). Do NOT recommend future trades.\n\nDATA:\n${JSON.stringify(d)}`;
-  const raw = await complete(content, 700, { json: true });
+  const raw = await aiCoreComplete(SYSTEM_PROMPT, content, 700, { json: true, onWarn });
   if (!raw) return { ...tpl, source: "template" };
   try {
     const json = extractJsonObject(raw);
