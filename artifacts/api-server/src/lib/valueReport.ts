@@ -1,5 +1,5 @@
-// Task #66 — 16-section value-investing research report assembler (Phase 2,
-// Sprint 12 added the "Graham Valuation" section).
+// Task #66 — 17-section value-investing research report assembler (Phase 2,
+// Sprint 12 added "Graham Valuation"; Sprint 13 added "DCF Valuation").
 //
 // Pure + deterministic: composes the SIMULATED fundamentals + the value-investing
 // engines into a structured, ordered report. The LLM (coachLLM) only narrates the
@@ -30,6 +30,7 @@ import {
   type ValueDecision,
 } from "./valueInvesting.js";
 import { analyzeGrahamValuation, type GrahamValuation } from "./grahamValuation.js";
+import { analyzeDcfValuation, type DcfValuation } from "./dcfValuation.js";
 
 // The standard value-investing disclaimer. Distinct from COACH_DISCLAIMER but the
 // LLM narration is still routed through narrate() so COACH_DISCLAIMER is appended.
@@ -91,6 +92,7 @@ export interface ValueResearchReport {
   financialStrength: FinancialStrength;
   valuation: Valuation;
   grahamValuation: GrahamValuation;
+  dcfValuation: DcfValuation;
   decision: ValueDecision;
   stockVsOptions: StockVsOptions;
   keyMetrics: KeyMetric[];
@@ -155,6 +157,7 @@ export async function buildValueResearchReport(
   const fin = analyzeFinancialStrength(f);
   const val = analyzeValuation(f);
   const graham = analyzeGrahamValuation(f);
+  const dcf = analyzeDcfValuation(f);
   const decision = analyzeValueDecision(f, bq, moat, fin, val);
   const svo = analyzeStockVsOptions(f, bq, moat, val, snap);
 
@@ -243,45 +246,53 @@ export async function buildValueResearchReport(
       bullets: graham.available ? graham.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [graham.reason],
     },
     {
+      id: "dcf-valuation",
+      title: "10. DCF Valuation",
+      body: dcf.summary,
+      bullets: dcf.available
+        ? [...dcf.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`), dcf.confidenceExplanation]
+        : [dcf.reason],
+    },
+    {
       id: "margin-of-safety",
-      title: "10. Margin of Safety",
+      title: "11. Margin of Safety",
       body: val.available
         ? `At ${money(f.price)} versus a ${money(val.fairValue)} fair-value estimate, the margin of safety is ${pct(val.marginOfSafety)} (${val.marginOfSafetyLabel}). Buffett's rule: only buy with a meaningful discount to intrinsic value.`
         : "Margin of safety is unavailable because intrinsic value could not be estimated without fabricating a number. The honest answer is: not computable.",
     },
     {
       id: "risks",
-      title: "11. Risks & Red Flags",
+      title: "12. Risks & Red Flags",
       body: `Key risks identified in the ${dataLabel} fundamentals:`,
       bullets: risks.map((r) => `[${r.severity.toUpperCase()}] ${r.text}`),
     },
     {
       id: "decision",
-      title: "12. Value-Investor Decision",
+      title: "13. Value-Investor Decision",
       body: decision.summary,
       bullets: decision.rationale,
     },
     {
       id: "stock-vs-options",
-      title: "13. Stock vs. Options",
+      title: "14. Stock vs. Options",
       body: svo.summary,
       bullets: [svo.stockCase, svo.optionsCase],
     },
     {
       id: "checklist",
-      title: "14. Buffett Checklist",
+      title: "15. Buffett Checklist",
       body: "A wonderful business at a fair price, bought with a margin of safety:",
       bullets: buffettChecklist(f, bq, moat, fin, val),
     },
     {
       id: "metrics",
-      title: "15. Key Metrics",
+      title: "16. Key Metrics",
       body: `Headline ${dataLabel} metrics (see full table in the UI).`,
       bullets: keyMetrics.map((m) => `${m.label}: ${m.value}`),
     },
     {
       id: "disclaimer",
-      title: "16. Disclaimers & Data Source",
+      title: "17. Disclaimers & Data Source",
       body: disclaimerFor(f.dataSource),
       bullets: [`Data source: ${f.dataSource}`, `As of: ${f.asOf}`],
     },
@@ -302,6 +313,7 @@ export async function buildValueResearchReport(
     financialStrength: fin,
     valuation: val,
     grahamValuation: graham,
+    dcfValuation: dcf,
     decision,
     stockVsOptions: svo,
     keyMetrics,

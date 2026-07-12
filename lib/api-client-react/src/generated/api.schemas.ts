@@ -146,6 +146,54 @@ export interface ValueGrahamValuation {
   reason?: string;
 }
 
+export type ValueDcfValuationMarginOfSafetyLabel = typeof ValueDcfValuationMarginOfSafetyLabel[keyof typeof ValueDcfValuationMarginOfSafetyLabel];
+
+
+export const ValueDcfValuationMarginOfSafetyLabel = {
+  High: 'High',
+  Medium: 'Medium',
+  Low: 'Low',
+  None: 'None',
+} as const;
+
+export type ValueDcfValuationRating = typeof ValueDcfValuationRating[keyof typeof ValueDcfValuationRating];
+
+
+export const ValueDcfValuationRating = {
+  Cheap: 'Cheap',
+  Fair: 'Fair',
+  Expensive: 'Expensive',
+  Very_Expensive: 'Very Expensive',
+} as const;
+
+export type ValueDcfValuationConfidenceLabel = typeof ValueDcfValuationConfidenceLabel[keyof typeof ValueDcfValuationConfidenceLabel];
+
+
+export const ValueDcfValuationConfidenceLabel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface ValueDcfValuation {
+  available: boolean;
+  price: number;
+  discountRate: number;
+  terminalGrowthRate: number;
+  summary: string;
+  projectionYears?: number;
+  projectedFreeCashFlows?: number[];
+  terminalValue?: number;
+  fairValue?: number;
+  methods?: ValueFairValueMethod[];
+  marginOfSafety?: number;
+  marginOfSafetyLabel?: ValueDcfValuationMarginOfSafetyLabel;
+  rating?: ValueDcfValuationRating;
+  confidenceLabel?: ValueDcfValuationConfidenceLabel;
+  confidenceExplanation?: string;
+  reason?: string;
+}
+
 export type ValueDecisionVerdict = typeof ValueDecisionVerdict[keyof typeof ValueDecisionVerdict];
 
 
@@ -249,6 +297,7 @@ export interface ValueResearchReport {
   financialStrength: ValueFinancialStrength;
   valuation: ValueValuation;
   grahamValuation: ValueGrahamValuation;
+  dcfValuation: ValueDcfValuation;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

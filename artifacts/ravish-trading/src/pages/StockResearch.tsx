@@ -41,6 +41,7 @@ import {
   Building2,
   RefreshCw,
   Calculator,
+  LineChart,
 } from "lucide-react";
 
 type Level = ValueResearchInputLevel;
@@ -142,6 +143,7 @@ export function ReportView({
 }) {
   const v = report.valuation;
   const g = report.grahamValuation;
+  const d = report.dcfValuation;
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -397,6 +399,80 @@ export function ReportView({
                   <AlertTriangle className="w-3.5 h-3.5" /> Graham fair value unavailable
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-1">{g.reason ?? g.summary}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card/60 border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <LineChart className="w-4 h-4 text-indigo-400" /> DCF Valuation
+              {d.available && d.rating && (
+                <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                  {d.rating}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {d.available ? (
+              <>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="text-muted-foreground">Intrinsic value</div>
+                    <div className="font-mono text-foreground">
+                      {d.fairValue != null ? fmtUsd(d.fairValue) : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Margin of safety</div>
+                    <div
+                      className={`font-mono ${
+                        (d.marginOfSafety ?? 0) > 0 ? "text-emerald-400" : "text-rose-400"
+                      }`}
+                    >
+                      {d.marginOfSafety != null ? `${(d.marginOfSafety * 100).toFixed(1)}%` : "—"}
+                      {d.marginOfSafetyLabel && (
+                        <span className="text-[10px] text-muted-foreground ml-1">({d.marginOfSafetyLabel})</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Discount rate</div>
+                    <div className="font-mono text-foreground">{(d.discountRate * 100).toFixed(1)}%</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Terminal growth rate</div>
+                    <div className="font-mono text-foreground">{(d.terminalGrowthRate * 100).toFixed(1)}%</div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">{d.summary}</p>
+                {d.methods && d.methods.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    {d.methods.map((m) => (
+                      <div key={m.method} className="flex items-center justify-between text-[11px]">
+                        <span className="text-muted-foreground">{m.method}</span>
+                        <span className="font-mono text-foreground/90">{fmtUsd(m.fairValue)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {d.confidenceExplanation && (
+                  <div className="rounded-md border border-border bg-muted/20 p-2">
+                    <p className="text-[11px] font-medium text-foreground flex items-center gap-1.5">
+                      {d.confidenceLabel} confidence
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{d.confidenceExplanation}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
+                <p className="text-xs font-medium text-amber-400 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> DCF fair value unavailable
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">{d.reason ?? d.summary}</p>
               </div>
             )}
           </CardContent>

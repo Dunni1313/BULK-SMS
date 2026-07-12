@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ValueBusinessQuality } from './valueBusinessQuality';
+import type { ValueDcfValuation } from './valueDcfValuation';
 import type { ValueDecision } from './valueDecision';
 import type { ValueFinancialStrength } from './valueFinancialStrength';
 import type { ValueFundamentalsFallback } from './valueFundamentalsFallback';
@@ -33,6 +34,7 @@ export interface ValueResearchReport {
   financialStrength: ValueFinancialStrength;
   valuation: ValueValuation;
   grahamValuation: ValueGrahamValuation;
+  dcfValuation: ValueDcfValuation;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

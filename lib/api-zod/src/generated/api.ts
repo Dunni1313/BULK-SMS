@@ -2375,6 +2375,28 @@ export const GenerateValueResearchResponse = zod.object({
   "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
   "reason": zod.string().optional()
 }),
+  "dcfValuation": zod.object({
+  "available": zod.boolean(),
+  "price": zod.number(),
+  "discountRate": zod.number(),
+  "terminalGrowthRate": zod.number(),
+  "summary": zod.string(),
+  "projectionYears": zod.number().optional(),
+  "projectedFreeCashFlows": zod.array(zod.number()).optional(),
+  "terminalValue": zod.number().optional(),
+  "fairValue": zod.number().optional(),
+  "methods": zod.array(zod.object({
+  "method": zod.string(),
+  "fairValue": zod.number(),
+  "detail": zod.string()
+})).optional(),
+  "marginOfSafety": zod.number().optional(),
+  "marginOfSafetyLabel": zod.enum(['High', 'Medium', 'Low', 'None']).optional(),
+  "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
+  "confidenceLabel": zod.enum(['High', 'Moderate', 'Low']).optional(),
+  "confidenceExplanation": zod.string().optional(),
+  "reason": zod.string().optional()
+}),
   "decision": zod.object({
   "verdict": zod.enum(['LONG-TERM BUY', 'BUY ONLY ON PULLBACK', 'WATCHLIST', 'HOLD', 'TRIM', 'AVOID']),
   "conviction": zod.number(),
@@ -2668,6 +2690,28 @@ export const GetValueReportResponse = zod.object({
   "marginOfSafety": zod.number().optional(),
   "marginOfSafetyLabel": zod.enum(['High', 'Medium', 'Low', 'None']).optional(),
   "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
+  "reason": zod.string().optional()
+}),
+  "dcfValuation": zod.object({
+  "available": zod.boolean(),
+  "price": zod.number(),
+  "discountRate": zod.number(),
+  "terminalGrowthRate": zod.number(),
+  "summary": zod.string(),
+  "projectionYears": zod.number().optional(),
+  "projectedFreeCashFlows": zod.array(zod.number()).optional(),
+  "terminalValue": zod.number().optional(),
+  "fairValue": zod.number().optional(),
+  "methods": zod.array(zod.object({
+  "method": zod.string(),
+  "fairValue": zod.number(),
+  "detail": zod.string()
+})).optional(),
+  "marginOfSafety": zod.number().optional(),
+  "marginOfSafetyLabel": zod.enum(['High', 'Medium', 'Low', 'None']).optional(),
+  "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
+  "confidenceLabel": zod.enum(['High', 'Moderate', 'Low']).optional(),
+  "confidenceExplanation": zod.string().optional(),
   "reason": zod.string().optional()
 }),
   "decision": zod.object({

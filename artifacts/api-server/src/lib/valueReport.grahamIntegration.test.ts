@@ -36,7 +36,11 @@ describe("buildValueResearchReport — Sprint 12 Graham integration regression",
       expect(ids).toContain(id);
     }
     expect(ids).toContain("graham-valuation");
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 1);
+    // Phase 2, Sprint 13 added one further section ("dcf-valuation") on top
+    // of Sprint 12's own addition — this assertion reflects the current
+    // total, not just Sprint 12's own delta; graham-valuation's continued
+    // presence (checked above) is this test's actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 2);
   });
 
   it("every pre-existing top-level field is still present and correctly shaped", async () => {
@@ -77,13 +81,15 @@ describe("buildValueResearchReport — Sprint 12 Graham integration regression",
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
     expect(byId.get("valuation")).toBe("8. Valuation & Fair Value");
     expect(byId.get("graham-valuation")).toBe("9. Graham Valuation");
-    expect(byId.get("margin-of-safety")).toBe("10. Margin of Safety");
-    expect(byId.get("risks")).toBe("11. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("12. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("13. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("14. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("15. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("16. Disclaimers & Data Source");
+    // Phase 2, Sprint 13 inserted "10. DCF Valuation" next, shifting
+    // everything below by one more from Sprint 12's own numbering.
+    expect(byId.get("margin-of-safety")).toBe("11. Margin of Safety");
+    expect(byId.get("risks")).toBe("12. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("13. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("14. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("15. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("16. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("17. Disclaimers & Data Source");
   });
 
   it("honestly reports Graham valuation UNAVAILABLE (no fabrication) when trailing EPS is not positive, independent of the blended model's own availability", async () => {

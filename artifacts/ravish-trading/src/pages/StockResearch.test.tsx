@@ -45,9 +45,10 @@ describe("ReportView", () => {
     );
 
     expect(screen.getByText("Fair value (est.)")).toBeInTheDocument();
-    // "Margin of safety" now labels both the blended-model Valuation card and
-    // the Graham Valuation card added in Phase 2, Sprint 12.
-    expect(screen.getAllByText("Margin of safety")).toHaveLength(2);
+    // "Margin of safety" now labels the blended-model Valuation card, the
+    // Graham Valuation card (Phase 2, Sprint 12), and the DCF Valuation card
+    // (Phase 2, Sprint 13).
+    expect(screen.getAllByText("Margin of safety")).toHaveLength(3);
     expect(screen.getByText("14.0%")).toBeInTheDocument();
     expect(
       screen.queryByText("Fair value unavailable"),
