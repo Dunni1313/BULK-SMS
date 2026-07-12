@@ -62,6 +62,12 @@ export const settingsTable = pgTable("settings", {
   // cooldown + the server's live cache so it never spams the provider). No effect
   // for SIMULATED data, which has no freshness concept.
   fundamentalsAutoRefresh: boolean("fundamentals_auto_refresh").notNull().default(true),
+  // Phase 2, Sprint 11 — Institutional Investing Engine settings (approved
+  // Phase 2 plan, Sprint 11). All default so existing settings rows keep
+  // working without a manual backfill.
+  investingRiskFreeRate: real("investing_risk_free_rate").notNull().default(0.045),
+  investingDefaultDiscountRate: real("investing_default_discount_rate").notNull().default(0.09),
+  investingFilingsProvider: text("investing_filings_provider").notNull().default("edgar"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 

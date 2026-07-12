@@ -1631,7 +1631,10 @@ export const GetSettingsResponse = zod.object({
   "fundamentalsConnected": zod.boolean().optional().describe('Whether a live fundamentals provider is configured (always false today)'),
   "fundamentalsLastFetchedAt": zod.string().nullish().describe('ISO timestamp of the most recent successful live fundamentals fetch (null if a live provider has never been reached this process)'),
   "fundamentalsStalenessHours": zod.number().optional().describe('How old (in hours) live fundamentals may be before the UI flags them as stale and nudges a refresh (defaults to 24)'),
-  "fundamentalsAutoRefresh": zod.boolean().optional().describe('Auto re-fetch live fundamentals once data crosses the staleness threshold (no effect for simulated data)')
+  "fundamentalsAutoRefresh": zod.boolean().optional().describe('Auto re-fetch live fundamentals once data crosses the staleness threshold (no effect for simulated data)'),
+  "investingRiskFreeRate": zod.number().optional().describe('Risk-free rate assumption for the Investing Engine\'s valuation models (default 0.045, matches the options engine\'s RISK_FREE constant)'),
+  "investingDefaultDiscountRate": zod.number().optional().describe('Default discount-rate assumption for the Investing Engine\'s DCF\/Buffett valuation models (default 0.09)'),
+  "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)')
 })
 
 
@@ -1669,7 +1672,10 @@ export const UpdateSettingsBody = zod.object({
   "eventRiskAutoBlockHigh": zod.boolean().optional(),
   "fundamentalsProvider": zod.enum(['simulated', 'alpha_vantage', 'financial_modeling_prep']).optional(),
   "fundamentalsStalenessHours": zod.number().optional(),
-  "fundamentalsAutoRefresh": zod.boolean().optional()
+  "fundamentalsAutoRefresh": zod.boolean().optional(),
+  "investingRiskFreeRate": zod.number().optional(),
+  "investingDefaultDiscountRate": zod.number().optional(),
+  "investingFilingsProvider": zod.string().optional()
 })
 
 export const UpdateSettingsResponse = zod.object({
@@ -1706,7 +1712,10 @@ export const UpdateSettingsResponse = zod.object({
   "fundamentalsConnected": zod.boolean().optional().describe('Whether a live fundamentals provider is configured (always false today)'),
   "fundamentalsLastFetchedAt": zod.string().nullish().describe('ISO timestamp of the most recent successful live fundamentals fetch (null if a live provider has never been reached this process)'),
   "fundamentalsStalenessHours": zod.number().optional().describe('How old (in hours) live fundamentals may be before the UI flags them as stale and nudges a refresh (defaults to 24)'),
-  "fundamentalsAutoRefresh": zod.boolean().optional().describe('Auto re-fetch live fundamentals once data crosses the staleness threshold (no effect for simulated data)')
+  "fundamentalsAutoRefresh": zod.boolean().optional().describe('Auto re-fetch live fundamentals once data crosses the staleness threshold (no effect for simulated data)'),
+  "investingRiskFreeRate": zod.number().optional().describe('Risk-free rate assumption for the Investing Engine\'s valuation models (default 0.045, matches the options engine\'s RISK_FREE constant)'),
+  "investingDefaultDiscountRate": zod.number().optional().describe('Default discount-rate assumption for the Investing Engine\'s DCF\/Buffett valuation models (default 0.09)'),
+  "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)')
 })
 
 

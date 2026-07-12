@@ -32,7 +32,7 @@ import {
   GradeValueQuizBody,
   GradeValueQuizResponse,
 } from "@workspace/api-zod";
-import { UNIVERSE } from "../lib/optionsMath.js";
+import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
 import { analyzeInvestmentSuitability } from "../lib/valueInvesting.js";
@@ -165,7 +165,7 @@ router.get("/value-universe", async (req, res): Promise<void> => {
   // initiated refresh (still subject to provider rate limits). No-op for simulated.
   const forceRefresh = req.query.forceRefresh === "true" || req.query.forceRefresh === "1";
   const reports = await Promise.all(
-    UNIVERSE.map((u) =>
+    INVESTING_UNIVERSE.map((u) =>
       buildValueResearchReport(u.symbol, undefined, provider, undefined, { forceRefresh }, userId),
     ),
   );

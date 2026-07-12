@@ -42,4 +42,7 @@ export interface SettingsUpdate {
   fundamentalsProvider?: SettingsUpdateFundamentalsProvider;
   fundamentalsStalenessHours?: number;
   fundamentalsAutoRefresh?: boolean;
+  investingRiskFreeRate?: number;
+  investingDefaultDiscountRate?: number;
+  investingFilingsProvider?: string;
 }

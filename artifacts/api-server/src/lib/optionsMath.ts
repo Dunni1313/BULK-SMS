@@ -3,6 +3,13 @@
 // Ravish Score. All market data is derived from seeded per-symbol snapshots so
 // results are stable within a trading day and consistent across endpoints.
 
+// Phase 2, Sprint 11 — the deterministic RNG/date helpers moved to
+// deterministic.ts (shared, engine-agnostic). Re-exported here so every
+// existing caller of `makeRng`/`todayStr` from this module keeps working
+// unchanged.
+import { makeRng, todayStr } from "./deterministic.js";
+export { makeRng, todayStr };
+
 const RISK_FREE = 0.045;
 // Volatility risk premium: implied vol systematically overstates realized vol,
 // so the probability of staying inside the breakevens is computed with a haircut
@@ -10,30 +17,6 @@ const RISK_FREE = 0.045;
 const VRP_FACTOR = 0.82;
 export function popVol(iv: number): number {
   return Math.max(0.01, iv * VRP_FACTOR);
-}
-
-// ─── Deterministic RNG ───────────────────────────────────────────────────────
-function hashStr(str: string): number {
-  let h = 2166136261 >>> 0;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function mulberry32(a: number): () => number {
-  return function () {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-export function makeRng(seed: string): () => number {
-  return mulberry32(hashStr(seed));
 }
 
 function clamp(x: number, lo: number, hi: number): number {
@@ -209,10 +192,6 @@ export interface Snapshot {
   openInterest: number;
   liquidityScore: number;
   earningsInDays: number | null;
-}
-
-export function todayStr(date = new Date()): string {
-  return date.toISOString().split("T")[0];
 }
 
 export function getSnapshot(symbol: string, dateStr = todayStr()): Snapshot | null {

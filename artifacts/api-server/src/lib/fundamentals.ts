@@ -23,7 +23,8 @@
 
 import { db, settingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { getSnapshot, makeRng, todayStr, UNIVERSE } from "./optionsMath.js";
+import { makeRng, todayStr } from "./deterministic.js";
+import { INVESTING_UNIVERSE, investingPrice, isValidTickerShape } from "./investingUniverse.js";
 import { logger } from "./logger.js";
 import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
@@ -398,6 +399,55 @@ function deriveQualitative(m: {
   };
 }
 
+// A stable, deterministic SIMULATED profile for any symbol NOT in the
+// hand-authored PROFILES map above (Phase 2, Sprint 11 — the Investing Engine
+// no longer limits SIMULATED research to the original 10-symbol universe).
+// Values are seeded by the symbol only (not the date), so repeated requests
+// for the same unlisted symbol return a stable, if invented, financial
+// picture. Deliberately unremarkable (never wonderful, never distressed) so
+// an unlisted symbol doesn't imply a false verdict about a real company that
+// happens to share the ticker. Assembled through the same never-fabricate-a-
+// ratio `assembleFundamentals` pipeline as every other provider.
+function syntheticProfile(symbol: string, price: number): BaseProfile {
+  const rng = makeRng(`${symbol}|synthetic-profile`);
+  const grossMargin = round(0.30 + rng() * 0.25, 4);
+  const operatingMargin = round(grossMargin * (0.35 + rng() * 0.2), 4);
+  const netMargin = round(operatingMargin * (0.6 + rng() * 0.2), 4);
+  const revenueGrowth5y = round(0.03 + rng() * 0.1, 4);
+  const epsGrowth5y = round(revenueGrowth5y * (0.8 + rng() * 0.6), 4);
+  const salesPerShare = round(price / (3 + rng() * 6), 2);
+  const epsTtm = round(salesPerShare * netMargin, 2);
+  const bookPerShare = round(price / (1.5 + rng() * 2.5), 2);
+  const fcfPerShare = round(epsTtm * (0.85 + rng() * 0.3), 2);
+  return {
+    kind: "stock",
+    epsTtm: epsTtm > 0 ? epsTtm : null,
+    epsFwd: epsTtm > 0 ? round(epsTtm * (1 + epsGrowth5y), 2) : null,
+    fcfPerShare,
+    salesPerShare,
+    bookPerShare,
+    dividendPerShare: 0,
+    revenueGrowth5y,
+    epsGrowth5y,
+    revenueGrowthFwd: revenueGrowth5y,
+    grossMargin,
+    operatingMargin,
+    netMargin,
+    roe: round(netMargin * 1.8, 4),
+    roic: round(netMargin * 1.3, 4),
+    debtToEquity: round(0.2 + rng() * 0.6, 2),
+    interestCoverage: round(8 + rng() * 20, 1),
+    currentRatio: round(1.1 + rng() * 1.2, 2),
+    netCashPerShare: round((rng() - 0.4) * bookPerShare * 0.3, 2),
+    fcfPositiveYears: 7,
+    fcfMargin: salesPerShare > 0 ? round(fcfPerShare / salesPerShare, 4) : 0,
+    q: {
+      pricingPower: 50, brand: 45, customerLoyalty: 45, recurringRevenue: 45, scale: 45,
+      switchingCost: 40, networkEffect: 35, ipStrength: 40, distribution: 45, regulatoryAdvantage: 30,
+    },
+  };
+}
+
 // The provider seam. A live provider implements the same async interface and is
 // selected via Settings; the simulated provider is the safe default.
 export interface FundamentalsProvider {
@@ -418,12 +468,14 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
     _opts?: FetchOpts,
   ): Promise<Fundamentals | null> {
     const sym = symbol.toUpperCase();
-    const u = UNIVERSE.find((e) => e.symbol === sym);
-    const p = PROFILES[sym];
-    if (!u || !p) return null;
+    if (!isValidTickerShape(sym)) return null;
 
-    const snap = getSnapshot(sym, asOf);
-    const price = snap?.price ?? u.base;
+    const entry = INVESTING_UNIVERSE.find((e) => e.symbol === sym);
+    const price = investingPrice(sym, asOf);
+    const p = PROFILES[sym] ?? syntheticProfile(sym, price);
+    // Never fabricate a plausible-sounding real company name for a symbol we
+    // don't actually know — fall back to the ticker itself.
+    const name = entry?.name ?? sym;
 
     // Structural fundamentals are seeded by symbol only (stable, not date-churning).
     const rng = makeRng(`${sym}|fundamentals`);
@@ -436,7 +488,7 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
 
     return assembleFundamentals({
       symbol: sym,
-      name: u.name,
+      name,
       kind: p.kind,
       asOf,
       fetchedAt: new Date().toISOString(),

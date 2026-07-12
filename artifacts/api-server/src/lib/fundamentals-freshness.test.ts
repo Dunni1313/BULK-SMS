@@ -29,7 +29,7 @@ import {
   FmpFundamentalsProvider,
 } from "./fundamentals.js";
 import { buildValueResearchReport } from "./valueReport.js";
-import { UNIVERSE } from "./optionsMath.js";
+import { INVESTING_UNIVERSE } from "./investingUniverse.js";
 
 // Strip any live fundamentals key so the live providers are reached ONLY through
 // the mocked fetch below (never the network) and the universe path resolves to the
@@ -140,12 +140,12 @@ describe("value-universe force-refresh path", () => {
   it("builds a report per symbol, each carrying a valid fetchedAt + simulated flag", async () => {
     const provider = await getFundamentalsProvider();
     const reports = await Promise.all(
-      UNIVERSE.map((u) =>
+      INVESTING_UNIVERSE.map((u) =>
         buildValueResearchReport(u.symbol, undefined, provider, undefined, { forceRefresh: true }),
       ),
     );
     const summaries = reports.filter((r): r is NonNullable<typeof r> => r !== null);
-    expect(summaries.length).toBe(UNIVERSE.length);
+    expect(summaries.length).toBe(INVESTING_UNIVERSE.length);
 
     for (const r of summaries) {
       // These are exactly the fields summaryFromReport copies into each universe row.

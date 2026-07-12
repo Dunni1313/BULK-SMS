@@ -72,4 +72,10 @@ export interface Settings {
   fundamentalsStalenessHours?: number;
   /** Auto re-fetch live fundamentals once data crosses the staleness threshold (no effect for simulated data) */
   fundamentalsAutoRefresh?: boolean;
+  /** Risk-free rate assumption for the Investing Engine's valuation models (default 0.045, matches the options engine's RISK_FREE constant) */
+  investingRiskFreeRate?: number;
+  /** Default discount-rate assumption for the Investing Engine's DCF/Buffett valuation models (default 0.09) */
+  investingDefaultDiscountRate?: number;
+  /** Filings data source for Annual Report Analysis (only "edgar" is wired today) */
+  investingFilingsProvider?: string;
 }
