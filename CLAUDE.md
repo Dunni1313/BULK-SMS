@@ -43,8 +43,9 @@ These rules apply regardless of how a request is phrased, including requests tha
 
 - **Phase:** Phase 1 — Foundation (of 7; see the Blueprint doc for the full phase list)
 - **Sprint 1 — COMPLETE.** Users table schema (`lib/db/src/schema/users.ts`), manual migration scripts, and a CI pipeline (`.github/workflows/ci.yml`) were added. Commit `968b8c7` on branch `sprint-1/foundation-users-table-ci`, off baseline `35d2c42`. Zero existing lines were modified or deleted — 5 files added, 1 file gained a single export line.
-- **Sprint 1 verification status (be honest about this — see rule below):** syntax-checked manually in a sandboxed environment with no network access and no installed workspace dependencies; **the real `pnpm typecheck`/`pnpm build`/`pnpm test` have not yet been run against this code.** Running them for real, on this machine, with dependencies actually installed, is the first thing that should happen when picking this repo up.
-- **Sprint 2 — NOT STARTED.** Do not begin Sprint 2 work without explicit instruction. Sprint 2 (per the Phase 1 plan) is: `.env.example` + secrets naming migration, additive and non-breaking to the existing `coachLLM.ts` provider detection.
+- **Sprint 1 verification status:** the real `pnpm typecheck`/`pnpm build`/`pnpm test` have been run for real, with dependencies installed and a live Postgres database — all green.
+- **Sprint 2 — COMPLETE.** `.env.example` added at the repo root; `coachLLM.ts`'s `init()` now checks `ANTHROPIC_API_KEY` first, falls back to `OPENAI_API_KEY` (OpenAI-shaped or, for backward compatibility, `sk-ant-`-prefixed with a logged deprecation warning), preserving identical behavior for existing deployments. Zero existing lines of application logic outside `init()` were touched. New test: `coachLLM.envMigration.test.ts`; existing `phase7.coach.test.ts`, `coach-level.test.ts`, `coach-slowload.test.ts` pass unmodified.
+- **Sprint 3 — NOT STARTED.** Do not begin Sprint 3 work without explicit instruction.
 - **Outstanding owner decisions blocking later sprints** (see Phase 1 plan §11 for full detail — do not resolve these unilaterally):
   1. Authentication provider (recommended: Better-Auth; alternative: Clerk)
   2. Automation scheduler multi-tenancy model (highest-consequence decision in the phase — touches kill-switch-adjacent code)

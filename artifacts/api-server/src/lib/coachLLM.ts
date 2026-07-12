@@ -6,9 +6,12 @@
 // model is unavailable (no key, network/error), it degrades gracefully to a
 // deterministic template so every endpoint always returns a useful answer.
 //
-// Provider-agnostic: the OPENAI_API_KEY secret may hold either an OpenAI key
-// (sk-...) or an Anthropic key (sk-ant-...). We detect the prefix and use the
-// matching SDK so the coach works with whichever valid key the user supplied.
+// Provider-agnostic: ANTHROPIC_API_KEY selects the Anthropic SDK if set. Otherwise,
+// OPENAI_API_KEY is used — normally for the OpenAI SDK, but for backward
+// compatibility with deployments that predate the ANTHROPIC_API_KEY split, it may
+// still hold an Anthropic key (sk-ant-... prefix), in which case a startup warning
+// is logged and the Anthropic SDK is used instead. Prefer ANTHROPIC_API_KEY going
+// forward; the sk-ant- fallback is a deprecated legacy path.
 
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
@@ -33,12 +36,25 @@ let initialized = false;
 function init(): void {
   if (initialized) return;
   initialized = true;
+
+  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
+  if (anthropicKey) {
+    provider = "anthropic";
+    anthropicClient = new Anthropic({ apiKey: anthropicKey });
+    return;
+  }
+
   const key = process.env.OPENAI_API_KEY?.trim();
   if (!key) {
     provider = null;
     return;
   }
   if (key.startsWith("sk-ant-")) {
+    logger.warn(
+      "coachLLM: OPENAI_API_KEY holds an Anthropic key (sk-ant- prefix). " +
+        "This overload is deprecated — set ANTHROPIC_API_KEY instead. " +
+        "Continuing to work via the legacy fallback for now.",
+    );
     provider = "anthropic";
     anthropicClient = new Anthropic({ apiKey: key });
   } else {
