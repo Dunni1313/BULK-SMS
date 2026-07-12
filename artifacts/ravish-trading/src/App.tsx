@@ -26,6 +26,7 @@ import StockResearch from "./pages/StockResearch";
 import StockScanner from "./pages/StockScanner";
 import ValueInvestingSchool from "./pages/ValueInvestingSchool";
 import Settings from "./pages/Settings";
+import Login from "./pages/Login";
 
 // Learn
 import DeltaMasterclass from "./pages/learn/DeltaMasterclass";
@@ -46,6 +47,7 @@ function Router() {
   return (
     <AppLayout>
       <Switch>
+        <Route path="/login" component={Login} />
         <Route path="/" component={Dashboard} />
         <Route path="/scanner" component={Scanner} />
         <Route path="/options/:symbol" component={OptionChain} />

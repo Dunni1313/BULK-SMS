@@ -5,6 +5,7 @@ import {
   getListTradeAdjustmentsQueryKey,
   TradeAdjustment,
 } from "@workspace/api-client-react";
+import { useSession, signOut } from "@/lib/auth-client";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -49,6 +50,7 @@ function needsAttention(a: TradeAdjustment): boolean {
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { toast } = useToast();
+  const { data: session } = useSession();
 
   // Poll adjustments globally so the nav badge + live alerts work from any page.
   // Shares the query key with the Adjustments/Trades pages so it is deduped.
@@ -159,6 +161,32 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            {/* Phase 1, Sprint 6 — session status. Signing in does not gate
+                any other page yet (Sprint 7's job); this only demonstrates
+                that a real Better-Auth session works end-to-end. */}
+            <SidebarGroup className="mt-auto">
+              <SidebarGroupContent>
+                <div className="px-4 py-3 text-xs text-muted-foreground">
+                  {session ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate">Signed in as {session.user.email}</span>
+                      <button
+                        type="button"
+                        onClick={() => void signOut()}
+                        className="shrink-0 font-medium text-primary hover:underline"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  ) : (
+                    <Link href="/login" className="font-medium text-primary hover:underline">
+                      Sign in
+                    </Link>
+                  )}
+                </div>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>

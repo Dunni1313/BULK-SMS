@@ -12,8 +12,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.101.0",
+    "@opentelemetry/semantic-conventions": "^1.39.0",
     "@workspace/api-zod": "workspace:*",
+    "@workspace/auth": "workspace:*",
     "@workspace/db": "workspace:*",
+    "better-auth": "^1.6.23",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "drizzle-orm": "catalog:",
