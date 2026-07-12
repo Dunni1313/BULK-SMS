@@ -45,7 +45,11 @@ describe("buildValueResearchReport — Sprint 14 Buffett + consolidated MoS inte
       expect(ids).toContain(id);
     }
     expect(ids).toContain("buffett-valuation");
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 1);
+    // Phase 2, Sprint 15 added a further section ("investment-quality") on top
+    // of this sprint's own addition — this assertion reflects the current
+    // total; buffett-valuation's continued presence (checked above) is this
+    // test's actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 2);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by Buffett's addition", async () => {
@@ -127,7 +131,9 @@ describe("buildValueResearchReport — Sprint 14 Buffett + consolidated MoS inte
   it("the buffett-valuation section renders the Buffett method, and margin-of-safety now shows the consolidated view", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const buffettSection = report.sections.find((s) => s.id === "buffett-valuation")!;
-    expect(buffettSection.title).toBe("11. Buffett Valuation");
+    // Phase 2, Sprint 15 shifted this from "11." to "12." (see the numbering
+    // test below) by inserting "Investment Quality" before "Economic Moat".
+    expect(buffettSection.title).toBe("12. Buffett Valuation");
     expect(buffettSection.bullets!.join(" ")).toMatch(/Owner Earnings Perpetuity/);
 
     const mosSection = report.sections.find((s) => s.id === "margin-of-safety")!;
@@ -140,15 +146,19 @@ describe("buildValueResearchReport — Sprint 14 Buffett + consolidated MoS inte
   it("section numbering shifted by exactly one from Sprint 13's shape, ids did not change", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
-    expect(byId.get("dcf-valuation")).toBe("10. DCF Valuation");
-    expect(byId.get("buffett-valuation")).toBe("11. Buffett Valuation");
-    expect(byId.get("margin-of-safety")).toBe("12. Margin of Safety");
-    expect(byId.get("risks")).toBe("13. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("14. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("15. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("16. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("17. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("18. Disclaimers & Data Source");
+    // Phase 2, Sprint 15 inserted "4. Investment Quality" right after
+    // "3. Business Quality", shifting everything from "Economic Moat" onward
+    // (including every title below) by one further from this sprint's own
+    // numbering — ids are unchanged, only display numbers moved.
+    expect(byId.get("dcf-valuation")).toBe("11. DCF Valuation");
+    expect(byId.get("buffett-valuation")).toBe("12. Buffett Valuation");
+    expect(byId.get("margin-of-safety")).toBe("13. Margin of Safety");
+    expect(byId.get("risks")).toBe("14. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("15. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("16. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("17. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("18. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("19. Disclaimers & Data Source");
   });
 
   it("honestly reports Buffett valuation UNAVAILABLE (no fabrication) when FCF is not positive, independent of Graham/DCF/the blended model's own availability", async () => {

@@ -43,6 +43,7 @@ import {
   Calculator,
   LineChart,
   Briefcase,
+  ListChecks,
 } from "lucide-react";
 
 type Level = ValueResearchInputLevel;
@@ -147,6 +148,7 @@ export function ReportView({
   const d = report.dcfValuation;
   const b = report.buffettValuation;
   const c = report.consolidatedMarginOfSafety;
+  const iq = report.investmentQuality;
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -283,6 +285,61 @@ export function ReportView({
             <ScoreBar score={report.businessQuality.score} />
             <p className="text-xs text-muted-foreground">{report.businessQuality.summary}</p>
             <FactorList factors={report.businessQuality.factors} />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card/60 border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <ListChecks className="w-4 h-4 text-indigo-400" /> Investment Quality
+              <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                {iq.confidenceLevel} confidence
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {iq.score != null && <ScoreBar score={iq.score} />}
+            <p className="text-xs text-muted-foreground">{iq.summary}</p>
+            <div className="space-y-3">
+              {iq.metrics.map((m) => (
+                <div key={m.metric}>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-foreground/90 font-medium">{m.metric}</span>
+                    <span className="font-mono text-muted-foreground">
+                      {m.availability === "available" ? Math.round(m.score ?? 0) : "N/A"}
+                    </span>
+                  </div>
+                  {m.availability === "available" ? (
+                    <>
+                      <ScoreBar score={m.score ?? 0} />
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{m.detail}</p>
+                    </>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground/70 italic leading-snug">{m.reason}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            {iq.strengths.length > 0 && (
+              <div className="pt-1">
+                <p className="text-[11px] font-medium text-emerald-400 mb-1">Strengths</p>
+                <ul className="text-[11px] text-muted-foreground space-y-0.5 list-disc list-inside">
+                  {iq.strengths.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {iq.weaknesses.length > 0 && (
+              <div className="pt-1">
+                <p className="text-[11px] font-medium text-rose-400 mb-1">Weaknesses</p>
+                <ul className="text-[11px] text-muted-foreground space-y-0.5 list-disc list-inside">
+                  {iq.weaknesses.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -2319,6 +2319,22 @@ export const GenerateValueResearchResponse = zod.object({
 })),
   "summary": zod.string()
 }),
+  "investmentQuality": zod.object({
+  "score": zod.number().nullish(),
+  "metrics": zod.array(zod.object({
+  "metric": zod.string(),
+  "availability": zod.enum(['available', 'unavailable']),
+  "score": zod.number().nullish(),
+  "weight": zod.number(),
+  "detail": zod.string(),
+  "reason": zod.string().optional()
+})),
+  "strengths": zod.array(zod.string()),
+  "weaknesses": zod.array(zod.string()),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+}),
   "moat": zod.object({
   "rating": zod.enum(['Wide', 'Medium', 'Narrow', 'None']),
   "score": zod.number(),
@@ -2666,6 +2682,22 @@ export const GetValueReportResponse = zod.object({
   "score": zod.number(),
   "detail": zod.string()
 })),
+  "summary": zod.string()
+}),
+  "investmentQuality": zod.object({
+  "score": zod.number().nullish(),
+  "metrics": zod.array(zod.object({
+  "metric": zod.string(),
+  "availability": zod.enum(['available', 'unavailable']),
+  "score": zod.number().nullish(),
+  "weight": zod.number(),
+  "detail": zod.string(),
+  "reason": zod.string().optional()
+})),
+  "strengths": zod.array(zod.string()),
+  "weaknesses": zod.array(zod.string()),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
   "summary": zod.string()
 }),
   "moat": zod.object({

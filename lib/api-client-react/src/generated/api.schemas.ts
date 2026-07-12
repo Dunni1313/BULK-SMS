@@ -228,6 +228,44 @@ export interface ValueBuffettValuation {
   reason?: string;
 }
 
+export type ValueQualityMetricScoreAvailability = typeof ValueQualityMetricScoreAvailability[keyof typeof ValueQualityMetricScoreAvailability];
+
+
+export const ValueQualityMetricScoreAvailability = {
+  available: 'available',
+  unavailable: 'unavailable',
+} as const;
+
+export interface ValueQualityMetricScore {
+  metric: string;
+  availability: ValueQualityMetricScoreAvailability;
+  /** @nullable */
+  score?: number | null;
+  weight: number;
+  detail: string;
+  reason?: string;
+}
+
+export type ValueInvestmentQualityConfidenceLevel = typeof ValueInvestmentQualityConfidenceLevel[keyof typeof ValueInvestmentQualityConfidenceLevel];
+
+
+export const ValueInvestmentQualityConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface ValueInvestmentQuality {
+  /** @nullable */
+  score?: number | null;
+  metrics: ValueQualityMetricScore[];
+  strengths: string[];
+  weaknesses: string[];
+  confidenceLevel: ValueInvestmentQualityConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+}
+
 export interface ValueModelFairValue {
   model: string;
   fairValue: number;
@@ -359,6 +397,7 @@ export interface ValueResearchReport {
   fallback?: ValueFundamentalsFallback;
   price: number;
   businessQuality: ValueBusinessQuality;
+  investmentQuality: ValueInvestmentQuality;
   moat: ValueMoatAnalysis;
   financialStrength: ValueFinancialStrength;
   valuation: ValueValuation;

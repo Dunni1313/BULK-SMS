@@ -1545,6 +1545,39 @@ components:
           enum: [Cheap, Fair, Expensive, Very Expensive]
         reason: { type: string }
 
+    ValueQualityMetricScore:
+      type: object
+      required: [metric, availability, weight, detail]
+      properties:
+        metric: { type: string }
+        availability:
+          type: string
+          enum: [available, unavailable]
+        score: { type: ["number", "null"] }
+        weight: { type: number }
+        detail: { type: string }
+        reason: { type: string }
+
+    ValueInvestmentQuality:
+      type: object
+      required: [metrics, strengths, weaknesses, confidenceLevel, confidenceExplanation, summary]
+      properties:
+        score: { type: ["number", "null"] }
+        metrics:
+          type: array
+          items: { $ref: "#/components/schemas/ValueQualityMetricScore" }
+        strengths:
+          type: array
+          items: { type: string }
+        weaknesses:
+          type: array
+          items: { type: string }
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation: { type: string }
+        summary: { type: string }
+
     ValueModelFairValue:
       type: object
       required: [model, fairValue]
@@ -1636,7 +1669,7 @@ components:
     ValueResearchReport:
       type: object
       required:
-        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, moat, financialStrength, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
+        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, investmentQuality, moat, financialStrength, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
       properties:
         symbol: { type: string }
         name: { type: string }
@@ -1650,6 +1683,7 @@ components:
         fallback: { $ref: "#/components/schemas/ValueFundamentalsFallback" }
         price: { type: number }
         businessQuality: { $ref: "#/components/schemas/ValueBusinessQuality" }
+        investmentQuality: { $ref: "#/components/schemas/ValueInvestmentQuality" }
         moat: { $ref: "#/components/schemas/ValueMoatAnalysis" }
         financialStrength: { $ref: "#/components/schemas/ValueFinancialStrength" }
         valuation: { $ref: "#/components/schemas/ValueValuation" }

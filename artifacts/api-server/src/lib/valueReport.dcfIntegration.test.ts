@@ -40,11 +40,11 @@ describe("buildValueResearchReport — Sprint 13 DCF integration regression", ()
       expect(ids).toContain(id);
     }
     expect(ids).toContain("dcf-valuation");
-    // Phase 2, Sprint 14 added a further section ("buffett-valuation") on top
-    // of Sprint 13's own addition — this assertion reflects the current
-    // total; dcf-valuation's continued presence (checked above) is this
-    // test's actual regression guarantee.
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 2);
+    // Phase 2, Sprint 14 added "buffett-valuation" and Sprint 15 added
+    // "investment-quality" on top of Sprint 13's own addition — this
+    // assertion reflects the current total; dcf-valuation's continued
+    // presence (checked above) is this test's actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 3);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by DCF's addition", async () => {
@@ -99,24 +99,27 @@ describe("buildValueResearchReport — Sprint 13 DCF integration regression", ()
   it("the dcf-valuation section renders the DCF methods and confidence explanation", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const dcfSection = report.sections.find((s) => s.id === "dcf-valuation")!;
-    expect(dcfSection.title).toBe("10. DCF Valuation");
+    // Phase 2, Sprint 15 shifted this from "10." to "11." (see the numbering
+    // test below) by inserting "Investment Quality" before "Economic Moat".
+    expect(dcfSection.title).toBe("11. DCF Valuation");
     expect(dcfSection.bullets!.join(" ")).toMatch(/Projected Cash Flows|Terminal Value/);
   });
 
   it("section numbering after the new DCF section shifted by exactly one from Sprint 12's shape, ids unchanged", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
-    expect(byId.get("graham-valuation")).toBe("9. Graham Valuation");
-    expect(byId.get("dcf-valuation")).toBe("10. DCF Valuation");
-    // Phase 2, Sprint 14 inserted "11. Buffett Valuation" next, shifting
-    // everything below by one more from Sprint 13's own numbering.
-    expect(byId.get("margin-of-safety")).toBe("12. Margin of Safety");
-    expect(byId.get("risks")).toBe("13. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("14. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("15. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("16. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("17. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("18. Disclaimers & Data Source");
+    // Phase 2, Sprint 15 inserted "4. Investment Quality" right after
+    // "3. Business Quality", shifting graham-valuation/dcf-valuation and
+    // everything below by one further from Sprint 14's own numbering.
+    expect(byId.get("graham-valuation")).toBe("10. Graham Valuation");
+    expect(byId.get("dcf-valuation")).toBe("11. DCF Valuation");
+    expect(byId.get("margin-of-safety")).toBe("13. Margin of Safety");
+    expect(byId.get("risks")).toBe("14. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("15. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("16. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("17. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("18. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("19. Disclaimers & Data Source");
   });
 
   it("honestly reports DCF valuation UNAVAILABLE (no fabrication) when FCF is not positive, independent of Graham/the blended model's own availability", async () => {

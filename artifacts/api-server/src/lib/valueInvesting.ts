@@ -167,23 +167,38 @@ export interface FinancialStrength {
   summary: string;
 }
 
+// Shared leverage / interest-coverage / net-cash scoring (Phase 2, Sprint 15
+// extraction — behavior-preserving; analyzeFinancialStrength's own output is
+// unchanged, confirmed by its existing tests). Exported so investmentQuality.ts's
+// "Debt Levels" / "Cash Position" metrics reuse the exact same formulas instead of
+// a second, subtly-different one.
+export function leverageScore(f: Fundamentals): number {
+  return clamp(100 - (f.debtToEquity / 1.5) * 100);
+}
+export function coverageScore(f: Fundamentals): number {
+  return clamp((Math.min(f.interestCoverage, 50) / 20) * 100);
+}
+export function cashPositionScore(f: Fundamentals): number {
+  return clamp(50 + (f.netCashPerShare > 0 ? 50 : Math.max(-50, (f.netCashPerShare / f.price) * 100 * 5)));
+}
+
 export function analyzeFinancialStrength(f: Fundamentals): FinancialStrength {
-  const leverageScore = clamp(100 - (f.debtToEquity / 1.5) * 100);
-  const coverageScore = clamp((Math.min(f.interestCoverage, 50) / 20) * 100);
+  const lev = leverageScore(f);
+  const cov = coverageScore(f);
   const liquidityScore = f.kind === "etf" ? 70 : clamp((f.currentRatio / 2) * 100);
-  const cashScore = clamp(50 + (f.netCashPerShare > 0 ? 50 : Math.max(-50, (f.netCashPerShare / f.price) * 100 * 5)));
+  const cash = cashPositionScore(f);
   const fcfScore = clamp((f.fcfPositiveYears / 10) * 100);
 
   const metrics: FactorScore[] = [
-    { label: "Leverage", score: round(leverageScore), detail: `Debt/Equity ${f.debtToEquity.toFixed(2)}` },
-    { label: "Interest coverage", score: round(coverageScore), detail: f.interestCoverage >= 100 ? "Effectively no debt burden" : `${f.interestCoverage.toFixed(0)}× EBIT/interest` },
+    { label: "Leverage", score: round(lev), detail: `Debt/Equity ${f.debtToEquity.toFixed(2)}` },
+    { label: "Interest coverage", score: round(cov), detail: f.interestCoverage >= 100 ? "Effectively no debt burden" : `${f.interestCoverage.toFixed(0)}× EBIT/interest` },
     { label: "Liquidity", score: round(liquidityScore), detail: f.kind === "etf" ? "Fund liquidity" : `Current ratio ${f.currentRatio.toFixed(2)}` },
-    { label: "Net cash", score: round(cashScore), detail: f.netCashPerShare >= 0 ? `Net cash $${f.netCashPerShare.toFixed(2)}/sh` : `Net debt $${Math.abs(f.netCashPerShare).toFixed(2)}/sh` },
+    { label: "Net cash", score: round(cash), detail: f.netCashPerShare >= 0 ? `Net cash $${f.netCashPerShare.toFixed(2)}/sh` : `Net debt $${Math.abs(f.netCashPerShare).toFixed(2)}/sh` },
     { label: "FCF reliability", score: round(fcfScore), detail: `${f.fcfPositiveYears}/10 yrs positive FCF` },
   ];
 
   const score = round(
-    clamp(leverageScore * 0.25 + coverageScore * 0.2 + liquidityScore * 0.15 + cashScore * 0.2 + fcfScore * 0.2),
+    clamp(lev * 0.25 + cov * 0.2 + liquidityScore * 0.15 + cash * 0.2 + fcfScore * 0.2),
   );
 
   const flags: string[] = [];

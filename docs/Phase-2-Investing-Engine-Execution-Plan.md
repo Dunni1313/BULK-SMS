@@ -1,6 +1,6 @@
 # Phase 2 — Institutional Investment Decision Engine: Engineering Roadmap
 **DK AI Institutional Investing & Trading OS**
-**Status:** Approved, with an approved scope expansion (see §0.1) following Sprint 12's completion. Sprints 11–12 are shipped; Sprint 13 onward is planning only until each sprint's own pre-implementation plan is separately approved. This document is grounded in direct inspection of the actual repository (every file path, function signature, and code behavior cited below was read from source, not inferred) plus `docs/DK-AI-OS-Architecture-Blueprint.md` and `docs/DK-Option-Engine-Technical-Audit.md`.
+**Status:** Approved, with an approved scope expansion (see §0.1) following Sprint 12's completion. Sprints 11–15 are shipped; Sprint 16 onward is planning only until each sprint's own pre-implementation plan is separately approved. This document is grounded in direct inspection of the actual repository (every file path, function signature, and code behavior cited below was read from source, not inferred) plus `docs/DK-AI-OS-Architecture-Blueprint.md` and `docs/DK-Option-Engine-Technical-Audit.md`.
 
 **Approval:** Approved by the project owner following presentation of this roadmap. Each sprint (the first Phase 2 sprint was Sprint 11) requires a separate, explicit go-ahead per the established per-sprint process (see `CLAUDE.md` §3) before implementation begins.
 
@@ -32,7 +32,7 @@ The engine's mandate is expanded from "company research + named valuation models
 
 **What's genuinely new vs. reused:** Of Tom Nash's 12 listed capabilities, roughly half reuse existing analyzers directly (business quality, growth, balance sheet strength, cash-flow quality) or reuse the existing verdict/conviction shape (conviction score, Buy/Hold/Wait recommendation). The other half is genuinely new and data-dependent (capital allocation/buybacks, insider ownership, sector/macro context, interest-rate sensitivity, AI/tech-cycle analysis, probability-based scoring) — see §1.17 for exactly which is which. Because of this split, **Tom Nash is built in three sprints, not one**: a Core sprint (15) that ships everything already reusable plus a first-pass probability/conviction framework, and two later Enhancement sprints (23, 25) sequenced right after the sprints that produce the data those specific features actually need (filing ingestion, management analysis, industry/sector data) — this is what "maximising reuse of existing code" means concretely: land the reusable 60% immediately after Buffett, don't fake the other 40% with stub data just to ship it in one sprint.
 
-**The AI Investment Committee (Sprint 16, Core; refined in Sprint 25)** is a synthesis layer, not a fourth analyst: it takes Graham's, Buffett's, and Tom Nash's independently-computed verdicts and combines them into one consolidated recommendation + confidence score. It ships right after Tom Nash's Core sprint (v1, combining whatever each analyst can produce at that point) and is revisited once Tom Nash's Enhancement sprints deepen its inputs — the Committee's own aggregation logic doesn't need to change when an input analyst gets richer, only the confidence weighting might.
+**The AI Investment Committee (Sprint 17, Core; refined in Sprint 26)** is a synthesis layer, not a fourth analyst: it takes Graham's, Buffett's, and Tom Nash's independently-computed verdicts and combines them into one consolidated recommendation + confidence score. It ships right after Tom Nash's Core sprint (v1, combining whatever each analyst can produce at that point) and is revisited once Tom Nash's Enhancement sprints deepen its inputs — the Committee's own aggregation logic doesn't need to change when an input analyst gets richer, only the confidence weighting might.
 
 **New owner decisions this expansion introduces** (see §2, items 6–9): the Committee's aggregation methodology, the concrete definition of Tom Nash's "probability-based scoring," the macro/interest-rate data sourcing approach, and the insider-ownership/buyback data provider.
 
@@ -105,7 +105,7 @@ Legend: 🟢 MOVE · 🟡 ENHANCE · 🔴 NEW
 | **Existing code reusable** | `analyzeValuation()`'s FCF-yield method is the closest existing analogue and should become the seed of this model, not be discarded |
 | **New components required** | A true owner-earnings adjustment (net income + D&A − maintenance capex − ΔNWC, not raw `fcfPerShare`) and a quality/moat-adjusted required-return (Buffett's approach ties the discount rate to business quality, not a flat WACC) |
 | **DB changes** | None |
-| **External data providers** | None new (owner-earnings needs D&A/capex/NWC — available from Sprint 18's fuller statement data; can approximate off existing FCF fields in the interim) |
+| **External data providers** | None new (owner-earnings needs D&A/capex/NWC — available from Sprint 19's fuller statement data; can approximate off existing FCF fields in the interim) |
 | **AI capabilities** | Narration reusing the existing `enforceValueSafety`/anti-impersonation pattern (already built specifically because this model is Buffett-flavored) |
 | **UI pages** | New "Buffett Valuation (Owner Earnings)" card in `ReportView` |
 | **APIs required** | Folds into `value-research` |
@@ -131,10 +131,10 @@ Legend: 🟢 MOVE · 🟡 ENHANCE · 🔴 NEW
 | | |
 |---|---|
 | **Existing code reusable** | `analyzeMoat()` — fully working today (see §0) |
-| **New components required** | `durabilityYears` is currently a static lookup (15/10/6/2 by rating tier) — replace with a signal derived from real data (ROIC persistence over the statement-history years from Sprint 18, or moat-source count trend). Qualitative sourcing could deepen using Sprint 21/22's filing-text extraction (e.g., detect actual moat language in the 10-K's Business/MD&A sections) |
+| **New components required** | `durabilityYears` is currently a static lookup (15/10/6/2 by rating tier) — replace with a signal derived from real data (ROIC persistence over the statement-history years from Sprint 19, or moat-source count trend). Qualitative sourcing could deepen using Sprint 22/23's filing-text extraction (e.g., detect actual moat language in the 10-K's Business/MD&A sections) |
 | **DB changes** | None |
 | **External data providers** | None new |
-| **AI capabilities** | Optional: LLM-assisted qualitative moat commentary sourced from filing text (ties to Sprint 21) |
+| **AI capabilities** | Optional: LLM-assisted qualitative moat commentary sourced from filing text (ties to Sprint 22) |
 | **UI pages** | Existing moat card in `ReportView` — enhance, don't rebuild |
 | **APIs required** | None new |
 | **Complexity** | Low-Medium (enhancement, not a build) |
@@ -145,7 +145,7 @@ Legend: 🟢 MOVE · 🟡 ENHANCE · 🔴 NEW
 | | |
 |---|---|
 | **Existing code reusable** | `ai-core`'s `complete()`/`narrate()` primitives, the `enforceValueSafety`/anti-impersonation pattern as a template for a new persona-safety wrapper (this module will discuss real named executives — the highest compliance-risk surface in Engine 1) |
-| **New components required** | Everything — no equivalent exists. Needs: filing/transcript text (from Annual Report Analysis, Sprint 21), an extraction+summarization pipeline (capital-allocation track record, insider ownership/buying-selling patterns if available, tenure, compensation-alignment signals), and LLM-assisted qualitative synthesis with a hard anti-fabrication/anti-defamation guard (never assert facts about a named individual the source text doesn't support) |
+| **New components required** | Everything — no equivalent exists. Needs: filing/transcript text (from Annual Report Analysis, Sprint 22), an extraction+summarization pipeline (capital-allocation track record, insider ownership/buying-selling patterns if available, tenure, compensation-alignment signals), and LLM-assisted qualitative synthesis with a hard anti-fabrication/anti-defamation guard (never assert facts about a named individual the source text doesn't support) |
 | **DB changes** | New table or fold into a new `investing_filing_analysis` table (see Portfolio Construction/Annual Report Analysis section) |
 | **External data providers** | SEC EDGAR (free, 10-K/10-Q text — proxy statements for compensation/ownership data too) |
 | **AI capabilities** | Heaviest AI lift in Engine 1 — multi-step extraction + synthesis, new disclaimer variant, new anti-impersonation-style guard scoped to "don't fabricate claims about a real executive" |
@@ -175,7 +175,7 @@ Legend: 🟢 MOVE · 🟡 ENHANCE · 🔴 NEW
 | **Existing code reusable** | `valueReport.ts`'s 14 `keyMetrics` (P/E, PEG, P/S, P/B, FCF yield, dividend yield, ROIC, ROE, net margin, 5y growth ×2, D/E, interest coverage) — already computed today, just presented as a flat list, not a dedicated analytical section |
 | **New components required** | Expand the ratio set (quick ratio, asset turnover, ROA, payout ratio, EV/EBITDA), multi-year trend charts (reuses `revenueHistory`/`epsHistory`/`fcfHistory` chart pattern already in the codebase) |
 | **DB changes** | None |
-| **External data providers** | None new for the expanded ratios computable from existing Fundamentals fields; a few (EV/EBITDA) need Sprint 18's fuller statement data |
+| **External data providers** | None new for the expanded ratios computable from existing Fundamentals fields; a few (EV/EBITDA) need Sprint 19's fuller statement data |
 | **AI capabilities** | Optional trend commentary |
 | **UI pages** | New dedicated "Ratios" tab in `ReportView` (today it's a flat metrics grid — this makes it a first-class analytical surface with trend charts) |
 | **APIs required** | Folds into existing `value-research` response |
@@ -273,7 +273,7 @@ Added in the §0.1 scope expansion. A third named analyst engine alongside Graha
 | | |
 |---|---|
 | **Existing code reusable** | 🟡 Business quality assessment — `analyzeBusinessQuality()` directly. 🟡 Revenue and earnings growth analysis — `Fundamentals.revenueGrowth5y`/`.epsGrowth5y`/`.revenueGrowthFwd`, the same fields Graham and the blended model already read. 🟡 Balance sheet strength — `analyzeFinancialStrength()` directly. 🟡 Cash flow quality — `Fundamentals.fcfPerShare`/`.fcfMargin`/`.fcfPositiveYears`, deepened once Financial Statement Analysis lands. 🟡 Conviction score / Buy-Hold-Wait recommendation — reuses the `verdict + conviction + rationale` shape `ValueDecision` already established, new vocabulary only. `classifyMarginOfSafety`/`FairValueMethod` pattern (Sprint 12) as the template for any quantitative sub-score. `ai-core` for the qualitative macro/tech-cycle narrative. |
-| **New components required** | 🔴 Capital allocation analysis — needs buyback $ / share-count-trend data, not currently fetched by any provider call. 🔴 Share buybacks — same data gap; a "buyback yield" derived from historical shares-outstanding trend. 🔴 Insider ownership — needs proxy-statement-sourced ownership/insider-transaction data; ties directly to Management Quality Analysis's filing-ingestion pipeline (Sprint 22). 🔴 Sector & macro analysis — needs a sector/rate-regime context layer; ties to Industry Comparison (Sprint 19) for the sector half. 🔴 Interest rate sensitivity — a new duration-like classification (long-duration growth vs. value exposure) — no existing code, genuinely new quantitative framework. 🔴 AI/technology-cycle analysis — the most qualitative, LLM-narrated component, bounded by deterministic inputs (R&D intensity, revenue mix) rather than a hard formula. 🔴 Probability-based investment scoring — a new statistical framework; **no direct code reuse, only architectural inspiration** from the options engine's Ravish Score (a weighted composite of several signals into one number) — the actual definition of "probability" here is an open owner decision (see §2 item 7). |
+| **New components required** | 🔴 Capital allocation analysis — needs buyback $ / share-count-trend data, not currently fetched by any provider call. 🔴 Share buybacks — same data gap; a "buyback yield" derived from historical shares-outstanding trend. 🔴 Insider ownership — needs proxy-statement-sourced ownership/insider-transaction data; ties directly to Management Quality Analysis's filing-ingestion pipeline (Sprint 23). 🔴 Sector & macro analysis — needs a sector/rate-regime context layer; ties to Industry Comparison (Sprint 20) for the sector half. 🔴 Interest rate sensitivity — a new duration-like classification (long-duration growth vs. value exposure) — no existing code, genuinely new quantitative framework. 🔴 AI/technology-cycle analysis — the most qualitative, LLM-narrated component, bounded by deterministic inputs (R&D intensity, revenue mix) rather than a hard formula. 🔴 Probability-based investment scoring — a new statistical framework; **no direct code reuse, only architectural inspiration** from the options engine's Ravish Score (a weighted composite of several signals into one number) — the actual definition of "probability" here is an open owner decision (see §2 item 7). |
 | **DB changes** | None for the Core sprint (folds into `valueResearchJson` like every other analyst); the Enhancement sprints sourcing insider/buyback data may want a short-lived cache table if that data proves expensive/rate-limited to fetch (same pattern as fundamentals' 15-min live cache) — a decision for those sprints, not now |
 | **External data providers** | FMP has an `/insider-trading` endpoint and historical shares-outstanding data (buyback proxy) — **unverified**, same Q9-style caveat as everything else in this roadmap. Macro/interest-rate data: no real feed currently wired anywhere in the codebase; `marketBriefing.ts`'s synthetic-proxy pattern (clearly SIMULATED-labeled) is the honest, zero-cost starting point rather than a new paid vendor — see §2 item 8 |
 | **AI capabilities** | Second-heaviest AI lift in Engine 1 after Management Quality Analysis — sector/macro/tech-cycle commentary is a genuine narrative-synthesis task via `ai-core`, with the same anti-fabrication/disclaimer discipline; the probability score and conviction number themselves stay deterministic — the LLM narrates them, never invents them |
@@ -302,17 +302,17 @@ Added in the §0.1 scope expansion. A synthesis layer, not a fourth analyst — 
 
 ## 2. Cross-cutting decisions needing owner sign-off
 
-Following the same pattern as Phase 1's "Outstanding owner decisions" — these are genuine forks, not things to be decided unilaterally. Items 1–5 predate the §0.1 scope expansion (1 is resolved/shipped in Sprint 11; the rest still apply to their respective future sprints); items 6–9 are new as of the scope expansion and must be resolved before Sprint 15 (Tom Nash Core) and Sprint 16 (Committee Core) begin.
+Following the same pattern as Phase 1's "Outstanding owner decisions" — these are genuine forks, not things to be decided unilaterally. Items 1–5 predate the §0.1 scope expansion (1 is resolved/shipped in Sprint 11; the rest still apply to their respective future sprints); items 6–9 are new as of the scope expansion and must be resolved before Sprint 16 (Tom Nash Core) and Sprint 17 (Committee Core) begin.
 
 1. ~~**Universe decoupling.**~~ **RESOLVED (Sprint 11).** Engine 1 now has its own symbol-agnostic simulated-price generator (`lib/investingUniverse.ts`), no longer depending on the options engine's internals.
-2. **Annual Report Analysis data source.** Recommend SEC EDGAR (free, 10-K/10-Q text, US-listed only) for the MVP, with earnings-call transcripts explicitly deferred (separate paid vendor decision). **Needs owner OK** — this determines Sprint 21/22's scope and whether a paid vendor conversation happens now or later.
+2. **Annual Report Analysis data source.** Recommend SEC EDGAR (free, 10-K/10-Q text, US-listed only) for the MVP, with earnings-call transcripts explicitly deferred (separate paid vendor decision). **Needs owner OK** — this determines Sprint 22/23's scope and whether a paid vendor conversation happens now or later.
 3. **Industry Comparison peer groups.** Recommend static, hardcoded peer-group config for MVP (fast, no new table) rather than user-customizable peer sets (needs a new table + UI). **Low-stakes, but worth confirming** since it's cheap to upgrade later if it should be done right the first time.
 4. **Portfolio Construction's relationship to the future unified Portfolio DB.** The Blueprint's Phase 5 plan unifies stocks + options into one Portfolio DB. Building `investing_portfolios`/`investing_holdings` now (Phase 2) means a migration later (Phase 5) to fold them in. Recommend building it now anyway — Phase 2 shouldn't block on Phase 5 — but **flagging that this is a deliberate "build twice" tradeoff**, not an oversight.
-5. **Live-data verification (carried over from the Blueprint's own top risk note).** The Blueprint's closing line says: *"re-verify the audit's Q9 finding (live data providers unverified) — it's the one open assumption everything else in this plan is built on top of."* Phase 2 leans on FMP/Alpha Vantage more heavily than any prior phase (Sprint 18's full statement calls, Sprint 24's earnings endpoints). This was flagged for Sprint 11 and **deferred, awaiting production API credentials** (per Sprint 11's completion report) — still open, still the one assumption the whole roadmap sits on top of.
+5. **Live-data verification (carried over from the Blueprint's own top risk note).** The Blueprint's closing line says: *"re-verify the audit's Q9 finding (live data providers unverified) — it's the one open assumption everything else in this plan is built on top of."* Phase 2 leans on FMP/Alpha Vantage more heavily than any prior phase (Sprint 19's full statement calls, Sprint 25's earnings endpoints). This was flagged for Sprint 11 and **deferred, awaiting production API credentials** (per Sprint 11's completion report) — still open, still the one assumption the whole roadmap sits on top of.
 6. **AI Investment Committee aggregation methodology (new).** How exactly should Graham's, Buffett's, and Tom Nash's independent verdicts combine into one recommendation + confidence score? Recommendation: an explicit agreement-aware approach — e.g. weighted-average confidence, with the verdict category derived from that average, **plus a visible "unanimous / majority / split" signal** when the three analysts disagree, rather than a single blended number that quietly papers over real disagreement. **Needs owner OK** — this is the Committee's entire reason for existing, not an implementation detail.
-7. **Tom Nash "probability-based investment scoring" — concrete definition (new).** The requested capability is underspecified as given: probability of what, over what horizon (e.g., probability of a positive return over 3–5 years vs. probability of beating a benchmark vs. probability the Buy verdict resolves correctly in hindsight)? **Needs owner input before Sprint 15's own pre-implementation plan can be written in full detail** — flagged here at the roadmap level so it isn't quietly decided inside the sprint's implementation.
-8. **Macro / interest-rate data sourcing for Tom Nash (new).** Recommend the same honest-SIMULATED-first pattern every other module in this engine already uses (à la `marketBriefing.ts`'s synthetic regime proxy) rather than a new paid macro-data vendor, at least for Sprint 15/25's initial versions. **Needs owner OK**, since a real live feed is a genuine cost/vendor decision, not just an engineering one.
-9. **Insider ownership / share-buyback data provider (new).** FMP appears to expose relevant endpoints (`/insider-trading`, historical shares outstanding), but — consistent with every other provider claim in this roadmap — **this is unverified** and needs a real, live check when Sprint 23 (Tom Nash Enhancement I) is planned, not assumed to work from documentation alone.
+7. **Tom Nash "probability-based investment scoring" — concrete definition (new).** The requested capability is underspecified as given: probability of what, over what horizon (e.g., probability of a positive return over 3–5 years vs. probability of beating a benchmark vs. probability the Buy verdict resolves correctly in hindsight)? **Needs owner input before Sprint 16's own pre-implementation plan can be written in full detail** — flagged here at the roadmap level so it isn't quietly decided inside the sprint's implementation.
+8. **Macro / interest-rate data sourcing for Tom Nash (new).** Recommend the same honest-SIMULATED-first pattern every other module in this engine already uses (à la `marketBriefing.ts`'s synthetic regime proxy) rather than a new paid macro-data vendor, at least for Sprint 16/26's initial versions. **Needs owner OK**, since a real live feed is a genuine cost/vendor decision, not just an engineering one.
+9. **Insider ownership / share-buyback data provider (new).** FMP appears to expose relevant endpoints (`/insider-trading`, historical shares outstanding), but — consistent with every other provider claim in this roadmap — **this is unverified** and needs a real, live check when Sprint 24 (Tom Nash Enhancement I) is planned, not assumed to work from documentation alone.
 
 ---
 
@@ -355,18 +355,28 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Acceptance criteria:** Three distinct fair-value cards + one consolidated MoS summary; existing narration/disclaimer invariants unchanged.
 - **Rollback:** `git revert`; this is the highest-regression-risk sprint in the valuation cluster — treat `value.test.ts` as the gate, not just typecheck.
 - **Estimated effort:** Medium-High.
-- **Forward reference (§0.1 scope expansion):** Buffett's `verdict + conviction + rationale` output is one of the three inputs the AI Investment Committee (Sprint 16) consolidates — no change to this sprint's own scope, just noting the shape this sprint produces needs to stay stable for that later consumer.
+- **Forward reference (§0.1 scope expansion):** Buffett's `verdict + conviction + rationale` output is one of the three inputs the AI Investment Committee (Sprint 17) consolidates — no change to this sprint's own scope, just noting the shape this sprint produces needs to stay stable for that later consumer.
 
-### Sprint 15 — Tom Nash Investment Engine (Core)
+### Sprint 15 — Investment Quality Engine — SHIPPED
+- **Objective:** Inserted ahead of Tom Nash Core, at the project owner's explicit direction, after Sprint 14 shipped. Build a reusable, metric-by-metric Investment Quality Engine — the shared scoring foundation the Buffett Engine, Tom Nash Engine, AI Investment Committee, future valuation models, and Portfolio AI should all consume instead of each hand-rolling its own quality scoring. Not the Tom Nash Engine itself — that remains Sprint 16.
+- **Deliverables:** `analyzeInvestmentQuality()` in new `lib/investmentQuality.ts`, scoring all 12 requested metrics (Revenue Growth, EPS Growth, FCF Growth, ROE, ROIC, Gross Margin, Operating Margin, Net Margin, Debt Levels, Cash Position, Share Dilution/Buybacks, Insider Ownership) — the last two honestly `unavailable` (no fabrication) pending Sprint 24's (Tom Nash Enhancement I) filing-ingestion infrastructure. Produces individual metric scores, an overall weighted Quality Score, strengths, weaknesses, a confidence level, and human-readable explanations. Wired into the Value Report as a new, purely additive "Investment Quality" section (inserted right after "Business Quality," renumbering every later section's display number only) and a new `StockResearch.tsx` pillar card. `valueInvesting.ts`'s `analyzeFinancialStrength()` had its leverage/interest-coverage/net-cash formulas extracted into small exported helper functions (`leverageScore`, `coverageScore`, `cashPositionScore`) — a behavior-preserving refactor (its own output is unchanged) so this engine reuses the exact same Debt Levels/Cash Position math rather than a second, subtly different one.
+- **Files changed:** New `lib/investmentQuality.ts`, `lib/investmentQuality.test.ts`, `lib/valueReport.investmentQualityIntegration.test.ts`; modified `lib/valueInvesting.ts` (helper extraction), `lib/valueReport.ts` (new field/section), `lib/valueReport.grahamIntegration.test.ts`/`valueReport.dcfIntegration.test.ts`/`valueReport.buffettIntegration.test.ts` (mechanical section-numbering updates only), `StockResearch.tsx`/`StockResearch.test.tsx`, `test/fixtures/valueReport.ts`, `openapi.yaml` (+ regenerated `api-zod`/`api-client-react`).
+- **Tests:** New engine unit tests (all 12 metrics' scoring math, the two permanently-unavailable metrics' honest paths, confidence-level thresholds, strengths/weaknesses derivation, ETF handling); new integration regression test proving Graham/DCF/Buffett/the blended model's own outputs are unchanged (`toEqual` against standalone calls); existing integration test files' section-count/numbering assertions updated (established mechanical-update pattern, not a behavior change).
+- **Acceptance criteria met:** All 12 metrics render (10 scored, 2 honestly unavailable); overall score/strengths/weaknesses/confidence render in a new pillar card; Graham/DCF/Buffett/blended valuation math is untouched; no new owner-facing gaps beyond the 2 explicitly deferred metrics.
+- **Rollback:** `git revert`; no schema migration — a pure code revert fully undoes this sprint.
+- **Estimated effort:** Medium.
+- **Renumbering note:** This insertion is why Tom Nash Core (formerly Sprint 15) is now Sprint 16, and every sprint after it shifted by one, through Sprint 31 (Company Research Unification, formerly 30).
+
+### Sprint 16 — Tom Nash Investment Engine (Core)
 - **Objective:** Ship the reusable ~60% of the Tom Nash Engine (§1.17) immediately after Buffett — everything buildable from analyzers and data that already exist — plus a first-pass probability/conviction framework, without waiting for the data-dependent Enhancement sprints.
-- **Deliverables:** `analyzeTomNash()` composing: business quality (reuses `analyzeBusinessQuality`), growth (reuses existing growth fields), balance sheet strength (reuses `analyzeFinancialStrength`), cash flow quality (reuses existing FCF fields), a first-version probability-based score (per the concrete definition resolved in §2 item 7), a conviction score (0–100, same shape as `ValueDecision.conviction`), and a Buy/Hold/Wait verdict with detailed reasoning (same `verdict + conviction + rationale` shape, new vocabulary). Capital allocation/buybacks, insider ownership, sector/macro, rate sensitivity, and AI/tech-cycle analysis are explicitly **not** in this sprint — see Sprints 23 and 25.
+- **Deliverables:** `analyzeTomNash()` composing: business quality (reuses `analyzeBusinessQuality`), growth (reuses existing growth fields), balance sheet strength (reuses `analyzeFinancialStrength`), cash flow quality (reuses existing FCF fields), a first-version probability-based score (per the concrete definition resolved in §2 item 7), a conviction score (0–100, same shape as `ValueDecision.conviction`), and a Buy/Hold/Wait verdict with detailed reasoning (same `verdict + conviction + rationale` shape, new vocabulary). Capital allocation/buybacks, insider ownership, sector/macro, rate sensitivity, and AI/tech-cycle analysis are explicitly **not** in this sprint — see Sprints 24 and 26.
 - **Files likely to change:** New `lib/tomNashEngine.ts`; `lib/valueReport.ts` (add section + `tomNash` field); new route `GET /stock-analyst/tom-nash/:symbol`; new "Tom Nash Analysis" tab in `StockResearch.tsx`; openapi.yaml.
 - **Tests required:** Unit tests per reused sub-analysis (confirming correct delegation to the existing analyzers, not reimplementation), unit tests for the new probability/conviction scoring, honest-unavailable-path tests mirroring Graham/the blended model's discipline.
 - **Acceptance criteria:** A Tom Nash verdict + conviction score renders for every symbol that already produces a Graham/blended valuation; the sprint's own report section clearly labels which sub-analyses are "Core" vs. "coming in a later enhancement" so the UI doesn't imply completeness it doesn't have yet.
 - **Rollback:** `git revert`; no schema change.
 - **Estimated effort:** Medium-High (breadth, not depth — most of the real algorithmic novelty is deferred to the Enhancement sprints).
 
-### Sprint 16 — AI Investment Committee (Core)
+### Sprint 17 — AI Investment Committee (Core)
 - **Objective:** Ship the first working version of the multi-analyst synthesis layer, combining Graham, Buffett, and Tom Nash's Core outputs.
 - **Deliverables:** `synthesizeInvestmentCommittee(graham, buffett, tomNash)` implementing the aggregation methodology resolved in §2 item 6 (agreement-aware: weighted confidence + an explicit unanimous/majority/split signal); a consolidated verdict + confidence score; an `ai-core`-narrated "detailed reasoning" synthesis across all three analysts' rationale.
 - **Files likely to change:** New `lib/investmentCommittee.ts`; `lib/valueReport.ts` (add section + `investmentCommittee` field); new route `GET /stock-analyst/investment-committee/:symbol`; new "Investment Committee" card in `StockResearch.tsx`; openapi.yaml.
@@ -375,7 +385,7 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; no schema change.
 - **Estimated effort:** Medium.
 
-### Sprint 17 — Financial Ratio Analysis
+### Sprint 18 — Financial Ratio Analysis
 - **Objective:** Promote the existing 14-metric flat list into a dedicated ratio-analysis surface with trend charts.
 - **Deliverables:** Expanded ratio set (quick ratio, ROA, asset turnover, payout ratio), a new "Ratios" tab with multi-year trend charts reusing the existing history-array chart pattern.
 - **Files likely to change:** `lib/valueReport.ts`; `StockResearch.tsx`; openapi.yaml.
@@ -384,7 +394,7 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; no schema change.
 - **Estimated effort:** Low.
 
-### Sprint 18 — Financial Statement Analysis
+### Sprint 19 — Financial Statement Analysis
 - **Objective:** Add full multi-year Income Statement/Balance Sheet/Cash Flow Statement line items.
 - **Deliverables:** New provider calls (FMP `/income-statement`, `/balance-sheet-statement`, `/cash-flow-statement`; AV equivalents), a new structured statement type, a 3-sub-tab UI.
 - **Files likely to change:** `lib/fundamentals.ts` (both live providers gain new methods); new type in the shared `Fundamentals`-adjacent module; `StockResearch.tsx`; openapi.yaml.
@@ -393,7 +403,7 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; no schema change if cached in-process.
 - **Estimated effort:** Medium.
 
-### Sprint 19 — Industry Comparison
+### Sprint 20 — Industry Comparison
 - **Objective:** Add peer-group comparison.
 - **Deliverables:** Sector/industry field capture (verify FMP's `/profile` response first — may already be present and simply unused), static peer-group config, an N-symbol comparison view extending `StockScanner.tsx`'s existing 2-symbol compare-dialog pattern.
 - **Files likely to change:** `lib/fundamentals.ts` (capture sector/industry if already returned, or add the field if not); new `lib/industryPeers.ts`; new route; `StockScanner.tsx`/`StockResearch.tsx`; openapi.yaml.
@@ -401,18 +411,18 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Acceptance criteria:** A symbol's ratios render against its peer group with percentile context.
 - **Rollback:** `git revert`; no schema change (static config).
 - **Estimated effort:** Medium.
-- **Forward reference (§0.1 scope expansion):** the sector taxonomy this sprint builds is what Tom Nash Enhancement II (Sprint 25) reuses for its sector-context half — no change to this sprint's own scope.
+- **Forward reference (§0.1 scope expansion):** the sector taxonomy this sprint builds is what Tom Nash Enhancement II (Sprint 26) reuses for its sector-context half — no change to this sprint's own scope.
 
-### Sprint 20 — Economic Moat Analysis Enhancement
+### Sprint 21 — Economic Moat Analysis Enhancement
 - **Objective:** Replace the static `durabilityYears` lookup with a data-derived signal.
-- **Deliverables:** `durabilityYears` derived from ROIC persistence (Sprint 18 data) rather than a fixed table.
+- **Deliverables:** `durabilityYears` derived from ROIC persistence (Sprint 19 data) rather than a fixed table.
 - **Files likely to change:** `lib/valueInvesting.ts` (`analyzeMoat`); tests.
 - **Tests required:** Regression test for the changed durability calc; existing moat-rating tests unchanged.
 - **Acceptance criteria:** Durability estimate visibly varies by company rather than being one of 4 fixed values.
 - **Rollback:** `git revert`; no schema change.
 - **Estimated effort:** Low.
 
-### Sprint 21 — Annual Report Analysis (the long pole)
+### Sprint 22 — Annual Report Analysis (the long pole)
 - **Objective:** Ingest and summarize 10-K/10-Q filings.
 - **Deliverables:** SEC EDGAR ingestion, section extraction (MD&A/Risk Factors/Business), chunked per-section summarization + final synthesis via `ai-core`'s `complete()`, persistence table.
 - **Files likely to change:** New `lib/filingsProvider.ts`, new `lib/filingAnalysis.ts`, new `lib/db/src/schema/investingFilingAnalysis.ts`, new manual migration, new route, `StockResearch.tsx`.
@@ -421,26 +431,26 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; drop the new table if migration was applied.
 - **Estimated effort:** **High** — expect this to be the longest sprint in Phase 2, budget accordingly.
 
-### Sprint 22 — Management Quality Analysis
-- **Objective:** Build the qualitative management-analysis layer on top of Sprint 21's filing text.
+### Sprint 23 — Management Quality Analysis
+- **Objective:** Build the qualitative management-analysis layer on top of Sprint 22's filing text.
 - **Deliverables:** Capital-allocation/tenure/compensation-alignment synthesis, a new anti-fabrication safety wrapper scoped to claims about real named individuals.
 - **Files likely to change:** New `lib/managementAnalysis.ts`; extends `investing_filing_analysis` table usage; new safety-check function alongside `enforceValueSafety`; `StockResearch.tsx`.
 - **Tests required:** Safety-wrapper tests (analogous to the existing anti-impersonation regex tests) proving fabricated claims about a named executive are caught/discarded.
 - **Acceptance criteria:** Management commentary never asserts a fact the source filing text doesn't support; disclaimer present on every response.
 - **Rollback:** `git revert`.
 - **Estimated effort:** High — this is the module carrying the most real-world compliance/reputational risk in Engine 1, review it with that lens before shipping.
-- **Forward reference (§0.1 scope expansion):** this sprint's filing-ingestion pipeline is exactly what Tom Nash Enhancement I (Sprint 23) reuses for insider-ownership data — no change to this sprint's own scope.
+- **Forward reference (§0.1 scope expansion):** this sprint's filing-ingestion pipeline is exactly what Tom Nash Enhancement I (Sprint 24) reuses for insider-ownership data — no change to this sprint's own scope.
 
-### Sprint 23 — Tom Nash Investment Engine (Enhancement I: Capital Allocation, Buybacks & Insider Ownership)
+### Sprint 24 — Tom Nash Investment Engine (Enhancement I: Capital Allocation, Buybacks & Insider Ownership)
 - **Objective:** Add the filing-dependent third of Tom Nash's capability list, now that Annual Report Analysis (21) and Management Quality Analysis (22) have built the filing-ingestion infrastructure this needs.
-- **Deliverables:** Capital allocation analysis (buyback $ / share-count-trend, reusing the filing text already extracted by Sprint 21/22); a "buyback yield" derived from historical shares-outstanding trend; insider ownership % and recent insider buy/sell activity (per the provider verified in §2 item 9).
-- **Files likely to change:** `lib/tomNashEngine.ts` (extends Sprint 15's Core module, does not replace it); reuses `investing_filing_analysis` table read paths; `StockResearch.tsx`'s Tom Nash tab gains a Capital Allocation sub-card; openapi.yaml.
-- **Tests required:** Mocked-provider tests for the insider-ownership/buyback endpoints; regression tests proving Sprint 15's Core output (business quality, growth, balance sheet, cash flow, conviction, verdict) is unchanged by this addition.
+- **Deliverables:** Capital allocation analysis (buyback $ / share-count-trend, reusing the filing text already extracted by Sprint 22/23); a "buyback yield" derived from historical shares-outstanding trend; insider ownership % and recent insider buy/sell activity (per the provider verified in §2 item 9).
+- **Files likely to change:** `lib/tomNashEngine.ts` (extends Sprint 16's Core module, does not replace it); reuses `investing_filing_analysis` table read paths; `StockResearch.tsx`'s Tom Nash tab gains a Capital Allocation sub-card; openapi.yaml.
+- **Tests required:** Mocked-provider tests for the insider-ownership/buyback endpoints; regression tests proving Sprint 16's Core output (business quality, growth, balance sheet, cash flow, conviction, verdict) is unchanged by this addition.
 - **Acceptance criteria:** A symbol's Tom Nash analysis now includes capital-allocation commentary grounded in real filing text (or an honest "unavailable" state), without altering any Core-sprint output.
 - **Rollback:** `git revert`; no new schema if the insider/buyback data is fetched live rather than cached.
 - **Estimated effort:** Medium-High.
 
-### Sprint 24 — Earnings Analysis
+### Sprint 25 — Earnings Analysis
 - **Objective:** Build the investing-specific earnings-history module (distinct from the options `earnings.ts` IV-crush selector).
 - **Deliverables:** EPS/revenue actual-vs-estimate history, surprise%, guidance direction.
 - **Files likely to change:** New `lib/earningsAnalysis.ts` (deliberately separate file from options' `earnings.ts` to avoid confusing the two); new route; `StockResearch.tsx`; openapi.yaml.
@@ -449,16 +459,16 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; no schema change if cached in-process.
 - **Estimated effort:** Medium.
 
-### Sprint 25 — Tom Nash Investment Engine (Enhancement II: Sector & Macro, Rate Sensitivity, AI/Tech Cycle) + Committee Confidence Refinement
-- **Objective:** Ship the remaining thematic/macro third of Tom Nash's capability list, now that Industry Comparison (19) provides real sector context, and revisit the AI Investment Committee's (Sprint 16) confidence weighting now that Tom Nash's full feature set exists.
-- **Deliverables:** Sector & macro analysis (reusing Sprint 19's sector taxonomy); interest-rate sensitivity classification (per the sourcing decided in §2 item 8 — SIMULATED-proxy by default); AI/technology-cycle analysis (LLM-narrated, bounded by deterministic inputs); a refinement pass on `synthesizeInvestmentCommittee()`'s confidence weighting to account for Tom Nash now being a fully-featured analyst rather than its Sprint-15 Core subset.
+### Sprint 26 — Tom Nash Investment Engine (Enhancement II: Sector & Macro, Rate Sensitivity, AI/Tech Cycle) + Committee Confidence Refinement
+- **Objective:** Ship the remaining thematic/macro third of Tom Nash's capability list, now that Industry Comparison (20) provides real sector context, and revisit the AI Investment Committee's (Sprint 17) confidence weighting now that Tom Nash's full feature set exists.
+- **Deliverables:** Sector & macro analysis (reusing Sprint 20's sector taxonomy); interest-rate sensitivity classification (per the sourcing decided in §2 item 8 — SIMULATED-proxy by default); AI/technology-cycle analysis (LLM-narrated, bounded by deterministic inputs); a refinement pass on `synthesizeInvestmentCommittee()`'s confidence weighting to account for Tom Nash now being a fully-featured analyst rather than its Sprint-16 Core subset.
 - **Files likely to change:** `lib/tomNashEngine.ts` (further extension); new `lib/investingMacro.ts` (or similar, SIMULATED-proxy pattern mirroring `marketBriefing.ts`); `lib/investmentCommittee.ts` (confidence-weighting update only — aggregation methodology itself unchanged); `StockResearch.tsx`; openapi.yaml.
 - **Tests required:** Unit tests for the macro-proxy module; regression tests proving Sprints 15/23's existing Tom Nash output is unchanged; Committee regression tests confirming the confidence-weighting change doesn't alter already-shipped unanimous/majority/split logic, only its inputs.
 - **Acceptance criteria:** Tom Nash's full 12-capability spec is complete; the Investment Committee's confidence score visibly reflects Tom Nash's now-complete analysis.
 - **Rollback:** `git revert`; no schema change if the macro module stays SIMULATED-only.
 - **Estimated effort:** Medium-High.
 
-### Sprint 26 — Watchlist Polish
+### Sprint 27 — Watchlist Polish
 - **Objective:** Small, low-risk enhancements to the already-complete Watchlist module.
 - **Deliverables:** Bulk-add from Industry Comparison/Scanner; UI-badge alerts when price/MoS targets are crossed (no push/email delivery — that's Phase 5's Notification Service).
 - **Files likely to change:** `stockAnalyst.ts`; `StockScanner.tsx`/`StockResearch.tsx`.
@@ -467,7 +477,7 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; no schema change.
 - **Estimated effort:** Low.
 
-### Sprint 27 — Portfolio Construction
+### Sprint 28 — Portfolio Construction
 - **Objective:** Build the new equity-portfolio allocation module.
 - **Deliverables:** `investing_portfolios`/`investing_holdings` tables, CRUD routes (mirroring the watchlist CRUD pattern), a first-version allocation engine (equal-weight or simple target-weight-drift), a construction UI sourcing candidates from Watchlist.
 - **Files likely to change:** New schema files + migration; new `lib/portfolioConstruction.ts`; new route file; new frontend page; openapi.yaml.
@@ -476,7 +486,7 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; drop both new tables if migrations were applied.
 - **Estimated effort:** Medium-High.
 
-### Sprint 28 — Risk Analysis
+### Sprint 29 — Risk Analysis
 - **Objective:** Build the equity-portfolio risk scorer.
 - **Deliverables:** Concentration/sector-exposure/beta-estimate scoring (architecture modeled on `portfolioHealth.ts`'s pattern), a new snapshot-history table.
 - **Files likely to change:** New `lib/investingRisk.ts`; new schema + migration (`investing_risk_snapshots`); new route; Portfolio Construction UI gains a risk panel.
@@ -485,7 +495,7 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; drop the new table if applied.
 - **Estimated effort:** Medium-High.
 
-### Sprint 29 — AI Investment Analyst
+### Sprint 30 — AI Investment Analyst
 - **Objective:** Ship the open-ended research-assistant mode.
 - **Deliverables:** `narrateInvestingFreeform`-equivalent (thin wrapper over `ai-core`, following `coachLLM.ts`'s template exactly), a chat-style UI surface.
 - **Files likely to change:** New `lib/investingCoachLLM.ts` (mirrors `coachLLM.ts`'s shape); new route; new/extended frontend panel.
@@ -494,7 +504,7 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`.
 - **Estimated effort:** Medium.
 
-### Sprint 30 — Company Research Unification
+### Sprint 31 — Company Research Unification
 - **Objective:** Wire every module built in Sprints 12–29 into one coherent Company Research experience.
 - **Deliverables:** `buildValueResearchReport()` grows to assemble all new sections, including Tom Nash's full analysis and the Investment Committee's consolidated recommendation; `StockResearch.tsx`'s `ReportView` becomes the single umbrella surface; end-to-end regression pass across the whole engine.
 - **Files likely to change:** `lib/valueReport.ts`, `StockResearch.tsx`, openapi.yaml (final consolidated response schema).
@@ -509,10 +519,10 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 
 - **Sprints 11–14 (foundation + valuation split) must go first** — every later module either reads from the statement/valuation layer or renders inside the same report, so getting the "3 named models + consolidated MoS" architecture right early avoids rework.
 - **Sprints 15–16 (Tom Nash Core, Committee Core) come immediately after Buffett, exactly as directed, and deliberately ship a partial-but-honest v1** — the reusable ~60% of Tom Nash's spec plus a first-pass probability/conviction framework, and a Committee that combines whatever the three analysts can produce at that point. This is the "maximise reuse" resolution: land what's reusable now, defer what genuinely needs data that doesn't exist yet, and say so clearly in the UI rather than faking completeness.
-- **Sprints 17–20 are cheap, low-risk, high-value** — mostly enhancing what already exists (ratios, statements, industry comps, moat refinement) — good place to bank momentum, same reasoning the Blueprint used for Phase 4 (Options Income). Sprint 19 (Industry Comparison) additionally sets up the sector taxonomy Tom Nash Enhancement II (Sprint 25) needs.
-- **Sprint 21 (Annual Report Analysis) is Engine 1's long pole**, structurally identical in role to Engine 2's Order Flow in the Blueprint — new engineering domain, external dependency outside engineering's direct control (EDGAR), real cost/vendor questions if transcripts are wanted later. Consider starting its data-ingestion groundwork in parallel with Sprints 17–20 rather than strictly serially, if the timeline should be de-risked the way the Blueprint recommends for Engine 2.
-- **Sprint 22 (Management Quality) depends on 21** and carries the highest reputational/compliance risk in Engine 1 (discussing real executives) — budget real review time, not just test-passing time. It also unlocks Sprint 23.
-- **Sprint 23 (Tom Nash Enhancement I) is sequenced immediately after Sprints 21–22 specifically because it reuses their filing-ingestion infrastructure** for insider-ownership data — this is the concrete "maximise reuse" payoff of not building Tom Nash's insider/buyback capability back in Sprint 15, when that infrastructure didn't exist yet.
-- **Sprint 25 (Tom Nash Enhancement II) is sequenced after Sprint 19 (Industry Comparison)** for the same reuse reason — it needs real sector data, not a duplicate taxonomy. It also folds in a Committee confidence-weighting refinement, since Tom Nash's output is materially richer by this point than at Sprint 16.
-- **Sprints 27–28 (Portfolio Construction, Risk Analysis) are the only sprints needing new relational tables beyond additive JSON/columns** — sequenced late so the allocation engine has real modules (valuations, ratios, moat, Tom Nash, Committee) to rank candidates by by the time it's built.
-- **Sprint 30 is the integration checkpoint** — mirrors Phase 1's own pattern of "additive sprints, one consolidation pass at the end," and is where the phase's own Sprint-6-equivalent (Company Research, now Institutional Investment Decision Engine) becomes real — do not begin implementation on any sprint from 13 onward until that sprint's own pre-implementation plan is separately approved.
+- **Sprints 18–21 are cheap, low-risk, high-value** — mostly enhancing what already exists (ratios, statements, industry comps, moat refinement) — good place to bank momentum, same reasoning the Blueprint used for Phase 4 (Options Income). Sprint 20 (Industry Comparison) additionally sets up the sector taxonomy Tom Nash Enhancement II (Sprint 26) needs.
+- **Sprint 22 (Annual Report Analysis) is Engine 1's long pole**, structurally identical in role to Engine 2's Order Flow in the Blueprint — new engineering domain, external dependency outside engineering's direct control (EDGAR), real cost/vendor questions if transcripts are wanted later. Consider starting its data-ingestion groundwork in parallel with Sprints 18–21 rather than strictly serially, if the timeline should be de-risked the way the Blueprint recommends for Engine 2.
+- **Sprint 23 (Management Quality) depends on 22** and carries the highest reputational/compliance risk in Engine 1 (discussing real executives) — budget real review time, not just test-passing time. It also unlocks Sprint 24.
+- **Sprint 24 (Tom Nash Enhancement I) is sequenced immediately after Sprints 22–23 specifically because it reuses their filing-ingestion infrastructure** for insider-ownership data — this is the concrete "maximise reuse" payoff of not building Tom Nash's insider/buyback capability back in Sprint 16, when that infrastructure didn't exist yet.
+- **Sprint 26 (Tom Nash Enhancement II) is sequenced after Sprint 20 (Industry Comparison)** for the same reuse reason — it needs real sector data, not a duplicate taxonomy. It also folds in a Committee confidence-weighting refinement, since Tom Nash's output is materially richer by this point than at Sprint 17.
+- **Sprints 28–29 (Portfolio Construction, Risk Analysis) are the only sprints needing new relational tables beyond additive JSON/columns** — sequenced late so the allocation engine has real modules (valuations, ratios, moat, Tom Nash, Committee) to rank candidates by by the time it's built.
+- **Sprint 31 is the integration checkpoint** — mirrors Phase 1's own pattern of "additive sprints, one consolidation pass at the end," and is where the phase's own Sprint-6-equivalent (Company Research, now Institutional Investment Decision Engine) becomes real — do not begin implementation on any sprint from 16 onward until that sprint's own pre-implementation plan is separately approved.

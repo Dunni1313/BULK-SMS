@@ -32,6 +32,20 @@ export function makeValueReport(
         { label: "Revenue stability", score: 82, detail: "Recurring services revenue." },
       ],
     },
+    investmentQuality: {
+      score: 82,
+      metrics: [
+        { metric: "Revenue Growth", availability: "available", score: 78, weight: 0.1, detail: "8% five-year revenue CAGR" },
+        { metric: "Return on Invested Capital", availability: "available", score: 90, weight: 0.12, detail: "27% ROIC" },
+        { metric: "Share Dilution / Buybacks", availability: "unavailable", score: null, weight: 0.05, detail: "", reason: "No share-count history or buyback data source yet." },
+        { metric: "Insider Ownership", availability: "unavailable", score: null, weight: 0.05, detail: "", reason: "No insider-ownership data source yet." },
+      ],
+      strengths: ["Return on Invested Capital: 90/100 — 27% ROIC"],
+      weaknesses: [],
+      confidenceLevel: "Moderate",
+      confidenceExplanation: "10 of 12 quality metrics have usable data for AAPL; 2 (Share Dilution / Buybacks, Insider Ownership) await future data sources.",
+      summary: "AAPL scores 82/100 on investment quality across 10 scored metrics (Moderate confidence).",
+    },
     moat: {
       rating: ValueMoatAnalysisRating.Wide,
       score: 85,

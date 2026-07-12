@@ -1,7 +1,7 @@
-// Task #66 — 18-section value-investing research report assembler (Phase 2,
+// Task #66 — 19-section value-investing research report assembler (Phase 2,
 // Sprint 12 added "Graham Valuation"; Sprint 13 added "DCF Valuation";
 // Sprint 14 added "Buffett Valuation" and upgraded "Margin of Safety" into a
-// cross-model consolidated view).
+// cross-model consolidated view; Sprint 15 added "Investment Quality").
 //
 // Pure + deterministic: composes the SIMULATED fundamentals + the value-investing
 // engines into a structured, ordered report. The LLM (coachLLM) only narrates the
@@ -35,6 +35,7 @@ import { analyzeGrahamValuation, type GrahamValuation } from "./grahamValuation.
 import { analyzeDcfValuation, type DcfValuation } from "./dcfValuation.js";
 import { analyzeBuffettValuation, type BuffettValuation } from "./buffettValuation.js";
 import { consolidateMarginOfSafety, type ConsolidatedMarginOfSafety } from "./marginOfSafety.js";
+import { analyzeInvestmentQuality, type InvestmentQualityAnalysis } from "./investmentQuality.js";
 
 // The standard value-investing disclaimer. Distinct from COACH_DISCLAIMER but the
 // LLM narration is still routed through narrate() so COACH_DISCLAIMER is appended.
@@ -92,6 +93,7 @@ export interface ValueResearchReport {
   price: number;
   // Denormalised headline ratings (also used for persistence / history rows).
   businessQuality: BusinessQuality;
+  investmentQuality: InvestmentQualityAnalysis;
   moat: MoatAnalysis;
   financialStrength: FinancialStrength;
   valuation: Valuation;
@@ -159,6 +161,7 @@ export async function buildValueResearchReport(
   const snap = getSnapshot(f.symbol, f.asOf);
 
   const bq = analyzeBusinessQuality(f);
+  const iq = analyzeInvestmentQuality(f);
   const moat = analyzeMoat(f);
   const fin = analyzeFinancialStrength(f);
   const val = analyzeValuation(f);
@@ -225,42 +228,52 @@ export async function buildValueResearchReport(
       bullets: bq.factors.map((x) => `${x.label}: ${x.score}/100 — ${x.detail}`),
     },
     {
+      id: "investment-quality",
+      title: "4. Investment Quality",
+      body: iq.summary,
+      bullets: iq.metrics.map((m) =>
+        m.availability === "available"
+          ? `${m.metric}: ${m.score}/100 — ${m.detail}`
+          : `${m.metric}: unavailable — ${m.reason}`,
+      ),
+    },
+    {
       id: "moat",
-      title: "4. Economic Moat",
+      title: "5. Economic Moat",
       body: moat.summary,
       bullets: moat.sources.length ? moat.sources.map((s) => `${s.source}: ${s.strength}/100`) : ["No qualifying moat sources above threshold."],
     },
     {
       id: "financial",
-      title: "5. Financial Strength",
+      title: "6. Financial Strength",
       body: fin.summary,
       bullets: fin.metrics.map((m) => `${m.label}: ${m.score}/100 — ${m.detail}`),
     },
     {
       id: "profitability",
-      title: "6. Profitability & Returns on Capital",
+      title: "7. Profitability & Returns on Capital",
       body: `Returns on capital are the clearest quality signal. ${f.symbol} earns ${pct(f.roic)} ROIC and ${pct(f.roe)} ROE on ${pct(f.grossMargin)} gross / ${pct(f.operatingMargin)} operating margins.`,
     },
     {
       id: "growth",
-      title: "7. Growth",
+      title: "8. Growth",
       body: `Five-year revenue CAGR ${pct(f.revenueGrowth5y)}, EPS CAGR ${pct(f.epsGrowth5y)}; forward revenue growth estimated at ${pct(f.revenueGrowthFwd)}.`,
     },
     {
       id: "valuation",
-      title: "8. Valuation & Fair Value",
+      title: "9. Valuation & Fair Value",
       body: val.summary,
       bullets: val.available ? val.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [val.reason],
     },
     {
       id: "graham-valuation",
-      title: "9. Graham Valuation",
+      title: "10. Graham Valuation",
       body: graham.summary,
       bullets: graham.available ? graham.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [graham.reason],
     },
     {
       id: "dcf-valuation",
-      title: "10. DCF Valuation",
+      title: "11. DCF Valuation",
       body: dcf.summary,
       bullets: dcf.available
         ? [...dcf.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`), dcf.confidenceExplanation]
@@ -268,49 +281,49 @@ export async function buildValueResearchReport(
     },
     {
       id: "buffett-valuation",
-      title: "11. Buffett Valuation",
+      title: "12. Buffett Valuation",
       body: buffett.summary,
       bullets: buffett.available ? buffett.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [buffett.reason],
     },
     {
       id: "margin-of-safety",
-      title: "12. Margin of Safety",
+      title: "13. Margin of Safety",
       body: consolidatedMoS.summary,
       bullets: consolidatedMoS.fairValues.map((mv) => `${mv.model}: ${money(mv.fairValue)}`),
     },
     {
       id: "risks",
-      title: "13. Risks & Red Flags",
+      title: "14. Risks & Red Flags",
       body: `Key risks identified in the ${dataLabel} fundamentals:`,
       bullets: risks.map((r) => `[${r.severity.toUpperCase()}] ${r.text}`),
     },
     {
       id: "decision",
-      title: "14. Value-Investor Decision",
+      title: "15. Value-Investor Decision",
       body: decision.summary,
       bullets: decision.rationale,
     },
     {
       id: "stock-vs-options",
-      title: "15. Stock vs. Options",
+      title: "16. Stock vs. Options",
       body: svo.summary,
       bullets: [svo.stockCase, svo.optionsCase],
     },
     {
       id: "checklist",
-      title: "16. Buffett Checklist",
+      title: "17. Buffett Checklist",
       body: "A wonderful business at a fair price, bought with a margin of safety:",
       bullets: buffettChecklist(f, bq, moat, fin, val),
     },
     {
       id: "metrics",
-      title: "17. Key Metrics",
+      title: "18. Key Metrics",
       body: `Headline ${dataLabel} metrics (see full table in the UI).`,
       bullets: keyMetrics.map((m) => `${m.label}: ${m.value}`),
     },
     {
       id: "disclaimer",
-      title: "18. Disclaimers & Data Source",
+      title: "19. Disclaimers & Data Source",
       body: disclaimerFor(f.dataSource),
       bullets: [`Data source: ${f.dataSource}`, `As of: ${f.asOf}`],
     },
@@ -327,6 +340,7 @@ export async function buildValueResearchReport(
     ...(f.fallback ? { fallback: f.fallback } : {}),
     price: f.price,
     businessQuality: bq,
+    investmentQuality: iq,
     moat,
     financialStrength: fin,
     valuation: val,
