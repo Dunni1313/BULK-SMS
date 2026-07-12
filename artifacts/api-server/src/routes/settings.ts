@@ -1,0 +1,90 @@
+import { Router, type IRouter } from "express";
+import { db, settingsTable } from "@workspace/db";
+import {
+  GetSettingsResponse,
+  UpdateSettingsResponse,
+  UpdateSettingsBody,
+  GetFundamentalsProviderStatusResponse,
+} from "@workspace/api-zod";
+import {
+  fundamentalsConnectionStatus,
+  getLastLiveFetch,
+  getFundamentalsProviderStatuses,
+} from "../lib/fundamentals.js";
+
+const router: IRouter = Router();
+
+async function getOrCreateSettings() {
+  const existing = await db.select().from(settingsTable).limit(1);
+  if (existing.length > 0) return existing[0];
+
+  const [created] = await db
+    .insert(settingsTable)
+    .values({
+      executionMode: "manual",
+      maxRiskPerTrade: 1.0,
+      maxPortfolioRisk: 10.0,
+      profitTarget50: 50.0,
+      profitTarget75: 75.0,
+      profitTarget90: 90.0,
+      stopLossMultiplier: 2.0,
+      alpacaConnected: false,
+      alpacaApiKey: null,
+      defaultDte: 45,
+      shortDelta: 0.20,
+      minIvRank: 30.0,
+    })
+    .returning();
+
+  return created;
+}
+
+router.get("/settings", async (_req, res): Promise<void> => {
+  const settings = await getOrCreateSettings();
+  // fundamentalsConnected reflects whether a live provider is actually usable
+  // (selected provider + matching API key present), never a stale stored value.
+  res.json(
+    GetSettingsResponse.parse({
+      ...settings,
+      fundamentalsConnected: fundamentalsConnectionStatus(settings).connected,
+      fundamentalsLastFetchedAt: getLastLiveFetch()?.at ?? null,
+    }),
+  );
+});
+
+router.patch("/settings", async (req, res): Promise<void> => {
+  const parsed = UpdateSettingsBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const existing = await getOrCreateSettings();
+
+  const [updated] = await db
+    .update(settingsTable)
+    .set(parsed.data)
+    .returning();
+
+  res.json(
+    UpdateSettingsResponse.parse({
+      ...updated,
+      fundamentalsConnected: fundamentalsConnectionStatus(updated).connected,
+      fundamentalsLastFetchedAt: getLastLiveFetch()?.at ?? null,
+    }),
+  );
+});
+
+// Live-provider status surface: the most recent rate-limit/outage per live
+// fundamentals provider, so operators see degradation at a glance instead of
+// discovering it one symbol at a time. Observability only — never mutates state.
+router.get("/fundamentals/provider-status", async (_req, res): Promise<void> => {
+  const settings = await getOrCreateSettings();
+  res.json(
+    GetFundamentalsProviderStatusResponse.parse({
+      statuses: getFundamentalsProviderStatuses(settings),
+    }),
+  );
+});
+
+export default router;

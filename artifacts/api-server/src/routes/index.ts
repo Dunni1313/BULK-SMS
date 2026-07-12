@@ -1,0 +1,42 @@
+import { Router, type IRouter } from "express";
+import healthRouter from "./health";
+import scannerRouter from "./scanner";
+import optionsRouter from "./options";
+import portfolioRouter from "./portfolio";
+import portfolioAIRouter from "./portfolioAI";
+import tradesRouter from "./trades";
+import executionRouter from "./execution";
+import autoExecutionRouter from "./autoExecution";
+import backtestRouter from "./backtest";
+import scoringRouter from "./scoring";
+import journalRouter from "./journal";
+import aiRouter from "./ai";
+import coachRouter from "./coach";
+import settingsRouter from "./settings";
+import performanceRouter from "./performance";
+import marketDataHealthRouter from "./marketDataHealth";
+import eventsRouter from "./events";
+import stockAnalystRouter from "./stockAnalyst";
+
+const router: IRouter = Router();
+
+router.use(healthRouter);
+router.use(scannerRouter);
+router.use(optionsRouter);
+router.use(portfolioRouter);
+router.use(portfolioAIRouter);
+router.use(tradesRouter);
+router.use(executionRouter);
+router.use(autoExecutionRouter);
+router.use(backtestRouter);
+router.use(scoringRouter);
+router.use(journalRouter);
+router.use(aiRouter);
+router.use(coachRouter);
+router.use(settingsRouter);
+router.use(performanceRouter);
+router.use(marketDataHealthRouter);
+router.use(eventsRouter);
+router.use("/stock-analyst", stockAnalystRouter);
+
+export default router;

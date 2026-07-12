@@ -1,0 +1,4385 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: DK Option Engine
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: scanner
+    description: Daily options scanner
+  - name: options
+    description: Option chain data
+  - name: portfolio
+    description: Portfolio positions and Greeks
+  - name: trades
+    description: Trade management
+  - name: backtest
+    description: Strategy backtesting
+  - name: scoring
+    description: Ravish Score AI ranking
+  - name: journal
+    description: Trade journal
+  - name: ai
+    description: AI Options Assistant
+  - name: settings
+    description: User settings
+  - name: performance
+    description: Performance analytics
+  - name: value
+    description: Buffett-style value-investing research & education (SIMULATED, advisory only)
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Scanner ───────────────────────────────────────────────────────────────
+  /scanner/results:
+    get:
+      operationId: getScannerResults
+      tags: [scanner]
+      summary: Get latest scanner results
+      parameters:
+        - name: strategy
+          in: query
+          schema:
+            type: string
+            enum: [iron_condor, iron_fly, calendar_spread, earnings]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Scanner results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScannerResult"
+
+  /scanner/run:
+    post:
+      operationId: runScanner
+      tags: [scanner]
+      summary: Trigger a new scanner run
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScannerRunInput"
+      responses:
+        "200":
+          description: Scanner started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScannerRunResponse"
+
+  /scanner/top:
+    get:
+      operationId: getTopOpportunities
+      tags: [scanner]
+      summary: Get top-ranked trade opportunities across all strategies
+      responses:
+        "200":
+          description: Top opportunities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopOpportunities"
+
+  /scanner/earnings:
+    get:
+      operationId: getEarningsScan
+      tags: [scanner]
+      summary: Scan for near-term earnings with elevated IV and recommended structures
+      responses:
+        "200":
+          description: Earnings plays
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EarningsPlay"
+
+  /events:
+    get:
+      operationId: getUpcomingEvents
+      tags: [scanner]
+      summary: Upcoming economic / market event calendar (earnings, FOMC, CPI, jobs, dividends)
+      parameters:
+        - name: horizonDays
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Upcoming events sorted by date
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventRiskEvent"
+
+  /market-data/health:
+    get:
+      operationId: getMarketDataHealth
+      tags: [scanner]
+      summary: Get options market-data provider status and last-scan health metrics
+      responses:
+        "200":
+          description: Market data health
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketDataHealth"
+
+  # ─── Options Chain ─────────────────────────────────────────────────────────
+  /options/chain/{symbol}:
+    get:
+      operationId: getOptionChain
+      tags: [options]
+      summary: Get live option chain for a symbol
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Option chain data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionChain"
+
+  /options/universe:
+    get:
+      operationId: getUniverse
+      tags: [options]
+      summary: Get the list of tracked symbols with market data
+      responses:
+        "200":
+          description: Universe symbols
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UniverseSymbol"
+
+  /options/expirations/{symbol}:
+    get:
+      operationId: getExpirations
+      tags: [options]
+      summary: Get available expiration dates for a symbol
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expiration dates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpirationDate"
+
+  # ─── Portfolio ──────────────────────────────────────────────────────────────
+  /portfolio/positions:
+    get:
+      operationId: getPortfolioPositions
+      tags: [portfolio]
+      summary: Get live Alpaca positions
+      responses:
+        "200":
+          description: Portfolio positions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Position"
+
+  /portfolio/greeks:
+    get:
+      operationId: getPortfolioGreeks
+      tags: [portfolio]
+      summary: Get aggregate portfolio Greeks
+      responses:
+        "200":
+          description: Portfolio Greeks summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioGreeks"
+
+  /portfolio/summary:
+    get:
+      operationId: getPortfolioSummary
+      tags: [portfolio]
+      summary: Get portfolio account summary
+      responses:
+        "200":
+          description: Portfolio summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioSummary"
+
+  /portfolio/risk:
+    get:
+      operationId: getRiskStatus
+      tags: [portfolio]
+      summary: Get portfolio risk status and limit compliance
+      responses:
+        "200":
+          description: Risk status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskStatus"
+
+  /portfolio/theta:
+    get:
+      operationId: getThetaIncome
+      tags: [portfolio]
+      summary: Get theta income across horizons with symbol/strategy breakdowns
+      responses:
+        "200":
+          description: Theta income
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThetaIncome"
+
+  # ─── Trades ─────────────────────────────────────────────────────────────────
+  /trades:
+    get:
+      operationId: listTrades
+      tags: [trades]
+      summary: List all trades
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, pending]
+        - name: strategy
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of trades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trade"
+    post:
+      operationId: createTrade
+      tags: [trades]
+      summary: Create and execute a trade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradeInput"
+      responses:
+        "201":
+          description: Trade created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trade"
+
+  /trades/{id}:
+    get:
+      operationId: getTrade
+      tags: [trades]
+      summary: Get a single trade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trade details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trade"
+    delete:
+      operationId: closeTrade
+      tags: [trades]
+      summary: Close / exit a trade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trade closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trade"
+
+  /trades/adjustments:
+    get:
+      operationId: listTradeAdjustments
+      tags: [trades]
+      summary: Adjustment recommendations for every open trade
+      responses:
+        "200":
+          description: One recommendation per open position
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradeAdjustment"
+
+  /trades/{id}/adjustment:
+    get:
+      operationId: getTradeAdjustment
+      tags: [trades]
+      summary: Adjustment recommendation for a single trade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Adjustment recommendation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeAdjustment"
+
+  /trades/{id}/monitor:
+    get:
+      operationId: getTradeMonitor
+      tags: [trades]
+      summary: Get real-time monitoring data for an open trade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trade monitoring data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeMonitor"
+
+  # ─── Execution (Phase 5: semi-automatic) ────────────────────────────────────
+  /execution/preview:
+    post:
+      operationId: previewExecution
+      tags: [execution]
+      summary: Build option order legs, compute metrics, and run pre-trade risk validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExecutionPreviewInput"
+      responses:
+        "200":
+          description: Execution ticket with order legs, metrics, and validation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionTicket"
+
+  /execution/submit:
+    post:
+      operationId: submitExecution
+      tags: [execution]
+      summary: Submit a validated multi-leg order through the broker (semi-auto only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExecutionSubmitInput"
+      responses:
+        "201":
+          description: Order submitted; pending trade and journal entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionSubmitResult"
+
+  /execution/adjustment/preview:
+    post:
+      operationId: previewAdjustmentExecution
+      tags: [execution]
+      summary: Build a ready-to-submit roll/convert ticket for an open position's recommendation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdjustmentPreviewInput"
+      responses:
+        "200":
+          description: Execution ticket for the recommended roll/convert structure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionTicket"
+
+  /execution/adjustment/submit:
+    post:
+      operationId: submitAdjustmentExecution
+      tags: [execution]
+      summary: Close the source position and open the recommended roll/convert structure (semi-auto only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdjustmentSubmitInput"
+      responses:
+        "201":
+          description: Source position closed; rolled/converted trade and journal entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdjustmentSubmitResult"
+
+  # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
+  /execution/auto/status:
+    get:
+      operationId: getAutoExecutionStatus
+      tags: [execution]
+      summary: Current full-auto engine state, guardrails, and today's stats
+      responses:
+        "200":
+          description: Auto-execution status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoExecutionStatus"
+
+  /execution/auto/log:
+    get:
+      operationId: getAutoExecutionLog
+      tags: [execution]
+      summary: Recent full-auto decision audit log
+      responses:
+        "200":
+          description: Audit log entries (newest first)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AutoExecutionLogEntry"
+
+  /execution/auto/adjust/log:
+    get:
+      operationId: getAutoAdjustmentLog
+      tags: [execution]
+      summary: Recent auto-ADJUSTMENT decision audit log (kind=adjust only)
+      parameters:
+        - name: decision
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [executed, skipped, rejected, blocked]
+        - name: symbol
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Adjustment audit log entries (newest first)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AutoExecutionLogEntry"
+
+  /execution/auto/run:
+    post:
+      operationId: runAutoExecutionCycle
+      tags: [execution]
+      summary: Run one full-auto cycle now (no-op unless armed); returns decisions
+      responses:
+        "200":
+          description: Cycle result with per-candidate decisions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoCycleResult"
+
+  /execution/auto/adjust/run:
+    post:
+      operationId: runAutoAdjustmentCycle
+      tags: [execution]
+      summary: Run one auto-adjustment cycle now (no-op unless armed); de-risk only
+      responses:
+        "200":
+          description: Adjustment cycle result with per-trade decisions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AutoAdjustCycleResult"
+
+  # ─── Backtest ────────────────────────────────────────────────────────────────
+  /backtest/run:
+    post:
+      operationId: runBacktest
+      tags: [backtest]
+      summary: Run a strategy backtest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BacktestInput"
+      responses:
+        "200":
+          description: Backtest results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BacktestResult"
+
+  /backtest/results:
+    get:
+      operationId: listBacktestResults
+      tags: [backtest]
+      summary: List saved backtest results
+      responses:
+        "200":
+          description: Backtest results list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BacktestResult"
+
+  # ─── Ravish Score ────────────────────────────────────────────────────────────
+  /scoring/{symbol}:
+    get:
+      operationId: getRavishScore
+      tags: [scoring]
+      summary: Get Ravish Score for a symbol across all strategies
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ravish Score breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RavishScore"
+
+  /scoring/leaderboard:
+    get:
+      operationId: getScoringLeaderboard
+      tags: [scoring]
+      summary: Get top-scored opportunities across all symbols
+      responses:
+        "200":
+          description: Leaderboard
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RavishScore"
+
+  # ─── Journal ─────────────────────────────────────────────────────────────────
+  /journal:
+    get:
+      operationId: listJournalEntries
+      tags: [journal]
+      summary: List journal entries
+      responses:
+        "200":
+          description: Journal entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JournalEntry"
+    post:
+      operationId: createJournalEntry
+      tags: [journal]
+      summary: Create a journal entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalEntryInput"
+      responses:
+        "201":
+          description: Journal entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalEntry"
+
+  /journal/{id}:
+    get:
+      operationId: getJournalEntry
+      tags: [journal]
+      summary: Get a journal entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Journal entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalEntry"
+    patch:
+      operationId: updateJournalEntry
+      tags: [journal]
+      summary: Update a journal entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalEntryUpdate"
+      responses:
+        "200":
+          description: Updated journal entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalEntry"
+
+  # ─── AI Assistant ─────────────────────────────────────────────────────────────
+  /ai/chat:
+    post:
+      operationId: aiChat
+      tags: [ai]
+      summary: Send a message to the AI options assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiChatInput"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiAnswer"
+
+  /ai/messages:
+    get:
+      operationId: getAiMessages
+      tags: [ai]
+      summary: Get chat history
+      responses:
+        "200":
+          description: Chat messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AiMessage"
+
+  # ─── AI Trading Coach ─────────────────────────────────────────────────────────
+  /coach/explain-trade:
+    post:
+      operationId: explainTrade
+      tags: [coach]
+      summary: Explain a scanner candidate or symbol+strategy (read-only, never executes)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExplainTradeInput"
+      responses:
+        "200":
+          description: Deterministic explanation plus narrative
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExplainTradeResult"
+
+  /coach/teach-greek:
+    post:
+      operationId: teachGreek
+      tags: [coach]
+      summary: Tutor one of the four Greeks with a live worked example
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeachGreekInput"
+      responses:
+        "200":
+          description: Greek lesson plus narrative
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeachGreekResult"
+
+  /coach/learn/delta:
+    get:
+      operationId: getDeltaMasterclass
+      tags: [coach]
+      summary: Delta Masterclass content
+      responses:
+        "200":
+          description: Learn content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearnContent"
+
+  /coach/learn/greeks:
+    get:
+      operationId: getGreeksOverview
+      tags: [coach]
+      summary: Greeks overview content
+      responses:
+        "200":
+          description: Learn content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearnContent"
+
+  /coach/quiz:
+    post:
+      operationId: generateQuiz
+      tags: [coach]
+      summary: Generate a Greeks/strategy/risk quiz (answers withheld)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizInput"
+      responses:
+        "200":
+          description: Generated quiz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedQuiz"
+
+  /coach/quiz/grade:
+    post:
+      operationId: gradeQuiz
+      tags: [coach]
+      summary: Grade quiz answers server-side and record the attempt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GradeQuizInput"
+      responses:
+        "200":
+          description: Graded result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizGradeResult"
+
+  /coach/quiz/progress:
+    get:
+      operationId: getQuizProgress
+      tags: [coach]
+      summary: Recent quiz attempts, best score per topic, and overall stats
+      responses:
+        "200":
+          description: Quiz progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizProgress"
+
+  /coach/journal-review:
+    post:
+      operationId: journalReview
+      tags: [coach]
+      summary: Coach a closed trade into a review and a lesson learned
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalReviewInput"
+      responses:
+        "200":
+          description: Trade review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalReviewResult"
+
+  /coach/lessons:
+    get:
+      operationId: getCoachLessons
+      tags: [coach]
+      summary: Recent saved coaching output
+      responses:
+        "200":
+          description: Saved lessons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoachLesson"
+
+  # ─── Settings ─────────────────────────────────────────────────────────────────
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get user settings
+      responses:
+        "200":
+          description: User settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+    patch:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update user settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsUpdate"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
+  /fundamentals/provider-status:
+    get:
+      operationId: getFundamentalsProviderStatus
+      tags: [settings]
+      summary: Live fundamentals provider status (rate limits / outages)
+      description: >-
+        Most-recent health for each live fundamentals provider (Financial
+        Modeling Prep, Alpha Vantage), so operators can see at a glance when a
+        provider is rate-limited or unreachable instead of discovering it one
+        symbol at a time.
+      responses:
+        "200":
+          description: Per-provider status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FundamentalsProviderStatusResponse"
+
+  # ─── Performance ──────────────────────────────────────────────────────────────
+  /performance/analytics:
+    get:
+      operationId: getPerformanceAnalytics
+      tags: [performance]
+      summary: Get performance analytics and metrics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [1m, 3m, 6m, 1y, all]
+            default: "1y"
+      responses:
+        "200":
+          description: Performance analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceAnalytics"
+
+  /performance/equity-curve:
+    get:
+      operationId: getEquityCurve
+      tags: [performance]
+      summary: Get equity curve data points
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [1m, 3m, 6m, 1y, all]
+            default: "1y"
+      responses:
+        "200":
+          description: Equity curve
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EquityPoint"
+
+  /performance/breakdown:
+    get:
+      operationId: getPerformanceBreakdown
+      tags: [performance]
+      summary: Get performance metrics broken down by a dimension
+      parameters:
+        - name: dimension
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [strategy, ticker, duration, delta, ivrank]
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [1m, 3m, 6m, 1y, all]
+            default: "all"
+      responses:
+        "200":
+          description: Breakdown buckets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PerformanceBreakdownBucket"
+
+  /portfolio/health:
+    get:
+      operationId: getPortfolioHealth
+      tags: [portfolio]
+      summary: Get the deterministic portfolio health score
+      responses:
+        "200":
+          description: Portfolio health, exposure and risk-concentration scores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioHealth"
+
+  /briefing:
+    get:
+      operationId: getMarketBriefing
+      tags: [portfolio]
+      summary: Get the deterministic daily market briefing with AI narration
+      responses:
+        "200":
+          description: Market briefing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketBriefingResponse"
+
+  /reports:
+    get:
+      operationId: listDailyReports
+      tags: [portfolio]
+      summary: List persisted daily reports (newest first)
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Daily report history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyReportSummary"
+    post:
+      operationId: generateDailyReport
+      tags: [portfolio]
+      summary: Generate and persist a new daily report
+      responses:
+        "200":
+          description: The generated report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyReport"
+    delete:
+      operationId: clearDailyReports
+      tags: [portfolio]
+      summary: Delete all persisted daily reports
+      responses:
+        "200":
+          description: Reports cleared (returns the deleted rows so they can be restored)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClearReportsResult"
+
+  /reports/restore:
+    post:
+      operationId: restoreDailyReports
+      tags: [portfolio]
+      summary: Restore previously cleared daily reports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestoreReportsRequest"
+      responses:
+        "200":
+          description: Reports restored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestoreReportsResult"
+
+  /reports/compare-narration:
+    post:
+      operationId: narrateReportComparison
+      tags: [portfolio]
+      summary: AI-narrated plain-English summary of what changed between two reports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompareReportsRequest"
+      responses:
+        "200":
+          description: Narrated comparison (deltas remain deterministic on the client)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompareReportsResponse"
+        "400":
+          description: Invalid request
+        "404":
+          description: One or both reports not found
+
+  /reports/{id}:
+    get:
+      operationId: getDailyReport
+      tags: [portfolio]
+      summary: Get a single persisted daily report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Daily report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyReport"
+    delete:
+      operationId: deleteDailyReport
+      tags: [portfolio]
+      summary: Delete a persisted daily report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Report deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteReportResult"
+
+  # ─── Value Investing (Buffett-style research & education) ──────────────────────
+  /stock-analyst/value-universe:
+    get:
+      operationId: getValueUniverse
+      tags: [value]
+      summary: Headline value ratings for all supported symbols (SIMULATED)
+      parameters:
+        - name: forceRefresh
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: Bypass the short-lived live fundamentals cache and pull fresh data
+      responses:
+        "200":
+          description: Value summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ValueSummary"
+
+  /stock-analyst/value-research:
+    post:
+      operationId: generateValueResearch
+      tags: [value]
+      summary: Generate a value-investing research report with AI thesis (read-only; never executes)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValueResearchInput"
+      responses:
+        "200":
+          description: Research report plus narrated thesis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValueResearchResult"
+        "404":
+          description: Unknown symbol
+
+  /stock-analyst/value-history:
+    get:
+      operationId: getValueHistory
+      tags: [value]
+      summary: List persisted value-research runs
+      responses:
+        "200":
+          description: History rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ValueHistoryRow"
+
+  /stock-analyst/value-watchlist:
+    get:
+      operationId: getValueWatchlist
+      tags: [value]
+      summary: List value-investing watchlist items
+      responses:
+        "200":
+          description: Watchlist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ValueWatchlistItem"
+    post:
+      operationId: addValueWatchlist
+      tags: [value]
+      summary: Add a symbol to the value watchlist (advisory only; never places an order)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValueWatchlistCreate"
+      responses:
+        "200":
+          description: Created item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValueWatchlistItem"
+
+  /stock-analyst/value-watchlist/{id}:
+    patch:
+      operationId: updateValueWatchlist
+      tags: [value]
+      summary: Update a watchlist item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValueWatchlistUpdate"
+      responses:
+        "200":
+          description: Updated item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValueWatchlistItem"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteValueWatchlist
+      tags: [value]
+      summary: Remove a watchlist item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /stock-analyst/value-school:
+    get:
+      operationId: getValueLessons
+      tags: [value]
+      summary: Value Investing School lessons
+      responses:
+        "200":
+          description: Lessons
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValueLessonsResponse"
+
+  /stock-analyst/value-quiz:
+    post:
+      operationId: generateValueQuiz
+      tags: [value]
+      summary: Generate a value-investing quiz (answers withheld)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValueQuizInput"
+      responses:
+        "200":
+          description: Generated quiz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedValueQuiz"
+
+  /stock-analyst/value-quiz/grade:
+    post:
+      operationId: gradeValueQuiz
+      tags: [value]
+      summary: Grade value-quiz answers server-side and record the attempt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GradeValueQuizInput"
+      responses:
+        "200":
+          description: Graded result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValueQuizGradeResult"
+
+  /stock-analyst/value/{symbol}:
+    get:
+      operationId: getValueReport
+      tags: [value]
+      summary: Full value-investing research report for a symbol (SIMULATED)
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Research report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValueResearchReport"
+        "404":
+          description: Unknown symbol
+
+components:
+  schemas:
+    # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
+    ValueFactorScore:
+      type: object
+      required: [label, score, detail]
+      properties:
+        label: { type: string }
+        score: { type: number }
+        detail: { type: string }
+
+    ValueBusinessQuality:
+      type: object
+      required: [score, rating, factors, summary]
+      properties:
+        score: { type: number }
+        rating:
+          type: string
+          enum: [Wonderful, Good, Average, Weak]
+        factors:
+          type: array
+          items: { $ref: "#/components/schemas/ValueFactorScore" }
+        summary: { type: string }
+
+    ValueMoatSource:
+      type: object
+      required: [source, strength]
+      properties:
+        source: { type: string }
+        strength: { type: number }
+
+    ValueMoatAnalysis:
+      type: object
+      required: [rating, score, durabilityYears, sources, summary]
+      properties:
+        rating:
+          type: string
+          enum: [Wide, Medium, Narrow, None]
+        score: { type: number }
+        durabilityYears: { type: number }
+        sources:
+          type: array
+          items: { $ref: "#/components/schemas/ValueMoatSource" }
+        summary: { type: string }
+
+    ValueFinancialStrength:
+      type: object
+      required: [rating, score, metrics, flags, summary]
+      properties:
+        rating:
+          type: string
+          enum: [Strong, Acceptable, Weak, Risky]
+        score: { type: number }
+        metrics:
+          type: array
+          items: { $ref: "#/components/schemas/ValueFactorScore" }
+        flags:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+
+    ValueFairValueMethod:
+      type: object
+      required: [method, fairValue, detail]
+      properties:
+        method: { type: string }
+        fairValue: { type: number }
+        detail: { type: string }
+
+    ValueValuation:
+      type: object
+      required: [available, dataSource, price, summary]
+      properties:
+        available: { type: boolean }
+        dataSource: { type: string }
+        price: { type: number }
+        summary: { type: string }
+        fairValue: { type: number }
+        fairValueLow: { type: number }
+        fairValueHigh: { type: number }
+        methods:
+          type: array
+          items: { $ref: "#/components/schemas/ValueFairValueMethod" }
+        marginOfSafety: { type: number }
+        marginOfSafetyLabel:
+          type: string
+          enum: [High, Medium, Low, None]
+        rating:
+          type: string
+          enum: [Cheap, Fair, Expensive, Very Expensive]
+        reason: { type: string }
+
+    ValueDecision:
+      type: object
+      required: [verdict, conviction, rationale, summary]
+      properties:
+        verdict:
+          type: string
+          enum: [LONG-TERM BUY, BUY ONLY ON PULLBACK, WATCHLIST, HOLD, TRIM, AVOID]
+        conviction: { type: number }
+        rationale:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+
+    ValueStockVsOptions:
+      type: object
+      required: [verdict, stockCase, optionsCase, summary]
+      properties:
+        verdict:
+          type: string
+          enum: [Long-term stock, Options income, Both, Watchlist only, Avoid]
+        ivRank: { type: ["number", "null"] }
+        stockCase: { type: string }
+        optionsCase: { type: string }
+        summary: { type: string }
+
+    ValueKeyMetric:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string }
+        value: { type: string }
+
+    ValueRiskFlag:
+      type: object
+      required: [severity, text]
+      properties:
+        severity:
+          type: string
+          enum: [low, medium, high]
+        text: { type: string }
+
+    ValueReportSection:
+      type: object
+      required: [id, title, body]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        body: { type: string }
+        bullets:
+          type: array
+          items: { type: string }
+
+    ValueFundamentalsFallback:
+      type: object
+      required: [attemptedProvider, reason, message]
+      properties:
+        attemptedProvider: { type: string }
+        reason:
+          type: string
+          enum: [rate_limit, error, no_data]
+        message: { type: string }
+
+    ValueResearchReport:
+      type: object
+      required:
+        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, moat, financialStrength, valuation, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        kind:
+          type: string
+          enum: [stock, etf]
+        asOf: { type: string }
+        fetchedAt: { type: string }
+        dataSource: { type: string }
+        simulated: { type: boolean }
+        fallback: { $ref: "#/components/schemas/ValueFundamentalsFallback" }
+        price: { type: number }
+        businessQuality: { $ref: "#/components/schemas/ValueBusinessQuality" }
+        moat: { $ref: "#/components/schemas/ValueMoatAnalysis" }
+        financialStrength: { $ref: "#/components/schemas/ValueFinancialStrength" }
+        valuation: { $ref: "#/components/schemas/ValueValuation" }
+        decision: { $ref: "#/components/schemas/ValueDecision" }
+        stockVsOptions: { $ref: "#/components/schemas/ValueStockVsOptions" }
+        keyMetrics:
+          type: array
+          items: { $ref: "#/components/schemas/ValueKeyMetric" }
+        risks:
+          type: array
+          items: { $ref: "#/components/schemas/ValueRiskFlag" }
+        sections:
+          type: array
+          items: { $ref: "#/components/schemas/ValueReportSection" }
+        disclaimer: { type: string }
+
+    ValueResearchInput:
+      type: object
+      required: [symbol]
+      properties:
+        symbol: { type: string }
+        persist: { type: boolean }
+        forceRefresh: { type: boolean }
+        level:
+          type: string
+          enum: [beginner, advanced]
+
+    ValueResearchResult:
+      type: object
+      required: [report, commentary, commentarySource]
+      properties:
+        report: { $ref: "#/components/schemas/ValueResearchReport" }
+        commentary: { type: string }
+        commentarySource:
+          type: string
+          enum: [llm, template]
+        historyId: { type: integer }
+
+    ValueSummary:
+      type: object
+      required: [symbol, name, kind, price, businessQualityScore, businessQualityRating, moatRating, financialStrength, valuationRating, decision, stockInvestmentScore, optionsSuitabilityScore, useCase, suggestedAction, dataSource, fetchedAt, simulated]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        kind:
+          type: string
+          enum: [stock, etf]
+        price: { type: number }
+        businessQualityScore: { type: number }
+        businessQualityRating: { type: string }
+        moatRating: { type: string }
+        financialStrength: { type: string }
+        valuationRating: { type: string }
+        marginOfSafety: { type: ["number", "null"] }
+        decision: { type: string }
+        stockInvestmentScore: { type: number }
+        optionsSuitabilityScore: { type: number }
+        useCase:
+          type: string
+          enum: [Stock, Options, Both, Watchlist, Avoid]
+        suggestedAction: { type: string }
+        dataSource: { type: string }
+        fetchedAt: { type: string }
+        simulated: { type: boolean }
+
+    ValueHistoryRow:
+      type: object
+      required: [id, symbol, analysisDate, businessQualityScore, businessQualityRating, moatRating, financialStrength, valuationRating, marginOfSafety, valueInvestorDecision, stockVsOptionsDecision, dataSource, createdAt]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        analysisDate: { type: string }
+        businessQualityScore: { type: number }
+        businessQualityRating: { type: string }
+        moatRating: { type: string }
+        financialStrength: { type: string }
+        valuationRating: { type: string }
+        marginOfSafety: { type: string }
+        valueInvestorDecision: { type: string }
+        stockVsOptionsDecision: { type: string }
+        dataSource: { type: string }
+        createdAt: { type: string }
+
+    ValueWatchlistItem:
+      type: object
+      required: [id, symbol, category, marginOfSafetyTarget, reason, currentDecision, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        category: { type: string }
+        fairValueEstimate: { type: ["number", "null"] }
+        desiredBuyPrice: { type: ["number", "null"] }
+        marginOfSafetyTarget: { type: number }
+        reason: { type: string }
+        currentDecision: { type: string }
+        lastResearchedAt: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ValueWatchlistCreate:
+      type: object
+      required: [symbol]
+      properties:
+        symbol: { type: string }
+        category: { type: string }
+        fairValueEstimate: { type: ["number", "null"] }
+        desiredBuyPrice: { type: ["number", "null"] }
+        marginOfSafetyTarget: { type: number }
+        reason: { type: string }
+        currentDecision: { type: string }
+
+    ValueWatchlistUpdate:
+      type: object
+      properties:
+        category: { type: string }
+        fairValueEstimate: { type: ["number", "null"] }
+        desiredBuyPrice: { type: ["number", "null"] }
+        marginOfSafetyTarget: { type: number }
+        reason: { type: string }
+        currentDecision: { type: string }
+
+    ValueLesson:
+      type: object
+      required: [id, title, level, summary, body, takeaway]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        summary: { type: string }
+        body:
+          type: array
+          items: { type: string }
+        takeaway: { type: string }
+
+    ValueLessonsResponse:
+      type: object
+      required: [lessons, disclaimer]
+      properties:
+        lessons:
+          type: array
+          items: { $ref: "#/components/schemas/ValueLesson" }
+        disclaimer: { type: string }
+
+    ValueQuizInput:
+      type: object
+      properties:
+        topic:
+          type: string
+          enum: [moats, valuation, philosophy, mixed]
+        count: { type: integer }
+
+    ValueQuizQuestion:
+      type: object
+      required: [id, prompt, options]
+      properties:
+        id: { type: string }
+        prompt: { type: string }
+        options:
+          type: array
+          items: { type: string }
+
+    GeneratedValueQuiz:
+      type: object
+      required: [quizId, topic, questions, disclaimer]
+      properties:
+        quizId: { type: string }
+        topic: { type: string }
+        questions:
+          type: array
+          items: { $ref: "#/components/schemas/ValueQuizQuestion" }
+        disclaimer: { type: string }
+
+    GradeValueQuizInput:
+      type: object
+      required: [quizId, answers]
+      properties:
+        quizId: { type: string }
+        answers:
+          type: array
+          items: { type: integer }
+
+    ValueQuizGradeItem:
+      type: object
+      required: [id, prompt, yourAnswer, correctAnswer, correct, explanation]
+      properties:
+        id: { type: string }
+        prompt: { type: string }
+        yourAnswer: { type: integer }
+        correctAnswer: { type: integer }
+        correct: { type: boolean }
+        explanation: { type: string }
+
+    ValueQuizGradeResult:
+      type: object
+      required: [topic, score, total, percent, message, results, disclaimer]
+      properties:
+        topic: { type: string }
+        score: { type: integer }
+        total: { type: integer }
+        percent: { type: number }
+        message: { type: string }
+        results:
+          type: array
+          items: { $ref: "#/components/schemas/ValueQuizGradeItem" }
+        disclaimer: { type: string }
+
+    DeleteResult:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean }
+
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    # ─── Scanner ─────────────────────────────────────────────────────────────
+    ScannerResult:
+      type: object
+      required: [id, symbol, strategy, maxProfit, maxLoss, pop, ev, theta, ravishScore, ivRank, createdAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+          enum: [iron_condor, iron_fly, calendar_spread, earnings]
+        expiration:
+          type: ["string", "null"]
+        daysToExpiry:
+          type: ["integer", "null"]
+        shortPutStrike:
+          type: ["number", "null"]
+        shortCallStrike:
+          type: ["number", "null"]
+        longPutStrike:
+          type: ["number", "null"]
+        longCallStrike:
+          type: ["number", "null"]
+        credit:
+          type: ["number", "null"]
+        maxProfit:
+          type: number
+        maxLoss:
+          type: number
+        pop:
+          type: number
+          description: Probability of profit (0-100)
+        ev:
+          type: number
+          description: Expected value
+        theta:
+          type: number
+          description: Daily theta income
+        vega:
+          type: ["number", "null"]
+        ivRank:
+          type: number
+        ravishScore:
+          type: number
+        ravishTier:
+          type: string
+          enum: [elite, high_conviction, good, ignore]
+        returnOnCapital:
+          type: ["number", "null"]
+        eventRiskLevel:
+          type: string
+          enum: [none, low, medium, high]
+          description: Event Risk Filter level for this candidate's window
+        eventRiskPenalty:
+          type: number
+          description: Ravish points subtracted from the score due to event risk
+        eventRiskEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventRiskEvent"
+        status:
+          type: string
+          enum: [active, executed, ignored]
+        createdAt:
+          type: string
+
+    EventRiskEvent:
+      type: object
+      required: [type, label, date, daysAway, impact, scope]
+      properties:
+        type:
+          type: string
+          enum: [earnings, fomc, cpi, jobs, economic, news, dividend]
+        label:
+          type: string
+        date:
+          type: string
+          description: Event date (YYYY-MM-DD)
+        daysAway:
+          type: integer
+        impact:
+          type: string
+          enum: [low, medium, high]
+        scope:
+          type: string
+          enum: [market, symbol]
+        symbol:
+          type: ["string", "null"]
+
+    ScannerRunInput:
+      type: object
+      properties:
+        symbols:
+          type: array
+          items:
+            type: string
+        strategies:
+          type: array
+          items:
+            type: string
+
+    ScannerRunResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        resultsCount:
+          type: ["integer", "null"]
+
+    TopOpportunities:
+      type: object
+      required: [ironCondors, ironFlys, calendarSpreads, earnings, lastScanned]
+      properties:
+        ironCondors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScannerResult"
+        ironFlys:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScannerResult"
+        calendarSpreads:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScannerResult"
+        earnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScannerResult"
+        lastScanned:
+          type: ["string", "null"]
+
+    # ─── Options ──────────────────────────────────────────────────────────────
+    OptionContract:
+      type: object
+      required: [strike, type, expiration, bid, ask, delta, theta, vega, gamma, iv, openInterest]
+      properties:
+        strike:
+          type: number
+        type:
+          type: string
+          enum: [call, put]
+        expiration:
+          type: string
+        bid:
+          type: number
+        ask:
+          type: number
+        mid:
+          type: number
+        delta:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+        gamma:
+          type: number
+        iv:
+          type: number
+        openInterest:
+          type: integer
+        volume:
+          type: ["integer", "null"]
+
+    OptionChain:
+      type: object
+      required: [symbol, underlyingPrice, ivRank, expiration, calls, puts]
+      properties:
+        symbol:
+          type: string
+        underlyingPrice:
+          type: number
+        ivRank:
+          type: number
+        iv30:
+          type: ["number", "null"]
+        earningsDate:
+          type: ["string", "null"]
+        expiration:
+          type: string
+        calls:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionContract"
+        puts:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionContract"
+
+    UniverseSymbol:
+      type: object
+      required: [symbol, price, change, changePercent, ivRank, iv30, earningsDate]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        change:
+          type: number
+        changePercent:
+          type: number
+        ivRank:
+          type: number
+        iv30:
+          type: number
+        earningsDate:
+          type: ["string", "null"]
+        volume:
+          type: ["integer", "null"]
+
+    ExpirationDate:
+      type: object
+      required: [date, daysToExpiry]
+      properties:
+        date:
+          type: string
+        daysToExpiry:
+          type: integer
+
+    # ─── Portfolio ─────────────────────────────────────────────────────────────
+    Position:
+      type: object
+      required: [id, symbol, strategy, legs, openDate, credit, currentValue, unrealizedPnl, delta, theta, vega, gamma, status]
+      properties:
+        id:
+          type: string
+        symbol:
+          type: string
+        strategy:
+          type: string
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/PositionLeg"
+        openDate:
+          type: string
+        expiration:
+          type: ["string", "null"]
+        credit:
+          type: number
+        currentValue:
+          type: number
+        unrealizedPnl:
+          type: number
+        unrealizedPnlPercent:
+          type: number
+        delta:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+        gamma:
+          type: number
+        status:
+          type: string
+          enum: [open, closed, expired]
+
+    PositionLeg:
+      type: object
+      required: [symbol, side, quantity, strike, type, expiration]
+      properties:
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [long, short]
+        quantity:
+          type: integer
+        strike:
+          type: number
+        type:
+          type: string
+          enum: [call, put]
+        expiration:
+          type: string
+        openPrice:
+          type: ["number", "null"]
+        currentPrice:
+          type: ["number", "null"]
+
+    PortfolioGreeks:
+      type: object
+      required: [totalDelta, totalTheta, totalVega, totalGamma, deltaStatus, dailyThetaIncome, totalPositions]
+      properties:
+        totalDelta:
+          type: number
+        totalTheta:
+          type: number
+        totalVega:
+          type: number
+        totalGamma:
+          type: number
+        deltaStatus:
+          type: string
+          enum: [neutral, bullish, bearish]
+        deltaNeutralScore:
+          type: number
+          description: 0-100 score for how delta neutral the portfolio is
+        directionalExposure:
+          type: number
+          description: Net directional exposure in delta-dollars (positive = bullish)
+        exposureLabel:
+          type: string
+          description: Human-readable bullish/bearish/neutral exposure summary
+        dailyThetaIncome:
+          type: number
+        monthlyThetaProjection:
+          type: number
+        totalPositions:
+          type: integer
+        recommendations:
+          type: array
+          items:
+            type: string
+
+    PortfolioSummary:
+      type: object
+      required: [accountValue, cashBalance, buyingPower, totalPnl, dayPnl, openPositions]
+      properties:
+        accountValue:
+          type: number
+        cashBalance:
+          type: number
+        buyingPower:
+          type: number
+        totalPnl:
+          type: number
+        totalPnlPercent:
+          type: number
+        dayPnl:
+          type: number
+        dayPnlPercent:
+          type: number
+        openPositions:
+          type: integer
+        maxRiskUsed:
+          type: number
+          description: Percentage of account at risk
+
+    RiskStatus:
+      type: object
+      required: [accountValue, maxRiskPerTradePct, maxPortfolioRiskPct, portfolioRiskDollars, portfolioRiskUsedPct, withinLimits, openTrades, stopLossMultiplier, profitTargets, checks, violations, perTrade]
+      properties:
+        accountValue:
+          type: number
+        maxRiskPerTradePct:
+          type: number
+        maxPortfolioRiskPct:
+          type: number
+        portfolioRiskDollars:
+          type: number
+        portfolioRiskUsedPct:
+          type: number
+        withinLimits:
+          type: boolean
+        openTrades:
+          type: integer
+        stopLossMultiplier:
+          type: number
+        profitTargets:
+          type: array
+          items:
+            type: number
+        checks:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskCheck"
+        violations:
+          type: array
+          items:
+            type: string
+        perTrade:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskPerTrade"
+
+    RiskCheck:
+      type: object
+      required: [label, passed, detail]
+      properties:
+        label:
+          type: string
+        passed:
+          type: boolean
+        detail:
+          type: string
+
+    RiskPerTrade:
+      type: object
+      required: [id, symbol, strategy, riskDollars, riskPct, withinLimit]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+        riskDollars:
+          type: number
+        riskPct:
+          type: number
+        withinLimit:
+          type: boolean
+
+    # ─── Trades ────────────────────────────────────────────────────────────────
+    Trade:
+      type: object
+      required: [id, symbol, strategy, status, legs, openDate, credit, maxProfit, maxLoss, pop, ev, theta, ravishScore]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+          enum: [iron_condor, iron_fly, calendar_spread, earnings]
+        status:
+          type: string
+          enum: [pending, open, closed, expired]
+        executionMode:
+          type: string
+          enum: [manual, semi_auto, full_auto]
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeLeg"
+        openDate:
+          type: string
+        closeDate:
+          type: ["string", "null"]
+        expiration:
+          type: ["string", "null"]
+        credit:
+          type: number
+        maxProfit:
+          type: number
+        maxLoss:
+          type: number
+        currentPnl:
+          type: ["number", "null"]
+        currentPnlPercent:
+          type: ["number", "null"]
+        pop:
+          type: number
+        ev:
+          type: number
+        theta:
+          type: number
+        ravishScore:
+          type: number
+        exitReason:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    TradeLeg:
+      type: object
+      required: [side, quantity, strike, optionType, expiration, openPrice]
+      properties:
+        side:
+          type: string
+          enum: [buy, sell]
+        quantity:
+          type: integer
+        strike:
+          type: number
+        optionType:
+          type: string
+          enum: [call, put]
+        expiration:
+          type: string
+        openPrice:
+          type: number
+        closePrice:
+          type: ["number", "null"]
+
+    TradeInput:
+      type: object
+      required: [symbol, strategy, legs, executionMode]
+      properties:
+        symbol:
+          type: string
+        strategy:
+          type: string
+          enum: [iron_condor, iron_fly, calendar_spread, earnings]
+        executionMode:
+          type: string
+          enum: [manual, semi_auto, full_auto]
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeLeg"
+        notes:
+          type: string
+        scannerResultId:
+          type: ["integer", "null"]
+
+    TradeMonitor:
+      type: object
+      required: [tradeId, currentPnl, currentPnlPercent, profitTarget50, profitTarget75, profitTarget90, stopLoss, daysToExpiry, delta, theta]
+      properties:
+        tradeId:
+          type: integer
+        currentPnl:
+          type: number
+        currentPnlPercent:
+          type: number
+        profitTarget50:
+          type: number
+        profitTarget75:
+          type: number
+        profitTarget90:
+          type: number
+        stopLoss:
+          type: number
+        daysToExpiry:
+          type: integer
+        delta:
+          type: number
+        theta:
+          type: number
+        alerts:
+          type: array
+          items:
+            type: string
+
+    # ─── Trade Adjustment Engine (Task #20) ──────────────────────────────────────
+    TradeAdjustmentSignal:
+      type: object
+      required: [key, label, triggered, value, threshold, detail]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        triggered:
+          type: boolean
+        value:
+          type: number
+        threshold:
+          type: number
+        detail:
+          type: string
+
+    TradeAdjustmentGreeks:
+      type: object
+      required: [delta, gamma, theta, vega]
+      properties:
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+
+    TradeAdjustment:
+      type: object
+      required:
+        [tradeId, symbol, symbolName, strategy, strategyLabel, status, action, actionLabel, severity, rationale, signals, triggeredSignals, autoActionable, underlyingPrice, daysToExpiry, currentPnl, currentPnlPercent, maxLoss, maxProfit, entryPop, currentPop, threatenedSide, greeks, assignmentRisk, isCredit, disclaimer]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        symbolName:
+          type: string
+        strategy:
+          type: string
+        strategyLabel:
+          type: string
+        status:
+          type: string
+        action:
+          type: string
+          enum: [hold, close_for_profit, close_for_loss, roll_threatened, roll_untested, convert, reduce_risk, do_nothing]
+        actionLabel:
+          type: string
+        severity:
+          type: string
+          enum: [none, info, warning, critical]
+        rationale:
+          type: string
+        signals:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeAdjustmentSignal"
+        triggeredSignals:
+          type: array
+          items:
+            type: string
+        autoActionable:
+          type: boolean
+        underlyingPrice:
+          type: number
+        daysToExpiry:
+          type: integer
+        currentPnl:
+          type: number
+        currentPnlPercent:
+          type: number
+        maxLoss:
+          type: number
+        maxProfit:
+          type: number
+        entryPop:
+          type: number
+        currentPop:
+          type: number
+        nearestShortStrike:
+          type: ["number", "null"]
+        distanceToShortPct:
+          type: ["number", "null"]
+        threatenedSide:
+          type: ["string", "null"]
+          enum: [call, put, null]
+        greeks:
+          $ref: "#/components/schemas/TradeAdjustmentGreeks"
+        assignmentRisk:
+          type: string
+        isCredit:
+          type: boolean
+        disclaimer:
+          type: string
+
+    # ─── Execution (Phase 5) ─────────────────────────────────────────────────────
+    ExecutionPreviewInput:
+      type: object
+      required: [quantity]
+      properties:
+        scannerResultId:
+          type: ["integer", "null"]
+        symbol:
+          type: ["string", "null"]
+        strategy:
+          type: ["string", "null"]
+          enum: [iron_condor, iron_fly, calendar_spread, earnings, null]
+        quantity:
+          type: integer
+          default: 1
+
+    ExecutionSubmitInput:
+      type: object
+      required: [quantity, confirm]
+      properties:
+        scannerResultId:
+          type: ["integer", "null"]
+        symbol:
+          type: ["string", "null"]
+        strategy:
+          type: ["string", "null"]
+          enum: [iron_condor, iron_fly, calendar_spread, earnings, null]
+        quantity:
+          type: integer
+          default: 1
+        confirm:
+          type: boolean
+
+    ExecutionOrderLeg:
+      type: object
+      required: [occSymbol, side, optionType, strike, expiration, ratioQty, positionIntent, price]
+      properties:
+        occSymbol:
+          type: string
+        side:
+          type: string
+          enum: [buy, sell]
+        optionType:
+          type: string
+          enum: [call, put]
+        strike:
+          type: number
+        expiration:
+          type: string
+        ratioQty:
+          type: integer
+        positionIntent:
+          type: string
+          enum: [buy_to_open, sell_to_open]
+        price:
+          type: number
+
+    PreTradeCheck:
+      type: object
+      required: [label, passed, detail]
+      properties:
+        label:
+          type: string
+        passed:
+          type: boolean
+        detail:
+          type: string
+
+    PreTradeValidation:
+      type: object
+      required: [valid, checks, violations, warnings, riskDollars, riskPct, portfolioRiskBeforePct, portfolioRiskAfterPct]
+      properties:
+        valid:
+          type: boolean
+        checks:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreTradeCheck"
+        violations:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        riskDollars:
+          type: number
+        riskPct:
+          type: number
+        portfolioRiskBeforePct:
+          type: number
+        portfolioRiskAfterPct:
+          type: number
+
+    ExecutionTicket:
+      type: object
+      required:
+        [symbol, strategy, expiration, daysToExpiry, quantity, legs, netCredit, isCredit, maxProfit, maxLoss, pop, ev, ravishScore, ravishTier, returnOnCapital, buyingPowerRequired, accountValue, riskPct, portfolioRiskBeforePct, portfolioRiskAfterPct, executionMode, canSubmit, validation, warnings]
+      properties:
+        symbol:
+          type: string
+        strategy:
+          type: string
+          enum: [iron_condor, iron_fly, calendar_spread, earnings]
+        expiration:
+          type: string
+        daysToExpiry:
+          type: integer
+        quantity:
+          type: integer
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExecutionOrderLeg"
+        netCredit:
+          type: number
+        isCredit:
+          type: boolean
+        maxProfit:
+          type: number
+        maxLoss:
+          type: number
+        pop:
+          type: number
+        ev:
+          type: number
+        ravishScore:
+          type: number
+        ravishTier:
+          type: string
+        returnOnCapital:
+          type: number
+        buyingPowerRequired:
+          type: number
+        accountValue:
+          type: number
+        riskPct:
+          type: number
+        portfolioRiskBeforePct:
+          type: number
+        portfolioRiskAfterPct:
+          type: number
+        executionMode:
+          type: string
+          enum: [manual, semi_auto, full_auto]
+        canSubmit:
+          type: boolean
+        validation:
+          $ref: "#/components/schemas/PreTradeValidation"
+        warnings:
+          type: array
+          items:
+            type: string
+        adjustment:
+          oneOf:
+            - $ref: "#/components/schemas/AdjustmentTicketContext"
+            - type: "null"
+
+    AdjustmentSourceLeg:
+      type: object
+      required: [side, optionType, strike, expiration, quantity]
+      properties:
+        side:
+          type: string
+          enum: [buy, sell]
+        optionType:
+          type: string
+          enum: [call, put]
+        strike:
+          type: number
+        expiration:
+          type: string
+        quantity:
+          type: integer
+
+    AdjustmentSourcePosition:
+      type: object
+      required:
+        [tradeId, symbol, strategy, strategyLabel, expiration, daysToExpiry, legs, credit, maxProfit, maxLoss, pop, costToClose, currentPnl, isCredit]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+        strategyLabel:
+          type: string
+        expiration:
+          type: ["string", "null"]
+        daysToExpiry:
+          type: integer
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdjustmentSourceLeg"
+        credit:
+          type: number
+        maxProfit:
+          type: number
+        maxLoss:
+          type: number
+        pop:
+          type: number
+        costToClose:
+          type: number
+        currentPnl:
+          type: number
+        isCredit:
+          type: boolean
+
+    AdjustmentTicketContext:
+      type: object
+      required: [sourceTradeId, action, actionLabel, kind, fromStrategy, toStrategy, closeDescription, rationale, source, netCashflow]
+      properties:
+        sourceTradeId:
+          type: integer
+        action:
+          type: string
+          enum: [roll_threatened, roll_untested, convert]
+        actionLabel:
+          type: string
+        kind:
+          type: string
+          enum: [roll, convert]
+        fromStrategy:
+          type: string
+        toStrategy:
+          type: string
+        closeDescription:
+          type: string
+        rationale:
+          type: string
+        source:
+          $ref: "#/components/schemas/AdjustmentSourcePosition"
+        netCashflow:
+          type: number
+
+    AdjustmentPreviewInput:
+      type: object
+      required: [tradeId]
+      properties:
+        tradeId:
+          type: integer
+        quantity:
+          type: ["integer", "null"]
+
+    AdjustmentSubmitInput:
+      type: object
+      required: [tradeId, confirm]
+      properties:
+        tradeId:
+          type: integer
+        quantity:
+          type: ["integer", "null"]
+        confirm:
+          type: boolean
+
+    AdjustmentSubmitResult:
+      type: object
+      required: [orderId, status, broker, tradeId, journalId, message, ticket, closedTradeId, closedReason]
+      properties:
+        orderId:
+          type: string
+        status:
+          type: string
+        broker:
+          type: string
+          enum: [alpaca, mock]
+        tradeId:
+          type: integer
+        journalId:
+          type: integer
+        message:
+          type: string
+        ticket:
+          $ref: "#/components/schemas/ExecutionTicket"
+        closedTradeId:
+          type: integer
+        closedReason:
+          type: string
+
+    ExecutionSubmitResult:
+      type: object
+      required: [orderId, status, broker, tradeId, journalId, message, ticket]
+      properties:
+        orderId:
+          type: string
+        status:
+          type: string
+        broker:
+          type: string
+          enum: [alpaca, mock]
+        tradeId:
+          type: integer
+        journalId:
+          type: integer
+        message:
+          type: string
+        ticket:
+          $ref: "#/components/schemas/ExecutionTicket"
+
+    # ─── Full-Auto execution (Phase 6) ───────────────────────────────────────────
+    AutoExecutionStatus:
+      type: object
+      required: [executionMode, autoExecuteEnabled, armed, guardrails, today, blockReason]
+      properties:
+        executionMode:
+          type: string
+          enum: [manual, semi_auto, full_auto]
+        autoExecuteEnabled:
+          type: boolean
+        armed:
+          type: boolean
+        guardrails:
+          type: object
+          required: [maxTradesPerDay, maxConcurrentPositions, minRavishScore, maxDailyLossPct, quantityPerTrade]
+          properties:
+            maxTradesPerDay:
+              type: integer
+            maxConcurrentPositions:
+              type: integer
+            minRavishScore:
+              type: number
+            maxDailyLossPct:
+              type: number
+            quantityPerTrade:
+              type: integer
+        today:
+          type: object
+          required: [tradesToday, concurrentPositions, dailyRealizedPnl, accountValue, remainingCapacity, dailyLossLimit]
+          properties:
+            tradesToday:
+              type: integer
+            concurrentPositions:
+              type: integer
+            dailyRealizedPnl:
+              type: number
+            accountValue:
+              type: number
+            remainingCapacity:
+              type: integer
+            dailyLossLimit:
+              type: number
+        blockReason:
+          type: ["string", "null"]
+
+    AutoDecision:
+      type: object
+      required: [symbol, strategy, decision, reason, ravishScore, tradeId, orderId]
+      properties:
+        symbol:
+          type: ["string", "null"]
+        strategy:
+          type: ["string", "null"]
+        decision:
+          type: string
+          enum: [executed, skipped, rejected, blocked]
+        reason:
+          type: string
+        ravishScore:
+          type: number
+        tradeId:
+          type: ["integer", "null"]
+        orderId:
+          type: ["string", "null"]
+
+    AutoCycleResult:
+      type: object
+      required: [runId, ranAt, blocked, blockReason, scanned, executed, skipped, rejected, decisions]
+      properties:
+        runId:
+          type: string
+        ranAt:
+          type: string
+        blocked:
+          type: boolean
+        blockReason:
+          type: ["string", "null"]
+        scanned:
+          type: integer
+        executed:
+          type: integer
+        skipped:
+          type: integer
+        rejected:
+          type: integer
+        decisions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AutoDecision"
+
+    # ─── Auto-Adjustment (Task #20) ──────────────────────────────────────────────
+    AutoAdjustDecision:
+      type: object
+      required: [symbol, strategy, decision, action, reason, tradeId, realizedPnl]
+      properties:
+        symbol:
+          type: ["string", "null"]
+        strategy:
+          type: ["string", "null"]
+        decision:
+          type: string
+          enum: [executed, skipped, blocked]
+        action:
+          type: string
+        reason:
+          type: string
+        tradeId:
+          type: ["integer", "null"]
+        realizedPnl:
+          type: ["number", "null"]
+
+    AutoAdjustCycleResult:
+      type: object
+      required: [runId, ranAt, blocked, blockReason, scanned, executed, skipped, decisions]
+      properties:
+        runId:
+          type: string
+        ranAt:
+          type: string
+        blocked:
+          type: boolean
+        blockReason:
+          type: ["string", "null"]
+        scanned:
+          type: integer
+        executed:
+          type: integer
+        skipped:
+          type: integer
+        decisions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AutoAdjustDecision"
+
+    AutoExecutionLogEntry:
+      type: object
+      required: [id, runId, kind, decision, reason, symbol, strategy, ravishScore, tradeId, alpacaOrderId, createdAt]
+      properties:
+        id:
+          type: integer
+        runId:
+          type: string
+        kind:
+          type: string
+          enum: [open, adjust]
+        decision:
+          type: string
+          enum: [executed, skipped, rejected, blocked]
+        reason:
+          type: string
+        symbol:
+          type: ["string", "null"]
+        strategy:
+          type: ["string", "null"]
+        ravishScore:
+          type: number
+        tradeId:
+          type: ["integer", "null"]
+        alpacaOrderId:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    # ─── Backtest ──────────────────────────────────────────────────────────────
+    BacktestInput:
+      type: object
+      required: [symbol, strategy, period]
+      properties:
+        symbol:
+          type: string
+        strategy:
+          type: string
+          enum: [iron_condor, iron_fly, calendar_spread]
+        period:
+          type: string
+          enum: [1y, 2y, 5y]
+        shortDelta:
+          type: number
+          default: 0.20
+        wingWidth:
+          type: ["integer", "null"]
+        daysToExpiry:
+          type: integer
+          default: 45
+        profitTarget:
+          type: number
+          default: 0.50
+        stopLoss:
+          type: number
+          default: 2.0
+
+    BacktestResult:
+      type: object
+      required: [id, symbol, strategy, period, winRate, avgWin, avgLoss, expectancy, maxDrawdown, sharpeRatio, sortinoRatio, totalTrades, totalReturn, equityCurve, createdAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+        period:
+          type: string
+        winRate:
+          type: number
+        avgWin:
+          type: number
+        avgLoss:
+          type: number
+        expectancy:
+          type: number
+        maxDrawdown:
+          type: number
+        sharpeRatio:
+          type: number
+        sortinoRatio:
+          type: number
+        totalTrades:
+          type: integer
+        totalReturn:
+          type: number
+        evPerTrade:
+          type: number
+        evMonthly:
+          type: number
+        evAnnualized:
+          type: number
+        equityCurve:
+          type: array
+          items:
+            $ref: "#/components/schemas/EquityPoint"
+        createdAt:
+          type: string
+
+    EquityPoint:
+      type: object
+      required: [date, value]
+      properties:
+        date:
+          type: string
+        value:
+          type: number
+        drawdown:
+          type: ["number", "null"]
+
+    # ─── Ravish Score ──────────────────────────────────────────────────────────
+    RavishScore:
+      type: object
+      required: [symbol, strategy, totalScore, tier, popScore, evScore, thetaScore, winRateScore, liquidityScore, ivRankScore, recommendation]
+      properties:
+        symbol:
+          type: string
+        strategy:
+          type: string
+        totalScore:
+          type: number
+        tier:
+          type: string
+          enum: [elite, high_conviction, good, ignore]
+        popScore:
+          type: number
+          description: POP component (30% weight)
+        evScore:
+          type: number
+          description: EV component (25% weight)
+        thetaScore:
+          type: number
+          description: Theta efficiency component (15% weight)
+        winRateScore:
+          type: number
+          description: Historical win rate component (15% weight)
+        liquidityScore:
+          type: number
+          description: Liquidity component (10% weight)
+        ivRankScore:
+          type: number
+          description: IV Rank component (5% weight)
+        pop:
+          type: number
+        ev:
+          type: number
+        theta:
+          type: number
+        ivRank:
+          type: number
+        recommendation:
+          type: string
+
+    # ─── Journal ───────────────────────────────────────────────────────────────
+    JournalEntry:
+      type: object
+      required: [id, title, content, mood, createdAt]
+      properties:
+        id:
+          type: integer
+        tradeId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        content:
+          type: string
+        mood:
+          type: string
+          enum: [confident, neutral, cautious, frustrated, excited]
+        lessonLearned:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        strategy:
+          type: ["string", "null"]
+        entryCredit:
+          type: ["number", "null"]
+        maxProfit:
+          type: ["number", "null"]
+        maxLoss:
+          type: ["number", "null"]
+        ev:
+          type: ["number", "null"]
+        pop:
+          type: ["number", "null"]
+        ravishScore:
+          type: ["number", "null"]
+        exitReason:
+          type: ["string", "null"]
+        realizedPnl:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    JournalEntryInput:
+      type: object
+      required: [title, content, mood]
+      properties:
+        tradeId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        content:
+          type: string
+        mood:
+          type: string
+          enum: [confident, neutral, cautious, frustrated, excited]
+        lessonLearned:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        strategy:
+          type: ["string", "null"]
+        entryCredit:
+          type: ["number", "null"]
+        maxProfit:
+          type: ["number", "null"]
+        maxLoss:
+          type: ["number", "null"]
+        ev:
+          type: ["number", "null"]
+        pop:
+          type: ["number", "null"]
+        ravishScore:
+          type: ["number", "null"]
+        exitReason:
+          type: ["string", "null"]
+        realizedPnl:
+          type: ["number", "null"]
+
+    JournalEntryUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        mood:
+          type: string
+          enum: [confident, neutral, cautious, frustrated, excited]
+        lessonLearned:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    # ─── AI ────────────────────────────────────────────────────────────────────
+    AiChatInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        context:
+          type: string
+          description: Optional context like current page or symbol
+        mode:
+          type: string
+          enum: [explain_trade, teach_greeks, risk_coach, strategy_coach, quiz, value_research]
+          description: >-
+            Optional explicit coach mode. When set, the assistant routes
+            deterministically into that mode instead of relying on keyword
+            auto-detect. Omit for auto-detect.
+        level:
+          type: string
+          enum: [beginner, advanced]
+          description: >-
+            Optional explanation depth for narrated answers. Beginner defines
+            jargon and keeps it simple; advanced is concise and precise.
+
+    AiAnswer:
+      type: object
+      required: [id, message, createdAt]
+      properties:
+        id:
+          type: integer
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+          description: Structured data if the AI returned actionable results
+        createdAt:
+          type: string
+
+    AiMessage:
+      type: object
+      required: [id, role, message, createdAt]
+      properties:
+        id:
+          type: integer
+        role:
+          type: string
+          enum: [user, assistant]
+        message:
+          type: string
+        createdAt:
+          type: string
+
+    # ─── AI Trading Coach ────────────────────────────────────────────────────────
+    ExplainTradeInput:
+      type: object
+      properties:
+        scannerResultId:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+          enum: [iron_condor, iron_fly, calendar_spread, earnings]
+
+    CoachLeg:
+      type: object
+      required: [side, optionType, strike, expiration, quantity, openPrice]
+      properties:
+        side:
+          type: string
+          enum: [buy, sell]
+        optionType:
+          type: string
+          enum: [call, put]
+        strike:
+          type: number
+        expiration:
+          type: string
+        quantity:
+          type: integer
+        openPrice:
+          type: number
+
+    CoachGreeks:
+      type: object
+      required: [delta, gamma, theta, vega]
+      properties:
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+
+    TradeExplanation:
+      type: object
+      required:
+        [symbol, symbolName, strategy, strategyLabel, underlyingPrice, expiration, daysToExpiry, quantity, legs, credit, isCredit, maxProfit, maxLoss, pop, ev, returnOnCapital, profitZone, greeks, greeksPlain, ravishScore, ravishTier, ravishBreakdown, ivRank, assignmentRisk, keyPoints, rejected, disclaimer]
+      properties:
+        symbol: { type: string }
+        symbolName: { type: string }
+        strategy: { type: string }
+        strategyLabel: { type: string }
+        underlyingPrice: { type: number }
+        expiration: { type: string }
+        daysToExpiry: { type: integer }
+        quantity: { type: integer }
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/CoachLeg"
+        credit: { type: number }
+        isCredit: { type: boolean }
+        maxProfit: { type: number }
+        maxLoss: { type: number }
+        pop: { type: number }
+        ev: { type: number }
+        returnOnCapital: { type: number }
+        breakevenLow:
+          type: number
+          nullable: true
+        breakevenHigh:
+          type: number
+          nullable: true
+        profitZone: { type: string }
+        greeks:
+          $ref: "#/components/schemas/CoachGreeks"
+        greeksPlain:
+          type: object
+          required: [delta, theta, vega, gamma]
+          properties:
+            delta: { type: string }
+            theta: { type: string }
+            vega: { type: string }
+            gamma: { type: string }
+        ravishScore: { type: number }
+        ravishTier: { type: string }
+        ravishBreakdown:
+          type: object
+          required: [popScore, evScore, thetaScore, winRateScore, liquidityScore, ivRankScore]
+          properties:
+            popScore: { type: number }
+            evScore: { type: number }
+            thetaScore: { type: number }
+            winRateScore: { type: number }
+            liquidityScore: { type: number }
+            ivRankScore: { type: number }
+        ivRank: { type: number }
+        assignmentRisk: { type: string }
+        keyPoints:
+          type: array
+          items: { type: string }
+        rejected: { type: boolean }
+        rejectReason:
+          type: string
+          nullable: true
+        disclaimer: { type: string }
+
+    ExplainTradeResult:
+      type: object
+      required: [explanation, narrative, source, llmAvailable]
+      properties:
+        id:
+          type: integer
+        explanation:
+          $ref: "#/components/schemas/TradeExplanation"
+        narrative: { type: string }
+        source:
+          type: string
+          enum: [llm, template]
+        llmAvailable: { type: boolean }
+
+    TeachGreekInput:
+      type: object
+      required: [greek]
+      properties:
+        greek:
+          type: string
+          enum: [delta, theta, gamma, vega]
+        symbol:
+          type: string
+
+    GreekLesson:
+      type: object
+      required: [greek, title, symbol, oneLiner, definition, forPremiumSellers, example, exampleValue, keyPoints, disclaimer]
+      properties:
+        greek:
+          type: string
+          enum: [delta, theta, gamma, vega]
+        title: { type: string }
+        symbol: { type: string }
+        oneLiner: { type: string }
+        definition: { type: string }
+        forPremiumSellers: { type: string }
+        example: { type: string }
+        exampleValue: { type: number }
+        keyPoints:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    TeachGreekResult:
+      type: object
+      required: [lesson, narrative, source, llmAvailable]
+      properties:
+        lesson:
+          $ref: "#/components/schemas/GreekLesson"
+        narrative: { type: string }
+        source:
+          type: string
+          enum: [llm, template]
+        llmAvailable: { type: boolean }
+
+    LearnSection:
+      type: object
+      required: [heading, body]
+      properties:
+        heading: { type: string }
+        body: { type: string }
+
+    LearnQuizQuestion:
+      type: object
+      required: [prompt, options, correctIndex, explanation]
+      properties:
+        prompt: { type: string }
+        options:
+          type: array
+          items: { type: string }
+        correctIndex: { type: integer }
+        explanation: { type: string }
+
+    LearnContent:
+      type: object
+      required: [slug, title, subtitle, sections, keyPoints, disclaimer]
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        subtitle: { type: string }
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearnSection"
+        workedExamples:
+          type: array
+          description: Optional worked examples with live deterministic numbers.
+          items:
+            $ref: "#/components/schemas/LearnSection"
+        quiz:
+          type: array
+          description: Optional inline mini-quiz checks for the lesson.
+          items:
+            $ref: "#/components/schemas/LearnQuizQuestion"
+        keyPoints:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    QuizInput:
+      type: object
+      properties:
+        topic:
+          type: string
+          enum: [greeks, strategy, risk, mixed]
+        count:
+          type: integer
+
+    QuizQuestion:
+      type: object
+      required: [id, prompt, options]
+      properties:
+        id: { type: string }
+        prompt: { type: string }
+        options:
+          type: array
+          items: { type: string }
+
+    GeneratedQuiz:
+      type: object
+      required: [quizId, topic, questions]
+      properties:
+        quizId: { type: string }
+        topic: { type: string }
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestion"
+
+    GradeQuizInput:
+      type: object
+      required: [quizId, answers]
+      properties:
+        quizId: { type: string }
+        answers:
+          type: array
+          items: { type: integer }
+
+    QuizGradeItem:
+      type: object
+      required: [id, prompt, yourAnswer, correctAnswer, correct, explanation]
+      properties:
+        id: { type: string }
+        prompt: { type: string }
+        yourAnswer: { type: integer }
+        correctAnswer: { type: integer }
+        correct: { type: boolean }
+        explanation: { type: string }
+
+    QuizGradeResult:
+      type: object
+      required: [topic, score, total, percent, message, results, disclaimer]
+      properties:
+        topic: { type: string }
+        score: { type: integer }
+        total: { type: integer }
+        percent: { type: number }
+        message: { type: string }
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizGradeItem"
+        disclaimer: { type: string }
+
+    QuizProgressAttempt:
+      type: object
+      required: [id, topic, score, total, percent, createdAt]
+      properties:
+        id: { type: integer }
+        topic: { type: string }
+        score: { type: integer }
+        total: { type: integer }
+        percent: { type: number }
+        createdAt: { type: string }
+
+    QuizProgressTopicBest:
+      type: object
+      required: [topic, bestPercent, attempts]
+      properties:
+        topic: { type: string }
+        bestPercent: { type: number }
+        attempts: { type: integer }
+
+    QuizProgress:
+      type: object
+      required:
+        [
+          attempts,
+          bestByTopic,
+          totalAttempts,
+          averagePercent,
+          streak,
+          improvement,
+          firstPercent,
+          latestPercent,
+        ]
+      properties:
+        attempts:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizProgressAttempt"
+        bestByTopic:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizProgressTopicBest"
+        totalAttempts: { type: integer }
+        averagePercent: { type: number }
+        streak:
+          type: integer
+          description: Consecutive calendar days (UTC) with at least one quiz attempt, counting back from today/yesterday. 0 if the streak is broken.
+        improvement:
+          type: number
+          description: Percentage-point change from the earliest attempt to the most recent attempt (latestPercent - firstPercent). Can be negative.
+        firstPercent:
+          type: number
+          description: Score percent of the learner's earliest recorded attempt.
+        latestPercent:
+          type: number
+          description: Score percent of the learner's most recent attempt.
+
+    JournalReviewInput:
+      type: object
+      required: [tradeId]
+      properties:
+        tradeId:
+          type: integer
+
+    JournalReviewResult:
+      type: object
+      required: [tradeId, symbol, strategy, review, lessonLearned, source, llmAvailable]
+      properties:
+        tradeId: { type: integer }
+        symbol: { type: string }
+        strategy: { type: string }
+        review: { type: string }
+        lessonLearned: { type: string }
+        source:
+          type: string
+          enum: [llm, template]
+        llmAvailable: { type: boolean }
+
+    CoachLesson:
+      type: object
+      required: [id, kind, topic, title, content, source, createdAt]
+      properties:
+        id: { type: integer }
+        kind: { type: string }
+        topic: { type: string }
+        title: { type: string }
+        content: { type: string }
+        source: { type: string }
+        createdAt: { type: string }
+
+    # ─── Settings ──────────────────────────────────────────────────────────────
+    Settings:
+      type: object
+      required: [executionMode, maxRiskPerTrade, maxPortfolioRisk, profitTarget50, profitTarget75, profitTarget90, stopLossMultiplier, alpacaConnected]
+      properties:
+        executionMode:
+          type: string
+          enum: [manual, semi_auto, full_auto]
+        maxRiskPerTrade:
+          type: number
+          description: Max risk per trade as percentage of account (default 1%)
+        maxPortfolioRisk:
+          type: number
+          description: Max portfolio risk as percentage (default 10%)
+        profitTarget50:
+          type: number
+        profitTarget75:
+          type: number
+        profitTarget90:
+          type: number
+        stopLossMultiplier:
+          type: number
+          description: Stop loss as multiple of credit received (default 2x)
+        alpacaConnected:
+          type: boolean
+        alpacaApiKey:
+          type: ["string", "null"]
+        scannerMode:
+          type: string
+          enum: [mock, live]
+          description: Scanner data mode — mock (simulated) or live (provider chains)
+        marketDataProvider:
+          type: string
+          enum: [mock, alpaca, polygon]
+          description: Preferred options-data provider when in live mode
+        defaultDte:
+          type: integer
+          description: Default days to expiry (default 45)
+        shortDelta:
+          type: number
+          description: Default short delta (default 0.20)
+        minIvRank:
+          type: number
+          description: Minimum IV rank to consider trades
+        autoExecuteEnabled:
+          type: boolean
+          description: Full-auto master switch / kill switch (default false)
+        autoMaxTradesPerDay:
+          type: integer
+        autoMaxConcurrentPositions:
+          type: integer
+        autoMinRavishScore:
+          type: number
+        autoMaxDailyLossPct:
+          type: number
+        autoQuantityPerTrade:
+          type: integer
+        adjDeltaDriftTrigger:
+          type: number
+          description: Net |delta| at which a position is flagged for adjustment
+        adjPopDropTrigger:
+          type: number
+          description: POP drop (points vs entry) that flags a position
+        adjShortStrikeProximityPct:
+          type: number
+          description: Spot-to-short-strike distance (%) considered "tested"
+        adjIvExpansionTrigger:
+          type: number
+          description: IV expansion (% vs entry IV) that flags a position
+        adjDteTrigger:
+          type: integer
+          description: DTE at/under which gamma-management kicks in
+        autoAdjustEnabled:
+          type: boolean
+          description: Auto-adjustment master switch (close/de-risk only)
+        eventRiskEnabled:
+          type: boolean
+          description: Event Risk Filter master switch
+        eventRiskBlockEarningsShortPremium:
+          type: boolean
+          description: Block opening short-premium trades before earnings
+        eventRiskAutoBlockHigh:
+          type: boolean
+          description: Block AutoPilot auto-execution when event risk is high
+        fundamentalsProvider:
+          type: string
+          enum: [simulated, alpha_vantage, financial_modeling_prep]
+          description: Value-investing fundamentals provider (only "simulated" is wired today)
+        fundamentalsConnected:
+          type: boolean
+          description: Whether a live fundamentals provider is configured (always false today)
+        fundamentalsLastFetchedAt:
+          type: ["string", "null"]
+          description: ISO timestamp of the most recent successful live fundamentals fetch (null if a live provider has never been reached this process)
+        fundamentalsStalenessHours:
+          type: integer
+          description: How old (in hours) live fundamentals may be before the UI flags them as stale and nudges a refresh (defaults to 24)
+        fundamentalsAutoRefresh:
+          type: boolean
+          description: Auto re-fetch live fundamentals once data crosses the staleness threshold (no effect for simulated data)
+
+    FundamentalsProviderStatus:
+      type: object
+      required: [provider, label, selected, keyPresent, state, message]
+      properties:
+        provider:
+          type: string
+          description: Live provider id (financial_modeling_prep, alpha_vantage)
+        label:
+          type: string
+          description: Human-readable provider name
+        selected:
+          type: boolean
+          description: Whether this provider is the one selected in Settings
+        keyPresent:
+          type: boolean
+          description: Whether the provider's API key is configured in the environment
+        state:
+          type: string
+          enum: [ok, rate_limited, unreachable, no_data, not_configured, idle]
+          description: >-
+            Derived health. ok = responding; rate_limited = temporary, recovers
+            on its own; unreachable = misconfigured/down; no_data = key works but
+            no data; not_configured = no API key; idle = configured, not yet queried
+        message:
+          type: string
+          description: Operator-facing explanation of the current state
+        lastSuccessAt:
+          type: ["string", "null"]
+          description: ISO timestamp of the most recent successful live fetch
+        lastFallbackAt:
+          type: ["string", "null"]
+          description: ISO timestamp of the most recent fallback to simulated data
+        lastFallbackReason:
+          type: ["string", "null"]
+          enum: [rate_limit, error, no_data, null]
+          description: Reason for the most recent fallback
+
+    FundamentalsProviderStatusResponse:
+      type: object
+      required: [statuses]
+      properties:
+        statuses:
+          type: array
+          items: { $ref: "#/components/schemas/FundamentalsProviderStatus" }
+
+    SettingsUpdate:
+      type: object
+      properties:
+        executionMode:
+          type: string
+          enum: [manual, semi_auto, full_auto]
+        maxRiskPerTrade:
+          type: number
+        maxPortfolioRisk:
+          type: number
+        profitTarget50:
+          type: number
+        profitTarget75:
+          type: number
+        profitTarget90:
+          type: number
+        stopLossMultiplier:
+          type: number
+        alpacaApiKey:
+          type: string
+        scannerMode:
+          type: string
+          enum: [mock, live]
+        marketDataProvider:
+          type: string
+          enum: [mock, alpaca, polygon]
+        defaultDte:
+          type: integer
+        shortDelta:
+          type: number
+        minIvRank:
+          type: number
+        autoExecuteEnabled:
+          type: boolean
+        autoMaxTradesPerDay:
+          type: integer
+        autoMaxConcurrentPositions:
+          type: integer
+        autoMinRavishScore:
+          type: number
+        autoMaxDailyLossPct:
+          type: number
+        autoQuantityPerTrade:
+          type: integer
+        adjDeltaDriftTrigger:
+          type: number
+        adjPopDropTrigger:
+          type: number
+        adjShortStrikeProximityPct:
+          type: number
+        adjIvExpansionTrigger:
+          type: number
+        adjDteTrigger:
+          type: integer
+        autoAdjustEnabled:
+          type: boolean
+        eventRiskEnabled:
+          type: boolean
+        eventRiskBlockEarningsShortPremium:
+          type: boolean
+        eventRiskAutoBlockHigh:
+          type: boolean
+        fundamentalsProvider:
+          type: string
+          enum: [simulated, alpha_vantage, financial_modeling_prep]
+        fundamentalsStalenessHours:
+          type: integer
+        fundamentalsAutoRefresh:
+          type: boolean
+
+    # ─── Earnings & Market Data ──────────────────────────────────────────────────
+    EarningsPlay:
+      type: object
+      required: [symbol, name, price, daysToEarnings, iv, ivRank, expectedMovePct, expectedMoveDollars, historicalMovePct, ivCrushPotentialPct, recommendedStrategy, rationale]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        earningsDate:
+          type: ["string", "null"]
+        daysToEarnings:
+          type: integer
+        iv:
+          type: number
+        ivRank:
+          type: number
+        expectedMovePct:
+          type: number
+        expectedMoveDollars:
+          type: number
+        historicalMovePct:
+          type: number
+        ivCrushPotentialPct:
+          type: number
+        recommendedStrategy:
+          type: string
+          enum: [iron_fly, iron_condor, calendar_spread]
+        rationale:
+          type: string
+
+    ThetaBreakdown:
+      type: object
+      required: [key, theta]
+      properties:
+        key:
+          type: string
+        theta:
+          type: number
+
+    ThetaIncome:
+      type: object
+      required: [daily, weekly, monthly, annualized, bySymbol, byStrategy]
+      properties:
+        daily:
+          type: number
+        weekly:
+          type: number
+        monthly:
+          type: number
+        annualized:
+          type: number
+        bySymbol:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThetaBreakdown"
+        byStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThetaBreakdown"
+
+    MarketDataHealth:
+      type: object
+      required: [provider, requestedProvider, mode, connected, reason, symbolsScanned, contractsScanned, rejectedByLiquidity, rejectedByRisk, positiveEvFound]
+      properties:
+        provider:
+          type: string
+          enum: [mock, alpaca, polygon]
+        requestedProvider:
+          type: string
+          enum: [mock, alpaca, polygon]
+        mode:
+          type: string
+          enum: [mock, live]
+        connected:
+          type: boolean
+        reason:
+          type: string
+        lastChainUpdate:
+          type: ["string", "null"]
+        symbolsScanned:
+          type: integer
+        contractsScanned:
+          type: integer
+        rejectedByLiquidity:
+          type: integer
+        rejectedByRisk:
+          type: integer
+        positiveEvFound:
+          type: integer
+        lastScannedAt:
+          type: ["string", "null"]
+
+    # ─── Performance ───────────────────────────────────────────────────────────
+    PerformanceAnalytics:
+      type: object
+      required:
+        [
+          winRate,
+          avgWin,
+          avgLoss,
+          expectancy,
+          totalTrades,
+          totalReturn,
+          totalCapitalDeployed,
+          returnOnCapital,
+          profitFactor,
+          maxDrawdown,
+          sharpeRatio,
+          sortinoRatio,
+          avgHoldingDays,
+          thetaCollected,
+          totalCommission,
+          totalSlippage,
+          commissionImpactPct,
+          actualPop,
+          expectedPop,
+          bestStrategy,
+          worstStrategy,
+          bestTickers,
+          worstTickers,
+          monthlyReturns,
+          strategyBreakdown,
+        ]
+      properties:
+        winRate:
+          type: number
+        avgWin:
+          type: number
+        avgLoss:
+          type: number
+        expectancy:
+          type: number
+        totalTrades:
+          type: integer
+        totalReturn:
+          type: number
+        totalCapitalDeployed:
+          type: number
+        returnOnCapital:
+          type: number
+        profitFactor:
+          type: number
+        maxDrawdown:
+          type: number
+        sharpeRatio:
+          type: number
+        sortinoRatio:
+          type: number
+        avgHoldingDays:
+          type: number
+        thetaCollected:
+          type: number
+        totalCommission:
+          type: number
+        totalSlippage:
+          type: number
+        commissionImpactPct:
+          type: number
+        actualPop:
+          type: number
+        expectedPop:
+          type: number
+        bestStrategy:
+          type: string
+        worstStrategy:
+          type: string
+        bestTickers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TickerStat"
+        worstTickers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TickerStat"
+        monthlyReturns:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyReturn"
+        strategyBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceBreakdownBucket"
+
+    TickerStat:
+      type: object
+      required: [symbol, totalTrades, winRate, totalReturn]
+      properties:
+        symbol:
+          type: string
+        totalTrades:
+          type: integer
+        winRate:
+          type: number
+        totalReturn:
+          type: number
+
+    PerformanceBreakdownBucket:
+      type: object
+      required:
+        [
+          key,
+          label,
+          totalTrades,
+          winRate,
+          totalReturn,
+          avgReturn,
+          profitFactor,
+          expectancy,
+          returnOnCapital,
+          actualPop,
+          expectedPop,
+          avgHoldingDays,
+          thetaCollected,
+        ]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        totalTrades:
+          type: integer
+        winRate:
+          type: number
+        totalReturn:
+          type: number
+        avgReturn:
+          type: number
+        profitFactor:
+          type: number
+        expectancy:
+          type: number
+        returnOnCapital:
+          type: number
+        actualPop:
+          type: number
+        expectedPop:
+          type: number
+        avgHoldingDays:
+          type: number
+        thetaCollected:
+          type: number
+
+    MonthlyReturn:
+      type: object
+      required: [month, return, trades]
+      properties:
+        month:
+          type: string
+        return:
+          type: number
+        trades:
+          type: integer
+
+    StrategyStats:
+      type: object
+      required: [strategy, winRate, totalTrades, avgReturn]
+      properties:
+        strategy:
+          type: string
+        winRate:
+          type: number
+        totalTrades:
+          type: integer
+        avgReturn:
+          type: number
+        totalReturn:
+          type: number
+
+    ScoreCard:
+      type: object
+      required: [score, label, detail]
+      properties:
+        score:
+          type: integer
+        label:
+          type: string
+        detail:
+          type: string
+
+    PortfolioHealthComponent:
+      type: object
+      required: [key, label, score, weight, detail]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        score:
+          type: integer
+        weight:
+          type: number
+        detail:
+          type: string
+
+    ThreatCounts:
+      type: object
+      required: [green, yellow, red]
+      properties:
+        green:
+          type: integer
+        yellow:
+          type: integer
+        red:
+          type: integer
+
+    PortfolioHealth:
+      type: object
+      required:
+        [health, exposure, riskConcentration, components, netDelta, netTheta, netVega, netGamma, largestSymbolPct, threatCounts]
+      properties:
+        health:
+          $ref: "#/components/schemas/ScoreCard"
+        exposure:
+          $ref: "#/components/schemas/ScoreCard"
+        riskConcentration:
+          $ref: "#/components/schemas/ScoreCard"
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/PortfolioHealthComponent"
+        netDelta:
+          type: number
+        netTheta:
+          type: number
+        netVega:
+          type: number
+        netGamma:
+          type: number
+        largestSymbol:
+          type: string
+          nullable: true
+        largestSymbolPct:
+          type: number
+        threatCounts:
+          $ref: "#/components/schemas/ThreatCounts"
+
+    MarketBriefingEvent:
+      type: object
+      required: [type, label, date, daysAway, impact]
+      properties:
+        type:
+          type: string
+        label:
+          type: string
+        date:
+          type: string
+        daysAway:
+          type: integer
+        impact:
+          type: string
+          enum: [low, medium, high]
+        symbol:
+          type: string
+          nullable: true
+
+    MarketBriefing:
+      type: object
+      required:
+        [date, regime, regimeLabel, syntheticVix, vixLabel, avgIvRank, breadth, ivEnvironment, headline, drivers, catalysts]
+      properties:
+        date:
+          type: string
+        regime:
+          type: string
+          enum: [risk_on, neutral, risk_off]
+        regimeLabel:
+          type: string
+        syntheticVix:
+          type: number
+        vixLabel:
+          type: string
+        avgIvRank:
+          type: integer
+        breadth:
+          type: integer
+        ivEnvironment:
+          type: string
+        headline:
+          type: string
+        drivers:
+          type: array
+          items:
+            type: string
+        catalysts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarketBriefingEvent"
+
+    MarketBriefingResponse:
+      type: object
+      required: [briefing, narration, narrationSource]
+      properties:
+        briefing:
+          $ref: "#/components/schemas/MarketBriefing"
+        narration:
+          type: string
+        narrationSource:
+          type: string
+          enum: [llm, template]
+
+    ReportSummary:
+      type: object
+      required:
+        [accountValue, openPositions, totalUnrealizedPnl, netDelta, netTheta, netVega, netGamma, portfolioRiskUsedPct, maxPortfolioRiskPct, withinLimits, thetaDaily, thetaMonthly]
+      properties:
+        accountValue:
+          type: number
+        openPositions:
+          type: integer
+        totalUnrealizedPnl:
+          type: number
+        netDelta:
+          type: number
+        netTheta:
+          type: number
+        netVega:
+          type: number
+        netGamma:
+          type: number
+        portfolioRiskUsedPct:
+          type: number
+        maxPortfolioRiskPct:
+          type: number
+        withinLimits:
+          type: boolean
+        thetaDaily:
+          type: number
+        thetaMonthly:
+          type: number
+
+    PositionThreat:
+      type: object
+      required:
+        [tradeId, symbol, symbolName, strategy, strategyLabel, threatLevel, severity, action, actionLabel, currentPnl, currentPnlPercent, currentPop, daysToExpiry, rationale]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        symbolName:
+          type: string
+        strategy:
+          type: string
+        strategyLabel:
+          type: string
+        threatLevel:
+          type: string
+          enum: [green, yellow, red]
+        severity:
+          type: string
+        action:
+          type: string
+        actionLabel:
+          type: string
+        currentPnl:
+          type: number
+        currentPnlPercent:
+          type: number
+        currentPop:
+          type: number
+        daysToExpiry:
+          type: integer
+        rationale:
+          type: string
+
+    ReportOpportunity:
+      type: object
+      required: [symbol, strategy, ravishScore, ravishTier, pop, ev, theta, eventRiskLevel]
+      properties:
+        symbol:
+          type: string
+        strategy:
+          type: string
+        ravishScore:
+          type: integer
+        ravishTier:
+          type: string
+        pop:
+          type: number
+        ev:
+          type: number
+        theta:
+          type: number
+        eventRiskLevel:
+          type: string
+
+    TradeToAvoid:
+      type: object
+      required: [symbol, symbolName, reason, level]
+      properties:
+        symbol:
+          type: string
+        symbolName:
+          type: string
+        reason:
+          type: string
+        level:
+          type: string
+        earningsInDays:
+          type: integer
+          nullable: true
+
+    DailyReport:
+      type: object
+      required:
+        [date, generatedAt, health, summary, market, positions, opportunities, tradesToAvoid, disclaimer]
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+        generatedAt:
+          type: string
+        briefing:
+          type: string
+        briefingSource:
+          type: string
+        health:
+          $ref: "#/components/schemas/PortfolioHealth"
+        summary:
+          $ref: "#/components/schemas/ReportSummary"
+        market:
+          $ref: "#/components/schemas/MarketBriefing"
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PositionThreat"
+        opportunities:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportOpportunity"
+        tradesToAvoid:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeToAvoid"
+        disclaimer:
+          type: string
+
+    CompareReportsRequest:
+      type: object
+      required: [fromId, toId]
+      properties:
+        fromId:
+          type: integer
+        toId:
+          type: integer
+
+    CompareReportsResponse:
+      type: object
+      required: [narration, narrationSource]
+      properties:
+        narration:
+          type: string
+        narrationSource:
+          type: string
+          enum: [llm, template]
+
+    DailyReportSummary:
+      type: object
+      required:
+        [id, reportDate, healthScore, healthLabel, exposureScore, riskScore, openPositions, redCount, yellowCount, netTheta, createdAt]
+      properties:
+        id:
+          type: integer
+        reportDate:
+          type: string
+        healthScore:
+          type: integer
+        healthLabel:
+          type: string
+        exposureScore:
+          type: integer
+        riskScore:
+          type: integer
+        openPositions:
+          type: integer
+        redCount:
+          type: integer
+        yellowCount:
+          type: integer
+        netTheta:
+          type: number
+        briefing:
+          type: string
+        createdAt:
+          type: string
+
+    DeleteReportResult:
+      type: object
+      required: [id, deleted]
+      properties:
+        id:
+          type: integer
+        deleted:
+          type: boolean
+
+    RestorableReport:
+      type: object
+      required:
+        [reportDate, healthScore, healthLabel, exposureScore, riskScore, openPositions, redCount, yellowCount, netTheta, briefing, briefingSource, payload, createdAt]
+      properties:
+        reportDate:
+          type: string
+        healthScore:
+          type: integer
+        healthLabel:
+          type: string
+        exposureScore:
+          type: integer
+        riskScore:
+          type: integer
+        openPositions:
+          type: integer
+        redCount:
+          type: integer
+        yellowCount:
+          type: integer
+        netTheta:
+          type: number
+        briefing:
+          type: string
+        briefingSource:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+
+    ClearReportsResult:
+      type: object
+      required: [deleted, reports]
+      properties:
+        deleted:
+          type: integer
+        reports:
+          type: array
+          items:
+            $ref: "#/components/schemas/RestorableReport"
+
+    RestoreReportsRequest:
+      type: object
+      required: [reports]
+      properties:
+        reports:
+          type: array
+          items:
+            $ref: "#/components/schemas/RestorableReport"
+
+    RestoreReportsResult:
+      type: object
+      required: [restored]
+      properties:
+        restored:
+          type: integer

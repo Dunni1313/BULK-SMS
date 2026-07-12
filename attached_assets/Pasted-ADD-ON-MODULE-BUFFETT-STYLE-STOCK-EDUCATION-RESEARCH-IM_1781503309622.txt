@@ -1,0 +1,388 @@
+ADD-ON MODULE: BUFFETT-STYLE STOCK EDUCATION & RESEARCH
+
+IMPORTANT:
+This is an extension to the DK Stock + Options Suitability Engine.
+
+Do NOT build a new app.
+Do NOT rebuild existing features.
+Reuse:
+
+* Existing DK Option Engine
+* Existing Stock Suitability Analyzer
+* Existing AI Assistant
+* Existing Portfolio AI
+* Existing database
+* Existing API architecture
+* Existing dashboard framework
+
+OBJECTIVE:
+Add a Buffett-style stock research and education mode that helps the user understand whether a company is a high-quality long-term investment.
+
+This should be educational and analytical, not hype-based.
+
+The AI should teach the user how to think about a stock using long-term business-quality principles inspired by value investing.
+
+Do not claim to be Warren Buffett.
+Do not imitate a real person directly.
+Use the wording:
+“Buffett-style value investing framework”
+or
+“long-term value investor framework.”
+
+CORE QUESTION:
+For any stock, answer:
+
+“Is this a wonderful business at a fair price, a fair business at a wonderful price, or a stock to avoid?”
+
+MODULE 1 — VALUE INVESTOR RESEARCH MODE
+
+Add AI Assistant mode:
+
+Value Investor Research
+
+The user can ask:
+
+* Research Apple like a value investor
+* Is Nvidia a wonderful business or too expensive?
+* Would this stock fit a Buffett-style framework?
+* Does this company have a moat?
+* Is this stock undervalued?
+* What is the margin of safety?
+* Should I buy the shares, sell options, or wait?
+* Teach me how to analyze this company
+* Explain this stock like I am learning long-term investing
+
+MODULE 2 — BUSINESS QUALITY ENGINE
+
+Score business quality from 0–100.
+
+Analyze:
+
+* Revenue consistency
+* Earnings consistency
+* Free cash flow generation
+* Profit margins
+* Return on equity
+* Return on invested capital
+* Debt levels
+* Cash position
+* Pricing power
+* Brand strength
+* Competitive advantage
+* Customer loyalty
+* Recurring revenue
+* Industry durability
+
+Output:
+
+Business Quality Score:
+0–100
+
+Rating:
+Wonderful Business / Good Business / Average Business / Weak Business
+
+Example:
+AAPL
+Business Quality: Wonderful Business
+Reason: Strong brand, recurring ecosystem, high margins, strong cash generation.
+
+MODULE 3 — ECONOMIC MOAT ENGINE
+
+Analyze whether the company has a moat.
+
+Moat categories:
+
+* Brand moat
+* Network effect
+* Switching costs
+* Cost advantage
+* Scale advantage
+* Intellectual property
+* Distribution advantage
+* Regulatory moat
+
+Output:
+
+Moat Rating:
+Wide / Medium / Narrow / None
+
+Moat Explanation:
+Explain in plain English why the company does or does not have a durable advantage.
+
+MODULE 4 — FINANCIAL STRENGTH ENGINE
+
+Analyze:
+
+* Debt to equity
+* Interest coverage
+* Free cash flow
+* Cash reserves
+* Operating margins
+* Net margins
+* ROE
+* ROIC
+* Share buybacks
+* Dividend safety if relevant
+
+Output:
+
+Financial Strength:
+Strong / Acceptable / Weak / Risky
+
+MODULE 5 — VALUATION & MARGIN OF SAFETY ENGINE
+
+Analyze:
+
+* P/E
+* Forward P/E
+* PEG
+* Price to sales
+* Price to book
+* Free cash flow yield
+* Earnings yield
+* Revenue growth vs valuation
+* Fair value estimate if data allows
+* Margin of safety
+
+Output:
+
+Valuation:
+Cheap / Fair / Expensive / Very Expensive
+
+Margin of Safety:
+High / Medium / Low / None
+
+Important:
+Never fabricate fair value.
+If fair value cannot be calculated from available data, show:
+“Fair value unavailable — insufficient reliable data.”
+
+MODULE 6 — VALUE INVESTOR DECISION ENGINE
+
+Combine:
+
+* Business Quality Score
+* Moat Rating
+* Financial Strength
+* Valuation
+* Margin of Safety
+* Long-term trend
+* Earnings risk
+* News risk
+* Portfolio concentration
+
+Final decision:
+
+* LONG-TERM BUY
+* BUY ONLY ON PULLBACK
+* WATCHLIST
+* HOLD
+* TRIM
+* AVOID
+
+Decision examples:
+
+If quality is high but valuation is expensive:
+Decision = BUY ONLY ON PULLBACK / WATCHLIST
+
+If quality is high and valuation is fair:
+Decision = LONG-TERM BUY
+
+If business is weak but valuation is cheap:
+Decision = AVOID or SPECULATIVE ONLY
+
+If already owned and position is too large:
+Decision = HOLD / TRIM
+
+MODULE 7 — STOCK VS OPTIONS VS BOTH DECISION
+
+Integrate with Stock Suitability Analyzer.
+
+For every ticker, show:
+
+Stock Investment Suitability:
+Good / Fair / Weak
+
+Options Trading Suitability:
+Good / Fair / Weak
+
+Final Use Case:
+
+* Long-term stock investment
+* Options income trade
+* Both
+* Watchlist only
+* Avoid
+
+Example:
+
+MSFT
+
+Long-term stock view:
+Strong business, wide moat, high cash generation.
+
+Options view:
+Good liquidity, but IV is low, so premium selling is only moderate.
+
+Final decision:
+STOCK INVESTMENT / WATCH FOR OPTIONS
+
+MODULE 8 — AI STOCK RESEARCH REPORT
+
+Add button:
+
+“Research Like a Value Investor”
+
+Report sections:
+
+1. Company Overview
+2. What the Business Actually Does
+3. Business Quality
+4. Economic Moat
+5. Financial Strength
+6. Growth Consistency
+7. Valuation
+8. Margin of Safety
+9. Management / Capital Allocation
+10. Risks
+11. Stock vs Options Suitability
+12. Beginner Lesson
+13. Advanced Investor Note
+14. Final Decision
+15. Risk Disclaimer
+
+Example style:
+
+“This appears to be a high-quality business, but the current price does not offer a large margin of safety. A long-term investor may prefer to wait for a better entry unless the growth assumptions remain strong.”
+
+MODULE 9 — EDUCATION MODE
+
+Create page:
+
+/stock-analyst/value-investing-school
+
+Sidebar item:
+
+Value Investing School
+
+Teach:
+
+* What is a moat?
+* What is margin of safety?
+* Why cash flow matters
+* Why debt matters
+* Why valuation matters
+* Difference between a good company and a good stock
+* Why great companies can still be bad buys at the wrong price
+* How to read P/E, PEG, FCF yield, ROE, ROIC
+* When to buy shares vs use options
+* When to avoid a stock
+
+Add mini quizzes:
+
+* Identify the moat
+* Is this undervalued?
+* Is this a wonderful business?
+* Would you buy, watch, or avoid?
+
+MODULE 10 — WATCHLIST LOGIC
+
+Allow user to save stocks as:
+
+* Wonderful business, waiting for price
+* Undervalued opportunity
+* Good for options income
+* Too expensive now
+* Avoid due to risk
+* Owned / monitor
+
+Add fields:
+
+* Fair value estimate nullable
+* Desired buy price nullable
+* Margin of safety target
+* Reason for watchlist
+* Last researched date
+* Current decision
+
+MODULE 11 — API ENDPOINTS
+
+Add:
+
+GET /stock-analyst/value/:ticker
+POST /stock-analyst/value-research
+GET /stock-analyst/value-school
+POST /stock-analyst/value-quiz
+POST /stock-analyst/value-watchlist
+
+Update OpenAPI spec:
+lib/api-spec/openapi.yaml
+
+Run codegen after OpenAPI changes.
+
+MODULE 12 — DATABASE
+
+Add or extend stock_analysis_history with:
+
+* business_quality_score
+* moat_rating
+* financial_strength
+* valuation_rating
+* margin_of_safety
+* value_investor_decision
+* stock_vs_options_decision
+* value_research_json
+
+MODULE 13 — UI COMPONENTS
+
+Add components:
+
+* BusinessQualityCard
+* MoatCard
+* FinancialStrengthCard
+* MarginOfSafetyCard
+* ValueInvestorDecisionCard
+* StockVsOptionsDecisionCard
+* ValueResearchReport
+* ValueInvestingLessonCard
+* ValueInvestorQuiz
+
+MODULE 14 — SAFETY RULES
+
+The AI must:
+
+* Not claim to be Warren Buffett
+* Not impersonate any real investor
+* Not promise returns
+* Not say “guaranteed”
+* Not fabricate fundamentals
+* Not fabricate fair value
+* Clearly label LIVE / ESTIMATED / MOCK / UNAVAILABLE data
+* Explain that stock investing can lose money
+* Always separate business quality from valuation
+* Always explain risk
+
+MODULE 15 — TESTING
+
+Add tests for:
+
+* Business quality scoring
+* Moat rating logic
+* Financial strength rating
+* Margin of safety unavailable when data is insufficient
+* Value investor decision logic
+* Stock vs options combined decision
+* AI report includes risk disclaimer
+* AI does not claim to be Warren Buffett
+* AI does not fabricate fair value
+* Education mode cannot execute trades
+* Existing options and Portfolio AI tests still pass
+
+FINAL RESULT:
+The DK Option Engine should now help the user analyze a stock in three ways:
+
+1. Is it good for options trading?
+2. Is it good for long-term stock investing?
+3. Is it a high-quality business at a fair price using a Buffett-style value investing framework?
+
+Everything remains advisory-only and inside the same DK Option Engine app.

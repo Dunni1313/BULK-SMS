@@ -1,0 +1,9 @@
+- [Anthropic key under OPENAI_API_KEY](llm-provider-agnostic.md) — `OPENAI_API_KEY` may hold an `sk-ant-` key; coachLLM detects prefix, picks SDK + model accordingly.
+- [Coach safety invariants](coach-safety.md) — read-only teaching layer; disclaimer enforced in narrate(), deterministic math is source of truth, LLM is prose-only.
+- [Auto-execution engine](auto-execution-engine.md) — Full-Auto safety: single-flight cycles + per-execution guardrail re-check.
+- [Coach LLM concurrency](coach-concurrency.md) — survives simultaneous users via per-call timeout + shared cache + single-flight + SSE heartbeat.
+- [Trade adjustment engine](trade-adjustment-engine.md) — open-position manager; short-strike threat MUST be signed/directional (breach=triggered), auto-acts only on close/reduce.
+- [Portfolio AI cockpit](portfolio-ai-cockpit.md) — advisory-only Ravish AI Portfolio Manager; deterministic scores, LLM narrates via narrate(), tradesToAvoid gated to blockShortPremium.
+- [Performance analytics engine](performance-analytics.md) — dashboard runs off a seeded SYNTHETIC trade population (not the trades table); losses = credit-multiple keeps PF realistic; deterministic per-process, not across days.
+- [Event risk filter](event-risk-filter.md) — event calendar in scoring/execution/AutoPilot; "high"/blockAuto must need earnings/FOMC, NOT routine monthly macro.
+- [Live fundamentals](live-fundamentals.md) — value module sources real (FMP/Alpha Vantage) vs simulated fundamentals; never show simulated under a LIVE label; fundamentalsConnected is computed, not stored.
