@@ -87,10 +87,13 @@ const PILLAR_WEIGHTS = {
 const BUY_THRESHOLD = 70;
 const HOLD_THRESHOLD = 45;
 
-// Isolated inside this module per the approved decision: no existing code exposes a
-// 0-100 valuation score, only categorical ratings. Refining this mapping later never
-// touches Graham/DCF/Buffett/the blended model's own computation.
-const VALUATION_RATING_SCORE: Record<string, number> = {
+// Isolated inside this module per the approved Sprint 16 decision: no existing code
+// exposes a 0-100 valuation score, only categorical ratings. Refining this mapping
+// later never touches Graham/DCF/Buffett/the blended model's own computation.
+// Exported (Phase 2, Sprint 17) so the AI Investment Committee reuses the exact same
+// rating->score table for Graham's/Buffett's own Committee vote confidence, instead
+// of a second, duplicated mapping.
+export const VALUATION_RATING_SCORE: Record<string, number> = {
   Cheap: 100,
   Fair: 65,
   Expensive: 35,

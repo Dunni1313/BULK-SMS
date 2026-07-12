@@ -159,6 +159,23 @@ export function makeValueReport(
       ],
       summary: "AAPL: Buy (conviction 78/100), composed from Business Quality, Growth, Capital Allocation, Financial Strength, and Valuation.",
     },
+    investmentCommittee: {
+      votes: [
+        { analyst: "Graham", verdict: "Buy", confidence: 65, rationale: "Trades below the Graham fair-value estimate." },
+        { analyst: "Buffett", verdict: "Hold", confidence: 65, rationale: "Trades below the Buffett fair-value estimate." },
+        { analyst: "Tom Nash", verdict: "Buy", confidence: 78, rationale: "AAPL: Buy (conviction 78/100)." },
+      ],
+      consolidatedVerdict: "Buy",
+      confidenceScore: 69.3,
+      agreement: "majority",
+      reasoning: [
+        "Graham: Buy (confidence 65/100) — Trades below the Graham fair-value estimate.",
+        "Buffett: Hold (confidence 65/100) — Trades below the Buffett fair-value estimate.",
+        "Tom Nash: Buy (confidence 78/100) — AAPL: Buy (conviction 78/100).",
+        "Consolidated: Buy — most voting analysts agree, though not all.",
+      ],
+      summary: "Investment Committee: Buy (confidence 69.3/100), based on 3 of 3 analyst votes (Graham, Buffett, Tom Nash); most voting analysts agree, though not all.",
+    },
     decision: {
       verdict: ValueDecisionVerdict.BUY_ONLY_ON_PULLBACK,
       conviction: 72,

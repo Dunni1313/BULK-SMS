@@ -64,17 +64,25 @@ function bucket(rating: ValuationRating): "cheap" | "fair" | "expensive" {
   return "expensive"; // Expensive or Very Expensive
 }
 
-function classifyAgreement(ratings: ValuationRating[]): AgreementSignal {
-  if (ratings.length < 2) return "insufficient-data";
-  const counts = new Map<string, number>();
-  for (const r of ratings) {
-    const b = bucket(r);
-    counts.set(b, (counts.get(b) ?? 0) + 1);
+// Generic bucket-counting agreement classifier (Phase 2, Sprint 17 extraction —
+// behavior-preserving; this module's own consolidateMarginOfSafety() output is
+// unchanged, confirmed by its existing tests). Exported so the AI Investment
+// Committee reuses the exact same unanimous/majority/split/insufficient-data
+// algorithm for its 3 Buy/Hold/Wait votes instead of a second, duplicated one.
+export function classifyAgreementSignal<T>(labels: T[]): AgreementSignal {
+  if (labels.length < 2) return "insufficient-data";
+  const counts = new Map<T, number>();
+  for (const l of labels) {
+    counts.set(l, (counts.get(l) ?? 0) + 1);
   }
   const maxCount = Math.max(...counts.values());
-  if (maxCount === ratings.length) return "unanimous";
-  if (maxCount > ratings.length / 2) return "majority";
+  if (maxCount === labels.length) return "unanimous";
+  if (maxCount > labels.length / 2) return "majority";
   return "split";
+}
+
+function classifyAgreement(ratings: ValuationRating[]): AgreementSignal {
+  return classifyAgreementSignal(ratings.map(bucket));
 }
 
 export function consolidateMarginOfSafety(price: number, entries: ModelEntry[]): ConsolidatedMarginOfSafety {

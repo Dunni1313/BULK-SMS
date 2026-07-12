@@ -44,11 +44,11 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
       expect(ids).toContain(id);
     }
     expect(ids).toContain("investment-quality");
-    // Phase 2, Sprint 16 added a further section ("tom-nash") on top of this
-    // sprint's own addition — this assertion reflects the current total;
-    // investment-quality's continued presence (checked above) is this test's
-    // actual regression guarantee.
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 2);
+    // Phase 2, Sprint 16 added "tom-nash" and Sprint 17 added
+    // "investment-committee" on top of this sprint's own addition — this
+    // assertion reflects the current total; investment-quality's continued
+    // presence (checked above) is this test's actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 3);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
@@ -135,14 +135,17 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     expect(byId.get("buffett-valuation")).toBe("12. Buffett Valuation");
     // Phase 2, Sprint 16 inserted "14. Tom Nash Analysis" right after Margin
     // of Safety, shifting Risks onward by one further.
+    // Phase 2, Sprint 17 inserted "15. Investment Committee" right after Tom
+    // Nash Analysis, shifting Risks onward by one further.
     expect(byId.get("margin-of-safety")).toBe("13. Margin of Safety");
     expect(byId.get("tom-nash")).toBe("14. Tom Nash Analysis");
-    expect(byId.get("risks")).toBe("15. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("16. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("17. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("18. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("19. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("20. Disclaimers & Data Source");
+    expect(byId.get("investment-committee")).toBe("15. Investment Committee");
+    expect(byId.get("risks")).toBe("16. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("17. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("18. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("19. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("20. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("21. Disclaimers & Data Source");
   });
 
   it("investment quality is computed independently of Graham/DCF/Buffett's own availability", async () => {

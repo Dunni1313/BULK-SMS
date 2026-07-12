@@ -2476,6 +2476,19 @@ export const GenerateValueResearchResponse = zod.object({
   "rationale": zod.array(zod.string()),
   "summary": zod.string()
 }),
+  "investmentCommittee": zod.object({
+  "votes": zod.array(zod.object({
+  "analyst": zod.enum(['Graham', 'Buffett', 'Tom Nash']),
+  "verdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "confidence": zod.number(),
+  "rationale": zod.string()
+})),
+  "consolidatedVerdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "confidenceScore": zod.number(),
+  "agreement": zod.enum(['unanimous', 'majority', 'split', 'insufficient-data']),
+  "reasoning": zod.array(zod.string()),
+  "summary": zod.string()
+}),
   "decision": zod.object({
   "verdict": zod.enum(['LONG-TERM BUY', 'BUY ONLY ON PULLBACK', 'WATCHLIST', 'HOLD', 'TRIM', 'AVOID']),
   "conviction": zod.number(),
@@ -2870,6 +2883,19 @@ export const GetValueReportResponse = zod.object({
   "convictionScore": zod.number(),
   "verdict": zod.enum(['Buy', 'Hold', 'Wait']),
   "rationale": zod.array(zod.string()),
+  "summary": zod.string()
+}),
+  "investmentCommittee": zod.object({
+  "votes": zod.array(zod.object({
+  "analyst": zod.enum(['Graham', 'Buffett', 'Tom Nash']),
+  "verdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "confidence": zod.number(),
+  "rationale": zod.string()
+})),
+  "consolidatedVerdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "confidenceScore": zod.number(),
+  "agreement": zod.enum(['unanimous', 'majority', 'split', 'insufficient-data']),
+  "reasoning": zod.array(zod.string()),
   "summary": zod.string()
 }),
   "decision": zod.object({

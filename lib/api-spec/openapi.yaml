@@ -1630,6 +1630,38 @@ components:
           items: { type: string }
         summary: { type: string }
 
+    ValueCommitteeVote:
+      type: object
+      required: [analyst, verdict, confidence, rationale]
+      properties:
+        analyst:
+          type: string
+          enum: [Graham, Buffett, Tom Nash]
+        verdict:
+          type: string
+          enum: [Buy, Hold, Wait]
+        confidence: { type: number }
+        rationale: { type: string }
+
+    ValueInvestmentCommittee:
+      type: object
+      required: [votes, consolidatedVerdict, confidenceScore, agreement, reasoning, summary]
+      properties:
+        votes:
+          type: array
+          items: { $ref: "#/components/schemas/ValueCommitteeVote" }
+        consolidatedVerdict:
+          type: string
+          enum: [Buy, Hold, Wait]
+        confidenceScore: { type: number }
+        agreement:
+          type: string
+          enum: [unanimous, majority, split, insufficient-data]
+        reasoning:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+
     ValueDecision:
       type: object
       required: [verdict, conviction, rationale, summary]
@@ -1695,7 +1727,7 @@ components:
     ValueResearchReport:
       type: object
       required:
-        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, investmentQuality, moat, financialStrength, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
+        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, investmentQuality, moat, financialStrength, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, investmentCommittee, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
       properties:
         symbol: { type: string }
         name: { type: string }
@@ -1718,6 +1750,7 @@ components:
         buffettValuation: { $ref: "#/components/schemas/ValueBuffettValuation" }
         consolidatedMarginOfSafety: { $ref: "#/components/schemas/ValueConsolidatedMarginOfSafety" }
         tomNash: { $ref: "#/components/schemas/ValueTomNashAnalysis" }
+        investmentCommittee: { $ref: "#/components/schemas/ValueInvestmentCommittee" }
         decision: { $ref: "#/components/schemas/ValueDecision" }
         stockVsOptions: { $ref: "#/components/schemas/ValueStockVsOptions" }
         keyMetrics:

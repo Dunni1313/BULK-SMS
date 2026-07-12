@@ -45,6 +45,7 @@ import {
   Briefcase,
   ListChecks,
   Compass,
+  Users,
 } from "lucide-react";
 
 type Level = ValueResearchInputLevel;
@@ -151,6 +152,7 @@ export function ReportView({
   const c = report.consolidatedMarginOfSafety;
   const iq = report.investmentQuality;
   const tn = report.tomNash;
+  const ic = report.investmentCommittee;
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -691,6 +693,37 @@ export function ReportView({
               </li>
             ))}
           </ul>
+        </CardContent>
+      </Card>
+
+      {/* Investment Committee — orchestrates Graham/Buffett/Tom Nash's own
+          verdicts into one consolidated recommendation; deterministic
+          reasoning only this sprint, no LLM narration. */}
+      <Card className="bg-card/60 border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Users className="w-4 h-4 text-indigo-400" /> Investment Committee
+            <Badge variant="outline" className="ml-auto text-[10px] border-border">
+              {ic.consolidatedVerdict}
+            </Badge>
+            <Badge variant="outline" className="text-[10px] border-border capitalize">
+              {ic.agreement.replace(/-/g, " ")}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <ScoreBar score={ic.confidenceScore} />
+          <p className="text-xs text-muted-foreground">{ic.summary}</p>
+          <div className="space-y-1.5 pt-1">
+            {ic.votes.map((vote) => (
+              <div key={vote.analyst} className="flex items-center justify-between text-[11px]">
+                <span className="text-muted-foreground">{vote.analyst}</span>
+                <span className="font-mono text-foreground/90">
+                  {vote.verdict} ({Math.round(vote.confidence)})
+                </span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 

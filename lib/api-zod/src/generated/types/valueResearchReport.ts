@@ -13,6 +13,7 @@ import type { ValueDecision } from './valueDecision';
 import type { ValueFinancialStrength } from './valueFinancialStrength';
 import type { ValueFundamentalsFallback } from './valueFundamentalsFallback';
 import type { ValueGrahamValuation } from './valueGrahamValuation';
+import type { ValueInvestmentCommittee } from './valueInvestmentCommittee';
 import type { ValueInvestmentQuality } from './valueInvestmentQuality';
 import type { ValueKeyMetric } from './valueKeyMetric';
 import type { ValueMoatAnalysis } from './valueMoatAnalysis';
@@ -43,6 +44,7 @@ export interface ValueResearchReport {
   buffettValuation: ValueBuffettValuation;
   consolidatedMarginOfSafety: ValueConsolidatedMarginOfSafety;
   tomNash: ValueTomNashAnalysis;
+  investmentCommittee: ValueInvestmentCommittee;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

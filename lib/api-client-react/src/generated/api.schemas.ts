@@ -326,6 +326,59 @@ export interface ValueTomNashAnalysis {
   summary: string;
 }
 
+export type ValueCommitteeVoteAnalyst = typeof ValueCommitteeVoteAnalyst[keyof typeof ValueCommitteeVoteAnalyst];
+
+
+export const ValueCommitteeVoteAnalyst = {
+  Graham: 'Graham',
+  Buffett: 'Buffett',
+  Tom_Nash: 'Tom Nash',
+} as const;
+
+export type ValueCommitteeVoteVerdict = typeof ValueCommitteeVoteVerdict[keyof typeof ValueCommitteeVoteVerdict];
+
+
+export const ValueCommitteeVoteVerdict = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export interface ValueCommitteeVote {
+  analyst: ValueCommitteeVoteAnalyst;
+  verdict: ValueCommitteeVoteVerdict;
+  confidence: number;
+  rationale: string;
+}
+
+export type ValueInvestmentCommitteeConsolidatedVerdict = typeof ValueInvestmentCommitteeConsolidatedVerdict[keyof typeof ValueInvestmentCommitteeConsolidatedVerdict];
+
+
+export const ValueInvestmentCommitteeConsolidatedVerdict = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export type ValueInvestmentCommitteeAgreement = typeof ValueInvestmentCommitteeAgreement[keyof typeof ValueInvestmentCommitteeAgreement];
+
+
+export const ValueInvestmentCommitteeAgreement = {
+  unanimous: 'unanimous',
+  majority: 'majority',
+  split: 'split',
+  'insufficient-data': 'insufficient-data',
+} as const;
+
+export interface ValueInvestmentCommittee {
+  votes: ValueCommitteeVote[];
+  consolidatedVerdict: ValueInvestmentCommitteeConsolidatedVerdict;
+  confidenceScore: number;
+  agreement: ValueInvestmentCommitteeAgreement;
+  reasoning: string[];
+  summary: string;
+}
+
 export type ValueDecisionVerdict = typeof ValueDecisionVerdict[keyof typeof ValueDecisionVerdict];
 
 
@@ -434,6 +487,7 @@ export interface ValueResearchReport {
   buffettValuation: ValueBuffettValuation;
   consolidatedMarginOfSafety: ValueConsolidatedMarginOfSafety;
   tomNash: ValueTomNashAnalysis;
+  investmentCommittee: ValueInvestmentCommittee;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

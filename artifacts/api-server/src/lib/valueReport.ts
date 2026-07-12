@@ -1,8 +1,8 @@
-// Task #66 — 20-section value-investing research report assembler (Phase 2,
+// Task #66 — 21-section value-investing research report assembler (Phase 2,
 // Sprint 12 added "Graham Valuation"; Sprint 13 added "DCF Valuation";
 // Sprint 14 added "Buffett Valuation" and upgraded "Margin of Safety" into a
 // cross-model consolidated view; Sprint 15 added "Investment Quality"; Sprint 16
-// added "Tom Nash Analysis").
+// added "Tom Nash Analysis"; Sprint 17 added "Investment Committee").
 //
 // Pure + deterministic: composes the SIMULATED fundamentals + the value-investing
 // engines into a structured, ordered report. The LLM (coachLLM) only narrates the
@@ -38,6 +38,7 @@ import { analyzeBuffettValuation, type BuffettValuation } from "./buffettValuati
 import { consolidateMarginOfSafety, type ConsolidatedMarginOfSafety } from "./marginOfSafety.js";
 import { analyzeInvestmentQuality, type InvestmentQualityAnalysis } from "./investmentQuality.js";
 import { analyzeTomNash, type TomNashAnalysis } from "./tomNashEngine.js";
+import { synthesizeInvestmentCommittee, type InvestmentCommitteeAnalysis } from "./investmentCommittee.js";
 
 // The standard value-investing disclaimer. Distinct from COACH_DISCLAIMER but the
 // LLM narration is still routed through narrate() so COACH_DISCLAIMER is appended.
@@ -104,6 +105,7 @@ export interface ValueResearchReport {
   buffettValuation: BuffettValuation;
   consolidatedMarginOfSafety: ConsolidatedMarginOfSafety;
   tomNash: TomNashAnalysis;
+  investmentCommittee: InvestmentCommitteeAnalysis;
   decision: ValueDecision;
   stockVsOptions: StockVsOptions;
   keyMetrics: KeyMetric[];
@@ -178,6 +180,7 @@ export async function buildValueResearchReport(
     { model: "Buffett", result: buffett },
   ]);
   const tomNash = analyzeTomNash(f, iq, fin, val, graham, dcf, buffett);
+  const investmentCommittee = synthesizeInvestmentCommittee(graham, buffett, tomNash);
   const decision = analyzeValueDecision(f, bq, moat, fin, val);
   const svo = analyzeStockVsOptions(f, bq, moat, val, snap);
 
@@ -302,38 +305,44 @@ export async function buildValueResearchReport(
       bullets: tomNash.rationale,
     },
     {
+      id: "investment-committee",
+      title: "15. Investment Committee",
+      body: investmentCommittee.summary,
+      bullets: investmentCommittee.reasoning,
+    },
+    {
       id: "risks",
-      title: "15. Risks & Red Flags",
+      title: "16. Risks & Red Flags",
       body: `Key risks identified in the ${dataLabel} fundamentals:`,
       bullets: risks.map((r) => `[${r.severity.toUpperCase()}] ${r.text}`),
     },
     {
       id: "decision",
-      title: "16. Value-Investor Decision",
+      title: "17. Value-Investor Decision",
       body: decision.summary,
       bullets: decision.rationale,
     },
     {
       id: "stock-vs-options",
-      title: "17. Stock vs. Options",
+      title: "18. Stock vs. Options",
       body: svo.summary,
       bullets: [svo.stockCase, svo.optionsCase],
     },
     {
       id: "checklist",
-      title: "18. Buffett Checklist",
+      title: "19. Buffett Checklist",
       body: "A wonderful business at a fair price, bought with a margin of safety:",
       bullets: buffettChecklist(f, bq, moat, fin, val),
     },
     {
       id: "metrics",
-      title: "19. Key Metrics",
+      title: "20. Key Metrics",
       body: `Headline ${dataLabel} metrics (see full table in the UI).`,
       bullets: keyMetrics.map((m) => `${m.label}: ${m.value}`),
     },
     {
       id: "disclaimer",
-      title: "20. Disclaimers & Data Source",
+      title: "21. Disclaimers & Data Source",
       body: disclaimerFor(f.dataSource),
       bullets: [`Data source: ${f.dataSource}`, `As of: ${f.asOf}`],
     },
@@ -359,6 +368,7 @@ export async function buildValueResearchReport(
     buffettValuation: buffett,
     consolidatedMarginOfSafety: consolidatedMoS,
     tomNash,
+    investmentCommittee,
     decision,
     stockVsOptions: svo,
     keyMetrics,
