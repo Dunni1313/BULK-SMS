@@ -7,6 +7,7 @@ import {
   ListBacktestResultsResponse,
 } from "@workspace/api-zod";
 import { makeRng } from "../lib/optionsMath.js";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 
 const router: IRouter = Router();
 
@@ -62,9 +63,11 @@ router.post("/backtest/run", async (req, res): Promise<void> => {
   const drawdowns = equityCurve.map((p) => p.drawdown || 0);
   const maxDrawdown = Math.min(...drawdowns);
 
+  const userId = await getLegacyOwnerUserId();
   const [result] = await db
     .insert(backtestResultsTable)
     .values({
+      userId,
       symbol,
       strategy,
       period,

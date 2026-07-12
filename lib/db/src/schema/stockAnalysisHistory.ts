@@ -1,6 +1,7 @@
-import { pgTable, serial, uuid, text, real, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, real, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { usersTable } from "./users";
 
 // Task #66 — Buffett-style value-investing module. A persisted snapshot of a
 // generated value-investor research run for a single symbol. The full structured
@@ -11,9 +12,10 @@ import { z } from "zod/v4";
 // broker/market data. Advisory/education only; this table never drives execution.
 export const stockAnalysisHistoryTable = pgTable("stock_analysis_history", {
   id: serial("id").primaryKey(),
-  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
-  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
-  userId: uuid("user_id"),
+  // Phase 1, Sprint 4 — backfilled and enforced (see the approved Phase 1
+  // plan §2.5 steps 4-5). ON DELETE RESTRICT: deleting a user must never
+  // silently delete their trade/journal/report history (§2.4).
+  userId: uuid("user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
   symbol: text("symbol").notNull(),
   analysisDate: text("analysis_date").notNull(), // YYYY-MM-DD
   businessQualityScore: real("business_quality_score").notNull().default(0),
@@ -27,7 +29,9 @@ export const stockAnalysisHistoryTable = pgTable("stock_analysis_history", {
   dataSource: text("data_source").notNull().default("SIMULATED"),
   valueResearchJson: jsonb("value_research_json").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("stock_analysis_history_user_id_idx").on(table.userId),
+]);
 
 export const insertStockAnalysisHistorySchema = createInsertSchema(stockAnalysisHistoryTable).omit({
   id: true,

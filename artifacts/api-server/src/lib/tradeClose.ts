@@ -7,6 +7,7 @@ import { db, tradesTable, journalEntriesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { computeTradeGreeks, getSettingsRow } from "./serverState.js";
 import { computeStopLoss } from "./risk.js";
+import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
 export interface ClosedTrade {
   trade: typeof tradesTable.$inferSelect;
@@ -46,7 +47,9 @@ export async function closeTradePosition(
     .returning();
 
   const pnl = g.unrealizedPnl;
+  const userId = await getLegacyOwnerUserId();
   await db.insert(journalEntriesTable).values({
+    userId,
     tradeId: updated.id,
     title: `Closed ${updated.symbol} ${updated.strategy.replace(/_/g, " ")}`,
     content: `${exitReason}. Realized P&L of $${pnl.toFixed(2)} (${g.unrealizedPnlPercent.toFixed(1)}% of max profit) at close.`,

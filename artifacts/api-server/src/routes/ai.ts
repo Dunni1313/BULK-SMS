@@ -18,6 +18,7 @@ import {
   type CoachLevel,
 } from "../lib/coachLLM.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 import { UNIVERSE } from "../lib/optionsMath.js";
 import { openSse } from "../lib/sse.js";
 
@@ -533,14 +534,15 @@ router.post("/ai/chat", async (req, res): Promise<void> => {
   }
 
   const { message, mode, level } = parsed.data;
+  const userId = await getLegacyOwnerUserId();
 
-  await db.insert(aiMessagesTable).values({ role: "user", message });
+  await db.insert(aiMessagesTable).values({ userId, role: "user", message });
 
   const aiResponse = await generateAiResponse(message, { mode, level });
 
   const [aiMsg] = await db
     .insert(aiMessagesTable)
-    .values({ role: "assistant", message: aiResponse })
+    .values({ userId, role: "assistant", message: aiResponse })
     .returning();
 
   res.json(
@@ -564,8 +566,9 @@ router.post("/ai/chat/stream", async (req, res): Promise<void> => {
   }
 
   const { message, mode, level } = parsed.data;
+  const userId = await getLegacyOwnerUserId();
 
-  await db.insert(aiMessagesTable).values({ role: "user", message });
+  await db.insert(aiMessagesTable).values({ userId, role: "user", message });
 
   const sse = openSse(res);
   let streamed = false;
@@ -587,7 +590,7 @@ router.post("/ai/chat/stream", async (req, res): Promise<void> => {
 
     const [aiMsg] = await db
       .insert(aiMessagesTable)
-      .values({ role: "assistant", message: aiResponse })
+      .values({ userId, role: "assistant", message: aiResponse })
       .returning();
 
     sse.send("done", {

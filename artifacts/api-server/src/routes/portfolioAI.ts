@@ -29,6 +29,7 @@ import {
   llmAvailable,
 } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 
 const router: IRouter = Router();
 
@@ -118,6 +119,7 @@ router.post("/reports", async (_req, res): Promise<void> => {
   const [row] = await db
     .insert(dailyReportsTable)
     .values({
+      userId: await getLegacyOwnerUserId(),
       reportDate: report.date,
       healthScore: report.health.health.score,
       healthLabel: report.health.health.label,
@@ -210,8 +212,10 @@ router.post("/reports/restore", async (req, res): Promise<void> => {
     res.json(RestoreDailyReportsResponse.parse({ restored: 0 }));
     return;
   }
+  const userId = await getLegacyOwnerUserId();
   await db.insert(dailyReportsTable).values(
     reports.map((r) => ({
+      userId,
       reportDate: r.reportDate,
       healthScore: r.healthScore,
       healthLabel: r.healthLabel,

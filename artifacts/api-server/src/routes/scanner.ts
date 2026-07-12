@@ -7,6 +7,7 @@ import {
   GetTopOpportunitiesResponse,
   GetEarningsScanResponse,
 } from "@workspace/api-zod";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 import {
   UNIVERSE,
   UNIVERSE_SYMBOLS,
@@ -21,8 +22,9 @@ import { getSettingsRow } from "../lib/serverState.js";
 
 const router: IRouter = Router();
 
-function quoteToRow(q: StrategyQuote) {
+function quoteToRow(q: StrategyQuote, userId: string) {
   return {
+    userId,
     symbol: q.symbol,
     strategy: q.strategy,
     expiration: q.expiration,
@@ -65,7 +67,8 @@ async function scanAndPersist(overrides: { shortDelta?: number; defaultDte?: num
     UNIVERSE_SYMBOLS,
   );
   setLastScanHealth(health);
-  return { rows: quotes.map(quoteToRow), health };
+  const userId = await getLegacyOwnerUserId();
+  return { rows: quotes.map((q) => quoteToRow(q, userId)), health };
 }
 
 router.get("/scanner/results", async (req, res): Promise<void> => {

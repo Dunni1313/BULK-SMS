@@ -29,6 +29,7 @@ import { closeTradePosition } from "../lib/tradeClose.js";
 import { evaluateTradeAdjustment, ADJUSTMENT_DISCLAIMER } from "../lib/adjustment.js";
 import { narrateAdjustment, narrateAdjustmentStream } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 
 const router: IRouter = Router();
 
@@ -172,6 +173,7 @@ router.post("/trades", async (req, res): Promise<void> => {
   const [trade] = await db
     .insert(tradesTable)
     .values({
+      userId: await getLegacyOwnerUserId(),
       symbol,
       strategy,
       executionMode,

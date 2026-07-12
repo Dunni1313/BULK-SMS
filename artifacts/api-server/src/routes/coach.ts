@@ -42,6 +42,7 @@ import {
 import { canonicalQuote } from "../lib/execution.js";
 import { openSse } from "../lib/sse.js";
 import { scannerResultsTable } from "@workspace/db";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 
 const router: IRouter = Router();
 
@@ -87,9 +88,11 @@ async function persistTradeExplanation(
   scId: number | null,
   narration: { text: string; source: "llm" | "template" },
 ): Promise<number> {
+  const userId = await getLegacyOwnerUserId();
   const [saved] = await db
     .insert(tradeExplanationsTable)
     .values({
+      userId,
       symbol: explanation.symbol,
       strategy: explanation.strategy,
       scannerResultId: scId,
@@ -103,6 +106,7 @@ async function persistTradeExplanation(
     .returning();
 
   await db.insert(aiLessonsTable).values({
+    userId,
     kind: "trade_explanation",
     topic: `${explanation.symbol} ${explanation.strategyLabel}`,
     title: `${explanation.symbol} ${explanation.strategyLabel} — explained`,
@@ -205,6 +209,7 @@ router.post("/coach/teach-greek", async (req, res): Promise<void> => {
     const narration = await narrateGreekLesson(lesson);
 
     await db.insert(aiLessonsTable).values({
+      userId: await getLegacyOwnerUserId(),
       kind: "greek",
       topic: lesson.greek,
       title: lesson.title,
@@ -253,6 +258,7 @@ router.post("/coach/teach-greek/stream", async (req, res): Promise<void> => {
     );
     try {
       await db.insert(aiLessonsTable).values({
+        userId: await getLegacyOwnerUserId(),
         kind: "greek",
         topic: lesson.greek,
         title: lesson.title,
@@ -304,6 +310,7 @@ router.post("/coach/quiz/grade", async (req, res): Promise<void> => {
   try {
     const result = gradeQuiz(quizId, answers);
     await db.insert(greeksQuizResultsTable).values({
+      userId: await getLegacyOwnerUserId(),
       topic: result.topic,
       score: result.score,
       total: result.total,
@@ -464,6 +471,7 @@ async function persistJournalReview(
   review: { review: string; lessonLearned: string; source: "llm" | "template" },
 ): Promise<void> {
   await db.insert(aiLessonsTable).values({
+    userId: await getLegacyOwnerUserId(),
     kind: "journal_review",
     topic: `${trade.symbol} ${data.strategyLabel}`,
     title: `${trade.symbol} ${data.strategyLabel} — trade review`,

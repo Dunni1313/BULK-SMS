@@ -44,6 +44,7 @@ import {
 import { CoachError } from "../lib/coach.js";
 import { narrateValueResearch, narrateValueResearchStream, llmAvailable } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 
 const router: IRouter = Router();
 
@@ -136,6 +137,7 @@ async function persistResearch(report: ValueResearchReport): Promise<number> {
   const [row] = await db
     .insert(stockAnalysisHistoryTable)
     .values({
+      userId: await getLegacyOwnerUserId(),
       symbol: report.symbol,
       analysisDate: report.asOf,
       businessQualityScore: report.businessQuality.score,
@@ -325,6 +327,7 @@ router.post("/value-watchlist", async (req, res): Promise<void> => {
   const [row] = await db
     .insert(valueWatchlistTable)
     .values({
+      userId: await getLegacyOwnerUserId(),
       symbol,
       category: body.category ?? "Researching",
       fairValueEstimate,
@@ -407,6 +410,7 @@ router.post("/value-quiz/grade", async (req, res): Promise<void> => {
   try {
     const result = gradeValueQuiz(parsed.data.quizId, parsed.data.answers);
     await db.insert(valueQuizResultsTable).values({
+      userId: await getLegacyOwnerUserId(),
       topic: result.topic,
       score: result.score,
       total: result.total,

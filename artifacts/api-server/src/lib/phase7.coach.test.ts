@@ -53,8 +53,16 @@ vi.mock("@workspace/db", () => {
     settingsTable: table(),
     tradeExplanationsTable: table(),
     tradesTable: table(),
+    usersTable: table(),
   };
 });
+
+// aiMessagesTable inserts now resolve a legacy-owner userId (Sprint 4 stand-in
+// for real per-request auth — see lib/legacyOwner.ts). Stub it directly so it
+// doesn't interact with the generic dbRows harness other tests rely on.
+vi.mock("./legacyOwner.js", () => ({
+  getLegacyOwnerUserId: async () => "test-legacy-owner-id",
+}));
 
 // Replace the data/account helpers so the risk/strategy modes resolve to safe,
 // deterministic numbers without a real DB.

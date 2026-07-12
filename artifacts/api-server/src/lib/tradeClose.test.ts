@@ -83,6 +83,13 @@ vi.mock("@workspace/db", () => {
   return { db, tradesTable, journalEntriesTable };
 });
 
+// closeTradePosition now resolves a legacy-owner userId (Sprint 4 stand-in for
+// real per-request auth — see lib/legacyOwner.ts). Stub it directly so this
+// test stays focused on close-position logic, not user resolution.
+vi.mock("./legacyOwner.js", () => ({
+  getLegacyOwnerUserId: async () => "test-legacy-owner-id",
+}));
+
 vi.mock("./serverState.js", () => ({
   getSettingsRow: vi.fn(async () => state.settings),
   computeTradeGreeks: vi.fn(() => ({

@@ -8,6 +8,7 @@ import {
   CreateJournalEntryBody,
   UpdateJournalEntryBody,
 } from "@workspace/api-zod";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 
 const router: IRouter = Router();
 
@@ -42,6 +43,7 @@ router.post("/journal", async (req, res): Promise<void> => {
   const [entry] = await db
     .insert(journalEntriesTable)
     .values({
+      userId: await getLegacyOwnerUserId(),
       tradeId: d.tradeId ?? null,
       title: d.title,
       content: d.content,

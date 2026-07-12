@@ -1,12 +1,14 @@
-import { pgTable, serial, uuid, text, real, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, real, integer, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { usersTable } from "./users";
 
 export const backtestResultsTable = pgTable("backtest_results", {
   id: serial("id").primaryKey(),
-  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
-  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
-  userId: uuid("user_id"),
+  // Phase 1, Sprint 4 — backfilled and enforced (see the approved Phase 1
+  // plan §2.5 steps 4-5). ON DELETE RESTRICT: deleting a user must never
+  // silently delete their trade/journal/report history (§2.4).
+  userId: uuid("user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
   symbol: text("symbol").notNull(),
   strategy: text("strategy").notNull(),
   period: text("period").notNull(),
@@ -24,7 +26,9 @@ export const backtestResultsTable = pgTable("backtest_results", {
   evAnnualized: real("ev_annualized").notNull().default(0),
   equityCurve: jsonb("equity_curve").notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("backtest_results_user_id_idx").on(table.userId),
+]);
 
 export const insertBacktestResultSchema = createInsertSchema(backtestResultsTable).omit({ id: true, createdAt: true });
 export type InsertBacktestResult = z.infer<typeof insertBacktestResultSchema>;

@@ -39,6 +39,7 @@ import {
   type AdjustmentAction,
 } from "./adjustment.js";
 import { closeTradePosition } from "./tradeClose.js";
+import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
 const ALPACA_ORDERS_URL = "https://paper-api.alpaca.markets/v2/orders";
 
@@ -1016,10 +1017,12 @@ export async function executeValidatedTicket(
   const result = await routeOrder(order, settingsRow.alpacaApiKey);
 
   const sourceLabel = source === "full_auto" ? "Full-auto" : "Semi-auto";
+  const userId = await getLegacyOwnerUserId();
 
   const [trade] = await db
     .insert(tradesTable)
     .values({
+      userId,
       symbol: ticket.symbol,
       strategy: ticket.strategy,
       status: "pending",
@@ -1043,6 +1046,7 @@ export async function executeValidatedTicket(
   const [journal] = await db
     .insert(journalEntriesTable)
     .values({
+      userId,
       tradeId: trade.id,
       title: `${sourceLabel === "Full-auto" ? "Auto-submitted" : "Submitted"} ${ticket.symbol} ${ticket.strategy.replace(/_/g, " ")}`,
       content: `Order ${result.orderId} (${result.status}) via ${result.broker}. ${ticket.quantity} spread(s), net ${

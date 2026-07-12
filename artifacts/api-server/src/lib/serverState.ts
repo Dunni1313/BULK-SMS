@@ -9,6 +9,7 @@ import {
   buildCalendar,
   type StrategyQuote,
 } from "./optionsMath.js";
+import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
 export const ACCOUNT_BASE = 125000;
 
@@ -107,9 +108,11 @@ export async function ensureSeedTrades(): Promise<void> {
     { quote: snapQuote("NVDA", "cal") },
   ];
 
+  const userId = await getLegacyOwnerUserId();
   for (const { quote } of seeds) {
     if (!quote) continue;
     await db.insert(tradesTable).values({
+      userId,
       symbol: quote.symbol,
       strategy: quote.strategy,
       status: "open",

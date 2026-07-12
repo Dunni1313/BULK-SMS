@@ -46,12 +46,13 @@ These rules apply regardless of how a request is phrased, including requests tha
 - **Sprint 1 verification status:** the real `pnpm typecheck`/`pnpm build`/`pnpm test` have been run for real, with dependencies installed and a live Postgres database — all green.
 - **Sprint 2 — COMPLETE.** `.env.example` added at the repo root; `coachLLM.ts`'s `init()` now checks `ANTHROPIC_API_KEY` first, falls back to `OPENAI_API_KEY` (OpenAI-shaped or, for backward compatibility, `sk-ant-`-prefixed with a logged deprecation warning), preserving identical behavior for existing deployments. Zero existing lines of application logic outside `init()` were touched. New test: `coachLLM.envMigration.test.ts`; existing `phase7.coach.test.ts`, `coach-level.test.ts`, `coach-slowload.test.ts` pass unmodified.
 - **Sprint 3 — COMPLETE.** Nullable `user_id` (uuid) added to all 13 user-scoped schema files, via `lib/db/manual-migrations/001_add_user_id_nullable.sql` (renumbered the Sprint 1 backfill draft to `002_...` to keep run-order numbering correct). No FK, no `NOT NULL`, no application code reads or writes it yet — `auto_execution_log` untouched, per scope. Full existing test suite passes unmodified.
-- **Sprint 4 — NOT STARTED.** Do not begin Sprint 4 work without explicit instruction.
+- **Sprint 4 — COMPLETE.** Backfilled all 12 non-`settings` tables to a single legacy-owner user (`dunnikarp@gmail.com`, Owner Decision #4 resolved), then enforced `NOT NULL` + FK (`ON DELETE RESTRICT`) + index on `user_id` for all 12, via `lib/db/manual-migrations/002_backfill_and_enforce.sql`. `settings` deliberately untouched (still nullable — ships with Sprint 5's code change, per §2.3). Enforcing `NOT NULL` made every existing `.insert()` into these tables require `userId` at the TypeScript level (a plan assumption gap, not anticipated by "no application code reads user_id yet") — 24 call sites across 10 files (including `execution.ts` and `tradeClose.ts`) now resolve a temporary `getLegacyOwnerUserId()` stand-in (`lib/legacyOwner.ts`), explicitly approved for this exact scope. No execution/order-routing/risk logic changed — only the added `userId` field. Full existing test suite passes unmodified in assertions (two DB-mock test files gained a `usersTable`/`legacyOwner` stub to support the new dependency).
+- **Sprint 5 — NOT STARTED.** Do not begin Sprint 5 work without explicit instruction.
 - **Outstanding owner decisions blocking later sprints** (see Phase 1 plan §11 for full detail — do not resolve these unilaterally):
   1. Authentication provider (recommended: Better-Auth; alternative: Clerk)
   2. Automation scheduler multi-tenancy model (highest-consequence decision in the phase — touches kill-switch-adjacent code)
   3. `stock_analysis_history` — per-user vs. shared cache
-  4. Legacy data ownership — which email owns pre-existing single-tenant data
+  4. ~~Legacy data ownership~~ — **RESOLVED (Sprint 4): `dunnikarp@gmail.com`.**
   5. `uuid` vs `serial` precedent for `users.id` (currently proceeding with `uuid`, per the plan's default recommendation)
   6. CORS allowed-origin list
   7. Deprecation window for the legacy `OPENAI_API_KEY` overload

@@ -1,12 +1,14 @@
-import { pgTable, serial, uuid, text, real, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, real, integer, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { usersTable } from "./users";
 
 export const scannerResultsTable = pgTable("scanner_results", {
   id: serial("id").primaryKey(),
-  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
-  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
-  userId: uuid("user_id"),
+  // Phase 1, Sprint 4 — backfilled and enforced (see the approved Phase 1
+  // plan §2.5 steps 4-5). ON DELETE RESTRICT: deleting a user must never
+  // silently delete their trade/journal/report history (§2.4).
+  userId: uuid("user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
   symbol: text("symbol").notNull(),
   strategy: text("strategy").notNull(),
   expiration: text("expiration"),
@@ -31,7 +33,9 @@ export const scannerResultsTable = pgTable("scanner_results", {
   eventRiskEvents: jsonb("event_risk_events").notNull().default([]),
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("scanner_results_user_id_idx").on(table.userId),
+]);
 
 export const insertScannerResultSchema = createInsertSchema(scannerResultsTable).omit({ id: true, createdAt: true });
 export type InsertScannerResult = z.infer<typeof insertScannerResultSchema>;
