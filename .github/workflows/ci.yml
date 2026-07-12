@@ -42,6 +42,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://dkos:dkos@localhost:5432/dkos_ci
       NODE_ENV: test
+      PORT: "8080"
+      BASE_PATH: "/"
 
     steps:
       - uses: actions/checkout@v4
