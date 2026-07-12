@@ -1,4 +1,5 @@
-// Task #66 — 15-section value-investing research report assembler.
+// Task #66 — 16-section value-investing research report assembler (Phase 2,
+// Sprint 12 added the "Graham Valuation" section).
 //
 // Pure + deterministic: composes the SIMULATED fundamentals + the value-investing
 // engines into a structured, ordered report. The LLM (coachLLM) only narrates the
@@ -28,6 +29,7 @@ import {
   type Valuation,
   type ValueDecision,
 } from "./valueInvesting.js";
+import { analyzeGrahamValuation, type GrahamValuation } from "./grahamValuation.js";
 
 // The standard value-investing disclaimer. Distinct from COACH_DISCLAIMER but the
 // LLM narration is still routed through narrate() so COACH_DISCLAIMER is appended.
@@ -88,6 +90,7 @@ export interface ValueResearchReport {
   moat: MoatAnalysis;
   financialStrength: FinancialStrength;
   valuation: Valuation;
+  grahamValuation: GrahamValuation;
   decision: ValueDecision;
   stockVsOptions: StockVsOptions;
   keyMetrics: KeyMetric[];
@@ -151,6 +154,7 @@ export async function buildValueResearchReport(
   const moat = analyzeMoat(f);
   const fin = analyzeFinancialStrength(f);
   const val = analyzeValuation(f);
+  const graham = analyzeGrahamValuation(f);
   const decision = analyzeValueDecision(f, bq, moat, fin, val);
   const svo = analyzeStockVsOptions(f, bq, moat, val, snap);
 
@@ -233,45 +237,51 @@ export async function buildValueResearchReport(
       bullets: val.available ? val.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [val.reason],
     },
     {
+      id: "graham-valuation",
+      title: "9. Graham Valuation",
+      body: graham.summary,
+      bullets: graham.available ? graham.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [graham.reason],
+    },
+    {
       id: "margin-of-safety",
-      title: "9. Margin of Safety",
+      title: "10. Margin of Safety",
       body: val.available
         ? `At ${money(f.price)} versus a ${money(val.fairValue)} fair-value estimate, the margin of safety is ${pct(val.marginOfSafety)} (${val.marginOfSafetyLabel}). Buffett's rule: only buy with a meaningful discount to intrinsic value.`
         : "Margin of safety is unavailable because intrinsic value could not be estimated without fabricating a number. The honest answer is: not computable.",
     },
     {
       id: "risks",
-      title: "10. Risks & Red Flags",
+      title: "11. Risks & Red Flags",
       body: `Key risks identified in the ${dataLabel} fundamentals:`,
       bullets: risks.map((r) => `[${r.severity.toUpperCase()}] ${r.text}`),
     },
     {
       id: "decision",
-      title: "11. Value-Investor Decision",
+      title: "12. Value-Investor Decision",
       body: decision.summary,
       bullets: decision.rationale,
     },
     {
       id: "stock-vs-options",
-      title: "12. Stock vs. Options",
+      title: "13. Stock vs. Options",
       body: svo.summary,
       bullets: [svo.stockCase, svo.optionsCase],
     },
     {
       id: "checklist",
-      title: "13. Buffett Checklist",
+      title: "14. Buffett Checklist",
       body: "A wonderful business at a fair price, bought with a margin of safety:",
       bullets: buffettChecklist(f, bq, moat, fin, val),
     },
     {
       id: "metrics",
-      title: "14. Key Metrics",
+      title: "15. Key Metrics",
       body: `Headline ${dataLabel} metrics (see full table in the UI).`,
       bullets: keyMetrics.map((m) => `${m.label}: ${m.value}`),
     },
     {
       id: "disclaimer",
-      title: "15. Disclaimers & Data Source",
+      title: "16. Disclaimers & Data Source",
       body: disclaimerFor(f.dataSource),
       bullets: [`Data source: ${f.dataSource}`, `As of: ${f.asOf}`],
     },
@@ -291,6 +301,7 @@ export async function buildValueResearchReport(
     moat,
     financialStrength: fin,
     valuation: val,
+    grahamValuation: graham,
     decision,
     stockVsOptions: svo,
     keyMetrics,

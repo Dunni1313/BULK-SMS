@@ -62,6 +62,21 @@ export function makeValueReport(
       marginOfSafetyLabel: ValueValuationMarginOfSafetyLabel.Medium,
       rating: ValueValuationRating.Fair,
     },
+    grahamValuation: {
+      available: true,
+      price: 210.5,
+      summary: "Trades below the Graham fair-value estimate.",
+      grahamNumber: 230.5,
+      growthFormulaValue: 245.2,
+      fairValue: 237.85,
+      methods: [
+        { method: "Graham Number", fairValue: 230.5, detail: "sqrt(22.5 x EPS x book value/share)" },
+        { method: "Graham Growth Formula", fairValue: 245.2, detail: "EPS x (8.5 + 2g) x 4.4/Y" },
+      ],
+      marginOfSafety: 0.115,
+      marginOfSafetyLabel: ValueValuationMarginOfSafetyLabel.Low,
+      rating: ValueValuationRating.Fair,
+    },
     decision: {
       verdict: ValueDecisionVerdict.BUY_ONLY_ON_PULLBACK,
       conviction: 72,

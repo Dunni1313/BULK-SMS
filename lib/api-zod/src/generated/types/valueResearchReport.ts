@@ -9,6 +9,7 @@ import type { ValueBusinessQuality } from './valueBusinessQuality';
 import type { ValueDecision } from './valueDecision';
 import type { ValueFinancialStrength } from './valueFinancialStrength';
 import type { ValueFundamentalsFallback } from './valueFundamentalsFallback';
+import type { ValueGrahamValuation } from './valueGrahamValuation';
 import type { ValueKeyMetric } from './valueKeyMetric';
 import type { ValueMoatAnalysis } from './valueMoatAnalysis';
 import type { ValueReportSection } from './valueReportSection';
@@ -31,6 +32,7 @@ export interface ValueResearchReport {
   moat: ValueMoatAnalysis;
   financialStrength: ValueFinancialStrength;
   valuation: ValueValuation;
+  grahamValuation: ValueGrahamValuation;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

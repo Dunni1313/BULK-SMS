@@ -1470,6 +1470,28 @@ components:
           enum: [Cheap, Fair, Expensive, Very Expensive]
         reason: { type: string }
 
+    ValueGrahamValuation:
+      type: object
+      required: [available, price, summary]
+      properties:
+        available: { type: boolean }
+        price: { type: number }
+        summary: { type: string }
+        grahamNumber: { type: ["number", "null"] }
+        growthFormulaValue: { type: ["number", "null"] }
+        fairValue: { type: number }
+        methods:
+          type: array
+          items: { $ref: "#/components/schemas/ValueFairValueMethod" }
+        marginOfSafety: { type: number }
+        marginOfSafetyLabel:
+          type: string
+          enum: [High, Medium, Low, None]
+        rating:
+          type: string
+          enum: [Cheap, Fair, Expensive, Very Expensive]
+        reason: { type: string }
+
     ValueDecision:
       type: object
       required: [verdict, conviction, rationale, summary]
@@ -1535,7 +1557,7 @@ components:
     ValueResearchReport:
       type: object
       required:
-        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, moat, financialStrength, valuation, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
+        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, moat, financialStrength, valuation, grahamValuation, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
       properties:
         symbol: { type: string }
         name: { type: string }
@@ -1552,6 +1574,7 @@ components:
         moat: { $ref: "#/components/schemas/ValueMoatAnalysis" }
         financialStrength: { $ref: "#/components/schemas/ValueFinancialStrength" }
         valuation: { $ref: "#/components/schemas/ValueValuation" }
+        grahamValuation: { $ref: "#/components/schemas/ValueGrahamValuation" }
         decision: { $ref: "#/components/schemas/ValueDecision" }
         stockVsOptions: { $ref: "#/components/schemas/ValueStockVsOptions" }
         keyMetrics:

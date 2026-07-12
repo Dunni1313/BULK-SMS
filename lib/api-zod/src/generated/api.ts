@@ -2358,6 +2358,23 @@ export const GenerateValueResearchResponse = zod.object({
   "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
   "reason": zod.string().optional()
 }),
+  "grahamValuation": zod.object({
+  "available": zod.boolean(),
+  "price": zod.number(),
+  "summary": zod.string(),
+  "grahamNumber": zod.number().nullish(),
+  "growthFormulaValue": zod.number().nullish(),
+  "fairValue": zod.number().optional(),
+  "methods": zod.array(zod.object({
+  "method": zod.string(),
+  "fairValue": zod.number(),
+  "detail": zod.string()
+})).optional(),
+  "marginOfSafety": zod.number().optional(),
+  "marginOfSafetyLabel": zod.enum(['High', 'Medium', 'Low', 'None']).optional(),
+  "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
+  "reason": zod.string().optional()
+}),
   "decision": zod.object({
   "verdict": zod.enum(['LONG-TERM BUY', 'BUY ONLY ON PULLBACK', 'WATCHLIST', 'HOLD', 'TRIM', 'AVOID']),
   "conviction": zod.number(),
@@ -2626,6 +2643,23 @@ export const GetValueReportResponse = zod.object({
   "fairValue": zod.number().optional(),
   "fairValueLow": zod.number().optional(),
   "fairValueHigh": zod.number().optional(),
+  "methods": zod.array(zod.object({
+  "method": zod.string(),
+  "fairValue": zod.number(),
+  "detail": zod.string()
+})).optional(),
+  "marginOfSafety": zod.number().optional(),
+  "marginOfSafetyLabel": zod.enum(['High', 'Medium', 'Low', 'None']).optional(),
+  "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
+  "reason": zod.string().optional()
+}),
+  "grahamValuation": zod.object({
+  "available": zod.boolean(),
+  "price": zod.number(),
+  "summary": zod.string(),
+  "grahamNumber": zod.number().nullish(),
+  "growthFormulaValue": zod.number().nullish(),
+  "fairValue": zod.number().optional(),
   "methods": zod.array(zod.object({
   "method": zod.string(),
   "fairValue": zod.number(),

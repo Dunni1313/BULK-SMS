@@ -110,6 +110,42 @@ export interface ValueValuation {
   reason?: string;
 }
 
+export type ValueGrahamValuationMarginOfSafetyLabel = typeof ValueGrahamValuationMarginOfSafetyLabel[keyof typeof ValueGrahamValuationMarginOfSafetyLabel];
+
+
+export const ValueGrahamValuationMarginOfSafetyLabel = {
+  High: 'High',
+  Medium: 'Medium',
+  Low: 'Low',
+  None: 'None',
+} as const;
+
+export type ValueGrahamValuationRating = typeof ValueGrahamValuationRating[keyof typeof ValueGrahamValuationRating];
+
+
+export const ValueGrahamValuationRating = {
+  Cheap: 'Cheap',
+  Fair: 'Fair',
+  Expensive: 'Expensive',
+  Very_Expensive: 'Very Expensive',
+} as const;
+
+export interface ValueGrahamValuation {
+  available: boolean;
+  price: number;
+  summary: string;
+  /** @nullable */
+  grahamNumber?: number | null;
+  /** @nullable */
+  growthFormulaValue?: number | null;
+  fairValue?: number;
+  methods?: ValueFairValueMethod[];
+  marginOfSafety?: number;
+  marginOfSafetyLabel?: ValueGrahamValuationMarginOfSafetyLabel;
+  rating?: ValueGrahamValuationRating;
+  reason?: string;
+}
+
 export type ValueDecisionVerdict = typeof ValueDecisionVerdict[keyof typeof ValueDecisionVerdict];
 
 
@@ -212,6 +248,7 @@ export interface ValueResearchReport {
   moat: ValueMoatAnalysis;
   financialStrength: ValueFinancialStrength;
   valuation: ValueValuation;
+  grahamValuation: ValueGrahamValuation;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

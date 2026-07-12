@@ -207,10 +207,35 @@ export function analyzeFinancialStrength(f: Fundamentals): FinancialStrength {
 export type ValuationRating = "Cheap" | "Fair" | "Expensive" | "Very Expensive";
 export type MarginOfSafetyLabel = "High" | "Medium" | "Low" | "None";
 
-interface FairValueMethod {
+// Exported (Phase 2, Sprint 12) so other valuation models — Graham today,
+// DCF/Buffett in later sprints — can reuse the exact same {method, fairValue,
+// detail} shape instead of redefining it per model.
+export interface FairValueMethod {
   method: string;
   fairValue: number;
   detail: string;
+}
+
+// Shared margin-of-safety -> label/rating classification (Phase 2, Sprint 12
+// extraction — was inline duplication waiting to happen the moment a second
+// valuation model needed the same thresholds; Graham's engine reuses this
+// directly, and DCF/Buffett will too). Pure function, same thresholds
+// analyzeValuation always used.
+export function classifyMarginOfSafety(marginOfSafety: number): {
+  marginOfSafetyLabel: MarginOfSafetyLabel;
+  rating: ValuationRating;
+} {
+  let marginOfSafetyLabel: MarginOfSafetyLabel = "None";
+  if (marginOfSafety >= 0.25) marginOfSafetyLabel = "High";
+  else if (marginOfSafety >= 0.12) marginOfSafetyLabel = "Medium";
+  else if (marginOfSafety > 0) marginOfSafetyLabel = "Low";
+
+  let rating: ValuationRating = "Fair";
+  if (marginOfSafety >= 0.15) rating = "Cheap";
+  else if (marginOfSafety <= -0.3) rating = "Very Expensive";
+  else if (marginOfSafety <= -0.1) rating = "Expensive";
+
+  return { marginOfSafetyLabel, rating };
 }
 
 export type Valuation =
@@ -287,15 +312,7 @@ export function analyzeValuation(f: Fundamentals): Valuation {
   const fairValueHigh = round(Math.max(...fairValues) * 1.1, 2);
 
   const marginOfSafety = round((fairValue - f.price) / fairValue, 4) as number; // fraction
-  let mosLabel: MarginOfSafetyLabel = "None";
-  if (marginOfSafety >= 0.25) mosLabel = "High";
-  else if (marginOfSafety >= 0.12) mosLabel = "Medium";
-  else if (marginOfSafety > 0) mosLabel = "Low";
-
-  let rating: ValuationRating = "Fair";
-  if (marginOfSafety >= 0.15) rating = "Cheap";
-  else if (marginOfSafety <= -0.3) rating = "Very Expensive";
-  else if (marginOfSafety <= -0.1) rating = "Expensive";
+  const { marginOfSafetyLabel: mosLabel, rating } = classifyMarginOfSafety(marginOfSafety);
 
   const mosPct = (marginOfSafety * 100).toFixed(0);
   const summary =

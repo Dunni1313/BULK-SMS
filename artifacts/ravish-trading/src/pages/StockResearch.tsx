@@ -40,6 +40,7 @@ import {
   Bot,
   Building2,
   RefreshCw,
+  Calculator,
 } from "lucide-react";
 
 type Level = ValueResearchInputLevel;
@@ -140,6 +141,7 @@ export function ReportView({
   refreshing?: boolean;
 }) {
   const v = report.valuation;
+  const g = report.grahamValuation;
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -333,6 +335,68 @@ export function ReportView({
                   <AlertTriangle className="w-3.5 h-3.5" /> Fair value unavailable
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-1">{v.reason ?? v.summary}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card/60 border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Calculator className="w-4 h-4 text-indigo-400" /> Graham Valuation
+              {g.available && g.rating && (
+                <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                  {g.rating}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {g.available ? (
+              <>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="text-muted-foreground">Price</div>
+                    <div className="font-mono text-foreground">{fmtUsd(g.price)}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Fair value (Graham)</div>
+                    <div className="font-mono text-foreground">
+                      {g.fairValue != null ? fmtUsd(g.fairValue) : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Margin of safety</div>
+                    <div
+                      className={`font-mono ${
+                        (g.marginOfSafety ?? 0) > 0 ? "text-emerald-400" : "text-rose-400"
+                      }`}
+                    >
+                      {g.marginOfSafety != null ? `${(g.marginOfSafety * 100).toFixed(1)}%` : "—"}
+                      {g.marginOfSafetyLabel && (
+                        <span className="text-[10px] text-muted-foreground ml-1">({g.marginOfSafetyLabel})</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">{g.summary}</p>
+                {g.methods && g.methods.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    {g.methods.map((m) => (
+                      <div key={m.method} className="flex items-center justify-between text-[11px]">
+                        <span className="text-muted-foreground">{m.method}</span>
+                        <span className="font-mono text-foreground/90">{fmtUsd(m.fairValue)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
+                <p className="text-xs font-medium text-amber-400 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Graham fair value unavailable
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">{g.reason ?? g.summary}</p>
               </div>
             )}
           </CardContent>
