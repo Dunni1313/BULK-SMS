@@ -5,7 +5,9 @@
  * DK Option Engine
  * OpenAPI spec version: 0.1.0
  */
+import type { ValueBuffettValuation } from './valueBuffettValuation';
 import type { ValueBusinessQuality } from './valueBusinessQuality';
+import type { ValueConsolidatedMarginOfSafety } from './valueConsolidatedMarginOfSafety';
 import type { ValueDcfValuation } from './valueDcfValuation';
 import type { ValueDecision } from './valueDecision';
 import type { ValueFinancialStrength } from './valueFinancialStrength';
@@ -35,6 +37,8 @@ export interface ValueResearchReport {
   valuation: ValueValuation;
   grahamValuation: ValueGrahamValuation;
   dcfValuation: ValueDcfValuation;
+  buffettValuation: ValueBuffettValuation;
+  consolidatedMarginOfSafety: ValueConsolidatedMarginOfSafety;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

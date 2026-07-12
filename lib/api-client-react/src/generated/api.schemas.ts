@@ -194,6 +194,72 @@ export interface ValueDcfValuation {
   reason?: string;
 }
 
+export type ValueBuffettValuationMarginOfSafetyLabel = typeof ValueBuffettValuationMarginOfSafetyLabel[keyof typeof ValueBuffettValuationMarginOfSafetyLabel];
+
+
+export const ValueBuffettValuationMarginOfSafetyLabel = {
+  High: 'High',
+  Medium: 'Medium',
+  Low: 'Low',
+  None: 'None',
+} as const;
+
+export type ValueBuffettValuationRating = typeof ValueBuffettValuationRating[keyof typeof ValueBuffettValuationRating];
+
+
+export const ValueBuffettValuationRating = {
+  Cheap: 'Cheap',
+  Fair: 'Fair',
+  Expensive: 'Expensive',
+  Very_Expensive: 'Very Expensive',
+} as const;
+
+export interface ValueBuffettValuation {
+  available: boolean;
+  price: number;
+  requiredReturn: number;
+  summary: string;
+  ownerEarnings?: number;
+  fairValue?: number;
+  methods?: ValueFairValueMethod[];
+  marginOfSafety?: number;
+  marginOfSafetyLabel?: ValueBuffettValuationMarginOfSafetyLabel;
+  rating?: ValueBuffettValuationRating;
+  reason?: string;
+}
+
+export interface ValueModelFairValue {
+  model: string;
+  fairValue: number;
+}
+
+export type ValueConsolidatedMarginOfSafetyAgreement = typeof ValueConsolidatedMarginOfSafetyAgreement[keyof typeof ValueConsolidatedMarginOfSafetyAgreement];
+
+
+export const ValueConsolidatedMarginOfSafetyAgreement = {
+  unanimous: 'unanimous',
+  majority: 'majority',
+  split: 'split',
+  'insufficient-data': 'insufficient-data',
+} as const;
+
+export interface ValueConsolidatedMarginOfSafety {
+  price: number;
+  modelsConsidered: number;
+  modelsAvailable: number;
+  fairValues: ValueModelFairValue[];
+  /** @nullable */
+  minFairValue?: number | null;
+  /** @nullable */
+  maxFairValue?: number | null;
+  /** @nullable */
+  averageFairValue?: number | null;
+  /** @nullable */
+  averageMarginOfSafety?: number | null;
+  agreement: ValueConsolidatedMarginOfSafetyAgreement;
+  summary: string;
+}
+
 export type ValueDecisionVerdict = typeof ValueDecisionVerdict[keyof typeof ValueDecisionVerdict];
 
 
@@ -298,6 +364,8 @@ export interface ValueResearchReport {
   valuation: ValueValuation;
   grahamValuation: ValueGrahamValuation;
   dcfValuation: ValueDcfValuation;
+  buffettValuation: ValueBuffettValuation;
+  consolidatedMarginOfSafety: ValueConsolidatedMarginOfSafety;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

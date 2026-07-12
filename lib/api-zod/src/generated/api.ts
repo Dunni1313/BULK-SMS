@@ -2397,6 +2397,38 @@ export const GenerateValueResearchResponse = zod.object({
   "confidenceExplanation": zod.string().optional(),
   "reason": zod.string().optional()
 }),
+  "buffettValuation": zod.object({
+  "available": zod.boolean(),
+  "price": zod.number(),
+  "requiredReturn": zod.number(),
+  "summary": zod.string(),
+  "ownerEarnings": zod.number().optional(),
+  "fairValue": zod.number().optional(),
+  "methods": zod.array(zod.object({
+  "method": zod.string(),
+  "fairValue": zod.number(),
+  "detail": zod.string()
+})).optional(),
+  "marginOfSafety": zod.number().optional(),
+  "marginOfSafetyLabel": zod.enum(['High', 'Medium', 'Low', 'None']).optional(),
+  "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
+  "reason": zod.string().optional()
+}),
+  "consolidatedMarginOfSafety": zod.object({
+  "price": zod.number(),
+  "modelsConsidered": zod.number(),
+  "modelsAvailable": zod.number(),
+  "fairValues": zod.array(zod.object({
+  "model": zod.string(),
+  "fairValue": zod.number()
+})),
+  "minFairValue": zod.number().nullish(),
+  "maxFairValue": zod.number().nullish(),
+  "averageFairValue": zod.number().nullish(),
+  "averageMarginOfSafety": zod.number().nullish(),
+  "agreement": zod.enum(['unanimous', 'majority', 'split', 'insufficient-data']),
+  "summary": zod.string()
+}),
   "decision": zod.object({
   "verdict": zod.enum(['LONG-TERM BUY', 'BUY ONLY ON PULLBACK', 'WATCHLIST', 'HOLD', 'TRIM', 'AVOID']),
   "conviction": zod.number(),
@@ -2713,6 +2745,38 @@ export const GetValueReportResponse = zod.object({
   "confidenceLabel": zod.enum(['High', 'Moderate', 'Low']).optional(),
   "confidenceExplanation": zod.string().optional(),
   "reason": zod.string().optional()
+}),
+  "buffettValuation": zod.object({
+  "available": zod.boolean(),
+  "price": zod.number(),
+  "requiredReturn": zod.number(),
+  "summary": zod.string(),
+  "ownerEarnings": zod.number().optional(),
+  "fairValue": zod.number().optional(),
+  "methods": zod.array(zod.object({
+  "method": zod.string(),
+  "fairValue": zod.number(),
+  "detail": zod.string()
+})).optional(),
+  "marginOfSafety": zod.number().optional(),
+  "marginOfSafetyLabel": zod.enum(['High', 'Medium', 'Low', 'None']).optional(),
+  "rating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive']).optional(),
+  "reason": zod.string().optional()
+}),
+  "consolidatedMarginOfSafety": zod.object({
+  "price": zod.number(),
+  "modelsConsidered": zod.number(),
+  "modelsAvailable": zod.number(),
+  "fairValues": zod.array(zod.object({
+  "model": zod.string(),
+  "fairValue": zod.number()
+})),
+  "minFairValue": zod.number().nullish(),
+  "maxFairValue": zod.number().nullish(),
+  "averageFairValue": zod.number().nullish(),
+  "averageMarginOfSafety": zod.number().nullish(),
+  "agreement": zod.enum(['unanimous', 'majority', 'split', 'insufficient-data']),
+  "summary": zod.string()
 }),
   "decision": zod.object({
   "verdict": zod.enum(['LONG-TERM BUY', 'BUY ONLY ON PULLBACK', 'WATCHLIST', 'HOLD', 'TRIM', 'AVOID']),

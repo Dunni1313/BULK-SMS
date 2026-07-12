@@ -42,6 +42,7 @@ import {
   RefreshCw,
   Calculator,
   LineChart,
+  Briefcase,
 } from "lucide-react";
 
 type Level = ValueResearchInputLevel;
@@ -144,6 +145,8 @@ export function ReportView({
   const v = report.valuation;
   const g = report.grahamValuation;
   const d = report.dcfValuation;
+  const b = report.buffettValuation;
+  const c = report.consolidatedMarginOfSafety;
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -206,6 +209,64 @@ export function ReportView({
           <p className="text-[11px] text-amber-300 leading-snug">{report.fallback.message}</p>
         </div>
       )}
+
+      {/* Consolidated Margin of Safety — sits above the per-model valuation
+          cards, giving an at-a-glance rollup before the detailed breakdowns. */}
+      <Card className="bg-card/60 border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Scale className="w-4 h-4 text-indigo-400" /> Margin of Safety (Consolidated)
+            <Badge variant="outline" className="ml-auto text-[10px] border-border capitalize">
+              {c.agreement.replace(/-/g, " ")}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <div className="text-muted-foreground">Models available</div>
+              <div className="font-mono text-foreground">
+                {c.modelsAvailable} / {c.modelsConsidered}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Fair value range</div>
+              <div className="font-mono text-foreground">
+                {c.minFairValue != null && c.maxFairValue != null
+                  ? `${fmtUsd(c.minFairValue)} – ${fmtUsd(c.maxFairValue)}`
+                  : "—"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Average fair value</div>
+              <div className="font-mono text-foreground">
+                {c.averageFairValue != null ? fmtUsd(c.averageFairValue) : "—"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Average margin of safety</div>
+              <div
+                className={`font-mono ${
+                  (c.averageMarginOfSafety ?? 0) > 0 ? "text-emerald-400" : "text-rose-400"
+                }`}
+              >
+                {c.averageMarginOfSafety != null ? `${(c.averageMarginOfSafety * 100).toFixed(1)}%` : "—"}
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">{c.summary}</p>
+          {c.fairValues.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              {c.fairValues.map((mv) => (
+                <div key={mv.model} className="flex items-center justify-between text-[11px]">
+                  <span className="text-muted-foreground">{mv.model}</span>
+                  <span className="font-mono text-foreground/90">{fmtUsd(mv.fairValue)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Pillar cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -473,6 +534,68 @@ export function ReportView({
                   <AlertTriangle className="w-3.5 h-3.5" /> DCF fair value unavailable
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-1">{d.reason ?? d.summary}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card/60 border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-indigo-400" /> Buffett Valuation
+              {b.available && b.rating && (
+                <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                  {b.rating}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {b.available ? (
+              <>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="text-muted-foreground">Fair value (Buffett)</div>
+                    <div className="font-mono text-foreground">
+                      {b.fairValue != null ? fmtUsd(b.fairValue) : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Required return</div>
+                    <div className="font-mono text-foreground">{(b.requiredReturn * 100).toFixed(1)}%</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Margin of safety</div>
+                    <div
+                      className={`font-mono ${
+                        (b.marginOfSafety ?? 0) > 0 ? "text-emerald-400" : "text-rose-400"
+                      }`}
+                    >
+                      {b.marginOfSafety != null ? `${(b.marginOfSafety * 100).toFixed(1)}%` : "—"}
+                      {b.marginOfSafetyLabel && (
+                        <span className="text-[10px] text-muted-foreground ml-1">({b.marginOfSafetyLabel})</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">{b.summary}</p>
+                {b.methods && b.methods.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    {b.methods.map((m) => (
+                      <div key={m.method} className="flex items-center justify-between text-[11px]">
+                        <span className="text-muted-foreground">{m.method}</span>
+                        <span className="font-mono text-foreground/90">{fmtUsd(m.fairValue)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3">
+                <p className="text-xs font-medium text-amber-400 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Buffett fair value unavailable
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">{b.reason ?? b.summary}</p>
               </div>
             )}
           </CardContent>

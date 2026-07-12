@@ -1,5 +1,7 @@
-// Task #66 — 17-section value-investing research report assembler (Phase 2,
-// Sprint 12 added "Graham Valuation"; Sprint 13 added "DCF Valuation").
+// Task #66 — 18-section value-investing research report assembler (Phase 2,
+// Sprint 12 added "Graham Valuation"; Sprint 13 added "DCF Valuation";
+// Sprint 14 added "Buffett Valuation" and upgraded "Margin of Safety" into a
+// cross-model consolidated view).
 //
 // Pure + deterministic: composes the SIMULATED fundamentals + the value-investing
 // engines into a structured, ordered report. The LLM (coachLLM) only narrates the
@@ -31,6 +33,8 @@ import {
 } from "./valueInvesting.js";
 import { analyzeGrahamValuation, type GrahamValuation } from "./grahamValuation.js";
 import { analyzeDcfValuation, type DcfValuation } from "./dcfValuation.js";
+import { analyzeBuffettValuation, type BuffettValuation } from "./buffettValuation.js";
+import { consolidateMarginOfSafety, type ConsolidatedMarginOfSafety } from "./marginOfSafety.js";
 
 // The standard value-investing disclaimer. Distinct from COACH_DISCLAIMER but the
 // LLM narration is still routed through narrate() so COACH_DISCLAIMER is appended.
@@ -93,6 +97,8 @@ export interface ValueResearchReport {
   valuation: Valuation;
   grahamValuation: GrahamValuation;
   dcfValuation: DcfValuation;
+  buffettValuation: BuffettValuation;
+  consolidatedMarginOfSafety: ConsolidatedMarginOfSafety;
   decision: ValueDecision;
   stockVsOptions: StockVsOptions;
   keyMetrics: KeyMetric[];
@@ -158,6 +164,13 @@ export async function buildValueResearchReport(
   const val = analyzeValuation(f);
   const graham = analyzeGrahamValuation(f);
   const dcf = analyzeDcfValuation(f);
+  const buffett = analyzeBuffettValuation(f, bq, moat);
+  const consolidatedMoS = consolidateMarginOfSafety(f.price, [
+    { model: "Blended", result: val },
+    { model: "Graham", result: graham },
+    { model: "DCF", result: dcf },
+    { model: "Buffett", result: buffett },
+  ]);
   const decision = analyzeValueDecision(f, bq, moat, fin, val);
   const svo = analyzeStockVsOptions(f, bq, moat, val, snap);
 
@@ -254,45 +267,50 @@ export async function buildValueResearchReport(
         : [dcf.reason],
     },
     {
+      id: "buffett-valuation",
+      title: "11. Buffett Valuation",
+      body: buffett.summary,
+      bullets: buffett.available ? buffett.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [buffett.reason],
+    },
+    {
       id: "margin-of-safety",
-      title: "11. Margin of Safety",
-      body: val.available
-        ? `At ${money(f.price)} versus a ${money(val.fairValue)} fair-value estimate, the margin of safety is ${pct(val.marginOfSafety)} (${val.marginOfSafetyLabel}). Buffett's rule: only buy with a meaningful discount to intrinsic value.`
-        : "Margin of safety is unavailable because intrinsic value could not be estimated without fabricating a number. The honest answer is: not computable.",
+      title: "12. Margin of Safety",
+      body: consolidatedMoS.summary,
+      bullets: consolidatedMoS.fairValues.map((mv) => `${mv.model}: ${money(mv.fairValue)}`),
     },
     {
       id: "risks",
-      title: "12. Risks & Red Flags",
+      title: "13. Risks & Red Flags",
       body: `Key risks identified in the ${dataLabel} fundamentals:`,
       bullets: risks.map((r) => `[${r.severity.toUpperCase()}] ${r.text}`),
     },
     {
       id: "decision",
-      title: "13. Value-Investor Decision",
+      title: "14. Value-Investor Decision",
       body: decision.summary,
       bullets: decision.rationale,
     },
     {
       id: "stock-vs-options",
-      title: "14. Stock vs. Options",
+      title: "15. Stock vs. Options",
       body: svo.summary,
       bullets: [svo.stockCase, svo.optionsCase],
     },
     {
       id: "checklist",
-      title: "15. Buffett Checklist",
+      title: "16. Buffett Checklist",
       body: "A wonderful business at a fair price, bought with a margin of safety:",
       bullets: buffettChecklist(f, bq, moat, fin, val),
     },
     {
       id: "metrics",
-      title: "16. Key Metrics",
+      title: "17. Key Metrics",
       body: `Headline ${dataLabel} metrics (see full table in the UI).`,
       bullets: keyMetrics.map((m) => `${m.label}: ${m.value}`),
     },
     {
       id: "disclaimer",
-      title: "17. Disclaimers & Data Source",
+      title: "18. Disclaimers & Data Source",
       body: disclaimerFor(f.dataSource),
       bullets: [`Data source: ${f.dataSource}`, `As of: ${f.asOf}`],
     },
@@ -314,6 +332,8 @@ export async function buildValueResearchReport(
     valuation: val,
     grahamValuation: graham,
     dcfValuation: dcf,
+    buffettValuation: buffett,
+    consolidatedMarginOfSafety: consolidatedMoS,
     decision,
     stockVsOptions: svo,
     keyMetrics,

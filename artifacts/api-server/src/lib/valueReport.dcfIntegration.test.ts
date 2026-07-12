@@ -40,7 +40,11 @@ describe("buildValueResearchReport — Sprint 13 DCF integration regression", ()
       expect(ids).toContain(id);
     }
     expect(ids).toContain("dcf-valuation");
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 1);
+    // Phase 2, Sprint 14 added a further section ("buffett-valuation") on top
+    // of Sprint 13's own addition — this assertion reflects the current
+    // total; dcf-valuation's continued presence (checked above) is this
+    // test's actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 2);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by DCF's addition", async () => {
@@ -104,13 +108,15 @@ describe("buildValueResearchReport — Sprint 13 DCF integration regression", ()
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
     expect(byId.get("graham-valuation")).toBe("9. Graham Valuation");
     expect(byId.get("dcf-valuation")).toBe("10. DCF Valuation");
-    expect(byId.get("margin-of-safety")).toBe("11. Margin of Safety");
-    expect(byId.get("risks")).toBe("12. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("13. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("14. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("15. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("16. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("17. Disclaimers & Data Source");
+    // Phase 2, Sprint 14 inserted "11. Buffett Valuation" next, shifting
+    // everything below by one more from Sprint 13's own numbering.
+    expect(byId.get("margin-of-safety")).toBe("12. Margin of Safety");
+    expect(byId.get("risks")).toBe("13. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("14. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("15. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("16. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("17. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("18. Disclaimers & Data Source");
   });
 
   it("honestly reports DCF valuation UNAVAILABLE (no fabrication) when FCF is not positive, independent of Graham/the blended model's own availability", async () => {
