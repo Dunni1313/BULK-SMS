@@ -1,4 +1,4 @@
-import { pgTable, serial, text, real, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, real, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -8,6 +8,9 @@ import { z } from "zod/v4";
 // scalar columns are denormalised for cheap listing/sorting on the history view.
 export const dailyReportsTable = pgTable("daily_reports", {
   id: serial("id").primaryKey(),
+  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
+  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
+  userId: uuid("user_id"),
   reportDate: text("report_date").notNull(), // YYYY-MM-DD
   healthScore: integer("health_score").notNull().default(0),
   healthLabel: text("health_label").notNull().default("Unknown"),

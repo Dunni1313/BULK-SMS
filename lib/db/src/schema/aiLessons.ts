@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -7,6 +7,9 @@ import { z } from "zod/v4";
 // have learned on the Trade Lessons page.
 export const aiLessonsTable = pgTable("ai_lessons", {
   id: serial("id").primaryKey(),
+  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
+  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
+  userId: uuid("user_id"),
   kind: text("kind").notNull().default("lesson"), // trade_explanation | greek | journal_review | quiz
   topic: text("topic").notNull(),
   title: text("title").notNull(),

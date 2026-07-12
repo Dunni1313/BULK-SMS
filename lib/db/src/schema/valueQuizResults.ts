@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, real, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, integer, real, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -7,6 +7,9 @@ import { z } from "zod/v4";
 // question ids; the answer key is never sent to the client). Education only.
 export const valueQuizResultsTable = pgTable("value_quiz_results", {
   id: serial("id").primaryKey(),
+  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
+  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
+  userId: uuid("user_id"),
   topic: text("topic").notNull().default("mixed"),
   score: integer("score").notNull().default(0),
   total: integer("total").notNull().default(0),

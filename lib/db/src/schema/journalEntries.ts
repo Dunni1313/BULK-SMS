@@ -1,9 +1,12 @@
-import { pgTable, serial, text, real, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, real, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const journalEntriesTable = pgTable("journal_entries", {
   id: serial("id").primaryKey(),
+  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
+  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
+  userId: uuid("user_id"),
   tradeId: integer("trade_id"),
   title: text("title").notNull(),
   content: text("content").notNull(),

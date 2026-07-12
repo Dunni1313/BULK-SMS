@@ -1,4 +1,4 @@
-import { pgTable, serial, text, real, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, real, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -12,6 +12,9 @@ import { z } from "zod/v4";
 // engine) cannot compute a reliable number, it stays null rather than fabricated.
 export const valueWatchlistTable = pgTable("value_watchlist", {
   id: serial("id").primaryKey(),
+  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
+  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
+  userId: uuid("user_id"),
   symbol: text("symbol").notNull(),
   category: text("category").notNull().default("Researching"),
   fairValueEstimate: real("fair_value_estimate"),

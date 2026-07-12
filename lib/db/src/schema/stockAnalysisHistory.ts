@@ -1,4 +1,4 @@
-import { pgTable, serial, text, real, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, real, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -11,6 +11,9 @@ import { z } from "zod/v4";
 // broker/market data. Advisory/education only; this table never drives execution.
 export const stockAnalysisHistoryTable = pgTable("stock_analysis_history", {
   id: serial("id").primaryKey(),
+  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
+  // enforced, or read/written by any route (see the approved Phase 1 plan §2.5).
+  userId: uuid("user_id"),
   symbol: text("symbol").notNull(),
   analysisDate: text("analysis_date").notNull(), // YYYY-MM-DD
   businessQualityScore: real("business_quality_score").notNull().default(0),
