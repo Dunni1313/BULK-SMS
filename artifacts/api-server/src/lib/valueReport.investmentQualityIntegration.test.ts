@@ -44,11 +44,12 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
       expect(ids).toContain(id);
     }
     expect(ids).toContain("investment-quality");
-    // Phase 2, Sprint 16 added "tom-nash" and Sprint 17 added
-    // "investment-committee" on top of this sprint's own addition — this
-    // assertion reflects the current total; investment-quality's continued
-    // presence (checked above) is this test's actual regression guarantee.
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 3);
+    // Phase 2, Sprint 16 added "tom-nash", Sprint 17 added
+    // "investment-committee", and Sprint 18 added "financial-ratios" on top
+    // of this sprint's own addition — this assertion reflects the current
+    // total; investment-quality's continued presence (checked above) is this
+    // test's actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 4);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
@@ -129,23 +130,24 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     expect(byId.get("financial")).toBe("6. Financial Strength");
     expect(byId.get("profitability")).toBe("7. Profitability & Returns on Capital");
     expect(byId.get("growth")).toBe("8. Growth");
-    expect(byId.get("valuation")).toBe("9. Valuation & Fair Value");
-    expect(byId.get("graham-valuation")).toBe("10. Graham Valuation");
-    expect(byId.get("dcf-valuation")).toBe("11. DCF Valuation");
-    expect(byId.get("buffett-valuation")).toBe("12. Buffett Valuation");
-    // Phase 2, Sprint 16 inserted "14. Tom Nash Analysis" right after Margin
-    // of Safety, shifting Risks onward by one further.
-    // Phase 2, Sprint 17 inserted "15. Investment Committee" right after Tom
-    // Nash Analysis, shifting Risks onward by one further.
-    expect(byId.get("margin-of-safety")).toBe("13. Margin of Safety");
-    expect(byId.get("tom-nash")).toBe("14. Tom Nash Analysis");
-    expect(byId.get("investment-committee")).toBe("15. Investment Committee");
-    expect(byId.get("risks")).toBe("16. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("17. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("18. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("19. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("20. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("21. Disclaimers & Data Source");
+    // Phase 2, Sprint 18 inserted "9. Financial Ratios" right after Growth,
+    // shifting Valuation onward by one further from this sprint's own
+    // numbering (which had already shifted Sprint 14's numbering by two, for
+    // Tom Nash + the Investment Committee).
+    expect(byId.get("financial-ratios")).toBe("9. Financial Ratios");
+    expect(byId.get("valuation")).toBe("10. Valuation & Fair Value");
+    expect(byId.get("graham-valuation")).toBe("11. Graham Valuation");
+    expect(byId.get("dcf-valuation")).toBe("12. DCF Valuation");
+    expect(byId.get("buffett-valuation")).toBe("13. Buffett Valuation");
+    expect(byId.get("margin-of-safety")).toBe("14. Margin of Safety");
+    expect(byId.get("tom-nash")).toBe("15. Tom Nash Analysis");
+    expect(byId.get("investment-committee")).toBe("16. Investment Committee");
+    expect(byId.get("risks")).toBe("17. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("18. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("19. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("20. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("21. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("22. Disclaimers & Data Source");
   });
 
   it("investment quality is computed independently of Graham/DCF/Buffett's own availability", async () => {

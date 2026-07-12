@@ -38,11 +38,12 @@ describe("buildValueResearchReport — Sprint 12 Graham integration regression",
     expect(ids).toContain("graham-valuation");
     // Phase 2, Sprint 13 added "dcf-valuation", Sprint 14 added
     // "buffett-valuation", Sprint 15 added "investment-quality", Sprint 16
-    // added "tom-nash", and Sprint 17 added "investment-committee" on top of
-    // Sprint 12's own addition — this assertion reflects the current total,
-    // not just Sprint 12's own delta; graham-valuation's continued presence
-    // (checked above) is this test's actual regression guarantee.
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 6);
+    // added "tom-nash", Sprint 17 added "investment-committee", and Sprint 18
+    // added "financial-ratios" on top of Sprint 12's own addition — this
+    // assertion reflects the current total, not just Sprint 12's own delta;
+    // graham-valuation's continued presence (checked above) is this test's
+    // actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 7);
   });
 
   it("every pre-existing top-level field is still present and correctly shaped", async () => {
@@ -74,35 +75,33 @@ describe("buildValueResearchReport — Sprint 12 Graham integration regression",
   it("the graham-valuation section renders the Graham methods, not the blended-model methods", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const grahamSection = report.sections.find((s) => s.id === "graham-valuation")!;
-    // Phase 2, Sprint 15 shifted this from "9." to "10." (see the numbering
-    // test below) by inserting "Investment Quality" before "Economic Moat".
-    expect(grahamSection.title).toBe("10. Graham Valuation");
+    // Section numbering has shifted twice since Sprint 12 (Sprint 15 inserted
+    // Investment Quality, Sprint 18 inserted Financial Ratios) — see the
+    // numbering test below for the full chain; ids never change.
+    expect(grahamSection.title).toBe("11. Graham Valuation");
     expect(grahamSection.bullets!.join(" ")).toMatch(/Graham/);
   });
 
   it("section numbering after the new Graham section shifted by exactly one, but ids did not change", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
-    // Phase 2, Sprint 15 inserted "4. Investment Quality" right after
-    // "3. Business Quality", shifting "valuation" and everything below it by
-    // one further from Sprint 14's own numbering (which had already shifted
-    // Sprint 12's original numbering by two, for DCF + Buffett).
-    expect(byId.get("valuation")).toBe("9. Valuation & Fair Value");
-    expect(byId.get("graham-valuation")).toBe("10. Graham Valuation");
-    // Phase 2, Sprint 16 inserted "14. Tom Nash Analysis" right after Margin
-    // of Safety, shifting Risks onward by one further — margin-of-safety's own
-    // number (13) is unchanged since the new section comes after it.
-    // Phase 2, Sprint 17 inserted "15. Investment Committee" right after Tom
-    // Nash Analysis, shifting Risks onward by one further.
-    expect(byId.get("margin-of-safety")).toBe("13. Margin of Safety");
-    expect(byId.get("tom-nash")).toBe("14. Tom Nash Analysis");
-    expect(byId.get("investment-committee")).toBe("15. Investment Committee");
-    expect(byId.get("risks")).toBe("16. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("17. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("18. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("19. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("20. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("21. Disclaimers & Data Source");
+    // Section numbering has shifted repeatedly since Sprint 12 as later sprints
+    // inserted new sections (Sprint 15: Investment Quality after Business
+    // Quality; Sprint 16: Tom Nash after Margin of Safety; Sprint 17: Investment
+    // Committee after Tom Nash; Sprint 18: Financial Ratios after Growth) —
+    // this assertion reflects the current numbering; ids never change.
+    expect(byId.get("financial-ratios")).toBe("9. Financial Ratios");
+    expect(byId.get("valuation")).toBe("10. Valuation & Fair Value");
+    expect(byId.get("graham-valuation")).toBe("11. Graham Valuation");
+    expect(byId.get("margin-of-safety")).toBe("14. Margin of Safety");
+    expect(byId.get("tom-nash")).toBe("15. Tom Nash Analysis");
+    expect(byId.get("investment-committee")).toBe("16. Investment Committee");
+    expect(byId.get("risks")).toBe("17. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("18. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("19. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("20. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("21. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("22. Disclaimers & Data Source");
   });
 
   it("honestly reports Graham valuation UNAVAILABLE (no fabrication) when trailing EPS is not positive, independent of the blended model's own availability", async () => {

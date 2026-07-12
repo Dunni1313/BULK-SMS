@@ -46,11 +46,11 @@ describe("buildValueResearchReport — Sprint 14 Buffett + consolidated MoS inte
     }
     expect(ids).toContain("buffett-valuation");
     // Phase 2, Sprint 15 added "investment-quality", Sprint 16 added
-    // "tom-nash", and Sprint 17 added "investment-committee" on top of this
-    // sprint's own addition — this assertion reflects the current total;
-    // buffett-valuation's continued presence (checked above) is this test's
-    // actual regression guarantee.
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 4);
+    // "tom-nash", Sprint 17 added "investment-committee", and Sprint 18 added
+    // "financial-ratios" on top of this sprint's own addition — this
+    // assertion reflects the current total; buffett-valuation's continued
+    // presence (checked above) is this test's actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 5);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by Buffett's addition", async () => {
@@ -132,9 +132,9 @@ describe("buildValueResearchReport — Sprint 14 Buffett + consolidated MoS inte
   it("the buffett-valuation section renders the Buffett method, and margin-of-safety now shows the consolidated view", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const buffettSection = report.sections.find((s) => s.id === "buffett-valuation")!;
-    // Phase 2, Sprint 15 shifted this from "11." to "12." (see the numbering
-    // test below) by inserting "Investment Quality" before "Economic Moat".
-    expect(buffettSection.title).toBe("12. Buffett Valuation");
+    // Section numbering has shifted repeatedly since Sprint 14 (see the
+    // numbering test below for the full chain); ids never change.
+    expect(buffettSection.title).toBe("13. Buffett Valuation");
     expect(buffettSection.bullets!.join(" ")).toMatch(/Owner Earnings Perpetuity/);
 
     const mosSection = report.sections.find((s) => s.id === "margin-of-safety")!;
@@ -147,25 +147,22 @@ describe("buildValueResearchReport — Sprint 14 Buffett + consolidated MoS inte
   it("section numbering shifted by exactly one from Sprint 13's shape, ids did not change", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
-    // Phase 2, Sprint 15 inserted "4. Investment Quality" right after
-    // "3. Business Quality", shifting everything from "Economic Moat" onward
-    // (including every title below) by one further from this sprint's own
-    // numbering — ids are unchanged, only display numbers moved.
-    expect(byId.get("dcf-valuation")).toBe("11. DCF Valuation");
-    expect(byId.get("buffett-valuation")).toBe("12. Buffett Valuation");
-    // Phase 2, Sprint 16 inserted "14. Tom Nash Analysis" right after Margin
-    // of Safety, shifting Risks onward by one further.
-    // Phase 2, Sprint 17 inserted "15. Investment Committee" right after Tom
-    // Nash Analysis, shifting Risks onward by one further.
-    expect(byId.get("margin-of-safety")).toBe("13. Margin of Safety");
-    expect(byId.get("tom-nash")).toBe("14. Tom Nash Analysis");
-    expect(byId.get("investment-committee")).toBe("15. Investment Committee");
-    expect(byId.get("risks")).toBe("16. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("17. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("18. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("19. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("20. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("21. Disclaimers & Data Source");
+    // Section numbering has shifted repeatedly since Sprint 14 as later
+    // sprints inserted new sections (Investment Quality, Tom Nash, Investment
+    // Committee, Financial Ratios) — ids are unchanged, only display numbers
+    // moved.
+    expect(byId.get("financial-ratios")).toBe("9. Financial Ratios");
+    expect(byId.get("dcf-valuation")).toBe("12. DCF Valuation");
+    expect(byId.get("buffett-valuation")).toBe("13. Buffett Valuation");
+    expect(byId.get("margin-of-safety")).toBe("14. Margin of Safety");
+    expect(byId.get("tom-nash")).toBe("15. Tom Nash Analysis");
+    expect(byId.get("investment-committee")).toBe("16. Investment Committee");
+    expect(byId.get("risks")).toBe("17. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("18. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("19. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("20. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("21. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("22. Disclaimers & Data Source");
   });
 
   it("honestly reports Buffett valuation UNAVAILABLE (no fabrication) when FCF is not positive, independent of Graham/DCF/the blended model's own availability", async () => {

@@ -2356,6 +2356,34 @@ export const GenerateValueResearchResponse = zod.object({
   "flags": zod.array(zod.string()),
   "summary": zod.string()
 }),
+  "financialRatios": zod.object({
+  "valuation": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.number().nullish(),
+  "displayValue": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string().optional()
+})),
+  "profitability": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.number().nullish(),
+  "displayValue": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string().optional()
+})),
+  "liquidityAndLeverage": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.number().nullish(),
+  "displayValue": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string().optional()
+})),
+  "trends": zod.array(zod.object({
+  "label": zod.string(),
+  "history": zod.array(zod.number())
+})),
+  "summary": zod.string()
+}),
   "valuation": zod.object({
   "available": zod.boolean(),
   "dataSource": zod.string(),
@@ -2763,6 +2791,34 @@ export const GetValueReportResponse = zod.object({
   "detail": zod.string()
 })),
   "flags": zod.array(zod.string()),
+  "summary": zod.string()
+}),
+  "financialRatios": zod.object({
+  "valuation": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.number().nullish(),
+  "displayValue": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string().optional()
+})),
+  "profitability": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.number().nullish(),
+  "displayValue": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string().optional()
+})),
+  "liquidityAndLeverage": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.number().nullish(),
+  "displayValue": zod.string(),
+  "available": zod.boolean(),
+  "reason": zod.string().optional()
+})),
+  "trends": zod.array(zod.object({
+  "label": zod.string(),
+  "history": zod.array(zod.number())
+})),
   "summary": zod.string()
 }),
   "valuation": zod.object({

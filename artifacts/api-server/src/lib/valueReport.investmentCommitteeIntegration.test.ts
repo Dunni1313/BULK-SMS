@@ -49,7 +49,11 @@ describe("buildValueResearchReport — Sprint 17 Investment Committee integratio
       expect(ids).toContain(id);
     }
     expect(ids).toContain("investment-committee");
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 1);
+    // Phase 2, Sprint 18 added a further section ("financial-ratios") on top
+    // of this sprint's own addition — this assertion reflects the current
+    // total; investment-committee's continued presence (checked above) is
+    // this test's actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 2);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
@@ -145,14 +149,14 @@ describe("buildValueResearchReport — Sprint 17 Investment Committee integratio
   it("the investment-committee section renders after tom-nash, and section numbering shifted by exactly one, ids unchanged", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
-    expect(byId.get("tom-nash")).toBe("14. Tom Nash Analysis");
-    expect(byId.get("investment-committee")).toBe("15. Investment Committee");
-    expect(byId.get("risks")).toBe("16. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("17. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("18. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("19. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("20. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("21. Disclaimers & Data Source");
+    expect(byId.get("tom-nash")).toBe("15. Tom Nash Analysis");
+    expect(byId.get("investment-committee")).toBe("16. Investment Committee");
+    expect(byId.get("risks")).toBe("17. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("18. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("19. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("20. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("21. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("22. Disclaimers & Data Source");
   });
 
   it("excludes Graham/Buffett from the Committee's votes when their valuation is unavailable, never fabricating a vote, while Tom Nash still votes", async () => {

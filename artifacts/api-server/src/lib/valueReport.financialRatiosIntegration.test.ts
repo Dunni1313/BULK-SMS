@@ -1,8 +1,8 @@
-// Phase 2, Sprint 16 — regression proof that integrating the Tom Nash Investment
-// Engine (Core) into buildValueResearchReport() changed nothing about the existing
-// report (including Graham/DCF/Buffett/the blended model/Investment Quality's own
-// outputs) except the addition of the new tomNash field and its report section
-// (approved Phase 2 plan, Sprint 16).
+// Phase 2, Sprint 18 — regression proof that integrating Financial Ratio Analysis
+// into buildValueResearchReport() changed nothing about the existing report
+// (including Graham/DCF/Buffett/the blended model/Investment Quality/Tom Nash/the
+// Investment Committee's own outputs) except the addition of the new
+// financialRatios field and its report section (approved Phase 2 plan, Sprint 18).
 
 import { describe, it, expect } from "vitest";
 import { buildValueResearchReport } from "./valueReport.js";
@@ -10,7 +10,10 @@ import { analyzeGrahamValuation } from "./grahamValuation.js";
 import { analyzeDcfValuation } from "./dcfValuation.js";
 import { analyzeBuffettValuation } from "./buffettValuation.js";
 import { analyzeInvestmentQuality } from "./investmentQuality.js";
-import { analyzeBusinessQuality, analyzeMoat, analyzeValuation } from "./valueInvesting.js";
+import { analyzeTomNash } from "./tomNashEngine.js";
+import { synthesizeInvestmentCommittee } from "./investmentCommittee.js";
+import { analyzeFinancialRatios } from "./financialRatios.js";
+import { analyzeBusinessQuality, analyzeFinancialStrength, analyzeMoat, analyzeValuation } from "./valueInvesting.js";
 import { getFundamentals } from "./fundamentals.js";
 import type { Fundamentals } from "./fundamentals.js";
 
@@ -28,6 +31,8 @@ const EXISTING_SECTION_IDS = [
   "dcf-valuation",
   "buffett-valuation",
   "margin-of-safety",
+  "tom-nash",
+  "investment-committee",
   "risks",
   "decision",
   "stock-vs-options",
@@ -36,7 +41,7 @@ const EXISTING_SECTION_IDS = [
   "disclaimer",
 ];
 
-describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression", () => {
+describe("buildValueResearchReport — Sprint 18 Financial Ratios integration regression", () => {
   it("every pre-existing section id is still present, plus exactly one new one", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     expect(report).not.toBeNull();
@@ -45,12 +50,8 @@ describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression
     for (const id of EXISTING_SECTION_IDS) {
       expect(ids).toContain(id);
     }
-    expect(ids).toContain("tom-nash");
-    // Phase 2, Sprint 17 added "investment-committee" and Sprint 18 added
-    // "financial-ratios" on top of this sprint's own addition — this
-    // assertion reflects the current total; tom-nash's continued presence
-    // (checked above) is this test's actual regression guarantee.
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 3);
+    expect(ids).toContain("financial-ratios");
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 1);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
@@ -90,6 +91,35 @@ describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression
     expect(report.investmentQuality).toEqual(iqStandalone);
   });
 
+  it("Tom Nash's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
+    const f = (await getFundamentals("MSFT"))!;
+    const bq = analyzeBusinessQuality(f);
+    const fin = analyzeFinancialStrength(f);
+    const blended = analyzeValuation(f);
+    const graham = analyzeGrahamValuation(f);
+    const dcf = analyzeDcfValuation(f);
+    const buffett = analyzeBuffettValuation(f, bq, analyzeMoat(f));
+    const iq = analyzeInvestmentQuality(f);
+    const tomNashStandalone = analyzeTomNash(f, iq, fin, blended, graham, dcf, buffett);
+    const report = (await buildValueResearchReport("MSFT"))!;
+    expect(report.tomNash).toEqual(tomNashStandalone);
+  });
+
+  it("the Investment Committee's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
+    const f = (await getFundamentals("MSFT"))!;
+    const bq = analyzeBusinessQuality(f);
+    const fin = analyzeFinancialStrength(f);
+    const blended = analyzeValuation(f);
+    const graham = analyzeGrahamValuation(f);
+    const dcf = analyzeDcfValuation(f);
+    const buffett = analyzeBuffettValuation(f, bq, analyzeMoat(f));
+    const iq = analyzeInvestmentQuality(f);
+    const tomNash = analyzeTomNash(f, iq, fin, blended, graham, dcf, buffett);
+    const committeeStandalone = synthesizeInvestmentCommittee(graham, buffett, tomNash);
+    const report = (await buildValueResearchReport("MSFT"))!;
+    expect(report.investmentCommittee).toEqual(committeeStandalone);
+  });
+
   it("every pre-existing top-level field is still present and correctly shaped", async () => {
     const report = (await buildValueResearchReport("MSFT"))!;
     expect(report.businessQuality).toBeTruthy();
@@ -101,6 +131,8 @@ describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression
     expect(report.dcfValuation).toBeTruthy();
     expect(report.buffettValuation).toBeTruthy();
     expect(report.consolidatedMarginOfSafety).toBeTruthy();
+    expect(report.tomNash).toBeTruthy();
+    expect(report.investmentCommittee).toBeTruthy();
     expect(report.decision).toBeTruthy();
     expect(report.stockVsOptions).toBeTruthy();
     expect(report.keyMetrics.length).toBeGreaterThan(0);
@@ -108,44 +140,38 @@ describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression
     expect(typeof report.disclaimer).toBe("string");
   });
 
-  it("adds a tomNash field, correctly shaped, composed of the 5 required pillars", async () => {
+  it("adds a financialRatios field, correctly shaped, with the 3 uncomputable ratios always unavailable", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
-    const t = report.tomNash;
-    expect(t).toBeTruthy();
-    expect(t.businessQuality.score).toBe(report.investmentQuality.score);
-    expect(typeof t.growth.score === "number" || t.growth.score === null).toBe(true);
-    expect(typeof t.capitalAllocation.score === "number" || t.capitalAllocation.score === null).toBe(true);
-    expect(t.financialStrength.score).toBe(report.financialStrength.score);
-    expect(typeof t.valuation.score === "number" || t.valuation.score === null).toBe(true);
-    expect(t.convictionScore).toBeGreaterThanOrEqual(0);
-    expect(t.convictionScore).toBeLessThanOrEqual(100);
-    expect(["Buy", "Hold", "Wait"]).toContain(t.verdict);
-    expect(t.rationale.length).toBe(5);
+    const fr = report.financialRatios;
+    expect(fr).toBeTruthy();
+    const all = [...fr.valuation, ...fr.profitability, ...fr.liquidityAndLeverage];
+    const quickRatio = all.find((m) => m.label === "Quick Ratio")!;
+    const roa = all.find((m) => m.label === "Return on Assets")!;
+    const assetTurnover = all.find((m) => m.label === "Asset Turnover")!;
+    expect(quickRatio.available).toBe(false);
+    expect(roa.available).toBe(false);
+    expect(assetTurnover.available).toBe(false);
+    const payoutRatio = all.find((m) => m.label === "Payout Ratio")!;
+    expect(payoutRatio).toBeTruthy();
+    expect(fr.trends.length).toBe(3);
   });
 
-  it("Business Quality pillar is byte-identical to the report's own investmentQuality.score (whole-engine reuse, not recomputed)", async () => {
+  it("financialRatios' own output for a fixed symbol is byte-identical to a standalone call", async () => {
+    const f = (await getFundamentals("AAPL"))!;
+    const standalone = analyzeFinancialRatios(f);
     const report = (await buildValueResearchReport("AAPL"))!;
-    expect(report.tomNash.businessQuality.score).toBe(report.investmentQuality.score);
+    expect(report.financialRatios).toEqual(standalone);
   });
 
-  it("Financial Strength pillar is byte-identical to the report's own financialStrength.score (direct reuse, not recomputed)", async () => {
-    const report = (await buildValueResearchReport("AAPL"))!;
-    expect(report.tomNash.financialStrength.score).toBe(report.financialStrength.score);
-  });
-
-  it("never surfaces Insider Ownership in the Tom Nash section (explicitly out of scope for Sprint 16)", async () => {
-    const report = (await buildValueResearchReport("AAPL"))!;
-    const section = report.sections.find((s) => s.id === "tom-nash")!;
-    expect(section.bullets!.join(" ")).not.toMatch(/Insider Ownership/);
-  });
-
-  it("the tom-nash section renders after margin-of-safety, and section numbering shifted by exactly one, ids unchanged", async () => {
+  it("the financial-ratios section renders after growth and before valuation, and section numbering shifted by exactly one, ids unchanged", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
-    // Phase 2, Sprint 17 inserted "15. Investment Committee" right after Tom
-    // Nash Analysis, shifting Risks onward by one further. Sprint 18's
-    // "financial-ratios" insertion (before Valuation) doesn't affect anything
-    // from margin-of-safety onward.
+    expect(byId.get("growth")).toBe("8. Growth");
+    expect(byId.get("financial-ratios")).toBe("9. Financial Ratios");
+    expect(byId.get("valuation")).toBe("10. Valuation & Fair Value");
+    expect(byId.get("graham-valuation")).toBe("11. Graham Valuation");
+    expect(byId.get("dcf-valuation")).toBe("12. DCF Valuation");
+    expect(byId.get("buffett-valuation")).toBe("13. Buffett Valuation");
     expect(byId.get("margin-of-safety")).toBe("14. Margin of Safety");
     expect(byId.get("tom-nash")).toBe("15. Tom Nash Analysis");
     expect(byId.get("investment-committee")).toBe("16. Investment Committee");
@@ -157,7 +183,7 @@ describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression
     expect(byId.get("disclaimer")).toBe("22. Disclaimers & Data Source");
   });
 
-  it("Tom Nash's valuation pillar is honestly unavailable when Graham/DCF/Buffett are all unavailable, independent of Investment Quality's own availability", async () => {
+  it("financial ratios are computed independently of Graham/DCF/Buffett's own availability", async () => {
     const base = (await getFundamentals("TSLA"))!;
     const unprofitable: Fundamentals = {
       ...base,
@@ -173,12 +199,9 @@ describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression
     const report = (await buildValueResearchReport(base.symbol, undefined, undefined, unprofitable))!;
     expect(report.grahamValuation.available).toBe(false);
     expect(report.dcfValuation.available).toBe(false);
-    expect(report.buffettValuation.available).toBe(false);
-    if (!report.valuation.available) {
-      expect(report.tomNash.valuation.score).toBeNull();
-    }
-    // Investment Quality still produces a score independent of valuation availability.
-    expect(report.investmentQuality.score).not.toBeNull();
-    expect(report.tomNash.businessQuality.score).toBe(report.investmentQuality.score);
+    // Financial Ratios has no single "available" gate — it still produces a
+    // per-ratio breakdown from whichever fields have usable data.
+    const all = [...report.financialRatios.valuation, ...report.financialRatios.profitability, ...report.financialRatios.liquidityAndLeverage];
+    expect(all.length).toBeGreaterThan(0);
   });
 });

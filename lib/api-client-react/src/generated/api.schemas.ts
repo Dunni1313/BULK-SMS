@@ -379,6 +379,28 @@ export interface ValueInvestmentCommittee {
   summary: string;
 }
 
+export interface ValueRatioMetric {
+  label: string;
+  /** @nullable */
+  value?: number | null;
+  displayValue: string;
+  available: boolean;
+  reason?: string;
+}
+
+export interface ValueRatioTrend {
+  label: string;
+  history: number[];
+}
+
+export interface ValueFinancialRatios {
+  valuation: ValueRatioMetric[];
+  profitability: ValueRatioMetric[];
+  liquidityAndLeverage: ValueRatioMetric[];
+  trends: ValueRatioTrend[];
+  summary: string;
+}
+
 export type ValueDecisionVerdict = typeof ValueDecisionVerdict[keyof typeof ValueDecisionVerdict];
 
 
@@ -481,6 +503,7 @@ export interface ValueResearchReport {
   investmentQuality: ValueInvestmentQuality;
   moat: ValueMoatAnalysis;
   financialStrength: ValueFinancialStrength;
+  financialRatios: ValueFinancialRatios;
   valuation: ValueValuation;
   grahamValuation: ValueGrahamValuation;
   dcfValuation: ValueDcfValuation;

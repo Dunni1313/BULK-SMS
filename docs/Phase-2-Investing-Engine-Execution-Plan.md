@@ -1,6 +1,6 @@
 # Phase 2 — Institutional Investment Decision Engine: Engineering Roadmap
 **DK AI Institutional Investing & Trading OS**
-**Status:** Approved, with an approved scope expansion (see §0.1) following Sprint 12's completion. Sprints 11–17 are shipped; Sprint 18 onward is planning only until each sprint's own pre-implementation plan is separately approved. This document is grounded in direct inspection of the actual repository (every file path, function signature, and code behavior cited below was read from source, not inferred) plus `docs/DK-AI-OS-Architecture-Blueprint.md` and `docs/DK-Option-Engine-Technical-Audit.md`.
+**Status:** Approved, with an approved scope expansion (see §0.1) following Sprint 12's completion. Sprints 11–18 are shipped; Sprint 19 onward is planning only until each sprint's own pre-implementation plan is separately approved. This document is grounded in direct inspection of the actual repository (every file path, function signature, and code behavior cited below was read from source, not inferred) plus `docs/DK-AI-OS-Architecture-Blueprint.md` and `docs/DK-Option-Engine-Technical-Audit.md`.
 
 **Approval:** Approved by the project owner following presentation of this roadmap. Each sprint (the first Phase 2 sprint was Sprint 11) requires a separate, explicit go-ahead per the established per-sprint process (see `CLAUDE.md` §3) before implementation begins.
 
@@ -387,12 +387,13 @@ Continuing the numbering from Phase 1 (Sprint 10 was the last completed). Each s
 - **Rollback:** `git revert`; no schema change.
 - **Estimated effort:** Medium.
 
-### Sprint 18 — Financial Ratio Analysis
-- **Objective:** Promote the existing 14-metric flat list into a dedicated ratio-analysis surface with trend charts.
-- **Deliverables:** Expanded ratio set (quick ratio, ROA, asset turnover, payout ratio), a new "Ratios" tab with multi-year trend charts reusing the existing history-array chart pattern.
-- **Files likely to change:** `lib/valueReport.ts`; `StockResearch.tsx`; openapi.yaml.
-- **Tests required:** Unit tests for new ratio formulas; existing `value.test.ts` metrics assertions unchanged.
-- **Acceptance criteria:** New ratios computed with the same null-if-uncomputable honesty guarantee as existing ones.
+### Sprint 18 — Financial Ratio Analysis — SHIPPED
+- **Objective:** Promote the existing flat "Key Metrics" list into a dedicated, grouped ratio-analysis surface with multi-year trend data — purely additive, never fabricating a ratio that can't be honestly computed.
+- **Deliverables (as actually built):** `analyzeFinancialRatios()` in new `lib/financialRatios.ts`. Of the 4 requested new ratios, only **Payout Ratio** (`dividendPerShare / epsTtm`) is honestly computable from existing `Fundamentals` fields — added. **Quick Ratio, Return on Assets, and Asset Turnover all need balance-sheet detail (inventory, total assets, current-liability breakdown) that doesn't exist anywhere in `Fundamentals` for any provider**; per the approved decision, none were approximated (e.g. via a DuPont-identity shortcut) — all three are honestly reported `available: false` with an explicit reason pointing to the future Financial Statement Analysis sprint. Every other ratio (P/E trailing + forward, PEG, P/S, P/B, FCF Yield, Dividend Yield, ROE, ROIC, Gross/Operating/Net Margin, Current Ratio, Debt/Equity, Interest Coverage) is a direct reuse of already-computed `Fundamentals` fields, grouped into Valuation/Profitability/Liquidity & Leverage — zero recomputation. Trend data (`trends: [{label, history}]`) is a pure pass-through of `Fundamentals`' own `revenueHistory`/`epsHistory`/`fcfHistory` 6-year arrays, no new math.
+- **UI decision (per approved decision, deviating from this entry's original text):** a new **card** in the existing continuous `ReportView` (between Financial Strength and Valuation), not a separate "Ratios" tab — `ReportView` has no internal tab navigation, and every other Sprint 12–17 addition followed the same card pattern. Trend charts reuse the exact `recharts` `ResponsiveContainer`/`LineChart` pattern already established in `Backtest.tsx`'s equity curve.
+- **Files changed:** New `lib/financialRatios.ts`, `lib/financialRatios.test.ts`, `lib/valueReport.financialRatiosIntegration.test.ts`; modified `lib/valueReport.ts` (new "9. Financial Ratios" section inserted right after "8. Growth," report grows 21→22 sections), the 6 existing `valueReport.*Integration.test.ts` files (mechanical section-numbering updates only), `StockResearch.tsx` (new card + 3 trend charts), `test/fixtures/valueReport.ts`, `test/setup.ts` (added a minimal `ResizeObserver` polyfill — jsdom doesn't implement it and `recharts`' `ResponsiveContainer` needs one to mount in tests), `openapi.yaml` (+ regenerated `api-zod`/`api-client-react`).
+- **Tests required:** Unit tests for Payout Ratio's formula, the honest-unavailable path for all 3 uncomputable ratios (never approximated), direct-reuse proofs for every existing-field ratio, trend-array pass-through proof; integration regression test proving Graham/DCF/Buffett/the blended model/Investment Quality/Tom Nash/the Investment Committee's own outputs are unchanged (`toEqual` against standalone calls).
+- **Acceptance criteria met:** New ratios computed with the same null-if-uncomputable honesty guarantee as existing ones; the existing "Key Metrics" section/field is completely untouched.
 - **Rollback:** `git revert`; no schema change.
 - **Estimated effort:** Low.
 

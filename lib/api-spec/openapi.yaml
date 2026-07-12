@@ -1662,6 +1662,43 @@ components:
           items: { type: string }
         summary: { type: string }
 
+    ValueRatioMetric:
+      type: object
+      required: [label, available, displayValue]
+      properties:
+        label: { type: string }
+        value: { type: ["number", "null"] }
+        displayValue: { type: string }
+        available: { type: boolean }
+        reason: { type: string }
+
+    ValueRatioTrend:
+      type: object
+      required: [label, history]
+      properties:
+        label: { type: string }
+        history:
+          type: array
+          items: { type: number }
+
+    ValueFinancialRatios:
+      type: object
+      required: [valuation, profitability, liquidityAndLeverage, trends, summary]
+      properties:
+        valuation:
+          type: array
+          items: { $ref: "#/components/schemas/ValueRatioMetric" }
+        profitability:
+          type: array
+          items: { $ref: "#/components/schemas/ValueRatioMetric" }
+        liquidityAndLeverage:
+          type: array
+          items: { $ref: "#/components/schemas/ValueRatioMetric" }
+        trends:
+          type: array
+          items: { $ref: "#/components/schemas/ValueRatioTrend" }
+        summary: { type: string }
+
     ValueDecision:
       type: object
       required: [verdict, conviction, rationale, summary]
@@ -1727,7 +1764,7 @@ components:
     ValueResearchReport:
       type: object
       required:
-        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, investmentQuality, moat, financialStrength, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, investmentCommittee, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
+        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, investmentQuality, moat, financialStrength, financialRatios, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, investmentCommittee, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
       properties:
         symbol: { type: string }
         name: { type: string }
@@ -1744,6 +1781,7 @@ components:
         investmentQuality: { $ref: "#/components/schemas/ValueInvestmentQuality" }
         moat: { $ref: "#/components/schemas/ValueMoatAnalysis" }
         financialStrength: { $ref: "#/components/schemas/ValueFinancialStrength" }
+        financialRatios: { $ref: "#/components/schemas/ValueFinancialRatios" }
         valuation: { $ref: "#/components/schemas/ValueValuation" }
         grahamValuation: { $ref: "#/components/schemas/ValueGrahamValuation" }
         dcfValuation: { $ref: "#/components/schemas/ValueDcfValuation" }

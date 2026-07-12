@@ -10,6 +10,7 @@ import type { ValueBusinessQuality } from './valueBusinessQuality';
 import type { ValueConsolidatedMarginOfSafety } from './valueConsolidatedMarginOfSafety';
 import type { ValueDcfValuation } from './valueDcfValuation';
 import type { ValueDecision } from './valueDecision';
+import type { ValueFinancialRatios } from './valueFinancialRatios';
 import type { ValueFinancialStrength } from './valueFinancialStrength';
 import type { ValueFundamentalsFallback } from './valueFundamentalsFallback';
 import type { ValueGrahamValuation } from './valueGrahamValuation';
@@ -38,6 +39,7 @@ export interface ValueResearchReport {
   investmentQuality: ValueInvestmentQuality;
   moat: ValueMoatAnalysis;
   financialStrength: ValueFinancialStrength;
+  financialRatios: ValueFinancialRatios;
   valuation: ValueValuation;
   grahamValuation: ValueGrahamValuation;
   dcfValuation: ValueDcfValuation;

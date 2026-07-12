@@ -41,12 +41,22 @@ import {
   Building2,
   RefreshCw,
   Calculator,
-  LineChart,
+  LineChart as LineChartIcon,
   Briefcase,
   ListChecks,
   Compass,
   Users,
+  Percent,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 type Level = ValueResearchInputLevel;
 
@@ -132,6 +142,48 @@ function FactorList({ factors }: { factors: { label: string; score: number; deta
   );
 }
 
+function RatioMetricRow({ metric }: { metric: { label: string; displayValue: string; available: boolean; reason?: string } }) {
+  return (
+    <div className="flex items-center justify-between text-[11px]">
+      <span className="text-muted-foreground">{metric.label}</span>
+      {metric.available ? (
+        <span className="font-mono text-foreground/90">{metric.displayValue}</span>
+      ) : (
+        <span className="text-muted-foreground/60 italic" title={metric.reason}>
+          unavailable
+        </span>
+      )}
+    </div>
+  );
+}
+
+// Reuses the same recharts LineChart pattern already established in
+// Backtest.tsx for the equity curve — same styling, just a small sparkline
+// over Fundamentals' own 6-year history array (no new data, pass-through).
+function RatioTrendChart({ label, history }: { label: string; history: number[] }) {
+  const data = history.map((value, i) => ({ year: i - (history.length - 1), value }));
+  return (
+    <div>
+      <p className="text-[11px] text-muted-foreground mb-1">{label}</p>
+      <div className="h-[80px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis dataKey="year" stroke="hsl(var(--muted-foreground))" fontSize={10} tickFormatter={(v) => (v === 0 ? "Now" : `${v}y`)} />
+            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} width={36} domain={["auto", "auto"]} />
+            <Tooltip
+              contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))", color: "hsl(var(--foreground))" }}
+              itemStyle={{ color: "hsl(var(--primary))" }}
+              labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+            />
+            <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} activeDot={{ r: 3 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 export function ReportView({
   report,
   commentary,
@@ -153,6 +205,7 @@ export function ReportView({
   const iq = report.investmentQuality;
   const tn = report.tomNash;
   const ic = report.investmentCommittee;
+  const fr = report.financialRatios;
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -400,6 +453,46 @@ export function ReportView({
         <Card className="bg-card/60 border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
+              <Percent className="w-4 h-4 text-indigo-400" /> Financial Ratios
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">{fr.summary}</p>
+            <div>
+              <p className="text-[11px] font-medium text-foreground/80 mb-1.5">Valuation</p>
+              <div className="space-y-1">
+                {fr.valuation.map((m) => (
+                  <RatioMetricRow key={m.label} metric={m} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] font-medium text-foreground/80 mb-1.5">Profitability</p>
+              <div className="space-y-1">
+                {fr.profitability.map((m) => (
+                  <RatioMetricRow key={m.label} metric={m} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] font-medium text-foreground/80 mb-1.5">Liquidity &amp; Leverage</p>
+              <div className="space-y-1">
+                {fr.liquidityAndLeverage.map((m) => (
+                  <RatioMetricRow key={m.label} metric={m} />
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 pt-1">
+              {fr.trends.map((t) => (
+                <RatioTrendChart key={t.label} label={t.label} history={t.history} />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card/60 border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
               <Scale className="w-4 h-4 text-indigo-400" /> Valuation &amp; Margin of Safety
               {v.available && v.rating && (
                 <Badge variant="outline" className="ml-auto text-[10px] border-border">
@@ -529,7 +622,7 @@ export function ReportView({
         <Card className="bg-card/60 border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
-              <LineChart className="w-4 h-4 text-indigo-400" /> DCF Valuation
+              <LineChartIcon className="w-4 h-4 text-indigo-400" /> DCF Valuation
               {d.available && d.rating && (
                 <Badge variant="outline" className="ml-auto text-[10px] border-border">
                   {d.rating}

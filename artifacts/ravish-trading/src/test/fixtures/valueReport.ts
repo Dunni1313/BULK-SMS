@@ -63,6 +63,29 @@ export function makeValueReport(
       metrics: [{ label: "Net debt / EBITDA", score: 90, detail: "Negative net debt." }],
       flags: [],
     },
+    financialRatios: {
+      valuation: [
+        { label: "P/E (trailing)", value: 28.4, displayValue: "28.4", available: true },
+        { label: "P/E (forward)", value: 25.1, displayValue: "25.1", available: true },
+        { label: "Dividend Yield", value: 0.005, displayValue: "0.50%", available: true },
+      ],
+      profitability: [
+        { label: "Return on Equity", value: 1.5, displayValue: "150%", available: true },
+        { label: "Return on Assets", value: null, displayValue: "n/a", available: false, reason: "Return on Assets requires full balance-sheet line items not yet available; planned for the Financial Statement Analysis sprint." },
+        { label: "Payout Ratio", value: 0.15, displayValue: "15%", available: true },
+      ],
+      liquidityAndLeverage: [
+        { label: "Current Ratio", value: 1.1, displayValue: "1.10", available: true },
+        { label: "Quick Ratio", value: null, displayValue: "n/a", available: false, reason: "Quick Ratio requires full balance-sheet line items not yet available; planned for the Financial Statement Analysis sprint." },
+        { label: "Asset Turnover", value: null, displayValue: "n/a", available: false, reason: "Asset Turnover requires full balance-sheet line items not yet available; planned for the Financial Statement Analysis sprint." },
+      ],
+      trends: [
+        { label: "Revenue per Share", history: [40, 42, 45, 48, 52, 55] },
+        { label: "EPS", history: [5, 5.5, 6, 6.5, 7, 7.4] },
+        { label: "Free Cash Flow per Share", history: [4, 4.3, 4.8, 5.2, 5.9, 6.4] },
+      ],
+      summary: "AAPL: 6 of 9 financial ratios computed; 3 await full balance-sheet data (planned for the Financial Statement Analysis sprint).",
+    },
     valuation: {
       available: true,
       dataSource: "Simulated DCF",
