@@ -20,6 +20,7 @@ import type { ValueReportSection } from './valueReportSection';
 import type { ValueResearchReportKind } from './valueResearchReportKind';
 import type { ValueRiskFlag } from './valueRiskFlag';
 import type { ValueStockVsOptions } from './valueStockVsOptions';
+import type { ValueTomNashAnalysis } from './valueTomNashAnalysis';
 import type { ValueValuation } from './valueValuation';
 
 export interface ValueResearchReport {
@@ -41,6 +42,7 @@ export interface ValueResearchReport {
   dcfValuation: ValueDcfValuation;
   buffettValuation: ValueBuffettValuation;
   consolidatedMarginOfSafety: ValueConsolidatedMarginOfSafety;
+  tomNash: ValueTomNashAnalysis;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

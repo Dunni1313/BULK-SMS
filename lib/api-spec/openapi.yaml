@@ -1604,6 +1604,32 @@ components:
           enum: [unanimous, majority, split, insufficient-data]
         summary: { type: string }
 
+    ValueTomNashPillarScore:
+      type: object
+      required: [label, detail]
+      properties:
+        label: { type: string }
+        score: { type: ["number", "null"] }
+        detail: { type: string }
+
+    ValueTomNashAnalysis:
+      type: object
+      required: [businessQuality, growth, capitalAllocation, financialStrength, valuation, convictionScore, verdict, rationale, summary]
+      properties:
+        businessQuality: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
+        growth: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
+        capitalAllocation: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
+        financialStrength: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
+        valuation: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
+        convictionScore: { type: number }
+        verdict:
+          type: string
+          enum: [Buy, Hold, Wait]
+        rationale:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+
     ValueDecision:
       type: object
       required: [verdict, conviction, rationale, summary]
@@ -1669,7 +1695,7 @@ components:
     ValueResearchReport:
       type: object
       required:
-        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, investmentQuality, moat, financialStrength, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
+        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, investmentQuality, moat, financialStrength, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
       properties:
         symbol: { type: string }
         name: { type: string }
@@ -1691,6 +1717,7 @@ components:
         dcfValuation: { $ref: "#/components/schemas/ValueDcfValuation" }
         buffettValuation: { $ref: "#/components/schemas/ValueBuffettValuation" }
         consolidatedMarginOfSafety: { $ref: "#/components/schemas/ValueConsolidatedMarginOfSafety" }
+        tomNash: { $ref: "#/components/schemas/ValueTomNashAnalysis" }
         decision: { $ref: "#/components/schemas/ValueDecision" }
         stockVsOptions: { $ref: "#/components/schemas/ValueStockVsOptions" }
         keyMetrics:

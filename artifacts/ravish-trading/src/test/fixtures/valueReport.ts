@@ -142,6 +142,23 @@ export function makeValueReport(
       agreement: "majority",
       summary: "4 of 4 valuation models produced a usable fair-value estimate, ranging $200.00-$240.00 (average $226.56) against a $210.50 price; most available models agree, though not all.",
     },
+    tomNash: {
+      businessQuality: { label: "Business Quality", score: 82, detail: "AAPL scores 82/100 on investment quality." },
+      growth: { label: "Growth", score: 78, detail: "Revenue Growth 78/100; EPS Growth 80/100; Free Cash Flow Growth 76/100" },
+      capitalAllocation: { label: "Capital Allocation", score: 74, detail: "Cash Position 85/100; Debt Levels 88/100; Capital efficiency (ROIC) 90/100; Share Dilution/Buybacks unavailable" },
+      financialStrength: { label: "Financial Strength", score: 84, detail: "Strong (84/100)" },
+      valuation: { label: "Valuation", score: 74, detail: "Blended: Fair; Graham: Fair; DCF: Fair; Buffett: Fair" },
+      convictionScore: 78,
+      verdict: "Buy",
+      rationale: [
+        "Business Quality: 82/100 (Investment Quality Engine).",
+        "Growth: 78/100 — Revenue Growth 78/100; EPS Growth 80/100; Free Cash Flow Growth 76/100.",
+        "Capital Allocation: 74/100 — Cash Position 85/100; Debt Levels 88/100; Capital efficiency (ROIC) 90/100; Share Dilution/Buybacks unavailable.",
+        "Financial Strength: 84/100 (Strong).",
+        "Valuation: 74/100 — Blended: Fair; Graham: Fair; DCF: Fair; Buffett: Fair.",
+      ],
+      summary: "AAPL: Buy (conviction 78/100), composed from Business Quality, Growth, Capital Allocation, Financial Strength, and Valuation.",
+    },
     decision: {
       verdict: ValueDecisionVerdict.BUY_ONLY_ON_PULLBACK,
       conviction: 72,

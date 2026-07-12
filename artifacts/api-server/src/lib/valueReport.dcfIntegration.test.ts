@@ -40,11 +40,12 @@ describe("buildValueResearchReport — Sprint 13 DCF integration regression", ()
       expect(ids).toContain(id);
     }
     expect(ids).toContain("dcf-valuation");
-    // Phase 2, Sprint 14 added "buffett-valuation" and Sprint 15 added
-    // "investment-quality" on top of Sprint 13's own addition — this
-    // assertion reflects the current total; dcf-valuation's continued
-    // presence (checked above) is this test's actual regression guarantee.
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 3);
+    // Phase 2, Sprint 14 added "buffett-valuation", Sprint 15 added
+    // "investment-quality", and Sprint 16 added "tom-nash" on top of Sprint
+    // 13's own addition — this assertion reflects the current total;
+    // dcf-valuation's continued presence (checked above) is this test's
+    // actual regression guarantee.
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 4);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by DCF's addition", async () => {
@@ -113,13 +114,16 @@ describe("buildValueResearchReport — Sprint 13 DCF integration regression", ()
     // everything below by one further from Sprint 14's own numbering.
     expect(byId.get("graham-valuation")).toBe("10. Graham Valuation");
     expect(byId.get("dcf-valuation")).toBe("11. DCF Valuation");
+    // Phase 2, Sprint 16 inserted "14. Tom Nash Analysis" right after Margin
+    // of Safety, shifting Risks onward by one further.
     expect(byId.get("margin-of-safety")).toBe("13. Margin of Safety");
-    expect(byId.get("risks")).toBe("14. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("15. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("16. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("17. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("18. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("19. Disclaimers & Data Source");
+    expect(byId.get("tom-nash")).toBe("14. Tom Nash Analysis");
+    expect(byId.get("risks")).toBe("15. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("16. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("17. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("18. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("19. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("20. Disclaimers & Data Source");
   });
 
   it("honestly reports DCF valuation UNAVAILABLE (no fabrication) when FCF is not positive, independent of Graham/the blended model's own availability", async () => {

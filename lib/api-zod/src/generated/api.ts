@@ -2445,6 +2445,37 @@ export const GenerateValueResearchResponse = zod.object({
   "agreement": zod.enum(['unanimous', 'majority', 'split', 'insufficient-data']),
   "summary": zod.string()
 }),
+  "tomNash": zod.object({
+  "businessQuality": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "growth": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "capitalAllocation": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "financialStrength": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "valuation": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "convictionScore": zod.number(),
+  "verdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "rationale": zod.array(zod.string()),
+  "summary": zod.string()
+}),
   "decision": zod.object({
   "verdict": zod.enum(['LONG-TERM BUY', 'BUY ONLY ON PULLBACK', 'WATCHLIST', 'HOLD', 'TRIM', 'AVOID']),
   "conviction": zod.number(),
@@ -2808,6 +2839,37 @@ export const GetValueReportResponse = zod.object({
   "averageFairValue": zod.number().nullish(),
   "averageMarginOfSafety": zod.number().nullish(),
   "agreement": zod.enum(['unanimous', 'majority', 'split', 'insufficient-data']),
+  "summary": zod.string()
+}),
+  "tomNash": zod.object({
+  "businessQuality": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "growth": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "capitalAllocation": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "financialStrength": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "valuation": zod.object({
+  "label": zod.string(),
+  "score": zod.number().nullish(),
+  "detail": zod.string()
+}),
+  "convictionScore": zod.number(),
+  "verdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "rationale": zod.array(zod.string()),
   "summary": zod.string()
 }),
   "decision": zod.object({

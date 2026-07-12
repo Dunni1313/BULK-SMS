@@ -298,6 +298,34 @@ export interface ValueConsolidatedMarginOfSafety {
   summary: string;
 }
 
+export interface ValueTomNashPillarScore {
+  label: string;
+  /** @nullable */
+  score?: number | null;
+  detail: string;
+}
+
+export type ValueTomNashAnalysisVerdict = typeof ValueTomNashAnalysisVerdict[keyof typeof ValueTomNashAnalysisVerdict];
+
+
+export const ValueTomNashAnalysisVerdict = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export interface ValueTomNashAnalysis {
+  businessQuality: ValueTomNashPillarScore;
+  growth: ValueTomNashPillarScore;
+  capitalAllocation: ValueTomNashPillarScore;
+  financialStrength: ValueTomNashPillarScore;
+  valuation: ValueTomNashPillarScore;
+  convictionScore: number;
+  verdict: ValueTomNashAnalysisVerdict;
+  rationale: string[];
+  summary: string;
+}
+
 export type ValueDecisionVerdict = typeof ValueDecisionVerdict[keyof typeof ValueDecisionVerdict];
 
 
@@ -405,6 +433,7 @@ export interface ValueResearchReport {
   dcfValuation: ValueDcfValuation;
   buffettValuation: ValueBuffettValuation;
   consolidatedMarginOfSafety: ValueConsolidatedMarginOfSafety;
+  tomNash: ValueTomNashAnalysis;
   decision: ValueDecision;
   stockVsOptions: ValueStockVsOptions;
   keyMetrics: ValueKeyMetric[];

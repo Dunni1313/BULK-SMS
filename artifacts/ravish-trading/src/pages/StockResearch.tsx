@@ -44,6 +44,7 @@ import {
   LineChart,
   Briefcase,
   ListChecks,
+  Compass,
 } from "lucide-react";
 
 type Level = ValueResearchInputLevel;
@@ -149,6 +150,7 @@ export function ReportView({
   const b = report.buffettValuation;
   const c = report.consolidatedMarginOfSafety;
   const iq = report.investmentQuality;
+  const tn = report.tomNash;
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -658,6 +660,39 @@ export function ReportView({
           </CardContent>
         </Card>
       </div>
+
+      {/* Tom Nash Analysis — a composition layer over the pillar cards above,
+          not another single-model card, so it sits full-width between the
+          pillar grid and the final Decision/Stock-vs-Options row. */}
+      <Card className="bg-card/60 border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Compass className="w-4 h-4 text-indigo-400" /> Tom Nash Analysis
+            <Badge variant="outline" className="ml-auto text-[10px] border-border">
+              {tn.verdict}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <ScoreBar score={tn.convictionScore} />
+          <p className="text-xs text-muted-foreground">{tn.summary}</p>
+          <FactorList
+            factors={[tn.businessQuality, tn.growth, tn.capitalAllocation, tn.financialStrength, tn.valuation].map((p) => ({
+              label: p.label,
+              score: p.score ?? 0,
+              detail: p.detail,
+            }))}
+          />
+          <ul className="space-y-1 pt-1">
+            {tn.rationale.map((r, i) => (
+              <li key={i} className="text-[11px] text-foreground/80 flex gap-2">
+                <span className="text-indigo-400">•</span>
+                {r}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
 
       {/* Decision + Stock vs Options */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

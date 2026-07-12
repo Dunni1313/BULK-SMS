@@ -1,14 +1,15 @@
-// Phase 2, Sprint 15 — regression proof that integrating the Investment Quality
-// Engine into buildValueResearchReport() changed nothing about the existing report
-// (including Graham/DCF/Buffett/the blended model's own outputs) except the
-// addition of the new investmentQuality field and its report section (approved
-// Phase 2 plan, Sprint 15).
+// Phase 2, Sprint 16 — regression proof that integrating the Tom Nash Investment
+// Engine (Core) into buildValueResearchReport() changed nothing about the existing
+// report (including Graham/DCF/Buffett/the blended model/Investment Quality's own
+// outputs) except the addition of the new tomNash field and its report section
+// (approved Phase 2 plan, Sprint 16).
 
 import { describe, it, expect } from "vitest";
 import { buildValueResearchReport } from "./valueReport.js";
 import { analyzeGrahamValuation } from "./grahamValuation.js";
 import { analyzeDcfValuation } from "./dcfValuation.js";
 import { analyzeBuffettValuation } from "./buffettValuation.js";
+import { analyzeInvestmentQuality } from "./investmentQuality.js";
 import { analyzeBusinessQuality, analyzeMoat, analyzeValuation } from "./valueInvesting.js";
 import { getFundamentals } from "./fundamentals.js";
 import type { Fundamentals } from "./fundamentals.js";
@@ -17,6 +18,7 @@ const EXISTING_SECTION_IDS = [
   "snapshot",
   "business",
   "quality",
+  "investment-quality",
   "moat",
   "financial",
   "profitability",
@@ -34,7 +36,7 @@ const EXISTING_SECTION_IDS = [
   "disclaimer",
 ];
 
-describe("buildValueResearchReport — Sprint 15 Investment Quality integration regression", () => {
+describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression", () => {
   it("every pre-existing section id is still present, plus exactly one new one", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     expect(report).not.toBeNull();
@@ -43,12 +45,8 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     for (const id of EXISTING_SECTION_IDS) {
       expect(ids).toContain(id);
     }
-    expect(ids).toContain("investment-quality");
-    // Phase 2, Sprint 16 added a further section ("tom-nash") on top of this
-    // sprint's own addition — this assertion reflects the current total;
-    // investment-quality's continued presence (checked above) is this test's
-    // actual regression guarantee.
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 2);
+    expect(ids).toContain("tom-nash");
+    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 1);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
@@ -81,9 +79,17 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     expect(report.valuation).toEqual(blendedStandalone);
   });
 
+  it("Investment Quality's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
+    const f = (await getFundamentals("MSFT"))!;
+    const iqStandalone = analyzeInvestmentQuality(f);
+    const report = (await buildValueResearchReport("MSFT"))!;
+    expect(report.investmentQuality).toEqual(iqStandalone);
+  });
+
   it("every pre-existing top-level field is still present and correctly shaped", async () => {
     const report = (await buildValueResearchReport("MSFT"))!;
     expect(report.businessQuality).toBeTruthy();
+    expect(report.investmentQuality).toBeTruthy();
     expect(report.moat).toBeTruthy();
     expect(report.financialStrength).toBeTruthy();
     expect(report.valuation).toBeTruthy();
@@ -98,43 +104,40 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     expect(typeof report.disclaimer).toBe("string");
   });
 
-  it("adds an investmentQuality field, correctly shaped, with the two permanently-unavailable metrics honestly reported", async () => {
+  it("adds a tomNash field, correctly shaped, composed of the 5 required pillars", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
-    const iq = report.investmentQuality;
-    expect(iq).toBeTruthy();
-    expect(iq.metrics).toHaveLength(12);
-    expect(iq.score).not.toBeNull();
-    expect(["High", "Moderate", "Low"]).toContain(iq.confidenceLevel);
-    const dilution = iq.metrics.find((m) => m.metric === "Share Dilution / Buybacks")!;
-    const insider = iq.metrics.find((m) => m.metric === "Insider Ownership")!;
-    expect(dilution.availability).toBe("unavailable");
-    expect(insider.availability).toBe("unavailable");
+    const t = report.tomNash;
+    expect(t).toBeTruthy();
+    expect(t.businessQuality.score).toBe(report.investmentQuality.score);
+    expect(typeof t.growth.score === "number" || t.growth.score === null).toBe(true);
+    expect(typeof t.capitalAllocation.score === "number" || t.capitalAllocation.score === null).toBe(true);
+    expect(t.financialStrength.score).toBe(report.financialStrength.score);
+    expect(typeof t.valuation.score === "number" || t.valuation.score === null).toBe(true);
+    expect(t.convictionScore).toBeGreaterThanOrEqual(0);
+    expect(t.convictionScore).toBeLessThanOrEqual(100);
+    expect(["Buy", "Hold", "Wait"]).toContain(t.verdict);
+    expect(t.rationale.length).toBe(5);
   });
 
-  it("the investment-quality section renders all 12 metrics, including the unavailable ones' reasons", async () => {
+  it("Business Quality pillar is byte-identical to the report's own investmentQuality.score (whole-engine reuse, not recomputed)", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
-    const section = report.sections.find((s) => s.id === "investment-quality")!;
-    expect(section.title).toBe("4. Investment Quality");
-    expect(section.bullets).toHaveLength(12);
-    expect(section.bullets!.join(" ")).toMatch(/unavailable/);
+    expect(report.tomNash.businessQuality.score).toBe(report.investmentQuality.score);
   });
 
-  it("section numbering shifted by exactly one from Sprint 14's shape, all ids unchanged", async () => {
+  it("Financial Strength pillar is byte-identical to the report's own financialStrength.score (direct reuse, not recomputed)", async () => {
+    const report = (await buildValueResearchReport("AAPL"))!;
+    expect(report.tomNash.financialStrength.score).toBe(report.financialStrength.score);
+  });
+
+  it("never surfaces Insider Ownership in the Tom Nash section (explicitly out of scope for Sprint 16)", async () => {
+    const report = (await buildValueResearchReport("AAPL"))!;
+    const section = report.sections.find((s) => s.id === "tom-nash")!;
+    expect(section.bullets!.join(" ")).not.toMatch(/Insider Ownership/);
+  });
+
+  it("the tom-nash section renders after margin-of-safety, and section numbering shifted by exactly one, ids unchanged", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
-    expect(byId.get("business")).toBe("2. Business Overview");
-    expect(byId.get("quality")).toBe("3. Business Quality");
-    expect(byId.get("investment-quality")).toBe("4. Investment Quality");
-    expect(byId.get("moat")).toBe("5. Economic Moat");
-    expect(byId.get("financial")).toBe("6. Financial Strength");
-    expect(byId.get("profitability")).toBe("7. Profitability & Returns on Capital");
-    expect(byId.get("growth")).toBe("8. Growth");
-    expect(byId.get("valuation")).toBe("9. Valuation & Fair Value");
-    expect(byId.get("graham-valuation")).toBe("10. Graham Valuation");
-    expect(byId.get("dcf-valuation")).toBe("11. DCF Valuation");
-    expect(byId.get("buffett-valuation")).toBe("12. Buffett Valuation");
-    // Phase 2, Sprint 16 inserted "14. Tom Nash Analysis" right after Margin
-    // of Safety, shifting Risks onward by one further.
     expect(byId.get("margin-of-safety")).toBe("13. Margin of Safety");
     expect(byId.get("tom-nash")).toBe("14. Tom Nash Analysis");
     expect(byId.get("risks")).toBe("15. Risks & Red Flags");
@@ -145,7 +148,7 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     expect(byId.get("disclaimer")).toBe("20. Disclaimers & Data Source");
   });
 
-  it("investment quality is computed independently of Graham/DCF/Buffett's own availability", async () => {
+  it("Tom Nash's valuation pillar is honestly unavailable when Graham/DCF/Buffett are all unavailable, independent of Investment Quality's own availability", async () => {
     const base = (await getFundamentals("TSLA"))!;
     const unprofitable: Fundamentals = {
       ...base,
@@ -161,8 +164,12 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     const report = (await buildValueResearchReport(base.symbol, undefined, undefined, unprofitable))!;
     expect(report.grahamValuation.available).toBe(false);
     expect(report.dcfValuation.available).toBe(false);
-    // Investment Quality has no single "available" gate — it still produces a
-    // score from whichever of the 12 metrics have usable data.
-    expect(report.investmentQuality.metrics).toHaveLength(12);
+    expect(report.buffettValuation.available).toBe(false);
+    if (!report.valuation.available) {
+      expect(report.tomNash.valuation.score).toBeNull();
+    }
+    // Investment Quality still produces a score independent of valuation availability.
+    expect(report.investmentQuality.score).not.toBeNull();
+    expect(report.tomNash.businessQuality.score).toBe(report.investmentQuality.score);
   });
 });
