@@ -1,14 +1,15 @@
 import { pgTable, serial, uuid, text, real, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
+import { usersTable } from "./users";
 
 export const settingsTable = pgTable("settings", {
   id: serial("id").primaryKey(),
-  // Phase 1, Sprint 3 — nullable multi-tenancy anchor. Not yet backfilled,
-  // enforced, or read/written by any route. The unique constraint and the
-  // getOrCreateSettings(userId) code change land together in Sprint 5, per
-  // the approved Phase 1 plan §2.3 — this column alone is a no-op today.
-  userId: uuid("user_id"),
+  // Phase 1, Sprint 5 — settings is now per-user, not a singleton (see the
+  // approved Phase 1 plan §2.3). The unique constraint replaces "always the
+  // first row" with "always the one row for this user" — same one-row-per-
+  // owner shape, now correctly scoped. ON DELETE RESTRICT per §2.4.
+  userId: uuid("user_id").notNull().unique().references(() => usersTable.id, { onDelete: "restrict" }),
   executionMode: text("execution_mode").notNull().default("manual"),
   maxRiskPerTrade: real("max_risk_per_trade").notNull().default(1.0),
   maxPortfolioRisk: real("max_portfolio_risk").notNull().default(10.0),

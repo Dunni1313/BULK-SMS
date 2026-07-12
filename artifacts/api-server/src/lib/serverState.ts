@@ -22,10 +22,22 @@ export interface StoredLeg {
   quantity: number;
 }
 
-export async function getSettingsRow() {
-  const existing = await db.select().from(settingsTable).limit(1);
+// Phase 1, Sprint 5 — settings is now per-user. `userId` defaults to the
+// legacy-owner stand-in (see lib/legacyOwner.ts) so every existing caller
+// keeps working unchanged until Sprint 6/7 thread the real authenticated
+// user through. The automation scheduler (autoExecution.ts/autoAdjustment.ts)
+// deliberately keeps calling this with no argument — per the approved plan's
+// §4.4, its real per-user multi-tenancy design is an explicit owner decision
+// for a later, dedicated sprint, not something this sprint changes.
+export async function getSettingsRow(userId?: string) {
+  const resolvedUserId = userId ?? (await getLegacyOwnerUserId());
+  const existing = await db
+    .select()
+    .from(settingsTable)
+    .where(eq(settingsTable.userId, resolvedUserId))
+    .limit(1);
   if (existing[0]) return existing[0];
-  const [created] = await db.insert(settingsTable).values({}).returning();
+  const [created] = await db.insert(settingsTable).values({ userId: resolvedUserId }).returning();
   return created;
 }
 

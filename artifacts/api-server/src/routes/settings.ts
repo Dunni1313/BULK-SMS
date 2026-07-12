@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, settingsTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 import {
   GetSettingsResponse,
   UpdateSettingsResponse,
@@ -11,16 +12,27 @@ import {
   getLastLiveFetch,
   getFundamentalsProviderStatuses,
 } from "../lib/fundamentals.js";
+import { getLegacyOwnerUserId } from "../lib/legacyOwner.js";
 
 const router: IRouter = Router();
 
-async function getOrCreateSettings() {
-  const existing = await db.select().from(settingsTable).limit(1);
+// Phase 1, Sprint 5 — settings is now per-user, not a singleton (§2.3). Every
+// select/update is scoped by userId; this was the highest-priority leak in
+// the whole phase (the old version had no WHERE clause at all on update).
+// `userId` is resolved via the legacy-owner stand-in (see lib/legacyOwner.ts)
+// until Sprint 6 (auth) provides the real authenticated request's userId.
+export async function getOrCreateSettings(userId: string) {
+  const existing = await db
+    .select()
+    .from(settingsTable)
+    .where(eq(settingsTable.userId, userId))
+    .limit(1);
   if (existing.length > 0) return existing[0];
 
   const [created] = await db
     .insert(settingsTable)
     .values({
+      userId,
       executionMode: "manual",
       maxRiskPerTrade: 1.0,
       maxPortfolioRisk: 10.0,
@@ -40,7 +52,8 @@ async function getOrCreateSettings() {
 }
 
 router.get("/settings", async (_req, res): Promise<void> => {
-  const settings = await getOrCreateSettings();
+  const userId = await getLegacyOwnerUserId();
+  const settings = await getOrCreateSettings(userId);
   // fundamentalsConnected reflects whether a live provider is actually usable
   // (selected provider + matching API key present), never a stale stored value.
   res.json(
@@ -59,11 +72,13 @@ router.patch("/settings", async (req, res): Promise<void> => {
     return;
   }
 
-  const existing = await getOrCreateSettings();
+  const userId = await getLegacyOwnerUserId();
+  await getOrCreateSettings(userId);
 
   const [updated] = await db
     .update(settingsTable)
     .set(parsed.data)
+    .where(eq(settingsTable.userId, userId))
     .returning();
 
   res.json(
@@ -79,7 +94,8 @@ router.patch("/settings", async (req, res): Promise<void> => {
 // fundamentals provider, so operators see degradation at a glance instead of
 // discovering it one symbol at a time. Observability only — never mutates state.
 router.get("/fundamentals/provider-status", async (_req, res): Promise<void> => {
-  const settings = await getOrCreateSettings();
+  const userId = await getLegacyOwnerUserId();
+  const settings = await getOrCreateSettings(userId);
   res.json(
     GetFundamentalsProviderStatusResponse.parse({
       statuses: getFundamentalsProviderStatuses(settings),

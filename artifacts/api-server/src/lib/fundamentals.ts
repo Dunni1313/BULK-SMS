@@ -22,8 +22,10 @@
 //    (no DB read), keeping unit tests DB-free.
 
 import { db, settingsTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 import { getSnapshot, makeRng, todayStr, UNIVERSE } from "./optionsMath.js";
 import { logger } from "./logger.js";
+import { getLegacyOwnerUserId } from "./legacyOwner.js";
 
 export const FUNDAMENTALS_DATA_SOURCE = "SIMULATED" as const;
 export type FundamentalsDataSource = typeof FUNDAMENTALS_DATA_SOURCE;
@@ -823,13 +825,21 @@ export function selectFundamentalsProvider(
   return simulatedProvider;
 }
 
-// Load the configured provider: reads the Settings singleton and applies
-// `selectFundamentalsProvider`. Short-circuits to simulated (no DB read) when no
-// live API key is configured, so unit tests stay DB-free and the default is safe.
-export async function getFundamentalsProvider(): Promise<FundamentalsProvider> {
+// Load the configured provider: reads the (Phase 1, Sprint 5: per-user) Settings
+// row and applies `selectFundamentalsProvider`. Short-circuits to simulated (no
+// DB read) when no live API key is configured, so unit tests stay DB-free and
+// the default is safe. `userId` defaults to the legacy-owner stand-in (see
+// lib/legacyOwner.ts) so every existing caller keeps working unchanged until
+// Sprint 6/7 thread the real authenticated user through.
+export async function getFundamentalsProvider(userId?: string): Promise<FundamentalsProvider> {
   if (!anyLiveKeyPresent()) return simulatedProvider;
   try {
-    const [row] = await db.select().from(settingsTable).limit(1);
+    const resolvedUserId = userId ?? (await getLegacyOwnerUserId());
+    const [row] = await db
+      .select()
+      .from(settingsTable)
+      .where(eq(settingsTable.userId, resolvedUserId))
+      .limit(1);
     return selectFundamentalsProvider(row ?? null);
   } catch (err) {
     logger.warn({ err }, "failed to load fundamentals settings; using simulated provider");
