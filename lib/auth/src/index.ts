@@ -13,8 +13,9 @@
 // own default id format is a short alphanumeric string, which would fail to
 // insert into a strict `uuid` column.
 import { betterAuth } from "better-auth";
+import { createAuthMiddleware, isAPIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db, usersTable, sessionsTable, accountsTable, verificationsTable } from "@workspace/db";
+import { db, usersTable, sessionsTable, accountsTable, verificationsTable, recordAuditEvent } from "@workspace/db";
 
 const secret = process.env.BETTER_AUTH_SECRET;
 if (!secret) {
@@ -91,6 +92,39 @@ export const auth = betterAuth({
     // would lock every new signup out with no way to complete it — revisit
     // once a real mailer exists.
     requireEmailVerification: false,
+  },
+  // Phase 1, Sprint 10 — wires the sign-in flow into platform_audit_log (plan
+  // §6.2/§6.3). This is the only correct integration point: routes/auth.ts
+  // just mounts Better-Auth's own request handler, so no route body of ours
+  // ever runs for /sign-in/email — the global after-hook is the sole place
+  // that sees both the success and failure outcome.
+  //
+  // ctx.path is stripped of the /api/auth basePath by Better-Auth itself
+  // (confirmed empirically against this exact installed version), so
+  // "/sign-in/email" matches regardless of where the router is mounted.
+  // ctx.context.newSession is only ever populated when a session was
+  // actually created (success); ctx.context.returned is the thrown
+  // APIError on failure, whose .body.message is Better-Auth's own generic,
+  // already-client-visible "Invalid email or password" — safe to reuse
+  // verbatim since it reveals nothing beyond what the client already got.
+  //
+  // Never logs the submitted email/password, tokens, or cookies — only the
+  // resulting userId (on success) and this fixed generic reason (on failure).
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/sign-in/email") return;
+      const failed = isAPIError(ctx.context.returned);
+      const userId = failed ? null : (ctx.context.newSession?.user?.id ?? null);
+      await recordAuditEvent({
+        userId,
+        engine: "platform",
+        eventType: failed ? "auth.login_failed" : "auth.login",
+        action: failed ? "rejected" : "executed",
+        result: failed ? "failure" : "success",
+        resourceType: "session",
+        reason: failed ? "Invalid email or password" : null,
+      });
+    }),
   },
 });
 

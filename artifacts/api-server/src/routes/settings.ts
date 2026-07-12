@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, settingsTable } from "@workspace/db";
+import { db, settingsTable, recordAuditEvent } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import {
   GetSettingsResponse,
@@ -80,6 +80,22 @@ router.patch("/settings", async (req, res): Promise<void> => {
     .set(parsed.data)
     .where(eq(settingsTable.userId, userId))
     .returning();
+
+  // Phase 1, Sprint 10 — settings.updated audit event (plan §6.3), so the
+  // newly-scoped per-user settings changes (including the automation kill
+  // switches) are auditable from day one. metadata carries only the changed
+  // field NAMES, never their values — settings includes alpacaApiKey, and no
+  // secret value may ever land in the audit trail.
+  await recordAuditEvent({
+    userId,
+    engine: "platform",
+    eventType: "settings.updated",
+    action: "updated",
+    result: "success",
+    resourceType: "settings",
+    resourceId: String(updated.id),
+    metadata: { changedFields: Object.keys(parsed.data) },
+  });
 
   res.json(
     UpdateSettingsResponse.parse({

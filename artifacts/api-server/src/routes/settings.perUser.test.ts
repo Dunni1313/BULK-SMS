@@ -88,7 +88,11 @@ vi.mock("@workspace/db", () => {
       }),
     }),
   };
-  return { db, settingsTable };
+  // Phase 1, Sprint 10 — routes/settings.ts now writes a platform_audit_log
+  // row after every successful PATCH. This test only cares about per-user
+  // settings isolation, so the write is stubbed to a no-op.
+  const recordAuditEvent = async () => {};
+  return { db, settingsTable, recordAuditEvent };
 });
 
 let currentUserId = "user-a";
