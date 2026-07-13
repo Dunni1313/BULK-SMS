@@ -3176,3 +3176,42 @@ export const GetManagementQualityAnalysisResponse = zod.object({
 })
 
 
+/**
+ * @summary Quarterly earnings actual-vs-estimate history and deterministic trend analysis, fetched on demand
+ */
+export const GetEarningsIntelligenceParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetEarningsIntelligenceResponse = zod.object({
+  "symbol": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "quarters": zod.array(zod.object({
+  "fiscalQuarter": zod.string(),
+  "reportDate": zod.string().nullable(),
+  "epsActual": zod.number().nullable(),
+  "epsEstimate": zod.number().nullable(),
+  "epsSurprisePct": zod.number().nullable(),
+  "revenueActual": zod.number().nullable(),
+  "revenueEstimate": zod.number().nullable(),
+  "revenueSurprisePct": zod.number().nullable()
+})),
+  "epsBeatRate": zod.number().nullable(),
+  "revenueBeatRate": zod.number().nullable(),
+  "epsSurpriseStreak": zod.object({
+  "direction": zod.enum(['beat', 'miss', 'meet']),
+  "count": zod.number()
+}).nullable(),
+  "earningsGrowthTrend": zod.object({
+  "epsYoyGrowthPct": zod.number().nullable(),
+  "revenueYoyGrowthPct": zod.number().nullable(),
+  "direction": zod.enum(['accelerating', 'decelerating', 'stable', 'insufficient-data']),
+  "detail": zod.string()
+}),
+  "consistencyScore": zod.number().nullable(),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+})
+
+

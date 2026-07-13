@@ -40,6 +40,7 @@ import type {
   DailyReportSummary,
   DeleteReportResult,
   DeleteResult,
+  EarningsIntelligenceAnalysis,
   EarningsPlay,
   EquityPoint,
   EventRiskEvent,
@@ -6157,6 +6158,83 @@ export function useGetManagementQualityAnalysis<TData = Awaited<ReturnType<typeo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetManagementQualityAnalysisQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetEarningsIntelligenceUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/earnings/${symbol}`
+}
+
+/**
+ * @summary Quarterly earnings actual-vs-estimate history and deterministic trend analysis, fetched on demand
+ */
+export const getEarningsIntelligence = async (symbol: string, options?: RequestInit): Promise<EarningsIntelligenceAnalysis> => {
+
+  return customFetch<EarningsIntelligenceAnalysis>(getGetEarningsIntelligenceUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEarningsIntelligenceQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/earnings/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetEarningsIntelligenceQueryOptions = <TData = Awaited<ReturnType<typeof getEarningsIntelligence>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEarningsIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEarningsIntelligenceQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEarningsIntelligence>>> = ({ signal }) => getEarningsIntelligence(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEarningsIntelligence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEarningsIntelligenceQueryResult = NonNullable<Awaited<ReturnType<typeof getEarningsIntelligence>>>
+export type GetEarningsIntelligenceQueryError = ErrorType<void>
+
+
+/**
+ * @summary Quarterly earnings actual-vs-estimate history and deterministic trend analysis, fetched on demand
+ */
+
+export function useGetEarningsIntelligence<TData = Awaited<ReturnType<typeof getEarningsIntelligence>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEarningsIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEarningsIntelligenceQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

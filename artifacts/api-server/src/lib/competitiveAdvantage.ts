@@ -77,7 +77,12 @@ function clamp(x: number, lo = 0, hi = 100): number {
 // A simple, honest durability proxy derived only from data Fundamentals already
 // carries (the same 6-year revenueHistory/epsHistory arrays every report
 // already fetches) — never a fabricated trend.
-function historyConsistencyScore(history: number[]): number | null {
+// Exported (Phase 2, Sprint 25) so the Earnings Intelligence Engine reuses this
+// exact non-declining-steps formula for its own Earnings Consistency Score
+// (applied to a quarterly EPS-actual array) instead of a second, duplicated
+// consistency algorithm — a behavior-preserving export, this function's own
+// logic and Competitive Advantage's own output are unchanged.
+export function historyConsistencyScore(history: number[]): number | null {
   if (history.length < 2) return null;
   let nonDeclining = 0;
   for (let i = 1; i < history.length; i++) {

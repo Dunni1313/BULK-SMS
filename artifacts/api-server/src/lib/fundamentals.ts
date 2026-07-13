@@ -523,6 +523,100 @@ export interface FinancialStatements {
   cashFlow: CashFlowYear[];
 }
 
+// ─── Earnings Intelligence (Phase 2, Sprint 25) ───────────────────────────────
+// Quarterly earnings actual-vs-estimate history — a separate, ON-DEMAND data
+// source from `Fundamentals` itself, mirroring Sprint 19's Financial Statements
+// seam exactly. Deliberately not folded into `Fundamentals`/
+// `buildValueResearchReport()`: fetched only when a caller explicitly requests
+// it (the new "Earnings" UI tab, opened per symbol).
+//
+// Oldest -> newest, up to EARNINGS_QUARTERS_TRACKED quarters. Every numeric
+// field is honestly null when a provider doesn't supply it (e.g. Alpha
+// Vantage's documented EARNINGS endpoint has no revenue-estimate data at
+// all — revenueActual/revenueEstimate/revenueSurprisePct stay null for that
+// provider, never approximated).
+export const EARNINGS_QUARTERS_TRACKED = 8;
+
+export interface QuarterlyEarningsRecord {
+  fiscalQuarter: string; // e.g. "Q2 2025" (LIVE) or a relative label like "Q1 -1y" (SIMULATED, which has no real calendar anchor)
+  reportDate: string | null; // ISO date; null when the provider doesn't supply one — never fabricated
+  epsActual: number | null;
+  epsEstimate: number | null;
+  epsSurprisePct: number | null; // (actual-estimate)/abs(estimate)*100; null if either is missing or estimate is 0
+  revenueActual: number | null;
+  revenueEstimate: number | null;
+  revenueSurprisePct: number | null;
+}
+export interface EarningsHistory {
+  symbol: string;
+  name: string;
+  dataSource: DataSource;
+  fetchedAt: string;
+  quarters: QuarterlyEarningsRecord[];
+}
+
+// Shared by SIMULATED and FMP paths (Alpha Vantage prefers its own reported
+// surprisePercentage field — see below). Honestly null, never a division by
+// zero or a fabricated figure, when either side is missing or the estimate is 0.
+function computeSurprisePct(actual: number | null, estimate: number | null): number | null {
+  if (actual == null || estimate == null || estimate === 0) return null;
+  return round(((actual - estimate) / Math.abs(estimate)) * 100, 2);
+}
+
+// Phase 2, Sprint 25 — deterministic SIMULATED quarterly earnings, derived from
+// the SAME Fundamentals this provider already produces for the symbol (its
+// revenueHistory/epsHistory per-share arrays) — never a second, independently
+// random data source, mirroring Sprint 19's simulateFinancialStatements()
+// precedent. The most recent 2 annual entries are split into 8 deterministically
+// weighted quarters; each quarter's "estimate" is the actual plus small seeded
+// noise, the same kind of illustrative aggregate every other SIMULATED metric
+// in this file already produces — never a claim about a real reported event.
+function simulatedEarningsHistory(f: Fundamentals): EarningsHistory {
+  const rng = makeRng(`${f.symbol}|earnings-history`);
+  const scaleFactor = clamp(f.qualitative.scale, 20, 95) / 95;
+  const shares = Math.round((2e8 + rng() * 3e9) * (0.4 + 0.6 * scaleFactor));
+
+  const revPerShareYears = f.revenueHistory.slice(-2); // [-1y, Current]
+  const epsPerShareYears = f.epsHistory.slice(-2);
+  const yearLabels = revPerShareYears.length === 2 ? ["-1y", "Current"] : ["Current"];
+
+  const quarters: QuarterlyEarningsRecord[] = [];
+  for (let y = 0; y < revPerShareYears.length; y++) {
+    const annualRevPerShare = revPerShareYears[y];
+    const annualEpsPerShare = epsPerShareYears[y];
+    // Seeded quarterly weights around 25% each, normalized to sum to 1 — an
+    // illustrative seasonal split, not an independently random model.
+    const rawWeights = [1, 2, 3, 4].map(() => 0.25 + (rng() - 0.5) * 0.1);
+    const weightSum = rawWeights.reduce((a, w) => a + w, 0);
+    const weights = rawWeights.map((w) => w / weightSum);
+    for (let q = 0; q < 4; q++) {
+      const epsActual = round(annualEpsPerShare * weights[q], 2);
+      const revenueActual = round(annualRevPerShare * weights[q] * shares, 0);
+      const noise = (rng() - 0.5) * 0.16; // -8%..+8%
+      const epsEstimate = round(epsActual * (1 - noise), 2);
+      const revenueEstimate = round(revenueActual * (1 - noise), 0);
+      quarters.push({
+        fiscalQuarter: `Q${q + 1} ${yearLabels[y]}`,
+        reportDate: null,
+        epsActual,
+        epsEstimate,
+        epsSurprisePct: computeSurprisePct(epsActual, epsEstimate),
+        revenueActual,
+        revenueEstimate,
+        revenueSurprisePct: computeSurprisePct(revenueActual, revenueEstimate),
+      });
+    }
+  }
+
+  return {
+    symbol: f.symbol,
+    name: f.name,
+    dataSource: f.dataSource,
+    fetchedAt: new Date().toISOString(),
+    quarters: quarters.slice(-EARNINGS_QUARTERS_TRACKED),
+  };
+}
+
 // Phase 2, Sprint 24 — deterministic SIMULATED capital-allocation/ownership
 // data, seeded by symbol only (stable across requests). These are aggregate
 // numbers about capital structure (insider ownership %, share-count trend) —
@@ -552,6 +646,7 @@ export interface FundamentalsProvider {
   readonly isLive: boolean;
   getFundamentals(symbol: string, asOf?: string, opts?: FetchOpts): Promise<Fundamentals | null>;
   getFinancialStatements(symbol: string, opts?: FetchOpts): Promise<FinancialStatements | null>;
+  getEarningsHistory(symbol: string, opts?: FetchOpts): Promise<EarningsHistory | null>;
 }
 
 export class SimulatedFundamentalsProvider implements FundamentalsProvider {
@@ -635,6 +730,13 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
     const f = await this.getFundamentals(sym, todayStr());
     if (!f) return null;
     return simulateFinancialStatements(f);
+  }
+
+  async getEarningsHistory(symbol: string, _opts?: FetchOpts): Promise<EarningsHistory | null> {
+    const sym = symbol.toUpperCase();
+    const f = await this.getFundamentals(sym, todayStr());
+    if (!f) return null;
+    return simulatedEarningsHistory(f);
   }
 }
 
@@ -720,6 +822,17 @@ function num(v: unknown): number | null {
   if (s === "" || s === "None" || s === "-" || s.toLowerCase() === "nan" || s.toLowerCase() === "null") return null;
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
+}
+
+// Phase 2, Sprint 25 — derives a "Q# YYYY" fiscal-quarter label from a
+// fiscal-period-end date string (e.g. "2025-06-30" -> "Q2 2025"), used by both
+// live providers' earnings-history parsing. Honestly returns the raw string
+// unlabeled ("Unknown") if it can't be parsed — never a guessed quarter.
+function quarterLabelFromDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "Unknown";
+  const quarter = Math.floor(d.getUTCMonth() / 3) + 1;
+  return `Q${quarter} ${d.getUTCFullYear()}`;
 }
 
 async function fetchJson(url: string, timeoutMs = 12000): Promise<unknown> {
@@ -818,6 +931,19 @@ function getCachedStatements(id: string, sym: string): FinancialStatements | nul
 }
 function setCachedStatements(id: string, sym: string, data: FinancialStatements | null): void {
   statementsCache.set(`${id}:${sym}`, { at: Date.now(), data });
+}
+
+// Same short-lived-cache discipline for the earnings-history fetch (Phase 2,
+// Sprint 25) — quarterly earnings are periodic, not date-scoped, so this
+// mirrors statementsCache's own (no-asOf) keying exactly.
+const earningsCache = new Map<string, { at: number; data: EarningsHistory | null }>();
+function getCachedEarnings(id: string, sym: string): EarningsHistory | null | undefined {
+  const e = earningsCache.get(`${id}:${sym}`);
+  if (e && Date.now() - e.at < LIVE_TTL_MS) return e.data;
+  return undefined;
+}
+function setCachedEarnings(id: string, sym: string, data: EarningsHistory | null): void {
+  earningsCache.set(`${id}:${sym}`, { at: Date.now(), data });
 }
 
 // Process-local record of the most recent successful live fundamentals fetch, so
@@ -1060,6 +1186,72 @@ export class FmpFundamentalsProvider implements FundamentalsProvider {
       cashFlow,
     };
     setCachedStatements(this.id, sym, data);
+    return data;
+  }
+
+  // Phase 2, Sprint 25. Fetched only on demand (the Earnings tab), never as
+  // part of getFundamentals()/buildValueResearchReport(). Field names below
+  // are FMP's documented historical-earnings-calendar shape
+  // (eps/epsEstimated/revenue/revenueEstimated/fiscalDateEnding/date) — LIVE
+  // VERIFICATION IS DEFERRED, same as every FMP integration since Sprint 11:
+  // no FMP_API_KEY was available in this session, so this has not been
+  // exercised against the real API (mocked-fetch tests cover the parsing
+  // logic instead).
+  async getEarningsHistory(symbol: string, opts?: FetchOpts): Promise<EarningsHistory | null> {
+    const sym = symbol.toUpperCase();
+    if (!opts?.forceRefresh) {
+      const cached = getCachedEarnings(this.id, sym);
+      if (cached !== undefined) return cached;
+    }
+
+    const base = "https://financialmodelingprep.com/api/v3";
+    const k = encodeURIComponent(this.apiKey);
+    const raw = await fetchJson(
+      `${base}/historical/earning_calendar/${sym}?limit=${EARNINGS_QUARTERS_TRACKED}&apikey=${k}`,
+    );
+    if (raw && !Array.isArray(raw) && (raw as Record<string, unknown>)["Error Message"]) {
+      throw new Error("Financial Modeling Prep error or rate limit");
+    }
+    const arr = (Array.isArray(raw) ? raw : []) as Record<string, unknown>[];
+    if (arr.length === 0) {
+      setCachedEarnings(this.id, sym, null);
+      return null;
+    }
+
+    // FMP returns most-recent-first; reverse to oldest -> newest, matching the
+    // rest of this file's history-array convention.
+    const quarters: QuarterlyEarningsRecord[] = [...arr]
+      .reverse()
+      .slice(-EARNINGS_QUARTERS_TRACKED)
+      .map((r) => {
+        const epsActual = num(r.eps);
+        const epsEstimate = num(r.epsEstimated);
+        const revenueActual = num(r.revenue);
+        const revenueEstimate = num(r.revenueEstimated);
+        const fiscalDateEnding = String(r.fiscalDateEnding ?? r.date ?? "");
+        return {
+          fiscalQuarter: quarterLabelFromDate(fiscalDateEnding),
+          reportDate: r.date != null ? String(r.date) : null,
+          epsActual,
+          epsEstimate,
+          epsSurprisePct: computeSurprisePct(epsActual, epsEstimate),
+          revenueActual,
+          revenueEstimate,
+          revenueSurprisePct: computeSurprisePct(revenueActual, revenueEstimate),
+        };
+      });
+
+    const data: EarningsHistory = {
+      symbol: sym,
+      // The earnings-calendar endpoint doesn't carry a company display name
+      // (only /profile does, fetched separately by getFundamentals) — fall
+      // back to the ticker itself rather than fabricate one.
+      name: sym,
+      dataSource: "LIVE",
+      fetchedAt: new Date().toISOString(),
+      quarters,
+    };
+    setCachedEarnings(this.id, sym, data);
     return data;
   }
 }
@@ -1308,6 +1500,66 @@ export class AlphaVantageFundamentalsProvider implements FundamentalsProvider {
       cashFlow,
     };
     setCachedStatements(this.id, sym, data);
+    return data;
+  }
+
+  // Phase 2, Sprint 25. Fetched only on demand (the Earnings tab). Alpha
+  // Vantage's documented EARNINGS function returns quarterlyEarnings with
+  // reportedEPS/estimatedEPS/surprisePercentage/reportedDate — but no revenue
+  // estimate data at all (per the approved Sprint 25 decision, revenue fields
+  // stay honestly null for this provider, never approximated). LIVE
+  // VERIFICATION IS DEFERRED — no ALPHA_VANTAGE_API_KEY was available in this
+  // session; mocked-fetch tests cover the parsing logic instead.
+  async getEarningsHistory(symbol: string, opts?: FetchOpts): Promise<EarningsHistory | null> {
+    const sym = symbol.toUpperCase();
+    if (!opts?.forceRefresh) {
+      const cached = getCachedEarnings(this.id, sym);
+      if (cached !== undefined) return cached;
+    }
+
+    const base = "https://www.alphavantage.co/query";
+    const k = encodeURIComponent(this.apiKey);
+    const raw = (await fetchJson(`${base}?function=EARNINGS&symbol=${sym}&apikey=${k}`)) as Record<string, unknown>;
+    if (raw.Note || raw.Information || raw["Error Message"]) {
+      throw new Error("Alpha Vantage rate limit or error");
+    }
+    const arr = (Array.isArray(raw.quarterlyEarnings) ? raw.quarterlyEarnings : []) as Record<string, unknown>[];
+    if (arr.length === 0) {
+      setCachedEarnings(this.id, sym, null);
+      return null;
+    }
+
+    // Alpha Vantage returns most-recent-first; take the most recent N and
+    // reverse to oldest -> newest, matching the rest of this file's convention.
+    const quarters: QuarterlyEarningsRecord[] = arr
+      .slice(0, EARNINGS_QUARTERS_TRACKED)
+      .reverse()
+      .map((r) => {
+        const epsActual = num(r.reportedEPS);
+        const epsEstimate = num(r.estimatedEPS);
+        return {
+          fiscalQuarter: quarterLabelFromDate(String(r.fiscalDateEnding ?? "")),
+          reportDate: r.reportedDate != null ? String(r.reportedDate) : null,
+          epsActual,
+          epsEstimate,
+          // Prefer Alpha Vantage's own reported surprisePercentage (its own
+          // authoritative computation) over recomputing, falling back to the
+          // shared formula only when it's missing.
+          epsSurprisePct: num(r.surprisePercentage) ?? computeSurprisePct(epsActual, epsEstimate),
+          revenueActual: null,
+          revenueEstimate: null,
+          revenueSurprisePct: null,
+        };
+      });
+
+    const data: EarningsHistory = {
+      symbol: sym,
+      name: sym,
+      dataSource: "LIVE",
+      fetchedAt: new Date().toISOString(),
+      quarters,
+    };
+    setCachedEarnings(this.id, sym, data);
     return data;
   }
 }

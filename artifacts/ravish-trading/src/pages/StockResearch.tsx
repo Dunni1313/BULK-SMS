@@ -11,6 +11,7 @@ import {
   useGetIndustryComparison,
   useGetFilingAnalysis,
   useGetManagementQualityAnalysis,
+  useGetEarningsIntelligence,
   getValueUniverse,
   getGetValueUniverseQueryKey,
   getGetValueWatchlistQueryKey,
@@ -19,6 +20,7 @@ import {
   getGetIndustryComparisonQueryKey,
   getGetFilingAnalysisQueryKey,
   getGetManagementQualityAnalysisQueryKey,
+  getGetEarningsIntelligenceQueryKey,
   ValueResearchReport,
   ValueResearchInputLevel,
 } from "@workspace/api-client-react";
@@ -58,6 +60,7 @@ import {
   GitCompare,
   Castle,
   FileText,
+  CalendarClock,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -1151,6 +1154,19 @@ export default function StockResearch() {
       enabled: tab === "filings" && !!report?.symbol,
     },
   });
+
+  // Phase 2, Sprint 25 — fetched only when the Earnings tab is actually opened
+  // for a selected symbol, never as a side effect of loading the main report.
+  const {
+    data: earnings,
+    isLoading: earningsLoading,
+    isError: earningsError,
+  } = useGetEarningsIntelligence(report?.symbol ?? "", {
+    query: {
+      queryKey: getGetEarningsIntelligenceQueryKey(report?.symbol ?? ""),
+      enabled: tab === "earnings" && !!report?.symbol,
+    },
+  });
   const search = useSearch();
 
   // Auto-refresh bookkeeping: the fetchedAt batch we've already auto-refreshed
@@ -1462,6 +1478,9 @@ export default function StockResearch() {
               </TabsTrigger>
               <TabsTrigger value="filings" className="text-xs" disabled={!report}>
                 Filings
+              </TabsTrigger>
+              <TabsTrigger value="earnings" className="text-xs" disabled={!report}>
+                Earnings
               </TabsTrigger>
             </TabsList>
 
@@ -2019,6 +2038,96 @@ export default function StockResearch() {
                         ))}
                       </div>
                       <p className="text-[10px] text-muted-foreground/70">{managementQuality.disclaimer}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="earnings" className="mt-4">
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <CalendarClock className="w-4 h-4 text-indigo-400" /> Earnings Intelligence
+                    {earnings && (
+                      <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                        {earnings.dataSource}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-[11px]">
+                    {report
+                      ? `Quarterly earnings actual-vs-estimate history for ${report.symbol}, fetched on demand.`
+                      : "Select a company to view its earnings history."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {!report ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">Select a company to begin research first.</p>
+                  ) : earningsLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  ) : earningsError || !earnings ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">
+                      Earnings intelligence is unavailable for {report.symbol}.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-[10px] border-border">
+                          {earnings.confidenceLevel} confidence
+                        </Badge>
+                        {earnings.epsSurpriseStreak && (
+                          <Badge variant="outline" className="text-[10px] border-border capitalize">
+                            {earnings.epsSurpriseStreak.count}-quarter {earnings.epsSurpriseStreak.direction} streak
+                          </Badge>
+                        )}
+                        <Badge variant="outline" className="text-[10px] border-border capitalize">
+                          Growth: {earnings.earningsGrowthTrend.direction}
+                        </Badge>
+                        {earnings.consistencyScore != null && (
+                          <Badge variant="outline" className="text-[10px] border-border">
+                            Consistency {Math.round(earnings.consistencyScore)}/100
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{earnings.summary}</p>
+                      <p className="text-[11px] text-muted-foreground/80">{earnings.earningsGrowthTrend.detail}</p>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-muted-foreground border-b border-border">
+                              <th className="text-left font-medium py-2 pr-3">Quarter</th>
+                              <th className="text-right font-medium py-2 pr-3">EPS Actual</th>
+                              <th className="text-right font-medium py-2 pr-3">EPS Estimate</th>
+                              <th className="text-right font-medium py-2 pr-3">EPS Surprise</th>
+                              <th className="text-right font-medium py-2 pr-3">Revenue Actual</th>
+                              <th className="text-right font-medium py-2">Revenue Surprise</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {earnings.quarters.map((q) => (
+                              <tr key={q.fiscalQuarter} className="border-b border-border/40">
+                                <td className="py-2 pr-3 font-medium text-foreground/90">{q.fiscalQuarter}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{q.epsActual != null ? q.epsActual.toFixed(2) : "n/a"}</td>
+                                <td className="py-2 pr-3 text-right font-mono text-muted-foreground">{q.epsEstimate != null ? q.epsEstimate.toFixed(2) : "n/a"}</td>
+                                <td className={`py-2 pr-3 text-right font-mono ${q.epsSurprisePct != null ? (q.epsSurprisePct >= 0 ? "text-emerald-400" : "text-rose-400") : ""}`}>
+                                  {q.epsSurprisePct != null ? `${q.epsSurprisePct >= 0 ? "+" : ""}${q.epsSurprisePct.toFixed(1)}%` : "n/a"}
+                                </td>
+                                <td className="py-2 pr-3 text-right font-mono">{q.revenueActual != null ? fmtCompactUsd(q.revenueActual) : "n/a"}</td>
+                                <td className={`py-2 text-right font-mono ${q.revenueSurprisePct != null ? (q.revenueSurprisePct >= 0 ? "text-emerald-400" : "text-rose-400") : ""}`}>
+                                  {q.revenueSurprisePct != null ? `${q.revenueSurprisePct >= 0 ? "+" : ""}${q.revenueSurprisePct.toFixed(1)}%` : "n/a"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground/70">{earnings.confidenceExplanation}</p>
                     </div>
                   )}
                 </CardContent>

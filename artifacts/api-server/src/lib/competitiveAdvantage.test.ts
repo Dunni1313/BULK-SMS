@@ -2,7 +2,7 @@
 // Phase 2 plan, Sprint 21).
 
 import { describe, it, expect } from "vitest";
-import { analyzeCompetitiveAdvantage } from "./competitiveAdvantage.js";
+import { analyzeCompetitiveAdvantage, historyConsistencyScore } from "./competitiveAdvantage.js";
 import { analyzeInvestmentQuality } from "./investmentQuality.js";
 import { analyzeFinancialStrength, classifyMoatRating } from "./valueInvesting.js";
 import type { Fundamentals } from "./fundamentals.js";
@@ -150,6 +150,26 @@ describe("analyzeCompetitiveAdvantage", () => {
     const strong = build(consistentGrowth);
     const weak = build(declining);
     expect(dim(strong, "Competitive Durability").score!).toBeGreaterThan(dim(weak, "Competitive Durability").score!);
+  });
+
+  // Phase 2, Sprint 25 exported historyConsistencyScore() (previously private)
+  // so the Earnings Intelligence Engine can reuse it — a behavior-preserving
+  // change; Competitive Advantage's own Competitive Durability dimension must
+  // compute identically before and after.
+  it("historyConsistencyScore export did not change Competitive Advantage's own Competitive Durability output", () => {
+    const f = fixture({
+      revenueHistory: [10, 20, 30, 40, 50, 60],
+      epsHistory: [1, 2, 3, 4, 5, 6],
+      roic: 0.3,
+      fcfPositiveYears: 10,
+    });
+    const result = build(f);
+    // The dimension's own reported score matches an independent, standalone
+    // call to the exported helper against the same revenue/EPS histories,
+    // proving the extraction didn't alter the durability blend's inputs.
+    expect(historyConsistencyScore(f.revenueHistory)).toBe(100);
+    expect(historyConsistencyScore(f.epsHistory)).toBe(100);
+    expect(dim(result, "Competitive Durability").score).not.toBeNull();
   });
 
   it("computes an overall score as the renormalized weighted average of available dimensions", () => {

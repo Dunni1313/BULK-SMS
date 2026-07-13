@@ -608,6 +608,79 @@ export interface FinancialStatements {
   cashFlow: CashFlowYear[];
 }
 
+export interface QuarterlyEarningsRecord {
+  fiscalQuarter: string;
+  reportDate: string | null;
+  epsActual: number | null;
+  epsEstimate: number | null;
+  epsSurprisePct: number | null;
+  revenueActual: number | null;
+  revenueEstimate: number | null;
+  revenueSurprisePct: number | null;
+}
+
+export type EarningsGrowthTrendDirection = typeof EarningsGrowthTrendDirection[keyof typeof EarningsGrowthTrendDirection];
+
+
+export const EarningsGrowthTrendDirection = {
+  accelerating: 'accelerating',
+  decelerating: 'decelerating',
+  stable: 'stable',
+  'insufficient-data': 'insufficient-data',
+} as const;
+
+export interface EarningsGrowthTrend {
+  epsYoyGrowthPct: number | null;
+  revenueYoyGrowthPct: number | null;
+  direction: EarningsGrowthTrendDirection;
+  detail: string;
+}
+
+export type EarningsSurpriseStreakDirection = typeof EarningsSurpriseStreakDirection[keyof typeof EarningsSurpriseStreakDirection];
+
+
+export const EarningsSurpriseStreakDirection = {
+  beat: 'beat',
+  miss: 'miss',
+  meet: 'meet',
+} as const;
+
+export interface EarningsSurpriseStreak {
+  direction: EarningsSurpriseStreakDirection;
+  count: number;
+}
+
+export type EarningsIntelligenceAnalysisDataSource = typeof EarningsIntelligenceAnalysisDataSource[keyof typeof EarningsIntelligenceAnalysisDataSource];
+
+
+export const EarningsIntelligenceAnalysisDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type EarningsIntelligenceAnalysisConfidenceLevel = typeof EarningsIntelligenceAnalysisConfidenceLevel[keyof typeof EarningsIntelligenceAnalysisConfidenceLevel];
+
+
+export const EarningsIntelligenceAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface EarningsIntelligenceAnalysis {
+  symbol: string;
+  dataSource: EarningsIntelligenceAnalysisDataSource;
+  quarters: QuarterlyEarningsRecord[];
+  epsBeatRate: number | null;
+  revenueBeatRate: number | null;
+  epsSurpriseStreak: EarningsSurpriseStreak | null;
+  earningsGrowthTrend: EarningsGrowthTrend;
+  consistencyScore: number | null;
+  confidenceLevel: EarningsIntelligenceAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+}
+
 export type ComparisonMetricDirection = typeof ComparisonMetricDirection[keyof typeof ComparisonMetricDirection];
 
 

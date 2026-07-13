@@ -35,6 +35,7 @@ import {
   GetIndustryComparisonResponse,
   GetFilingAnalysisResponse,
   GetManagementQualityAnalysisResponse,
+  GetEarningsIntelligenceResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider } from "../lib/fundamentals.js";
@@ -42,6 +43,7 @@ import { buildValueResearchReport, type ValueResearchReport } from "../lib/value
 import { buildIndustryComparison } from "../lib/industryComparison.js";
 import { buildFilingAnalysis } from "../lib/filingAnalysis.js";
 import { buildManagementQualityAnalysis } from "../lib/managementAnalysis.js";
+import { buildEarningsIntelligence } from "../lib/earningsAnalysis.js";
 import { EdgarDocumentProvider } from "../lib/documentProviders.js";
 import { analyzeInvestmentSuitability } from "../lib/valueInvesting.js";
 import {
@@ -558,6 +560,28 @@ router.get("/management-quality/:symbol", async (req, res): Promise<void> => {
     return;
   }
   res.json(GetManagementQualityAnalysisResponse.parse(analysis));
+});
+
+// Phase 2, Sprint 25 — Earnings Intelligence Engine. Deliberately a separate,
+// on-demand endpoint (not folded into /value/:symbol): buildValueResearchReport()
+// never gains an earnings-shaped field this sprint. Mirrors Financial
+// Statements' honest-502-on-live-failure / 404-on-unknown-symbol contract.
+router.get("/earnings/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const provider = await getFundamentalsProvider(userId);
+  let analysis;
+  try {
+    analysis = await buildEarningsIntelligence(req.params.symbol, provider);
+  } catch (err) {
+    req.log.error({ err }, "earnings intelligence fetch failed");
+    res.status(502).json({ error: "Live earnings provider is currently unavailable." });
+    return;
+  }
+  if (!analysis) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  res.json(GetEarningsIntelligenceResponse.parse(analysis));
 });
 
 export default router;

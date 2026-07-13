@@ -82,6 +82,9 @@ class FakeProvider implements FundamentalsProvider {
   async getFinancialStatements(): Promise<null> {
     return null;
   }
+  async getEarningsHistory(): Promise<null> {
+    return null;
+  }
 }
 
 describe("buildIndustryComparison — SIMULATED path (real provider, real sector taxonomy)", () => {

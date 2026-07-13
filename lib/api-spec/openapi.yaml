@@ -1462,6 +1462,27 @@ paths:
         "404":
           description: Unknown symbol
 
+  /stock-analyst/earnings/{symbol}:
+    get:
+      operationId: getEarningsIntelligence
+      tags: [value]
+      summary: Quarterly earnings actual-vs-estimate history and deterministic trend analysis, fetched on demand
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Earnings intelligence analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EarningsIntelligenceAnalysis"
+        "404":
+          description: Unknown symbol
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -1977,6 +1998,65 @@ components:
         cashFlow:
           type: array
           items: { $ref: "#/components/schemas/CashFlowYear" }
+
+    QuarterlyEarningsRecord:
+      type: object
+      required: [fiscalQuarter, reportDate, epsActual, epsEstimate, epsSurprisePct, revenueActual, revenueEstimate, revenueSurprisePct]
+      properties:
+        fiscalQuarter: { type: string }
+        reportDate: { type: string, nullable: true }
+        epsActual: { type: number, nullable: true }
+        epsEstimate: { type: number, nullable: true }
+        epsSurprisePct: { type: number, nullable: true }
+        revenueActual: { type: number, nullable: true }
+        revenueEstimate: { type: number, nullable: true }
+        revenueSurprisePct: { type: number, nullable: true }
+
+    EarningsGrowthTrend:
+      type: object
+      required: [epsYoyGrowthPct, revenueYoyGrowthPct, direction, detail]
+      properties:
+        epsYoyGrowthPct: { type: number, nullable: true }
+        revenueYoyGrowthPct: { type: number, nullable: true }
+        direction:
+          type: string
+          enum: [accelerating, decelerating, stable, insufficient-data]
+        detail: { type: string }
+
+    EarningsSurpriseStreak:
+      type: object
+      required: [direction, count]
+      properties:
+        direction:
+          type: string
+          enum: [beat, miss, meet]
+        count: { type: integer }
+
+    EarningsIntelligenceAnalysis:
+      type: object
+      required: [symbol, dataSource, quarters, epsBeatRate, revenueBeatRate, epsSurpriseStreak, earningsGrowthTrend, consistencyScore, confidenceLevel, confidenceExplanation, summary]
+      properties:
+        symbol: { type: string }
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        quarters:
+          type: array
+          items: { $ref: "#/components/schemas/QuarterlyEarningsRecord" }
+        epsBeatRate: { type: number, nullable: true }
+        revenueBeatRate: { type: number, nullable: true }
+        epsSurpriseStreak:
+          allOf:
+            - $ref: "#/components/schemas/EarningsSurpriseStreak"
+          nullable: true
+        earningsGrowthTrend:
+          $ref: "#/components/schemas/EarningsGrowthTrend"
+        consistencyScore: { type: number, nullable: true }
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation: { type: string }
+        summary: { type: string }
 
     ComparisonMetric:
       type: object
