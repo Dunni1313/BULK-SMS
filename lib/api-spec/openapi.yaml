@@ -1750,15 +1750,52 @@ components:
         score: { type: ["number", "null"] }
         detail: { type: string }
 
+    ValueSectorMacroContext:
+      type: object
+      required: [sector, industry, macroRegime, macroRegimeLabel, detail]
+      properties:
+        sector: { type: string, nullable: true }
+        industry: { type: string, nullable: true }
+        macroRegime:
+          type: string
+          enum: [rising_rates, falling_rates, stable_rates]
+        macroRegimeLabel: { type: string }
+        detail: { type: string }
+
+    ValueRateSensitivityAnalysis:
+      type: object
+      required: [durationScore, classification, sensitivityLabel, detail]
+      properties:
+        durationScore: { type: number }
+        classification:
+          type: string
+          enum: ["Long-Duration Growth", "Value / Short-Duration", Blend]
+        sensitivityLabel: { type: string }
+        detail: { type: string }
+
+    ValueAiTechCycleAnalysis:
+      type: object
+      required: [score, label, detail]
+      properties:
+        score: { type: number }
+        label:
+          type: string
+          enum: [High, Moderate, Low]
+        detail: { type: string }
+
     ValueTomNashAnalysis:
       type: object
-      required: [businessQuality, growth, capitalAllocation, financialStrength, valuation, convictionScore, verdict, rationale, summary]
+      required: [businessQuality, growth, capitalAllocation, financialStrength, valuation, sectorMacro, rateSensitivity, aiTechCycle, dataCompleteness, convictionScore, verdict, rationale, summary]
       properties:
         businessQuality: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
         growth: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
         capitalAllocation: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
         financialStrength: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
         valuation: { $ref: "#/components/schemas/ValueTomNashPillarScore" }
+        sectorMacro: { $ref: "#/components/schemas/ValueSectorMacroContext" }
+        rateSensitivity: { $ref: "#/components/schemas/ValueRateSensitivityAnalysis" }
+        aiTechCycle: { $ref: "#/components/schemas/ValueAiTechCycleAnalysis" }
+        dataCompleteness: { type: number }
         convictionScore: { type: number }
         verdict:
           type: string

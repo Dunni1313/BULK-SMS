@@ -3,6 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 import { analyzeTomNash } from "./tomNashEngine.js";
+import type { MacroContext } from "./investingMacro.js";
 import type { Fundamentals } from "./fundamentals.js";
 import type { FinancialStrength, Valuation } from "./valueInvesting.js";
 import type { InvestmentQualityAnalysis, QualityMetricScore } from "./investmentQuality.js";
@@ -381,5 +382,110 @@ describe("analyzeTomNash", () => {
     const serialized = JSON.stringify(t);
     expect(serialized).not.toContain("order");
     expect(serialized).not.toContain("execute");
+  });
+
+  // Phase 2, Sprint 26 (Tom Nash Enhancement II) — Sector & Macro, Interest
+  // Rate Sensitivity, and AI/Tech-Cycle are all informational: they never
+  // enter PILLAR_WEIGHTS/the conviction-score average.
+  describe("Sprint 26 — Sector & Macro / Interest Rate Sensitivity / AI-Tech-Cycle (informational only)", () => {
+    const risingMacro: MacroContext = { asOf: "2026-01-15", regime: "rising_rates", regimeLabel: "Rising-Rate Environment", rateTrendPct: 0.004, dataSource: "SIMULATED", summary: "s" };
+    const fallingMacro: MacroContext = { asOf: "2026-01-15", regime: "falling_rates", regimeLabel: "Falling-Rate Environment", rateTrendPct: -0.004, dataSource: "SIMULATED", summary: "s" };
+    const stableMacro: MacroContext = { asOf: "2026-01-15", regime: "stable_rates", regimeLabel: "Stable-Rate Environment", rateTrendPct: 0.0001, dataSource: "SIMULATED", summary: "s" };
+
+    it("surfaces sector/industry from Fundamentals directly, zero new provider calls", () => {
+      const t = analyzeTomNash(
+        fixtureFundamentals({ sector: "Technology", industry: "Software" }),
+        fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro,
+      );
+      expect(t.sectorMacro.sector).toBe("Technology");
+      expect(t.sectorMacro.industry).toBe("Software");
+      expect(t.sectorMacro.detail).toMatch(/Technology/);
+    });
+
+    it("honestly reports sector unknown when Fundamentals.sector is null, never a guessed classification", () => {
+      const t = analyzeTomNash(fixtureFundamentals({ sector: null }), fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro);
+      expect(t.sectorMacro.sector).toBeNull();
+      expect(t.sectorMacro.detail).toMatch(/Unknown sector/);
+    });
+
+    it("classifies a high-growth, high-multiple, no-dividend company as Long-Duration Growth", () => {
+      const t = analyzeTomNash(
+        fixtureFundamentals({ revenueGrowth5y: 0.3, forwardPe: 45, dividendYield: 0, debtToEquity: 1.5 }),
+        fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro,
+      );
+      expect(t.rateSensitivity.classification).toBe("Long-Duration Growth");
+    });
+
+    it("classifies a low-growth, high-dividend, low-multiple company as Value / Short-Duration", () => {
+      const t = analyzeTomNash(
+        fixtureFundamentals({ revenueGrowth5y: 0, forwardPe: 8, dividendYield: 0.05, debtToEquity: 0 }),
+        fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro,
+      );
+      expect(t.rateSensitivity.classification).toBe("Value / Short-Duration");
+    });
+
+    it("labels a Long-Duration Growth company as highly sensitive in a rising-rate regime and a likely beneficiary in a falling-rate regime", () => {
+      const growthF = fixtureFundamentals({ revenueGrowth5y: 0.3, forwardPe: 45, dividendYield: 0, debtToEquity: 1.5 });
+      const rising = analyzeTomNash(growthF, fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), risingMacro);
+      const falling = analyzeTomNash(growthF, fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), fallingMacro);
+      expect(rising.rateSensitivity.sensitivityLabel).toMatch(/High sensitivity to rising rates/);
+      expect(falling.rateSensitivity.sensitivityLabel).toMatch(/beneficiary of falling rates/);
+    });
+
+    it("scores AI/Tech-Cycle from qualitative IP strength/pricing power/recurring revenue plus margin/growth — never an LLM claim about the company's actual strategy", () => {
+      const highTech = analyzeTomNash(
+        fixtureFundamentals({ grossMargin: 0.7, revenueGrowth5y: 0.25, qualitative: { pricingPower: 90, brand: 50, customerLoyalty: 50, recurringRevenue: 90, scale: 50, switchingCost: 50, networkEffect: 50, ipStrength: 90, distribution: 50, regulatoryAdvantage: 50 } }),
+        fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro,
+      );
+      const lowTech = analyzeTomNash(
+        fixtureFundamentals({ grossMargin: 0.15, revenueGrowth5y: 0.01, qualitative: { pricingPower: 10, brand: 50, customerLoyalty: 50, recurringRevenue: 10, scale: 50, switchingCost: 50, networkEffect: 50, ipStrength: 10, distribution: 50, regulatoryAdvantage: 50 } }),
+        fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro,
+      );
+      expect(highTech.aiTechCycle.label).toBe("High");
+      expect(lowTech.aiTechCycle.label).toBe("Low");
+      expect(highTech.aiTechCycle.score).toBeGreaterThan(lowTech.aiTechCycle.score);
+      expect(highTech.aiTechCycle.detail).not.toMatch(/roadmap will|plans to launch/i);
+    });
+
+    it("the 3 new dimensions never change convictionScore/verdict for an otherwise-identical fixture", () => {
+      const withSector = analyzeTomNash(fixtureFundamentals({ sector: "Technology", industry: "Software" }), fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), risingMacro);
+      const withoutSector = analyzeTomNash(fixtureFundamentals({ sector: null, industry: null }), fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), fallingMacro);
+      expect(withSector.convictionScore).toBe(withoutSector.convictionScore);
+      expect(withSector.verdict).toBe(withoutSector.verdict);
+    });
+
+    it("dataCompleteness is 1 when sector is known (all 8 dimensions available)", () => {
+      const t = analyzeTomNash(fixtureFundamentals({ sector: "Technology", industry: "Software" }), fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro);
+      expect(t.dataCompleteness).toBe(1);
+    });
+
+    it("dataCompleteness drops below 1 when sector is unknown, and further when a core pillar is also unavailable", () => {
+      const noSector = analyzeTomNash(fixtureFundamentals({ sector: null, industry: null }), fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro);
+      expect(noSector.dataCompleteness).toBeLessThan(1);
+
+      const unavailableValuation: Valuation = { available: false, dataSource: "SIMULATED", price: 150, reason: "n/a", summary: "unavailable" };
+      const unavailableGraham: GrahamValuation = { available: false, price: 150, reason: "n/a", summary: "unavailable" };
+      const unavailableDcf: DcfValuation = { available: false, price: 150, discountRate: 0.09, terminalGrowthRate: 0.025, reason: "n/a", summary: "unavailable" };
+      const unavailableBuffett: BuffettValuation = { available: false, price: 150, requiredReturn: 0.07, reason: "n/a", summary: "unavailable" };
+      const noSectorNoValuation = analyzeTomNash(
+        fixtureFundamentals({ sector: null, industry: null }), fixtureIq(), fixtureFin(),
+        unavailableValuation, unavailableGraham, unavailableDcf, unavailableBuffett, stableMacro,
+      );
+      expect(noSectorNoValuation.dataCompleteness).toBeLessThan(noSector.dataCompleteness);
+    });
+
+    it("appends 3 informational rationale lines that never affect the 5 scored pillars' own detail text", () => {
+      const t = analyzeTomNash(fixtureFundamentals({ sector: "Technology", industry: "Software" }), fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett(), stableMacro);
+      expect(t.rationale.some((r) => r.startsWith("Sector & Macro (informational):"))).toBe(true);
+      expect(t.rationale.some((r) => r.startsWith("Interest Rate Sensitivity (informational):"))).toBe(true);
+      expect(t.rationale.some((r) => r.startsWith("AI & Technology-Cycle (informational"))).toBe(true);
+    });
+
+    it("defaults macro to a deterministic proxy seeded by Fundamentals.asOf when omitted — two omitted calls with the same asOf are byte-identical", () => {
+      const f = fixtureFundamentals({ sector: "Technology", industry: "Software" });
+      const a = analyzeTomNash(f, fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett());
+      const b = analyzeTomNash(f, fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett());
+      expect(a).toEqual(b);
+    });
   });
 });

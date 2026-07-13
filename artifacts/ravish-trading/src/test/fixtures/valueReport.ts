@@ -186,6 +186,10 @@ export function makeValueReport(
       capitalAllocation: { label: "Capital Allocation", score: 74, detail: "Cash Position 85/100; Debt Levels 88/100; Capital efficiency (ROIC) 90/100; Share Dilution/Buybacks unavailable" },
       financialStrength: { label: "Financial Strength", score: 84, detail: "Strong (84/100)" },
       valuation: { label: "Valuation", score: 74, detail: "Blended: Fair; Graham: Fair; DCF: Fair; Buffett: Fair" },
+      sectorMacro: { sector: "Technology", industry: "Consumer Electronics", macroRegime: "stable_rates", macroRegimeLabel: "Stable-Rate Environment", detail: "Technology / Consumer Electronics in a stable-rate environment." },
+      rateSensitivity: { durationScore: 62, classification: "Blend", sensitivityLabel: "Rate-neutral environment — sensitivity muted regardless of classification", detail: "Blend (duration score 62/100) in a stable-rate environment." },
+      aiTechCycle: { score: 68, label: "High", detail: "High structural AI/technology-cycle positioning proxy (68/100)." },
+      dataCompleteness: 1,
       convictionScore: 78,
       verdict: "Buy",
       rationale: [

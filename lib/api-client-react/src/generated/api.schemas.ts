@@ -343,6 +343,54 @@ export interface ValueTomNashPillarScore {
   detail: string;
 }
 
+export type ValueSectorMacroContextMacroRegime = typeof ValueSectorMacroContextMacroRegime[keyof typeof ValueSectorMacroContextMacroRegime];
+
+
+export const ValueSectorMacroContextMacroRegime = {
+  rising_rates: 'rising_rates',
+  falling_rates: 'falling_rates',
+  stable_rates: 'stable_rates',
+} as const;
+
+export interface ValueSectorMacroContext {
+  sector: string | null;
+  industry: string | null;
+  macroRegime: ValueSectorMacroContextMacroRegime;
+  macroRegimeLabel: string;
+  detail: string;
+}
+
+export type ValueRateSensitivityAnalysisClassification = typeof ValueRateSensitivityAnalysisClassification[keyof typeof ValueRateSensitivityAnalysisClassification];
+
+
+export const ValueRateSensitivityAnalysisClassification = {
+  'Long-Duration_Growth': 'Long-Duration Growth',
+  'Value_/_Short-Duration': 'Value / Short-Duration',
+  Blend: 'Blend',
+} as const;
+
+export interface ValueRateSensitivityAnalysis {
+  durationScore: number;
+  classification: ValueRateSensitivityAnalysisClassification;
+  sensitivityLabel: string;
+  detail: string;
+}
+
+export type ValueAiTechCycleAnalysisLabel = typeof ValueAiTechCycleAnalysisLabel[keyof typeof ValueAiTechCycleAnalysisLabel];
+
+
+export const ValueAiTechCycleAnalysisLabel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface ValueAiTechCycleAnalysis {
+  score: number;
+  label: ValueAiTechCycleAnalysisLabel;
+  detail: string;
+}
+
 export type ValueTomNashAnalysisVerdict = typeof ValueTomNashAnalysisVerdict[keyof typeof ValueTomNashAnalysisVerdict];
 
 
@@ -358,6 +406,10 @@ export interface ValueTomNashAnalysis {
   capitalAllocation: ValueTomNashPillarScore;
   financialStrength: ValueTomNashPillarScore;
   valuation: ValueTomNashPillarScore;
+  sectorMacro: ValueSectorMacroContext;
+  rateSensitivity: ValueRateSensitivityAnalysis;
+  aiTechCycle: ValueAiTechCycleAnalysis;
+  dataCompleteness: number;
   convictionScore: number;
   verdict: ValueTomNashAnalysisVerdict;
   rationale: string[];

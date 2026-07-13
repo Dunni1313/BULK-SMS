@@ -29,6 +29,17 @@
 // Deterministic, rule-based reasoning only this sprint — no LLM narration. Real
 // ai-core-narrated synthesis is explicitly deferred to a later Committee
 // enhancement sprint, once the aggregation logic itself is stable.
+//
+// Phase 2, Sprint 26 — confidence-weighting refinement (approved decision): now
+// that Tom Nash is a fully-featured analyst (Enhancement I + II shipped), its
+// Committee-vote confidence is discounted by its own `dataCompleteness` (the
+// fraction of its 8 dimensions that had real data), rather than trusting raw
+// convictionScore unconditionally. The AGGREGATION METHODOLOGY ITSELF is
+// unchanged — vote mapping, agreement classification, the split->Hold default,
+// and confidenceScore's own averaging formula are all untouched; only the one
+// number Tom Nash contributes changed. When dataCompleteness is 1 (every
+// dimension had data — the common case), this is byte-identical to the
+// pre-Sprint-26 formula.
 
 import type { GrahamValuation } from "./grahamValuation.js";
 import type { BuffettValuation } from "./buffettValuation.js";
@@ -84,7 +95,9 @@ function tomNashVote(tomNash: TomNashAnalysis): CommitteeVote {
   return {
     analyst: "Tom Nash",
     verdict: tomNash.verdict,
-    confidence: tomNash.convictionScore,
+    // Phase 2, Sprint 26 — discounted by data completeness; byte-identical to
+    // convictionScore when dataCompleteness is 1.
+    confidence: round(tomNash.convictionScore * tomNash.dataCompleteness),
     rationale: tomNash.summary,
   };
 }

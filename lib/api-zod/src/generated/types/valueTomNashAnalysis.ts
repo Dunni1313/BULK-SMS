@@ -5,6 +5,9 @@
  * DK Option Engine
  * OpenAPI spec version: 0.1.0
  */
+import type { ValueAiTechCycleAnalysis } from './valueAiTechCycleAnalysis';
+import type { ValueRateSensitivityAnalysis } from './valueRateSensitivityAnalysis';
+import type { ValueSectorMacroContext } from './valueSectorMacroContext';
 import type { ValueTomNashAnalysisVerdict } from './valueTomNashAnalysisVerdict';
 import type { ValueTomNashPillarScore } from './valueTomNashPillarScore';
 
@@ -14,6 +17,10 @@ export interface ValueTomNashAnalysis {
   capitalAllocation: ValueTomNashPillarScore;
   financialStrength: ValueTomNashPillarScore;
   valuation: ValueTomNashPillarScore;
+  sectorMacro: ValueSectorMacroContext;
+  rateSensitivity: ValueRateSensitivityAnalysis;
+  aiTechCycle: ValueAiTechCycleAnalysis;
+  dataCompleteness: number;
   convictionScore: number;
   verdict: ValueTomNashAnalysisVerdict;
   rationale: string[];

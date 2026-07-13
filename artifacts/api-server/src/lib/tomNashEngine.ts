@@ -43,6 +43,22 @@
 // Investment Quality could honestly compute it — see the Capital Allocation note
 // above.)
 //
+// Phase 2, Sprint 26 (Tom Nash Enhancement II) added the remaining three
+// capabilities — Sector & Macro, Interest Rate Sensitivity, AI/Tech-Cycle —
+// per three approved decisions: (1) all three are INFORMATIONAL, surfaced in
+// the output and this analyst's rationale/report section but never entered
+// into PILLAR_WEIGHTS/the conviction-score average, so convictionScore/verdict
+// are byte-identical to the pre-Sprint-26 formula for every existing symbol;
+// (2) AI/Tech-Cycle stays deterministic-only (a structural composite of
+// already-known qualitative/financial signals) — no real LLM-generated
+// commentary this sprint; (3) the macro/rate-regime signal is a new,
+// self-contained SIMULATED proxy (investingMacro.ts), not a read of the
+// Options Engine's marketBriefing.ts/optionsMath.ts. A new `dataCompleteness`
+// field (fraction of all 8 dimensions — the original 5 core pillars plus
+// these 3 — that had real data) is a genuinely new signal this sprint feeds
+// to the Investment Committee (Sprint 17) for its own confidence-weighting
+// refinement; see investmentCommittee.ts's own Sprint 26 note.
+//
 // Output shape ({verdict, convictionScore, rationale, summary}) deliberately mirrors
 // the {verdict, conviction, rationale, summary} contract every other analyst in this
 // engine already produces, so a future AI Investment Committee (Sprint 17) can treat
@@ -54,10 +70,14 @@ import type { InvestmentQualityAnalysis, QualityMetricScore } from "./investment
 import type { GrahamValuation } from "./grahamValuation.js";
 import type { DcfValuation } from "./dcfValuation.js";
 import type { BuffettValuation } from "./buffettValuation.js";
+import { buildMacroContext, type MacroContext } from "./investingMacro.js";
 
 function round(x: number, dp = 1): number {
   const f = 10 ** dp;
   return Math.round(x * f) / f;
+}
+function clamp(x: number, lo = 0, hi = 100): number {
+  return Math.max(lo, Math.min(hi, x));
 }
 
 export type TomNashVerdict = "Buy" | "Hold" | "Wait";
@@ -68,12 +88,44 @@ export interface TomNashPillarScore {
   detail: string;
 }
 
+// Phase 2, Sprint 26 — informational only (see the module doc comment's
+// Sprint 26 note): never enters PILLAR_WEIGHTS/convictionScore.
+export interface SectorMacroContext {
+  sector: string | null; // null when the provider doesn't classify the symbol (e.g. some ETFs)
+  industry: string | null;
+  macroRegime: MacroContext["regime"];
+  macroRegimeLabel: string;
+  detail: string;
+}
+
+// A structural "duration" proxy from already-known Fundamentals fields (growth,
+// forward P/E, dividend yield, leverage) — never a real fixed-income-style
+// duration calculation, just an illustrative composite.
+export interface RateSensitivityAnalysis {
+  durationScore: number; // 0-100, 100 = most long-duration/growth-sensitive
+  classification: "Long-Duration Growth" | "Value / Short-Duration" | "Blend";
+  sensitivityLabel: string;
+  detail: string;
+}
+
+// Deterministic structural proxy only (approved Sprint 26 decision) — never a
+// real LLM-generated claim about the company's actual AI/technology strategy.
+export interface AiTechCycleAnalysis {
+  score: number; // 0-100
+  label: "High" | "Moderate" | "Low";
+  detail: string;
+}
+
 export interface TomNashAnalysis {
   businessQuality: TomNashPillarScore;
   growth: TomNashPillarScore;
   capitalAllocation: TomNashPillarScore;
   financialStrength: TomNashPillarScore;
   valuation: TomNashPillarScore;
+  sectorMacro: SectorMacroContext;
+  rateSensitivity: RateSensitivityAnalysis;
+  aiTechCycle: AiTechCycleAnalysis;
+  dataCompleteness: number; // 0-1, fraction of all 8 dimensions above with real data (Sprint 26)
   convictionScore: number; // 0-100
   verdict: TomNashVerdict;
   rationale: string[];
@@ -182,6 +234,109 @@ function financialStrengthPillar(fin: FinancialStrength): TomNashPillarScore {
   };
 }
 
+// Deterministic, hand-curated notes on how each sector typically responds to
+// a rate cycle — categorical commentary, not a fabricated financial figure,
+// the same discipline industryPeers.ts's KNOWN_SECTOR_PROFILES already uses
+// for real sector/industry classification.
+const SECTOR_RATE_NOTES: Partial<Record<string, string>> = {
+  Technology:
+    "growth-oriented sectors like Technology often see valuation compression when rates rise, since more of their value comes from distant future cash flows.",
+  "Communication Services":
+    "Communication Services spans both growth (media/streaming) and defensive (telecom) sub-industries with mixed rate sensitivity.",
+  "Consumer Discretionary":
+    "Consumer Discretionary can be sensitive to rates both through valuation duration and consumer-credit costs.",
+  "Consumer Staples":
+    "defensive sectors like Consumer Staples tend to be less sensitive to rate cycles than growth-oriented sectors.",
+  "Financial Services":
+    "Financial Services can benefit from rising rates via wider net interest margins, though this varies by business mix.",
+  "Health Care":
+    "Health Care's rate sensitivity varies widely by sub-industry (biotech vs. established pharma).",
+  Industrials:
+    "Industrials' rate sensitivity is typically moderate, tied more to capex/credit cycles than valuation duration.",
+  Energy: "Energy is typically driven more by commodity cycles than by interest-rate cycles.",
+  Utilities:
+    "income-oriented sectors like Utilities are typically rate-sensitive: their dividend yields compete directly with rising bond yields.",
+  "Real Estate":
+    "Real Estate (especially REITs) is typically among the most rate-sensitive sectors, both through financing costs and yield-competition with bonds.",
+  Diversified: "a diversified sector classification carries no single rate-sensitivity profile.",
+};
+
+function sectorMacroPillar(f: Fundamentals, macro: MacroContext): SectorMacroContext {
+  const sectorNote = f.sector
+    ? (SECTOR_RATE_NOTES[f.sector] ?? `no specific rate-sensitivity note is available for the ${f.sector} sector.`)
+    : "sector is unknown for this symbol, so no sector-specific macro note is available.";
+  const detail = `${f.sector ?? "Unknown sector"}${f.industry ? ` / ${f.industry}` : ""} in a ${macro.regimeLabel.toLowerCase()}: ${sectorNote}`;
+  return {
+    sector: f.sector,
+    industry: f.industry,
+    macroRegime: macro.regime,
+    macroRegimeLabel: macro.regimeLabel,
+    detail,
+  };
+}
+
+// Structural "duration" proxy — never a real fixed-income-style duration
+// calculation. Higher growth, higher forward P/E, lower dividend yield, and
+// more leverage all push the score toward "long-duration growth" (more of the
+// company's value sits in distant cash flows, so it's illustratively more
+// sensitive to discount-rate/rate-cycle changes).
+function rateSensitivityPillar(f: Fundamentals, macro: MacroContext): RateSensitivityAnalysis {
+  const growthComponent = clamp((f.revenueGrowth5y / 0.25) * 100);
+  const peComponent = f.forwardPe != null && f.forwardPe > 0 ? clamp((f.forwardPe / 40) * 100) : 50;
+  const yieldComponent = clamp(100 - (f.dividendYield / 0.04) * 100);
+  const leverageComponent = clamp((f.debtToEquity / 1.5) * 100);
+  const durationScore = round(
+    growthComponent * 0.4 + peComponent * 0.3 + yieldComponent * 0.2 + leverageComponent * 0.1,
+  );
+
+  const classification: RateSensitivityAnalysis["classification"] =
+    durationScore >= 65 ? "Long-Duration Growth" : durationScore <= 35 ? "Value / Short-Duration" : "Blend";
+
+  let sensitivityLabel: string;
+  if (macro.regime === "rising_rates") {
+    sensitivityLabel =
+      classification === "Long-Duration Growth"
+        ? "High sensitivity to rising rates"
+        : classification === "Value / Short-Duration"
+          ? "Low sensitivity to rising rates"
+          : "Moderate sensitivity to rising rates";
+  } else if (macro.regime === "falling_rates") {
+    sensitivityLabel =
+      classification === "Long-Duration Growth"
+        ? "Likely beneficiary of falling rates"
+        : classification === "Value / Short-Duration"
+          ? "Limited benefit from falling rates"
+          : "Moderate benefit from falling rates";
+  } else {
+    sensitivityLabel = "Rate-neutral environment — sensitivity muted regardless of classification";
+  }
+
+  const detail =
+    `${classification} (duration score ${durationScore}/100) in a ${macro.regimeLabel.toLowerCase()} — ${sensitivityLabel}. ` +
+    "Illustrative structural proxy from growth/valuation/yield/leverage — not a real fixed-income-style duration calculation.";
+
+  return { durationScore, classification, sensitivityLabel, detail };
+}
+
+// Deterministic structural proxy only (approved Sprint 26 decision) — blends
+// already-known qualitative/financial signals that correlate with a
+// tech/IP-driven business model. Never a claim about the company's actual AI
+// strategy, product roadmap, or technology adoption.
+function aiTechCyclePillar(f: Fundamentals): AiTechCycleAnalysis {
+  const q = f.qualitative;
+  const marginComponent = clamp((f.grossMargin / 0.7) * 100);
+  const growthComponent = clamp((f.revenueGrowth5y / 0.25) * 100);
+  const score = round(
+    q.ipStrength * 0.3 + q.pricingPower * 0.2 + q.recurringRevenue * 0.2 + marginComponent * 0.15 + growthComponent * 0.15,
+  );
+  const label: AiTechCycleAnalysis["label"] = score >= 65 ? "High" : score >= 40 ? "Moderate" : "Low";
+  const detail =
+    `${label} structural AI/technology-cycle positioning proxy (${score}/100) — derived from IP strength, pricing power, ` +
+    "recurring revenue, gross margin, and growth; a quantitative composite of already-known signals, not an assessment " +
+    "of the company's actual AI/technology strategy or roadmap.";
+  return { score, label, detail };
+}
+
 interface RatedModel {
   name: string;
   available: boolean;
@@ -223,6 +378,11 @@ export function analyzeTomNash(
   graham: GrahamValuation,
   dcf: DcfValuation,
   buffett: BuffettValuation,
+  // Phase 2, Sprint 26 — optional; defaults to a deterministic proxy seeded by
+  // this Fundamentals snapshot's own `asOf` date when omitted, so every
+  // existing call site keeps working unmodified and two calls against the
+  // same `f` are still byte-identical (same default macro context both times).
+  macro: MacroContext = buildMacroContext(f.asOf),
 ): TomNashAnalysis {
   const businessQuality: TomNashPillarScore = {
     label: "Business Quality",
@@ -233,7 +393,12 @@ export function analyzeTomNash(
   const capitalAllocation = capitalAllocationPillar(f, iq);
   const financialStrength = financialStrengthPillar(fin);
   const valuation = valuationPillar(blended, graham, dcf, buffett);
+  const sectorMacro = sectorMacroPillar(f, macro);
+  const rateSensitivity = rateSensitivityPillar(f, macro);
+  const aiTechCycle = aiTechCyclePillar(f);
 
+  // Sprint 26's 3 new dimensions are informational only — never entered here,
+  // so convictionScore/verdict are byte-identical to the pre-Sprint-26 formula.
   const pillars = [
     { pillar: businessQuality, weight: PILLAR_WEIGHTS.businessQuality },
     { pillar: growth, weight: PILLAR_WEIGHTS.growth },
@@ -253,12 +418,33 @@ export function analyzeTomNash(
   else if (convictionScore >= HOLD_THRESHOLD) verdict = "Hold";
   else verdict = "Wait";
 
+  // Phase 2, Sprint 26 — fraction of all 8 dimensions (the 5 core pillars
+  // plus Sector & Macro / Rate Sensitivity / AI-Tech-Cycle) that had real
+  // data. Rate Sensitivity and AI/Tech-Cycle are always computable from
+  // always-present Fundamentals fields; Sector & Macro is honestly
+  // unavailable only when the provider doesn't classify the symbol's sector
+  // (e.g. some ETFs). Fed to the Investment Committee (Sprint 17) for its own
+  // confidence-weighting refinement.
+  const completenessSlots = [
+    ...pillars.map((p) => p.pillar.score != null),
+    sectorMacro.sector != null,
+    true,
+    true,
+  ];
+  const dataCompleteness = round(
+    completenessSlots.filter(Boolean).length / completenessSlots.length,
+    4,
+  );
+
   const rationale: string[] = [
     `Business Quality: ${businessQuality.score}/100 (Investment Quality Engine).`,
     `Growth: ${growth.score != null ? `${growth.score}/100` : "unavailable"} — ${growth.detail}.`,
     `Capital Allocation: ${capitalAllocation.score != null ? `${capitalAllocation.score}/100` : "unavailable"} — ${capitalAllocation.detail}.`,
     `Financial Strength: ${financialStrength.score}/100 (${fin.rating}).`,
     `Valuation: ${valuation.score != null ? `${valuation.score}/100` : "unavailable"} — ${valuation.detail}.`,
+    `Sector & Macro (informational): ${sectorMacro.detail}`,
+    `Interest Rate Sensitivity (informational): ${rateSensitivity.detail}`,
+    `AI & Technology-Cycle (informational, structural proxy): ${aiTechCycle.detail}`,
   ];
 
   const etfCaveat =
@@ -267,7 +453,8 @@ export function analyzeTomNash(
       : "";
   const summary =
     `${f.symbol}: ${verdict} (conviction ${convictionScore}/100), composed from Business Quality, Growth, ` +
-    `Capital Allocation, Financial Strength, and Valuation.${etfCaveat}`;
+    `Capital Allocation, Financial Strength, and Valuation.${etfCaveat} Sector & Macro, Interest Rate Sensitivity, ` +
+    "and AI/Tech-Cycle context are also surfaced below (informational, not scored into conviction).";
 
   return {
     businessQuality,
@@ -275,6 +462,10 @@ export function analyzeTomNash(
     capitalAllocation,
     financialStrength,
     valuation,
+    sectorMacro,
+    rateSensitivity,
+    aiTechCycle,
+    dataCompleteness,
     convictionScore,
     verdict,
     rationale,

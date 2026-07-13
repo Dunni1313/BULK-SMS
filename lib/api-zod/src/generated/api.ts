@@ -2517,6 +2517,25 @@ export const GenerateValueResearchResponse = zod.object({
   "score": zod.number().nullish(),
   "detail": zod.string()
 }),
+  "sectorMacro": zod.object({
+  "sector": zod.string().nullable(),
+  "industry": zod.string().nullable(),
+  "macroRegime": zod.enum(['rising_rates', 'falling_rates', 'stable_rates']),
+  "macroRegimeLabel": zod.string(),
+  "detail": zod.string()
+}),
+  "rateSensitivity": zod.object({
+  "durationScore": zod.number(),
+  "classification": zod.enum(['Long-Duration Growth', 'Value / Short-Duration', 'Blend']),
+  "sensitivityLabel": zod.string(),
+  "detail": zod.string()
+}),
+  "aiTechCycle": zod.object({
+  "score": zod.number(),
+  "label": zod.enum(['High', 'Moderate', 'Low']),
+  "detail": zod.string()
+}),
+  "dataCompleteness": zod.number(),
   "convictionScore": zod.number(),
   "verdict": zod.enum(['Buy', 'Hold', 'Wait']),
   "rationale": zod.array(zod.string()),
@@ -2972,6 +2991,25 @@ export const GetValueReportResponse = zod.object({
   "score": zod.number().nullish(),
   "detail": zod.string()
 }),
+  "sectorMacro": zod.object({
+  "sector": zod.string().nullable(),
+  "industry": zod.string().nullable(),
+  "macroRegime": zod.enum(['rising_rates', 'falling_rates', 'stable_rates']),
+  "macroRegimeLabel": zod.string(),
+  "detail": zod.string()
+}),
+  "rateSensitivity": zod.object({
+  "durationScore": zod.number(),
+  "classification": zod.enum(['Long-Duration Growth', 'Value / Short-Duration', 'Blend']),
+  "sensitivityLabel": zod.string(),
+  "detail": zod.string()
+}),
+  "aiTechCycle": zod.object({
+  "score": zod.number(),
+  "label": zod.enum(['High', 'Moderate', 'Low']),
+  "detail": zod.string()
+}),
+  "dataCompleteness": zod.number(),
   "convictionScore": zod.number(),
   "verdict": zod.enum(['Buy', 'Hold', 'Wait']),
   "rationale": zod.array(zod.string()),

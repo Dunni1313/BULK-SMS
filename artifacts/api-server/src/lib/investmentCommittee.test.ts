@@ -39,16 +39,23 @@ function buffett(rating: "Cheap" | "Fair" | "Expensive" | "Very Expensive", avai
   };
 }
 
-function tomNash(verdict: "Buy" | "Hold" | "Wait", convictionScore: number): TomNashAnalysis {
+// dataCompleteness defaults to 1 (fully complete) so pre-Sprint-26 tests that
+// don't care about the Committee's new confidence-weighting refinement keep
+// asserting confidence === convictionScore unchanged.
+function tomNash(verdict: "Buy" | "Hold" | "Wait", convictionScore: number, dataCompleteness = 1): TomNashAnalysis {
   return {
     businessQuality: { label: "Business Quality", score: 70, detail: "d" },
     growth: { label: "Growth", score: 70, detail: "d" },
     capitalAllocation: { label: "Capital Allocation", score: 70, detail: "d" },
     financialStrength: { label: "Financial Strength", score: 70, detail: "d" },
     valuation: { label: "Valuation", score: 70, detail: "d" },
+    sectorMacro: { sector: "Technology", industry: "Software", macroRegime: "stable_rates", macroRegimeLabel: "Stable-Rate Environment", detail: "d" },
+    rateSensitivity: { durationScore: 50, classification: "Blend", sensitivityLabel: "Moderate", detail: "d" },
+    aiTechCycle: { score: 50, label: "Moderate", detail: "d" },
+    dataCompleteness,
     convictionScore,
     verdict,
-    rationale: ["r1", "r2", "r3", "r4", "r5"],
+    rationale: ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8"],
     summary: `TEST: ${verdict} (conviction ${convictionScore}/100).`,
   };
 }
@@ -130,5 +137,40 @@ describe("synthesizeInvestmentCommittee", () => {
     const serialized = JSON.stringify(c);
     expect(serialized).not.toContain("order");
     expect(serialized).not.toContain("execute");
+  });
+
+  // Phase 2, Sprint 26 — confidence-weighting refinement. The aggregation
+  // methodology itself (vote mapping, agreement classification, split->Hold
+  // default, confidenceScore's own averaging formula) is unchanged — only
+  // Tom Nash's own vote confidence now discounts by dataCompleteness.
+  describe("Sprint 26 — Tom Nash's Committee-vote confidence discounted by dataCompleteness", () => {
+    it("is byte-identical to convictionScore when dataCompleteness is 1 (the common case)", () => {
+      const c = synthesizeInvestmentCommittee(graham("Cheap"), buffett("Cheap"), tomNash("Hold", 55, 1));
+      const tn = c.votes.find((v) => v.analyst === "Tom Nash")!;
+      expect(tn.confidence).toBe(55);
+    });
+
+    it("discounts confidence proportionally when dataCompleteness is below 1", () => {
+      const c = synthesizeInvestmentCommittee(graham("Cheap"), buffett("Cheap"), tomNash("Hold", 80, 0.75));
+      const tn = c.votes.find((v) => v.analyst === "Tom Nash")!;
+      expect(tn.confidence).toBe(60); // 80 * 0.75
+    });
+
+    it("does not change the vote mapping, agreement classification, or split->Hold default — aggregation methodology itself is untouched", () => {
+      const complete = synthesizeInvestmentCommittee(graham("Cheap"), buffett("Fair"), tomNash("Wait", 30, 1));
+      const incomplete = synthesizeInvestmentCommittee(graham("Cheap"), buffett("Fair"), tomNash("Wait", 30, 0.5));
+      expect(complete.agreement).toBe(incomplete.agreement);
+      expect(complete.consolidatedVerdict).toBe(incomplete.consolidatedVerdict);
+      const completeTn = complete.votes.find((v) => v.analyst === "Tom Nash")!;
+      const incompleteTn = incomplete.votes.find((v) => v.analyst === "Tom Nash")!;
+      expect(completeTn.verdict).toBe(incompleteTn.verdict);
+      expect(completeTn.confidence).not.toBe(incompleteTn.confidence);
+    });
+
+    it("confidenceScore's own averaging formula is unchanged — it simply averages whatever confidence each vote now carries", () => {
+      const c = synthesizeInvestmentCommittee(graham("Cheap", false), buffett("Fair"), tomNash("Hold", 50, 0.5));
+      // Buffett (Fair -> 65) and Tom Nash (50 * 0.5 = 25): (65 + 25) / 2 = 45
+      expect(c.confidenceScore).toBe(45);
+    });
   });
 });

@@ -121,7 +121,12 @@ describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression
     expect(t.convictionScore).toBeGreaterThanOrEqual(0);
     expect(t.convictionScore).toBeLessThanOrEqual(100);
     expect(["Buy", "Hold", "Wait"]).toContain(t.verdict);
-    expect(t.rationale.length).toBe(5);
+    // Phase 2, Sprint 26 (Tom Nash Enhancement II) appended 3 informational
+    // rationale lines (Sector & Macro, Interest Rate Sensitivity, AI/Tech-
+    // Cycle) after the original 5 pillar lines — a disclosed, approved
+    // addition, not a regression. See valueReport.tomNashEnhancementIIIntegration.test.ts
+    // for the dedicated Sprint 26 coverage.
+    expect(t.rationale.length).toBe(8);
   });
 
   it("Business Quality pillar is byte-identical to the report's own investmentQuality.score (whole-engine reuse, not recomputed)", async () => {

@@ -863,6 +863,9 @@ export function ReportView({
           <CardTitle className="text-sm flex items-center gap-2">
             <Compass className="w-4 h-4 text-indigo-400" /> Tom Nash Analysis
             <Badge variant="outline" className="ml-auto text-[10px] border-border">
+              {Math.round(tn.dataCompleteness * 100)}% data
+            </Badge>
+            <Badge variant="outline" className="text-[10px] border-border">
               {tn.verdict}
             </Badge>
           </CardTitle>
