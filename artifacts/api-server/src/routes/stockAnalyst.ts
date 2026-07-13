@@ -32,10 +32,12 @@ import {
   GradeValueQuizBody,
   GradeValueQuizResponse,
   GetFinancialStatementsResponse,
+  GetIndustryComparisonResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
+import { buildIndustryComparison } from "../lib/industryComparison.js";
 import { analyzeInvestmentSuitability } from "../lib/valueInvesting.js";
 import {
   getValueLessons,
@@ -475,6 +477,29 @@ router.get("/financial-statements/:symbol", async (req, res): Promise<void> => {
     return;
   }
   res.json(GetFinancialStatementsResponse.parse(statements));
+});
+
+// Phase 2, Sprint 20 — Industry Comparison. Deliberately a separate, on-demand
+// endpoint (not folded into /value/:symbol): each peer needs its own
+// Fundamentals fetch, so a full comparison costs several times the provider
+// calls of viewing a single report — opening the Peers tab is the only thing
+// that triggers it.
+router.get("/industry-comparison/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const provider = await getFundamentalsProvider(userId);
+  let comparison;
+  try {
+    comparison = await buildIndustryComparison(req.params.symbol, provider);
+  } catch (err) {
+    req.log.error({ err }, "industry comparison failed");
+    res.status(502).json({ error: "Live fundamentals provider is currently unavailable." });
+    return;
+  }
+  if (!comparison) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  res.json(GetIndustryComparisonResponse.parse(comparison));
 });
 
 export default router;

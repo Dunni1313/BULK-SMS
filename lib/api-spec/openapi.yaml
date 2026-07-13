@@ -1399,6 +1399,27 @@ paths:
         "404":
           description: Unknown symbol
 
+  /stock-analyst/industry-comparison/{symbol}:
+    get:
+      operationId: getIndustryComparison
+      tags: [value]
+      summary: Compares a company against a deterministic sector peer group, fetched on demand
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Industry comparison
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndustryComparisonResult"
+        "404":
+          description: Unknown symbol
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -1785,7 +1806,7 @@ components:
     ValueResearchReport:
       type: object
       required:
-        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, businessQuality, investmentQuality, moat, financialStrength, financialRatios, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, investmentCommittee, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
+        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, sector, industry, businessQuality, investmentQuality, moat, financialStrength, financialRatios, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, investmentCommittee, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
       properties:
         symbol: { type: string }
         name: { type: string }
@@ -1798,6 +1819,8 @@ components:
         simulated: { type: boolean }
         fallback: { $ref: "#/components/schemas/ValueFundamentalsFallback" }
         price: { type: number }
+        sector: { type: string, nullable: true }
+        industry: { type: string, nullable: true }
         businessQuality: { $ref: "#/components/schemas/ValueBusinessQuality" }
         investmentQuality: { $ref: "#/components/schemas/ValueInvestmentQuality" }
         moat: { $ref: "#/components/schemas/ValueMoatAnalysis" }
@@ -1878,6 +1901,70 @@ components:
         cashFlow:
           type: array
           items: { $ref: "#/components/schemas/CashFlowYear" }
+
+    ComparisonMetric:
+      type: object
+      required: [key, label, direction, companyValue, peerMedian, peerCount, rank, totalRanked, percentile, available]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        direction:
+          type: string
+          enum: [higher-better, lower-better, context-only]
+        companyValue: { type: number, nullable: true }
+        peerMedian: { type: number, nullable: true }
+        peerCount: { type: integer }
+        rank: { type: integer, nullable: true }
+        totalRanked: { type: integer }
+        percentile: { type: number, nullable: true }
+        available: { type: boolean }
+        reason: { type: string }
+
+    IndustryPeerSummary:
+      type: object
+      required: [symbol, name, dataSource, fallback]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        fallback: { type: boolean }
+
+    IndustryComparisonResult:
+      type: object
+      required:
+        [symbol, name, sector, industry, dataSource, simulated, peerGroup, metrics, strengths, weaknesses, overallPercentile, competitivePosition, confidenceLevel, confidenceExplanation, summary]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        sector: { type: string }
+        industry: { type: string }
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        simulated: { type: boolean }
+        peerGroup:
+          type: array
+          items: { $ref: "#/components/schemas/IndustryPeerSummary" }
+        metrics:
+          type: array
+          items: { $ref: "#/components/schemas/ComparisonMetric" }
+        strengths:
+          type: array
+          items: { type: string }
+        weaknesses:
+          type: array
+          items: { type: string }
+        overallPercentile: { type: number, nullable: true }
+        competitivePosition:
+          type: string
+          enum: [Leader, "Above Average", Average, "Below Average", Laggard, "Insufficient Data"]
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation: { type: string }
+        summary: { type: string }
 
     ValueResearchInput:
       type: object

@@ -35,6 +35,8 @@ export interface ValueResearchReport {
   simulated: boolean;
   fallback?: ValueFundamentalsFallback;
   price: number;
+  sector: string | null;
+  industry: string | null;
   businessQuality: ValueBusinessQuality;
   investmentQuality: ValueInvestmentQuality;
   moat: ValueMoatAnalysis;

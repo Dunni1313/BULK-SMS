@@ -64,6 +64,7 @@ import type {
   GradeQuizInput,
   GradeValueQuizInput,
   HealthStatus,
+  IndustryComparisonResult,
   JournalEntry,
   JournalEntryInput,
   JournalEntryUpdate,
@@ -5923,6 +5924,83 @@ export function useGetFinancialStatements<TData = Awaited<ReturnType<typeof getF
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetFinancialStatementsQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetIndustryComparisonUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/industry-comparison/${symbol}`
+}
+
+/**
+ * @summary Compares a company against a deterministic sector peer group, fetched on demand
+ */
+export const getIndustryComparison = async (symbol: string, options?: RequestInit): Promise<IndustryComparisonResult> => {
+
+  return customFetch<IndustryComparisonResult>(getGetIndustryComparisonUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIndustryComparisonQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/industry-comparison/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetIndustryComparisonQueryOptions = <TData = Awaited<ReturnType<typeof getIndustryComparison>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIndustryComparison>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIndustryComparisonQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIndustryComparison>>> = ({ signal }) => getIndustryComparison(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIndustryComparison>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetIndustryComparisonQueryResult = NonNullable<Awaited<ReturnType<typeof getIndustryComparison>>>
+export type GetIndustryComparisonQueryError = ErrorType<void>
+
+
+/**
+ * @summary Compares a company against a deterministic sector peer group, fetched on demand
+ */
+
+export function useGetIndustryComparison<TData = Awaited<ReturnType<typeof getIndustryComparison>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIndustryComparison>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetIndustryComparisonQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

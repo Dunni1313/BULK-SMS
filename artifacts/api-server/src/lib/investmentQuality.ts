@@ -83,7 +83,9 @@ const DEFERRED_DATA_REASON =
 // Derives a five-year FCF CAGR from Fundamentals.fcfHistory (oldest → newest).
 // Honestly unavailable (not estimated) when either endpoint isn't positive, since
 // a CAGR through zero or negative FCF isn't a meaningful growth rate.
-function fcfGrowth5y(f: Fundamentals): number | null {
+// Exported (Phase 2, Sprint 20) so the Industry Comparison Engine can reuse the
+// exact same derivation for peer FCF-growth ranking — zero duplicated logic.
+export function fcfGrowth5y(f: Fundamentals): number | null {
   const h = f.fcfHistory;
   if (h.length < 2) return null;
   const first = h[0];

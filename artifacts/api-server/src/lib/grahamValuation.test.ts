@@ -18,6 +18,8 @@ function fixture(overrides: Partial<Fundamentals> = {}): Fundamentals {
     asOf: "2026-01-15",
     fetchedAt: "2026-01-15T00:00:00.000Z",
     price: 150,
+    sector: null,
+    industry: null,
     epsTtm: 10,
     epsFwd: 11,
     fcfPerShare: 9,

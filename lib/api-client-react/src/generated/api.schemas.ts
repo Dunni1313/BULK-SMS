@@ -499,6 +499,8 @@ export interface ValueResearchReport {
   simulated: boolean;
   fallback?: ValueFundamentalsFallback;
   price: number;
+  sector: string | null;
+  industry: string | null;
   businessQuality: ValueBusinessQuality;
   investmentQuality: ValueInvestmentQuality;
   moat: ValueMoatAnalysis;
@@ -565,6 +567,91 @@ export interface FinancialStatements {
   incomeStatement: IncomeStatementYear[];
   balanceSheet: BalanceSheetYear[];
   cashFlow: CashFlowYear[];
+}
+
+export type ComparisonMetricDirection = typeof ComparisonMetricDirection[keyof typeof ComparisonMetricDirection];
+
+
+export const ComparisonMetricDirection = {
+  'higher-better': 'higher-better',
+  'lower-better': 'lower-better',
+  'context-only': 'context-only',
+} as const;
+
+export interface ComparisonMetric {
+  key: string;
+  label: string;
+  direction: ComparisonMetricDirection;
+  companyValue: number | null;
+  peerMedian: number | null;
+  peerCount: number;
+  rank: number | null;
+  totalRanked: number;
+  percentile: number | null;
+  available: boolean;
+  reason?: string;
+}
+
+export type IndustryPeerSummaryDataSource = typeof IndustryPeerSummaryDataSource[keyof typeof IndustryPeerSummaryDataSource];
+
+
+export const IndustryPeerSummaryDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export interface IndustryPeerSummary {
+  symbol: string;
+  name: string;
+  dataSource: IndustryPeerSummaryDataSource;
+  fallback: boolean;
+}
+
+export type IndustryComparisonResultDataSource = typeof IndustryComparisonResultDataSource[keyof typeof IndustryComparisonResultDataSource];
+
+
+export const IndustryComparisonResultDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type IndustryComparisonResultCompetitivePosition = typeof IndustryComparisonResultCompetitivePosition[keyof typeof IndustryComparisonResultCompetitivePosition];
+
+
+export const IndustryComparisonResultCompetitivePosition = {
+  Leader: 'Leader',
+  Above_Average: 'Above Average',
+  Average: 'Average',
+  Below_Average: 'Below Average',
+  Laggard: 'Laggard',
+  Insufficient_Data: 'Insufficient Data',
+} as const;
+
+export type IndustryComparisonResultConfidenceLevel = typeof IndustryComparisonResultConfidenceLevel[keyof typeof IndustryComparisonResultConfidenceLevel];
+
+
+export const IndustryComparisonResultConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface IndustryComparisonResult {
+  symbol: string;
+  name: string;
+  sector: string;
+  industry: string;
+  dataSource: IndustryComparisonResultDataSource;
+  simulated: boolean;
+  peerGroup: IndustryPeerSummary[];
+  metrics: ComparisonMetric[];
+  strengths: string[];
+  weaknesses: string[];
+  overallPercentile: number | null;
+  competitivePosition: IndustryComparisonResultCompetitivePosition;
+  confidenceLevel: IndustryComparisonResultConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
 }
 
 export type ValueResearchInputLevel = typeof ValueResearchInputLevel[keyof typeof ValueResearchInputLevel];

@@ -8,11 +8,13 @@ import {
   useDeleteValueWatchlist,
   useGetSettings,
   useGetFinancialStatements,
+  useGetIndustryComparison,
   getValueUniverse,
   getGetValueUniverseQueryKey,
   getGetValueWatchlistQueryKey,
   getGetValueHistoryQueryKey,
   getGetFinancialStatementsQueryKey,
+  getGetIndustryComparisonQueryKey,
   ValueResearchReport,
   ValueResearchInputLevel,
 } from "@workspace/api-client-react";
@@ -49,6 +51,7 @@ import {
   Compass,
   Users,
   Percent,
+  GitCompare,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -70,6 +73,29 @@ const fmtUsd = (n: number) =>
 // far larger in magnitude than every other per-share/ratio figure in this file.
 const fmtCompactUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
+
+// Phase 2, Sprint 20 — Industry Comparison metric formatting. Percentage-shaped
+// metrics are stored as fractions (0.18 = 18%); score-shaped metrics are already
+// 0-100; the remaining context-only metrics (Debt/Equity, P/E, P/S, P/B) are
+// plain ratios.
+const PERCENT_METRIC_KEYS = new Set([
+  "revenueGrowth5y",
+  "epsGrowth5y",
+  "fcfGrowth5y",
+  "grossMargin",
+  "operatingMargin",
+  "netMargin",
+  "roe",
+  "roic",
+  "grahamMarginOfSafety",
+  "dcfMarginOfSafety",
+  "buffettMarginOfSafety",
+]);
+function fmtMetricValue(key: string, value: number | null | undefined): string {
+  if (value == null) return "n/a";
+  if (PERCENT_METRIC_KEYS.has(key)) return `${(value * 100).toFixed(1)}%`;
+  return value.toFixed(2);
+}
 
 // Relative-time label for when live data was last fetched (e.g. "just now",
 // "3 min ago"), falling back to an absolute timestamp for older data.
@@ -228,6 +254,7 @@ export function ReportView({
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             {fmtUsd(report.price)} · as of {new Date(report.asOf).toLocaleDateString()}
+            {report.sector && ` · ${report.sector}${report.industry ? ` — ${report.industry}` : ""}`}
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -1022,6 +1049,20 @@ export default function StockResearch() {
       enabled: tab === "statements" && !!report?.symbol,
     },
   });
+
+  // Phase 2, Sprint 20 — fetched only when the Peers tab is actually opened:
+  // each peer needs its own Fundamentals fetch, so this is materially heavier
+  // than viewing the main report and must never fire as a side effect of it.
+  const {
+    data: comparison,
+    isLoading: comparisonLoading,
+    isError: comparisonError,
+  } = useGetIndustryComparison(report?.symbol ?? "", {
+    query: {
+      queryKey: getGetIndustryComparisonQueryKey(report?.symbol ?? ""),
+      enabled: tab === "peers" && !!report?.symbol,
+    },
+  });
   const search = useSearch();
 
   // Auto-refresh bookkeeping: the fetchedAt batch we've already auto-refreshed
@@ -1328,6 +1369,9 @@ export default function StockResearch() {
               <TabsTrigger value="statements" className="text-xs" disabled={!report}>
                 Statements
               </TabsTrigger>
+              <TabsTrigger value="peers" className="text-xs" disabled={!report}>
+                Peers
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="research" className="mt-4">
@@ -1614,6 +1658,127 @@ export default function StockResearch() {
                         </table>
                       </TabsContent>
                     </Tabs>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="peers" className="mt-4">
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <GitCompare className="w-4 h-4 text-indigo-400" /> Industry Comparison
+                    {comparison && (
+                      <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                        {comparison.simulated ? "SIMULATED" : "LIVE"}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-[11px]">
+                    {report
+                      ? `${report.symbol} vs. its sector peer group, fetched on demand.`
+                      : "Select a company to compare it against peers."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {!report ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">Select a company to begin research first.</p>
+                  ) : comparisonLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  ) : comparisonError || !comparison ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">
+                      Industry comparison is unavailable for {report.symbol}.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-[10px] border-border">
+                          {comparison.sector} — {comparison.industry}
+                        </Badge>
+                        <Badge variant="outline" className={`text-[10px] font-semibold ${verdictColor(comparison.competitivePosition)}`}>
+                          {comparison.competitivePosition}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground">
+                          {comparison.overallPercentile != null ? `${comparison.overallPercentile}th percentile · ` : ""}
+                          Confidence: {comparison.confidenceLevel}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{comparison.summary}</p>
+
+                      <div>
+                        <p className="text-xs font-medium text-foreground/80 mb-1">
+                          Peer group ({comparison.peerGroup.length})
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {comparison.peerGroup.length === 0 ? (
+                            <span className="text-[11px] text-muted-foreground">No peers could be resolved.</span>
+                          ) : (
+                            comparison.peerGroup.map((p) => (
+                              <Badge key={p.symbol} variant="outline" className="text-[10px] border-border">
+                                {p.symbol}
+                                {(p.dataSource === "SIMULATED" || p.fallback) && (
+                                  <span className="ml-1 text-amber-400">·SIM</span>
+                                )}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-muted-foreground border-b border-border">
+                              <th className="text-left font-medium py-2 pr-3">Metric</th>
+                              <th className="text-right font-medium py-2 pr-3">{report.symbol}</th>
+                              <th className="text-right font-medium py-2 pr-3">Peer Median</th>
+                              <th className="text-right font-medium py-2">Percentile / Rank</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {comparison.metrics.map((m) => (
+                              <tr key={m.key} className="border-b border-border/40">
+                                <td className="py-2 pr-3 text-foreground/90">{m.label}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtMetricValue(m.key, m.companyValue)}</td>
+                                <td className="py-2 pr-3 text-right font-mono text-muted-foreground">{fmtMetricValue(m.key, m.peerMedian)}</td>
+                                <td className="py-2 text-right font-mono text-muted-foreground">
+                                  {m.direction === "context-only"
+                                    ? "context only"
+                                    : m.percentile != null
+                                      ? `${m.percentile}th (#${m.rank}/${m.totalRanked})`
+                                      : m.reason ?? "n/a"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {(comparison.strengths.length > 0 || comparison.weaknesses.length > 0) && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-xs font-medium text-success mb-1">Outperforms peers</p>
+                            <ul className="space-y-1">
+                              {comparison.strengths.map((s) => (
+                                <li key={s} className="text-[11px] text-muted-foreground">{s}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-destructive mb-1">Underperforms peers</p>
+                            <ul className="space-y-1">
+                              {comparison.weaknesses.map((w) => (
+                                <li key={w} className="text-[11px] text-muted-foreground">{w}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </CardContent>
               </Card>

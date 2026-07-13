@@ -27,6 +27,7 @@ import { makeRng, todayStr } from "./deterministic.js";
 import { INVESTING_UNIVERSE, investingPrice, isValidTickerShape } from "./investingUniverse.js";
 import { logger } from "./logger.js";
 import { getLegacyOwnerUserId } from "./legacyOwner.js";
+import { getSectorProfile } from "./industryPeers.js";
 
 export const FUNDAMENTALS_DATA_SOURCE = "SIMULATED" as const;
 export type FundamentalsDataSource = typeof FUNDAMENTALS_DATA_SOURCE;
@@ -82,6 +83,15 @@ export interface Fundamentals {
   // back to the simulated provider (so the UI can explain the degradation).
   fallback?: FundamentalsFallback;
   price: number;
+
+  // Phase 2, Sprint 20. Real categorical classification for LIVE data (captured
+  // from the provider's own profile/overview response, never fabricated — honest
+  // null when the provider doesn't return one); for SIMULATED data, a known
+  // real-company classification or a deterministic synthetic bucket (see
+  // industryPeers.ts's getSectorProfile) — never null, so peer comparison always
+  // has some deterministic sector to work with.
+  sector: string | null;
+  industry: string | null;
 
   // Per-share fundamentals.
   epsTtm: number | null; // null => not meaningfully profitable on a trailing basis
@@ -273,6 +283,8 @@ interface AssembleInput {
   fetchedAt: string;
   price: number;
   dataSource: DataSource;
+  sector: string | null;
+  industry: string | null;
   epsTtm: number | null;
   epsFwd: number | null;
   fcfPerShare: number;
@@ -324,6 +336,8 @@ function assembleFundamentals(a: AssembleInput): Fundamentals {
     asOf: a.asOf,
     fetchedAt: a.fetchedAt,
     price,
+    sector: a.sector,
+    industry: a.industry,
     epsTtm: a.epsTtm,
     epsFwd: a.epsFwd,
     fcfPerShare: a.fcfPerShare,
@@ -534,6 +548,7 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
     const fcfPerShare = round(jitter(p.fcfPerShare, 0.04, rng), 2);
     const salesPerShare = round(jitter(p.salesPerShare, 0.03, rng), 2);
     const bookPerShare = round(jitter(p.bookPerShare, 0.03, rng), 2);
+    const sectorProfile = getSectorProfile(sym);
 
     return assembleFundamentals({
       symbol: sym,
@@ -543,6 +558,8 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
       fetchedAt: new Date().toISOString(),
       price,
       dataSource: FUNDAMENTALS_DATA_SOURCE,
+      sector: sectorProfile.sector,
+      industry: sectorProfile.industry,
       epsTtm,
       epsFwd,
       fcfPerShare,
@@ -819,6 +836,11 @@ export class FmpFundamentalsProvider implements FundamentalsProvider {
       fetchedAt: new Date().toISOString(),
       price,
       dataSource: "LIVE",
+      // Phase 2, Sprint 20 — already present in FMP's /profile response, simply
+      // not captured until now. Honest null when the provider omits it, never a
+      // guessed classification.
+      sector: (profile.sector as string) || null,
+      industry: (profile.industry as string) || null,
       epsTtm,
       epsFwd: fwdEps(epsTtm, epsGrowth5y),
       fcfPerShare,
@@ -1056,6 +1078,11 @@ export class AlphaVantageFundamentalsProvider implements FundamentalsProvider {
       fetchedAt: new Date().toISOString(),
       price,
       dataSource: "LIVE",
+      // Phase 2, Sprint 20 — already present in Alpha Vantage's OVERVIEW
+      // response, simply not captured until now. Honest null when the provider
+      // omits it, never a guessed classification.
+      sector: (overview.Sector as string) || null,
+      industry: (overview.Industry as string) || null,
       epsTtm,
       epsFwd,
       fcfPerShare,

@@ -23,6 +23,8 @@ export function makeValueReport(
     dataSource: "Simulated fundamentals",
     simulated: true,
     price: 210.5,
+    sector: "Technology",
+    industry: "Consumer Electronics",
     businessQuality: {
       score: 88,
       rating: ValueBusinessQualityRating.Wonderful,

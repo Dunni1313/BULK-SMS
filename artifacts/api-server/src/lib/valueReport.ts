@@ -96,6 +96,11 @@ export interface ValueResearchReport {
   // fell back to simulated data (drives the "live unavailable" UI banner).
   fallback?: FundamentalsFallback;
   price: number;
+  // Phase 2, Sprint 20 — sourced from Fundamentals.sector/industry (free: no new
+  // provider call, sector is captured as part of the fundamentals fetch this
+  // report already makes).
+  sector: string | null;
+  industry: string | null;
   // Denormalised headline ratings (also used for persistence / history rows).
   businessQuality: BusinessQuality;
   investmentQuality: InvestmentQualityAnalysis;
@@ -370,6 +375,8 @@ export async function buildValueResearchReport(
     simulated: sim,
     ...(f.fallback ? { fallback: f.fallback } : {}),
     price: f.price,
+    sector: f.sector,
+    industry: f.industry,
     businessQuality: bq,
     investmentQuality: iq,
     moat,

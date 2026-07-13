@@ -2309,6 +2309,8 @@ export const GenerateValueResearchResponse = zod.object({
   "message": zod.string()
 }).optional(),
   "price": zod.number(),
+  "sector": zod.string().nullable(),
+  "industry": zod.string().nullable(),
   "businessQuality": zod.object({
   "score": zod.number(),
   "rating": zod.enum(['Wonderful', 'Good', 'Average', 'Weak']),
@@ -2746,6 +2748,8 @@ export const GetValueReportResponse = zod.object({
   "message": zod.string()
 }).optional(),
   "price": zod.number(),
+  "sector": zod.string().nullable(),
+  "industry": zod.string().nullable(),
   "businessQuality": zod.object({
   "score": zod.number(),
   "rating": zod.enum(['Wonderful', 'Good', 'Average', 'Weak']),
@@ -3024,6 +3028,49 @@ export const GetFinancialStatementsResponse = zod.object({
   "investingCashFlow": zod.number(),
   "financingCashFlow": zod.number()
 }))
+})
+
+
+/**
+ * @summary Compares a company against a deterministic sector peer group, fetched on demand
+ */
+export const GetIndustryComparisonParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetIndustryComparisonResponse = zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "sector": zod.string(),
+  "industry": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "simulated": zod.boolean(),
+  "peerGroup": zod.array(zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "fallback": zod.boolean()
+})),
+  "metrics": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "direction": zod.enum(['higher-better', 'lower-better', 'context-only']),
+  "companyValue": zod.number().nullable(),
+  "peerMedian": zod.number().nullable(),
+  "peerCount": zod.number(),
+  "rank": zod.number().nullable(),
+  "totalRanked": zod.number(),
+  "percentile": zod.number().nullable(),
+  "available": zod.boolean(),
+  "reason": zod.string().optional()
+})),
+  "strengths": zod.array(zod.string()),
+  "weaknesses": zod.array(zod.string()),
+  "overallPercentile": zod.number().nullable(),
+  "competitivePosition": zod.enum(['Leader', 'Above Average', 'Average', 'Below Average', 'Laggard', 'Insufficient Data']),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
 })
 
 
