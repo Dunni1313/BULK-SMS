@@ -74,6 +74,7 @@ import type {
   LearnContent,
   ListDailyReportsParams,
   ListTradesParams,
+  ManagementQualityAnalysis,
   MarketBriefingResponse,
   MarketDataHealth,
   OptionChain,
@@ -6079,6 +6080,83 @@ export function useGetFilingAnalysis<TData = Awaited<ReturnType<typeof getFiling
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetFilingAnalysisQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetManagementQualityAnalysisUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/management-quality/${symbol}`
+}
+
+/**
+ * @summary Deterministic management-quality scoring reusing the Document Intelligence Engine and existing analyzers, fetched on demand
+ */
+export const getManagementQualityAnalysis = async (symbol: string, options?: RequestInit): Promise<ManagementQualityAnalysis> => {
+
+  return customFetch<ManagementQualityAnalysis>(getGetManagementQualityAnalysisUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetManagementQualityAnalysisQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/management-quality/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetManagementQualityAnalysisQueryOptions = <TData = Awaited<ReturnType<typeof getManagementQualityAnalysis>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getManagementQualityAnalysis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetManagementQualityAnalysisQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getManagementQualityAnalysis>>> = ({ signal }) => getManagementQualityAnalysis(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getManagementQualityAnalysis>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetManagementQualityAnalysisQueryResult = NonNullable<Awaited<ReturnType<typeof getManagementQualityAnalysis>>>
+export type GetManagementQualityAnalysisQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic management-quality scoring reusing the Document Intelligence Engine and existing analyzers, fetched on demand
+ */
+
+export function useGetManagementQualityAnalysis<TData = Awaited<ReturnType<typeof getManagementQualityAnalysis>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getManagementQualityAnalysis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetManagementQualityAnalysisQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

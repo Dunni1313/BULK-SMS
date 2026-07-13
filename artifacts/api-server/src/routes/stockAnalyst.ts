@@ -34,12 +34,14 @@ import {
   GetFinancialStatementsResponse,
   GetIndustryComparisonResponse,
   GetFilingAnalysisResponse,
+  GetManagementQualityAnalysisResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
 import { buildIndustryComparison } from "../lib/industryComparison.js";
 import { buildFilingAnalysis } from "../lib/filingAnalysis.js";
+import { buildManagementQualityAnalysis } from "../lib/managementAnalysis.js";
 import { EdgarDocumentProvider } from "../lib/documentProviders.js";
 import { analyzeInvestmentSuitability } from "../lib/valueInvesting.js";
 import {
@@ -531,6 +533,31 @@ router.get("/filings/:symbol", async (req, res): Promise<void> => {
     return;
   }
   res.json(GetFilingAnalysisResponse.parse(analysis));
+});
+
+// Phase 2, Sprint 23 — Management Quality Analysis Engine. Deliberately a
+// separate, on-demand endpoint (not folded into /value/:symbol or
+// /filings/:symbol): it depends on the same heavier EDGAR fetch as Filings,
+// and passes persist:false to buildFilingAnalysis() so it never writes a
+// duplicate investing_filing_analysis row. Never 502s for a missing/
+// unreachable filing (dimensions honestly report unavailable in a normal
+// 200) — only a genuinely unknown symbol 404s.
+router.get("/management-quality/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const provider = await getFundamentalsProvider(userId);
+  let analysis;
+  try {
+    analysis = await buildManagementQualityAnalysis(req.params.symbol, edgarDocumentProvider, provider, "10-K", undefined, userId);
+  } catch (err) {
+    req.log.error({ err }, "management quality analysis failed");
+    res.status(502).json({ error: "Management quality analysis is currently unavailable." });
+    return;
+  }
+  if (!analysis) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  res.json(GetManagementQualityAnalysisResponse.parse(analysis));
 });
 
 export default router;

@@ -3144,3 +3144,35 @@ export const GetFilingAnalysisResponse = zod.object({
 })
 
 
+/**
+ * @summary Deterministic management-quality scoring reusing the Document Intelligence Engine and existing analyzers, fetched on demand
+ */
+export const GetManagementQualityAnalysisParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetManagementQualityAnalysisResponse = zod.object({
+  "symbol": zod.string(),
+  "score": zod.number().nullable(),
+  "dimensions": zod.array(zod.object({
+  "dimension": zod.string(),
+  "score": zod.number().nullable(),
+  "weight": zod.number(),
+  "detail": zod.string(),
+  "reason": zod.string().optional(),
+  "sourceSection": zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "excerpt": zod.string().nullish(),
+  "sourceUrl": zod.string().nullish()
+}).optional()
+})),
+  "strengths": zod.array(zod.string()),
+  "weaknesses": zod.array(zod.string()),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string(),
+  "disclaimer": zod.string()
+})
+
+

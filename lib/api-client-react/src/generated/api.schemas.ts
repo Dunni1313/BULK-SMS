@@ -748,6 +748,43 @@ export interface FilingAnalysis {
   disclaimer: string;
 }
 
+export interface ManagementSourceSection {
+  key: string;
+  label: string;
+  excerpt?: string | null;
+  sourceUrl?: string | null;
+}
+
+export interface ManagementQualityDimension {
+  dimension: string;
+  score: number | null;
+  weight: number;
+  detail: string;
+  reason?: string;
+  sourceSection?: ManagementSourceSection;
+}
+
+export type ManagementQualityAnalysisConfidenceLevel = typeof ManagementQualityAnalysisConfidenceLevel[keyof typeof ManagementQualityAnalysisConfidenceLevel];
+
+
+export const ManagementQualityAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface ManagementQualityAnalysis {
+  symbol: string;
+  score: number | null;
+  dimensions: ManagementQualityDimension[];
+  strengths: string[];
+  weaknesses: string[];
+  confidenceLevel: ManagementQualityAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+  disclaimer: string;
+}
+
 export type ValueResearchInputLevel = typeof ValueResearchInputLevel[keyof typeof ValueResearchInputLevel];
 
 

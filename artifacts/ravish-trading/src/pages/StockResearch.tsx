@@ -10,6 +10,7 @@ import {
   useGetFinancialStatements,
   useGetIndustryComparison,
   useGetFilingAnalysis,
+  useGetManagementQualityAnalysis,
   getValueUniverse,
   getGetValueUniverseQueryKey,
   getGetValueWatchlistQueryKey,
@@ -17,6 +18,7 @@ import {
   getGetFinancialStatementsQueryKey,
   getGetIndustryComparisonQueryKey,
   getGetFilingAnalysisQueryKey,
+  getGetManagementQualityAnalysisQueryKey,
   ValueResearchReport,
   ValueResearchInputLevel,
 } from "@workspace/api-client-react";
@@ -1136,6 +1138,19 @@ export default function StockResearch() {
       enabled: tab === "filings" && !!report?.symbol,
     },
   });
+
+  // Phase 2, Sprint 23 — fetched only when the Filings tab is open, alongside
+  // the filing itself; reuses the same on-demand gate since Management
+  // Quality depends on the same heavier EDGAR fetch.
+  const {
+    data: managementQuality,
+    isLoading: managementQualityLoading,
+  } = useGetManagementQualityAnalysis(report?.symbol ?? "", {
+    query: {
+      queryKey: getGetManagementQualityAnalysisQueryKey(report?.symbol ?? ""),
+      enabled: tab === "filings" && !!report?.symbol,
+    },
+  });
   const search = useSearch();
 
   // Auto-refresh bookkeeping: the fetchedAt batch we've already auto-refreshed
@@ -1941,6 +1956,69 @@ export default function StockResearch() {
                       </div>
 
                       <p className="text-[10px] text-muted-foreground/70">{filing.disclaimer}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border mt-4">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Users className="w-4 h-4 text-indigo-400" /> Management Quality
+                    {managementQuality?.score != null && (
+                      <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                        {managementQuality.score}/100
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-[11px]">
+                    Deterministic management-process scoring — reused financial signals and filing structure only, never an AI opinion.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {!report ? null : managementQualityLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  ) : !managementQuality ? (
+                    <p className="text-sm text-muted-foreground py-4 text-center">Management quality analysis is unavailable for {report.symbol}.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-xs text-muted-foreground">{managementQuality.summary}</p>
+                      <div className="space-y-3">
+                        {managementQuality.dimensions.map((d) => (
+                          <div key={d.dimension}>
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="text-foreground/90 font-medium">{d.dimension}</span>
+                              <span className="font-mono text-muted-foreground">{d.score != null ? Math.round(d.score) : "N/A"}</span>
+                            </div>
+                            {d.score != null ? (
+                              <>
+                                <ScoreBar score={d.score} />
+                                <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{d.detail}</p>
+                                {d.sourceSection && (
+                                  <p className="text-[10px] text-muted-foreground/70 mt-0.5 italic">
+                                    Source: {d.sourceSection.label}
+                                    {d.sourceSection.sourceUrl && (
+                                      <>
+                                        {" "}
+                                        —{" "}
+                                        <a href={d.sourceSection.sourceUrl} target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">
+                                          view filing
+                                        </a>
+                                      </>
+                                    )}
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-[11px] text-muted-foreground/70 italic leading-snug">{d.reason}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground/70">{managementQuality.disclaimer}</p>
                     </div>
                   )}
                 </CardContent>

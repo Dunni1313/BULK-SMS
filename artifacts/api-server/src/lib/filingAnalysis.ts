@@ -161,6 +161,11 @@ export async function buildFilingAnalysis(
   documentType: DocumentType = "10-K",
   opts?: FetchDocumentOpts,
   userId?: string,
+  // Phase 2, Sprint 23 — Management Quality Analysis reuses this function for
+  // its own filing-section data and must not write a second, duplicate
+  // investing_filing_analysis row on every request. Defaults to true so every
+  // existing caller (the /filings/:symbol route) is unaffected.
+  persist = true,
 ): Promise<FilingAnalysis | null> {
   const report = await buildValueResearchReport(symbol, undefined, fundamentalsProvider, undefined, undefined, userId);
   if (!report) return null;
@@ -198,7 +203,7 @@ export async function buildFilingAnalysis(
     disclaimer: DISCLAIMER,
   };
 
-  if (userId) {
+  if (userId && persist) {
     try {
       await db.insert(investingFilingAnalysisTable).values({
         userId,

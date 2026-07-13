@@ -1441,6 +1441,27 @@ paths:
         "404":
           description: Unknown symbol
 
+  /stock-analyst/management-quality/{symbol}:
+    get:
+      operationId: getManagementQualityAnalysis
+      tags: [value]
+      summary: Deterministic management-quality scoring reusing the Document Intelligence Engine and existing analyzers, fetched on demand
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Management quality analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementQualityAnalysis"
+        "404":
+          description: Unknown symbol
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -2068,6 +2089,48 @@ components:
           type: string
           enum: [High, Moderate, Low]
         confidenceExplanation: { type: string }
+        disclaimer: { type: string }
+
+    ManagementSourceSection:
+      type: object
+      required: [key, label]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        excerpt: { type: string, nullable: true }
+        sourceUrl: { type: string, nullable: true }
+
+    ManagementQualityDimension:
+      type: object
+      required: [dimension, score, weight, detail]
+      properties:
+        dimension: { type: string }
+        score: { type: number, nullable: true }
+        weight: { type: number }
+        detail: { type: string }
+        reason: { type: string }
+        sourceSection: { $ref: "#/components/schemas/ManagementSourceSection" }
+
+    ManagementQualityAnalysis:
+      type: object
+      required: [symbol, score, dimensions, strengths, weaknesses, confidenceLevel, confidenceExplanation, summary, disclaimer]
+      properties:
+        symbol: { type: string }
+        score: { type: number, nullable: true }
+        dimensions:
+          type: array
+          items: { $ref: "#/components/schemas/ManagementQualityDimension" }
+        strengths:
+          type: array
+          items: { type: string }
+        weaknesses:
+          type: array
+          items: { type: string }
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation: { type: string }
+        summary: { type: string }
         disclaimer: { type: string }
 
     ValueResearchInput:
