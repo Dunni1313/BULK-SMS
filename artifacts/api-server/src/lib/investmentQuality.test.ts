@@ -19,6 +19,9 @@ function fixture(overrides: Partial<Fundamentals> = {}): Fundamentals {
     price: 150,
     sector: null,
     industry: null,
+    insiderOwnershipPct: null,
+    sharesOutstandingChange5y: null,
+    netInsiderActivity: null,
     epsTtm: 10,
     epsFwd: 11,
     fcfPerShare: 9,
@@ -131,16 +134,41 @@ describe("analyzeInvestmentQuality", () => {
     expect(metric(q, "Cash Position").score).toBe(expectedCash);
   });
 
-  it("always reports Share Dilution/Buybacks and Insider Ownership UNAVAILABLE — never fabricated, regardless of input", () => {
+  it("reports Share Dilution/Buybacks and Insider Ownership UNAVAILABLE when the provider supplies no data — never fabricated", () => {
     const q = analyzeInvestmentQuality(fixture());
     const dilution = metric(q, "Share Dilution / Buybacks");
     const insider = metric(q, "Insider Ownership");
     expect(dilution.availability).toBe("unavailable");
     expect(dilution.score).toBeNull();
-    expect(dilution.reason).toMatch(/Tom Nash Enhancement I/);
+    expect(dilution.reason).toMatch(/share-count history/i);
     expect(insider.availability).toBe("unavailable");
     expect(insider.score).toBeNull();
-    expect(insider.reason).toMatch(/Tom Nash Enhancement I/);
+    expect(insider.reason).toMatch(/insider-ownership data/i);
+  });
+
+  // Phase 2, Sprint 24 — Share Dilution/Buybacks and Insider Ownership are
+  // scored when the provider supplies real data (currently SIMULATED always;
+  // FMP for sharesOutstandingChange5y only; never fabricated otherwise).
+  it("scores Share Dilution/Buybacks when sharesOutstandingChange5y is supplied — buybacks (negative) score higher than dilution (positive)", () => {
+    const buyback = analyzeInvestmentQuality(fixture({ sharesOutstandingChange5y: -0.15 }));
+    const dilutive = analyzeInvestmentQuality(fixture({ sharesOutstandingChange5y: 0.2 }));
+    const buybackMetric = metric(buyback, "Share Dilution / Buybacks");
+    const dilutiveMetric = metric(dilutive, "Share Dilution / Buybacks");
+    expect(buybackMetric.availability).toBe("available");
+    expect(buybackMetric.score).toBe(100);
+    expect(buybackMetric.detail).toMatch(/buyback/i);
+    expect(dilutiveMetric.availability).toBe("available");
+    expect(dilutiveMetric.score).toBe(0);
+    expect(dilutiveMetric.detail).toMatch(/dilution/i);
+    expect(buybackMetric.score!).toBeGreaterThan(dilutiveMetric.score!);
+  });
+
+  it("scores Insider Ownership when insiderOwnershipPct is supplied, ramped against a 20% benchmark", () => {
+    const q = analyzeInvestmentQuality(fixture({ insiderOwnershipPct: 0.1 }));
+    const m = metric(q, "Insider Ownership");
+    expect(m.availability).toBe("available");
+    expect(m.score).toBe(50); // 0.10 / 0.20
+    expect(m.detail).toMatch(/10\.0% of shares held by insiders/);
   });
 
   it("computes the overall score as a weighted average over ONLY the available metrics, renormalized", () => {
@@ -163,6 +191,13 @@ describe("analyzeInvestmentQuality", () => {
     expect(strong.confidenceExplanation).toMatch(/10 of 12/);
     expect(strong.confidenceExplanation).toMatch(/Share Dilution \/ Buybacks/);
     expect(strong.confidenceExplanation).toMatch(/Insider Ownership/);
+  });
+
+  it("rises to High confidence once all 12 metrics have usable data (Sprint 24's two new fields supplied)", () => {
+    const q = analyzeInvestmentQuality(fixture({ sharesOutstandingChange5y: -0.05, insiderOwnershipPct: 0.08 }));
+    expect(q.metrics.every((m) => m.availability === "available")).toBe(true);
+    expect(q.confidenceLevel).toBe("High");
+    expect(q.confidenceExplanation).toMatch(/All 12 quality metrics/);
   });
 
   it("drops to Low confidence when FCF Growth is also unavailable (9 of 12)", () => {

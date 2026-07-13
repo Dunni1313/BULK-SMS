@@ -134,6 +134,13 @@ export interface Fundamentals {
   // Qualitative moat inputs.
   qualitative: QualitativeFactors;
 
+  // Phase 2, Sprint 24 — capital allocation / ownership. Aggregate numbers
+  // about capital structure only (never a named individual's transaction) —
+  // null when no provider (SIMULATED or LIVE) supplies them.
+  insiderOwnershipPct: number | null; // fraction of shares held by insiders
+  sharesOutstandingChange5y: number | null; // fraction; negative = net buybacks, positive = net dilution
+  netInsiderActivity: "buying" | "selling" | "neutral" | null; // aggregate direction only, never per-transaction
+
   // Multi-year history for charts (oldest → newest).
   revenueHistory: number[];
   epsHistory: number[];
@@ -306,6 +313,9 @@ interface AssembleInput {
   fcfPositiveYears: number;
   fcfMargin: number;
   qualitative: QualitativeFactors;
+  insiderOwnershipPct: number | null;
+  sharesOutstandingChange5y: number | null;
+  netInsiderActivity: "buying" | "selling" | "neutral" | null;
   historyRng: () => number;
 }
 
@@ -367,6 +377,9 @@ function assembleFundamentals(a: AssembleInput): Fundamentals {
     fcfPositiveYears: a.fcfPositiveYears,
     fcfMargin: a.fcfMargin,
     qualitative: a.qualitative,
+    insiderOwnershipPct: a.insiderOwnershipPct,
+    sharesOutstandingChange5y: a.sharesOutstandingChange5y,
+    netInsiderActivity: a.netInsiderActivity,
     revenueHistory,
     epsHistory,
     fcfHistory,
@@ -510,6 +523,27 @@ export interface FinancialStatements {
   cashFlow: CashFlowYear[];
 }
 
+// Phase 2, Sprint 24 — deterministic SIMULATED capital-allocation/ownership
+// data, seeded by symbol only (stable across requests). These are aggregate
+// numbers about capital structure (insider ownership %, share-count trend) —
+// the same kind of thing this file already simulates for every other
+// financial metric — never a named individual's specific transaction, which
+// this function deliberately cannot produce (netInsiderActivity is only ever
+// one of three aggregate directions).
+function simulatedCapitalAllocation(symbol: string): {
+  insiderOwnershipPct: number;
+  sharesOutstandingChange5y: number;
+  netInsiderActivity: "buying" | "selling" | "neutral";
+} {
+  const rng = makeRng(`${symbol}|capital-allocation`);
+  const insiderOwnershipPct = round(0.005 + rng() * 0.15, 4); // 0.5%-15.5%
+  const sharesOutstandingChange5y = round((rng() - 0.6) * 0.3, 4); // skewed toward buybacks, -18%..+12%
+  const activityRoll = rng();
+  const netInsiderActivity: "buying" | "selling" | "neutral" =
+    activityRoll < 0.3 ? "buying" : activityRoll < 0.6 ? "selling" : "neutral";
+  return { insiderOwnershipPct, sharesOutstandingChange5y, netInsiderActivity };
+}
+
 // The provider seam. A live provider implements the same async interface and is
 // selected via Settings; the simulated provider is the safe default.
 export interface FundamentalsProvider {
@@ -549,6 +583,7 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
     const salesPerShare = round(jitter(p.salesPerShare, 0.03, rng), 2);
     const bookPerShare = round(jitter(p.bookPerShare, 0.03, rng), 2);
     const sectorProfile = getSectorProfile(sym);
+    const capitalAllocation = simulatedCapitalAllocation(sym);
 
     return assembleFundamentals({
       symbol: sym,
@@ -560,6 +595,9 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
       dataSource: FUNDAMENTALS_DATA_SOURCE,
       sector: sectorProfile.sector,
       industry: sectorProfile.industry,
+      insiderOwnershipPct: capitalAllocation.insiderOwnershipPct,
+      sharesOutstandingChange5y: capitalAllocation.sharesOutstandingChange5y,
+      netInsiderActivity: capitalAllocation.netInsiderActivity,
       epsTtm,
       epsFwd,
       fcfPerShare,
@@ -696,6 +734,66 @@ async function fetchJson(url: string, timeoutMs = 12000): Promise<unknown> {
   }
 }
 
+// Phase 2, Sprint 24 — best-effort FMP capital-allocation/ownership fetch.
+// Deliberately never throws: these two endpoints have no prior in-repo
+// precedent (unlike ratios-ttm/key-metrics-ttm) and live verification could
+// not be performed this session (no FMP_API_KEY available), so a failure or
+// unexpected shape here must never break the main getFundamentals() call —
+// it degrades to honest nulls instead. Only ever returns an AGGREGATE
+// direction for insider activity, never a named individual's transaction.
+async function fetchFmpCapitalAllocation(
+  base: string,
+  sym: string,
+  k: string,
+): Promise<{
+  sharesOutstandingChange5y: number | null;
+  netInsiderActivity: "buying" | "selling" | "neutral" | null;
+}> {
+  let sharesOutstandingChange5y: number | null = null;
+  let netInsiderActivity: "buying" | "selling" | "neutral" | null = null;
+
+  try {
+    const evRaw = await fetchJson(`${base}/enterprise-values/${sym}?period=annual&limit=6&apikey=${k}`);
+    if (Array.isArray(evRaw) && evRaw.length >= 2) {
+      // FMP returns most-recent-first.
+      const rows = evRaw as Record<string, unknown>[];
+      const newest = num(rows[0]?.numberOfShares);
+      const oldest = num(rows[rows.length - 1]?.numberOfShares);
+      if (newest != null && oldest != null && oldest > 0) {
+        sharesOutstandingChange5y = round((newest - oldest) / oldest, 4);
+      }
+    }
+  } catch {
+    // Honest null — never blocks the main fetch.
+  }
+
+  try {
+    const tradesRaw = await fetchJson(`${base}/insider-trading?symbol=${sym}&limit=100&apikey=${k}`);
+    if (Array.isArray(tradesRaw) && tradesRaw.length > 0) {
+      const rows = tradesRaw as Record<string, unknown>[];
+      let buyVolume = 0;
+      let sellVolume = 0;
+      for (const r of rows) {
+        const type = String(r.transactionType ?? r.acquistionOrDisposition ?? "").toUpperCase();
+        const shares = Math.abs(num(r.securitiesTransacted) ?? 0);
+        const isBuy = type.startsWith("P") || type === "A" || type.includes("BUY") || type.includes("PURCHASE");
+        const isSell = type.startsWith("S") || type === "D" || type.includes("SELL") || type.includes("SALE");
+        if (isBuy) buyVolume += shares;
+        else if (isSell) sellVolume += shares;
+      }
+      const total = buyVolume + sellVolume;
+      if (total > 0) {
+        const buyShare = buyVolume / total;
+        netInsiderActivity = buyShare >= 0.6 ? "buying" : buyShare <= 0.4 ? "selling" : "neutral";
+      }
+    }
+  } catch {
+    // Honest null — never blocks the main fetch.
+  }
+
+  return { sharesOutstandingChange5y, netInsiderActivity };
+}
+
 // Short-lived in-memory cache so repeated views (and the 10-symbol universe) don't
 // hammer the provider's rate limit. `undefined` => miss, `null`/data => hit.
 const LIVE_TTL_MS = 15 * 60 * 1000;
@@ -828,6 +926,8 @@ export class FmpFundamentalsProvider implements FundamentalsProvider {
       marketCap: num(profile?.mktCap) ?? undefined,
     });
 
+    const capitalAllocation = await fetchFmpCapitalAllocation(base, sym, k);
+
     const data = assembleFundamentals({
       symbol: sym,
       name: (profile.companyName as string) || sym,
@@ -841,6 +941,14 @@ export class FmpFundamentalsProvider implements FundamentalsProvider {
       // guessed classification.
       sector: (profile.sector as string) || null,
       industry: (profile.industry as string) || null,
+      // Phase 2, Sprint 24 — best-effort, never blocks the main fetch. Insider
+      // OWNERSHIP PERCENTAGE is honestly left null for FMP: unlike shares-
+      // outstanding trend and insider transaction direction, it isn't reliably
+      // available from a documented free-tier endpoint without live
+      // verification this session couldn't perform — never guessed.
+      insiderOwnershipPct: null,
+      sharesOutstandingChange5y: capitalAllocation.sharesOutstandingChange5y,
+      netInsiderActivity: capitalAllocation.netInsiderActivity,
       epsTtm,
       epsFwd: fwdEps(epsTtm, epsGrowth5y),
       fcfPerShare,
@@ -1083,6 +1191,13 @@ export class AlphaVantageFundamentalsProvider implements FundamentalsProvider {
       // omits it, never a guessed classification.
       sector: (overview.Sector as string) || null,
       industry: (overview.Industry as string) || null,
+      // Phase 2, Sprint 24 — honestly null for Alpha Vantage this sprint: no
+      // insider-ownership/buyback-trend fetch was implemented against AV's
+      // API, an explicit scope reduction disclosed in the sprint report
+      // rather than a guessed/unverified endpoint call.
+      insiderOwnershipPct: null,
+      sharesOutstandingChange5y: null,
+      netInsiderActivity: null,
       epsTtm,
       epsFwd,
       fcfPerShare,

@@ -21,6 +21,9 @@ function fixtureFundamentals(overrides: Partial<Fundamentals> = {}): Fundamental
     price: 150,
     sector: null,
     industry: null,
+    insiderOwnershipPct: null,
+    sharesOutstandingChange5y: null,
+    netInsiderActivity: null,
     epsTtm: 10,
     epsFwd: 11,
     fcfPerShare: 9,
@@ -202,7 +205,7 @@ describe("analyzeTomNash", () => {
     expect(t.growth.detail).toMatch(/Free Cash Flow Growth unavailable/);
   });
 
-  it("Capital Allocation pillar averages Cash Position / Debt Levels / ROIC-as-capital-efficiency, excluding Share Dilution/Buybacks from the number but showing it as unavailable", () => {
+  it("Capital Allocation pillar averages Cash Position / Debt Levels / ROIC-as-capital-efficiency, excluding Share Dilution/Buybacks and Insider Ownership from the number when they're unavailable but showing both as unavailable", () => {
     const iq = fixtureIq({}, {
       "Cash Position": { score: 90, weight: 0.08 },
       "Debt Levels": { score: 70, weight: 0.1 },
@@ -212,6 +215,56 @@ describe("analyzeTomNash", () => {
     const expected = Math.round(((90 * 0.08 + 70 * 0.1 + 50 * 0.12) / (0.08 + 0.1 + 0.12)) * 10) / 10;
     expect(t.capitalAllocation.score).toBe(expected);
     expect(t.capitalAllocation.detail).toMatch(/Share Dilution\/Buybacks unavailable/);
+    expect(t.capitalAllocation.detail).toMatch(/Insider Ownership unavailable/);
+  });
+
+  // Phase 2, Sprint 24 — extends the Sprint 16 3-metric average to include
+  // Share Dilution/Buybacks and Insider Ownership once Investment Quality can
+  // score them (still renormalized, still excluding whichever remain
+  // unavailable — never fabricated).
+  it("Capital Allocation pillar includes Share Dilution/Buybacks and Insider Ownership in the average once available (Sprint 24)", () => {
+    const iq = fixtureIq({}, {
+      "Cash Position": { score: 90, weight: 0.08 },
+      "Debt Levels": { score: 70, weight: 0.1 },
+      "Return on Invested Capital": { score: 50, weight: 0.12 },
+      "Share Dilution / Buybacks": { availability: "available", score: 100, weight: 0.05, reason: undefined },
+      "Insider Ownership": { availability: "available", score: 40, weight: 0.05, reason: undefined },
+    });
+    const t = analyzeTomNash(fixtureFundamentals(), iq, fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett());
+    const expected = Math.round(
+      ((90 * 0.08 + 70 * 0.1 + 50 * 0.12 + 100 * 0.05 + 40 * 0.05) / (0.08 + 0.1 + 0.12 + 0.05 + 0.05)) * 10,
+    ) / 10;
+    expect(t.capitalAllocation.score).toBe(expected);
+    expect(t.capitalAllocation.detail).toMatch(/Share Dilution\/Buybacks 100\/100/);
+    expect(t.capitalAllocation.detail).toMatch(/Insider Ownership 40\/100/);
+  });
+
+  it("Capital Allocation pillar surfaces netInsiderActivity as descriptive text only, never scored on its own", () => {
+    const buying = analyzeTomNash(
+      fixtureFundamentals({ netInsiderActivity: "buying" }),
+      fixtureIq(),
+      fixtureFin(),
+      fixtureBlended(),
+      fixtureGraham(),
+      fixtureDcf(),
+      fixtureBuffett(),
+    );
+    const none = analyzeTomNash(fixtureFundamentals(), fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett());
+    expect(buying.capitalAllocation.detail).toMatch(/recent aggregate insider activity: buying/);
+    expect(none.capitalAllocation.detail).not.toMatch(/recent aggregate insider activity/);
+    // Descriptive text only — the numeric score is unaffected by netInsiderActivity.
+    expect(buying.capitalAllocation.score).toBe(none.capitalAllocation.score);
+  });
+
+  it("Capital Allocation pillar's score is byte-identical to the pre-Sprint-24 3-metric formula whenever Share Dilution/Buybacks and Insider Ownership remain unavailable", () => {
+    const iq = fixtureIq({}, {
+      "Cash Position": { score: 65, weight: 0.08 },
+      "Debt Levels": { score: 55, weight: 0.1 },
+      "Return on Invested Capital": { score: 45, weight: 0.12 },
+    });
+    const t = analyzeTomNash(fixtureFundamentals(), iq, fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett());
+    const preSprint24 = Math.round(((65 * 0.08 + 55 * 0.1 + 45 * 0.12) / (0.08 + 0.1 + 0.12)) * 10) / 10;
+    expect(t.capitalAllocation.score).toBe(preSprint24);
   });
 
   it("Financial Strength pillar directly reuses analyzeFinancialStrength's own score, unmodified", () => {
@@ -304,10 +357,16 @@ describe("analyzeTomNash", () => {
     expect(wait.verdict).toBe("Wait");
   });
 
-  it("never pulls Insider Ownership into any pillar (explicitly out of scope for Sprint 16)", () => {
+  // Phase 2, Sprint 24 deliberately changed this: Insider Ownership is now
+  // surfaced (available or unavailable) in the Capital Allocation pillar's
+  // detail, and averaged in when available — see the dedicated Sprint 24
+  // tests above. It is still never scored anywhere outside that one pillar.
+  it("only the Capital Allocation pillar ever references Insider Ownership — no other pillar does", () => {
     const t = analyzeTomNash(fixtureFundamentals(), fixtureIq(), fixtureFin(), fixtureBlended(), fixtureGraham(), fixtureDcf(), fixtureBuffett());
-    const serialized = JSON.stringify(t);
-    expect(serialized).not.toMatch(/Insider Ownership/);
+    expect(t.capitalAllocation.detail).toMatch(/Insider Ownership/);
+    for (const pillar of [t.businessQuality, t.growth, t.financialStrength, t.valuation]) {
+      expect(pillar.detail).not.toMatch(/Insider Ownership/);
+    }
   });
 
   it("adds an ETF caveat to the summary for ETF-kind fundamentals, not for stocks", () => {

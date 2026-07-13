@@ -13,11 +13,19 @@
 //                          just re-aggregated over a subset).
 //  - Capital Allocation  -> renormalized average of Cash Position / Debt Levels /
 //                          Return on Invested Capital (relabeled "Capital efficiency"
-//                          for this engine's own display) from the same Investment
-//                          Quality metrics; Share Dilution/Buybacks is surfaced as an
-//                          unavailable line item (never fabricated) but excluded from
-//                          the numeric average, exactly like Investment Quality's own
-//                          internal discipline.
+//                          for this engine's own display) / Share Dilution-Buybacks /
+//                          Insider Ownership, all from the same Investment Quality
+//                          metrics — whichever are available are averaged in, exactly
+//                          like Investment Quality's own internal renormalization
+//                          discipline. Phase 2, Sprint 24 extended this list to include
+//                          the last two once Investment Quality could score them; the
+//                          pillar's score is unchanged wherever those two remain
+//                          unavailable (e.g. Alpha Vantage, or FMP's insider-ownership
+//                          percentage specifically). A company's own aggregate net
+//                          insider-activity direction ("buying"/"selling"/"neutral"),
+//                          when known, is surfaced as descriptive text only — never
+//                          scored on its own, never a per-transaction or named-
+//                          individual claim.
 //  - Financial Strength  -> analyzeFinancialStrength()'s own score, called through.
 //  - Valuation           -> the ONE genuinely new piece of logic: no existing code
 //                          exposes a 0-100 valuation score (only categorical ratings +
@@ -31,8 +39,9 @@
 //
 // Explicitly, deliberately NOT in Sprint 16 (see the approved Phase 2 plan's Tom Nash
 // Enhancement I/II sprints): macro/interest-rate/sector-rotation/AI-cycle analysis,
-// insider-ownership scoring, filing ingestion. Investment Quality's own "Insider
-// Ownership" metric is simply never pulled into any pillar here.
+// filing ingestion. (Insider-ownership scoring was added in Sprint 24, once
+// Investment Quality could honestly compute it — see the Capital Allocation note
+// above.)
 //
 // Output shape ({verdict, convictionScore, rationale, summary}) deliberately mirrors
 // the {verdict, conviction, rationale, summary} contract every other analyst in this
@@ -129,18 +138,35 @@ function growthPillar(iq: InvestmentQualityAnalysis): TomNashPillarScore {
   };
 }
 
-function capitalAllocationPillar(iq: InvestmentQualityAnalysis): TomNashPillarScore {
-  const score = averageMetrics(iq.metrics, ["Cash Position", "Debt Levels", "Return on Invested Capital"]);
+function capitalAllocationPillar(f: Fundamentals, iq: InvestmentQualityAnalysis): TomNashPillarScore {
+  // Phase 2, Sprint 24 — extended from the Sprint 16 3-metric average to include
+  // Share Dilution/Buybacks and Insider Ownership now that Investment Quality can
+  // score them for providers that supply the data; still a plain renormalized
+  // average over whichever are available, so the score is unchanged for a company
+  // whose provider leaves the new fields null.
+  const score = averageMetrics(iq.metrics, [
+    "Cash Position",
+    "Debt Levels",
+    "Return on Invested Capital",
+    "Share Dilution / Buybacks",
+    "Insider Ownership",
+  ]);
   const cash = findMetric(iq.metrics, "Cash Position");
   const debt = findMetric(iq.metrics, "Debt Levels");
   const roic = findMetric(iq.metrics, "Return on Invested Capital");
   const dilution = findMetric(iq.metrics, "Share Dilution / Buybacks");
+  const insider = findMetric(iq.metrics, "Insider Ownership");
   const parts = [
     `Cash Position ${cash.score}/100`,
     `Debt Levels ${debt.score}/100`,
     `Capital efficiency (ROIC) ${roic.score}/100`,
     dilution.availability === "available" ? `Share Dilution/Buybacks ${dilution.score}/100` : "Share Dilution/Buybacks unavailable",
+    insider.availability === "available" ? `Insider Ownership ${insider.score}/100` : "Insider Ownership unavailable",
   ];
+  // Descriptive only — never scored, never a per-transaction or named-individual claim.
+  if (f.netInsiderActivity != null) {
+    parts.push(`recent aggregate insider activity: ${f.netInsiderActivity}`);
+  }
   return {
     label: "Capital Allocation",
     score,
@@ -204,7 +230,7 @@ export function analyzeTomNash(
     detail: iq.summary,
   };
   const growth = growthPillar(iq);
-  const capitalAllocation = capitalAllocationPillar(iq);
+  const capitalAllocation = capitalAllocationPillar(f, iq);
   const financialStrength = financialStrengthPillar(fin);
   const valuation = valuationPillar(blended, graham, dcf, buffett);
 

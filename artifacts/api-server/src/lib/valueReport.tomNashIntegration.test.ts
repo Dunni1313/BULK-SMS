@@ -134,10 +134,21 @@ describe("buildValueResearchReport — Sprint 16 Tom Nash integration regression
     expect(report.tomNash.financialStrength.score).toBe(report.financialStrength.score);
   });
 
-  it("never surfaces Insider Ownership in the Tom Nash section (explicitly out of scope for Sprint 16)", async () => {
+  // Phase 2, Sprint 24 (Tom Nash Investment Engine — Enhancement I)
+  // deliberately changed this: Insider Ownership is now surfaced in the
+  // Capital Allocation pillar's detail (and averaged in when available) —
+  // see tomNashEngine.test.ts and valueReport.capitalAllocationIntegration.test.ts
+  // for the dedicated Sprint 24 coverage. It still only ever appears within
+  // the Capital Allocation line, never elsewhere in the section.
+  it("surfaces Insider Ownership only within the Capital Allocation line of the Tom Nash section (Sprint 24)", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const section = report.sections.find((s) => s.id === "tom-nash")!;
-    expect(section.bullets!.join(" ")).not.toMatch(/Insider Ownership/);
+    const capitalAllocationLine = section.bullets!.find((b) => b.startsWith("Capital Allocation:"))!;
+    expect(capitalAllocationLine).toMatch(/Insider Ownership/);
+    for (const bullet of section.bullets!) {
+      if (bullet === capitalAllocationLine) continue;
+      expect(bullet).not.toMatch(/Insider Ownership/);
+    }
   });
 
   it("the tom-nash section renders after margin-of-safety, and section numbering shifted by exactly one, ids unchanged", async () => {

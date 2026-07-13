@@ -15,15 +15,17 @@
 // analyzeFinancialStrength, or any of the four valuation models (blended, Graham,
 // DCF, Buffett) is changed by this module's existence.
 //
-// SAFETY CONTRACT: never fabricates. Two of the twelve requested metrics — Share
-// Dilution / Buybacks and Insider Ownership — have no backing data anywhere in
-// Fundamentals yet, for any provider. Rather than estimate a plausible-looking
-// number, both are honestly reported `unavailable` with an explicit reason. This is
-// deliberate, not an oversight: the roadmap's Tom Nash Enhancement I sprint adds
-// the filing-ingestion infrastructure that will backfill both. Confidence level is
-// computed directly from the fraction of metrics with real data, so it will
-// self-correct from "Moderate" to "High" the moment that infrastructure lands — no
-// code change needed here when it does.
+// SAFETY CONTRACT: never fabricates. Share Dilution / Buybacks and Insider
+// Ownership are scored when Fundamentals.sharesOutstandingChange5y /
+// insiderOwnershipPct are non-null, and honestly reported `unavailable` with an
+// explicit reason otherwise. Until Phase 2, Sprint 24 (Tom Nash Investment Engine
+// — Enhancement I), neither field existed on Fundamentals for any provider, so
+// both metrics were unconditionally unavailable; Sprint 24 added deterministic
+// SIMULATED values and a best-effort FMP fetch for sharesOutstandingChange5y —
+// Alpha Vantage and FMP's insiderOwnershipPct remain honestly null, per that
+// sprint's disclosed scope. Confidence level is computed directly from the
+// fraction of metrics with real data, so it self-corrects toward "High" as more
+// providers/fields land — no code change needed here when they do.
 
 import type { Fundamentals } from "./fundamentals.js";
 import { leverageScore, coverageScore, cashPositionScore } from "./valueInvesting.js";
@@ -77,8 +79,10 @@ const WEIGHTS = {
   insiderOwnership: 0.05,
 } as const;
 
-const DEFERRED_DATA_REASON =
-  "planned for the Tom Nash Enhancement I sprint, which adds the filing-ingestion infrastructure this metric needs";
+const NO_DILUTION_DATA_REASON =
+  "this provider does not supply a share-count history, so a buyback/dilution trend cannot be computed without fabricating a number";
+const NO_INSIDER_OWNERSHIP_DATA_REASON =
+  "this provider does not supply insider-ownership data";
 
 // Derives a five-year FCF CAGR from Fundamentals.fcfHistory (oldest → newest).
 // Honestly unavailable (not estimated) when either endpoint isn't positive, since
@@ -198,23 +202,55 @@ export function analyzeInvestmentQuality(f: Fundamentals): InvestmentQualityAnal
     detail: f.netCashPerShare >= 0 ? `Net cash $${f.netCashPerShare.toFixed(2)}/sh` : `Net debt $${Math.abs(f.netCashPerShare).toFixed(2)}/sh`,
   });
 
-  metrics.push({
-    metric: "Share Dilution / Buybacks",
-    availability: "unavailable",
-    score: null,
-    weight: WEIGHTS.dilutionBuybacks,
-    detail: "",
-    reason: `No share-count history or buyback data source yet — ${DEFERRED_DATA_REASON}.`,
-  });
+  // Phase 2, Sprint 24 — scored when the provider supplies a real five-year
+  // share-count trend, honestly unavailable otherwise. Negative change (net
+  // buybacks) scores higher than positive change (net dilution); the ramp
+  // spans a -15% buyback (100) to a +20% dilution (0) benchmark band.
+  if (f.sharesOutstandingChange5y != null) {
+    const x = f.sharesOutstandingChange5y;
+    const score = round(clamp(((0.20 - x) / 0.35) * 100));
+    metrics.push({
+      metric: "Share Dilution / Buybacks",
+      availability: "available",
+      score,
+      weight: WEIGHTS.dilutionBuybacks,
+      detail: x < 0
+        ? `${Math.abs(x * 100).toFixed(0)}% net share buybacks over five years`
+        : `${(x * 100).toFixed(0)}% net share dilution over five years`,
+    });
+  } else {
+    metrics.push({
+      metric: "Share Dilution / Buybacks",
+      availability: "unavailable",
+      score: null,
+      weight: WEIGHTS.dilutionBuybacks,
+      detail: "",
+      reason: `No share-count history or buyback data source available — ${NO_DILUTION_DATA_REASON}.`,
+    });
+  }
 
-  metrics.push({
-    metric: "Insider Ownership",
-    availability: "unavailable",
-    score: null,
-    weight: WEIGHTS.insiderOwnership,
-    detail: "",
-    reason: `No insider-ownership data source yet — ${DEFERRED_DATA_REASON}.`,
-  });
+  // Phase 2, Sprint 24 — scored when the provider supplies a real insider-
+  // ownership percentage, honestly unavailable otherwise (currently only the
+  // SIMULATED provider supplies this field; FMP and Alpha Vantage do not).
+  if (f.insiderOwnershipPct != null) {
+    const score = round(clamp((f.insiderOwnershipPct / 0.20) * 100));
+    metrics.push({
+      metric: "Insider Ownership",
+      availability: "available",
+      score,
+      weight: WEIGHTS.insiderOwnership,
+      detail: `${(f.insiderOwnershipPct * 100).toFixed(1)}% of shares held by insiders`,
+    });
+  } else {
+    metrics.push({
+      metric: "Insider Ownership",
+      availability: "unavailable",
+      score: null,
+      weight: WEIGHTS.insiderOwnership,
+      detail: "",
+      reason: `No insider-ownership data source available — ${NO_INSIDER_OWNERSHIP_DATA_REASON}.`,
+    });
+  }
 
   const available = metrics.filter(
     (m): m is QualityMetricScore & { score: number } => m.availability === "available" && m.score != null,

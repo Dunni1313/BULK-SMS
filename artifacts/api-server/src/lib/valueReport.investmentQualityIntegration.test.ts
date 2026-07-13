@@ -100,7 +100,14 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     expect(typeof report.disclaimer).toBe("string");
   });
 
-  it("adds an investmentQuality field, correctly shaped, with the two permanently-unavailable metrics honestly reported", async () => {
+  // Phase 2, Sprint 24 (Tom Nash Investment Engine — Enhancement I) gave the
+  // SIMULATED provider real values for both of these fields, so they are no
+  // longer PERMANENTLY unavailable — they're available whenever the active
+  // provider supplies sharesOutstandingChange5y/insiderOwnershipPct (the
+  // SIMULATED provider always does; see fundamentals.capitalAllocation.test.ts
+  // and valueReport.capitalAllocationIntegration.test.ts for the dedicated
+  // Sprint 24 coverage of both the available and honestly-unavailable paths).
+  it("adds an investmentQuality field, correctly shaped, with all 12 metrics scored for a SIMULATED symbol", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const iq = report.investmentQuality;
     expect(iq).toBeTruthy();
@@ -109,16 +116,17 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     expect(["High", "Moderate", "Low"]).toContain(iq.confidenceLevel);
     const dilution = iq.metrics.find((m) => m.metric === "Share Dilution / Buybacks")!;
     const insider = iq.metrics.find((m) => m.metric === "Insider Ownership")!;
-    expect(dilution.availability).toBe("unavailable");
-    expect(insider.availability).toBe("unavailable");
+    expect(dilution.availability).toBe("available");
+    expect(insider.availability).toBe("available");
   });
 
-  it("the investment-quality section renders all 12 metrics, including the unavailable ones' reasons", async () => {
+  it("the investment-quality section renders all 12 metrics", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const section = report.sections.find((s) => s.id === "investment-quality")!;
     expect(section.title).toBe("4. Investment Quality");
     expect(section.bullets).toHaveLength(12);
-    expect(section.bullets!.join(" ")).toMatch(/unavailable/);
+    expect(section.bullets!.join(" ")).toMatch(/Insider Ownership/);
+    expect(section.bullets!.join(" ")).toMatch(/Share Dilution/);
   });
 
   it("section numbering shifted by exactly one from Sprint 14's shape, all ids unchanged", async () => {
