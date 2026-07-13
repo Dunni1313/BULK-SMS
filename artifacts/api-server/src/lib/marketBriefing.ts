@@ -5,6 +5,13 @@
 // the index/mega-cap IV ranks give a synthetic "VIX" and risk-on/off read, and
 // the event-risk calendar supplies the forward catalysts. Pure + deterministic
 // per day so the briefing is reproducible within a process/day.
+//
+// This module's MarketRegime is deliberately separate from Engine 2's
+// tradingRegime.ts's own TradingRegimeAnalysis (Phase 3, Sprint 36) — this
+// one is an options-IV-derived read for Engine 3's Portfolio AI, that one is
+// a real price-action-derived read for the Trading Engine; see
+// docs/Phase-3-Trading-Engine-Execution-Plan.md §0 Correction 1 for why they
+// are never merged.
 
 import { UNIVERSE_SYMBOLS, getSnapshot, todayStr } from "./optionsMath.js";
 import { getUpcomingEvents } from "./eventRisk.js";
