@@ -18,6 +18,7 @@ const EXISTING_SECTION_IDS = [
   "business",
   "quality",
   "moat",
+  "competitive-advantage",
   "financial",
   "profitability",
   "growth",
@@ -127,27 +128,27 @@ describe("buildValueResearchReport — Sprint 15 Investment Quality integration 
     expect(byId.get("quality")).toBe("3. Business Quality");
     expect(byId.get("investment-quality")).toBe("4. Investment Quality");
     expect(byId.get("moat")).toBe("5. Economic Moat");
-    expect(byId.get("financial")).toBe("6. Financial Strength");
-    expect(byId.get("profitability")).toBe("7. Profitability & Returns on Capital");
-    expect(byId.get("growth")).toBe("8. Growth");
-    // Phase 2, Sprint 18 inserted "9. Financial Ratios" right after Growth,
+    expect(byId.get("financial")).toBe("7. Financial Strength");
+    expect(byId.get("profitability")).toBe("8. Profitability & Returns on Capital");
+    expect(byId.get("growth")).toBe("9. Growth");
+    // Phase 2, Sprint 18 inserted "10. Financial Ratios" right after Growth,
     // shifting Valuation onward by one further from this sprint's own
     // numbering (which had already shifted Sprint 14's numbering by two, for
     // Tom Nash + the Investment Committee).
-    expect(byId.get("financial-ratios")).toBe("9. Financial Ratios");
-    expect(byId.get("valuation")).toBe("10. Valuation & Fair Value");
-    expect(byId.get("graham-valuation")).toBe("11. Graham Valuation");
-    expect(byId.get("dcf-valuation")).toBe("12. DCF Valuation");
-    expect(byId.get("buffett-valuation")).toBe("13. Buffett Valuation");
-    expect(byId.get("margin-of-safety")).toBe("14. Margin of Safety");
-    expect(byId.get("tom-nash")).toBe("15. Tom Nash Analysis");
-    expect(byId.get("investment-committee")).toBe("16. Investment Committee");
-    expect(byId.get("risks")).toBe("17. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("18. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("19. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("20. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("21. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("22. Disclaimers & Data Source");
+    expect(byId.get("financial-ratios")).toBe("10. Financial Ratios");
+    expect(byId.get("valuation")).toBe("11. Valuation & Fair Value");
+    expect(byId.get("graham-valuation")).toBe("12. Graham Valuation");
+    expect(byId.get("dcf-valuation")).toBe("13. DCF Valuation");
+    expect(byId.get("buffett-valuation")).toBe("14. Buffett Valuation");
+    expect(byId.get("margin-of-safety")).toBe("15. Margin of Safety");
+    expect(byId.get("tom-nash")).toBe("16. Tom Nash Analysis");
+    expect(byId.get("investment-committee")).toBe("17. Investment Committee");
+    expect(byId.get("risks")).toBe("18. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("19. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("20. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("21. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("22. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("23. Disclaimers & Data Source");
   });
 
   it("investment quality is computed independently of Graham/DCF/Buffett's own availability", async () => {

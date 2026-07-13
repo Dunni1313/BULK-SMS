@@ -1,8 +1,10 @@
-// Phase 2, Sprint 18 — regression proof that integrating Financial Ratio Analysis
-// into buildValueResearchReport() changed nothing about the existing report
-// (including Graham/DCF/Buffett/the blended model/Investment Quality/Tom Nash/the
-// Investment Committee's own outputs) except the addition of the new
-// financialRatios field and its report section (approved Phase 2 plan, Sprint 18).
+// Phase 2, Sprint 21 — regression proof that adding the Competitive Advantage
+// Engine (and extracting classifyMoatRating() out of analyzeMoat()) changed
+// nothing about the existing Value Report (including analyzeMoat()'s own now-
+// refactored output, and Graham/DCF/Buffett/the blended model/Investment
+// Quality/Tom Nash/the Investment Committee/Financial Ratios' own outputs)
+// except the addition of the new competitiveAdvantage field and its report
+// section (approved Phase 2 plan, Sprint 21).
 
 import { describe, it, expect } from "vitest";
 import { buildValueResearchReport } from "./valueReport.js";
@@ -13,9 +15,9 @@ import { analyzeInvestmentQuality } from "./investmentQuality.js";
 import { analyzeTomNash } from "./tomNashEngine.js";
 import { synthesizeInvestmentCommittee } from "./investmentCommittee.js";
 import { analyzeFinancialRatios } from "./financialRatios.js";
+import { analyzeCompetitiveAdvantage } from "./competitiveAdvantage.js";
 import { analyzeBusinessQuality, analyzeFinancialStrength, analyzeMoat, analyzeValuation } from "./valueInvesting.js";
 import { getFundamentals } from "./fundamentals.js";
-import type { Fundamentals } from "./fundamentals.js";
 
 const EXISTING_SECTION_IDS = [
   "snapshot",
@@ -27,6 +29,7 @@ const EXISTING_SECTION_IDS = [
   "financial",
   "profitability",
   "growth",
+  "financial-ratios",
   "valuation",
   "graham-valuation",
   "dcf-valuation",
@@ -42,17 +45,20 @@ const EXISTING_SECTION_IDS = [
   "disclaimer",
 ];
 
-describe("buildValueResearchReport — Sprint 18 Financial Ratios integration regression", () => {
+describe("buildValueResearchReport — Sprint 21 Competitive Advantage integration regression", () => {
   it("every pre-existing section id is still present, plus exactly one new one", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     expect(report).not.toBeNull();
-
     const ids = report.sections.map((s) => s.id);
-    for (const id of EXISTING_SECTION_IDS) {
-      expect(ids).toContain(id);
-    }
-    expect(ids).toContain("financial-ratios");
-    expect(report.sections.length).toBe(EXISTING_SECTION_IDS.length + 1);
+    expect(ids).toEqual(EXISTING_SECTION_IDS);
+    expect(report.sections.length).toBe(23);
+  });
+
+  it("analyzeMoat()'s own output is unchanged by the classifyMoatRating() extraction", async () => {
+    const f = (await getFundamentals("AAPL"))!;
+    const moatStandalone = analyzeMoat(f);
+    const report = (await buildValueResearchReport("AAPL"))!;
+    expect(report.moat).toEqual(moatStandalone);
   });
 
   it("Graham's own output for a fixed symbol is unchanged by this sprint's addition", async () => {
@@ -121,52 +127,29 @@ describe("buildValueResearchReport — Sprint 18 Financial Ratios integration re
     expect(report.investmentCommittee).toEqual(committeeStandalone);
   });
 
-  it("every pre-existing top-level field is still present and correctly shaped", async () => {
-    const report = (await buildValueResearchReport("MSFT"))!;
-    expect(report.businessQuality).toBeTruthy();
-    expect(report.investmentQuality).toBeTruthy();
-    expect(report.moat).toBeTruthy();
-    expect(report.financialStrength).toBeTruthy();
-    expect(report.valuation).toBeTruthy();
-    expect(report.grahamValuation).toBeTruthy();
-    expect(report.dcfValuation).toBeTruthy();
-    expect(report.buffettValuation).toBeTruthy();
-    expect(report.consolidatedMarginOfSafety).toBeTruthy();
-    expect(report.tomNash).toBeTruthy();
-    expect(report.investmentCommittee).toBeTruthy();
-    expect(report.decision).toBeTruthy();
-    expect(report.stockVsOptions).toBeTruthy();
-    expect(report.keyMetrics.length).toBeGreaterThan(0);
-    expect(report.risks.length).toBeGreaterThan(0);
-    expect(typeof report.disclaimer).toBe("string");
-  });
-
-  it("adds a financialRatios field, correctly shaped, with the 3 uncomputable ratios always unavailable", async () => {
-    const report = (await buildValueResearchReport("AAPL"))!;
-    const fr = report.financialRatios;
-    expect(fr).toBeTruthy();
-    const all = [...fr.valuation, ...fr.profitability, ...fr.liquidityAndLeverage];
-    const quickRatio = all.find((m) => m.label === "Quick Ratio")!;
-    const roa = all.find((m) => m.label === "Return on Assets")!;
-    const assetTurnover = all.find((m) => m.label === "Asset Turnover")!;
-    expect(quickRatio.available).toBe(false);
-    expect(roa.available).toBe(false);
-    expect(assetTurnover.available).toBe(false);
-    const payoutRatio = all.find((m) => m.label === "Payout Ratio")!;
-    expect(payoutRatio).toBeTruthy();
-    expect(fr.trends.length).toBe(3);
-  });
-
-  it("financialRatios' own output for a fixed symbol is byte-identical to a standalone call", async () => {
+  it("Financial Ratios' own output for a fixed symbol is unchanged by this sprint's addition", async () => {
     const f = (await getFundamentals("AAPL"))!;
     const standalone = analyzeFinancialRatios(f);
     const report = (await buildValueResearchReport("AAPL"))!;
     expect(report.financialRatios).toEqual(standalone);
   });
 
-  it("the financial-ratios section renders after growth and before valuation, and section numbering shifted by exactly one, ids unchanged", async () => {
+  it("adds a competitiveAdvantage field, byte-identical to a standalone call", async () => {
+    const f = (await getFundamentals("AAPL"))!;
+    const iq = analyzeInvestmentQuality(f);
+    const fin = analyzeFinancialStrength(f);
+    const standalone = analyzeCompetitiveAdvantage(f, iq, fin);
+    const report = (await buildValueResearchReport("AAPL"))!;
+    expect(report.competitiveAdvantage).toEqual(standalone);
+  });
+
+  it("the competitive-advantage section renders after moat and before financial strength, and section numbering shifted by exactly one, ids unchanged", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
+    expect(byId.get("moat")).toBe("5. Economic Moat");
+    expect(byId.get("competitive-advantage")).toBe("6. Competitive Advantage");
+    expect(byId.get("financial")).toBe("7. Financial Strength");
+    expect(byId.get("profitability")).toBe("8. Profitability & Returns on Capital");
     expect(byId.get("growth")).toBe("9. Growth");
     expect(byId.get("financial-ratios")).toBe("10. Financial Ratios");
     expect(byId.get("valuation")).toBe("11. Valuation & Fair Value");
@@ -184,9 +167,9 @@ describe("buildValueResearchReport — Sprint 18 Financial Ratios integration re
     expect(byId.get("disclaimer")).toBe("23. Disclaimers & Data Source");
   });
 
-  it("financial ratios are computed independently of Graham/DCF/Buffett's own availability", async () => {
+  it("competitive advantage is computed independently of Graham/DCF/Buffett's own availability", async () => {
     const base = (await getFundamentals("TSLA"))!;
-    const unprofitable: Fundamentals = {
+    const unprofitable = {
       ...base,
       epsTtm: null,
       epsFwd: null,
@@ -200,9 +183,9 @@ describe("buildValueResearchReport — Sprint 18 Financial Ratios integration re
     const report = (await buildValueResearchReport(base.symbol, undefined, undefined, unprofitable))!;
     expect(report.grahamValuation.available).toBe(false);
     expect(report.dcfValuation.available).toBe(false);
-    // Financial Ratios has no single "available" gate — it still produces a
-    // per-ratio breakdown from whichever fields have usable data.
-    const all = [...report.financialRatios.valuation, ...report.financialRatios.profitability, ...report.financialRatios.liquidityAndLeverage];
-    expect(all.length).toBeGreaterThan(0);
+    // Competitive Advantage has no single "available" gate tied to valuation —
+    // it still produces a full dimension breakdown from qualitative/quality data.
+    expect(report.competitiveAdvantage.score).not.toBeNull();
+    expect(report.competitiveAdvantage.dimensions.length).toBe(11);
   });
 });

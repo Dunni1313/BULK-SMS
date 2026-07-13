@@ -7,6 +7,7 @@
  */
 import type { ValueBuffettValuation } from './valueBuffettValuation';
 import type { ValueBusinessQuality } from './valueBusinessQuality';
+import type { ValueCompetitiveAdvantageAnalysis } from './valueCompetitiveAdvantageAnalysis';
 import type { ValueConsolidatedMarginOfSafety } from './valueConsolidatedMarginOfSafety';
 import type { ValueDcfValuation } from './valueDcfValuation';
 import type { ValueDecision } from './valueDecision';
@@ -40,6 +41,7 @@ export interface ValueResearchReport {
   businessQuality: ValueBusinessQuality;
   investmentQuality: ValueInvestmentQuality;
   moat: ValueMoatAnalysis;
+  competitiveAdvantage: ValueCompetitiveAdvantageAnalysis;
   financialStrength: ValueFinancialStrength;
   financialRatios: ValueFinancialRatios;
   valuation: ValueValuation;

@@ -38,6 +38,7 @@ import { analyzeDcfValuation, type DcfValuation } from "./dcfValuation.js";
 import { analyzeBuffettValuation, type BuffettValuation } from "./buffettValuation.js";
 import { consolidateMarginOfSafety, type ConsolidatedMarginOfSafety } from "./marginOfSafety.js";
 import { analyzeInvestmentQuality, type InvestmentQualityAnalysis } from "./investmentQuality.js";
+import { analyzeCompetitiveAdvantage, type CompetitiveAdvantageAnalysis } from "./competitiveAdvantage.js";
 import { analyzeTomNash, type TomNashAnalysis } from "./tomNashEngine.js";
 import { synthesizeInvestmentCommittee, type InvestmentCommitteeAnalysis } from "./investmentCommittee.js";
 import { analyzeFinancialRatios, type FinancialRatiosAnalysis } from "./financialRatios.js";
@@ -105,6 +106,7 @@ export interface ValueResearchReport {
   businessQuality: BusinessQuality;
   investmentQuality: InvestmentQualityAnalysis;
   moat: MoatAnalysis;
+  competitiveAdvantage: CompetitiveAdvantageAnalysis;
   financialStrength: FinancialStrength;
   financialRatios: FinancialRatiosAnalysis;
   valuation: Valuation;
@@ -177,6 +179,7 @@ export async function buildValueResearchReport(
   const iq = analyzeInvestmentQuality(f);
   const moat = analyzeMoat(f);
   const fin = analyzeFinancialStrength(f);
+  const competitiveAdvantage = analyzeCompetitiveAdvantage(f, iq, fin);
   const financialRatios = analyzeFinancialRatios(f);
   const val = analyzeValuation(f);
   const graham = analyzeGrahamValuation(f);
@@ -260,24 +263,32 @@ export async function buildValueResearchReport(
       bullets: moat.sources.length ? moat.sources.map((s) => `${s.source}: ${s.strength}/100`) : ["No qualifying moat sources above threshold."],
     },
     {
+      id: "competitive-advantage",
+      title: "6. Competitive Advantage",
+      body: competitiveAdvantage.summary,
+      bullets: competitiveAdvantage.dimensions.map((d) =>
+        d.score != null ? `${d.dimension}: ${d.score}/100 — ${d.detail}` : `${d.dimension}: unavailable — ${d.reason}`,
+      ),
+    },
+    {
       id: "financial",
-      title: "6. Financial Strength",
+      title: "7. Financial Strength",
       body: fin.summary,
       bullets: fin.metrics.map((m) => `${m.label}: ${m.score}/100 — ${m.detail}`),
     },
     {
       id: "profitability",
-      title: "7. Profitability & Returns on Capital",
+      title: "8. Profitability & Returns on Capital",
       body: `Returns on capital are the clearest quality signal. ${f.symbol} earns ${pct(f.roic)} ROIC and ${pct(f.roe)} ROE on ${pct(f.grossMargin)} gross / ${pct(f.operatingMargin)} operating margins.`,
     },
     {
       id: "growth",
-      title: "8. Growth",
+      title: "9. Growth",
       body: `Five-year revenue CAGR ${pct(f.revenueGrowth5y)}, EPS CAGR ${pct(f.epsGrowth5y)}; forward revenue growth estimated at ${pct(f.revenueGrowthFwd)}.`,
     },
     {
       id: "financial-ratios",
-      title: "9. Financial Ratios",
+      title: "10. Financial Ratios",
       body: financialRatios.summary,
       bullets: [...financialRatios.valuation, ...financialRatios.profitability, ...financialRatios.liquidityAndLeverage].map(
         (m) => (m.available ? `${m.label}: ${m.displayValue}` : `${m.label}: unavailable — ${m.reason}`),
@@ -285,19 +296,19 @@ export async function buildValueResearchReport(
     },
     {
       id: "valuation",
-      title: "10. Valuation & Fair Value",
+      title: "11. Valuation & Fair Value",
       body: val.summary,
       bullets: val.available ? val.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [val.reason],
     },
     {
       id: "graham-valuation",
-      title: "11. Graham Valuation",
+      title: "12. Graham Valuation",
       body: graham.summary,
       bullets: graham.available ? graham.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [graham.reason],
     },
     {
       id: "dcf-valuation",
-      title: "12. DCF Valuation",
+      title: "13. DCF Valuation",
       body: dcf.summary,
       bullets: dcf.available
         ? [...dcf.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`), dcf.confidenceExplanation]
@@ -305,61 +316,61 @@ export async function buildValueResearchReport(
     },
     {
       id: "buffett-valuation",
-      title: "13. Buffett Valuation",
+      title: "14. Buffett Valuation",
       body: buffett.summary,
       bullets: buffett.available ? buffett.methods.map((m) => `${m.method}: ${money(m.fairValue)} — ${m.detail}`) : [buffett.reason],
     },
     {
       id: "margin-of-safety",
-      title: "14. Margin of Safety",
+      title: "15. Margin of Safety",
       body: consolidatedMoS.summary,
       bullets: consolidatedMoS.fairValues.map((mv) => `${mv.model}: ${money(mv.fairValue)}`),
     },
     {
       id: "tom-nash",
-      title: "15. Tom Nash Analysis",
+      title: "16. Tom Nash Analysis",
       body: tomNash.summary,
       bullets: tomNash.rationale,
     },
     {
       id: "investment-committee",
-      title: "16. Investment Committee",
+      title: "17. Investment Committee",
       body: investmentCommittee.summary,
       bullets: investmentCommittee.reasoning,
     },
     {
       id: "risks",
-      title: "17. Risks & Red Flags",
+      title: "18. Risks & Red Flags",
       body: `Key risks identified in the ${dataLabel} fundamentals:`,
       bullets: risks.map((r) => `[${r.severity.toUpperCase()}] ${r.text}`),
     },
     {
       id: "decision",
-      title: "18. Value-Investor Decision",
+      title: "19. Value-Investor Decision",
       body: decision.summary,
       bullets: decision.rationale,
     },
     {
       id: "stock-vs-options",
-      title: "19. Stock vs. Options",
+      title: "20. Stock vs. Options",
       body: svo.summary,
       bullets: [svo.stockCase, svo.optionsCase],
     },
     {
       id: "checklist",
-      title: "20. Buffett Checklist",
+      title: "21. Buffett Checklist",
       body: "A wonderful business at a fair price, bought with a margin of safety:",
       bullets: buffettChecklist(f, bq, moat, fin, val),
     },
     {
       id: "metrics",
-      title: "21. Key Metrics",
+      title: "22. Key Metrics",
       body: `Headline ${dataLabel} metrics (see full table in the UI).`,
       bullets: keyMetrics.map((m) => `${m.label}: ${m.value}`),
     },
     {
       id: "disclaimer",
-      title: "22. Disclaimers & Data Source",
+      title: "23. Disclaimers & Data Source",
       body: disclaimerFor(f.dataSource),
       bullets: [`Data source: ${f.dataSource}`, `As of: ${f.asOf}`],
     },
@@ -378,6 +389,7 @@ export async function buildValueResearchReport(
     sector: f.sector,
     industry: f.industry,
     businessQuality: bq,
+    competitiveAdvantage,
     investmentQuality: iq,
     moat,
     financialStrength: fin,

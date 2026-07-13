@@ -51,6 +51,44 @@ export interface ValueMoatAnalysis {
   summary: string;
 }
 
+export interface ValueCompetitiveDimensionScore {
+  dimension: string;
+  score: number | null;
+  weight: number;
+  detail: string;
+  reason?: string;
+}
+
+export type ValueCompetitiveAdvantageAnalysisClassification = typeof ValueCompetitiveAdvantageAnalysisClassification[keyof typeof ValueCompetitiveAdvantageAnalysisClassification];
+
+
+export const ValueCompetitiveAdvantageAnalysisClassification = {
+  Wide: 'Wide',
+  Medium: 'Medium',
+  Narrow: 'Narrow',
+  None: 'None',
+} as const;
+
+export type ValueCompetitiveAdvantageAnalysisConfidenceLevel = typeof ValueCompetitiveAdvantageAnalysisConfidenceLevel[keyof typeof ValueCompetitiveAdvantageAnalysisConfidenceLevel];
+
+
+export const ValueCompetitiveAdvantageAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface ValueCompetitiveAdvantageAnalysis {
+  score: number | null;
+  dimensions: ValueCompetitiveDimensionScore[];
+  classification: ValueCompetitiveAdvantageAnalysisClassification;
+  strengths: string[];
+  weaknesses: string[];
+  confidenceLevel: ValueCompetitiveAdvantageAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+}
+
 export type ValueFinancialStrengthRating = typeof ValueFinancialStrengthRating[keyof typeof ValueFinancialStrengthRating];
 
 
@@ -504,6 +542,7 @@ export interface ValueResearchReport {
   businessQuality: ValueBusinessQuality;
   investmentQuality: ValueInvestmentQuality;
   moat: ValueMoatAnalysis;
+  competitiveAdvantage: ValueCompetitiveAdvantageAnalysis;
   financialStrength: ValueFinancialStrength;
   financialRatios: ValueFinancialRatios;
   valuation: ValueValuation;

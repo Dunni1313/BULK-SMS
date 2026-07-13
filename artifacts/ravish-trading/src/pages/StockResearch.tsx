@@ -52,6 +52,7 @@ import {
   Users,
   Percent,
   GitCompare,
+  Castle,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -457,6 +458,61 @@ export function ReportView({
             <p className="text-[11px] text-muted-foreground">
               Estimated durability: ~{report.moat.durabilityYears} yrs
             </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card/60 border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Castle className="w-4 h-4 text-indigo-400" /> Competitive Advantage
+              <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                {report.competitiveAdvantage.classification}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {report.competitiveAdvantage.score != null && <ScoreBar score={report.competitiveAdvantage.score} />}
+            <p className="text-xs text-muted-foreground">{report.competitiveAdvantage.summary}</p>
+            <div className="space-y-3">
+              {report.competitiveAdvantage.dimensions.map((d) => (
+                <div key={d.dimension}>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-foreground/90 font-medium">{d.dimension}</span>
+                    <span className="font-mono text-muted-foreground">
+                      {d.score != null ? Math.round(d.score) : "N/A"}
+                    </span>
+                  </div>
+                  {d.score != null ? (
+                    <>
+                      <ScoreBar score={d.score} />
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{d.detail}</p>
+                    </>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground/70 italic leading-snug">{d.reason}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            {report.competitiveAdvantage.strengths.length > 0 && (
+              <div className="pt-1">
+                <p className="text-[11px] font-medium text-emerald-400 mb-1">Strengths</p>
+                <ul className="text-[11px] text-muted-foreground space-y-0.5 list-disc list-inside">
+                  {report.competitiveAdvantage.strengths.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {report.competitiveAdvantage.weaknesses.length > 0 && (
+              <div className="pt-1">
+                <p className="text-[11px] font-medium text-rose-400 mb-1">Weaknesses</p>
+                <ul className="text-[11px] text-muted-foreground space-y-0.5 list-disc list-inside">
+                  {report.competitiveAdvantage.weaknesses.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
 

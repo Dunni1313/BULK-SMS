@@ -3,6 +3,7 @@ import {
   ValueResearchReportKind,
   ValueBusinessQualityRating,
   ValueMoatAnalysisRating,
+  ValueCompetitiveAdvantageAnalysisClassification,
   ValueFinancialStrengthRating,
   ValueValuationRating,
   ValueValuationMarginOfSafetyLabel,
@@ -57,6 +58,18 @@ export function makeValueReport(
         { source: "Switching costs", strength: 80 },
         { source: "Brand", strength: 88 },
       ],
+    },
+    competitiveAdvantage: {
+      score: 80,
+      classification: ValueCompetitiveAdvantageAnalysisClassification.Wide,
+      dimensions: [
+        { dimension: "Brand Strength", score: 88, weight: 1 / 11, detail: "Brand strength scored 88/100." },
+      ],
+      strengths: ["Brand Strength: 88/100 — Brand strength scored 88/100."],
+      weaknesses: [],
+      confidenceLevel: "Moderate",
+      confidenceExplanation: "10 of 11 dimensions have usable data for AAPL; 1 (Customer Concentration Risk) await future data sources.",
+      summary: "AAPL scores 80/100 on competitive advantage (Wide) across 10 scored dimensions (Moderate confidence).",
     },
     financialStrength: {
       rating: ValueFinancialStrengthRating.Strong,

@@ -22,6 +22,7 @@ const EXISTING_SECTION_IDS = [
   "quality",
   "investment-quality",
   "moat",
+  "competitive-advantage",
   "financial",
   "profitability",
   "growth",
@@ -149,14 +150,14 @@ describe("buildValueResearchReport — Sprint 17 Investment Committee integratio
   it("the investment-committee section renders after tom-nash, and section numbering shifted by exactly one, ids unchanged", async () => {
     const report = (await buildValueResearchReport("AAPL"))!;
     const byId = new Map(report.sections.map((s) => [s.id, s.title]));
-    expect(byId.get("tom-nash")).toBe("15. Tom Nash Analysis");
-    expect(byId.get("investment-committee")).toBe("16. Investment Committee");
-    expect(byId.get("risks")).toBe("17. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("18. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("19. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("20. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("21. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("22. Disclaimers & Data Source");
+    expect(byId.get("tom-nash")).toBe("16. Tom Nash Analysis");
+    expect(byId.get("investment-committee")).toBe("17. Investment Committee");
+    expect(byId.get("risks")).toBe("18. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("19. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("20. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("21. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("22. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("23. Disclaimers & Data Source");
   });
 
   it("excludes Graham/Buffett from the Committee's votes when their valuation is unavailable, never fabricating a vote, while Tom Nash still votes", async () => {

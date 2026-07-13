@@ -112,6 +112,18 @@ export interface MoatAnalysis {
   summary: string;
 }
 
+// Wide/Medium/Narrow/None classification on the same 0-100 scale analyzeMoat()
+// has always used. Extracted (Phase 2, Sprint 21) so the new Competitive
+// Advantage Engine can classify its own (differently-computed) overall score
+// with the same vocabulary/thresholds instead of duplicating them — behavior-
+// preserving, confirmed by analyzeMoat()'s own existing tests.
+export function classifyMoatRating(score: number): MoatRating {
+  if (score >= 70) return "Wide";
+  if (score >= 58) return "Medium";
+  if (score >= 48) return "Narrow";
+  return "None";
+}
+
 export function analyzeMoat(f: Fundamentals): MoatAnalysis {
   const q = f.qualitative;
   const candidates: MoatSource[] = [
@@ -135,10 +147,7 @@ export function analyzeMoat(f: Fundamentals): MoatAnalysis {
     score = Math.min(score, 40);
   }
 
-  let rating: MoatRating = "None";
-  if (score >= 70) rating = "Wide";
-  else if (score >= 58) rating = "Medium";
-  else if (score >= 48) rating = "Narrow";
+  const rating: MoatRating = classifyMoatRating(score);
 
   const durabilityYears =
     rating === "Wide" ? 15 : rating === "Medium" ? 10 : rating === "Narrow" ? 6 : 2;

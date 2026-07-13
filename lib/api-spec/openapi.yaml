@@ -1465,6 +1465,39 @@ components:
           items: { $ref: "#/components/schemas/ValueMoatSource" }
         summary: { type: string }
 
+    ValueCompetitiveDimensionScore:
+      type: object
+      required: [dimension, score, weight, detail]
+      properties:
+        dimension: { type: string }
+        score: { type: number, nullable: true }
+        weight: { type: number }
+        detail: { type: string }
+        reason: { type: string }
+
+    ValueCompetitiveAdvantageAnalysis:
+      type: object
+      required: [score, dimensions, classification, strengths, weaknesses, confidenceLevel, confidenceExplanation, summary]
+      properties:
+        score: { type: number, nullable: true }
+        dimensions:
+          type: array
+          items: { $ref: "#/components/schemas/ValueCompetitiveDimensionScore" }
+        classification:
+          type: string
+          enum: [Wide, Medium, Narrow, None]
+        strengths:
+          type: array
+          items: { type: string }
+        weaknesses:
+          type: array
+          items: { type: string }
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation: { type: string }
+        summary: { type: string }
+
     ValueFinancialStrength:
       type: object
       required: [rating, score, metrics, flags, summary]
@@ -1806,7 +1839,7 @@ components:
     ValueResearchReport:
       type: object
       required:
-        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, sector, industry, businessQuality, investmentQuality, moat, financialStrength, financialRatios, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, investmentCommittee, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
+        [symbol, name, kind, asOf, fetchedAt, dataSource, simulated, price, sector, industry, businessQuality, investmentQuality, moat, competitiveAdvantage, financialStrength, financialRatios, valuation, grahamValuation, dcfValuation, buffettValuation, consolidatedMarginOfSafety, tomNash, investmentCommittee, decision, stockVsOptions, keyMetrics, risks, sections, disclaimer]
       properties:
         symbol: { type: string }
         name: { type: string }
@@ -1824,6 +1857,7 @@ components:
         businessQuality: { $ref: "#/components/schemas/ValueBusinessQuality" }
         investmentQuality: { $ref: "#/components/schemas/ValueInvestmentQuality" }
         moat: { $ref: "#/components/schemas/ValueMoatAnalysis" }
+        competitiveAdvantage: { $ref: "#/components/schemas/ValueCompetitiveAdvantageAnalysis" }
         financialStrength: { $ref: "#/components/schemas/ValueFinancialStrength" }
         financialRatios: { $ref: "#/components/schemas/ValueFinancialRatios" }
         valuation: { $ref: "#/components/schemas/ValueValuation" }

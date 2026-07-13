@@ -26,6 +26,7 @@ const EXISTING_SECTION_IDS = [
   "quality",
   "investment-quality",
   "moat",
+  "competitive-advantage",
   "financial",
   "profitability",
   "growth",

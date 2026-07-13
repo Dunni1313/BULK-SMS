@@ -20,6 +20,7 @@ const EXISTING_SECTION_IDS = [
   "business",
   "quality",
   "moat",
+  "competitive-advantage",
   "financial",
   "profitability",
   "growth",
@@ -134,7 +135,7 @@ describe("buildValueResearchReport — Sprint 14 Buffett + consolidated MoS inte
     const buffettSection = report.sections.find((s) => s.id === "buffett-valuation")!;
     // Section numbering has shifted repeatedly since Sprint 14 (see the
     // numbering test below for the full chain); ids never change.
-    expect(buffettSection.title).toBe("13. Buffett Valuation");
+    expect(buffettSection.title).toBe("14. Buffett Valuation");
     expect(buffettSection.bullets!.join(" ")).toMatch(/Owner Earnings Perpetuity/);
 
     const mosSection = report.sections.find((s) => s.id === "margin-of-safety")!;
@@ -151,18 +152,18 @@ describe("buildValueResearchReport — Sprint 14 Buffett + consolidated MoS inte
     // sprints inserted new sections (Investment Quality, Tom Nash, Investment
     // Committee, Financial Ratios) — ids are unchanged, only display numbers
     // moved.
-    expect(byId.get("financial-ratios")).toBe("9. Financial Ratios");
-    expect(byId.get("dcf-valuation")).toBe("12. DCF Valuation");
-    expect(byId.get("buffett-valuation")).toBe("13. Buffett Valuation");
-    expect(byId.get("margin-of-safety")).toBe("14. Margin of Safety");
-    expect(byId.get("tom-nash")).toBe("15. Tom Nash Analysis");
-    expect(byId.get("investment-committee")).toBe("16. Investment Committee");
-    expect(byId.get("risks")).toBe("17. Risks & Red Flags");
-    expect(byId.get("decision")).toBe("18. Value-Investor Decision");
-    expect(byId.get("stock-vs-options")).toBe("19. Stock vs. Options");
-    expect(byId.get("checklist")).toBe("20. Buffett Checklist");
-    expect(byId.get("metrics")).toBe("21. Key Metrics");
-    expect(byId.get("disclaimer")).toBe("22. Disclaimers & Data Source");
+    expect(byId.get("financial-ratios")).toBe("10. Financial Ratios");
+    expect(byId.get("dcf-valuation")).toBe("13. DCF Valuation");
+    expect(byId.get("buffett-valuation")).toBe("14. Buffett Valuation");
+    expect(byId.get("margin-of-safety")).toBe("15. Margin of Safety");
+    expect(byId.get("tom-nash")).toBe("16. Tom Nash Analysis");
+    expect(byId.get("investment-committee")).toBe("17. Investment Committee");
+    expect(byId.get("risks")).toBe("18. Risks & Red Flags");
+    expect(byId.get("decision")).toBe("19. Value-Investor Decision");
+    expect(byId.get("stock-vs-options")).toBe("20. Stock vs. Options");
+    expect(byId.get("checklist")).toBe("21. Buffett Checklist");
+    expect(byId.get("metrics")).toBe("22. Key Metrics");
+    expect(byId.get("disclaimer")).toBe("23. Disclaimers & Data Source");
   });
 
   it("honestly reports Buffett valuation UNAVAILABLE (no fabrication) when FCF is not positive, independent of Graham/DCF/the blended model's own availability", async () => {
