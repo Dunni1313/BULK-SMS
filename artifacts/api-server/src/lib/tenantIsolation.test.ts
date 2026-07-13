@@ -35,8 +35,10 @@ import {
   tradesTable,
   valueQuizResultsTable,
   valueWatchlistTable,
+  investingPortfoliosTable,
+  investingHoldingsTable,
 } from "@workspace/db";
-import type { PgTable } from "drizzle-orm/pg-core";
+import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
 
 let userA: string;
@@ -74,6 +76,11 @@ afterAll(async () => {
     tradesTable,
     valueQuizResultsTable,
     valueWatchlistTable,
+    // Phase 2, Sprint 28 — investing_holdings first (its own FK to
+    // investing_portfolios is ON DELETE CASCADE, so this is defensive/
+    // consistent with the rest of this loop, not strictly required).
+    investingHoldingsTable,
+    investingPortfoliosTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -82,37 +89,9 @@ afterAll(async () => {
   await db.delete(usersTable).where(eq(usersTable.id, userB));
 });
 
-// The shared helper the plan asks for: seed one row per user, then prove a
-// query scoped by userId (the exact pattern every Sprint 7 route now uses)
-// returns ONLY that user's row — never the other user's. Drizzle's generic
-// column-inference types don't collapse cleanly over an arbitrary PgTable
-// union, so this helper deliberately drops to `any` at its boundary — the
-// runtime behavior against the real database is what's actually under test.
-/* eslint-disable @typescript-eslint/no-explicit-any */
-async function assertTenantIsolation(
-  table: PgTable,
-  seed: (userId: string) => Record<string, unknown>,
-): Promise<void> {
-  const t = table as any;
-  const [rowA] = await db.insert(t).values(seed(userA)).returning({ id: t.id });
-  const [rowB] = await db.insert(t).values(seed(userB)).returning({ id: t.id });
-
-  const seenByA = await db.select().from(t).where(eq(t.userId, userA));
-  const seenByB = await db.select().from(t).where(eq(t.userId, userB));
-
-  const idsA = seenByA.map((r: { id: unknown }) => r.id);
-  const idsB = seenByB.map((r: { id: unknown }) => r.id);
-
-  expect(idsA).toContain(rowA.id);
-  expect(idsA).not.toContain(rowB.id);
-  expect(idsB).toContain(rowB.id);
-  expect(idsB).not.toContain(rowA.id);
-}
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
 describe("tenant isolation — every user-scoped table (Sprint 7, approved plan §8.3)", () => {
   it("ai_lessons: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(aiLessonsTable, (userId) => ({
+    await assertTenantIsolation(aiLessonsTable, userA, userB, (userId) => ({
       userId,
       topic: "delta",
       title: "Delta lesson",
@@ -121,7 +100,7 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("ai_messages: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(aiMessagesTable, (userId) => ({
+    await assertTenantIsolation(aiMessagesTable, userA, userB, (userId) => ({
       userId,
       role: "user",
       message: "hello",
@@ -129,7 +108,7 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("backtest_results: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(backtestResultsTable, (userId) => ({
+    await assertTenantIsolation(backtestResultsTable, userA, userB, (userId) => ({
       userId,
       symbol: "SPY",
       strategy: "iron_condor",
@@ -138,7 +117,7 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("daily_reports: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(dailyReportsTable, (userId) => ({
+    await assertTenantIsolation(dailyReportsTable, userA, userB, (userId) => ({
       userId,
       reportDate: "2026-07-12",
       payload: {},
@@ -146,11 +125,11 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("greeks_quiz_results: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(greeksQuizResultsTable, (userId) => ({ userId }));
+    await assertTenantIsolation(greeksQuizResultsTable, userA, userB, (userId) => ({ userId }));
   });
 
   it("journal_entries: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(journalEntriesTable, (userId) => ({
+    await assertTenantIsolation(journalEntriesTable, userA, userB, (userId) => ({
       userId,
       title: "Trade review",
       content: "content",
@@ -158,7 +137,7 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("scanner_results: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(scannerResultsTable, (userId) => ({
+    await assertTenantIsolation(scannerResultsTable, userA, userB, (userId) => ({
       userId,
       symbol: "SPY",
       strategy: "iron_condor",
@@ -166,7 +145,7 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("stock_analysis_history: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(stockAnalysisHistoryTable, (userId) => ({
+    await assertTenantIsolation(stockAnalysisHistoryTable, userA, userB, (userId) => ({
       userId,
       symbol: "AAPL",
       analysisDate: "2026-07-12",
@@ -175,7 +154,7 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("trade_explanations: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(tradeExplanationsTable, (userId) => ({
+    await assertTenantIsolation(tradeExplanationsTable, userA, userB, (userId) => ({
       userId,
       symbol: "SPY",
       strategy: "iron_condor",
@@ -184,7 +163,7 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("trades: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(tradesTable, (userId) => ({
+    await assertTenantIsolation(tradesTable, userA, userB, (userId) => ({
       userId,
       symbol: "SPY",
       strategy: "iron_condor",
@@ -192,18 +171,43 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
   });
 
   it("value_quiz_results: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(valueQuizResultsTable, (userId) => ({ userId }));
+    await assertTenantIsolation(valueQuizResultsTable, userA, userB, (userId) => ({ userId }));
   });
 
   it("value_watchlist: a userId-scoped query never crosses accounts", async () => {
-    await assertTenantIsolation(valueWatchlistTable, (userId) => ({
+    await assertTenantIsolation(valueWatchlistTable, userA, userB, (userId) => ({
       userId,
       symbol: "AAPL",
     }));
   });
 
   it("settings: two users' rows (including automation kill switches) are fully independent", async () => {
-    await assertTenantIsolation(settingsTable, (userId) => ({ userId }));
+    await assertTenantIsolation(settingsTable, userA, userB, (userId) => ({ userId }));
+  });
+
+  // Phase 2, Sprint 28 — Portfolio Construction's two new tables, reusing
+  // this exact helper per the roadmap's own Sprint 28 entry.
+  it("investing_portfolios: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(investingPortfoliosTable, userA, userB, (userId) => ({
+      userId,
+      name: "Test Portfolio",
+    }));
+  });
+
+  it("investing_holdings: a userId-scoped query never crosses accounts", async () => {
+    const [portfolioA] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userA, name: "Tenant A Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    const [portfolioB] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userB, name: "Tenant B Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    await assertTenantIsolation(investingHoldingsTable, userA, userB, (userId) => ({
+      userId,
+      portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
+      symbol: "AAPL",
+    }));
   });
 });
 

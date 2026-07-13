@@ -3266,3 +3266,169 @@ export const GetEarningsIntelligenceResponse = zod.object({
 })
 
 
+/**
+ * @summary List the caller's target-allocation portfolios
+ */
+export const GetPortfoliosResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "holdingsCount": zod.number(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetPortfoliosResponse = zod.array(GetPortfoliosResponseItem)
+
+
+/**
+ * @summary Create a new target-allocation portfolio
+ */
+export const CreatePortfolioBody = zod.object({
+  "name": zod.string(),
+  "description": zod.string().optional()
+})
+
+export const CreatePortfolioResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "holdingsCount": zod.number(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Get one portfolio's holdings and computed allocation (resolves a live/simulated price per holding)
+ */
+export const GetPortfolioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPortfolioResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "allocation": zod.object({
+  "holdings": zod.array(zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "targetWeightPct": zod.number(),
+  "shares": zod.number().nullable(),
+  "notes": zod.string(),
+  "currentPrice": zod.number().nullable(),
+  "marketValue": zod.number().nullable(),
+  "actualWeightPct": zod.number().nullable(),
+  "driftPct": zod.number().nullable(),
+  "rebalanceAction": zod.enum(['buy', 'sell', 'hold', 'unknown'])
+})),
+  "totalMarketValue": zod.number().nullable(),
+  "totalTargetWeightPct": zod.number(),
+  "targetWeightSumWarning": zod.string().nullable(),
+  "unresolvedSymbols": zod.array(zod.string()),
+  "summary": zod.string()
+})
+})
+
+
+/**
+ * @summary Rename or update a portfolio's description
+ */
+export const UpdatePortfolioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdatePortfolioBody = zod.object({
+  "name": zod.string().optional(),
+  "description": zod.string().optional()
+})
+
+export const UpdatePortfolioResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "holdingsCount": zod.number(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a portfolio (cascades its own holdings)
+ */
+export const DeletePortfolioParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeletePortfolioResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Add a holding to a portfolio
+ */
+export const AddHoldingParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AddHoldingBody = zod.object({
+  "symbol": zod.string(),
+  "targetWeightPct": zod.number().optional(),
+  "shares": zod.number().nullish(),
+  "notes": zod.string().optional()
+})
+
+export const AddHoldingResponse = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "symbol": zod.string(),
+  "targetWeightPct": zod.number(),
+  "shares": zod.number().nullable(),
+  "notes": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a holding's target weight, shares, or notes
+ */
+export const UpdateHoldingParams = zod.object({
+  "id": zod.coerce.number(),
+  "holdingId": zod.coerce.number()
+})
+
+export const UpdateHoldingBody = zod.object({
+  "targetWeightPct": zod.number().optional(),
+  "shares": zod.number().nullish(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateHoldingResponse = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "symbol": zod.string(),
+  "targetWeightPct": zod.number(),
+  "shares": zod.number().nullable(),
+  "notes": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Remove a holding from a portfolio
+ */
+export const DeleteHoldingParams = zod.object({
+  "id": zod.coerce.number(),
+  "holdingId": zod.coerce.number()
+})
+
+export const DeleteHoldingResponse = zod.object({
+  "success": zod.boolean()
+})
+
+

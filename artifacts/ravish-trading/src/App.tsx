@@ -24,6 +24,7 @@ import Events from "./pages/Events";
 import Adjustments from "./pages/Adjustments";
 import StockResearch from "./pages/StockResearch";
 import StockScanner from "./pages/StockScanner";
+import PortfolioConstruction from "./pages/PortfolioConstruction";
 import ValueInvestingSchool from "./pages/ValueInvestingSchool";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -65,6 +66,7 @@ function Router() {
         <Route path="/events" component={Events} />
         <Route path="/adjustments" component={Adjustments} />
         <Route path="/stock-analyst/scanner" component={StockScanner} />
+        <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />
         <Route path="/stock-analyst" component={StockResearch} />
         <Route path="/settings" component={Settings} />
         <Route path="/learn/delta" component={DeltaMasterclass} />

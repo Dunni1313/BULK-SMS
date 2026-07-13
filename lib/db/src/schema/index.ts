@@ -18,3 +18,5 @@ export * from "./valueWatchlist";
 export * from "./valueQuizResults";
 export * from "./auditLog";
 export * from "./investingFilingAnalysis";
+export * from "./investingPortfolios";
+export * from "./investingHoldings";

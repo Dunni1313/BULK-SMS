@@ -1043,6 +1043,100 @@ export interface ValueWatchlistUpdate {
   currentDecision?: string;
 }
 
+export interface ConstructionPortfolioSummary {
+  id: number;
+  name: string;
+  description: string;
+  holdingsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConstructionPortfolioCreate {
+  name: string;
+  description?: string;
+}
+
+export interface ConstructionPortfolioUpdate {
+  name?: string;
+  description?: string;
+}
+
+export interface ConstructionHolding {
+  id: number;
+  portfolioId: number;
+  symbol: string;
+  targetWeightPct: number;
+  /** @nullable */
+  shares: number | null;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConstructionHoldingCreate {
+  symbol: string;
+  targetWeightPct?: number;
+  /** @nullable */
+  shares?: number | null;
+  notes?: string;
+}
+
+export interface ConstructionHoldingUpdate {
+  targetWeightPct?: number;
+  /** @nullable */
+  shares?: number | null;
+  notes?: string;
+}
+
+export type ConstructionPortfolioHoldingAllocationRebalanceAction = typeof ConstructionPortfolioHoldingAllocationRebalanceAction[keyof typeof ConstructionPortfolioHoldingAllocationRebalanceAction];
+
+
+export const ConstructionPortfolioHoldingAllocationRebalanceAction = {
+  buy: 'buy',
+  sell: 'sell',
+  hold: 'hold',
+  unknown: 'unknown',
+} as const;
+
+export interface ConstructionPortfolioHoldingAllocation {
+  id: number;
+  symbol: string;
+  targetWeightPct: number;
+  /** @nullable */
+  shares: number | null;
+  notes: string;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  actualWeightPct: number | null;
+  /** @nullable */
+  driftPct: number | null;
+  rebalanceAction: ConstructionPortfolioHoldingAllocationRebalanceAction;
+}
+
+export interface ConstructionPortfolioAllocationResult {
+  holdings: ConstructionPortfolioHoldingAllocation[];
+  /** @nullable */
+  totalMarketValue: number | null;
+  totalTargetWeightPct: number;
+  /** @nullable */
+  targetWeightSumWarning: string | null;
+  unresolvedSymbols: string[];
+  summary: string;
+}
+
+export interface ConstructionPortfolioDetail {
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  allocation: ConstructionPortfolioAllocationResult;
+}
+
 export type ValueLessonLevel = typeof ValueLessonLevel[keyof typeof ValueLessonLevel];
 
 

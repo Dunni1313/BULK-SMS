@@ -32,6 +32,8 @@ tags:
     description: Performance analytics
   - name: value
     description: Buffett-style value-investing research & education (SIMULATED, advisory only)
+  - name: portfolio-construction
+    description: Target-allocation portfolio construction for value investing (advisory/education only, never places an order — distinct from the options-income "portfolio" tag)
 
 paths:
   /healthz:
@@ -1491,6 +1493,182 @@ paths:
         "404":
           description: Unknown symbol
 
+  /portfolio-construction/portfolios:
+    get:
+      operationId: getPortfolios
+      tags: [portfolio-construction]
+      summary: List the caller's target-allocation portfolios
+      responses:
+        "200":
+          description: Portfolios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConstructionPortfolioSummary"
+    post:
+      operationId: createPortfolio
+      tags: [portfolio-construction]
+      summary: Create a new target-allocation portfolio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConstructionPortfolioCreate"
+      responses:
+        "200":
+          description: Created portfolio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionPortfolioSummary"
+
+  /portfolio-construction/portfolios/{id}:
+    get:
+      operationId: getPortfolio
+      tags: [portfolio-construction]
+      summary: Get one portfolio's holdings and computed allocation (resolves a live/simulated price per holding)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Portfolio detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionPortfolioDetail"
+        "404":
+          description: Not found
+    patch:
+      operationId: updatePortfolio
+      tags: [portfolio-construction]
+      summary: Rename or update a portfolio's description
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConstructionPortfolioUpdate"
+      responses:
+        "200":
+          description: Updated portfolio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionPortfolioSummary"
+        "404":
+          description: Not found
+    delete:
+      operationId: deletePortfolio
+      tags: [portfolio-construction]
+      summary: Delete a portfolio (cascades its own holdings)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /portfolio-construction/portfolios/{id}/holdings:
+    post:
+      operationId: addHolding
+      tags: [portfolio-construction]
+      summary: Add a holding to a portfolio
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConstructionHoldingCreate"
+      responses:
+        "200":
+          description: Created holding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionHolding"
+        "404":
+          description: Portfolio not found
+
+  /portfolio-construction/portfolios/{id}/holdings/{holdingId}:
+    patch:
+      operationId: updateHolding
+      tags: [portfolio-construction]
+      summary: Update a holding's target weight, shares, or notes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: holdingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConstructionHoldingUpdate"
+      responses:
+        "200":
+          description: Updated holding
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionHolding"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteHolding
+      tags: [portfolio-construction]
+      summary: Remove a holding from a portfolio
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: holdingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -2367,6 +2545,105 @@ components:
         marginOfSafetyTarget: { type: number }
         reason: { type: string }
         currentDecision: { type: string }
+
+    # ─── Portfolio Construction (Phase 2, Sprint 28; advisory/education only,
+    # never places an order) ───────────────────────────────────────────────
+    ConstructionPortfolioSummary:
+      type: object
+      required: [id, name, description, holdingsCount, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        holdingsCount: { type: integer }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ConstructionPortfolioCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        description: { type: string }
+
+    ConstructionPortfolioUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+
+    ConstructionHolding:
+      type: object
+      required: [id, portfolioId, symbol, targetWeightPct, shares, notes, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        portfolioId: { type: integer }
+        symbol: { type: string }
+        targetWeightPct: { type: number }
+        shares: { type: ["number", "null"] }
+        notes: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ConstructionHoldingCreate:
+      type: object
+      required: [symbol]
+      properties:
+        symbol: { type: string }
+        targetWeightPct: { type: number }
+        shares: { type: ["number", "null"] }
+        notes: { type: string }
+
+    ConstructionHoldingUpdate:
+      type: object
+      properties:
+        targetWeightPct: { type: number }
+        shares: { type: ["number", "null"] }
+        notes: { type: string }
+
+    ConstructionPortfolioHoldingAllocation:
+      type: object
+      required: [id, symbol, targetWeightPct, shares, notes, currentPrice, marketValue, actualWeightPct, driftPct, rebalanceAction]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        targetWeightPct: { type: number }
+        shares: { type: ["number", "null"] }
+        notes: { type: string }
+        currentPrice: { type: ["number", "null"] }
+        marketValue: { type: ["number", "null"] }
+        actualWeightPct: { type: ["number", "null"] }
+        driftPct: { type: ["number", "null"] }
+        rebalanceAction:
+          type: string
+          enum: [buy, sell, hold, unknown]
+
+    ConstructionPortfolioAllocationResult:
+      type: object
+      required: [holdings, totalMarketValue, totalTargetWeightPct, targetWeightSumWarning, unresolvedSymbols, summary]
+      properties:
+        holdings:
+          type: array
+          items: { $ref: "#/components/schemas/ConstructionPortfolioHoldingAllocation" }
+        totalMarketValue: { type: ["number", "null"] }
+        totalTargetWeightPct: { type: number }
+        targetWeightSumWarning: { type: ["string", "null"] }
+        unresolvedSymbols:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+
+    ConstructionPortfolioDetail:
+      type: object
+      required: [id, name, description, createdAt, updatedAt, allocation]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+        allocation:
+          $ref: "#/components/schemas/ConstructionPortfolioAllocationResult"
 
     ValueLesson:
       type: object

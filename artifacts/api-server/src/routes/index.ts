@@ -16,6 +16,7 @@ import performanceRouter from "./performance";
 import marketDataHealthRouter from "./marketDataHealth";
 import eventsRouter from "./events";
 import stockAnalystRouter from "./stockAnalyst";
+import portfolioConstructionRouter from "./portfolioConstruction";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(performanceRouter);
 router.use(marketDataHealthRouter);
 router.use(eventsRouter);
 router.use("/stock-analyst", stockAnalystRouter);
+router.use(portfolioConstructionRouter);
 
 export default router;
