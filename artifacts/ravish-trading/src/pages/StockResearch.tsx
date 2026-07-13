@@ -1604,7 +1604,9 @@ export default function StockResearch() {
                 Peers
               </TabsTrigger>
               <TabsTrigger value="filings" className="text-xs" disabled={!report}>
-                Filings
+                {/* Phase 2, Sprint 31 — label clarifies Management Quality
+                    (Sprint 23) lives inside this tab too, not just the 10-K. */}
+                Filings & Mgmt
               </TabsTrigger>
               <TabsTrigger value="earnings" className="text-xs" disabled={!report}>
                 Earnings
