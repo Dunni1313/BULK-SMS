@@ -19,6 +19,8 @@ import {
   GetValueReportResponse,
   GenerateValueResearchBody,
   GenerateValueResearchResponse,
+  AskValueResearchBody,
+  AskValueResearchResponse,
   GetValueHistoryResponse,
   GetValueWatchlistResponse,
   AddValueWatchlistBody,
@@ -52,7 +54,13 @@ import {
   gradeValueQuiz,
 } from "../lib/valueSchool.js";
 import { CoachError } from "../lib/coach.js";
-import { narrateValueResearch, narrateValueResearchStream, llmAvailable } from "../lib/coachLLM.js";
+import {
+  narrateValueResearch,
+  narrateValueResearchStream,
+  narrateValueFreeform,
+  narrateValueFreeformStream,
+  llmAvailable,
+} from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
 import { getScopedUserId } from "../lib/tenantScope.js";
 
@@ -96,6 +104,80 @@ function narrationContext(report: ValueResearchReport) {
     decision: { verdict: report.decision.verdict, conviction: report.decision.conviction },
     stockVsOptions: report.stockVsOptions.verdict,
   };
+}
+
+// Compact summary of a discriminated-union valuation model (Graham/DCF/
+// Buffett all share this `{available: true, fairValue, marginOfSafety,
+// rating} | {available: false, reason}` shape) — never fabricates a value
+// for a model that reports itself unavailable.
+function valuationModelContext(v: { available: boolean; fairValue?: number; marginOfSafety?: number; rating?: string; reason?: string }) {
+  return v.available
+    ? { available: true, fairValue: v.fairValue, marginOfSafety: v.marginOfSafety, rating: v.rating }
+    : { available: false, reason: v.reason };
+}
+
+// Phase 2, Sprint 30 — AI Investment Analyst. Broader grounding context for
+// the free-form Q&A narrator: everything narrationContext() already passes,
+// PLUS Investment Quality, Competitive Advantage, all 3 named valuation
+// models + the consolidated margin of safety, the full Tom Nash pillar
+// analysis, and the Investment Committee's votes/verdict — all already
+// computed on `report` (Sprints 12-17), zero new provider calls. Deliberately
+// excludes Industry Comparison/Earnings/Filings/Management Quality, since
+// those are separate on-demand reports not present on the eager report.
+function buildFreeformContext(report: ValueResearchReport) {
+  return {
+    ...narrationContext(report),
+    investmentQuality: {
+      score: report.investmentQuality.score,
+      confidenceLevel: report.investmentQuality.confidenceLevel,
+      strengths: report.investmentQuality.strengths,
+      weaknesses: report.investmentQuality.weaknesses,
+    },
+    competitiveAdvantage: {
+      score: report.competitiveAdvantage.score,
+      classification: report.competitiveAdvantage.classification,
+    },
+    grahamValuation: valuationModelContext(report.grahamValuation),
+    dcfValuation: valuationModelContext(report.dcfValuation),
+    buffettValuation: valuationModelContext(report.buffettValuation),
+    consolidatedMarginOfSafety: {
+      modelsAvailable: report.consolidatedMarginOfSafety.modelsAvailable,
+      averageFairValue: report.consolidatedMarginOfSafety.averageFairValue,
+      averageMarginOfSafety: report.consolidatedMarginOfSafety.averageMarginOfSafety,
+      agreement: report.consolidatedMarginOfSafety.agreement,
+    },
+    tomNash: {
+      convictionScore: report.tomNash.convictionScore,
+      verdict: report.tomNash.verdict,
+      dataCompleteness: report.tomNash.dataCompleteness,
+      pillars: {
+        businessQuality: report.tomNash.businessQuality.score,
+        growth: report.tomNash.growth.score,
+        capitalAllocation: report.tomNash.capitalAllocation.score,
+        financialStrength: report.tomNash.financialStrength.score,
+        valuation: report.tomNash.valuation.score,
+      },
+      rationale: report.tomNash.rationale,
+    },
+    investmentCommittee: {
+      consolidatedVerdict: report.investmentCommittee.consolidatedVerdict,
+      confidenceScore: report.investmentCommittee.confidenceScore,
+      agreement: report.investmentCommittee.agreement,
+      votes: report.investmentCommittee.votes,
+      summary: report.investmentCommittee.summary,
+    },
+  };
+}
+
+// Honest deterministic fallback for the free-form Q&A when the LLM is
+// unavailable — never attempts to literally answer the open-ended question
+// (which would require the LLM), only states that plainly alongside the
+// deterministic facts the report DOES contain.
+function freeformFallback(report: ValueResearchReport, question: string): string {
+  return (
+    `AI narration is not available right now, so I can't directly answer "${question}". ` +
+    `Here is what the deterministic report shows: ${narrationFallback(report)}`
+  );
 }
 
 function narrationFallback(report: ValueResearchReport): string {
@@ -265,6 +347,78 @@ router.post("/value-research/stream", async (req, res): Promise<void> => {
   } catch (err) {
     req.log.error({ err }, "value research stream failed");
     sse.send("error", { error: "Failed to generate research" });
+  } finally {
+    sse.close();
+  }
+});
+
+// ─── AI Investment Analyst — free-form Q&A (Phase 2, Sprint 30) ────────────────
+// Grounded in the full assembled report (see buildFreeformContext()), including
+// Tom Nash's pillar analysis and the Investment Committee's votes/verdict.
+// Rebuilds the report server-side each call (same pattern as /value-research) —
+// SIMULATED reports are cheap/deterministic and LIVE reports are already
+// short-TTL cached in fundamentals.ts, so no additional caching is added here.
+router.post("/value-research/ask", async (req, res): Promise<void> => {
+  const parsed = AskValueResearchBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(
+    parsed.data.symbol,
+    undefined,
+    undefined,
+    undefined,
+    { forceRefresh: parsed.data.forceRefresh },
+    userId,
+  );
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
+    return;
+  }
+  const fallback = freeformFallback(report, parsed.data.question);
+  const n = await narrateValueFreeform(parsed.data.question, buildFreeformContext(report), fallback);
+  res.json(AskValueResearchResponse.parse({ answer: n.text, answerSource: n.source }));
+});
+
+// SSE variant — same event contract as /value-research/stream (meta → delta… →
+// done). Deliberately NOT in the OpenAPI/orval contract, matching that route's
+// own precedent — orval only models single-shot JSON responses.
+router.post("/value-research/ask/stream", async (req, res): Promise<void> => {
+  const parsed = AskValueResearchBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(
+    parsed.data.symbol,
+    undefined,
+    undefined,
+    undefined,
+    { forceRefresh: parsed.data.forceRefresh },
+    userId,
+  );
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
+    return;
+  }
+  const fallback = freeformFallback(report, parsed.data.question);
+
+  const sse = openSse(res);
+  try {
+    sse.send("meta", { source: llmAvailable() ? "llm" : "template", llmAvailable: llmAvailable() });
+    const n = await narrateValueFreeformStream(
+      parsed.data.question,
+      buildFreeformContext(report),
+      fallback,
+      (t) => sse.send("delta", { text: t }),
+    );
+    sse.send("done", { answer: n.text, answerSource: n.source });
+  } catch (err) {
+    req.log.error({ err }, "value research ask stream failed");
+    sse.send("error", { error: "Failed to answer question" });
   } finally {
     sse.close();
   }

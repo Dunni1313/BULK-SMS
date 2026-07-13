@@ -1217,6 +1217,27 @@ paths:
         "404":
           description: Unknown symbol
 
+  /stock-analyst/value-research/ask:
+    post:
+      operationId: askValueResearch
+      tags: [value]
+      summary: Ask a free-form question about a researched symbol, grounded in the full assembled report (read-only; never executes; SSE variant at /value-research/ask/stream is not modeled here)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AskValueResearchInput"
+      responses:
+        "200":
+          description: Grounded answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AskValueResearchResult"
+        "404":
+          description: Unknown symbol
+
   /stock-analyst/value-history:
     get:
       operationId: getValueHistory
@@ -2520,6 +2541,25 @@ components:
           type: string
           enum: [llm, template]
         historyId: { type: integer }
+
+    # ─── AI Investment Analyst free-form Q&A (Phase 2, Sprint 30; read-only,
+    # advisory/education only, never executes) ────────────────────────────────
+    AskValueResearchInput:
+      type: object
+      required: [symbol, question]
+      properties:
+        symbol: { type: string }
+        question: { type: string }
+        forceRefresh: { type: boolean }
+
+    AskValueResearchResult:
+      type: object
+      required: [answer, answerSource]
+      properties:
+        answer: { type: string }
+        answerSource:
+          type: string
+          enum: [llm, template]
 
     ValueSummary:
       type: object

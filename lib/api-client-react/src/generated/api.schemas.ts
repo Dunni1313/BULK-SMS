@@ -940,6 +940,25 @@ export interface ValueResearchResult {
   historyId?: number;
 }
 
+export interface AskValueResearchInput {
+  symbol: string;
+  question: string;
+  forceRefresh?: boolean;
+}
+
+export type AskValueResearchResultAnswerSource = typeof AskValueResearchResultAnswerSource[keyof typeof AskValueResearchResultAnswerSource];
+
+
+export const AskValueResearchResultAnswerSource = {
+  llm: 'llm',
+  template: 'template',
+} as const;
+
+export interface AskValueResearchResult {
+  answer: string;
+  answerSource: AskValueResearchResultAnswerSource;
+}
+
 export type ValueSummaryKind = typeof ValueSummaryKind[keyof typeof ValueSummaryKind];
 
 

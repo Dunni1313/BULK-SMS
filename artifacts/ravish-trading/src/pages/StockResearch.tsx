@@ -27,6 +27,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -61,6 +62,8 @@ import {
   Castle,
   FileText,
   CalendarClock,
+  MessageCircle,
+  Send,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -249,6 +252,42 @@ export function ReportView({
   const tn = report.tomNash;
   const ic = report.investmentCommittee;
   const fr = report.financialRatios;
+
+  // Phase 2, Sprint 30 — AI Investment Analyst free-form Q&A. Local to
+  // ReportView (keyed only off report.symbol), reuses the same streamCoach()
+  // SSE client the AI Research Thesis panel above already uses.
+  const [askQuestion, setAskQuestion] = useState("");
+  const [askHistory, setAskHistory] = useState<{ question: string; answer: string }[]>([]);
+  const [askStreamingAnswer, setAskStreamingAnswer] = useState("");
+  const [asking, setAsking] = useState(false);
+
+  const handleAsk = (e: React.FormEvent) => {
+    e.preventDefault();
+    const question = askQuestion.trim();
+    if (!question || asking) return;
+    setAsking(true);
+    setAskStreamingAnswer("");
+    setAskQuestion("");
+    streamCoach(
+      "/stock-analyst/value-research/ask/stream",
+      { symbol: report.symbol, question },
+      {
+        onDelta: (text) => setAskStreamingAnswer((prev) => prev + text),
+        onDone: (data) => {
+          const d = data as { answer?: string };
+          setAskHistory((prev) => [...prev, { question, answer: d.answer ?? askStreamingAnswer }]);
+          setAskStreamingAnswer("");
+          setAsking(false);
+        },
+        onError: () => {
+          setAskHistory((prev) => [...prev, { question, answer: "Failed to get an answer — please try again." }]);
+          setAskStreamingAnswer("");
+          setAsking(false);
+        },
+      },
+    ).catch(() => setAsking(false));
+  };
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -997,6 +1036,52 @@ export function ReportView({
               <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "0.4s" }} />
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* AI Investment Analyst — free-form Q&A (Phase 2, Sprint 30) */}
+      <Card className="bg-card/60 border-indigo-500/20" data-testid="ask-analyst-panel">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-indigo-400" /> Ask the AI Investment Analyst
+          </CardTitle>
+          <CardDescription className="text-[11px]">
+            Ask anything about this report — including the Tom Nash analysis and Investment Committee outcome. Grounded in the data above only; education, not investment advice.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {(askHistory.length > 0 || askStreamingAnswer) && (
+            <div className="space-y-3 max-h-72 overflow-y-auto pr-1" data-testid="ask-history">
+              {askHistory.map((turn, i) => (
+                <div key={i} className="space-y-1">
+                  <p className="text-xs font-medium text-foreground/90">Q: {turn.question}</p>
+                  <div className="text-xs text-muted-foreground pl-3 border-l border-border">
+                    <Markdown className="text-xs inline">{turn.answer}</Markdown>
+                  </div>
+                </div>
+              ))}
+              {asking && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground pl-3 border-l border-border">
+                    {askStreamingAnswer || "thinking…"}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          <form onSubmit={handleAsk} className="flex gap-2">
+            <Input
+              value={askQuestion}
+              onChange={(e) => setAskQuestion(e.target.value)}
+              placeholder="e.g. Why does the Investment Committee say Hold?"
+              className="bg-background"
+              disabled={asking}
+              data-testid="ask-analyst-input"
+            />
+            <Button type="submit" size="sm" disabled={!askQuestion.trim() || asking} data-testid="ask-analyst-submit">
+              <Send className="w-3.5 h-3.5" />
+            </Button>
+          </form>
         </CardContent>
       </Card>
 

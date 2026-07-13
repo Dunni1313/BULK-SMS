@@ -26,6 +26,8 @@ import type {
   AiAnswer,
   AiChatInput,
   AiMessage,
+  AskValueResearchInput,
+  AskValueResearchResult,
   AutoAdjustCycleResult,
   AutoCycleResult,
   AutoExecutionLogEntry,
@@ -5207,6 +5209,77 @@ export const useGenerateValueResearch = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getGenerateValueResearchMutationOptions(options));
+    }
+
+export const getAskValueResearchUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/value-research/ask`
+}
+
+/**
+ * @summary Ask a free-form question about a researched symbol, grounded in the full assembled report (read-only; never executes; SSE variant at /value-research/ask/stream is not modeled here)
+ */
+export const askValueResearch = async (askValueResearchInput: AskValueResearchInput, options?: RequestInit): Promise<AskValueResearchResult> => {
+
+  return customFetch<AskValueResearchResult>(getAskValueResearchUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      askValueResearchInput,)
+  }
+);}
+
+
+
+
+export const getAskValueResearchMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askValueResearch>>, TError,{data: BodyType<AskValueResearchInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof askValueResearch>>, TError,{data: BodyType<AskValueResearchInput>}, TContext> => {
+
+const mutationKey = ['askValueResearch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askValueResearch>>, {data: BodyType<AskValueResearchInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  askValueResearch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskValueResearchMutationResult = NonNullable<Awaited<ReturnType<typeof askValueResearch>>>
+    export type AskValueResearchMutationBody = BodyType<AskValueResearchInput>
+    export type AskValueResearchMutationError = ErrorType<void>
+
+    /**
+ * @summary Ask a free-form question about a researched symbol, grounded in the full assembled report (read-only; never executes; SSE variant at /value-research/ask/stream is not modeled here)
+ */
+export const useAskValueResearch = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askValueResearch>>, TError,{data: BodyType<AskValueResearchInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof askValueResearch>>,
+        TError,
+        {data: BodyType<AskValueResearchInput>},
+        TContext
+      > => {
+      return useMutation(getAskValueResearchMutationOptions(options));
     }
 
 export const getGetValueHistoryUrl = () => {

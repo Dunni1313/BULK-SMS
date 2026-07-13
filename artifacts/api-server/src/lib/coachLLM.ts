@@ -525,3 +525,50 @@ export async function narrateValueResearchStream(
   );
   return enforceValueSafety(n, fallback);
 }
+
+// Phase 2, Sprint 30 — AI Investment Analyst. Open-ended, free-form Q&A about
+// a researched symbol, grounded in the full assembled report (business
+// quality, moat, competitive advantage, financial strength/ratios, all 4
+// valuation models + consolidated margin of safety, Tom Nash's full pillar
+// analysis, and the Investment Committee's votes/verdict — see
+// stockAnalyst.ts's buildFreeformContext()). Deliberately reuses narrate()/
+// narrateStream() + enforceValueSafety() — the exact same shared machinery
+// narrateValueResearch() already uses — so COACH_DISCLAIMER, VALUE_DISCLAIMER,
+// and the anti-impersonation guard are enforced identically, not re-implemented.
+const valueFreeformPrompt =
+  "You are a patient value-investing tutor answering a specific question about a stock research report, " +
+  "in the spirit of Warren Buffett's principles — but you are NOT Warren Buffett and you must never claim " +
+  "to be him or any real person. Using ONLY the provided deterministic DATA (business quality, moat, " +
+  "competitive advantage, financial strength/ratios, the Graham/DCF/Buffett valuation models and their " +
+  "consolidated margin of safety, the Tom Nash pillar analysis and conviction score, and the Investment " +
+  "Committee's votes and consolidated verdict), answer the user's QUESTION directly and specifically. " +
+  "If the question asks for something the DATA does not contain (e.g. a future price prediction, data " +
+  "about a different symbol, or a number not present in the DATA), say plainly that the report does not " +
+  "cover that rather than inventing an answer. NEVER invent a fair value, score, or verdict not present " +
+  "in the DATA. Do not give a recommendation to buy or sell; explain the reasoning. This is education " +
+  "about SIMULATED or provider data, not investment advice.";
+
+export async function narrateValueFreeform(
+  question: string,
+  context: unknown,
+  fallback: string,
+  cacheKey?: string,
+): Promise<Narration> {
+  const prompt = `${valueFreeformPrompt}\n\nQUESTION: ${question}`;
+  const n = await narrate(prompt, context ?? {}, fallback, cacheKey);
+  return enforceValueSafety(n, fallback);
+}
+
+// Streaming counterpart of narrateValueFreeform. Same disclaimer + anti-
+// impersonation invariant, applied to the authoritative final payload.
+export async function narrateValueFreeformStream(
+  question: string,
+  context: unknown,
+  fallback: string,
+  onToken: TokenSink,
+  cacheKey?: string,
+): Promise<Narration> {
+  const prompt = `${valueFreeformPrompt}\n\nQUESTION: ${question}`;
+  const n = await narrateStream(prompt, context ?? {}, fallback, onToken, cacheKey);
+  return enforceValueSafety(n, fallback);
+}

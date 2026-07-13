@@ -25,6 +25,7 @@ import { buildValueResearchReport, VALUE_DISCLAIMER } from "./valueReport.js";
 import { getValueLessons, generateValueQuiz, gradeValueQuiz } from "./valueSchool.js";
 import {
   narrateValueResearch,
+  narrateValueFreeform,
   violatesAntiImpersonation,
   enforceValueDisclaimer,
 } from "./coachLLM.js";
@@ -529,6 +530,20 @@ describe("value narration safety invariants", () => {
     },
     // The real LLM call can take up to its ~25s internal timeout before degrading
     // to the deterministic template; either path satisfies the assertion.
+    35_000,
+  );
+
+  // Phase 2, Sprint 30 — AI Investment Analyst free-form Q&A reuses the exact
+  // same narrate()/enforceValueSafety() machinery narrateValueResearch does,
+  // so it must carry the identical safety invariants.
+  it(
+    "free-form value Q&A always carries BOTH the coach and value disclaimers (LLM or template path)",
+    async () => {
+      const fallback = "AI narration is not available right now, so I can't directly answer.";
+      const n = await narrateValueFreeform("What is the moat rating?", { symbol: "AAPL" }, fallback);
+      expect(n.text).toContain(COACH_DISCLAIMER);
+      expect(n.text).toContain(VALUE_DISCLAIMER);
+    },
     35_000,
   );
 });

@@ -7,8 +7,9 @@ import {
   makeUnavailableValuationReport,
 } from "@/test/fixtures/valueReport";
 
+const streamCoachMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/coach-stream", () => ({
-  streamCoach: vi.fn(),
+  streamCoach: streamCoachMock,
 }));
 
 type HookResult = { data: unknown; isLoading?: boolean };
@@ -81,6 +82,45 @@ describe("ReportView", () => {
     expect(
       screen.getByText("Apple is a wide-moat compounder."),
     ).toBeInTheDocument();
+  });
+
+  // Phase 2, Sprint 30 — AI Investment Analyst free-form Q&A panel.
+  it("submits a free-form question to the ask/stream endpoint", async () => {
+    streamCoachMock.mockReset();
+    streamCoachMock.mockResolvedValue(undefined);
+    const report = makeValueReport();
+    renderWithClient(
+      <ReportView report={report} commentary="" isStreaming={false} />,
+    );
+
+    await userEvent.type(
+      screen.getByTestId("ask-analyst-input"),
+      "What does the Investment Committee conclude?",
+    );
+    await userEvent.click(screen.getByTestId("ask-analyst-submit"));
+
+    expect(streamCoachMock).toHaveBeenCalledWith(
+      "/stock-analyst/value-research/ask/stream",
+      { symbol: report.symbol, question: "What does the Investment Committee conclude?" },
+      expect.anything(),
+    );
+  });
+
+  it("renders a streamed answer as a Q&A turn once the stream completes", async () => {
+    streamCoachMock.mockReset();
+    streamCoachMock.mockImplementation(async (_path, _body, handlers) => {
+      handlers.onDone?.({ answer: "The Committee's consolidated verdict is Hold." });
+    });
+    const report = makeValueReport();
+    renderWithClient(
+      <ReportView report={report} commentary="" isStreaming={false} />,
+    );
+
+    await userEvent.type(screen.getByTestId("ask-analyst-input"), "What is the verdict?");
+    await userEvent.click(screen.getByTestId("ask-analyst-submit"));
+
+    expect(await screen.findByText(/Committee's consolidated verdict is Hold/i)).toBeInTheDocument();
+    expect(screen.getByText("Q: What is the verdict?")).toBeInTheDocument();
   });
 });
 

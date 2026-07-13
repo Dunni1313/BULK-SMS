@@ -2590,6 +2590,21 @@ export const GenerateValueResearchResponse = zod.object({
 
 
 /**
+ * @summary Ask a free-form question about a researched symbol, grounded in the full assembled report (read-only; never executes; SSE variant at /value-research/ask/stream is not modeled here)
+ */
+export const AskValueResearchBody = zod.object({
+  "symbol": zod.string(),
+  "question": zod.string(),
+  "forceRefresh": zod.boolean().optional()
+})
+
+export const AskValueResearchResponse = zod.object({
+  "answer": zod.string(),
+  "answerSource": zod.enum(['llm', 'template'])
+})
+
+
+/**
  * @summary List persisted value-research runs
  */
 export const GetValueHistoryResponseItem = zod.object({
