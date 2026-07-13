@@ -34,6 +34,8 @@ tags:
     description: Buffett-style value-investing research & education (SIMULATED, advisory only)
   - name: portfolio-construction
     description: Target-allocation portfolio construction for value investing (advisory/education only, never places an order — distinct from the options-income "portfolio" tag)
+  - name: trading-journal
+    description: Trading journal for Engine 2 (Institutional Trading Engine) positions — mirrors the options "journal" tag's shape, distinct table/records, advisory only, never places an order
 
 paths:
   /healthz:
@@ -1752,6 +1754,100 @@ paths:
                 $ref: "#/components/schemas/ConstructionRiskSnapshot"
         "404":
           description: Portfolio not found
+
+  # ─── Trading Journal (Engine 2) ─────────────────────────────────────────────
+  /trading/journal:
+    get:
+      operationId: listTradingJournalEntries
+      tags: [trading-journal]
+      summary: List trading journal entries, newest first
+      responses:
+        "200":
+          description: Trading journal entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingJournalEntry"
+    post:
+      operationId: createTradingJournalEntry
+      tags: [trading-journal]
+      summary: Create a trading journal entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingJournalEntryInput"
+      responses:
+        "201":
+          description: Trading journal entry created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingJournalEntry"
+
+  /trading/journal/{id}:
+    get:
+      operationId: getTradingJournalEntry
+      tags: [trading-journal]
+      summary: Get a trading journal entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trading journal entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingJournalEntry"
+        "404":
+          description: Trading journal entry not found
+    patch:
+      operationId: updateTradingJournalEntry
+      tags: [trading-journal]
+      summary: Update a trading journal entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingJournalEntryUpdate"
+      responses:
+        "200":
+          description: Updated trading journal entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingJournalEntry"
+        "404":
+          description: Trading journal entry not found
+    delete:
+      operationId: deleteTradingJournalEntry
+      tags: [trading-journal]
+      summary: Delete a trading journal entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Trading journal entry deleted
+        "404":
+          description: Trading journal entry not found
 
 components:
   schemas:
@@ -5576,3 +5672,93 @@ components:
       properties:
         restored:
           type: integer
+
+    # ─── Trading Journal (Engine 2, Phase 3 Sprint 39) ────────────────────────
+    TradingJournalEntry:
+      type: object
+      required: [id, title, content, mood, tags, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        tradingPositionId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        content:
+          type: string
+        mood:
+          type: string
+          enum: [confident, neutral, cautious, frustrated, excited]
+        lessonLearned:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        setupType:
+          type: ["string", "null"]
+        entryPrice:
+          type: ["number", "null"]
+        exitPrice:
+          type: ["number", "null"]
+        rMultiple:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TradingJournalEntryInput:
+      type: object
+      required: [title, content, mood]
+      properties:
+        tradingPositionId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        content:
+          type: string
+        mood:
+          type: string
+          enum: [confident, neutral, cautious, frustrated, excited]
+        lessonLearned:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        setupType:
+          type: string
+        entryPrice:
+          type: number
+        exitPrice:
+          type: number
+        rMultiple:
+          type: number
+
+    TradingJournalEntryUpdate:
+      type: object
+      properties:
+        tradingPositionId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        content:
+          type: string
+        mood:
+          type: string
+          enum: [confident, neutral, cautious, frustrated, excited]
+        lessonLearned:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        setupType:
+          type: string
+        entryPrice:
+          type: number
+        exitPrice:
+          type: number
+        rMultiple:
+          type: number

@@ -3471,6 +3471,89 @@ export interface RestoreReportsResult {
   restored: number;
 }
 
+export type TradingJournalEntryMood = typeof TradingJournalEntryMood[keyof typeof TradingJournalEntryMood];
+
+
+export const TradingJournalEntryMood = {
+  confident: 'confident',
+  neutral: 'neutral',
+  cautious: 'cautious',
+  frustrated: 'frustrated',
+  excited: 'excited',
+} as const;
+
+export interface TradingJournalEntry {
+  id: number;
+  /** @nullable */
+  tradingPositionId?: number | null;
+  title: string;
+  content: string;
+  mood: TradingJournalEntryMood;
+  /** @nullable */
+  lessonLearned?: string | null;
+  tags: string[];
+  /** @nullable */
+  setupType?: string | null;
+  /** @nullable */
+  entryPrice?: number | null;
+  /** @nullable */
+  exitPrice?: number | null;
+  /** @nullable */
+  rMultiple?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TradingJournalEntryInputMood = typeof TradingJournalEntryInputMood[keyof typeof TradingJournalEntryInputMood];
+
+
+export const TradingJournalEntryInputMood = {
+  confident: 'confident',
+  neutral: 'neutral',
+  cautious: 'cautious',
+  frustrated: 'frustrated',
+  excited: 'excited',
+} as const;
+
+export interface TradingJournalEntryInput {
+  /** @nullable */
+  tradingPositionId?: number | null;
+  title: string;
+  content: string;
+  mood: TradingJournalEntryInputMood;
+  lessonLearned?: string;
+  tags?: string[];
+  setupType?: string;
+  entryPrice?: number;
+  exitPrice?: number;
+  rMultiple?: number;
+}
+
+export type TradingJournalEntryUpdateMood = typeof TradingJournalEntryUpdateMood[keyof typeof TradingJournalEntryUpdateMood];
+
+
+export const TradingJournalEntryUpdateMood = {
+  confident: 'confident',
+  neutral: 'neutral',
+  cautious: 'cautious',
+  frustrated: 'frustrated',
+  excited: 'excited',
+} as const;
+
+export interface TradingJournalEntryUpdate {
+  /** @nullable */
+  tradingPositionId?: number | null;
+  title?: string;
+  content?: string;
+  mood?: TradingJournalEntryUpdateMood;
+  lessonLearned?: string;
+  tags?: string[];
+  setupType?: string;
+  entryPrice?: number;
+  exitPrice?: number;
+  rMultiple?: number;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

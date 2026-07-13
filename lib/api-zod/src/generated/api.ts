@@ -3627,3 +3627,110 @@ export const SaveRiskSnapshotResponse = zod.object({
 })
 
 
+/**
+ * @summary List trading journal entries, newest first
+ */
+export const ListTradingJournalEntriesResponseItem = zod.object({
+  "id": zod.number(),
+  "tradingPositionId": zod.number().nullish(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']),
+  "lessonLearned": zod.string().nullish(),
+  "tags": zod.array(zod.string()),
+  "setupType": zod.string().nullish(),
+  "entryPrice": zod.number().nullish(),
+  "exitPrice": zod.number().nullish(),
+  "rMultiple": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTradingJournalEntriesResponse = zod.array(ListTradingJournalEntriesResponseItem)
+
+
+/**
+ * @summary Create a trading journal entry
+ */
+export const CreateTradingJournalEntryBody = zod.object({
+  "tradingPositionId": zod.number().nullish(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']),
+  "lessonLearned": zod.string().optional(),
+  "tags": zod.array(zod.string()).optional(),
+  "setupType": zod.string().optional(),
+  "entryPrice": zod.number().optional(),
+  "exitPrice": zod.number().optional(),
+  "rMultiple": zod.number().optional()
+})
+
+
+/**
+ * @summary Get a trading journal entry
+ */
+export const GetTradingJournalEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetTradingJournalEntryResponse = zod.object({
+  "id": zod.number(),
+  "tradingPositionId": zod.number().nullish(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']),
+  "lessonLearned": zod.string().nullish(),
+  "tags": zod.array(zod.string()),
+  "setupType": zod.string().nullish(),
+  "entryPrice": zod.number().nullish(),
+  "exitPrice": zod.number().nullish(),
+  "rMultiple": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a trading journal entry
+ */
+export const UpdateTradingJournalEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTradingJournalEntryBody = zod.object({
+  "tradingPositionId": zod.number().nullish(),
+  "title": zod.string().optional(),
+  "content": zod.string().optional(),
+  "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']).optional(),
+  "lessonLearned": zod.string().optional(),
+  "tags": zod.array(zod.string()).optional(),
+  "setupType": zod.string().optional(),
+  "entryPrice": zod.number().optional(),
+  "exitPrice": zod.number().optional(),
+  "rMultiple": zod.number().optional()
+})
+
+export const UpdateTradingJournalEntryResponse = zod.object({
+  "id": zod.number(),
+  "tradingPositionId": zod.number().nullish(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']),
+  "lessonLearned": zod.string().nullish(),
+  "tags": zod.array(zod.string()),
+  "setupType": zod.string().nullish(),
+  "entryPrice": zod.number().nullish(),
+  "exitPrice": zod.number().nullish(),
+  "rMultiple": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a trading journal entry
+ */
+export const DeleteTradingJournalEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
