@@ -1,6 +1,6 @@
 # Phase 3 — Institutional Trading Engine (Engine 2) — Execution Plan
 
-**Status:** DRAFT — awaiting project-owner approval. No implementation work has started; this document is planning only, produced per the explicit instruction to design Phase 3 without writing code.
+**Status:** Approved, with all 8 owner decisions in §25 accepted as recommended. Sprint 32 is shipped — see its entry in §21 for the as-built write-up. Sprint 33 onward is planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3).
 
 **Prepared after:** a fresh, direct-inspection review of `docs/DK-AI-OS-Architecture-Blueprint.md`, `docs/DK-Option-Engine-Technical-Audit.md`, `docs/Phase-2-Investing-Engine-Execution-Plan.md`, `CLAUDE.md`, and the actual completed codebase (Phase 1 platform layer + Phase 2's 21 shipped sprints), not from the Blueprint's assumptions alone. Several of the Blueprint's original claims about Engine 2 turned out to need correction once checked against real code — those corrections are called out explicitly in §0 below, the same way `docs/Phase-2-Investing-Engine-Execution-Plan.md` §0 corrected the Blueprint's Engine 1 assumptions before Phase 2 began.
 
@@ -296,7 +296,7 @@ Continuing the project's single global sprint counter (Phase 1: Sprints 1–10; 
 
 | Sprint | Module | Summary |
 |---|---|---|
-| 32 | Market Data Foundation | `MarketDataProvider` seam, `SimulatedMarketDataProvider` (deterministic OHLCV across timeframes, reusing `lib/deterministic.ts`), `trading_positions`/`trading_journal_entries` schema + migrations, new `settings` columns. No UI yet — this is the seam everything else builds on, mirroring Sprint 11's own foundational role in Phase 2. |
+| 32 | Market Data Foundation — **SHIPPED** | See the as-built write-up immediately below the table. |
 | 33 | Market Structure Engine (Core) | Support/resistance detection, trend-structure classification, confidence scoring — pure scorer + unit tests. |
 | 34 | Market Structure Engine (Route + UI) | `GET /trading/structure/:symbol`, new Trading Research page skeleton, structure card. |
 | 35 | Liquidity / Order Flow (Core) | Volume profile, liquidity score, buy/sell-pressure proxy — pure scorer + unit tests. |
@@ -315,6 +315,21 @@ Continuing the project's single global sprint counter (Phase 1: Sprints 1–10; 
 | 48 | Trading Engine Unification | Full-engine regression pass, one-symbol-lookup end-to-end test, mirroring Sprint 31 exactly — closes Phase 3. |
 
 *(48 is Sprint 17 of Phase 3 in this numbering, i.e. within the ~16–20 estimate; Sprint 47 is explicitly optional/conditional and may be skipped or deferred to a later phase depending on §25 Decision 7, which would bring the count to 17 core sprints.)*
+
+### Sprint 32 — Market Data Foundation — SHIPPED
+
+- **Objective:** the provider seam every later Engine 2 module builds on.
+- **As actually built:** no genuinely new owner decisions surfaced once the codebase was inspected — the plan's own drawn boundary (provider seam + two new tables + settings columns, no routes/UI) held up exactly as scoped.
+- **`lib/tradingMarketData.ts`** — `MarketDataProvider` interface (`getCandles(symbol, interval, lookback, asOf?)`, `getQuote(symbol, asOf?)`, both honestly `null` for an invalid ticker shape) and its only implementation, `SimulatedMarketDataProvider` (`id: "simulated"`, `isLive: false`). Deterministic, seeded via `lib/deterministic.ts`'s `makeRng`/`todayStr` (Sprint 11), reused unchanged. `TRADING_MARKET_UNIVERSE` deliberately **duplicates, not imports**, the same 10 tickers/base prices `investingUniverse.ts` already duplicates from `optionsMath.ts` — Engine 2's SIMULATED AAPL price is independently seeded from Engine 1's and Engine 3's, consistent with §0/§3's "engines never depend on each other's internals." `dailyClose()` uses its own seed namespace, independent of `investingPrice()`'s, per §0 Correction 1's precedent extended to the market-data layer. Intraday candles (`1m`/`5m`/`15m`/`1h`) are generated as an internally-consistent per-session random walk from the previous day's close to the current day's own `dailyClose()` anchor — proven by a dedicated regression test that the last intraday bar's close matches the day's own 1D close.
+- **Bounded lookback windows** (`MAX_LOOKBACK`: 390 bars for `1m`/`5m`, 130 for `15m`, 35 for `1h`, 180 for `1D`) address the plan's own flagged scalability concern (§26) up front — a caller requesting more is honestly capped, never silently expanded.
+- **`getMarketDataProvider(userId?)`** always returns the simulated instance today (regardless of the new `tradingDataProvider` setting's value) — the exact shape `getFundamentalsProvider()` uses, one call away from a real live-provider branch once §25 Decision 7 is revisited.
+- **Schema:** `trading_positions` (instrument-agnostic position ledger, `instrumentType` free text) and `trading_journal_entries` (mirrors `journal_entries`' core shape plus `entryPrice`/`exitPrice`/`rMultiple`/`setupType`) via `lib/db/manual-migrations/010_trading_engine_tables.sql` — **new tables, not a retrofit** (§25 Decision 2), confirmed the right call once `trades`' real coupling (`legs` jsonb, `credit`/`pop`/`ev`/`ravishScore` all required) was inspected directly. `trading_journal_entries.trading_position_id` has no FK constraint, mirroring `journal_entries.trade_id`'s own precedent exactly.
+- **Settings:** `tradingDataProvider` (default `"simulated"`) / `tradingDataConnected` (default `false`) via `lib/db/manual-migrations/011_trading_settings.sql`, mirroring `fundamentalsProvider`/`fundamentalsConnected`'s shape. `openapi.yaml`'s `Settings`/`SettingsUpdate` gained the 2 fields (`tradingDataConnected` read-only, matching `fundamentalsConnected`'s precedent); `routes/settings.ts` needed zero code changes (its established `{...settings, ...}` spread picks up new columns automatically).
+- **No UI/routes this sprint**, exactly as scoped.
+- **Tests:** `tradingMarketData.test.ts` (23 tests — determinism, ticker-shape validation, OHLCV range validity across all 5 timeframes, ordering, lookback clamping at both bounds, honest synthetic generation outside the default universe, per-symbol seed independence, intraday/daily internal consistency), 2 new tenant-isolation cases reusing `assertTenantIsolation` unchanged.
+- **Acceptance criteria met:** `SimulatedMarketDataProvider` returns deterministic, range-valid candles for the universe plus any valid-shaped ticker; repeated calls are byte-identical; invalid tickers return `null`; both new tables pass tenant-isolation tests — all proven directly by the test suite above.
+- **Rollback:** `git revert`; drop `trading_journal_entries` then `trading_positions` if the migration was applied; drop the 2 settings columns independently if needed — all purely additive.
+- **Validation:** `pnpm run typecheck` (clean across all workspaces), `pnpm --filter @workspace/api-server run test` (73 files / 803 tests, run twice — both fully clean, zero flakes), `pnpm --filter @workspace/ravish-trading run test` (7 files / 44 tests, unmodified), and `PORT=5000 BASE_PATH=/ pnpm run build` all pass for real.
 
 ---
 

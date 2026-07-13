@@ -21,3 +21,5 @@ export * from "./investingFilingAnalysis";
 export * from "./investingPortfolios";
 export * from "./investingHoldings";
 export * from "./investingRiskSnapshots";
+export * from "./tradingPositions";
+export * from "./tradingJournalEntries";

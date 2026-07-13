@@ -4788,6 +4788,12 @@ components:
         investingFilingsProvider:
           type: string
           description: Filings data source for Annual Report Analysis (only "edgar" is wired today)
+        tradingDataProvider:
+          type: string
+          description: Institutional Trading Engine market-data provider (only "simulated" is wired today)
+        tradingDataConnected:
+          type: boolean
+          description: Whether a live trading market-data provider is configured (always false today)
 
     FundamentalsProviderStatus:
       type: object
@@ -4908,6 +4914,8 @@ components:
         investingDefaultDiscountRate:
           type: number
         investingFilingsProvider:
+          type: string
+        tradingDataProvider:
           type: string
 
     # ─── Earnings & Market Data ──────────────────────────────────────────────────

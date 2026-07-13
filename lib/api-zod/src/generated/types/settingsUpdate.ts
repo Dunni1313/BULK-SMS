@@ -45,4 +45,5 @@ export interface SettingsUpdate {
   investingRiskFreeRate?: number;
   investingDefaultDiscountRate?: number;
   investingFilingsProvider?: string;
+  tradingDataProvider?: string;
 }

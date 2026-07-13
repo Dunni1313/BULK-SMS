@@ -68,6 +68,13 @@ export const settingsTable = pgTable("settings", {
   investingRiskFreeRate: real("investing_risk_free_rate").notNull().default(0.045),
   investingDefaultDiscountRate: real("investing_default_discount_rate").notNull().default(0.09),
   investingFilingsProvider: text("investing_filings_provider").notNull().default("edgar"),
+  // Phase 3, Sprint 32 — Institutional Trading Engine market-data provider
+  // selection (approved Phase 3 plan, Sprint 32). Only "simulated" is
+  // implemented this sprint; live providers are explicitly deferred (Phase 3
+  // plan §10/§25 Decision 7). Mirrors fundamentalsProvider/
+  // fundamentalsConnected's own established shape.
+  tradingDataProvider: text("trading_data_provider").notNull().default("simulated"),
+  tradingDataConnected: boolean("trading_data_connected").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 

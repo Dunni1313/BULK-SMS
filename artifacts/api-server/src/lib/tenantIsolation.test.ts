@@ -38,6 +38,8 @@ import {
   investingPortfoliosTable,
   investingHoldingsTable,
   investingRiskSnapshotsTable,
+  tradingPositionsTable,
+  tradingJournalEntriesTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -84,6 +86,9 @@ afterAll(async () => {
     investingRiskSnapshotsTable,
     investingHoldingsTable,
     investingPortfoliosTable,
+    // Phase 3, Sprint 32 — Institutional Trading Engine's own new tables.
+    tradingJournalEntriesTable,
+    tradingPositionsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -229,6 +234,23 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
       overallScore: 72,
       analysisJson: { overall: { score: 72, label: "Strong", detail: "test" } },
+    }));
+  });
+
+  // Phase 3, Sprint 32 — Institutional Trading Engine's own new tables
+  // (Market Data Foundation), reusing the same shared helper.
+  it("trading_positions: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(tradingPositionsTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "AAPL",
+    }));
+  });
+
+  it("trading_journal_entries: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(tradingJournalEntriesTable, userA, userB, (userId) => ({
+      userId,
+      title: "Test Entry",
+      content: "content",
     }));
   });
 });

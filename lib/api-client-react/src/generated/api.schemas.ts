@@ -2949,6 +2949,10 @@ export interface Settings {
   investingDefaultDiscountRate?: number;
   /** Filings data source for Annual Report Analysis (only "edgar" is wired today) */
   investingFilingsProvider?: string;
+  /** Institutional Trading Engine market-data provider (only "simulated" is wired today) */
+  tradingDataProvider?: string;
+  /** Whether a live trading market-data provider is configured (always false today) */
+  tradingDataConnected?: boolean;
 }
 
 /**
@@ -3083,6 +3087,7 @@ export interface SettingsUpdate {
   investingRiskFreeRate?: number;
   investingDefaultDiscountRate?: number;
   investingFilingsProvider?: string;
+  tradingDataProvider?: string;
 }
 
 export type EarningsPlayRecommendedStrategy = typeof EarningsPlayRecommendedStrategy[keyof typeof EarningsPlayRecommendedStrategy];

@@ -1634,7 +1634,9 @@ export const GetSettingsResponse = zod.object({
   "fundamentalsAutoRefresh": zod.boolean().optional().describe('Auto re-fetch live fundamentals once data crosses the staleness threshold (no effect for simulated data)'),
   "investingRiskFreeRate": zod.number().optional().describe('Risk-free rate assumption for the Investing Engine\'s valuation models (default 0.045, matches the options engine\'s RISK_FREE constant)'),
   "investingDefaultDiscountRate": zod.number().optional().describe('Default discount-rate assumption for the Investing Engine\'s DCF\/Buffett valuation models (default 0.09)'),
-  "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)')
+  "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)'),
+  "tradingDataProvider": zod.string().optional().describe('Institutional Trading Engine market-data provider (only \"simulated\" is wired today)'),
+  "tradingDataConnected": zod.boolean().optional().describe('Whether a live trading market-data provider is configured (always false today)')
 })
 
 
@@ -1675,7 +1677,8 @@ export const UpdateSettingsBody = zod.object({
   "fundamentalsAutoRefresh": zod.boolean().optional(),
   "investingRiskFreeRate": zod.number().optional(),
   "investingDefaultDiscountRate": zod.number().optional(),
-  "investingFilingsProvider": zod.string().optional()
+  "investingFilingsProvider": zod.string().optional(),
+  "tradingDataProvider": zod.string().optional()
 })
 
 export const UpdateSettingsResponse = zod.object({
@@ -1715,7 +1718,9 @@ export const UpdateSettingsResponse = zod.object({
   "fundamentalsAutoRefresh": zod.boolean().optional().describe('Auto re-fetch live fundamentals once data crosses the staleness threshold (no effect for simulated data)'),
   "investingRiskFreeRate": zod.number().optional().describe('Risk-free rate assumption for the Investing Engine\'s valuation models (default 0.045, matches the options engine\'s RISK_FREE constant)'),
   "investingDefaultDiscountRate": zod.number().optional().describe('Default discount-rate assumption for the Investing Engine\'s DCF\/Buffett valuation models (default 0.09)'),
-  "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)')
+  "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)'),
+  "tradingDataProvider": zod.string().optional().describe('Institutional Trading Engine market-data provider (only \"simulated\" is wired today)'),
+  "tradingDataConnected": zod.boolean().optional().describe('Whether a live trading market-data provider is configured (always false today)')
 })
 
 
