@@ -93,6 +93,14 @@ export interface Fundamentals {
   sector: string | null;
   industry: string | null;
 
+  // Phase 2, Sprint 29 — market-sensitivity estimate for portfolio-level risk
+  // scoring. LIVE providers report their own published beta (FMP's /profile
+  // and Alpha Vantage's OVERVIEW both already carry this field via calls this
+  // codebase already makes — never fabricated, honest null when the provider
+  // omits it); SIMULATED gets a deterministic seeded value in a plausible
+  // 0.5-2.0 range.
+  beta: number | null;
+
   // Per-share fundamentals.
   epsTtm: number | null; // null => not meaningfully profitable on a trailing basis
   epsFwd: number | null;
@@ -292,6 +300,7 @@ interface AssembleInput {
   dataSource: DataSource;
   sector: string | null;
   industry: string | null;
+  beta: number | null;
   epsTtm: number | null;
   epsFwd: number | null;
   fcfPerShare: number;
@@ -348,6 +357,7 @@ function assembleFundamentals(a: AssembleInput): Fundamentals {
     price,
     sector: a.sector,
     industry: a.industry,
+    beta: a.beta,
     epsTtm: a.epsTtm,
     epsFwd: a.epsFwd,
     fcfPerShare: a.fcfPerShare,
@@ -638,6 +648,13 @@ function simulatedCapitalAllocation(symbol: string): {
   return { insiderOwnershipPct, sharesOutstandingChange5y, netInsiderActivity };
 }
 
+// Phase 2, Sprint 29 — deterministic SIMULATED beta, seeded by symbol only
+// (stable across calls, not date-churning), in a plausible 0.5-2.0 range.
+function simulatedBeta(symbol: string): number {
+  const rng = makeRng(`${symbol}|beta`);
+  return round(0.5 + rng() * 1.5, 2);
+}
+
 // The provider seam. A live provider implements the same async interface and is
 // selected via Settings; the simulated provider is the safe default.
 export interface FundamentalsProvider {
@@ -690,6 +707,7 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
       dataSource: FUNDAMENTALS_DATA_SOURCE,
       sector: sectorProfile.sector,
       industry: sectorProfile.industry,
+      beta: simulatedBeta(sym),
       insiderOwnershipPct: capitalAllocation.insiderOwnershipPct,
       sharesOutstandingChange5y: capitalAllocation.sharesOutstandingChange5y,
       netInsiderActivity: capitalAllocation.netInsiderActivity,
@@ -1067,6 +1085,10 @@ export class FmpFundamentalsProvider implements FundamentalsProvider {
       // guessed classification.
       sector: (profile.sector as string) || null,
       industry: (profile.industry as string) || null,
+      // Phase 2, Sprint 29 — already present in FMP's /profile response
+      // (already fetched above for sector/industry), simply not captured
+      // until now. Honest null when the provider omits it.
+      beta: num(profile?.beta),
       // Phase 2, Sprint 24 — best-effort, never blocks the main fetch. Insider
       // OWNERSHIP PERCENTAGE is honestly left null for FMP: unlike shares-
       // outstanding trend and insider transaction direction, it isn't reliably
@@ -1383,6 +1405,10 @@ export class AlphaVantageFundamentalsProvider implements FundamentalsProvider {
       // omits it, never a guessed classification.
       sector: (overview.Sector as string) || null,
       industry: (overview.Industry as string) || null,
+      // Phase 2, Sprint 29 — already present in Alpha Vantage's OVERVIEW
+      // response (already fetched above for sector/industry), simply not
+      // captured until now. Honest null when the provider omits it.
+      beta: num(overview.Beta),
       // Phase 2, Sprint 24 — honestly null for Alpha Vantage this sprint: no
       // insider-ownership/buyback-trend fetch was implemented against AV's
       // API, an explicit scope reduction disclosed in the sprint report

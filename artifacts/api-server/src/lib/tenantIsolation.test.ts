@@ -37,6 +37,7 @@ import {
   valueWatchlistTable,
   investingPortfoliosTable,
   investingHoldingsTable,
+  investingRiskSnapshotsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -76,9 +77,11 @@ afterAll(async () => {
     tradesTable,
     valueQuizResultsTable,
     valueWatchlistTable,
-    // Phase 2, Sprint 28 — investing_holdings first (its own FK to
-    // investing_portfolios is ON DELETE CASCADE, so this is defensive/
-    // consistent with the rest of this loop, not strictly required).
+    // Phase 2, Sprint 28/29 — investing_risk_snapshots and investing_holdings
+    // first (both have their own FK to investing_portfolios as ON DELETE
+    // CASCADE, so this is defensive/consistent with the rest of this loop,
+    // not strictly required).
+    investingRiskSnapshotsTable,
     investingHoldingsTable,
     investingPortfoliosTable,
   ] as any[]) {
@@ -207,6 +210,25 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
       symbol: "AAPL",
+    }));
+  });
+
+  // Phase 2, Sprint 29 — Portfolio Risk Analysis's snapshot-history table,
+  // reusing the same shared helper.
+  it("investing_risk_snapshots: a userId-scoped query never crosses accounts", async () => {
+    const [portfolioA] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userA, name: "Tenant A Risk Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    const [portfolioB] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userB, name: "Tenant B Risk Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    await assertTenantIsolation(investingRiskSnapshotsTable, userA, userB, (userId) => ({
+      userId,
+      portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
+      overallScore: 72,
+      analysisJson: { overall: { score: 72, label: "Strong", detail: "test" } },
     }));
   });
 });

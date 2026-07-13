@@ -41,8 +41,10 @@ import type {
   ConstructionHoldingUpdate,
   ConstructionPortfolioCreate,
   ConstructionPortfolioDetail,
+  ConstructionPortfolioRiskAnalysis,
   ConstructionPortfolioSummary,
   ConstructionPortfolioUpdate,
+  ConstructionRiskSnapshot,
   DailyReport,
   DailyReportSummary,
   DeleteReportResult,
@@ -6845,5 +6847,229 @@ export const useDeleteHolding = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteHoldingMutationOptions(options));
+    }
+
+export const getGetPortfolioRiskUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/risk`
+}
+
+/**
+ * @summary Compute a portfolio's risk analysis (concentration, sector exposure, beta) fresh, on demand
+ */
+export const getPortfolioRisk = async (id: number, options?: RequestInit): Promise<ConstructionPortfolioRiskAnalysis> => {
+
+  return customFetch<ConstructionPortfolioRiskAnalysis>(getGetPortfolioRiskUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioRiskQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/risk`
+    ] as const;
+    }
+
+
+export const getGetPortfolioRiskQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioRisk>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioRisk>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioRiskQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioRisk>>> = ({ signal }) => getPortfolioRisk(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioRisk>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioRiskQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioRisk>>>
+export type GetPortfolioRiskQueryError = ErrorType<void>
+
+
+/**
+ * @summary Compute a portfolio's risk analysis (concentration, sector exposure, beta) fresh, on demand
+ */
+
+export function useGetPortfolioRisk<TData = Awaited<ReturnType<typeof getPortfolioRisk>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioRisk>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioRiskQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioRiskSnapshotsUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/risk/snapshots`
+}
+
+/**
+ * @summary List previously saved risk snapshots for a portfolio, newest first
+ */
+export const getPortfolioRiskSnapshots = async (id: number, options?: RequestInit): Promise<ConstructionRiskSnapshot[]> => {
+
+  return customFetch<ConstructionRiskSnapshot[]>(getGetPortfolioRiskSnapshotsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioRiskSnapshotsQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/risk/snapshots`
+    ] as const;
+    }
+
+
+export const getGetPortfolioRiskSnapshotsQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioRiskSnapshots>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioRiskSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioRiskSnapshotsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioRiskSnapshots>>> = ({ signal }) => getPortfolioRiskSnapshots(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioRiskSnapshots>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioRiskSnapshotsQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioRiskSnapshots>>>
+export type GetPortfolioRiskSnapshotsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List previously saved risk snapshots for a portfolio, newest first
+ */
+
+export function useGetPortfolioRiskSnapshots<TData = Awaited<ReturnType<typeof getPortfolioRiskSnapshots>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioRiskSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioRiskSnapshotsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveRiskSnapshotUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/risk/snapshots`
+}
+
+/**
+ * @summary Compute the portfolio's risk analysis fresh and save it as a snapshot
+ */
+export const saveRiskSnapshot = async (id: number, options?: RequestInit): Promise<ConstructionRiskSnapshot> => {
+
+  return customFetch<ConstructionRiskSnapshot>(getSaveRiskSnapshotUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSaveRiskSnapshotMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveRiskSnapshot>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveRiskSnapshot>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['saveRiskSnapshot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveRiskSnapshot>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  saveRiskSnapshot(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveRiskSnapshotMutationResult = NonNullable<Awaited<ReturnType<typeof saveRiskSnapshot>>>
+
+    export type SaveRiskSnapshotMutationError = ErrorType<void>
+
+    /**
+ * @summary Compute the portfolio's risk analysis fresh and save it as a snapshot
+ */
+export const useSaveRiskSnapshot = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveRiskSnapshot>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveRiskSnapshot>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getSaveRiskSnapshotMutationOptions(options));
     }
 

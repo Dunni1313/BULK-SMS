@@ -1669,6 +1669,69 @@ paths:
               schema:
                 $ref: "#/components/schemas/DeleteResult"
 
+  /portfolio-construction/portfolios/{id}/risk:
+    get:
+      operationId: getPortfolioRisk
+      tags: [portfolio-construction]
+      summary: Compute a portfolio's risk analysis (concentration, sector exposure, beta) fresh, on demand
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Risk analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionPortfolioRiskAnalysis"
+        "404":
+          description: Portfolio not found
+
+  /portfolio-construction/portfolios/{id}/risk/snapshots:
+    get:
+      operationId: getPortfolioRiskSnapshots
+      tags: [portfolio-construction]
+      summary: List previously saved risk snapshots for a portfolio, newest first
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Snapshot history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConstructionRiskSnapshot"
+        "404":
+          description: Portfolio not found
+    post:
+      operationId: saveRiskSnapshot
+      tags: [portfolio-construction]
+      summary: Compute the portfolio's risk analysis fresh and save it as a snapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Saved snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionRiskSnapshot"
+        "404":
+          description: Portfolio not found
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -2644,6 +2707,98 @@ components:
         updatedAt: { type: string }
         allocation:
           $ref: "#/components/schemas/ConstructionPortfolioAllocationResult"
+
+    # ─── Portfolio Risk Analysis (Phase 2, Sprint 29; advisory/education only,
+    # architecture modeled on the Options Engine's portfolioHealth.ts) ───────
+    ConstructionRiskComponent:
+      type: object
+      required: [key, label, score, weight, detail]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        score: { type: ["number", "null"] }
+        weight: { type: number }
+        detail: { type: string }
+
+    ConstructionConcentrationRisk:
+      type: object
+      required: [score, label, detail, largestSymbol, largestSymbolWeightPct, capBreached]
+      properties:
+        score: { type: ["number", "null"] }
+        label: { type: string }
+        detail: { type: string }
+        largestSymbol: { type: ["string", "null"] }
+        largestSymbolWeightPct: { type: ["number", "null"] }
+        capBreached: { type: boolean }
+
+    ConstructionSectorExposureRow:
+      type: object
+      required: [sector, marketValue, weightPct]
+      properties:
+        sector: { type: string }
+        marketValue: { type: number }
+        weightPct: { type: number }
+
+    ConstructionSectorExposureRisk:
+      type: object
+      required: [score, label, detail, largestSector, largestSectorWeightPct, capBreached, breakdown, unclassifiedWeightPct]
+      properties:
+        score: { type: ["number", "null"] }
+        label: { type: string }
+        detail: { type: string }
+        largestSector: { type: ["string", "null"] }
+        largestSectorWeightPct: { type: ["number", "null"] }
+        capBreached: { type: boolean }
+        breakdown:
+          type: array
+          items: { $ref: "#/components/schemas/ConstructionSectorExposureRow" }
+        unclassifiedWeightPct: { type: ["number", "null"] }
+
+    ConstructionBetaEstimateRisk:
+      type: object
+      required: [score, label, detail, portfolioBeta, coveragePct]
+      properties:
+        score: { type: ["number", "null"] }
+        label: { type: string }
+        detail: { type: string }
+        portfolioBeta: { type: ["number", "null"] }
+        coveragePct: { type: ["number", "null"] }
+
+    ConstructionPortfolioRiskAnalysis:
+      type: object
+      required: [overall, concentration, sectorExposure, betaEstimate, components, totalMarketValue, unresolvedSymbols]
+      properties:
+        overall:
+          type: object
+          required: [score, label, detail]
+          properties:
+            score: { type: ["number", "null"] }
+            label: { type: string }
+            detail: { type: string }
+        concentration:
+          $ref: "#/components/schemas/ConstructionConcentrationRisk"
+        sectorExposure:
+          $ref: "#/components/schemas/ConstructionSectorExposureRisk"
+        betaEstimate:
+          $ref: "#/components/schemas/ConstructionBetaEstimateRisk"
+        components:
+          type: array
+          items: { $ref: "#/components/schemas/ConstructionRiskComponent" }
+        totalMarketValue: { type: ["number", "null"] }
+        unresolvedSymbols:
+          type: array
+          items: { type: string }
+
+    ConstructionRiskSnapshot:
+      type: object
+      required: [id, portfolioId, overallScore, analysis, createdAt]
+      properties:
+        id: { type: integer }
+        portfolioId: { type: integer }
+        overallScore: { type: ["number", "null"] }
+        analysis:
+          $ref: "#/components/schemas/ConstructionPortfolioRiskAnalysis"
+        createdAt: { type: string }
 
     ValueLesson:
       type: object

@@ -7,7 +7,7 @@
 // unrelated systems that happen to share the word "portfolio".
 
 import { Router, type IRouter } from "express";
-import { db, investingPortfoliosTable, investingHoldingsTable } from "@workspace/db";
+import { db, investingPortfoliosTable, investingHoldingsTable, investingRiskSnapshotsTable } from "@workspace/db";
 import { and, count, desc, eq } from "drizzle-orm";
 import {
   GetPortfoliosResponse,
@@ -22,9 +22,13 @@ import {
   UpdateHoldingBody,
   UpdateHoldingResponse,
   DeleteHoldingResponse,
+  GetPortfolioRiskResponse,
+  GetPortfolioRiskSnapshotsResponse,
+  SaveRiskSnapshotResponse,
 } from "@workspace/api-zod";
 import { getFundamentalsProvider } from "../lib/fundamentals.js";
 import { buildPortfolioAllocation, type PortfolioHoldingInput } from "../lib/portfolioConstruction.js";
+import { computePortfolioRiskFromAllocation, type PortfolioRiskAnalysis } from "../lib/investingRisk.js";
 import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
@@ -277,6 +281,119 @@ router.delete("/portfolio-construction/portfolios/:id/holdings/:holdingId", asyn
     )
     .returning({ id: investingHoldingsTable.id });
   res.json(DeleteHoldingResponse.parse({ success: !!row }));
+});
+
+// Phase 2, Sprint 29 — Portfolio Risk Analysis. Resolves ownership, then
+// reuses buildPortfolioAllocation() (the exact same resolution the detail
+// route already performs) so concentration/sector/beta scoring is computed
+// from real, freshly-resolved market values with zero new provider calls
+// beyond what viewing the portfolio already costs. Returns null (caller
+// 404s) when the portfolio doesn't exist or isn't the caller's.
+async function resolvePortfolioRisk(portfolioId: number, userId: string): Promise<PortfolioRiskAnalysis | null> {
+  const [portfolio] = await db
+    .select({ id: investingPortfoliosTable.id })
+    .from(investingPortfoliosTable)
+    .where(and(eq(investingPortfoliosTable.id, portfolioId), eq(investingPortfoliosTable.userId, userId)));
+  if (!portfolio) return null;
+
+  const holdingRows = await db
+    .select()
+    .from(investingHoldingsTable)
+    .where(and(eq(investingHoldingsTable.portfolioId, portfolioId), eq(investingHoldingsTable.userId, userId)));
+
+  const provider = await getFundamentalsProvider(userId);
+  const holdingInputs: PortfolioHoldingInput[] = holdingRows.map((r) => ({
+    id: r.id,
+    symbol: r.symbol,
+    targetWeightPct: r.targetWeightPct,
+    shares: r.shares,
+    notes: r.notes,
+  }));
+  const allocation = await buildPortfolioAllocation(holdingInputs, provider);
+  return computePortfolioRiskFromAllocation(allocation.holdings);
+}
+
+router.get("/portfolio-construction/portfolios/:id/risk", async (req, res): Promise<void> => {
+  const portfolioId = Number(req.params.id);
+  if (!Number.isInteger(portfolioId)) {
+    res.status(400).json({ error: "Invalid portfolio id" });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const risk = await resolvePortfolioRisk(portfolioId, userId);
+  if (!risk) {
+    res.status(404).json({ error: "Portfolio not found" });
+    return;
+  }
+  res.json(GetPortfolioRiskResponse.parse(risk));
+});
+
+router.get("/portfolio-construction/portfolios/:id/risk/snapshots", async (req, res): Promise<void> => {
+  const portfolioId = Number(req.params.id);
+  if (!Number.isInteger(portfolioId)) {
+    res.status(400).json({ error: "Invalid portfolio id" });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [portfolio] = await db
+    .select({ id: investingPortfoliosTable.id })
+    .from(investingPortfoliosTable)
+    .where(and(eq(investingPortfoliosTable.id, portfolioId), eq(investingPortfoliosTable.userId, userId)));
+  if (!portfolio) {
+    res.status(404).json({ error: "Portfolio not found" });
+    return;
+  }
+  const rows = await db
+    .select()
+    .from(investingRiskSnapshotsTable)
+    .where(and(eq(investingRiskSnapshotsTable.portfolioId, portfolioId), eq(investingRiskSnapshotsTable.userId, userId)))
+    .orderBy(desc(investingRiskSnapshotsTable.createdAt));
+  res.json(
+    GetPortfolioRiskSnapshotsResponse.parse(
+      rows.map((r) => ({
+        id: r.id,
+        portfolioId: r.portfolioId,
+        overallScore: r.overallScore,
+        analysis: r.analysisJson,
+        createdAt: r.createdAt.toISOString(),
+      })),
+    ),
+  );
+});
+
+// Explicit "Save Snapshot" action only — risk is never persisted
+// automatically on a plain GET. Matches Sprint 27/28's never-persist-
+// unless-asked discipline.
+router.post("/portfolio-construction/portfolios/:id/risk/snapshots", async (req, res): Promise<void> => {
+  const portfolioId = Number(req.params.id);
+  if (!Number.isInteger(portfolioId)) {
+    res.status(400).json({ error: "Invalid portfolio id" });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const risk = await resolvePortfolioRisk(portfolioId, userId);
+  if (!risk) {
+    res.status(404).json({ error: "Portfolio not found" });
+    return;
+  }
+  const [row] = await db
+    .insert(investingRiskSnapshotsTable)
+    .values({
+      userId,
+      portfolioId,
+      overallScore: risk.overall.score,
+      analysisJson: risk,
+    })
+    .returning();
+  res.json(
+    SaveRiskSnapshotResponse.parse({
+      id: row.id,
+      portfolioId: row.portfolioId,
+      overallScore: row.overallScore,
+      analysis: row.analysisJson,
+      createdAt: row.createdAt.toISOString(),
+    }),
+  );
 });
 
 export default router;

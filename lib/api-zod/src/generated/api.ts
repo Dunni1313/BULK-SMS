@@ -3432,3 +3432,178 @@ export const DeleteHoldingResponse = zod.object({
 })
 
 
+/**
+ * @summary Compute a portfolio's risk analysis (concentration, sector exposure, beta) fresh, on demand
+ */
+export const GetPortfolioRiskParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPortfolioRiskResponse = zod.object({
+  "overall": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "concentration": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSymbol": zod.string().nullable(),
+  "largestSymbolWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean()
+}),
+  "sectorExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSector": zod.string().nullable(),
+  "largestSectorWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "breakdown": zod.array(zod.object({
+  "sector": zod.string(),
+  "marketValue": zod.number(),
+  "weightPct": zod.number()
+})),
+  "unclassifiedWeightPct": zod.number().nullable()
+}),
+  "betaEstimate": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "portfolioBeta": zod.number().nullable(),
+  "coveragePct": zod.number().nullable()
+}),
+  "components": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number().nullable(),
+  "weight": zod.number(),
+  "detail": zod.string()
+})),
+  "totalMarketValue": zod.number().nullable(),
+  "unresolvedSymbols": zod.array(zod.string())
+})
+
+
+/**
+ * @summary List previously saved risk snapshots for a portfolio, newest first
+ */
+export const GetPortfolioRiskSnapshotsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPortfolioRiskSnapshotsResponseItem = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "overallScore": zod.number().nullable(),
+  "analysis": zod.object({
+  "overall": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "concentration": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSymbol": zod.string().nullable(),
+  "largestSymbolWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean()
+}),
+  "sectorExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSector": zod.string().nullable(),
+  "largestSectorWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "breakdown": zod.array(zod.object({
+  "sector": zod.string(),
+  "marketValue": zod.number(),
+  "weightPct": zod.number()
+})),
+  "unclassifiedWeightPct": zod.number().nullable()
+}),
+  "betaEstimate": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "portfolioBeta": zod.number().nullable(),
+  "coveragePct": zod.number().nullable()
+}),
+  "components": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number().nullable(),
+  "weight": zod.number(),
+  "detail": zod.string()
+})),
+  "totalMarketValue": zod.number().nullable(),
+  "unresolvedSymbols": zod.array(zod.string())
+}),
+  "createdAt": zod.string()
+})
+export const GetPortfolioRiskSnapshotsResponse = zod.array(GetPortfolioRiskSnapshotsResponseItem)
+
+
+/**
+ * @summary Compute the portfolio's risk analysis fresh and save it as a snapshot
+ */
+export const SaveRiskSnapshotParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SaveRiskSnapshotResponse = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "overallScore": zod.number().nullable(),
+  "analysis": zod.object({
+  "overall": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "concentration": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSymbol": zod.string().nullable(),
+  "largestSymbolWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean()
+}),
+  "sectorExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSector": zod.string().nullable(),
+  "largestSectorWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "breakdown": zod.array(zod.object({
+  "sector": zod.string(),
+  "marketValue": zod.number(),
+  "weightPct": zod.number()
+})),
+  "unclassifiedWeightPct": zod.number().nullable()
+}),
+  "betaEstimate": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "portfolioBeta": zod.number().nullable(),
+  "coveragePct": zod.number().nullable()
+}),
+  "components": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number().nullable(),
+  "weight": zod.number(),
+  "detail": zod.string()
+})),
+  "totalMarketValue": zod.number().nullable(),
+  "unresolvedSymbols": zod.array(zod.string())
+}),
+  "createdAt": zod.string()
+})
+
+

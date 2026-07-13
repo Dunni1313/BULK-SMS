@@ -155,4 +155,44 @@ describe("buildPortfolioAllocation — SIMULATED provider orchestration", () => 
     expect(result.holdings[0].currentPrice).toBeNull();
     expect(result.unresolvedSymbols).toEqual(["NOT A TICKER!!"]);
   });
+
+  // Phase 2, Sprint 29 — sector/beta are resolved from the same Fundamentals
+  // call already made for price, zero new provider calls.
+  it("resolves sector and beta per holding from the same Fundamentals call already made for price", async () => {
+    const provider = new SimulatedFundamentalsProvider();
+    const holdings = [holding({ id: 1, symbol: "AAPL", shares: 5 })];
+    const result = await buildPortfolioAllocation(holdings, provider);
+    expect(result.holdings[0].sector).not.toBeNull();
+    expect(result.holdings[0].beta).not.toBeNull();
+    expect(result.holdings[0].beta!).toBeGreaterThanOrEqual(0.5);
+    expect(result.holdings[0].beta!).toBeLessThanOrEqual(2.0);
+  });
+});
+
+// Phase 2, Sprint 29 — regression proof that extending computePortfolioAllocation()
+// with an optional third `meta` parameter did not change any pre-existing
+// 2-argument call's behavior: every field Sprint 28's own tests assert on is
+// unaffected, and the new sector/beta fields honestly default to null when
+// no meta map is supplied.
+describe("computePortfolioAllocation — Sprint 29 additive sector/beta regression", () => {
+  it("defaults sector and beta to null when no meta map is supplied (pre-existing 2-arg call shape)", () => {
+    const holdings = [holding({ shares: 10 })];
+    const result = computePortfolioAllocation(holdings, new Map([["AAA", 100]]));
+    expect(result.holdings[0].sector).toBeNull();
+    expect(result.holdings[0].beta).toBeNull();
+    // Every pre-existing field is unchanged.
+    expect(result.holdings[0].marketValue).toBe(1000);
+    expect(result.holdings[0].currentPrice).toBe(100);
+  });
+
+  it("populates sector and beta from the optional meta map when supplied", () => {
+    const holdings = [holding({ shares: 10 })];
+    const result = computePortfolioAllocation(
+      holdings,
+      new Map([["AAA", 100]]),
+      new Map([["AAA", { sector: "Technology", beta: 1.4 }]]),
+    );
+    expect(result.holdings[0].sector).toBe("Technology");
+    expect(result.holdings[0].beta).toBe(1.4);
+  });
 });

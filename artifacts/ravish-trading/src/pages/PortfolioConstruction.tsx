@@ -13,8 +13,13 @@ import {
   useUpdateHolding,
   useDeleteHolding,
   useGetValueWatchlist,
+  useGetPortfolioRisk,
+  useSaveRiskSnapshot,
+  useGetPortfolioRiskSnapshots,
   getGetPortfoliosQueryKey,
   getGetPortfolioQueryKey,
+  getGetPortfolioRiskQueryKey,
+  getGetPortfolioRiskSnapshotsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -23,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, Trash2, Star } from "lucide-react";
+import { Briefcase, Plus, Trash2, Star, ShieldAlert, Save } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -35,6 +40,13 @@ function rebalanceBadgeClass(action: string): string {
   return "border-border text-muted-foreground/60";
 }
 
+function riskScoreClass(score: number | null | undefined): string {
+  if (score == null) return "border-border text-muted-foreground";
+  if (score >= 65) return "border-emerald-500/40 text-emerald-400";
+  if (score >= 50) return "border-amber-500/40 text-amber-400";
+  return "border-rose-500/40 text-rose-400";
+}
+
 export default function PortfolioConstruction() {
   const { data: portfolios, isLoading: portfoliosLoading } = useGetPortfolios();
   const { data: watchlist } = useGetValueWatchlist();
@@ -43,6 +55,7 @@ export default function PortfolioConstruction() {
   const addHolding = useAddHolding();
   const updateHolding = useUpdateHolding();
   const deleteHolding = useDeleteHolding();
+  const saveRiskSnapshot = useSaveRiskSnapshot();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -64,6 +77,27 @@ export default function PortfolioConstruction() {
     () => new Set((detail?.allocation.holdings ?? []).map((h) => h.symbol)),
     [detail],
   );
+
+  const { data: risk, isLoading: riskLoading } = useGetPortfolioRisk(selectedId ?? 0, {
+    query: { queryKey: getGetPortfolioRiskQueryKey(selectedId ?? 0), enabled: selectedId != null },
+  });
+  const { data: snapshots } = useGetPortfolioRiskSnapshots(selectedId ?? 0, {
+    query: { queryKey: getGetPortfolioRiskSnapshotsQueryKey(selectedId ?? 0), enabled: selectedId != null },
+  });
+
+  const handleSaveSnapshot = () => {
+    if (selectedId == null) return;
+    saveRiskSnapshot.mutate(
+      { id: selectedId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetPortfolioRiskSnapshotsQueryKey(selectedId) });
+          toast({ title: "Risk snapshot saved" });
+        },
+        onError: () => toast({ title: "Failed to save risk snapshot", variant: "destructive" }),
+      },
+    );
+  };
 
   const handleCreatePortfolio = (e: React.FormEvent) => {
     e.preventDefault();
@@ -369,6 +403,68 @@ export default function PortfolioConstruction() {
           </CardContent>
         </Card>
       </div>
+
+      {selectedId != null && (
+        <Card className="bg-card border-border" data-testid="risk-panel">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-sm flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-indigo-400" /> Portfolio Risk
+              </CardTitle>
+              <CardDescription className="text-[11px]">
+                Concentration, sector exposure, and market-sensitivity (beta) — computed fresh, never stored unless you save a snapshot.
+              </CardDescription>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-[11px] gap-1"
+              onClick={handleSaveSnapshot}
+              disabled={saveRiskSnapshot.isPending || risk?.overall.score == null}
+              data-testid="save-snapshot-button"
+            >
+              <Save className="w-3 h-3" /> Save Snapshot
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {riskLoading || !risk ? (
+              <Skeleton className="h-16 w-full" />
+            ) : (
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={`text-[10px] ${riskScoreClass(risk.overall.score)}`} data-testid="risk-overall-badge">
+                    Overall: {risk.overall.score ?? "N/A"} ({risk.overall.label})
+                  </Badge>
+                  <Badge variant="outline" className={`text-[10px] ${risk.concentration.capBreached ? "border-rose-500/40 text-rose-400" : "border-border text-muted-foreground"}`}>
+                    Concentration: {risk.concentration.score ?? "N/A"}
+                    {risk.concentration.largestSymbol ? ` (${risk.concentration.largestSymbol} ${risk.concentration.largestSymbolWeightPct}%)` : ""}
+                  </Badge>
+                  <Badge variant="outline" className={`text-[10px] ${risk.sectorExposure.capBreached ? "border-rose-500/40 text-rose-400" : "border-border text-muted-foreground"}`}>
+                    Sector: {risk.sectorExposure.score ?? "N/A"}
+                    {risk.sectorExposure.largestSector ? ` (${risk.sectorExposure.largestSector} ${risk.sectorExposure.largestSectorWeightPct}%)` : ""}
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">
+                    Beta: {risk.betaEstimate.portfolioBeta ?? "N/A"}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{risk.overall.detail}</p>
+                {snapshots && snapshots.length > 0 && (
+                  <div className="pt-2">
+                    <p className="text-[11px] text-muted-foreground mb-1">Saved snapshots ({snapshots.length})</p>
+                    <div className="flex flex-wrap gap-1.5" data-testid="snapshot-history">
+                      {snapshots.slice(0, 10).map((s) => (
+                        <Badge key={s.id} variant="outline" className={`text-[9px] ${riskScoreClass(s.overallScore)}`}>
+                          {new Date(s.createdAt).toLocaleDateString()}: {s.overallScore ?? "N/A"}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -1137,6 +1137,86 @@ export interface ConstructionPortfolioDetail {
   allocation: ConstructionPortfolioAllocationResult;
 }
 
+export interface ConstructionRiskComponent {
+  key: string;
+  label: string;
+  /** @nullable */
+  score: number | null;
+  weight: number;
+  detail: string;
+}
+
+export interface ConstructionConcentrationRisk {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+  /** @nullable */
+  largestSymbol: string | null;
+  /** @nullable */
+  largestSymbolWeightPct: number | null;
+  capBreached: boolean;
+}
+
+export interface ConstructionSectorExposureRow {
+  sector: string;
+  marketValue: number;
+  weightPct: number;
+}
+
+export interface ConstructionSectorExposureRisk {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+  /** @nullable */
+  largestSector: string | null;
+  /** @nullable */
+  largestSectorWeightPct: number | null;
+  capBreached: boolean;
+  breakdown: ConstructionSectorExposureRow[];
+  /** @nullable */
+  unclassifiedWeightPct: number | null;
+}
+
+export interface ConstructionBetaEstimateRisk {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+  /** @nullable */
+  portfolioBeta: number | null;
+  /** @nullable */
+  coveragePct: number | null;
+}
+
+export type ConstructionPortfolioRiskAnalysisOverall = {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+};
+
+export interface ConstructionPortfolioRiskAnalysis {
+  overall: ConstructionPortfolioRiskAnalysisOverall;
+  concentration: ConstructionConcentrationRisk;
+  sectorExposure: ConstructionSectorExposureRisk;
+  betaEstimate: ConstructionBetaEstimateRisk;
+  components: ConstructionRiskComponent[];
+  /** @nullable */
+  totalMarketValue: number | null;
+  unresolvedSymbols: string[];
+}
+
+export interface ConstructionRiskSnapshot {
+  id: number;
+  portfolioId: number;
+  /** @nullable */
+  overallScore: number | null;
+  analysis: ConstructionPortfolioRiskAnalysis;
+  createdAt: string;
+}
+
 export type ValueLessonLevel = typeof ValueLessonLevel[keyof typeof ValueLessonLevel];
 
 

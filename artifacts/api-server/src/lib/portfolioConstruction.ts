@@ -46,6 +46,18 @@ export interface PortfolioHoldingInput {
   notes: string;
 }
 
+// Phase 2, Sprint 29 — sector/beta per symbol, sourced from the exact same
+// Fundamentals resolution buildPortfolioAllocation() already performs to get
+// price (zero new provider calls). Kept as a separate, optional third
+// parameter to computePortfolioAllocation() rather than changing the
+// existing `prices` map's shape, so every pre-existing 2-argument call site
+// (including Sprint 28's own unit tests) keeps compiling and behaving
+// identically — honest null for both fields when no meta is supplied.
+export interface SymbolMeta {
+  sector: string | null;
+  beta: number | null;
+}
+
 export interface PortfolioHoldingAllocation {
   id: number;
   symbol: string;
@@ -57,6 +69,8 @@ export interface PortfolioHoldingAllocation {
   actualWeightPct: number | null;
   driftPct: number | null;
   rebalanceAction: RebalanceAction;
+  sector: string | null;
+  beta: number | null;
 }
 
 export interface PortfolioAllocationResult {
@@ -71,18 +85,20 @@ export interface PortfolioAllocationResult {
 export function computePortfolioAllocation(
   holdings: PortfolioHoldingInput[],
   prices: Map<string, number | null>,
+  meta: Map<string, SymbolMeta> = new Map(),
 ): PortfolioAllocationResult {
   const withPrice = holdings.map((h) => {
     const currentPrice = prices.get(h.symbol) ?? null;
     const marketValue = h.shares != null && currentPrice != null ? h.shares * currentPrice : null;
-    return { h, currentPrice, marketValue };
+    const m = meta.get(h.symbol);
+    return { h, currentPrice, marketValue, sector: m?.sector ?? null, beta: m?.beta ?? null };
   });
 
   const totalMarketValue = withPrice.some((w) => w.marketValue != null)
     ? round(withPrice.reduce((a, w) => a + (w.marketValue ?? 0), 0))
     : null;
 
-  const resultHoldings: PortfolioHoldingAllocation[] = withPrice.map(({ h, currentPrice, marketValue }) => {
+  const resultHoldings: PortfolioHoldingAllocation[] = withPrice.map(({ h, currentPrice, marketValue, sector, beta }) => {
     const actualWeightPct =
       marketValue != null && totalMarketValue != null && totalMarketValue > 0
         ? round((marketValue / totalMarketValue) * 100)
@@ -107,6 +123,8 @@ export function computePortfolioAllocation(
       actualWeightPct,
       driftPct,
       rebalanceAction,
+      sector,
+      beta,
     };
   });
 
@@ -145,12 +163,14 @@ export async function buildPortfolioAllocation(
   provider: FundamentalsProvider,
 ): Promise<PortfolioAllocationResult> {
   const prices = new Map<string, number | null>();
+  const meta = new Map<string, SymbolMeta>();
   const distinctSymbols = [...new Set(holdings.map((h) => h.symbol))];
   await Promise.all(
     distinctSymbols.map(async (symbol) => {
       const f = await resolveFundamentals(provider, symbol).catch(() => null);
       prices.set(symbol, f?.price ?? null);
+      meta.set(symbol, { sector: f?.sector ?? null, beta: f?.beta ?? null });
     }),
   );
-  return computePortfolioAllocation(holdings, prices);
+  return computePortfolioAllocation(holdings, prices, meta);
 }

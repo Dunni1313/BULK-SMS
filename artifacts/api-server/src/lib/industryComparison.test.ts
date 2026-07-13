@@ -17,6 +17,7 @@ function makeFixture(symbol: string, overrides: Partial<Fundamentals> = {}): Fun
     price: 150,
     sector: null,
     industry: null,
+    beta: null,
     insiderOwnershipPct: null,
     sharesOutstandingChange5y: null,
     netInsiderActivity: null,

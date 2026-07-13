@@ -22,6 +22,7 @@ function fixtureFundamentals(overrides: Partial<Fundamentals> = {}): Fundamental
     price: 150,
     sector: null,
     industry: null,
+    beta: null,
     insiderOwnershipPct: null,
     sharesOutstandingChange5y: null,
     netInsiderActivity: null,
