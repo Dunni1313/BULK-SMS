@@ -448,6 +448,54 @@ function syntheticProfile(symbol: string, price: number): BaseProfile {
   };
 }
 
+// ─── Financial Statements (Phase 2, Sprint 19) ────────────────────────────────
+// Full multi-year Income Statement / Balance Sheet / Cash Flow Statement line
+// items — a separate, heavier, ON-DEMAND data source from `Fundamentals` itself.
+// Deliberately not folded into `Fundamentals`/`buildValueResearchReport()`:
+// fetching full statements on every report would multiply the API calls per
+// report for data most users never open. Fetched only when a caller explicitly
+// requests it (the new "Financial Statements" UI tab, opened per symbol).
+//
+// Five years of ANNUAL data, oldest -> newest (matching the existing
+// `revenueHistory`-style convention elsewhere in this file). All monetary figures
+// are absolute (not per-share), matching how real filed statements are presented.
+export interface IncomeStatementYear {
+  year: string;
+  revenue: number;
+  costOfRevenue: number;
+  grossProfit: number;
+  operatingExpenses: number;
+  operatingIncome: number;
+  netIncome: number;
+}
+export interface BalanceSheetYear {
+  year: string;
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquity: number;
+  currentAssets: number;
+  currentLiabilities: number;
+  inventory: number;
+  cash: number;
+}
+export interface CashFlowYear {
+  year: string;
+  operatingCashFlow: number;
+  capitalExpenditures: number;
+  freeCashFlow: number;
+  investingCashFlow: number;
+  financingCashFlow: number;
+}
+export interface FinancialStatements {
+  symbol: string;
+  name: string;
+  dataSource: DataSource;
+  fetchedAt: string;
+  incomeStatement: IncomeStatementYear[];
+  balanceSheet: BalanceSheetYear[];
+  cashFlow: CashFlowYear[];
+}
+
 // The provider seam. A live provider implements the same async interface and is
 // selected via Settings; the simulated provider is the safe default.
 export interface FundamentalsProvider {
@@ -455,6 +503,7 @@ export interface FundamentalsProvider {
   readonly dataSource: DataSource;
   readonly isLive: boolean;
   getFundamentals(symbol: string, asOf?: string, opts?: FetchOpts): Promise<Fundamentals | null>;
+  getFinancialStatements(symbol: string, opts?: FetchOpts): Promise<FinancialStatements | null>;
 }
 
 export class SimulatedFundamentalsProvider implements FundamentalsProvider {
@@ -518,6 +567,92 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
       historyRng: rng,
     });
   }
+
+  // Deterministic, internally-consistent SIMULATED statements: derived from the
+  // SAME Fundamentals this provider already produces for the symbol (its
+  // revenueHistory/epsHistory/fcfHistory per-share arrays and margin/leverage
+  // ratios) — never a second, independently-random data source. The one new
+  // synthetic input is a deterministic "shares outstanding" (seeded by symbol
+  // only, stable across calls) needed to turn per-share figures into the
+  // absolute-dollar figures real filed statements use.
+  async getFinancialStatements(symbol: string, _opts?: FetchOpts): Promise<FinancialStatements | null> {
+    const sym = symbol.toUpperCase();
+    const f = await this.getFundamentals(sym, todayStr());
+    if (!f) return null;
+    return simulateFinancialStatements(f);
+  }
+}
+
+// Builds 5 years of absolute-dollar statements from an already-computed
+// Fundamentals snapshot. `revenueHistory`/`epsHistory`/`fcfHistory` are 6-entry
+// per-share arrays (oldest -> newest); the most recent 5 become the statement
+// years. A deterministic share count (seeded by symbol, stable across calls,
+// scaled loosely by the qualitative "scale" factor so mega-cap-flavored symbols
+// get a larger illustrative share count) converts per-share figures to totals.
+function simulateFinancialStatements(f: Fundamentals): FinancialStatements {
+  const rng = makeRng(`${f.symbol}|financial-statements-shares`);
+  const scaleFactor = clamp(f.qualitative.scale, 20, 95) / 95; // 0.21..1.0
+  const shares = Math.round((2e8 + rng() * 3e9) * (0.4 + 0.6 * scaleFactor));
+
+  const revPerShare = f.revenueHistory.slice(-5);
+  const epsPerShare = f.epsHistory.slice(-5);
+  const fcfPerShareHist = f.fcfHistory.slice(-5);
+  const n = revPerShare.length;
+
+  const yearLabel = (i: number): string => {
+    const offset = n - 1 - i; // years before "now"
+    return offset === 0 ? "Current" : `-${offset}y`;
+  };
+
+  const incomeStatement: IncomeStatementYear[] = revPerShare.map((rps, i) => {
+    const revenue = round(rps * shares, 0);
+    const grossProfit = round(revenue * f.grossMargin, 0);
+    const costOfRevenue = revenue - grossProfit;
+    const operatingIncome = round(revenue * f.operatingMargin, 0);
+    const operatingExpenses = grossProfit - operatingIncome;
+    const netIncome = round(epsPerShare[i] * shares, 0);
+    return { year: yearLabel(i), revenue, costOfRevenue, grossProfit, operatingExpenses, operatingIncome, netIncome };
+  });
+
+  // Balance sheet: current year anchored to the exact ratios Fundamentals already
+  // reports (bookPerShare, debtToEquity, currentRatio, netCashPerShare); prior
+  // years scaled proportionally to that year's revenue vs. the current year's —
+  // a simple, deterministic size proxy, not an independent random model.
+  const currentEquity = f.bookPerShare * shares;
+  const currentRevenue = revPerShare[n - 1] * shares;
+  const balanceSheet: BalanceSheetYear[] = revPerShare.map((rps, i) => {
+    const sizeScale = currentRevenue > 0 ? (rps * shares) / currentRevenue : 1;
+    const totalEquity = round(currentEquity * sizeScale, 0);
+    const totalLiabilities = round(Math.max(f.debtToEquity, 0) * totalEquity, 0);
+    const totalAssets = totalEquity + totalLiabilities;
+    const currentLiabilities = round(totalLiabilities * 0.4, 0);
+    const currentAssets = f.kind === "etf" ? 0 : round(Math.max(f.currentRatio, 0) * currentLiabilities, 0);
+    const inventory = f.kind === "etf" ? 0 : round(currentAssets * 0.15, 0);
+    const cash = round(Math.max(f.netCashPerShare, 0) * shares * sizeScale, 0);
+    return { year: yearLabel(i), totalAssets, totalLiabilities, totalEquity, currentAssets, currentLiabilities, inventory, cash };
+  });
+
+  const cashFlow: CashFlowYear[] = fcfPerShareHist.map((fcfps, i) => {
+    const freeCashFlow = round(fcfps * shares, 0);
+    // FCF = Operating CF - Capex; assume capex is a modest ~15% of operating CF
+    // (i.e. operatingCashFlow = freeCashFlow / 0.85) — a plausible, deterministic
+    // illustrative split, not an independently sourced figure.
+    const operatingCashFlow = round(freeCashFlow / 0.85, 0);
+    const capitalExpenditures = operatingCashFlow - freeCashFlow;
+    const investingCashFlow = round(-capitalExpenditures * 1.1, 0);
+    const financingCashFlow = round(-freeCashFlow * 0.2, 0);
+    return { year: yearLabel(i), operatingCashFlow, capitalExpenditures, freeCashFlow, investingCashFlow, financingCashFlow };
+  });
+
+  return {
+    symbol: f.symbol,
+    name: f.name,
+    dataSource: f.dataSource,
+    fetchedAt: new Date().toISOString(),
+    incomeStatement,
+    balanceSheet,
+    cashFlow,
+  };
 }
 
 // ─── Live data plumbing ───────────────────────────────────────────────────────
@@ -555,6 +690,19 @@ function getCached(id: string, sym: string, asOf: string): Fundamentals | null |
 }
 function setCached(id: string, sym: string, asOf: string, data: Fundamentals | null): void {
   liveCache.set(`${id}:${sym}:${asOf}`, { at: Date.now(), data });
+}
+
+// Same short-lived-cache discipline for the separate, heavier financial-statements
+// fetch (Phase 2, Sprint 19) — its own map since the payload shape differs and it
+// isn't keyed by `asOf` (statements are annual, not date-scoped like a quote).
+const statementsCache = new Map<string, { at: number; data: FinancialStatements | null }>();
+function getCachedStatements(id: string, sym: string): FinancialStatements | null | undefined {
+  const e = statementsCache.get(`${id}:${sym}`);
+  if (e && Date.now() - e.at < LIVE_TTL_MS) return e.data;
+  return undefined;
+}
+function setCachedStatements(id: string, sym: string, data: FinancialStatements | null): void {
+  statementsCache.set(`${id}:${sym}`, { at: Date.now(), data });
 }
 
 // Process-local record of the most recent successful live fundamentals fetch, so
@@ -695,6 +843,93 @@ export class FmpFundamentalsProvider implements FundamentalsProvider {
       historyRng: makeRng(`${sym}|fmp`),
     });
     setCached(this.id, sym, asOf, data);
+    return data;
+  }
+
+  // Phase 2, Sprint 19. Fetched only on demand (the Financial Statements tab),
+  // never as part of getFundamentals()/buildValueResearchReport(), so it never
+  // adds to the per-report call budget. Field names below are FMP's documented
+  // v3 statement-endpoint shape; LIVE VERIFICATION IS DEFERRED — no FMP_API_KEY
+  // was available in this session, so these have not been exercised against the
+  // real API (mocked-fetch tests cover the parsing logic instead).
+  async getFinancialStatements(symbol: string, opts?: FetchOpts): Promise<FinancialStatements | null> {
+    const sym = symbol.toUpperCase();
+    if (!opts?.forceRefresh) {
+      const cached = getCachedStatements(this.id, sym);
+      if (cached !== undefined) return cached;
+    }
+
+    const base = "https://financialmodelingprep.com/api/v3";
+    const k = encodeURIComponent(this.apiKey);
+    const [incomeRaw, balanceRaw, cashRaw] = await Promise.all([
+      fetchJson(`${base}/income-statement/${sym}?period=annual&limit=5&apikey=${k}`),
+      fetchJson(`${base}/balance-sheet-statement/${sym}?period=annual&limit=5&apikey=${k}`),
+      fetchJson(`${base}/cash-flow-statement/${sym}?period=annual&limit=5&apikey=${k}`),
+    ]);
+    for (const r of [incomeRaw, balanceRaw, cashRaw]) {
+      if (r && !Array.isArray(r) && (r as Record<string, unknown>)["Error Message"]) {
+        throw new Error("Financial Modeling Prep error or rate limit");
+      }
+    }
+    const incomeArr = (Array.isArray(incomeRaw) ? incomeRaw : []) as Record<string, unknown>[];
+    const balanceArr = (Array.isArray(balanceRaw) ? balanceRaw : []) as Record<string, unknown>[];
+    const cashArr = (Array.isArray(cashRaw) ? cashRaw : []) as Record<string, unknown>[];
+    if (incomeArr.length === 0 && balanceArr.length === 0 && cashArr.length === 0) {
+      setCachedStatements(this.id, sym, null);
+      return null;
+    }
+
+    // FMP returns most-recent-first; reverse to oldest -> newest for consistency
+    // with the rest of this file's history-array convention.
+    const incomeStatement: IncomeStatementYear[] = [...incomeArr].reverse().map((r) => {
+      const revenue = num(r.revenue) ?? 0;
+      const grossProfit = num(r.grossProfit) ?? 0;
+      return {
+        year: String(r.date ?? r.calendarYear ?? ""),
+        revenue,
+        costOfRevenue: num(r.costOfRevenue) ?? revenue - grossProfit,
+        grossProfit,
+        operatingExpenses: num(r.operatingExpenses) ?? 0,
+        operatingIncome: num(r.operatingIncome) ?? 0,
+        netIncome: num(r.netIncome) ?? 0,
+      };
+    });
+    const balanceSheet: BalanceSheetYear[] = [...balanceArr].reverse().map((r) => ({
+      year: String(r.date ?? r.calendarYear ?? ""),
+      totalAssets: num(r.totalAssets) ?? 0,
+      totalLiabilities: num(r.totalLiabilities) ?? 0,
+      totalEquity: num(r.totalStockholdersEquity) ?? num(r.totalEquity) ?? 0,
+      currentAssets: num(r.totalCurrentAssets) ?? 0,
+      currentLiabilities: num(r.totalCurrentLiabilities) ?? 0,
+      inventory: num(r.inventory) ?? 0,
+      cash: num(r.cashAndCashEquivalents) ?? num(r.cashAndShortTermInvestments) ?? 0,
+    }));
+    const cashFlow: CashFlowYear[] = [...cashArr].reverse().map((r) => {
+      const operatingCashFlow = num(r.operatingCashFlow) ?? 0;
+      const capitalExpenditures = Math.abs(num(r.capitalExpenditure) ?? 0);
+      return {
+        year: String(r.date ?? r.calendarYear ?? ""),
+        operatingCashFlow,
+        capitalExpenditures,
+        freeCashFlow: num(r.freeCashFlow) ?? operatingCashFlow - capitalExpenditures,
+        investingCashFlow: num(r.netCashUsedForInvestingActivites) ?? num(r.netCashUsedForInvestingActivities) ?? 0,
+        financingCashFlow: num(r.netCashUsedProvidedByFinancingActivities) ?? 0,
+      };
+    });
+
+    // The statement endpoints don't carry a company display name (only /profile
+    // does, fetched separately by getFundamentals) — fall back to the ticker
+    // itself rather than fabricate one.
+    const data: FinancialStatements = {
+      symbol: sym,
+      name: sym,
+      dataSource: "LIVE",
+      fetchedAt: new Date().toISOString(),
+      incomeStatement,
+      balanceSheet,
+      cashFlow,
+    };
+    setCachedStatements(this.id, sym, data);
     return data;
   }
 }
@@ -845,6 +1080,92 @@ export class AlphaVantageFundamentalsProvider implements FundamentalsProvider {
       historyRng: makeRng(`${sym}|alpha_vantage`),
     });
     setCached(this.id, sym, asOf, data);
+    return data;
+  }
+
+  // Phase 2, Sprint 19. Fetched only on demand, never as part of
+  // getFundamentals()/buildValueResearchReport(). Field names below are Alpha
+  // Vantage's documented INCOME_STATEMENT/BALANCE_SHEET/CASH_FLOW `annualReports`
+  // shape; LIVE VERIFICATION IS DEFERRED — no ALPHA_VANTAGE_API_KEY was available
+  // in this session (mocked-fetch tests cover the parsing logic instead).
+  async getFinancialStatements(symbol: string, opts?: FetchOpts): Promise<FinancialStatements | null> {
+    const sym = symbol.toUpperCase();
+    if (!opts?.forceRefresh) {
+      const cached = getCachedStatements(this.id, sym);
+      if (cached !== undefined) return cached;
+    }
+
+    const base = "https://www.alphavantage.co/query";
+    const k = encodeURIComponent(this.apiKey);
+    const [incomeRaw, balanceRaw, cashRaw] = await Promise.all([
+      fetchJson(`${base}?function=INCOME_STATEMENT&symbol=${sym}&apikey=${k}`),
+      fetchJson(`${base}?function=BALANCE_SHEET&symbol=${sym}&apikey=${k}`),
+      fetchJson(`${base}?function=CASH_FLOW&symbol=${sym}&apikey=${k}`),
+    ]);
+    const income = (incomeRaw ?? {}) as Record<string, unknown>;
+    const balance = (balanceRaw ?? {}) as Record<string, unknown>;
+    const cash = (cashRaw ?? {}) as Record<string, unknown>;
+    for (const r of [income, balance, cash]) {
+      if (r.Note || r.Information || r["Error Message"]) {
+        throw new Error("Alpha Vantage rate limit or error");
+      }
+    }
+    const incomeArr = (Array.isArray(income.annualReports) ? income.annualReports : []) as Record<string, unknown>[];
+    const balanceArr = (Array.isArray(balance.annualReports) ? balance.annualReports : []) as Record<string, unknown>[];
+    const cashArr = (Array.isArray(cash.annualReports) ? cash.annualReports : []) as Record<string, unknown>[];
+    if (incomeArr.length === 0 && balanceArr.length === 0 && cashArr.length === 0) {
+      setCachedStatements(this.id, sym, null);
+      return null;
+    }
+
+    // Alpha Vantage returns most-recent-first, up to 5 years; take the 5 most
+    // recent and reverse to oldest -> newest.
+    const incomeStatement: IncomeStatementYear[] = incomeArr.slice(0, 5).reverse().map((r) => {
+      const revenue = num(r.totalRevenue) ?? 0;
+      const grossProfit = num(r.grossProfit) ?? 0;
+      return {
+        year: String(r.fiscalDateEnding ?? ""),
+        revenue,
+        costOfRevenue: num(r.costOfRevenue) ?? num(r.costofGoodsAndServicesSold) ?? revenue - grossProfit,
+        grossProfit,
+        operatingExpenses: num(r.operatingExpenses) ?? 0,
+        operatingIncome: num(r.operatingIncome) ?? 0,
+        netIncome: num(r.netIncome) ?? 0,
+      };
+    });
+    const balanceSheet: BalanceSheetYear[] = balanceArr.slice(0, 5).reverse().map((r) => ({
+      year: String(r.fiscalDateEnding ?? ""),
+      totalAssets: num(r.totalAssets) ?? 0,
+      totalLiabilities: num(r.totalLiabilities) ?? 0,
+      totalEquity: num(r.totalShareholderEquity) ?? 0,
+      currentAssets: num(r.totalCurrentAssets) ?? 0,
+      currentLiabilities: num(r.totalCurrentLiabilities) ?? 0,
+      inventory: num(r.inventory) ?? 0,
+      cash: num(r.cashAndCashEquivalentsAtCarryingValue) ?? num(r.cashAndShortTermInvestments) ?? 0,
+    }));
+    const cashFlow: CashFlowYear[] = cashArr.slice(0, 5).reverse().map((r) => {
+      const operatingCashFlow = num(r.operatingCashflow) ?? 0;
+      const capitalExpenditures = Math.abs(num(r.capitalExpenditures) ?? 0);
+      return {
+        year: String(r.fiscalDateEnding ?? ""),
+        operatingCashFlow,
+        capitalExpenditures,
+        freeCashFlow: operatingCashFlow - capitalExpenditures,
+        investingCashFlow: num(r.cashflowFromInvestment) ?? 0,
+        financingCashFlow: num(r.cashflowFromFinancing) ?? 0,
+      };
+    });
+
+    const data: FinancialStatements = {
+      symbol: sym,
+      name: sym,
+      dataSource: "LIVE",
+      fetchedAt: new Date().toISOString(),
+      incomeStatement,
+      balanceSheet,
+      cashFlow,
+    };
+    setCachedStatements(this.id, sym, data);
     return data;
   }
 }

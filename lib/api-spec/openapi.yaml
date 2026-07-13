@@ -1378,6 +1378,27 @@ paths:
         "404":
           description: Unknown symbol
 
+  /stock-analyst/financial-statements/{symbol}:
+    get:
+      operationId: getFinancialStatements
+      tags: [value]
+      summary: Full multi-year Income Statement / Balance Sheet / Cash Flow Statement for a symbol, fetched on demand
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Financial statements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinancialStatements"
+        "404":
+          description: Unknown symbol
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -1801,6 +1822,62 @@ components:
           type: array
           items: { $ref: "#/components/schemas/ValueReportSection" }
         disclaimer: { type: string }
+
+    IncomeStatementYear:
+      type: object
+      required: [year, revenue, costOfRevenue, grossProfit, operatingExpenses, operatingIncome, netIncome]
+      properties:
+        year: { type: string }
+        revenue: { type: number }
+        costOfRevenue: { type: number }
+        grossProfit: { type: number }
+        operatingExpenses: { type: number }
+        operatingIncome: { type: number }
+        netIncome: { type: number }
+
+    BalanceSheetYear:
+      type: object
+      required: [year, totalAssets, totalLiabilities, totalEquity, currentAssets, currentLiabilities, inventory, cash]
+      properties:
+        year: { type: string }
+        totalAssets: { type: number }
+        totalLiabilities: { type: number }
+        totalEquity: { type: number }
+        currentAssets: { type: number }
+        currentLiabilities: { type: number }
+        inventory: { type: number }
+        cash: { type: number }
+
+    CashFlowYear:
+      type: object
+      required: [year, operatingCashFlow, capitalExpenditures, freeCashFlow, investingCashFlow, financingCashFlow]
+      properties:
+        year: { type: string }
+        operatingCashFlow: { type: number }
+        capitalExpenditures: { type: number }
+        freeCashFlow: { type: number }
+        investingCashFlow: { type: number }
+        financingCashFlow: { type: number }
+
+    FinancialStatements:
+      type: object
+      required: [symbol, name, dataSource, fetchedAt, incomeStatement, balanceSheet, cashFlow]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        fetchedAt: { type: string }
+        incomeStatement:
+          type: array
+          items: { $ref: "#/components/schemas/IncomeStatementYear" }
+        balanceSheet:
+          type: array
+          items: { $ref: "#/components/schemas/BalanceSheetYear" }
+        cashFlow:
+          type: array
+          items: { $ref: "#/components/schemas/CashFlowYear" }
 
     ValueResearchInput:
       type: object

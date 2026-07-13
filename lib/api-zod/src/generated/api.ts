@@ -2985,3 +2985,45 @@ export const GetValueReportResponse = zod.object({
 })
 
 
+/**
+ * @summary Full multi-year Income Statement / Balance Sheet / Cash Flow Statement for a symbol, fetched on demand
+ */
+export const GetFinancialStatementsParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetFinancialStatementsResponse = zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "fetchedAt": zod.string(),
+  "incomeStatement": zod.array(zod.object({
+  "year": zod.string(),
+  "revenue": zod.number(),
+  "costOfRevenue": zod.number(),
+  "grossProfit": zod.number(),
+  "operatingExpenses": zod.number(),
+  "operatingIncome": zod.number(),
+  "netIncome": zod.number()
+})),
+  "balanceSheet": zod.array(zod.object({
+  "year": zod.string(),
+  "totalAssets": zod.number(),
+  "totalLiabilities": zod.number(),
+  "totalEquity": zod.number(),
+  "currentAssets": zod.number(),
+  "currentLiabilities": zod.number(),
+  "inventory": zod.number(),
+  "cash": zod.number()
+})),
+  "cashFlow": zod.array(zod.object({
+  "year": zod.string(),
+  "operatingCashFlow": zod.number(),
+  "capitalExpenditures": zod.number(),
+  "freeCashFlow": zod.number(),
+  "investingCashFlow": zod.number(),
+  "financingCashFlow": zod.number()
+}))
+})
+
+

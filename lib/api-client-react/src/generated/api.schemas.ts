@@ -519,6 +519,54 @@ export interface ValueResearchReport {
   disclaimer: string;
 }
 
+export interface IncomeStatementYear {
+  year: string;
+  revenue: number;
+  costOfRevenue: number;
+  grossProfit: number;
+  operatingExpenses: number;
+  operatingIncome: number;
+  netIncome: number;
+}
+
+export interface BalanceSheetYear {
+  year: string;
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquity: number;
+  currentAssets: number;
+  currentLiabilities: number;
+  inventory: number;
+  cash: number;
+}
+
+export interface CashFlowYear {
+  year: string;
+  operatingCashFlow: number;
+  capitalExpenditures: number;
+  freeCashFlow: number;
+  investingCashFlow: number;
+  financingCashFlow: number;
+}
+
+export type FinancialStatementsDataSource = typeof FinancialStatementsDataSource[keyof typeof FinancialStatementsDataSource];
+
+
+export const FinancialStatementsDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export interface FinancialStatements {
+  symbol: string;
+  name: string;
+  dataSource: FinancialStatementsDataSource;
+  fetchedAt: string;
+  incomeStatement: IncomeStatementYear[];
+  balanceSheet: BalanceSheetYear[];
+  cashFlow: CashFlowYear[];
+}
+
 export type ValueResearchInputLevel = typeof ValueResearchInputLevel[keyof typeof ValueResearchInputLevel];
 
 

@@ -7,10 +7,12 @@ import {
   useAddValueWatchlist,
   useDeleteValueWatchlist,
   useGetSettings,
+  useGetFinancialStatements,
   getValueUniverse,
   getGetValueUniverseQueryKey,
   getGetValueWatchlistQueryKey,
   getGetValueHistoryQueryKey,
+  getGetFinancialStatementsQueryKey,
   ValueResearchReport,
   ValueResearchInputLevel,
 } from "@workspace/api-client-react";
@@ -62,6 +64,12 @@ type Level = ValueResearchInputLevel;
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+
+// Compact formatter for absolute statement figures (billions/millions), used by
+// the Financial Statements tab (Phase 2, Sprint 19) — statement line items are
+// far larger in magnitude than every other per-share/ratio figure in this file.
+const fmtCompactUsd = (n: number) =>
+  n.toLocaleString("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
 
 // Relative-time label for when live data was last fetched (e.g. "just now",
 // "3 min ago"), falling back to an absolute timestamp for older data.
@@ -1001,6 +1009,19 @@ export default function StockResearch() {
   const [universeRefreshing, setUniverseRefreshing] = useState(false);
   const [tab, setTab] = useState("research");
   const abortRef = useRef<AbortController | null>(null);
+
+  // Phase 2, Sprint 19 — fetched only when the Statements tab is actually opened
+  // for a selected symbol, never as a side effect of loading the main report.
+  const {
+    data: statements,
+    isLoading: statementsLoading,
+    isError: statementsError,
+  } = useGetFinancialStatements(report?.symbol ?? "", {
+    query: {
+      queryKey: getGetFinancialStatementsQueryKey(report?.symbol ?? ""),
+      enabled: tab === "statements" && !!report?.symbol,
+    },
+  });
   const search = useSearch();
 
   // Auto-refresh bookkeeping: the fetchedAt batch we've already auto-refreshed
@@ -1304,6 +1325,9 @@ export default function StockResearch() {
               <TabsTrigger value="history" className="text-xs">
                 History
               </TabsTrigger>
+              <TabsTrigger value="statements" className="text-xs" disabled={!report}>
+                Statements
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="research" className="mt-4">
@@ -1468,6 +1492,128 @@ export default function StockResearch() {
                         </tbody>
                       </table>
                     </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="statements" className="mt-4">
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <BookText className="w-4 h-4 text-indigo-400" /> Financial Statements
+                    {statements && (
+                      <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                        {statements.dataSource}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-[11px]">
+                    {report ? `Five-year annual statements for ${report.symbol}, fetched on demand.` : "Select a company to view its statements."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {!report ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">Select a company to begin research first.</p>
+                  ) : statementsLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  ) : statementsError || !statements ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">
+                      Financial statements are unavailable for {report.symbol}.
+                    </p>
+                  ) : (
+                    <Tabs defaultValue="income">
+                      <TabsList className="bg-secondary">
+                        <TabsTrigger value="income" className="text-xs">Income Statement</TabsTrigger>
+                        <TabsTrigger value="balance" className="text-xs">Balance Sheet</TabsTrigger>
+                        <TabsTrigger value="cashflow" className="text-xs">Cash Flow</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="income" className="mt-3 overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-muted-foreground border-b border-border">
+                              <th className="text-left font-medium py-2 pr-3">Year</th>
+                              <th className="text-right font-medium py-2 pr-3">Revenue</th>
+                              <th className="text-right font-medium py-2 pr-3">Cost of Revenue</th>
+                              <th className="text-right font-medium py-2 pr-3">Gross Profit</th>
+                              <th className="text-right font-medium py-2 pr-3">Operating Income</th>
+                              <th className="text-right font-medium py-2">Net Income</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {statements.incomeStatement.map((y) => (
+                              <tr key={y.year} className="border-b border-border/40">
+                                <td className="py-2 pr-3 font-medium text-foreground/90">{y.year}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.revenue)}</td>
+                                <td className="py-2 pr-3 text-right font-mono text-muted-foreground">{fmtCompactUsd(y.costOfRevenue)}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.grossProfit)}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.operatingIncome)}</td>
+                                <td className="py-2 text-right font-mono">{fmtCompactUsd(y.netIncome)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </TabsContent>
+
+                      <TabsContent value="balance" className="mt-3 overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-muted-foreground border-b border-border">
+                              <th className="text-left font-medium py-2 pr-3">Year</th>
+                              <th className="text-right font-medium py-2 pr-3">Total Assets</th>
+                              <th className="text-right font-medium py-2 pr-3">Total Liabilities</th>
+                              <th className="text-right font-medium py-2 pr-3">Total Equity</th>
+                              <th className="text-right font-medium py-2 pr-3">Current Assets</th>
+                              <th className="text-right font-medium py-2">Current Liabilities</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {statements.balanceSheet.map((y) => (
+                              <tr key={y.year} className="border-b border-border/40">
+                                <td className="py-2 pr-3 font-medium text-foreground/90">{y.year}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.totalAssets)}</td>
+                                <td className="py-2 pr-3 text-right font-mono text-muted-foreground">{fmtCompactUsd(y.totalLiabilities)}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.totalEquity)}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.currentAssets)}</td>
+                                <td className="py-2 text-right font-mono">{fmtCompactUsd(y.currentLiabilities)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </TabsContent>
+
+                      <TabsContent value="cashflow" className="mt-3 overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-muted-foreground border-b border-border">
+                              <th className="text-left font-medium py-2 pr-3">Year</th>
+                              <th className="text-right font-medium py-2 pr-3">Operating CF</th>
+                              <th className="text-right font-medium py-2 pr-3">Capex</th>
+                              <th className="text-right font-medium py-2 pr-3">Free Cash Flow</th>
+                              <th className="text-right font-medium py-2 pr-3">Investing CF</th>
+                              <th className="text-right font-medium py-2">Financing CF</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {statements.cashFlow.map((y) => (
+                              <tr key={y.year} className="border-b border-border/40">
+                                <td className="py-2 pr-3 font-medium text-foreground/90">{y.year}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.operatingCashFlow)}</td>
+                                <td className="py-2 pr-3 text-right font-mono text-muted-foreground">{fmtCompactUsd(y.capitalExpenditures)}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.freeCashFlow)}</td>
+                                <td className="py-2 pr-3 text-right font-mono">{fmtCompactUsd(y.investingCashFlow)}</td>
+                                <td className="py-2 text-right font-mono">{fmtCompactUsd(y.financingCashFlow)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </TabsContent>
+                    </Tabs>
                   )}
                 </CardContent>
               </Card>

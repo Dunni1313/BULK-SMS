@@ -50,6 +50,7 @@ import type {
   ExpirationDate,
   ExplainTradeInput,
   ExplainTradeResult,
+  FinancialStatements,
   FundamentalsProviderStatusResponse,
   GeneratedQuiz,
   GeneratedValueQuiz,
@@ -5845,6 +5846,83 @@ export function useGetValueReport<TData = Awaited<ReturnType<typeof getValueRepo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetValueReportQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetFinancialStatementsUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/financial-statements/${symbol}`
+}
+
+/**
+ * @summary Full multi-year Income Statement / Balance Sheet / Cash Flow Statement for a symbol, fetched on demand
+ */
+export const getFinancialStatements = async (symbol: string, options?: RequestInit): Promise<FinancialStatements> => {
+
+  return customFetch<FinancialStatements>(getGetFinancialStatementsUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinancialStatementsQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/financial-statements/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetFinancialStatementsQueryOptions = <TData = Awaited<ReturnType<typeof getFinancialStatements>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinancialStatements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinancialStatementsQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinancialStatements>>> = ({ signal }) => getFinancialStatements(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinancialStatements>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFinancialStatementsQueryResult = NonNullable<Awaited<ReturnType<typeof getFinancialStatements>>>
+export type GetFinancialStatementsQueryError = ErrorType<void>
+
+
+/**
+ * @summary Full multi-year Income Statement / Balance Sheet / Cash Flow Statement for a symbol, fetched on demand
+ */
+
+export function useGetFinancialStatements<TData = Awaited<ReturnType<typeof getFinancialStatements>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinancialStatements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFinancialStatementsQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

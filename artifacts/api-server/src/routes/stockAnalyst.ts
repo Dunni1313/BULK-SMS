@@ -31,6 +31,7 @@ import {
   GenerateValueQuizResponse,
   GradeValueQuizBody,
   GradeValueQuizResponse,
+  GetFinancialStatementsResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider } from "../lib/fundamentals.js";
@@ -449,6 +450,31 @@ router.get("/value/:symbol", async (req, res): Promise<void> => {
     return;
   }
   res.json(GetValueReportResponse.parse(report));
+});
+
+// Phase 2, Sprint 19 — full multi-year financial statements. Deliberately a
+// separate, on-demand endpoint (not folded into /value/:symbol) so opening the
+// Financial Statements tab is the only thing that triggers this heavier fetch —
+// buildValueResearchReport() never calls it.
+router.get("/financial-statements/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const provider = await getFundamentalsProvider(userId);
+  let statements;
+  try {
+    statements = await provider.getFinancialStatements(req.params.symbol);
+  } catch (err) {
+    // Mirrors resolveFundamentals()'s honesty discipline: a live provider
+    // outage/rate-limit is reported plainly, never silently swapped for a
+    // SIMULATED result the user didn't ask for on this on-demand tab.
+    req.log.error({ err }, "financial statements fetch failed");
+    res.status(502).json({ error: "Live financial statements provider is currently unavailable." });
+    return;
+  }
+  if (!statements) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  res.json(GetFinancialStatementsResponse.parse(statements));
 });
 
 export default router;
