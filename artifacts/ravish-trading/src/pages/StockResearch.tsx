@@ -1085,6 +1085,23 @@ export function ReportView({
 export default function StockResearch() {
   const { data: universe, isLoading: universeLoading } = useGetValueUniverse();
   const { data: watchlist } = useGetValueWatchlist();
+  // Phase 2, Sprint 27 — "Check Targets" is an explicit, on-demand opt-in: it
+  // resolves a fresh price per watchlist row (a real, proportional cost), so
+  // it never fires automatically alongside the fast base watchlist query.
+  const [checkTargetsRequested, setCheckTargetsRequested] = useState(false);
+  const {
+    data: watchlistWithTargets,
+    isFetching: targetsLoading,
+  } = useGetValueWatchlist(
+    { checkTargets: "true" },
+    {
+      query: {
+        queryKey: getGetValueWatchlistQueryKey({ checkTargets: "true" }),
+        enabled: checkTargetsRequested,
+      },
+    },
+  );
+  const displayWatchlist = watchlistWithTargets ?? watchlist;
   const { data: settings } = useGetSettings();
   const fundamentalsLive = settings?.fundamentalsConnected ?? false;
   const stalenessHours = settings?.fundamentalsStalenessHours ?? DEFAULT_STALENESS_HOURS;
@@ -1274,6 +1291,28 @@ export default function StockResearch() {
         onError: () => toast({ title: "Failed to add to watchlist", variant: "destructive" }),
       },
     );
+  };
+
+  // Phase 2, Sprint 27 — bulk-add: no new backend route, just the existing
+  // single-add mutation called once per symbol not already watched.
+  const handleBulkAddWatchlist = (symbols: string[]) => {
+    const toAdd = symbols.filter((s) => !watchedSymbols.has(s));
+    if (toAdd.length === 0) {
+      toast({ title: "All selected symbols are already on your watchlist" });
+      return;
+    }
+    Promise.allSettled(
+      toAdd.map((symbol) => addWatchlist.mutateAsync({ data: { symbol } })),
+    ).then((results) => {
+      queryClient.invalidateQueries({ queryKey: getGetValueWatchlistQueryKey() });
+      const added = results.filter((r) => r.status === "fulfilled").length;
+      const failed = results.length - added;
+      toast({
+        title: `${added} name${added === 1 ? "" : "s"} added to watchlist`,
+        description: failed > 0 ? `${failed} failed to add` : undefined,
+        variant: failed > 0 ? "destructive" : undefined,
+      });
+    });
   };
 
   const handleRemoveWatchlist = (id: number, symbol: string) => {
@@ -1536,25 +1575,35 @@ export default function StockResearch() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Star className="w-4 h-4 text-indigo-400" /> Value Watchlist
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="ml-auto h-7 text-[11px]"
+                      disabled={!displayWatchlist || displayWatchlist.length === 0 || targetsLoading}
+                      onClick={() => setCheckTargetsRequested(true)}
+                      data-testid="check-watchlist-targets"
+                    >
+                      {targetsLoading ? "Checking…" : "Check Targets"}
+                    </Button>
                   </CardTitle>
                   <CardDescription className="text-[11px]">
                     Names you are tracking for a future margin of safety.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {!watchlist || watchlist.length === 0 ? (
+                  {!displayWatchlist || displayWatchlist.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-8 text-center">
                       No names yet. Research a company and add it to your watchlist.
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      {watchlist.map((w) => (
+                      {displayWatchlist.map((w) => (
                         <div
                           key={w.id}
                           className="flex items-center justify-between rounded-md border border-border/60 bg-background/40 px-3 py-2"
                         >
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <button
                                 onClick={() => runResearch(w.symbol, false)}
                                 className="text-sm font-semibold text-foreground hover:text-indigo-400"
@@ -1569,9 +1618,24 @@ export default function StockResearch() {
                                   {w.currentDecision}
                                 </Badge>
                               )}
+                              {w.priceTargetCrossed && (
+                                <Badge variant="outline" className="text-[9px] border-emerald-500/40 text-emerald-400">
+                                  Price target hit
+                                </Badge>
+                              )}
+                              {w.marginOfSafetyTargetCrossed && (
+                                <Badge variant="outline" className="text-[9px] border-emerald-500/40 text-emerald-400">
+                                  MoS target hit
+                                </Badge>
+                              )}
                             </div>
                             {w.reason && (
                               <p className="text-[11px] text-muted-foreground truncate mt-0.5">{w.reason}</p>
+                            )}
+                            {w.currentPrice != null && (
+                              <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                                Current price: {fmtUsd(w.currentPrice)}
+                              </p>
                             )}
                             {w.lastResearchedAt && (
                               <p className="text-[10px] text-muted-foreground/70 mt-0.5">
@@ -1823,9 +1887,22 @@ export default function StockResearch() {
                       <p className="text-xs text-muted-foreground">{comparison.summary}</p>
 
                       <div>
-                        <p className="text-xs font-medium text-foreground/80 mb-1">
-                          Peer group ({comparison.peerGroup.length})
-                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-xs font-medium text-foreground/80">
+                            Peer group ({comparison.peerGroup.length})
+                          </p>
+                          {comparison.peerGroup.length > 0 && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="ml-auto h-6 text-[10px]"
+                              onClick={() => handleBulkAddWatchlist(comparison.peerGroup.map((p) => p.symbol))}
+                              data-testid="add-peers-to-watchlist"
+                            >
+                              Add peers to watchlist
+                            </Button>
+                          )}
+                        </div>
                         <div className="flex flex-wrap gap-1.5">
                           {comparison.peerGroup.length === 0 ? (
                             <span className="text-[11px] text-muted-foreground">No peers could be resolved.</span>

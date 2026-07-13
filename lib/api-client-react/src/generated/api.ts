@@ -63,6 +63,7 @@ import type {
   GetScannerResultsParams,
   GetUpcomingEventsParams,
   GetValueUniverseParams,
+  GetValueWatchlistParams,
   GradeQuizInput,
   GradeValueQuizInput,
   HealthStatus,
@@ -5276,20 +5277,27 @@ export function useGetValueHistory<TData = Awaited<ReturnType<typeof getValueHis
 
 
 
-export const getGetValueWatchlistUrl = () => {
+export const getGetValueWatchlistUrl = (params?: GetValueWatchlistParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/stock-analyst/value-watchlist`
+  return stringifiedParams.length > 0 ? `/api/stock-analyst/value-watchlist?${stringifiedParams}` : `/api/stock-analyst/value-watchlist`
 }
 
 /**
  * @summary List value-investing watchlist items
  */
-export const getValueWatchlist = async ( options?: RequestInit): Promise<ValueWatchlistItem[]> => {
+export const getValueWatchlist = async (params?: GetValueWatchlistParams, options?: RequestInit): Promise<ValueWatchlistItem[]> => {
 
-  return customFetch<ValueWatchlistItem[]>(getGetValueWatchlistUrl(),
+  return customFetch<ValueWatchlistItem[]>(getGetValueWatchlistUrl(params),
   {
     ...options,
     method: 'GET'
@@ -5302,23 +5310,23 @@ export const getValueWatchlist = async ( options?: RequestInit): Promise<ValueWa
 
 
 
-export const getGetValueWatchlistQueryKey = () => {
+export const getGetValueWatchlistQueryKey = (params?: GetValueWatchlistParams,) => {
     return [
-    `/api/stock-analyst/value-watchlist`
+    `/api/stock-analyst/value-watchlist`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetValueWatchlistQueryOptions = <TData = Awaited<ReturnType<typeof getValueWatchlist>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getValueWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetValueWatchlistQueryOptions = <TData = Awaited<ReturnType<typeof getValueWatchlist>>, TError = ErrorType<unknown>>(params?: GetValueWatchlistParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getValueWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetValueWatchlistQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetValueWatchlistQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getValueWatchlist>>> = ({ signal }) => getValueWatchlist({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getValueWatchlist>>> = ({ signal }) => getValueWatchlist(params, { signal, ...requestOptions });
 
 
 
@@ -5336,11 +5344,11 @@ export type GetValueWatchlistQueryError = ErrorType<unknown>
  */
 
 export function useGetValueWatchlist<TData = Awaited<ReturnType<typeof getValueWatchlist>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getValueWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: GetValueWatchlistParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getValueWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getGetValueWatchlistQueryOptions(options)
+  const queryOptions = getGetValueWatchlistQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -1012,6 +1012,12 @@ export interface ValueWatchlistItem {
   lastResearchedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  priceTargetCrossed: boolean | null;
+  /** @nullable */
+  marginOfSafetyTargetCrossed: boolean | null;
 }
 
 export interface ValueWatchlistCreate {
@@ -3383,4 +3389,19 @@ export type GetValueUniverseParams = {
  */
 forceRefresh?: boolean;
 };
+
+export type GetValueWatchlistParams = {
+/**
+ * When "true", resolves a fresh price per row and computes priceTargetCrossed/marginOfSafetyTargetCrossed (opt-in — a heavier, on-demand check, never automatic).
+ */
+checkTargets?: GetValueWatchlistCheckTargets;
+};
+
+export type GetValueWatchlistCheckTargets = typeof GetValueWatchlistCheckTargets[keyof typeof GetValueWatchlistCheckTargets];
+
+
+export const GetValueWatchlistCheckTargets = {
+  true: 'true',
+  false: 'false',
+} as const;
 

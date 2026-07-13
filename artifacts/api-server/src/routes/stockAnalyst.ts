@@ -38,7 +38,7 @@ import {
   GetEarningsIntelligenceResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
-import { getFundamentalsProvider } from "../lib/fundamentals.js";
+import { getFundamentalsProvider, resolveFundamentals } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
 import { buildIndustryComparison } from "../lib/industryComparison.js";
 import { buildFilingAnalysis } from "../lib/filingAnalysis.js";
@@ -315,7 +315,31 @@ function watchlistItem(r: typeof valueWatchlistTable.$inferSelect) {
     lastResearchedAt: r.lastResearchedAt ? r.lastResearchedAt.toISOString() : null,
     createdAt: r.createdAt.toISOString(),
     updatedAt: r.updatedAt.toISOString(),
+    // Phase 2, Sprint 27 — always present, always null unless the caller
+    // opted into ?checkTargets=true (never fabricated, never silently stale).
+    currentPrice: null as number | null,
+    priceTargetCrossed: null as boolean | null,
+    marginOfSafetyTargetCrossed: null as boolean | null,
   };
+}
+
+// Phase 2, Sprint 27 — Watchlist Polish. Resolves a fresh price for one
+// watchlist row and honestly compares it against the row's own stored
+// targets. Never fabricates a crossed/not-crossed verdict for a target the
+// user never set (null, not false) or a symbol that can't be resolved.
+async function computeWatchlistTargets(
+  row: typeof valueWatchlistTable.$inferSelect,
+  provider: Awaited<ReturnType<typeof getFundamentalsProvider>>,
+): Promise<{ currentPrice: number | null; priceTargetCrossed: boolean | null; marginOfSafetyTargetCrossed: boolean | null }> {
+  const f = await resolveFundamentals(provider, row.symbol).catch(() => null);
+  const currentPrice = f?.price ?? null;
+  const priceTargetCrossed =
+    currentPrice != null && row.desiredBuyPrice != null ? currentPrice <= row.desiredBuyPrice : null;
+  const marginOfSafetyTargetCrossed =
+    currentPrice != null && row.fairValueEstimate != null && row.fairValueEstimate > 0
+      ? ((row.fairValueEstimate - currentPrice) / row.fairValueEstimate) * 100 >= row.marginOfSafetyTarget
+      : null;
+  return { currentPrice, priceTargetCrossed, marginOfSafetyTargetCrossed };
 }
 
 router.get("/value-watchlist", async (req, res): Promise<void> => {
@@ -325,6 +349,22 @@ router.get("/value-watchlist", async (req, res): Promise<void> => {
     .from(valueWatchlistTable)
     .where(eq(valueWatchlistTable.userId, userId))
     .orderBy(desc(valueWatchlistTable.createdAt));
+
+  // Phase 2, Sprint 27 — opt-in only: the default GET (no query param) is
+  // byte-identical to pre-Sprint-27 behavior, zero extra provider calls.
+  // Resolving a fresh price per row is a real, proportional cost, so it's
+  // never automatic — the same on-demand discipline every heavier lookup in
+  // this file already follows (Financial Statements, Industry Comparison,
+  // Filings, Earnings).
+  if (req.query.checkTargets === "true") {
+    const provider = await getFundamentalsProvider(userId);
+    const items = await Promise.all(
+      rows.map(async (r) => ({ ...watchlistItem(r), ...(await computeWatchlistTargets(r, provider)) })),
+    );
+    res.json(GetValueWatchlistResponse.parse(items));
+    return;
+  }
+
   res.json(GetValueWatchlistResponse.parse(rows.map(watchlistItem)));
 });
 

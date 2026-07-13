@@ -2613,6 +2613,10 @@ export const GetValueHistoryResponse = zod.array(GetValueHistoryResponseItem)
 /**
  * @summary List value-investing watchlist items
  */
+export const GetValueWatchlistQueryParams = zod.object({
+  "checkTargets": zod.enum(['true', 'false']).optional().describe('When \"true\", resolves a fresh price per row and computes priceTargetCrossed\/marginOfSafetyTargetCrossed (opt-in — a heavier, on-demand check, never automatic).')
+})
+
 export const GetValueWatchlistResponseItem = zod.object({
   "id": zod.number(),
   "symbol": zod.string(),
@@ -2624,7 +2628,10 @@ export const GetValueWatchlistResponseItem = zod.object({
   "currentDecision": zod.string(),
   "lastResearchedAt": zod.string().nullish(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string()
+  "updatedAt": zod.string(),
+  "currentPrice": zod.number().nullable(),
+  "priceTargetCrossed": zod.boolean().nullable(),
+  "marginOfSafetyTargetCrossed": zod.boolean().nullable()
 })
 export const GetValueWatchlistResponse = zod.array(GetValueWatchlistResponseItem)
 
@@ -2653,7 +2660,10 @@ export const AddValueWatchlistResponse = zod.object({
   "currentDecision": zod.string(),
   "lastResearchedAt": zod.string().nullish(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string()
+  "updatedAt": zod.string(),
+  "currentPrice": zod.number().nullable(),
+  "priceTargetCrossed": zod.boolean().nullable(),
+  "marginOfSafetyTargetCrossed": zod.boolean().nullable()
 })
 
 
@@ -2684,7 +2694,10 @@ export const UpdateValueWatchlistResponse = zod.object({
   "currentDecision": zod.string(),
   "lastResearchedAt": zod.string().nullish(),
   "createdAt": zod.string(),
-  "updatedAt": zod.string()
+  "updatedAt": zod.string(),
+  "currentPrice": zod.number().nullable(),
+  "priceTargetCrossed": zod.boolean().nullable(),
+  "marginOfSafetyTargetCrossed": zod.boolean().nullable()
 })
 
 

@@ -6,6 +6,7 @@ import { renderWithClient } from "@/test/test-utils";
 type HookResult = { data: unknown; isLoading?: boolean };
 
 const addMutate = vi.fn();
+const addMutateAsync = vi.fn(() => Promise.resolve({}));
 
 const mockState = vi.hoisted(() => ({
   valueUniverse: { data: [] as unknown[], isLoading: false } as HookResult,
@@ -20,7 +21,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetValueUniverse: () => mockState.valueUniverse,
     useGetValueWatchlist: () => ({ data: [] }),
     useGetSettings: () => ({ data: { fundamentalsConnected: false } }),
-    useAddValueWatchlist: () => ({ mutate: addMutate, isPending: false }),
+    useAddValueWatchlist: () => ({ mutate: addMutate, mutateAsync: addMutateAsync, isPending: false }),
   };
 });
 
@@ -53,6 +54,7 @@ function row(over: Record<string, unknown>) {
 describe("StockScanner page", () => {
   beforeEach(() => {
     addMutate.mockReset();
+    addMutateAsync.mockClear();
     mockState.valueUniverse = {
       data: [
         row({ symbol: "META", name: "Meta Platforms Inc", useCase: "Stock", stockInvestmentScore: 91 }),
@@ -99,5 +101,23 @@ describe("StockScanner page", () => {
       { data: { symbol: "META" } },
       expect.anything(),
     );
+  });
+
+  // Phase 2, Sprint 27 — bulk-add reuses the existing single-add mutation,
+  // called once per selected row not already watched.
+  it("bulk-adds all selected symbols to the watchlist", async () => {
+    renderWithClient(<StockScanner />);
+    await screen.findByTestId("scanner-row-META");
+    const bulkButton = screen.getByTestId("bulk-watchlist-button");
+    expect(bulkButton).toBeDisabled();
+
+    await userEvent.click(screen.getByTestId("select-META"));
+    await userEvent.click(screen.getByTestId("select-AAPL"));
+    expect(bulkButton).toBeEnabled();
+
+    await userEvent.click(bulkButton);
+    expect(addMutateAsync).toHaveBeenCalledWith({ data: { symbol: "META" } });
+    expect(addMutateAsync).toHaveBeenCalledWith({ data: { symbol: "AAPL" } });
+    expect(addMutateAsync).toHaveBeenCalledTimes(2);
   });
 });

@@ -201,6 +201,28 @@ export default function StockScanner() {
     );
   };
 
+  // Phase 2, Sprint 27 — bulk-add: no new backend route, just the existing
+  // single-add mutation called once per selected symbol not already watched.
+  const handleBulkAddWatchlist = () => {
+    const toAdd = selectedRows.map((u) => u.symbol).filter((s) => !watchedSymbols.has(s));
+    if (toAdd.length === 0) {
+      toast({ title: "All selected symbols are already on your watchlist" });
+      return;
+    }
+    Promise.allSettled(
+      toAdd.map((symbol) => addWatchlist.mutateAsync({ data: { symbol } })),
+    ).then((results) => {
+      queryClient.invalidateQueries({ queryKey: getGetValueWatchlistQueryKey() });
+      const added = results.filter((r) => r.status === "fulfilled").length;
+      const failed = results.length - added;
+      toast({
+        title: `${added} name${added === 1 ? "" : "s"} added to watchlist`,
+        description: failed > 0 ? `${failed} failed to add` : undefined,
+        variant: failed > 0 ? "destructive" : undefined,
+      });
+    });
+  };
+
   const handleResearch = (symbol: string) => {
     navigate(`/stock-analyst?symbol=${encodeURIComponent(symbol)}`);
   };
@@ -226,17 +248,30 @@ export default function StockScanner() {
             suitability, and fundamentals engines. Education &amp; advisory only; it never places trades.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={selected.size < 2}
-          onClick={() => setCompareOpen(true)}
-          className="h-9 gap-1.5 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
-          data-testid="compare-button"
-        >
-          <GitCompare className="w-4 h-4" />
-          Compare{selected.size > 0 ? ` (${selected.size})` : ""}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={selected.size === 0}
+            onClick={handleBulkAddWatchlist}
+            className="h-9 gap-1.5"
+            data-testid="bulk-watchlist-button"
+          >
+            <Star className="w-4 h-4" />
+            Add to Watchlist{selected.size > 0 ? ` (${selected.size})` : ""}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={selected.size < 2}
+            onClick={() => setCompareOpen(true)}
+            className="h-9 gap-1.5 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
+            data-testid="compare-button"
+          >
+            <GitCompare className="w-4 h-4" />
+            Compare{selected.size > 0 ? ` (${selected.size})` : ""}
+          </Button>
+        </div>
       </div>
 
       {/* Filter chips */}

@@ -116,6 +116,8 @@ export * from './getScannerResultsParams';
 export * from './getScannerResultsStrategy';
 export * from './getUpcomingEventsParams';
 export * from './getValueUniverseParams';
+export * from './getValueWatchlistCheckTargets';
+export * from './getValueWatchlistParams';
 export * from './gradeQuizInput';
 export * from './gradeValueQuizInput';
 export * from './greekLesson';

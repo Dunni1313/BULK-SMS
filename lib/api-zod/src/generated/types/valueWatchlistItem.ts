@@ -21,4 +21,10 @@ export interface ValueWatchlistItem {
   lastResearchedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  priceTargetCrossed: boolean | null;
+  /** @nullable */
+  marginOfSafetyTargetCrossed: boolean | null;
 }

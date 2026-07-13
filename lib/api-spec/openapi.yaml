@@ -1235,6 +1235,14 @@ paths:
       operationId: getValueWatchlist
       tags: [value]
       summary: List value-investing watchlist items
+      parameters:
+        - name: checkTargets
+          in: query
+          required: false
+          description: When "true", resolves a fresh price per row and computes priceTargetCrossed/marginOfSafetyTargetCrossed (opt-in — a heavier, on-demand check, never automatic).
+          schema:
+            type: string
+            enum: ["true", "false"]
       responses:
         "200":
           description: Watchlist
@@ -2319,7 +2327,7 @@ components:
 
     ValueWatchlistItem:
       type: object
-      required: [id, symbol, category, marginOfSafetyTarget, reason, currentDecision, createdAt, updatedAt]
+      required: [id, symbol, category, marginOfSafetyTarget, reason, currentDecision, createdAt, updatedAt, currentPrice, priceTargetCrossed, marginOfSafetyTargetCrossed]
       properties:
         id: { type: integer }
         symbol: { type: string }
@@ -2332,6 +2340,11 @@ components:
         lastResearchedAt: { type: ["string", "null"] }
         createdAt: { type: string }
         updatedAt: { type: string }
+        # Phase 2, Sprint 27 — always present, always null unless the GET was
+        # called with ?checkTargets=true (never fabricated, never stale-silent).
+        currentPrice: { type: ["number", "null"] }
+        priceTargetCrossed: { type: ["boolean", "null"] }
+        marginOfSafetyTargetCrossed: { type: ["boolean", "null"] }
 
     ValueWatchlistCreate:
       type: object
