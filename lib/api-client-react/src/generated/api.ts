@@ -50,6 +50,7 @@ import type {
   ExpirationDate,
   ExplainTradeInput,
   ExplainTradeResult,
+  FilingAnalysis,
   FinancialStatements,
   FundamentalsProviderStatusResponse,
   GeneratedQuiz,
@@ -6001,6 +6002,83 @@ export function useGetIndustryComparison<TData = Awaited<ReturnType<typeof getIn
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetIndustryComparisonQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetFilingAnalysisUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/filings/${symbol}`
+}
+
+/**
+ * @summary Fetches and extracts a company's most recent 10-K filing, fetched on demand
+ */
+export const getFilingAnalysis = async (symbol: string, options?: RequestInit): Promise<FilingAnalysis> => {
+
+  return customFetch<FilingAnalysis>(getGetFilingAnalysisUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFilingAnalysisQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/filings/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetFilingAnalysisQueryOptions = <TData = Awaited<ReturnType<typeof getFilingAnalysis>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFilingAnalysis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFilingAnalysisQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFilingAnalysis>>> = ({ signal }) => getFilingAnalysis(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFilingAnalysis>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFilingAnalysisQueryResult = NonNullable<Awaited<ReturnType<typeof getFilingAnalysis>>>
+export type GetFilingAnalysisQueryError = ErrorType<void>
+
+
+/**
+ * @summary Fetches and extracts a company's most recent 10-K filing, fetched on demand
+ */
+
+export function useGetFilingAnalysis<TData = Awaited<ReturnType<typeof getFilingAnalysis>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFilingAnalysis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFilingAnalysisQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

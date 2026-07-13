@@ -1420,6 +1420,27 @@ paths:
         "404":
           description: Unknown symbol
 
+  /stock-analyst/filings/{symbol}:
+    get:
+      operationId: getFilingAnalysis
+      tags: [value]
+      summary: Fetches and extracts a company's most recent 10-K filing, fetched on demand
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Filing analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilingAnalysis"
+        "404":
+          description: Unknown symbol
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -1999,6 +2020,55 @@ components:
           enum: [High, Moderate, Low]
         confidenceExplanation: { type: string }
         summary: { type: string }
+
+    FilingDocumentSection:
+      type: object
+      required: [key, label, found, wordCount]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        found: { type: boolean }
+        rawText: { type: string, nullable: true }
+        excerpt: { type: string, nullable: true }
+        wordCount: { type: integer }
+        reason: { type: string }
+
+    FilingFinancialHighlight:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string }
+        value: { type: string }
+        detail: { type: string }
+
+    FilingAnalysis:
+      type: object
+      required:
+        [symbol, name, documentType, filingDate, sourceUrl, accessionNumber, fetchedAt, documentAvailable, sections, executiveSummary, keyFinancialHighlights, confidenceLevel, confidenceExplanation, disclaimer]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        documentType:
+          type: string
+          enum: ["10-K", "10-Q", earnings-transcript, investor-presentation, sustainability-report, management-commentary]
+        filingDate: { type: string, nullable: true }
+        sourceUrl: { type: string, nullable: true }
+        accessionNumber: { type: string, nullable: true }
+        fetchedAt: { type: string }
+        documentAvailable: { type: boolean }
+        documentUnavailableReason: { type: string }
+        sections:
+          type: array
+          items: { $ref: "#/components/schemas/FilingDocumentSection" }
+        executiveSummary: { type: string }
+        keyFinancialHighlights:
+          type: array
+          items: { $ref: "#/components/schemas/FilingFinancialHighlight" }
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation: { type: string }
+        disclaimer: { type: string }
 
     ValueResearchInput:
       type: object

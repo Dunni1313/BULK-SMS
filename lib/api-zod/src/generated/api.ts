@@ -3106,3 +3106,41 @@ export const GetIndustryComparisonResponse = zod.object({
 })
 
 
+/**
+ * @summary Fetches and extracts a company's most recent 10-K filing, fetched on demand
+ */
+export const GetFilingAnalysisParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetFilingAnalysisResponse = zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "documentType": zod.enum(['10-K', '10-Q', 'earnings-transcript', 'investor-presentation', 'sustainability-report', 'management-commentary']),
+  "filingDate": zod.string().nullable(),
+  "sourceUrl": zod.string().nullable(),
+  "accessionNumber": zod.string().nullable(),
+  "fetchedAt": zod.string(),
+  "documentAvailable": zod.boolean(),
+  "documentUnavailableReason": zod.string().optional(),
+  "sections": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "found": zod.boolean(),
+  "rawText": zod.string().nullish(),
+  "excerpt": zod.string().nullish(),
+  "wordCount": zod.number(),
+  "reason": zod.string().optional()
+})),
+  "executiveSummary": zod.string(),
+  "keyFinancialHighlights": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string(),
+  "detail": zod.string().optional()
+})),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "disclaimer": zod.string()
+})
+
+

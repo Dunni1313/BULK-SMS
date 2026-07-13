@@ -693,6 +693,61 @@ export interface IndustryComparisonResult {
   summary: string;
 }
 
+export interface FilingDocumentSection {
+  key: string;
+  label: string;
+  found: boolean;
+  rawText?: string | null;
+  excerpt?: string | null;
+  wordCount: number;
+  reason?: string;
+}
+
+export interface FilingFinancialHighlight {
+  label: string;
+  value: string;
+  detail?: string;
+}
+
+export type FilingAnalysisDocumentType = typeof FilingAnalysisDocumentType[keyof typeof FilingAnalysisDocumentType];
+
+
+export const FilingAnalysisDocumentType = {
+  '10-K': '10-K',
+  '10-Q': '10-Q',
+  'earnings-transcript': 'earnings-transcript',
+  'investor-presentation': 'investor-presentation',
+  'sustainability-report': 'sustainability-report',
+  'management-commentary': 'management-commentary',
+} as const;
+
+export type FilingAnalysisConfidenceLevel = typeof FilingAnalysisConfidenceLevel[keyof typeof FilingAnalysisConfidenceLevel];
+
+
+export const FilingAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface FilingAnalysis {
+  symbol: string;
+  name: string;
+  documentType: FilingAnalysisDocumentType;
+  filingDate: string | null;
+  sourceUrl: string | null;
+  accessionNumber: string | null;
+  fetchedAt: string;
+  documentAvailable: boolean;
+  documentUnavailableReason?: string;
+  sections: FilingDocumentSection[];
+  executiveSummary: string;
+  keyFinancialHighlights: FilingFinancialHighlight[];
+  confidenceLevel: FilingAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  disclaimer: string;
+}
+
 export type ValueResearchInputLevel = typeof ValueResearchInputLevel[keyof typeof ValueResearchInputLevel];
 
 

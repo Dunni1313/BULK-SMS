@@ -33,11 +33,14 @@ import {
   GradeValueQuizResponse,
   GetFinancialStatementsResponse,
   GetIndustryComparisonResponse,
+  GetFilingAnalysisResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
 import { buildIndustryComparison } from "../lib/industryComparison.js";
+import { buildFilingAnalysis } from "../lib/filingAnalysis.js";
+import { EdgarDocumentProvider } from "../lib/documentProviders.js";
 import { analyzeInvestmentSuitability } from "../lib/valueInvesting.js";
 import {
   getValueLessons,
@@ -500,6 +503,34 @@ router.get("/industry-comparison/:symbol", async (req, res): Promise<void> => {
     return;
   }
   res.json(GetIndustryComparisonResponse.parse(comparison));
+});
+
+// Phase 2, Sprint 22 — Document Intelligence Engine (Annual Report Analysis).
+// Deliberately a separate, on-demand endpoint (not folded into /value/:symbol):
+// fetching and extracting a 10-K is far heavier than a fundamentals fetch, and
+// only the first supported document type ("10-K") is implemented — a future
+// document-type param can extend this route without redesign. Never 502s for
+// a missing/unreachable filing (that's an honest documentAvailable:false in a
+// normal 200) — only a genuinely unknown symbol 404s, matching every other
+// stock-analyst route's contract.
+const edgarDocumentProvider = new EdgarDocumentProvider();
+
+router.get("/filings/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const provider = await getFundamentalsProvider(userId);
+  let analysis;
+  try {
+    analysis = await buildFilingAnalysis(req.params.symbol, edgarDocumentProvider, provider, "10-K", undefined, userId);
+  } catch (err) {
+    req.log.error({ err }, "filing analysis failed");
+    res.status(502).json({ error: "Filing analysis is currently unavailable." });
+    return;
+  }
+  if (!analysis) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  res.json(GetFilingAnalysisResponse.parse(analysis));
 });
 
 export default router;

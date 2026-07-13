@@ -9,12 +9,14 @@ import {
   useGetSettings,
   useGetFinancialStatements,
   useGetIndustryComparison,
+  useGetFilingAnalysis,
   getValueUniverse,
   getGetValueUniverseQueryKey,
   getGetValueWatchlistQueryKey,
   getGetValueHistoryQueryKey,
   getGetFinancialStatementsQueryKey,
   getGetIndustryComparisonQueryKey,
+  getGetFilingAnalysisQueryKey,
   ValueResearchReport,
   ValueResearchInputLevel,
 } from "@workspace/api-client-react";
@@ -53,6 +55,7 @@ import {
   Percent,
   GitCompare,
   Castle,
+  FileText,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -1119,6 +1122,20 @@ export default function StockResearch() {
       enabled: tab === "peers" && !!report?.symbol,
     },
   });
+
+  // Phase 2, Sprint 22 — fetched only when the Filings tab is actually opened:
+  // an EDGAR fetch + section extraction is far heavier than a fundamentals
+  // fetch and must never fire as a side effect of loading the main report.
+  const {
+    data: filing,
+    isLoading: filingLoading,
+    isError: filingError,
+  } = useGetFilingAnalysis(report?.symbol ?? "", {
+    query: {
+      queryKey: getGetFilingAnalysisQueryKey(report?.symbol ?? ""),
+      enabled: tab === "filings" && !!report?.symbol,
+    },
+  });
   const search = useSearch();
 
   // Auto-refresh bookkeeping: the fetchedAt batch we've already auto-refreshed
@@ -1427,6 +1444,9 @@ export default function StockResearch() {
               </TabsTrigger>
               <TabsTrigger value="peers" className="text-xs" disabled={!report}>
                 Peers
+              </TabsTrigger>
+              <TabsTrigger value="filings" className="text-xs" disabled={!report}>
+                Filings
               </TabsTrigger>
             </TabsList>
 
@@ -1834,6 +1854,93 @@ export default function StockResearch() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="filings" className="mt-4">
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-indigo-400" /> Filings
+                    {filing && (
+                      <Badge variant="outline" className="ml-auto text-[10px] border-border">
+                        {filing.documentAvailable ? "10-K found" : "No filing found"}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-[11px]">
+                    {report ? `${report.symbol}'s most recent 10-K, fetched from SEC EDGAR on demand.` : "Select a company to view its filings."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {!report ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">Select a company to begin research first.</p>
+                  ) : filingLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  ) : filingError || !filing ? (
+                    <p className="text-sm text-muted-foreground py-8 text-center">
+                      Filing analysis is unavailable for {report.symbol}.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-[10px] font-semibold">
+                          {filing.confidenceLevel} confidence
+                        </Badge>
+                        {filing.filingDate && (
+                          <span className="text-[11px] text-muted-foreground">Filed {filing.filingDate}</span>
+                        )}
+                        {filing.sourceUrl && (
+                          <a
+                            href={filing.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-indigo-400 hover:underline"
+                          >
+                            View source filing
+                          </a>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{filing.executiveSummary}</p>
+                      {!filing.documentAvailable && filing.documentUnavailableReason && (
+                        <p className="text-[11px] text-amber-400 italic">{filing.documentUnavailableReason}</p>
+                      )}
+
+                      <div>
+                        <p className="text-xs font-medium text-foreground/80 mb-2">Key Financial Highlights</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {filing.keyFinancialHighlights.map((h) => (
+                            <Badge key={h.label} variant="outline" className="text-[10px] border-border">
+                              {h.label}: {h.value}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {filing.sections.map((s) => (
+                          <div key={s.key} className="rounded-md border border-border/60 bg-background/40 p-3">
+                            <p className="text-xs font-medium text-foreground/90 mb-1">{s.label}</p>
+                            {s.found ? (
+                              <>
+                                <p className="text-[11px] text-muted-foreground leading-snug">{s.excerpt}</p>
+                                <p className="text-[10px] text-muted-foreground/70 mt-1">{s.wordCount.toLocaleString()} words extracted</p>
+                              </>
+                            ) : (
+                              <p className="text-[11px] text-muted-foreground/70 italic leading-snug">{s.reason}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <p className="text-[10px] text-muted-foreground/70">{filing.disclaimer}</p>
                     </div>
                   )}
                 </CardContent>

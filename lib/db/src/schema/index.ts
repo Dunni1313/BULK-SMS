@@ -17,3 +17,4 @@ export * from "./stockAnalysisHistory";
 export * from "./valueWatchlist";
 export * from "./valueQuizResults";
 export * from "./auditLog";
+export * from "./investingFilingAnalysis";
