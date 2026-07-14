@@ -3765,3 +3765,47 @@ export const GetTradingStructureResponse = zod.object({
 })
 
 
+/**
+ * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+ */
+export const GetTradingMultiTimeframeParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingMultiTimeframeResponse = zod.object({
+  "symbol": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "timeframes": zod.array(zod.object({
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']),
+  "structure": zod.object({
+  "symbol": zod.string(),
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "candleCount": zod.number(),
+  "currentPrice": zod.number(),
+  "trend": zod.enum(['uptrend', 'downtrend', 'range']),
+  "trendDetail": zod.string(),
+  "swingPoints": zod.array(zod.object({
+  "time": zod.string(),
+  "price": zod.number(),
+  "kind": zod.enum(['high', 'low'])
+})),
+  "zones": zod.array(zod.object({
+  "price": zod.number(),
+  "kind": zod.enum(['support', 'resistance']),
+  "strength": zod.number()
+})),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+})
+})),
+  "trendAgreement": zod.enum(['unanimous', 'majority', 'split', 'insufficient-data']),
+  "dominantTrend": zod.union([zod.literal('uptrend'),zod.literal('downtrend'),zod.literal('range'),zod.literal(null)]).nullable(),
+  "confluenceScore": zod.number().nullable(),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+})
+
+

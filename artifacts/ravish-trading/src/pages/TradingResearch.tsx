@@ -2,22 +2,30 @@
 // skeleton + Market Structure card (the first bounded slice of the approved
 // Route+UI backlog reduction — see
 // docs/Phase-3-Trading-Engine-Execution-Plan.md's Sprint 40 as-built note).
+// Phase 3, Sprint 41 added the Multi-Timeframe confluence card (the second
+// bounded slice) onto this same shell, without touching the Market
+// Structure card's own logic, exactly as Sprint 40's own header comment
+// anticipated.
 //
 // Advisory/education only: this page never previews, schedules, or submits
 // any order, and never touches a real brokerage account — Engine 2 is
-// read-only/advisory throughout this phase (Phase 3 plan §19). Deliberately
-// a thin skeleton: one symbol input, one card. Future sprints add further
-// panels (Multi-Timeframe, Liquidity, Regime, Risk, Probability) onto this
-// same page shell without touching this card's own logic.
+// read-only/advisory throughout this phase (Phase 3 plan §19). Future
+// sprints add further panels (Liquidity, Regime, Risk, Probability) onto
+// this same page shell without touching any existing card's own logic.
 
 import { useState } from "react";
-import { useGetTradingStructure, getGetTradingStructureQueryKey } from "@workspace/api-client-react";
+import {
+  useGetTradingStructure,
+  getGetTradingStructureQueryKey,
+  useGetTradingMultiTimeframe,
+  getGetTradingMultiTimeframeQueryKey,
+} from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Search, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -40,12 +48,26 @@ function confidenceBadgeClass(level: string): string {
   return "border-border text-muted-foreground";
 }
 
+function agreementBadgeClass(agreement: string): string {
+  if (agreement === "unanimous") return "border-emerald-500/40 text-emerald-400";
+  if (agreement === "majority") return "border-amber-500/40 text-amber-400";
+  return "border-border text-muted-foreground";
+}
+
 export default function TradingResearch() {
   const [inputValue, setInputValue] = useState("");
   const [symbol, setSymbol] = useState("");
 
   const { data: structure, isLoading, isError } = useGetTradingStructure(symbol, {
     query: { queryKey: getGetTradingStructureQueryKey(symbol), enabled: !!symbol },
+  });
+
+  const {
+    data: multiTimeframe,
+    isLoading: isMultiTimeframeLoading,
+    isError: isMultiTimeframeError,
+  } = useGetTradingMultiTimeframe(symbol, {
+    query: { queryKey: getGetTradingMultiTimeframeQueryKey(symbol), enabled: !!symbol },
   });
 
   function handleSubmit(e: React.FormEvent) {
@@ -151,6 +173,88 @@ export default function TradingResearch() {
             )}
 
             <p className="border-t border-border pt-3 text-sm text-muted-foreground">{structure.summary}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && isMultiTimeframeLoading && (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && isMultiTimeframeError && (
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            Could not resolve multi-timeframe data for "{symbol}".
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && multiTimeframe && (
+        <Card data-testid="card-multi-timeframe">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Layers className="h-5 w-5" />
+                Multi-Timeframe Confluence — {multiTimeframe.symbol}
+              </CardTitle>
+              <Badge variant="outline" className="text-xs">
+                {multiTimeframe.dataSource}
+              </Badge>
+            </div>
+            <CardDescription>Trend confluence across {multiTimeframe.timeframes.map((t) => t.interval).join(" / ")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              {multiTimeframe.dominantTrend ? (
+                <Badge variant="outline" className={`flex items-center gap-1 ${trendBadgeClass(multiTimeframe.dominantTrend)}`}>
+                  <TrendIcon trend={multiTimeframe.dominantTrend} />
+                  {multiTimeframe.dominantTrend}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-border text-muted-foreground">
+                  No dominant trend
+                </Badge>
+              )}
+              <Badge variant="outline" className={agreementBadgeClass(multiTimeframe.trendAgreement)}>
+                {multiTimeframe.trendAgreement}
+              </Badge>
+              {multiTimeframe.confluenceScore !== null && (
+                <Badge variant="outline" className="border-border text-muted-foreground">
+                  {multiTimeframe.confluenceScore}% confluence
+                </Badge>
+              )}
+              <Badge variant="outline" className={confidenceBadgeClass(multiTimeframe.confidenceLevel)}>
+                {multiTimeframe.confidenceLevel} confidence
+              </Badge>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-sm font-medium">Per-Timeframe Trend</h3>
+              <ul className="space-y-1">
+                {multiTimeframe.timeframes.map((tf) => (
+                  <li
+                    key={tf.interval}
+                    className="flex items-center justify-between rounded-md border border-border px-3 py-1.5 text-sm"
+                  >
+                    <span className="text-muted-foreground">{tf.interval}</span>
+                    <span className={`flex items-center gap-1 ${trendBadgeClass(tf.structure.trend)}`}>
+                      <TrendIcon trend={tf.structure.trend} />
+                      {tf.structure.trend}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="border-t border-border pt-3 text-sm text-muted-foreground">{multiTimeframe.summary}</p>
           </CardContent>
         </Card>
       )}

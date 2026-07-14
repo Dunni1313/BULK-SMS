@@ -120,6 +120,7 @@ import type {
   TradingJournalEntry,
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
+  TradingMultiTimeframeAnalysis,
   TradingStructureAnalysis,
   UniverseSymbol,
   ValueHistoryRow,
@@ -7582,6 +7583,83 @@ export function useGetTradingStructure<TData = Awaited<ReturnType<typeof getTrad
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradingStructureQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingMultiTimeframeUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/multi-timeframe/${symbol}`
+}
+
+/**
+ * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+ */
+export const getTradingMultiTimeframe = async (symbol: string, options?: RequestInit): Promise<TradingMultiTimeframeAnalysis> => {
+
+  return customFetch<TradingMultiTimeframeAnalysis>(getGetTradingMultiTimeframeUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingMultiTimeframeQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/multi-timeframe/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingMultiTimeframeQueryOptions = <TData = Awaited<ReturnType<typeof getTradingMultiTimeframe>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingMultiTimeframe>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingMultiTimeframeQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingMultiTimeframe>>> = ({ signal }) => getTradingMultiTimeframe(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingMultiTimeframe>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingMultiTimeframeQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingMultiTimeframe>>>
+export type GetTradingMultiTimeframeQueryError = ErrorType<void>
+
+
+/**
+ * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+ */
+
+export function useGetTradingMultiTimeframe<TData = Awaited<ReturnType<typeof getTradingMultiTimeframe>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingMultiTimeframe>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingMultiTimeframeQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

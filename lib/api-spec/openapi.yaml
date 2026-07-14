@@ -38,6 +38,8 @@ tags:
     description: Trading journal for Engine 2 (Institutional Trading Engine) positions — mirrors the options "journal" tag's shape, distinct table/records, advisory only, never places an order
   - name: trading-structure
     description: Engine 2 Market Structure analysis (support/resistance zones, trend classification) — SIMULATED-first, advisory only, never places an order
+  - name: trading-multi-timeframe
+    description: Engine 2 Multi-Timeframe trend confluence analysis — composes Market Structure across multiple timeframes, SIMULATED-first, advisory only, never places an order
 
 paths:
   /healthz:
@@ -1880,6 +1882,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TradingStructureAnalysis"
+        "404":
+          description: Unknown or invalid symbol
+
+  # ─── Multi-Timeframe (Engine 2, Phase 3 Sprint 41) ──────────────────────────
+  # Deliberately documents the path parameter only, matching Sprint 40's own
+  # precedent for /trading/structure/{symbol} — no query overrides on this
+  # route this sprint (the confluence panel always uses the default
+  # timeframe set), so the path+query Orval collision Sprint 40 disclosed
+  # doesn't apply here, but the same documented-surface discipline is kept
+  # for consistency.
+  /trading/multi-timeframe/{symbol}:
+    get:
+      operationId: getTradingMultiTimeframe
+      tags: [trading-multi-timeframe]
+      summary: Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Multi-timeframe confluence analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingMultiTimeframeAnalysis"
         "404":
           description: Unknown or invalid symbol
 
@@ -5868,6 +5898,56 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TradingSupportResistanceZone"
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation:
+          type: string
+        summary:
+          type: string
+
+    # ─── Multi-Timeframe (Engine 2, Phase 3 Sprint 41) ────────────────────────
+    TradingTimeframeStructure:
+      type: object
+      required: [interval, structure]
+      properties:
+        interval:
+          $ref: "#/components/schemas/TradingTimeframe"
+        structure:
+          $ref: "#/components/schemas/TradingStructureAnalysis"
+
+    TradingMultiTimeframeAnalysis:
+      type: object
+      required:
+        [
+          symbol,
+          dataSource,
+          timeframes,
+          trendAgreement,
+          dominantTrend,
+          confluenceScore,
+          confidenceLevel,
+          confidenceExplanation,
+          summary,
+        ]
+      properties:
+        symbol:
+          type: string
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        timeframes:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingTimeframeStructure"
+        trendAgreement:
+          type: string
+          enum: [unanimous, majority, split, insufficient-data]
+        dominantTrend:
+          type: ["string", "null"]
+          enum: [uptrend, downtrend, range, null]
+        confluenceScore:
+          type: ["number", "null"]
         confidenceLevel:
           type: string
           enum: [High, Moderate, Low]

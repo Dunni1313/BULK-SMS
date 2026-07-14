@@ -3634,6 +3634,64 @@ export interface TradingStructureAnalysis {
   summary: string;
 }
 
+export interface TradingTimeframeStructure {
+  interval: TradingTimeframe;
+  structure: TradingStructureAnalysis;
+}
+
+export type TradingMultiTimeframeAnalysisDataSource = typeof TradingMultiTimeframeAnalysisDataSource[keyof typeof TradingMultiTimeframeAnalysisDataSource];
+
+
+export const TradingMultiTimeframeAnalysisDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingMultiTimeframeAnalysisTrendAgreement = typeof TradingMultiTimeframeAnalysisTrendAgreement[keyof typeof TradingMultiTimeframeAnalysisTrendAgreement];
+
+
+export const TradingMultiTimeframeAnalysisTrendAgreement = {
+  unanimous: 'unanimous',
+  majority: 'majority',
+  split: 'split',
+  'insufficient-data': 'insufficient-data',
+} as const;
+
+/**
+ * @nullable
+ */
+export type TradingMultiTimeframeAnalysisDominantTrend = typeof TradingMultiTimeframeAnalysisDominantTrend[keyof typeof TradingMultiTimeframeAnalysisDominantTrend] | null;
+
+
+export const TradingMultiTimeframeAnalysisDominantTrend = {
+  uptrend: 'uptrend',
+  downtrend: 'downtrend',
+  range: 'range',
+} as const;
+
+export type TradingMultiTimeframeAnalysisConfidenceLevel = typeof TradingMultiTimeframeAnalysisConfidenceLevel[keyof typeof TradingMultiTimeframeAnalysisConfidenceLevel];
+
+
+export const TradingMultiTimeframeAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface TradingMultiTimeframeAnalysis {
+  symbol: string;
+  dataSource: TradingMultiTimeframeAnalysisDataSource;
+  timeframes: TradingTimeframeStructure[];
+  trendAgreement: TradingMultiTimeframeAnalysisTrendAgreement;
+  /** @nullable */
+  dominantTrend: TradingMultiTimeframeAnalysisDominantTrend;
+  /** @nullable */
+  confluenceScore: number | null;
+  confidenceLevel: TradingMultiTimeframeAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
