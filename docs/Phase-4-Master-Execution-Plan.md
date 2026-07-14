@@ -1,6 +1,6 @@
 # Phase 4 — Final Execution Plan
 
-**Status: FINALIZED — reviewed and revised against the completed Phase 3 architecture. No implementation has begun.** This document is a plan, not a build. Per explicit instruction, Phase 4 does not start until the project owner gives a separate, explicit go-ahead for Sprint 52, and even then each sprint follows the same present-plan → get-approval → implement → validate → commit process every sprint in Phases 1–3 followed (`CLAUDE.md` §3).
+**Status: IN PROGRESS. Sprint 52 (Platform Hardening) is shipped** — see §10 for the as-built write-up. A readiness review (`docs/Phase-4-Readiness-Report.md`) preceded implementation, confirming Sprint 52 was ready to begin exactly as scoped. Sprint 53 onward remains planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3).
 
 **Prepared after:** an initial draft (superseded by this document — see §0 for what changed and why), Phase 3's close (`docs/Phase-3-Final-Completion-Report.md`), a fresh review of `docs/DK-AI-OS-Architecture-Blueprint.md`, `CLAUDE.md`'s full sprint history (Phases 1–3, 51 shipped sprints), and direct inspection of the current codebase — including confirming, by grep, that no rate-limiting library, no notification/email infrastructure, and no observability/metrics stack exists anywhere in the codebase today. Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51. **Phase 4 begins at Sprint 52.**
 
@@ -42,7 +42,7 @@ Four workstreams, in recommended order:
 
 | Sprint | Workstream | Module | Objective |
 |---|---|---|---|
-| 52 | A | Platform Hardening | Rate-limiting middleware across every route (with scheduler-internal calls explicitly excluded from user-facing limits), finalize the CORS allowed-origin list, and add a lightweight request-volume baseline (structured log counters, not a new dependency) to inform sensible limit thresholds before they're set. |
+| 52 | A | Platform Hardening — **SHIPPED** | See the as-built write-up in §10. Rate-limiting middleware across every route, the CORS mechanism confirmed finalized, and a lightweight request-volume baseline informed real (measured, not guessed) threshold values. |
 | 53 | A | Frontend Bundle Code-Splitting | Route-level `dynamic import()` / `manualChunks` for `ravish-trading`'s ~1.5MB production bundle. Pure build-tooling change, zero behavior change. |
 | 54 | B | Cross-Engine Command Center | Extend the Institutional Dashboard (or a new page) to show, for one symbol, Engine 1's Investment Committee verdict alongside Engine 2's technical read — a read-only cross-reference, the Blueprint's own long-flagged "nice-to-have" (Phase 3 plan §4), deliberately deferred at Sprint 50's kickoff to keep that sprint bounded. |
 | 55 | B | Macro/Regime Side-by-Side View | Show `marketBriefing.ts` (Engine 3), `investingMacro.ts` (Engine 1), and `tradingRegime.ts` (Engine 2)'s three independent regime reads side-by-side for context — pure UI, zero engine-logic merging. |
@@ -148,4 +148,23 @@ Ranked by genuine risk, not effort:
 
 ---
 
-*This plan makes no code changes. Every file path and behavior claim above was verified by direct inspection of the actual repository at the close of Phase 3, including confirming by grep the absence of rate-limiting, notification, and observability infrastructure — not assumed from prior planning documents alone.*
+## 10. Sprint-by-Sprint As-Built Notes
+
+### Sprint 52 — Platform Hardening — SHIPPED
+
+- **No new `AskUserQuestion` needed** — the plan itself already named every genuine owner decision this sprint could surface; the one real open item (the actual production CORS origin value) is confirmed still unresolved and documented as such, not guessed.
+- **Confirmed by direct inspection before writing any code:** the auto-execution/auto-adjustment scheduler never makes an HTTP request to this server — it calls `runAutoExecutionCycleForAllUsers()`/`runAutoAdjustmentCycleForAllUsers()` as plain in-process function calls. There was nothing to build a "scheduler-internal calls" bypass for; this is documented in `middlewares/rateLimit.ts`'s own header comment rather than silently omitted.
+- **New `lib/requestMetrics.ts`** — the plan's own required request-volume baseline: an in-memory counter, pino-logged every 5 minutes, no new dependency. **The Sprint 52 threshold values are a measured baseline, not a guess** — every existing route test file was grep-counted for its own peak per-server-instance request volume before any threshold was set (busiest: `portfolioConstruction.route.test.ts` at 23); the general limit (300 req/60s) was set at >10x that.
+- **New `middlewares/rateLimit.ts`** — `express-rate-limit`-based, two tiers: a general limiter across every `/api` route, and a stricter `authRateLimiter` (20 req/60s default) scoped to `/api/auth/*`.
+- **One real bug caught and fixed by this sprint's own validation:** the first implementation mounted `authRateLimiter` alongside `authRouter` in one `app.use("/api", ...)` call, which — since Express does not restrict a co-mounted middleware to only the sub-paths a later router matches — applied the stricter auth limit to every `/api/*` route in the app, not just auth ones. Caught by the new live end-to-end test (a non-auth route's rate-limit header showed the auth tier's threshold), fixed by scoping the mount to the literal `/api/auth` path prefix.
+- **Health checks are exempt from rate-limiting by mount order** (mounted before either limiter), never a special-cased skip.
+- **Test-mode safety:** both limiters skip entirely whenever `NODE_ENV === "test"` unless `FORCE_RATE_LIMIT_IN_TEST=true` is explicitly set — the ~1,000+ pre-existing tests were never at risk of tripping a shared, accumulating limit, confirmed by two clean full-suite runs.
+- **New `TRUST_PROXY` env var** (opt-in, safe default) for real reverse-proxy deployments, without blindly trusting a spoofable header when none is present.
+- **CORS finalization:** confirmed the existing Sprint-6 `CORS_ALLOWED_ORIGINS` mechanism is the complete, correct, finalized approach for Owner Decision #6 — no code change needed; `.env.example` clarified to state this explicitly.
+- **Tests:** `lib/requestMetrics.test.ts` (4), `middlewares/rateLimit.test.ts` (4, isolated app), `routes/rateLimit.route.test.ts` (5, live end-to-end against the real `app.js`, including the SSE-stream-passes-through-uncut proof the readiness report specifically flagged).
+- **Rollback:** `git revert` — purely additive; `pnpm remove express-rate-limit` if the dependency itself needs removing.
+- **Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — 97 files / 1,041 tests (13 new), fully clean on both runs, zero flakes. `pnpm --filter @workspace/ravish-trading run test` — 11 files / 94 tests, unchanged. `PORT=5000 BASE_PATH=/ pnpm run build` — all 3 packages build successfully.
+
+---
+
+*This plan makes no code changes beyond what its own Sprint-by-Sprint As-Built Notes (§10) record as actually shipped, sprint by sprint, with explicit approval at each step. Every file path and behavior claim in §§0–9 was verified by direct inspection of the actual repository at the close of Phase 3, including confirming by grep the absence of rate-limiting, notification, and observability infrastructure — not assumed from prior planning documents alone.*

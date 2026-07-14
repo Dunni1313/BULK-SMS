@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { runAutoExecutionCycleForAllUsers } from "./lib/autoExecution";
 import { runAutoAdjustmentCycleForAllUsers } from "./lib/autoAdjustment";
+import { startRequestMetricsTimer } from "./lib/requestMetrics";
 
 // Phase 6 — full-auto scheduler. Fires on an interval but is a guaranteed no-op
 // unless mode=full_auto AND the master switch is armed (the cycle itself enforces
@@ -80,4 +81,9 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
   startAutoScheduler();
+  // Phase 4, Sprint 52 — started only from the real server entrypoint, not
+  // app.ts itself, so the ~90+ existing test files that import app.js
+  // directly never accumulate a real setInterval (see
+  // lib/requestMetrics.ts's own doc comment).
+  startRequestMetricsTimer();
 });
