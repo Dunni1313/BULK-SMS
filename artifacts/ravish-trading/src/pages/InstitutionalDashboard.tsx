@@ -1,0 +1,478 @@
+// Phase 3, Sprint 50 — Institutional Trading Engine, Institutional Dashboard
+// (approved Phase 3 plan §3/§4/§21; the module named "Institutional
+// Dashboard — NEW page" in the plan's own architecture diagram — see
+// docs/Phase-3-Trading-Engine-Execution-Plan.md's Sprint 50 as-built note).
+//
+// Pure COMPOSITION layer, zero new engine calculations of any kind — every
+// figure on this page comes from a route already shipped and already
+// covered by its own dedicated tests (Sprints 32-49). This page's own only
+// job is arranging already-computed data into one screen.
+//
+// Literal acceptance bar (Phase 3 plan §22, "Sprint 46 (Dashboard)"): "one
+// symbol lookup surfaces Structure + Liquidity + Multi-Timeframe +
+// Probability + Regime + Risk without any additional navigation." Unlike
+// TradingResearch.tsx (Sprints 40-48), which deliberately puts Liquidity
+// behind its own on-demand tab (a disclosed cost-control choice, Sprint 45),
+// this page fetches all five per-symbol signals concurrently and renders
+// them together — no tabs, no additional clicks — because "no additional
+// navigation" is this page's whole reason to exist. Portfolio Risk (Sprint
+// 38/44) is portfolio-wide, not per-symbol, so it's shown as an always-
+// visible summary alongside the per-symbol cards, satisfying the bar's own
+// "...and Risk" clause without requiring a symbol to be searched first.
+//
+// Every card here is a condensed READ-ONLY summary, not a re-implementation
+// of TradingResearch.tsx's full detail views (support/resistance list, full
+// per-timeframe list, full probability cone table, full volume-profile
+// list, the position-management form, the full journal/backtest CRUD) —
+// duplicating those would mean duplicating their state/mutation logic, the
+// exact thing this sprint's "do not duplicate calculations or business
+// logic" instruction rules out. Each summary card links out to its own
+// full, already-built page (Trading Research / Trading Journal / Trading
+// Backtest) for management actions, reusing that page's own UI rather than
+// re-implementing it here.
+//
+// Advisory/education only: this page never previews, schedules, or submits
+// any order, and never touches a real brokerage account. Every SIMULATED
+// data source is labeled exactly as its own originating card already
+// labels it — this page fabricates nothing of its own.
+
+import { useState } from "react";
+import { Link } from "wouter";
+import {
+  useGetTradingStructure,
+  getGetTradingStructureQueryKey,
+  useGetTradingMultiTimeframe,
+  getGetTradingMultiTimeframeQueryKey,
+  useGetTradingRegime,
+  getGetTradingRegimeQueryKey,
+  useGetTradingProbability,
+  getGetTradingProbabilityQueryKey,
+  useGetTradingLiquidity,
+  getGetTradingLiquidityQueryKey,
+  useGetTradingRisk,
+  getGetTradingRiskQueryKey,
+  useListTradingJournalEntries,
+  getListTradingJournalEntriesQueryKey,
+  useListTradingBacktestResults,
+  getListTradingBacktestResultsQueryKey,
+} from "@workspace/api-client-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  fmtUsd,
+  trendBadgeClass,
+  TrendIcon,
+  confidenceBadgeClass,
+  agreementBadgeClass,
+  regimeBadgeClass,
+  volatilityBadgeClass,
+  riskGradeBadgeClass,
+  liquidityBandBadgeClass,
+  pressureBadgeClass,
+} from "@/lib/trading-format";
+import { Activity, Layers, Gauge, Target, Droplets, Search, ShieldAlert, NotebookPen, History, MessageCircle } from "lucide-react";
+
+// Bounded — a fast-scan summary, not a full history dump. The full lists
+// live on Trading Journal / Trading Backtest, one link away.
+const RECENT_ITEMS_LIMIT = 3;
+
+function SkeletonCard({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          {icon}
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
+      </CardContent>
+    </Card>
+  );
+}
+
+function ErrorCard({ icon, title, message }: { icon: React.ReactNode; title: string; message: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          {icon}
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">{message}</CardContent>
+    </Card>
+  );
+}
+
+export default function InstitutionalDashboard() {
+  const [inputValue, setInputValue] = useState("");
+  const [symbol, setSymbol] = useState("");
+
+  // All five per-symbol signals resolve concurrently, none gated behind a
+  // tab — this is the page's entire point ("without any additional
+  // navigation").
+  const { data: structure, isLoading: isStructureLoading, isError: isStructureError } = useGetTradingStructure(symbol, {
+    query: { queryKey: getGetTradingStructureQueryKey(symbol), enabled: !!symbol },
+  });
+  const {
+    data: multiTimeframe,
+    isLoading: isMultiTimeframeLoading,
+    isError: isMultiTimeframeError,
+  } = useGetTradingMultiTimeframe(symbol, {
+    query: { queryKey: getGetTradingMultiTimeframeQueryKey(symbol), enabled: !!symbol },
+  });
+  const { data: regime, isLoading: isRegimeLoading, isError: isRegimeError } = useGetTradingRegime(symbol, {
+    query: { queryKey: getGetTradingRegimeQueryKey(symbol), enabled: !!symbol },
+  });
+  const {
+    data: probability,
+    isLoading: isProbabilityLoading,
+    isError: isProbabilityError,
+  } = useGetTradingProbability(symbol, {
+    query: { queryKey: getGetTradingProbabilityQueryKey(symbol), enabled: !!symbol },
+  });
+  const { data: liquidity, isLoading: isLiquidityLoading, isError: isLiquidityError } = useGetTradingLiquidity(symbol, {
+    query: { queryKey: getGetTradingLiquidityQueryKey(symbol), enabled: !!symbol },
+  });
+
+  // Portfolio-wide, not per-symbol — always visible, matching
+  // TradingResearch.tsx's own Sprint 44 precedent for this exact hook.
+  const { data: risk } = useGetTradingRisk({ query: { queryKey: getGetTradingRiskQueryKey() } });
+  const { data: journalEntries } = useListTradingJournalEntries({
+    query: { queryKey: getListTradingJournalEntriesQueryKey() },
+  });
+  const { data: backtestResults } = useListTradingBacktestResults({
+    query: { queryKey: getListTradingBacktestResultsQueryKey() },
+  });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSymbol(inputValue.trim().toUpperCase());
+  }
+
+  const recentJournalEntries = (journalEntries ?? []).slice(0, RECENT_ITEMS_LIMIT);
+  const recentBacktests = (backtestResults ?? []).slice(0, RECENT_ITEMS_LIMIT);
+
+  return (
+    <div className="space-y-6 p-6" data-testid="page-institutional-dashboard">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Institutional Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          One-screen Engine 2 overview — Structure, Multi-Timeframe, Regime, Probability, Liquidity, and your own
+          Portfolio Risk for a single symbol lookup. SIMULATED market data, advisory only. Never places an order.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Enter a symbol, e.g. AAPL"
+          className="max-w-xs"
+          data-testid="input-dashboard-symbol"
+        />
+        <Button type="submit" data-testid="button-dashboard-search">
+          <Search className="mr-2 h-4 w-4" />
+          Search
+        </Button>
+      </form>
+
+      {!symbol && (
+        <p className="text-sm text-muted-foreground">Enter a symbol above to see its full Engine 2 signal set at a glance.</p>
+      )}
+
+      {symbol && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="grid-signal-cards">
+          {isStructureLoading && <SkeletonCard icon={<Activity className="h-4 w-4" />} title="Market Structure" />}
+          {isStructureError && (
+            <ErrorCard icon={<Activity className="h-4 w-4" />} title="Market Structure" message={`Could not resolve "${symbol}".`} />
+          )}
+          {structure && (
+            <Card data-testid="card-dashboard-structure">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Activity className="h-4 w-4" />
+                    Market Structure
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {structure.dataSource}
+                  </Badge>
+                </div>
+                <CardDescription>{fmtUsd(structure.currentPrice)} current price</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={`flex items-center gap-1 ${trendBadgeClass(structure.trend)}`}>
+                    <TrendIcon trend={structure.trend} />
+                    {structure.trend}
+                  </Badge>
+                  <Badge variant="outline" className={confidenceBadgeClass(structure.confidenceLevel)}>
+                    {structure.confidenceLevel}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{structure.summary}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {isMultiTimeframeLoading && <SkeletonCard icon={<Layers className="h-4 w-4" />} title="Multi-Timeframe" />}
+          {isMultiTimeframeError && (
+            <ErrorCard icon={<Layers className="h-4 w-4" />} title="Multi-Timeframe" message={`Could not resolve "${symbol}".`} />
+          )}
+          {multiTimeframe && (
+            <Card data-testid="card-dashboard-multi-timeframe">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Layers className="h-4 w-4" />
+                    Multi-Timeframe
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {multiTimeframe.dataSource}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {multiTimeframe.dominantTrend ? (
+                    <Badge variant="outline" className={`flex items-center gap-1 ${trendBadgeClass(multiTimeframe.dominantTrend)}`}>
+                      <TrendIcon trend={multiTimeframe.dominantTrend} />
+                      {multiTimeframe.dominantTrend}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-border text-muted-foreground">
+                      No dominant trend
+                    </Badge>
+                  )}
+                  <Badge variant="outline" className={agreementBadgeClass(multiTimeframe.trendAgreement)}>
+                    {multiTimeframe.trendAgreement}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{multiTimeframe.summary}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {isRegimeLoading && <SkeletonCard icon={<Gauge className="h-4 w-4" />} title="Market Regime" />}
+          {isRegimeError && (
+            <ErrorCard icon={<Gauge className="h-4 w-4" />} title="Market Regime" message={`Could not resolve "${symbol}".`} />
+          )}
+          {regime && (
+            <Card data-testid="card-dashboard-regime">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Gauge className="h-4 w-4" />
+                    Market Regime
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {regime.dataSource}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={regimeBadgeClass(regime.regimeLabel)}>
+                    {regime.regimeLabel}
+                  </Badge>
+                  <Badge variant="outline" className={volatilityBadgeClass(regime.volatilityRegime)}>
+                    {regime.volatilityRegime} volatility
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{regime.summary}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {isProbabilityLoading && <SkeletonCard icon={<Target className="h-4 w-4" />} title="Probability" />}
+          {isProbabilityError && (
+            <ErrorCard icon={<Target className="h-4 w-4" />} title="Probability" message={`Could not resolve "${symbol}".`} />
+          )}
+          {probability && (
+            <Card data-testid="card-dashboard-probability">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Target className="h-4 w-4" />
+                    Probability
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {probability.dataSource}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {!probability.available ? (
+                  <p className="text-sm text-muted-foreground" data-testid="text-dashboard-probability-unavailable">
+                    {probability.unavailableReason ?? "Probability cone unavailable for this symbol."}
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="border-border text-muted-foreground">
+                      {probability.volatilityAnnualizedPct !== null
+                        ? `${probability.volatilityAnnualizedPct}% volatility`
+                        : "Volatility unavailable"}
+                    </Badge>
+                    <Badge variant="outline" className={confidenceBadgeClass(probability.confidenceLevel)}>
+                      {probability.confidenceLevel}
+                    </Badge>
+                  </div>
+                )}
+                <p className="text-sm text-muted-foreground">{probability.summary}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {isLiquidityLoading && <SkeletonCard icon={<Droplets className="h-4 w-4" />} title="Liquidity" />}
+          {isLiquidityError && (
+            <ErrorCard icon={<Droplets className="h-4 w-4" />} title="Liquidity" message={`Could not resolve "${symbol}".`} />
+          )}
+          {liquidity && (
+            <Card data-testid="card-dashboard-liquidity">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Droplets className="h-4 w-4" />
+                    Liquidity
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {liquidity.dataSource}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={liquidityBandBadgeClass(liquidity.liquidityBand)}>
+                    {liquidity.liquidityBand} liquidity
+                  </Badge>
+                  <Badge variant="outline" className={pressureBadgeClass(liquidity.buySellPressure.direction)}>
+                    {liquidity.buySellPressure.direction} pressure
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{liquidity.summary}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card data-testid="card-dashboard-risk">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShieldAlert className="h-4 w-4" />
+              Portfolio Risk
+            </CardTitle>
+            <CardDescription>Your own open trading positions — never places an order.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {risk ? (
+              <>
+                <Badge variant="outline" className={riskGradeBadgeClass(risk.overall.label)}>
+                  {risk.overall.label}
+                </Badge>
+                <p className="text-sm text-muted-foreground">{risk.overall.detail}</p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground" data-testid="text-dashboard-risk-empty">
+                No risk analysis available yet — add a trading position to get started.
+              </p>
+            )}
+            <Link href="/trading-research" className="text-xs text-primary hover:underline">
+              Manage positions →
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-dashboard-journal">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <NotebookPen className="h-4 w-4" />
+              Recent Journal Reflections
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {recentJournalEntries.length === 0 && (
+              <p className="text-sm text-muted-foreground" data-testid="text-dashboard-journal-empty">
+                No journal entries yet.
+              </p>
+            )}
+            {recentJournalEntries.length > 0 && (
+              <ul className="space-y-1">
+                {recentJournalEntries.map((e) => (
+                  <li key={e.id} className="rounded-md border border-border px-2 py-1.5 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate">{e.title}</span>
+                      <Badge variant="outline" className="shrink-0 text-xs">
+                        {e.mood}
+                      </Badge>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link href="/trading-journal" className="text-xs text-primary hover:underline">
+              View journal →
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-dashboard-backtests">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <History className="h-4 w-4" />
+              Recent Backtests
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {recentBacktests.length === 0 && (
+              <p className="text-sm text-muted-foreground" data-testid="text-dashboard-backtests-empty">
+                No backtests run yet.
+              </p>
+            )}
+            {recentBacktests.length > 0 && (
+              <ul className="space-y-1">
+                {recentBacktests.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between rounded-md border border-border px-2 py-1.5 text-sm">
+                    <span>
+                      {r.symbol} · {r.strategy}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {r.available && r.totalTrades > 0 && r.winRate !== null
+                        ? `${(r.winRate * 100).toFixed(0)}% win`
+                        : "no trades"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link href="/trading-backtest" className="text-xs text-primary hover:underline">
+              Run backtest →
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card data-testid="card-dashboard-coach">
+        <CardContent className="flex items-center justify-between gap-4 pt-6">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MessageCircle className="h-4 w-4" />
+            Have a question about what you're seeing? Ask the AI Trade Coach on the Trading Research page.
+          </div>
+          <Link href="/trading-research">
+            <Button type="button" variant="outline" size="sm" data-testid="button-dashboard-open-coach">
+              Open AI Trade Coach
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

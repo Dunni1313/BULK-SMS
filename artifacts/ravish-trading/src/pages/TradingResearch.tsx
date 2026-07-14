@@ -30,6 +30,15 @@
 // Advisory/education only: this page never previews, schedules, or submits
 // any order, and never touches a real brokerage account - Engine 2 is
 // read-only/advisory throughout this phase (Phase 3 plan section 19).
+//
+// Phase 3, Sprint 50 - this page's small presentational badge-class/icon
+// helpers (fmtUsd, trendBadgeClass, TrendIcon, confidenceBadgeClass,
+// agreementBadgeClass, regimeBadgeClass, volatilityBadgeClass,
+// riskGradeBadgeClass, liquidityBandBadgeClass, pressureBadgeClass) were
+// extracted, unmodified, into src/lib/trading-format.tsx so the new
+// pages/InstitutionalDashboard.tsx could reuse them instead of redefining
+// its own copies - a behavior-preserving refactor, not a logic change; this
+// page's own rendering is otherwise untouched.
 
 import { useState } from "react";
 import {
@@ -63,11 +72,20 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  fmtUsd,
+  trendBadgeClass,
+  TrendIcon,
+  confidenceBadgeClass,
+  agreementBadgeClass,
+  regimeBadgeClass,
+  volatilityBadgeClass,
+  riskGradeBadgeClass,
+  liquidityBandBadgeClass,
+  pressureBadgeClass,
+} from "@/lib/trading-format";
+import {
   Activity,
   Search,
-  TrendingUp,
-  TrendingDown,
-  Minus,
   Layers,
   Gauge,
   Target,
@@ -77,65 +95,6 @@ import {
   MessageCircle,
   Send,
 } from "lucide-react";
-
-const fmtUsd = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
-
-function trendBadgeClass(trend: string): string {
-  if (trend === "uptrend") return "border-emerald-500/40 text-emerald-400";
-  if (trend === "downtrend") return "border-rose-500/40 text-rose-400";
-  return "border-border text-muted-foreground";
-}
-
-function TrendIcon({ trend }: { trend: string }) {
-  if (trend === "uptrend") return <TrendingUp className="h-4 w-4" />;
-  if (trend === "downtrend") return <TrendingDown className="h-4 w-4" />;
-  return <Minus className="h-4 w-4" />;
-}
-
-function confidenceBadgeClass(level: string): string {
-  if (level === "High") return "border-emerald-500/40 text-emerald-400";
-  if (level === "Moderate") return "border-amber-500/40 text-amber-400";
-  return "border-border text-muted-foreground";
-}
-
-function agreementBadgeClass(agreement: string): string {
-  if (agreement === "unanimous") return "border-emerald-500/40 text-emerald-400";
-  if (agreement === "majority") return "border-amber-500/40 text-amber-400";
-  return "border-border text-muted-foreground";
-}
-
-function regimeBadgeClass(regimeLabel: string): string {
-  if (regimeLabel === "trending-bullish") return "border-emerald-500/40 text-emerald-400";
-  if (regimeLabel === "trending-bearish") return "border-rose-500/40 text-rose-400";
-  if (regimeLabel === "volatile-choppy") return "border-amber-500/40 text-amber-400";
-  return "border-border text-muted-foreground";
-}
-
-function volatilityBadgeClass(volatilityRegime: string): string {
-  if (volatilityRegime === "high") return "border-amber-500/40 text-amber-400";
-  if (volatilityRegime === "low") return "border-sky-500/40 text-sky-400";
-  return "border-border text-muted-foreground";
-}
-
-function riskGradeBadgeClass(label: string): string {
-  if (label === "Excellent" || label === "Strong") return "border-emerald-500/40 text-emerald-400";
-  if (label === "Moderate") return "border-amber-500/40 text-amber-400";
-  if (label === "Elevated" || label === "Poor") return "border-rose-500/40 text-rose-400";
-  return "border-border text-muted-foreground";
-}
-
-function liquidityBandBadgeClass(band: string): string {
-  if (band === "High") return "border-emerald-500/40 text-emerald-400";
-  if (band === "Moderate") return "border-amber-500/40 text-amber-400";
-  return "border-rose-500/40 text-rose-400";
-}
-
-function pressureBadgeClass(direction: string): string {
-  if (direction === "buying") return "border-emerald-500/40 text-emerald-400";
-  if (direction === "selling") return "border-rose-500/40 text-rose-400";
-  return "border-border text-muted-foreground";
-}
 
 export default function TradingResearch() {
   const [inputValue, setInputValue] = useState("");

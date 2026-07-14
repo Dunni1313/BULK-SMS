@@ -26,6 +26,7 @@ import StockResearch from "./pages/StockResearch";
 import TradingResearch from "./pages/TradingResearch";
 import TradingJournal from "./pages/TradingJournal";
 import TradingBacktest from "./pages/TradingBacktest";
+import InstitutionalDashboard from "./pages/InstitutionalDashboard";
 import StockScanner from "./pages/StockScanner";
 import PortfolioConstruction from "./pages/PortfolioConstruction";
 import ValueInvestingSchool from "./pages/ValueInvestingSchool";
@@ -68,6 +69,7 @@ function Router() {
         <Route path="/autopilot" component={AutoPilot} />
         <Route path="/events" component={Events} />
         <Route path="/adjustments" component={Adjustments} />
+        <Route path="/institutional-dashboard" component={InstitutionalDashboard} />
         <Route path="/trading-research" component={TradingResearch} />
         <Route path="/trading-journal" component={TradingJournal} />
         <Route path="/trading-backtest" component={TradingBacktest} />
