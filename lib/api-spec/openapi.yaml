@@ -1216,6 +1216,24 @@ paths:
                 items:
                   $ref: "#/components/schemas/ValueSummary"
 
+  # Phase 4, Sprint 55 — Macro/Regime Side-by-Side View. Engine 1's own
+  # global, date-seeded macro/interest-rate regime proxy (lib/investingMacro.ts,
+  # Phase 2 Sprint 26) previously had no dedicated route — only consumed
+  # internally by the Tom Nash Engine. Global, not symbol-scoped: no path
+  # parameter.
+  /stock-analyst/macro:
+    get:
+      operationId: getMacroContext
+      tags: [value]
+      summary: Global, date-seeded macro/interest-rate regime context (SIMULATED, not symbol-specific)
+      responses:
+        "200":
+          description: Macro context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValueMacroContext"
+
   /stock-analyst/value-research:
     post:
       operationId: generateValueResearch
@@ -2978,6 +2996,21 @@ components:
         answerSource:
           type: string
           enum: [llm, template]
+
+    ValueMacroContext:
+      type: object
+      required: [asOf, regime, regimeLabel, rateTrendPct, dataSource, summary]
+      properties:
+        asOf: { type: string }
+        regime:
+          type: string
+          enum: [rising_rates, falling_rates, stable_rates]
+        regimeLabel: { type: string }
+        rateTrendPct: { type: number }
+        dataSource:
+          type: string
+          enum: [SIMULATED]
+        summary: { type: string }
 
     ValueSummary:
       type: object

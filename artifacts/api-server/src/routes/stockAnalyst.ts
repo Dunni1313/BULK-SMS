@@ -38,10 +38,13 @@ import {
   GetFilingAnalysisResponse,
   GetManagementQualityAnalysisResponse,
   GetEarningsIntelligenceResponse,
+  GetMacroContextResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider, resolveFundamentals } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
+import { buildMacroContext } from "../lib/investingMacro.js";
+import { todayStr } from "../lib/deterministic.js";
 import { buildIndustryComparison } from "../lib/industryComparison.js";
 import { buildFilingAnalysis } from "../lib/filingAnalysis.js";
 import { buildManagementQualityAnalysis } from "../lib/managementAnalysis.js";
@@ -265,6 +268,18 @@ router.get("/value-universe", async (req, res): Promise<void> => {
     .filter((r): r is ValueResearchReport => r !== null)
     .map(summaryFromReport);
   res.json(GetValueUniverseResponse.parse(summaries));
+});
+
+// Phase 4, Sprint 55 — Macro/Regime Side-by-Side View. A thin pass-through
+// to buildMacroContext() (lib/investingMacro.ts, Phase 2 Sprint 26), which
+// previously had no route of its own — only consumed internally by the Tom
+// Nash Engine's pillar rationale text. Global/date-seeded, not symbol-
+// scoped: no ownership scoping needed, no path parameter, always "today"
+// (matching every other day-seeded proxy's own "changes only as the
+// calendar date changes" contract — no query-param override this sprint,
+// consistent with the plan's own "S" effort sizing for this module).
+router.get("/macro", (_req, res): void => {
+  res.json(GetMacroContextResponse.parse(buildMacroContext(todayStr())));
 });
 
 // ─── Generate research (with AI thesis) ───────────────────────────────────────

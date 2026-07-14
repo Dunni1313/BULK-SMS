@@ -2293,6 +2293,19 @@ export const GetValueUniverseResponse = zod.array(GetValueUniverseResponseItem)
 
 
 /**
+ * @summary Global, date-seeded macro/interest-rate regime context (SIMULATED, not symbol-specific)
+ */
+export const GetMacroContextResponse = zod.object({
+  "asOf": zod.string(),
+  "regime": zod.enum(['rising_rates', 'falling_rates', 'stable_rates']),
+  "regimeLabel": zod.string(),
+  "rateTrendPct": zod.number(),
+  "dataSource": zod.enum(['SIMULATED']),
+  "summary": zod.string()
+})
+
+
+/**
  * @summary Generate a value-investing research report with AI thesis (read-only; never executes)
  */
 export const GenerateValueResearchBody = zod.object({

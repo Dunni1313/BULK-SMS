@@ -959,6 +959,31 @@ export interface AskValueResearchResult {
   answerSource: AskValueResearchResultAnswerSource;
 }
 
+export type ValueMacroContextRegime = typeof ValueMacroContextRegime[keyof typeof ValueMacroContextRegime];
+
+
+export const ValueMacroContextRegime = {
+  rising_rates: 'rising_rates',
+  falling_rates: 'falling_rates',
+  stable_rates: 'stable_rates',
+} as const;
+
+export type ValueMacroContextDataSource = typeof ValueMacroContextDataSource[keyof typeof ValueMacroContextDataSource];
+
+
+export const ValueMacroContextDataSource = {
+  SIMULATED: 'SIMULATED',
+} as const;
+
+export interface ValueMacroContext {
+  asOf: string;
+  regime: ValueMacroContextRegime;
+  regimeLabel: string;
+  rateTrendPct: number;
+  dataSource: ValueMacroContextDataSource;
+  summary: string;
+}
+
 export type ValueSummaryKind = typeof ValueSummaryKind[keyof typeof ValueSummaryKind];
 
 

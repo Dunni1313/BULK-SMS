@@ -136,6 +136,7 @@ import type {
   UniverseSymbol,
   ValueHistoryRow,
   ValueLessonsResponse,
+  ValueMacroContext,
   ValueQuizGradeResult,
   ValueQuizInput,
   ValueResearchInput,
@@ -5144,6 +5145,83 @@ export function useGetValueUniverse<TData = Awaited<ReturnType<typeof getValueUn
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetValueUniverseQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMacroContextUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/macro`
+}
+
+/**
+ * @summary Global, date-seeded macro/interest-rate regime context (SIMULATED, not symbol-specific)
+ */
+export const getMacroContext = async ( options?: RequestInit): Promise<ValueMacroContext> => {
+
+  return customFetch<ValueMacroContext>(getGetMacroContextUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMacroContextQueryKey = () => {
+    return [
+    `/api/stock-analyst/macro`
+    ] as const;
+    }
+
+
+export const getGetMacroContextQueryOptions = <TData = Awaited<ReturnType<typeof getMacroContext>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMacroContext>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMacroContextQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMacroContext>>> = ({ signal }) => getMacroContext({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMacroContext>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMacroContextQueryResult = NonNullable<Awaited<ReturnType<typeof getMacroContext>>>
+export type GetMacroContextQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Global, date-seeded macro/interest-rate regime context (SIMULATED, not symbol-specific)
+ */
+
+export function useGetMacroContext<TData = Awaited<ReturnType<typeof getMacroContext>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMacroContext>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMacroContextQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

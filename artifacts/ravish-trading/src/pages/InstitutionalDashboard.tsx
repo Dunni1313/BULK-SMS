@@ -50,12 +50,37 @@
 // plain verdict read); the Engine 2 side reuses the `regime` object already
 // fetched by the signal grid below, not a second fetch or a new
 // computation.
+//
+// Phase 4, Sprint 55 — Macro/Regime Side-by-Side View (approved Phase 4
+// plan, Sprint 55; see docs/Phase-4-Master-Execution-Plan.md's Sprint 55
+// as-built note). Adds a "Macro / Regime Side-by-Side" section showing all
+// 3 engines' own independent regime-shaped reads together: Engine 3's
+// existing Market Briefing (lib/marketBriefing.ts, options-IV-derived,
+// already had its own route/hook, GET /briefing — reused here read-only,
+// same generated hook PortfolioAI.tsx's own richer LLM-narrated card
+// already uses, but rendered as a condensed summary here, not a
+// re-implementation of that card's own streaming/refresh logic); Engine 1's
+// macro/interest-rate proxy (lib/investingMacro.ts, Phase 2 Sprint 26,
+// date-seeded and genuinely deliberately independent of Engine 3's own
+// regime read per that module's own doc comment — previously had no route
+// at all, so this sprint added the one new thin pass-through route, GET
+// /stock-analyst/macro, exposing already-tested, unmodified logic); and
+// Engine 2's Market Regime (the same already-fetched `regime` object the
+// Cross-Engine Verdict section above and the per-symbol grid below both
+// already use — a third reuse of that one fetch, not a third fetch).
+// Zero engine-logic merging: each card is independently attributable to
+// its own originating engine, and none of the three values are combined,
+// averaged, or reconciled into a new consolidated reading anywhere.
 
 import { useState } from "react";
 import { Link } from "wouter";
 import {
   useGetValueReport,
   getGetValueReportQueryKey,
+  useGetMarketBriefing,
+  getGetMarketBriefingQueryKey,
+  useGetMacroContext,
+  getGetMacroContextQueryKey,
   useGetTradingStructure,
   getGetTradingStructureQueryKey,
   useGetTradingMultiTimeframe,
@@ -103,6 +128,8 @@ import {
   MessageCircle,
   Users,
   Scale,
+  Newspaper,
+  Landmark,
 } from "lucide-react";
 
 // Bounded — a fast-scan summary, not a full history dump. The full lists
@@ -152,6 +179,26 @@ function committeeVerdictBadgeClass(verdict: string): string {
   return "border-border text-muted-foreground";
 }
 
+// Engine 3's own regime vocabulary (risk_on/neutral/risk_off, IV-derived) —
+// kept local for the same reason as committeeVerdictBadgeClass above: a
+// third engine's own vocabulary, not Engine 2's, so it doesn't belong in
+// trading-format.tsx.
+function briefingRegimeBadgeClass(regime: string): string {
+  if (regime === "risk_on") return "border-emerald-500/40 text-emerald-400";
+  if (regime === "risk_off") return "border-rose-500/40 text-rose-400";
+  return "border-border text-muted-foreground";
+}
+
+// Engine 1's own macro/rate-regime vocabulary (rising_rates/falling_rates/
+// stable_rates, lib/investingMacro.ts) — likewise kept local, a fourth
+// distinct vocabulary alongside Investment Committee's Buy/Hold/Wait and
+// Market Briefing's risk_on/neutral/risk_off above.
+function macroRegimeBadgeClass(regime: string): string {
+  if (regime === "rising_rates") return "border-amber-500/40 text-amber-400";
+  if (regime === "falling_rates") return "border-sky-500/40 text-sky-400";
+  return "border-border text-muted-foreground";
+}
+
 export default function InstitutionalDashboard() {
   const [inputValue, setInputValue] = useState("");
   const [symbol, setSymbol] = useState("");
@@ -168,6 +215,21 @@ export default function InstitutionalDashboard() {
     isError: isValueReportError,
   } = useGetValueReport(symbol, {
     query: { queryKey: getGetValueReportQueryKey(symbol), enabled: !!symbol },
+  });
+
+  // Phase 4, Sprint 55 — Engine 3's and Engine 1's own regime reads for the
+  // Macro/Regime Side-by-Side section. Both are global/market-wide, not
+  // symbol-scoped, so — unlike every per-symbol hook on this page — they
+  // fetch unconditionally (no `enabled` gate), the same always-fetched
+  // pattern the portfolio-wide Risk/Journal/Backtest hooks below already
+  // use. Engine 2's own regime read is not fetched again here — the
+  // Macro/Regime section reuses the same `regime` object the per-symbol
+  // grid below fetches once, a third read of one fetch, not a third fetch.
+  const { data: marketBriefing, isLoading: isMarketBriefingLoading } = useGetMarketBriefing({
+    query: { queryKey: getGetMarketBriefingQueryKey() },
+  });
+  const { data: macroContext, isLoading: isMacroContextLoading } = useGetMacroContext({
+    query: { queryKey: getGetMacroContextQueryKey() },
   });
 
   // All five per-symbol signals resolve concurrently, none gated behind a
@@ -220,9 +282,10 @@ export default function InstitutionalDashboard() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Institutional Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          One-screen cross-engine overview — Engine 1's Investment Committee verdict alongside Engine 2's Structure,
-          Multi-Timeframe, Regime, Probability, Liquidity, and your own Portfolio Risk, for a single symbol lookup.
-          SIMULATED market data, advisory only. Never places an order.
+          One-screen cross-engine overview — Engine 1's Investment Committee verdict, all 3 engines' own independent
+          macro/regime reads side-by-side, and Engine 2's Structure, Multi-Timeframe, Regime, Probability, Liquidity,
+          and your own Portfolio Risk, for a single symbol lookup. SIMULATED market data, advisory only. Never places
+          an order.
         </p>
       </div>
 
@@ -319,6 +382,93 @@ export default function InstitutionalDashboard() {
               </CardContent>
             </Card>
           )}
+        </div>
+      )}
+
+      {symbol && (
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Macro / Regime Side-by-Side</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3" data-testid="grid-macro-regime">
+            {isMarketBriefingLoading && <SkeletonCard icon={<Newspaper className="h-4 w-4" />} title="Engine 3 — Market Briefing" />}
+            {marketBriefing && (
+              <Card data-testid="card-dashboard-market-briefing">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Newspaper className="h-4 w-4" />
+                    Engine 3 — Market Briefing
+                  </CardTitle>
+                  <CardDescription>Options-income context, options-IV-derived. Global, not symbol-specific.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className={briefingRegimeBadgeClass(marketBriefing.briefing.regime)}>
+                      {marketBriefing.briefing.regimeLabel}
+                    </Badge>
+                    <Badge variant="outline" className="border-border text-muted-foreground">
+                      {marketBriefing.briefing.vixLabel}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{marketBriefing.briefing.headline}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {isMacroContextLoading && <SkeletonCard icon={<Landmark className="h-4 w-4" />} title="Engine 1 — Macro Context" />}
+            {macroContext && (
+              <Card data-testid="card-dashboard-macro-context">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Landmark className="h-4 w-4" />
+                      Engine 1 — Macro Context
+                    </CardTitle>
+                    <Badge variant="outline" className="text-xs">
+                      {macroContext.dataSource}
+                    </Badge>
+                  </div>
+                  <CardDescription>Interest-rate proxy, date-seeded. Global, not symbol-specific.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Badge variant="outline" className={macroRegimeBadgeClass(macroContext.regime)}>
+                    {macroContext.regimeLabel}
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">{macroContext.summary}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {isRegimeLoading && <SkeletonCard icon={<Gauge className="h-4 w-4" />} title="Engine 2 — Market Regime" />}
+            {isRegimeError && (
+              <ErrorCard icon={<Gauge className="h-4 w-4" />} title="Engine 2 — Market Regime" message={`Could not resolve "${symbol}".`} />
+            )}
+            {regime && (
+              <Card data-testid="card-dashboard-macro-regime-engine2">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Gauge className="h-4 w-4" />
+                      Engine 2 — Market Regime
+                    </CardTitle>
+                    <Badge variant="outline" className="text-xs">
+                      {regime.dataSource}
+                    </Badge>
+                  </div>
+                  <CardDescription>Trend + liquidity + volatility, for {symbol}.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className={regimeBadgeClass(regime.regimeLabel)}>
+                      {regime.regimeLabel}
+                    </Badge>
+                    <Badge variant="outline" className={volatilityBadgeClass(regime.volatilityRegime)}>
+                      {regime.volatilityRegime} volatility
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{regime.summary}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       )}
 

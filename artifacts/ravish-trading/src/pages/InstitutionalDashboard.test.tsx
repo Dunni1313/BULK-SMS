@@ -14,6 +14,10 @@ const mockState = vi.hoisted(() => ({
   valueReport: undefined as unknown,
   isValueReportLoading: false,
   isValueReportError: false,
+  marketBriefing: undefined as unknown,
+  isMarketBriefingLoading: false,
+  macroContext: undefined as unknown,
+  isMacroContextLoading: false,
   structure: undefined as unknown,
   isStructureLoading: false,
   isStructureError: false,
@@ -44,6 +48,14 @@ vi.mock("@workspace/api-client-react", async () => {
       data: mockState.valueReport,
       isLoading: mockState.isValueReportLoading,
       isError: mockState.isValueReportError,
+    }),
+    useGetMarketBriefing: () => ({
+      data: mockState.marketBriefing,
+      isLoading: mockState.isMarketBriefingLoading,
+    }),
+    useGetMacroContext: () => ({
+      data: mockState.macroContext,
+      isLoading: mockState.isMacroContextLoading,
     }),
     useGetTradingStructure: () => ({
       data: mockState.structure,
@@ -94,6 +106,39 @@ function valueReport(over: Record<string, unknown> = {}) {
       reasoning: ["Graham votes Buy.", "Buffett votes Hold.", "Tom Nash votes Buy.", "Majority agreement: Buy."],
       summary: "2 of 3 analysts recommend Buy, with majority agreement.",
     },
+    ...over,
+  };
+}
+
+function marketBriefingResponse(over: Record<string, unknown> = {}) {
+  return {
+    briefing: {
+      date: "2026-07-14",
+      regime: "risk_on",
+      regimeLabel: "Risk-On",
+      syntheticVix: 14.2,
+      vixLabel: "Low volatility",
+      avgIvRank: 32,
+      breadth: 68,
+      ivEnvironment: "Compressed",
+      headline: "Options income conditions favor selling premium.",
+      drivers: [],
+      catalysts: [],
+    },
+    narration: "Risk-on conditions with compressed IV.",
+    narrationSource: "template",
+    ...over,
+  };
+}
+
+function macroContext(over: Record<string, unknown> = {}) {
+  return {
+    asOf: "2026-07-14",
+    regime: "stable_rates",
+    regimeLabel: "Stable-Rate Environment",
+    rateTrendPct: 0.0002,
+    dataSource: "SIMULATED",
+    summary: "SIMULATED macro proxy as of 2026-07-14: stable-rate environment.",
     ...over,
   };
 }
@@ -245,6 +290,10 @@ describe("InstitutionalDashboard page", () => {
     mockState.valueReport = undefined;
     mockState.isValueReportLoading = false;
     mockState.isValueReportError = false;
+    mockState.marketBriefing = undefined;
+    mockState.isMarketBriefingLoading = false;
+    mockState.macroContext = undefined;
+    mockState.isMacroContextLoading = false;
     mockState.structure = undefined;
     mockState.isStructureLoading = false;
     mockState.isStructureError = false;
@@ -335,6 +384,42 @@ describe("InstitutionalDashboard page", () => {
     expect(screen.getByText(/Could not resolve "AAPL"/i)).toBeInTheDocument();
     expect(screen.queryByTestId("card-dashboard-committee")).not.toBeInTheDocument();
     expect(screen.getByTestId("card-dashboard-technical-read")).toBeInTheDocument();
+  });
+
+  it("shows all 3 engines' independent regime reads together in the Macro/Regime Side-by-Side section once a symbol is searched", async () => {
+    mockState.marketBriefing = marketBriefingResponse();
+    mockState.macroContext = macroContext();
+    mockState.regime = regimeAnalysis();
+
+    const user = userEvent.setup();
+    renderWithClient(<InstitutionalDashboard />);
+    await user.type(screen.getByTestId("input-dashboard-symbol"), "AAPL");
+    await user.click(screen.getByTestId("button-dashboard-search"));
+
+    const macroGrid = screen.getByTestId("grid-macro-regime");
+
+    const briefingCard = screen.getByTestId("card-dashboard-market-briefing");
+    expect(within(briefingCard).getByText("Risk-On")).toBeInTheDocument();
+    expect(within(briefingCard).getByText(/Options income conditions favor selling premium/i)).toBeInTheDocument();
+
+    const macroCard = screen.getByTestId("card-dashboard-macro-context");
+    expect(within(macroCard).getByText("Stable-Rate Environment")).toBeInTheDocument();
+    expect(within(macroCard).getByText("SIMULATED")).toBeInTheDocument();
+
+    const engine2Card = screen.getByTestId("card-dashboard-macro-regime-engine2");
+    expect(within(engine2Card).getByText("trending-bullish")).toBeInTheDocument();
+
+    // All three sit in the same grid — the literal "visible together" proof
+    // — and each card is independently attributable to its own engine via
+    // its own title, with no combined/averaged reading anywhere.
+    expect(within(macroGrid).getByTestId("card-dashboard-market-briefing")).toBeInTheDocument();
+    expect(within(macroGrid).getByTestId("card-dashboard-macro-context")).toBeInTheDocument();
+    expect(within(macroGrid).getByTestId("card-dashboard-macro-regime-engine2")).toBeInTheDocument();
+  });
+
+  it("does not show the Macro/Regime Side-by-Side section before a symbol is searched", () => {
+    renderWithClient(<InstitutionalDashboard />);
+    expect(screen.queryByTestId("grid-macro-regime")).not.toBeInTheDocument();
   });
 
   it("honestly shows the probability-unavailable reason instead of a fabricated cone", async () => {
