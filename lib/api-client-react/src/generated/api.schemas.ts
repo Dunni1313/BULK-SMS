@@ -3554,6 +3554,86 @@ export interface TradingJournalEntryUpdate {
   rMultiple?: number;
 }
 
+export type TradingTimeframe = typeof TradingTimeframe[keyof typeof TradingTimeframe];
+
+
+export const TradingTimeframe = {
+  '1m': '1m',
+  '5m': '5m',
+  '15m': '15m',
+  '1h': '1h',
+  '1D': '1D',
+} as const;
+
+export type TradingSwingPointKind = typeof TradingSwingPointKind[keyof typeof TradingSwingPointKind];
+
+
+export const TradingSwingPointKind = {
+  high: 'high',
+  low: 'low',
+} as const;
+
+export interface TradingSwingPoint {
+  time: string;
+  price: number;
+  kind: TradingSwingPointKind;
+}
+
+export type TradingSupportResistanceZoneKind = typeof TradingSupportResistanceZoneKind[keyof typeof TradingSupportResistanceZoneKind];
+
+
+export const TradingSupportResistanceZoneKind = {
+  support: 'support',
+  resistance: 'resistance',
+} as const;
+
+export interface TradingSupportResistanceZone {
+  price: number;
+  kind: TradingSupportResistanceZoneKind;
+  strength: number;
+}
+
+export type TradingStructureAnalysisDataSource = typeof TradingStructureAnalysisDataSource[keyof typeof TradingStructureAnalysisDataSource];
+
+
+export const TradingStructureAnalysisDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingStructureAnalysisTrend = typeof TradingStructureAnalysisTrend[keyof typeof TradingStructureAnalysisTrend];
+
+
+export const TradingStructureAnalysisTrend = {
+  uptrend: 'uptrend',
+  downtrend: 'downtrend',
+  range: 'range',
+} as const;
+
+export type TradingStructureAnalysisConfidenceLevel = typeof TradingStructureAnalysisConfidenceLevel[keyof typeof TradingStructureAnalysisConfidenceLevel];
+
+
+export const TradingStructureAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface TradingStructureAnalysis {
+  symbol: string;
+  interval: TradingTimeframe;
+  dataSource: TradingStructureAnalysisDataSource;
+  candleCount: number;
+  currentPrice: number;
+  trend: TradingStructureAnalysisTrend;
+  trendDetail: string;
+  swingPoints: TradingSwingPoint[];
+  zones: TradingSupportResistanceZone[];
+  confidenceLevel: TradingStructureAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

@@ -36,6 +36,8 @@ tags:
     description: Target-allocation portfolio construction for value investing (advisory/education only, never places an order — distinct from the options-income "portfolio" tag)
   - name: trading-journal
     description: Trading journal for Engine 2 (Institutional Trading Engine) positions — mirrors the options "journal" tag's shape, distinct table/records, advisory only, never places an order
+  - name: trading-structure
+    description: Engine 2 Market Structure analysis (support/resistance zones, trend classification) — SIMULATED-first, advisory only, never places an order
 
 paths:
   /healthz:
@@ -1848,6 +1850,38 @@ paths:
           description: Trading journal entry deleted
         "404":
           description: Trading journal entry not found
+
+  # ─── Market Structure (Engine 2, Phase 3 Sprint 40) ─────────────────────────
+  # Deliberately documents the path parameter only. The route also accepts
+  # optional ?interval=&lookback= query overrides (defaulting to "1D"/90),
+  # validated and handled entirely server-side — kept out of this formal
+  # parameter list because Orval's zod+split-types generator produces a
+  # genuine duplicate-export collision (GetTradingStructureParams) the one
+  # time this spec combines a path param with a query param, confirmed via
+  # direct testing to be a toolchain limitation, not a spec error. This
+  # mirrors the established precedent (Sprint 30's /value-research/stream)
+  # of keeping a route's full surface outside strict OpenAPI modeling when
+  # the generator can't cleanly represent it.
+  /trading/structure/{symbol}:
+    get:
+      operationId: getTradingStructure
+      tags: [trading-structure]
+      summary: Market structure analysis (support/resistance zones, trend classification) for a symbol — SIMULATED-first, honestly labelled dataSource. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only (not part of this typed contract).
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Market structure analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingStructureAnalysis"
+        "404":
+          description: Unknown or invalid symbol
 
 components:
   schemas:
@@ -5762,3 +5796,82 @@ components:
           type: number
         rMultiple:
           type: number
+
+    # ─── Market Structure (Engine 2, Phase 3 Sprint 40) ───────────────────────
+    TradingTimeframe:
+      type: string
+      enum: ["1m", "5m", "15m", "1h", "1D"]
+
+    TradingSwingPoint:
+      type: object
+      required: [time, price, kind]
+      properties:
+        time:
+          type: string
+        price:
+          type: number
+        kind:
+          type: string
+          enum: [high, low]
+
+    TradingSupportResistanceZone:
+      type: object
+      required: [price, kind, strength]
+      properties:
+        price:
+          type: number
+        kind:
+          type: string
+          enum: [support, resistance]
+        strength:
+          type: integer
+
+    TradingStructureAnalysis:
+      type: object
+      required:
+        [
+          symbol,
+          interval,
+          dataSource,
+          candleCount,
+          currentPrice,
+          trend,
+          trendDetail,
+          swingPoints,
+          zones,
+          confidenceLevel,
+          confidenceExplanation,
+          summary,
+        ]
+      properties:
+        symbol:
+          type: string
+        interval:
+          $ref: "#/components/schemas/TradingTimeframe"
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        candleCount:
+          type: integer
+        currentPrice:
+          type: number
+        trend:
+          type: string
+          enum: [uptrend, downtrend, range]
+        trendDetail:
+          type: string
+        swingPoints:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingSwingPoint"
+        zones:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingSupportResistanceZone"
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation:
+          type: string
+        summary:
+          type: string

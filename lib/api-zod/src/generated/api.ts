@@ -3734,3 +3734,34 @@ export const DeleteTradingJournalEntryParams = zod.object({
 })
 
 
+/**
+ * @summary Market structure analysis (support/resistance zones, trend classification) for a symbol — SIMULATED-first, honestly labelled dataSource. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only (not part of this typed contract).
+ */
+export const GetTradingStructureParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingStructureResponse = zod.object({
+  "symbol": zod.string(),
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "candleCount": zod.number(),
+  "currentPrice": zod.number(),
+  "trend": zod.enum(['uptrend', 'downtrend', 'range']),
+  "trendDetail": zod.string(),
+  "swingPoints": zod.array(zod.object({
+  "time": zod.string(),
+  "price": zod.number(),
+  "kind": zod.enum(['high', 'low'])
+})),
+  "zones": zod.array(zod.object({
+  "price": zod.number(),
+  "kind": zod.enum(['support', 'resistance']),
+  "strength": zod.number()
+})),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+})
+
+

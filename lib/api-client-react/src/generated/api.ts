@@ -120,6 +120,7 @@ import type {
   TradingJournalEntry,
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
+  TradingStructureAnalysis,
   UniverseSymbol,
   ValueHistoryRow,
   ValueLessonsResponse,
@@ -7515,4 +7516,81 @@ export const useDeleteTradingJournalEntry = <TError = ErrorType<void>,
       > => {
       return useMutation(getDeleteTradingJournalEntryMutationOptions(options));
     }
+
+export const getGetTradingStructureUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/structure/${symbol}`
+}
+
+/**
+ * @summary Market structure analysis (support/resistance zones, trend classification) for a symbol — SIMULATED-first, honestly labelled dataSource. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only (not part of this typed contract).
+ */
+export const getTradingStructure = async (symbol: string, options?: RequestInit): Promise<TradingStructureAnalysis> => {
+
+  return customFetch<TradingStructureAnalysis>(getGetTradingStructureUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingStructureQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/structure/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingStructureQueryOptions = <TData = Awaited<ReturnType<typeof getTradingStructure>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStructure>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingStructureQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingStructure>>> = ({ signal }) => getTradingStructure(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingStructure>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingStructureQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingStructure>>>
+export type GetTradingStructureQueryError = ErrorType<void>
+
+
+/**
+ * @summary Market structure analysis (support/resistance zones, trend classification) for a symbol — SIMULATED-first, honestly labelled dataSource. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only (not part of this typed contract).
+ */
+
+export function useGetTradingStructure<TData = Awaited<ReturnType<typeof getTradingStructure>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStructure>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingStructureQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 

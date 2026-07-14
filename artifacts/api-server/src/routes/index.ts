@@ -18,6 +18,7 @@ import eventsRouter from "./events";
 import stockAnalystRouter from "./stockAnalyst";
 import portfolioConstructionRouter from "./portfolioConstruction";
 import tradingJournalRouter from "./tradingJournal";
+import tradingStructureRouter from "./tradingStructure";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(eventsRouter);
 router.use("/stock-analyst", stockAnalystRouter);
 router.use(portfolioConstructionRouter);
 router.use(tradingJournalRouter);
+router.use(tradingStructureRouter);
 
 export default router;
