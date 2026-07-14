@@ -87,4 +87,6 @@ export interface Settings {
      * @nullable
      */
   tradingAccountValue?: number | null;
+  /** Whether the in-app notification center generates alerts for this user (watchlist target-crossing, risk hard-cap breach); default true */
+  alertsEnabled?: boolean;
 }

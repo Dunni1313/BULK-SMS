@@ -2862,6 +2862,38 @@ export interface CoachLesson {
   createdAt: string;
 }
 
+export type PlatformNotificationType = typeof PlatformNotificationType[keyof typeof PlatformNotificationType];
+
+
+export const PlatformNotificationType = {
+  watchlist_target_crossed: 'watchlist_target_crossed',
+  risk_cap_breached: 'risk_cap_breached',
+} as const;
+
+export type PlatformNotificationDataSource = typeof PlatformNotificationDataSource[keyof typeof PlatformNotificationDataSource];
+
+
+export const PlatformNotificationDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export interface PlatformNotification {
+  id: number;
+  type: PlatformNotificationType;
+  title: string;
+  message: string;
+  dataSource: PlatformNotificationDataSource;
+  /** @nullable */
+  relatedSymbol: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface PlatformNotificationUpdate {
+  isRead: boolean;
+}
+
 export type SettingsExecutionMode = typeof SettingsExecutionMode[keyof typeof SettingsExecutionMode];
 
 
@@ -2983,6 +3015,8 @@ export interface Settings {
      * @nullable
      */
   tradingAccountValue?: number | null;
+  /** Whether the in-app notification center generates alerts for this user (watchlist target-crossing, risk hard-cap breach); default true */
+  alertsEnabled?: boolean;
 }
 
 /**
@@ -3119,6 +3153,7 @@ export interface SettingsUpdate {
   investingFilingsProvider?: string;
   tradingDataProvider?: string;
   tradingAccountValue?: number;
+  alertsEnabled?: boolean;
 }
 
 export type EarningsPlayRecommendedStrategy = typeof EarningsPlayRecommendedStrategy[keyof typeof EarningsPlayRecommendedStrategy];

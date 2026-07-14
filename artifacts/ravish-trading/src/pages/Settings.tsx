@@ -64,6 +64,7 @@ export default function SettingsPage() {
     fundamentalsConnected: false,
     fundamentalsStalenessHours: DEFAULT_STALENESS_HOURS,
     fundamentalsAutoRefresh: true,
+    alertsEnabled: true,
   });
 
   useEffect(() => {
@@ -89,6 +90,7 @@ export default function SettingsPage() {
         fundamentalsConnected: settings.fundamentalsConnected ?? false,
         fundamentalsStalenessHours: settings.fundamentalsStalenessHours ?? DEFAULT_STALENESS_HOURS,
         fundamentalsAutoRefresh: settings.fundamentalsAutoRefresh ?? true,
+        alertsEnabled: settings.alertsEnabled ?? true,
       });
     }
   }, [settings]);
@@ -113,6 +115,7 @@ export default function SettingsPage() {
           fundamentalsProvider: local.fundamentalsProvider,
           fundamentalsStalenessHours: Number(local.fundamentalsStalenessHours),
           fundamentalsAutoRefresh: local.fundamentalsAutoRefresh,
+          alertsEnabled: local.alertsEnabled,
         }
       },
       {
@@ -469,7 +472,32 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Button 
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle>Alerts & Notifications</CardTitle>
+          <CardDescription>
+            In-app notification center. Reuses your watchlist target-crossing checks (Value Research) and Portfolio
+            Risk hard-cap breach detection (Trading Research) as trigger sources — no new detection logic.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background">
+            <div>
+              <div className="font-medium">Enable alerts</div>
+              <div className="text-xs text-muted-foreground">
+                When off, the notification center never generates a new alert for this account.
+              </div>
+            </div>
+            <Switch
+              checked={local.alertsEnabled}
+              onCheckedChange={(c) => setLocal({ ...local, alertsEnabled: c })}
+              data-testid="switch-alerts-enabled"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Button
         onClick={handleSave} 
         disabled={updateSettings.isPending}
         className="w-full bg-primary hover:bg-primary/90"

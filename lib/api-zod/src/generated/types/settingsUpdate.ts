@@ -47,4 +47,5 @@ export interface SettingsUpdate {
   investingFilingsProvider?: string;
   tradingDataProvider?: string;
   tradingAccountValue?: number;
+  alertsEnabled?: boolean;
 }

@@ -41,6 +41,7 @@ import {
   tradingPositionsTable,
   tradingJournalEntriesTable,
   tradingBacktestResultsTable,
+  platformNotificationsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -92,6 +93,8 @@ afterAll(async () => {
     tradingPositionsTable,
     // Phase 3, Sprint 49 — Backtesting's own new table.
     tradingBacktestResultsTable,
+    // Phase 4, Sprint 56 — Alerts & Notifications' own new table.
+    platformNotificationsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -264,6 +267,18 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       symbol: "AAPL",
       strategy: "trend-following",
       interval: "1D",
+    }));
+  });
+
+  // Phase 4, Sprint 56 — Alerts & Notifications' own new table.
+  it("platform_notifications: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(platformNotificationsTable, userA, userB, (userId) => ({
+      userId,
+      type: "watchlist_target_crossed",
+      title: "Test alert",
+      message: "Test message",
+      dataSource: "SIMULATED",
+      dedupKey: `test:${userId}`,
     }));
   });
 });

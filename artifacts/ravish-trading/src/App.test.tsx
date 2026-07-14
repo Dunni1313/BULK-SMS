@@ -26,10 +26,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, render, waitForElementToBeRemoved } from "@testing-library/react";
 
 // AppLayout itself (not any individual page) polls useListTradeAdjustments
-// for its own attention-badge count — every other page test in this
-// codebase bypasses AppLayout entirely by rendering its own page directly,
-// so none of them needed this mock; App.test.tsx is the first to render
-// AppLayout, so it's the first to need it, following the same
+// for its own attention-badge count, and (Phase 4, Sprint 56) renders a
+// NotificationBell that polls useListNotifications — every other page test
+// in this codebase bypasses AppLayout entirely by rendering its own page
+// directly, so none of them needed these mocks; App.test.tsx is the first
+// to render AppLayout, so it's the first to need them, following the same
 // "override just the specific hooks a component needs, spread the rest"
 // pattern every other page test already establishes.
 vi.mock("@workspace/api-client-react", async () => {
@@ -39,6 +40,9 @@ vi.mock("@workspace/api-client-react", async () => {
   return {
     ...actual,
     useListTradeAdjustments: () => ({ data: [] }),
+    useListNotifications: () => ({ data: [] }),
+    useCheckNotifications: () => ({ mutate: vi.fn(), isPending: false }),
+    useUpdateNotification: () => ({ mutate: vi.fn(), isPending: false }),
   };
 });
 

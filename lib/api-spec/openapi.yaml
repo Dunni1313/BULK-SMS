@@ -976,6 +976,74 @@ paths:
               schema:
                 $ref: "#/components/schemas/FundamentalsProviderStatusResponse"
 
+  # ─── Notifications (Platform, Phase 4 Sprint 56 — Alerts & Notifications)
+  # In-app notification center, per the project owner's own kickoff
+  # decision. Cross-engine: reuses Engine 1's watchlist target-crossing
+  # check (Phase 2 Sprint 27) and Engine 2's Risk Management hard-cap
+  # breach detection (Phase 3 Sprint 38/44) as trigger sources — zero new
+  # detection logic. Ownership-scoped like every user-authored-resource
+  # route since Sprint 7.
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List the calling user's notifications, newest first
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformNotification"
+
+  /notifications/check:
+    post:
+      operationId: checkNotifications
+      tags: [notifications]
+      summary: >-
+        Evaluate the calling user's watchlist targets and risk caps on
+        demand and persist any newly-triggered alerts (never a fabricated
+        alert; a no-op honestly returns an empty array when nothing is
+        newly triggered or alerts are disabled)
+      responses:
+        "200":
+          description: Newly created notifications (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformNotification"
+
+  /notifications/{id}:
+    patch:
+      operationId: updateNotification
+      tags: [notifications]
+      summary: Mark a notification read or unread
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformNotificationUpdate"
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformNotification"
+        "404":
+          description: Notification not found
+
   # ─── Performance ──────────────────────────────────────────────────────────────
   /performance/analytics:
     get:
@@ -5130,6 +5198,30 @@ components:
         source: { type: string }
         createdAt: { type: string }
 
+    # ─── Notifications (Platform, Phase 4 Sprint 56) ────────────────────────────
+    PlatformNotification:
+      type: object
+      required: [id, type, title, message, dataSource, relatedSymbol, isRead, createdAt]
+      properties:
+        id: { type: integer }
+        type:
+          type: string
+          enum: [watchlist_target_crossed, risk_cap_breached]
+        title: { type: string }
+        message: { type: string }
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        relatedSymbol: { type: ["string", "null"] }
+        isRead: { type: boolean }
+        createdAt: { type: string }
+
+    PlatformNotificationUpdate:
+      type: object
+      required: [isRead]
+      properties:
+        isRead: { type: boolean }
+
     # ─── Settings ──────────────────────────────────────────────────────────────
     Settings:
       type: object
@@ -5248,6 +5340,9 @@ components:
         tradingAccountValue:
           type: ["number", "null"]
           description: Account value used to size Engine 2 (trading) position risk — distinct from Engine 3's options-derived account value; null until the user sets it
+        alertsEnabled:
+          type: boolean
+          description: Whether the in-app notification center generates alerts for this user (watchlist target-crossing, risk hard-cap breach); default true
 
     FundamentalsProviderStatus:
       type: object
@@ -5373,6 +5468,8 @@ components:
           type: string
         tradingAccountValue:
           type: number
+        alertsEnabled:
+          type: boolean
 
     # ─── Earnings & Market Data ──────────────────────────────────────────────────
     EarningsPlay:

@@ -3,6 +3,7 @@ import { logger } from "./lib/logger";
 import { runAutoExecutionCycleForAllUsers } from "./lib/autoExecution";
 import { runAutoAdjustmentCycleForAllUsers } from "./lib/autoAdjustment";
 import { startRequestMetricsTimer } from "./lib/requestMetrics";
+import { startAlertsScheduler } from "./lib/notifications";
 
 // Phase 6 — full-auto scheduler. Fires on an interval but is a guaranteed no-op
 // unless mode=full_auto AND the master switch is armed (the cycle itself enforces
@@ -86,4 +87,9 @@ app.listen(port, (err) => {
   // directly never accumulate a real setInterval (see
   // lib/requestMetrics.ts's own doc comment).
   startRequestMetricsTimer();
+  // Phase 4, Sprint 56 — same "real entrypoint only" precedent as
+  // startRequestMetricsTimer above. Wholly independent of
+  // startAutoScheduler's own auto-execution/auto-adjustment cycles above —
+  // never touches trades, the kill switch, or autoExecutionLog.
+  startAlertsScheduler();
 });

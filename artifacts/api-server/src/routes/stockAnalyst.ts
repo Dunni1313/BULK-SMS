@@ -45,6 +45,7 @@ import { getFundamentalsProvider, resolveFundamentals } from "../lib/fundamental
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
 import { buildMacroContext } from "../lib/investingMacro.js";
 import { todayStr } from "../lib/deterministic.js";
+import { computeWatchlistTargets } from "../lib/watchlistTargets.js";
 import { buildIndustryComparison } from "../lib/industryComparison.js";
 import { buildFilingAnalysis } from "../lib/filingAnalysis.js";
 import { buildManagementQualityAnalysis } from "../lib/managementAnalysis.js";
@@ -490,25 +491,6 @@ function watchlistItem(r: typeof valueWatchlistTable.$inferSelect) {
     priceTargetCrossed: null as boolean | null,
     marginOfSafetyTargetCrossed: null as boolean | null,
   };
-}
-
-// Phase 2, Sprint 27 — Watchlist Polish. Resolves a fresh price for one
-// watchlist row and honestly compares it against the row's own stored
-// targets. Never fabricates a crossed/not-crossed verdict for a target the
-// user never set (null, not false) or a symbol that can't be resolved.
-async function computeWatchlistTargets(
-  row: typeof valueWatchlistTable.$inferSelect,
-  provider: Awaited<ReturnType<typeof getFundamentalsProvider>>,
-): Promise<{ currentPrice: number | null; priceTargetCrossed: boolean | null; marginOfSafetyTargetCrossed: boolean | null }> {
-  const f = await resolveFundamentals(provider, row.symbol).catch(() => null);
-  const currentPrice = f?.price ?? null;
-  const priceTargetCrossed =
-    currentPrice != null && row.desiredBuyPrice != null ? currentPrice <= row.desiredBuyPrice : null;
-  const marginOfSafetyTargetCrossed =
-    currentPrice != null && row.fairValueEstimate != null && row.fairValueEstimate > 0
-      ? ((row.fairValueEstimate - currentPrice) / row.fairValueEstimate) * 100 >= row.marginOfSafetyTarget
-      : null;
-  return { currentPrice, priceTargetCrossed, marginOfSafetyTargetCrossed };
 }
 
 router.get("/value-watchlist", async (req, res): Promise<void> => {

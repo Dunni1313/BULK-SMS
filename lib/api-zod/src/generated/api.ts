@@ -1637,7 +1637,8 @@ export const GetSettingsResponse = zod.object({
   "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)'),
   "tradingDataProvider": zod.string().optional().describe('Institutional Trading Engine market-data provider (only \"simulated\" is wired today)'),
   "tradingDataConnected": zod.boolean().optional().describe('Whether a live trading market-data provider is configured (always false today)'),
-  "tradingAccountValue": zod.number().nullish().describe('Account value used to size Engine 2 (trading) position risk — distinct from Engine 3\'s options-derived account value; null until the user sets it')
+  "tradingAccountValue": zod.number().nullish().describe('Account value used to size Engine 2 (trading) position risk — distinct from Engine 3\'s options-derived account value; null until the user sets it'),
+  "alertsEnabled": zod.boolean().optional().describe('Whether the in-app notification center generates alerts for this user (watchlist target-crossing, risk hard-cap breach); default true')
 })
 
 
@@ -1680,7 +1681,8 @@ export const UpdateSettingsBody = zod.object({
   "investingDefaultDiscountRate": zod.number().optional(),
   "investingFilingsProvider": zod.string().optional(),
   "tradingDataProvider": zod.string().optional(),
-  "tradingAccountValue": zod.number().optional()
+  "tradingAccountValue": zod.number().optional(),
+  "alertsEnabled": zod.boolean().optional()
 })
 
 export const UpdateSettingsResponse = zod.object({
@@ -1723,7 +1725,8 @@ export const UpdateSettingsResponse = zod.object({
   "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)'),
   "tradingDataProvider": zod.string().optional().describe('Institutional Trading Engine market-data provider (only \"simulated\" is wired today)'),
   "tradingDataConnected": zod.boolean().optional().describe('Whether a live trading market-data provider is configured (always false today)'),
-  "tradingAccountValue": zod.number().nullish().describe('Account value used to size Engine 2 (trading) position risk — distinct from Engine 3\'s options-derived account value; null until the user sets it')
+  "tradingAccountValue": zod.number().nullish().describe('Account value used to size Engine 2 (trading) position risk — distinct from Engine 3\'s options-derived account value; null until the user sets it'),
+  "alertsEnabled": zod.boolean().optional().describe('Whether the in-app notification center generates alerts for this user (watchlist target-crossing, risk hard-cap breach); default true')
 })
 
 
@@ -1743,6 +1746,61 @@ export const GetFundamentalsProviderStatusResponse = zod.object({
   "lastFallbackAt": zod.string().nullish().describe('ISO timestamp of the most recent fallback to simulated data'),
   "lastFallbackReason": zod.union([zod.literal('rate_limit'),zod.literal('error'),zod.literal('no_data'),zod.literal(null)]).nullish().describe('Reason for the most recent fallback')
 }))
+})
+
+
+/**
+ * @summary List the calling user's notifications, newest first
+ */
+export const ListNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached']),
+  "title": zod.string(),
+  "message": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "relatedSymbol": zod.string().nullable(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
+
+
+/**
+ * @summary Evaluate the calling user's watchlist targets and risk caps on demand and persist any newly-triggered alerts (never a fabricated alert; a no-op honestly returns an empty array when nothing is newly triggered or alerts are disabled)
+ */
+export const CheckNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached']),
+  "title": zod.string(),
+  "message": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "relatedSymbol": zod.string().nullable(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const CheckNotificationsResponse = zod.array(CheckNotificationsResponseItem)
+
+
+/**
+ * @summary Mark a notification read or unread
+ */
+export const UpdateNotificationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateNotificationBody = zod.object({
+  "isRead": zod.boolean()
+})
+
+export const UpdateNotificationResponse = zod.object({
+  "id": zod.number(),
+  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached']),
+  "title": zod.string(),
+  "message": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "relatedSymbol": zod.string().nullable(),
+  "isRead": zod.boolean(),
+  "createdAt": zod.string()
 })
 
 

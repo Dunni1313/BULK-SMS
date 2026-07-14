@@ -85,6 +85,11 @@ export const settingsTable = pgTable("settings", {
   // and portfolio-budget risk scoring reports itself "insufficient data"
   // rather than fabricating a default account size.
   tradingAccountValue: real("trading_account_value"),
+  // Phase 4, Sprint 56 — Alerts & Notifications. One global toggle covering
+  // both trigger sources (watchlist target-crossing, risk hard-cap breach)
+  // — see manual-migrations/015_notifications_settings.sql for the full
+  // rationale. Defaults to true (opt-out, not opt-in).
+  alertsEnabled: boolean("alerts_enabled").notNull().default(true),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
