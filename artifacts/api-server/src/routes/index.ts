@@ -20,6 +20,7 @@ import portfolioConstructionRouter from "./portfolioConstruction";
 import tradingJournalRouter from "./tradingJournal";
 import tradingStructureRouter from "./tradingStructure";
 import tradingMultiTimeframeRouter from "./tradingMultiTimeframe";
+import tradingRegimeRouter from "./tradingRegime";
 
 const router: IRouter = Router();
 
@@ -44,5 +45,6 @@ router.use(portfolioConstructionRouter);
 router.use(tradingJournalRouter);
 router.use(tradingStructureRouter);
 router.use(tradingMultiTimeframeRouter);
+router.use(tradingRegimeRouter);
 
 export default router;

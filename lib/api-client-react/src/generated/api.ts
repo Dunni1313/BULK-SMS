@@ -121,6 +121,7 @@ import type {
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
   TradingMultiTimeframeAnalysis,
+  TradingRegimeAnalysis,
   TradingStructureAnalysis,
   UniverseSymbol,
   ValueHistoryRow,
@@ -7660,6 +7661,83 @@ export function useGetTradingMultiTimeframe<TData = Awaited<ReturnType<typeof ge
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradingMultiTimeframeQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingRegimeUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/regime/${symbol}`
+}
+
+/**
+ * @summary Market regime analysis for a symbol — composes trend (Multi-Timeframe), liquidity, and realized-volatility axes into a single regime read, SIMULATED-first, honestly labelled dataSource
+ */
+export const getTradingRegime = async (symbol: string, options?: RequestInit): Promise<TradingRegimeAnalysis> => {
+
+  return customFetch<TradingRegimeAnalysis>(getGetTradingRegimeUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingRegimeQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/regime/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingRegimeQueryOptions = <TData = Awaited<ReturnType<typeof getTradingRegime>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingRegime>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingRegimeQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingRegime>>> = ({ signal }) => getTradingRegime(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingRegime>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingRegimeQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingRegime>>>
+export type GetTradingRegimeQueryError = ErrorType<void>
+
+
+/**
+ * @summary Market regime analysis for a symbol — composes trend (Multi-Timeframe), liquidity, and realized-volatility axes into a single regime read, SIMULATED-first, honestly labelled dataSource
+ */
+
+export function useGetTradingRegime<TData = Awaited<ReturnType<typeof getTradingRegime>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingRegime>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingRegimeQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

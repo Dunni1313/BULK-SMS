@@ -2,7 +2,8 @@
 // established mocked-generated-hook pattern (see PortfolioConstruction.test.tsx).
 // Phase 3, Sprint 41 extended this file with the Multi-Timeframe confluence
 // card's own cases, mocking useGetTradingMultiTimeframe alongside the
-// existing useGetTradingStructure mock.
+// existing useGetTradingStructure mock. Phase 3, Sprint 42 extended it
+// again with the Market Regime card's own cases.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
@@ -16,6 +17,9 @@ const mockState = vi.hoisted(() => ({
   multiTimeframe: undefined as unknown,
   isMultiTimeframeLoading: false,
   isMultiTimeframeError: false,
+  regime: undefined as unknown,
+  isRegimeLoading: false,
+  isRegimeError: false,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -33,6 +37,11 @@ vi.mock("@workspace/api-client-react", async () => {
       data: mockState.multiTimeframe,
       isLoading: mockState.isMultiTimeframeLoading,
       isError: mockState.isMultiTimeframeError,
+    }),
+    useGetTradingRegime: () => ({
+      data: mockState.regime,
+      isLoading: mockState.isRegimeLoading,
+      isError: mockState.isRegimeError,
     }),
   };
 });
@@ -76,6 +85,24 @@ function multiTimeframeAnalysis(over: Record<string, unknown> = {}) {
   };
 }
 
+function regimeAnalysis(over: Record<string, unknown> = {}) {
+  return {
+    symbol: "AAPL",
+    dataSource: "SIMULATED",
+    regimeLabel: "trending-bullish",
+    trendRegime: "uptrend",
+    trendAgreement: "unanimous",
+    volatilityRegime: "normal",
+    volatilityAnnualizedPct: 24.5,
+    volatilityExplanation: "24.5% annualized realized volatility — typical range.",
+    liquidityRegime: "High",
+    confidenceLevel: "High",
+    confidenceExplanation: "Trend confluence, liquidity, and realized volatility all have strong data support.",
+    summary: "AAPL is in a trending-bullish regime — 24.5% annualized volatility (normal), High liquidity. Confidence: High.",
+    ...over,
+  };
+}
+
 describe("TradingResearch page", () => {
   beforeEach(() => {
     mockState.structure = undefined;
@@ -84,6 +111,9 @@ describe("TradingResearch page", () => {
     mockState.multiTimeframe = undefined;
     mockState.isMultiTimeframeLoading = false;
     mockState.isMultiTimeframeError = false;
+    mockState.regime = undefined;
+    mockState.isRegimeLoading = false;
+    mockState.isRegimeError = false;
   });
 
   it("renders the advisory-only copy and a prompt before any symbol is searched", () => {
@@ -162,5 +192,34 @@ describe("TradingResearch page", () => {
     expect(await screen.findByTestId("card-multi-timeframe")).toBeInTheDocument();
     expect(screen.getByText("No dominant trend")).toBeInTheDocument();
     expect(screen.queryByText(/% confluence/i)).not.toBeInTheDocument();
+  });
+
+  it("renders the Market Regime card once data resolves", async () => {
+    mockState.regime = regimeAnalysis();
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+
+    expect(await screen.findByTestId("card-market-regime")).toBeInTheDocument();
+    expect(screen.getByText(/Market Regime — AAPL/i)).toBeInTheDocument();
+    expect(screen.getByText("trending-bullish")).toBeInTheDocument();
+    expect(screen.getByText("normal volatility (24.5%)")).toBeInTheDocument();
+    expect(screen.getByText("High liquidity")).toBeInTheDocument();
+  });
+
+  it("honestly omits a volatility percentage when it could not be computed, never fabricating a number", async () => {
+    mockState.regime = regimeAnalysis({
+      volatilityAnnualizedPct: null,
+      volatilityExplanation: "Only 1 daily candle(s) available — not enough to compute realized volatility; defaulting to a neutral \"normal\" read.",
+    });
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+
+    expect(await screen.findByTestId("card-market-regime")).toBeInTheDocument();
+    expect(screen.getByText("normal volatility")).toBeInTheDocument();
+    expect(screen.queryByText(/normal volatility \(/i)).not.toBeInTheDocument();
   });
 });

@@ -3692,6 +3692,91 @@ export interface TradingMultiTimeframeAnalysis {
   summary: string;
 }
 
+export type TradingRegimeAnalysisDataSource = typeof TradingRegimeAnalysisDataSource[keyof typeof TradingRegimeAnalysisDataSource];
+
+
+export const TradingRegimeAnalysisDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingRegimeAnalysisRegimeLabel = typeof TradingRegimeAnalysisRegimeLabel[keyof typeof TradingRegimeAnalysisRegimeLabel];
+
+
+export const TradingRegimeAnalysisRegimeLabel = {
+  'trending-bullish': 'trending-bullish',
+  'trending-bearish': 'trending-bearish',
+  'range-bound': 'range-bound',
+  'volatile-choppy': 'volatile-choppy',
+  'quiet-consolidation': 'quiet-consolidation',
+} as const;
+
+/**
+ * @nullable
+ */
+export type TradingRegimeAnalysisTrendRegime = typeof TradingRegimeAnalysisTrendRegime[keyof typeof TradingRegimeAnalysisTrendRegime] | null;
+
+
+export const TradingRegimeAnalysisTrendRegime = {
+  uptrend: 'uptrend',
+  downtrend: 'downtrend',
+  range: 'range',
+} as const;
+
+export type TradingRegimeAnalysisTrendAgreement = typeof TradingRegimeAnalysisTrendAgreement[keyof typeof TradingRegimeAnalysisTrendAgreement];
+
+
+export const TradingRegimeAnalysisTrendAgreement = {
+  unanimous: 'unanimous',
+  majority: 'majority',
+  split: 'split',
+  'insufficient-data': 'insufficient-data',
+} as const;
+
+export type TradingRegimeAnalysisVolatilityRegime = typeof TradingRegimeAnalysisVolatilityRegime[keyof typeof TradingRegimeAnalysisVolatilityRegime];
+
+
+export const TradingRegimeAnalysisVolatilityRegime = {
+  high: 'high',
+  normal: 'normal',
+  low: 'low',
+} as const;
+
+export type TradingRegimeAnalysisLiquidityRegime = typeof TradingRegimeAnalysisLiquidityRegime[keyof typeof TradingRegimeAnalysisLiquidityRegime];
+
+
+export const TradingRegimeAnalysisLiquidityRegime = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export type TradingRegimeAnalysisConfidenceLevel = typeof TradingRegimeAnalysisConfidenceLevel[keyof typeof TradingRegimeAnalysisConfidenceLevel];
+
+
+export const TradingRegimeAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface TradingRegimeAnalysis {
+  symbol: string;
+  dataSource: TradingRegimeAnalysisDataSource;
+  regimeLabel: TradingRegimeAnalysisRegimeLabel;
+  /** @nullable */
+  trendRegime: TradingRegimeAnalysisTrendRegime;
+  trendAgreement: TradingRegimeAnalysisTrendAgreement;
+  volatilityRegime: TradingRegimeAnalysisVolatilityRegime;
+  /** @nullable */
+  volatilityAnnualizedPct: number | null;
+  volatilityExplanation: string;
+  liquidityRegime: TradingRegimeAnalysisLiquidityRegime;
+  confidenceLevel: TradingRegimeAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

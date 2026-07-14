@@ -40,6 +40,8 @@ tags:
     description: Engine 2 Market Structure analysis (support/resistance zones, trend classification) — SIMULATED-first, advisory only, never places an order
   - name: trading-multi-timeframe
     description: Engine 2 Multi-Timeframe trend confluence analysis — composes Market Structure across multiple timeframes, SIMULATED-first, advisory only, never places an order
+  - name: trading-regime
+    description: Engine 2 Market Regime analysis — composes trend (Multi-Timeframe), liquidity, and realized-volatility axes into a single regime read, SIMULATED-first, advisory only, never places an order
 
 paths:
   /healthz:
@@ -1910,6 +1912,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TradingMultiTimeframeAnalysis"
+        "404":
+          description: Unknown or invalid symbol
+
+  # ─── Market Regime (Engine 2, Phase 3 Sprint 42) ────────────────────────────
+  /trading/regime/{symbol}:
+    get:
+      operationId: getTradingRegime
+      tags: [trading-regime]
+      summary: Market regime analysis for a symbol — composes trend (Multi-Timeframe), liquidity, and realized-volatility axes into a single regime read, SIMULATED-first, honestly labelled dataSource
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Market regime analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingRegimeAnalysis"
         "404":
           description: Unknown or invalid symbol
 
@@ -5948,6 +5972,70 @@ components:
           enum: [uptrend, downtrend, range, null]
         confluenceScore:
           type: ["number", "null"]
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation:
+          type: string
+        summary:
+          type: string
+
+    # ─── Market Regime (Engine 2, Phase 3 Sprint 42) ──────────────────────────
+    # Deliberately a projection of TradingRegimeAnalysis's own fields — the
+    # full nested multiTimeframe/liquidity sub-analyses are not part of this
+    # documented contract (see routes/tradingRegime.ts's own disclosed scope
+    # comment for why): Structure/Multi-Timeframe already have their own
+    # cards on the same page, and Liquidity's own dedicated schema doesn't
+    # exist yet (its Route+UI remains backlogged).
+    TradingRegimeAnalysis:
+      type: object
+      required:
+        [
+          symbol,
+          dataSource,
+          regimeLabel,
+          trendRegime,
+          trendAgreement,
+          volatilityRegime,
+          volatilityAnnualizedPct,
+          volatilityExplanation,
+          liquidityRegime,
+          confidenceLevel,
+          confidenceExplanation,
+          summary,
+        ]
+      properties:
+        symbol:
+          type: string
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        regimeLabel:
+          type: string
+          enum:
+            [
+              trending-bullish,
+              trending-bearish,
+              range-bound,
+              volatile-choppy,
+              quiet-consolidation,
+            ]
+        trendRegime:
+          type: ["string", "null"]
+          enum: [uptrend, downtrend, range, null]
+        trendAgreement:
+          type: string
+          enum: [unanimous, majority, split, insufficient-data]
+        volatilityRegime:
+          type: string
+          enum: [high, normal, low]
+        volatilityAnnualizedPct:
+          type: ["number", "null"]
+        volatilityExplanation:
+          type: string
+        liquidityRegime:
+          type: string
+          enum: [High, Moderate, Low]
         confidenceLevel:
           type: string
           enum: [High, Moderate, Low]

@@ -3809,3 +3809,26 @@ export const GetTradingMultiTimeframeResponse = zod.object({
 })
 
 
+/**
+ * @summary Market regime analysis for a symbol — composes trend (Multi-Timeframe), liquidity, and realized-volatility axes into a single regime read, SIMULATED-first, honestly labelled dataSource
+ */
+export const GetTradingRegimeParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingRegimeResponse = zod.object({
+  "symbol": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "regimeLabel": zod.enum(['trending-bullish', 'trending-bearish', 'range-bound', 'volatile-choppy', 'quiet-consolidation']),
+  "trendRegime": zod.union([zod.literal('uptrend'),zod.literal('downtrend'),zod.literal('range'),zod.literal(null)]).nullable(),
+  "trendAgreement": zod.enum(['unanimous', 'majority', 'split', 'insufficient-data']),
+  "volatilityRegime": zod.enum(['high', 'normal', 'low']),
+  "volatilityAnnualizedPct": zod.number().nullable(),
+  "volatilityExplanation": zod.string(),
+  "liquidityRegime": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+})
+
+

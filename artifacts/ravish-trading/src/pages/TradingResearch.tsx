@@ -5,13 +5,14 @@
 // Phase 3, Sprint 41 added the Multi-Timeframe confluence card (the second
 // bounded slice) onto this same shell, without touching the Market
 // Structure card's own logic, exactly as Sprint 40's own header comment
-// anticipated.
+// anticipated. Phase 3, Sprint 42 added the Market Regime card (the third
+// bounded slice) the same way.
 //
 // Advisory/education only: this page never previews, schedules, or submits
 // any order, and never touches a real brokerage account — Engine 2 is
 // read-only/advisory throughout this phase (Phase 3 plan §19). Future
-// sprints add further panels (Liquidity, Regime, Risk, Probability) onto
-// this same page shell without touching any existing card's own logic.
+// sprints add further panels (Liquidity, Risk, Probability) onto this same
+// page shell without touching any existing card's own logic.
 
 import { useState } from "react";
 import {
@@ -19,13 +20,15 @@ import {
   getGetTradingStructureQueryKey,
   useGetTradingMultiTimeframe,
   getGetTradingMultiTimeframeQueryKey,
+  useGetTradingRegime,
+  getGetTradingRegimeQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers } from "lucide-react";
+import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers, Gauge } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -54,6 +57,19 @@ function agreementBadgeClass(agreement: string): string {
   return "border-border text-muted-foreground";
 }
 
+function regimeBadgeClass(regimeLabel: string): string {
+  if (regimeLabel === "trending-bullish") return "border-emerald-500/40 text-emerald-400";
+  if (regimeLabel === "trending-bearish") return "border-rose-500/40 text-rose-400";
+  if (regimeLabel === "volatile-choppy") return "border-amber-500/40 text-amber-400";
+  return "border-border text-muted-foreground";
+}
+
+function volatilityBadgeClass(volatilityRegime: string): string {
+  if (volatilityRegime === "high") return "border-amber-500/40 text-amber-400";
+  if (volatilityRegime === "low") return "border-sky-500/40 text-sky-400";
+  return "border-border text-muted-foreground";
+}
+
 export default function TradingResearch() {
   const [inputValue, setInputValue] = useState("");
   const [symbol, setSymbol] = useState("");
@@ -68,6 +84,14 @@ export default function TradingResearch() {
     isError: isMultiTimeframeError,
   } = useGetTradingMultiTimeframe(symbol, {
     query: { queryKey: getGetTradingMultiTimeframeQueryKey(symbol), enabled: !!symbol },
+  });
+
+  const {
+    data: regime,
+    isLoading: isRegimeLoading,
+    isError: isRegimeError,
+  } = useGetTradingRegime(symbol, {
+    query: { queryKey: getGetTradingRegimeQueryKey(symbol), enabled: !!symbol },
   });
 
   function handleSubmit(e: React.FormEvent) {
@@ -255,6 +279,61 @@ export default function TradingResearch() {
             </div>
 
             <p className="border-t border-border pt-3 text-sm text-muted-foreground">{multiTimeframe.summary}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && isRegimeLoading && (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && isRegimeError && (
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            Could not resolve regime data for "{symbol}".
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && regime && (
+        <Card data-testid="card-market-regime">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Gauge className="h-5 w-5" />
+                Market Regime — {regime.symbol}
+              </CardTitle>
+              <Badge variant="outline" className="text-xs">
+                {regime.dataSource}
+              </Badge>
+            </div>
+            <CardDescription>Composite of trend, liquidity, and realized-volatility axes</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className={regimeBadgeClass(regime.regimeLabel)}>
+                {regime.regimeLabel}
+              </Badge>
+              <Badge variant="outline" className={volatilityBadgeClass(regime.volatilityRegime)}>
+                {`${regime.volatilityRegime} volatility${regime.volatilityAnnualizedPct !== null ? ` (${regime.volatilityAnnualizedPct}%)` : ""}`}
+              </Badge>
+              <Badge variant="outline" className="border-border text-muted-foreground">
+                {regime.liquidityRegime} liquidity
+              </Badge>
+              <Badge variant="outline" className={confidenceBadgeClass(regime.confidenceLevel)}>
+                {regime.confidenceLevel} confidence
+              </Badge>
+            </div>
+
+            <p className="border-t border-border pt-3 text-sm text-muted-foreground">{regime.summary}</p>
           </CardContent>
         </Card>
       )}
