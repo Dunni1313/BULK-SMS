@@ -46,6 +46,7 @@ const StockResearch = lazy(() => import("./pages/StockResearch"));
 const TradingResearch = lazy(() => import("./pages/TradingResearch"));
 const TradingJournal = lazy(() => import("./pages/TradingJournal"));
 const TradingBacktest = lazy(() => import("./pages/TradingBacktest"));
+const OptionsBacktest = lazy(() => import("./pages/OptionsBacktest"));
 const InstitutionalDashboard = lazy(() => import("./pages/InstitutionalDashboard"));
 const StockScanner = lazy(() => import("./pages/StockScanner"));
 const PortfolioConstruction = lazy(() => import("./pages/PortfolioConstruction"));
@@ -104,6 +105,7 @@ function Router() {
           <Route path="/trading-research" component={TradingResearch} />
           <Route path="/trading-journal" component={TradingJournal} />
           <Route path="/trading-backtest" component={TradingBacktest} />
+          <Route path="/options-backtest" component={OptionsBacktest} />
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />
           <Route path="/stock-analyst" component={StockResearch} />

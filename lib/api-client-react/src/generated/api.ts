@@ -91,6 +91,8 @@ import type {
   MarketBriefingResponse,
   MarketDataHealth,
   OptionChain,
+  OptionsBacktestResult,
+  OptionsRunBacktestInput,
   PerformanceAnalytics,
   PerformanceBreakdownBucket,
   PlatformNotification,
@@ -8864,6 +8866,154 @@ export function useListTradingBacktestResults<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListTradingBacktestResultsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunOptionsBacktestUrl = () => {
+
+
+
+
+  return `/api/options-backtest/run`
+}
+
+/**
+ * @summary Run a genuine walk-forward options-strategy backtest for a symbol, persisting the result to the calling user's own history (read-only over historical candles and deterministic options pricing; never places an order)
+ */
+export const runOptionsBacktest = async (optionsRunBacktestInput: OptionsRunBacktestInput, options?: RequestInit): Promise<OptionsBacktestResult> => {
+
+  return customFetch<OptionsBacktestResult>(getRunOptionsBacktestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsRunBacktestInput,)
+  }
+);}
+
+
+
+
+export const getRunOptionsBacktestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runOptionsBacktest>>, TError,{data: BodyType<OptionsRunBacktestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runOptionsBacktest>>, TError,{data: BodyType<OptionsRunBacktestInput>}, TContext> => {
+
+const mutationKey = ['runOptionsBacktest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runOptionsBacktest>>, {data: BodyType<OptionsRunBacktestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runOptionsBacktest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunOptionsBacktestMutationResult = NonNullable<Awaited<ReturnType<typeof runOptionsBacktest>>>
+    export type RunOptionsBacktestMutationBody = BodyType<OptionsRunBacktestInput>
+    export type RunOptionsBacktestMutationError = ErrorType<void>
+
+    /**
+ * @summary Run a genuine walk-forward options-strategy backtest for a symbol, persisting the result to the calling user's own history (read-only over historical candles and deterministic options pricing; never places an order)
+ */
+export const useRunOptionsBacktest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runOptionsBacktest>>, TError,{data: BodyType<OptionsRunBacktestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runOptionsBacktest>>,
+        TError,
+        {data: BodyType<OptionsRunBacktestInput>},
+        TContext
+      > => {
+      return useMutation(getRunOptionsBacktestMutationOptions(options));
+    }
+
+export const getListOptionsBacktestResultsUrl = () => {
+
+
+
+
+  return `/api/options-backtest/results`
+}
+
+/**
+ * @summary List the calling user's own persisted options backtest results, newest first
+ */
+export const listOptionsBacktestResults = async ( options?: RequestInit): Promise<OptionsBacktestResult[]> => {
+
+  return customFetch<OptionsBacktestResult[]>(getListOptionsBacktestResultsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOptionsBacktestResultsQueryKey = () => {
+    return [
+    `/api/options-backtest/results`
+    ] as const;
+    }
+
+
+export const getListOptionsBacktestResultsQueryOptions = <TData = Awaited<ReturnType<typeof listOptionsBacktestResults>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsBacktestResults>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOptionsBacktestResultsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOptionsBacktestResults>>> = ({ signal }) => listOptionsBacktestResults({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOptionsBacktestResults>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOptionsBacktestResultsQueryResult = NonNullable<Awaited<ReturnType<typeof listOptionsBacktestResults>>>
+export type ListOptionsBacktestResultsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's own persisted options backtest results, newest first
+ */
+
+export function useListOptionsBacktestResults<TData = Awaited<ReturnType<typeof listOptionsBacktestResults>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsBacktestResults>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOptionsBacktestResultsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

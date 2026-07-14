@@ -4228,6 +4228,90 @@ export interface TradingBacktestResult {
   summary: string;
 }
 
+export type OptionsBacktestStrategy = typeof OptionsBacktestStrategy[keyof typeof OptionsBacktestStrategy];
+
+
+export const OptionsBacktestStrategy = {
+  iron_condor: 'iron_condor',
+} as const;
+
+export interface OptionsRunBacktestInput {
+  symbol: string;
+  strategy: OptionsBacktestStrategy;
+  lookback?: number;
+  entryDte?: number;
+  shortDelta?: number;
+  profitTargetPct?: number;
+  stopLossMultiple?: number;
+  dteExitTrigger?: number;
+}
+
+export type OptionsBacktestTradeExitReason = typeof OptionsBacktestTradeExitReason[keyof typeof OptionsBacktestTradeExitReason];
+
+
+export const OptionsBacktestTradeExitReason = {
+  'profit-target': 'profit-target',
+  'stop-loss': 'stop-loss',
+  'dte-trigger': 'dte-trigger',
+  expiration: 'expiration',
+  'end-of-period': 'end-of-period',
+} as const;
+
+export interface OptionsBacktestTrade {
+  entryDate: string;
+  expirationDate: string;
+  entryCredit: number;
+  exitDate: string;
+  exitDebit: number;
+  exitReason: OptionsBacktestTradeExitReason;
+  pnl: number;
+  maxLoss: number;
+  rMultiple: number;
+  daysHeld: number;
+}
+
+export interface OptionsBacktestEquityPoint {
+  date: string;
+  value: number;
+  drawdownPct: number;
+}
+
+export type OptionsBacktestResultUnderlyingDataSource = typeof OptionsBacktestResultUnderlyingDataSource[keyof typeof OptionsBacktestResultUnderlyingDataSource];
+
+
+export const OptionsBacktestResultUnderlyingDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type OptionsBacktestResultOptionsDataSource = typeof OptionsBacktestResultOptionsDataSource[keyof typeof OptionsBacktestResultOptionsDataSource];
+
+
+export const OptionsBacktestResultOptionsDataSource = {
+  SIMULATED: 'SIMULATED',
+} as const;
+
+export interface OptionsBacktestResult {
+  id?: number;
+  createdAt?: string;
+  symbol: string;
+  strategy: OptionsBacktestStrategy;
+  underlyingDataSource: OptionsBacktestResultUnderlyingDataSource;
+  optionsDataSource: OptionsBacktestResultOptionsDataSource;
+  candleCount: number;
+  available: boolean;
+  unavailableReason: string | null;
+  trades: OptionsBacktestTrade[];
+  totalTrades: number;
+  winRate: number | null;
+  avgR: number | null;
+  totalReturnPct: number | null;
+  maxDrawdownPct: number | null;
+  sharpeRatio: number | null;
+  equityCurve: OptionsBacktestEquityPoint[];
+  summary: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

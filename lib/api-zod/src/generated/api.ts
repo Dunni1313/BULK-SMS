@@ -4244,3 +4244,95 @@ export const ListTradingBacktestResultsResponseItem = zod.object({
 export const ListTradingBacktestResultsResponse = zod.array(ListTradingBacktestResultsResponseItem)
 
 
+/**
+ * @summary Run a genuine walk-forward options-strategy backtest for a symbol, persisting the result to the calling user's own history (read-only over historical candles and deterministic options pricing; never places an order)
+ */
+export const RunOptionsBacktestBody = zod.object({
+  "symbol": zod.string(),
+  "strategy": zod.enum(['iron_condor']),
+  "lookback": zod.number().optional(),
+  "entryDte": zod.number().optional(),
+  "shortDelta": zod.number().optional(),
+  "profitTargetPct": zod.number().optional(),
+  "stopLossMultiple": zod.number().optional(),
+  "dteExitTrigger": zod.number().optional()
+})
+
+export const RunOptionsBacktestResponse = zod.object({
+  "id": zod.number().optional(),
+  "createdAt": zod.string().optional(),
+  "symbol": zod.string(),
+  "strategy": zod.enum(['iron_condor']),
+  "underlyingDataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "optionsDataSource": zod.enum(['SIMULATED']),
+  "candleCount": zod.number(),
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "trades": zod.array(zod.object({
+  "entryDate": zod.string(),
+  "expirationDate": zod.string(),
+  "entryCredit": zod.number(),
+  "exitDate": zod.string(),
+  "exitDebit": zod.number(),
+  "exitReason": zod.enum(['profit-target', 'stop-loss', 'dte-trigger', 'expiration', 'end-of-period']),
+  "pnl": zod.number(),
+  "maxLoss": zod.number(),
+  "rMultiple": zod.number(),
+  "daysHeld": zod.number()
+})),
+  "totalTrades": zod.number(),
+  "winRate": zod.number().nullable(),
+  "avgR": zod.number().nullable(),
+  "totalReturnPct": zod.number().nullable(),
+  "maxDrawdownPct": zod.number().nullable(),
+  "sharpeRatio": zod.number().nullable(),
+  "equityCurve": zod.array(zod.object({
+  "date": zod.string(),
+  "value": zod.number(),
+  "drawdownPct": zod.number()
+})),
+  "summary": zod.string()
+})
+
+
+/**
+ * @summary List the calling user's own persisted options backtest results, newest first
+ */
+export const ListOptionsBacktestResultsResponseItem = zod.object({
+  "id": zod.number().optional(),
+  "createdAt": zod.string().optional(),
+  "symbol": zod.string(),
+  "strategy": zod.enum(['iron_condor']),
+  "underlyingDataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "optionsDataSource": zod.enum(['SIMULATED']),
+  "candleCount": zod.number(),
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "trades": zod.array(zod.object({
+  "entryDate": zod.string(),
+  "expirationDate": zod.string(),
+  "entryCredit": zod.number(),
+  "exitDate": zod.string(),
+  "exitDebit": zod.number(),
+  "exitReason": zod.enum(['profit-target', 'stop-loss', 'dte-trigger', 'expiration', 'end-of-period']),
+  "pnl": zod.number(),
+  "maxLoss": zod.number(),
+  "rMultiple": zod.number(),
+  "daysHeld": zod.number()
+})),
+  "totalTrades": zod.number(),
+  "winRate": zod.number().nullable(),
+  "avgR": zod.number().nullable(),
+  "totalReturnPct": zod.number().nullable(),
+  "maxDrawdownPct": zod.number().nullable(),
+  "sharpeRatio": zod.number().nullable(),
+  "equityCurve": zod.array(zod.object({
+  "date": zod.string(),
+  "value": zod.number(),
+  "drawdownPct": zod.number()
+})),
+  "summary": zod.string()
+})
+export const ListOptionsBacktestResultsResponse = zod.array(ListOptionsBacktestResultsResponseItem)
+
+

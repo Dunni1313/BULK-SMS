@@ -42,6 +42,7 @@ import {
   tradingJournalEntriesTable,
   tradingBacktestResultsTable,
   platformNotificationsTable,
+  optionsBacktestResultsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -95,6 +96,8 @@ afterAll(async () => {
     tradingBacktestResultsTable,
     // Phase 4, Sprint 56 — Alerts & Notifications' own new table.
     platformNotificationsTable,
+    // Phase 4, Sprint 58 — Options Engine-Native Backtesting's own new table.
+    optionsBacktestResultsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -279,6 +282,15 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       message: "Test message",
       dataSource: "SIMULATED",
       dedupKey: `test:${userId}`,
+    }));
+  });
+
+  // Phase 4, Sprint 58 — Options Engine-Native Backtesting's own new table.
+  it("options_backtest_results: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(optionsBacktestResultsTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "AAPL",
+      strategy: "iron_condor",
     }));
   });
 });

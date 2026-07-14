@@ -2257,6 +2257,49 @@ paths:
                 items:
                   $ref: "#/components/schemas/TradingBacktestResult"
 
+  # ─── Options Engine-Native Backtesting (Phase 4, Sprint 58 — Route + UI,
+  # conditional on Sprint 57's own Core output proving valuable). A genuine
+  # bar-by-bar walk-forward simulation, distinct from the legacy
+  # /backtest/run's fabricated-statistics generator (unmodified, left in
+  # place as a parallel legacy path) — reuses Engine 2's MarketDataProvider
+  # for the underlying spot price path and optionsMath.ts's own
+  # getSnapshot() for IV, composed in lib/optionsBacktest.ts.
+  /options-backtest/run:
+    post:
+      operationId: runOptionsBacktest
+      tags: [options-backtest]
+      summary: Run a genuine walk-forward options-strategy backtest for a symbol, persisting the result to the calling user's own history (read-only over historical candles and deterministic options pricing; never places an order)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptionsRunBacktestInput"
+      responses:
+        "200":
+          description: Backtest result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsBacktestResult"
+        "404":
+          description: Unknown or invalid symbol
+
+  /options-backtest/results:
+    get:
+      operationId: listOptionsBacktestResults
+      tags: [options-backtest]
+      summary: List the calling user's own persisted options backtest results, newest first
+      responses:
+        "200":
+          description: Backtest results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptionsBacktestResult"
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -6944,5 +6987,137 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TradingBacktestEquityPoint"
+        summary:
+          type: string
+
+    # ─── Options Engine-Native Backtesting (Phase 4, Sprint 58) ─────────────────
+    OptionsBacktestStrategy:
+      type: string
+      enum: [iron_condor]
+
+    OptionsRunBacktestInput:
+      type: object
+      required: [symbol, strategy]
+      properties:
+        symbol:
+          type: string
+        strategy:
+          $ref: "#/components/schemas/OptionsBacktestStrategy"
+        lookback:
+          type: integer
+        entryDte:
+          type: integer
+        shortDelta:
+          type: number
+        profitTargetPct:
+          type: number
+        stopLossMultiple:
+          type: number
+        dteExitTrigger:
+          type: integer
+
+    OptionsBacktestTrade:
+      type: object
+      required: [entryDate, expirationDate, entryCredit, exitDate, exitDebit, exitReason, pnl, maxLoss, rMultiple, daysHeld]
+      properties:
+        entryDate:
+          type: string
+        expirationDate:
+          type: string
+        entryCredit:
+          type: number
+        exitDate:
+          type: string
+        exitDebit:
+          type: number
+        exitReason:
+          type: string
+          enum: [profit-target, stop-loss, dte-trigger, expiration, end-of-period]
+        pnl:
+          type: number
+        maxLoss:
+          type: number
+        rMultiple:
+          type: number
+        daysHeld:
+          type: integer
+
+    OptionsBacktestEquityPoint:
+      type: object
+      required: [date, value, drawdownPct]
+      properties:
+        date:
+          type: string
+        value:
+          type: number
+        drawdownPct:
+          type: number
+
+    OptionsBacktestResult:
+      type: object
+      required:
+        - symbol
+        - strategy
+        - underlyingDataSource
+        - optionsDataSource
+        - candleCount
+        - available
+        - unavailableReason
+        - trades
+        - totalTrades
+        - winRate
+        - avgR
+        - totalReturnPct
+        - maxDrawdownPct
+        - sharpeRatio
+        - equityCurve
+        - summary
+      properties:
+        id:
+          type: integer
+        createdAt:
+          type: string
+        symbol:
+          type: string
+        strategy:
+          $ref: "#/components/schemas/OptionsBacktestStrategy"
+        underlyingDataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        optionsDataSource:
+          type: string
+          enum: [SIMULATED]
+        candleCount:
+          type: integer
+        available:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        trades:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsBacktestTrade"
+        totalTrades:
+          type: integer
+        winRate:
+          type: number
+          nullable: true
+        avgR:
+          type: number
+          nullable: true
+        totalReturnPct:
+          type: number
+          nullable: true
+        maxDrawdownPct:
+          type: number
+          nullable: true
+        sharpeRatio:
+          type: number
+          nullable: true
+        equityCurve:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsBacktestEquityPoint"
         summary:
           type: string

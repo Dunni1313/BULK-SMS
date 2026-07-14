@@ -28,6 +28,7 @@ import tradingLiquidityRouter from "./tradingLiquidity";
 import tradingCoachRouter from "./tradingCoach";
 import tradingBacktestRouter from "./tradingBacktest";
 import notificationsRouter from "./notifications";
+import optionsBacktestRouter from "./optionsBacktest";
 
 const router: IRouter = Router();
 
@@ -60,5 +61,6 @@ router.use(tradingLiquidityRouter);
 router.use(tradingCoachRouter);
 router.use(tradingBacktestRouter);
 router.use(notificationsRouter);
+router.use(optionsBacktestRouter);
 
 export default router;

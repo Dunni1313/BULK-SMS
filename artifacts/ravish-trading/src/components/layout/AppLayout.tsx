@@ -44,7 +44,8 @@ import {
   Activity,
   NotebookPen,
   History,
-  LayoutGrid
+  LayoutGrid,
+  TestTube2
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -110,6 +111,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { title: "Trading Research", href: "/trading-research", icon: Activity },
     { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
     { title: "Trading Backtest", href: "/trading-backtest", icon: History },
+    { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
     { title: "Value Research", href: "/stock-analyst", icon: Building2 },
     { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
     { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },
