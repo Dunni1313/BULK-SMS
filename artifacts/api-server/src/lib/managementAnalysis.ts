@@ -4,19 +4,43 @@
 // existing analyzers — mirrors Competitive Advantage's "reuse, don't
 // duplicate" pattern.
 //
-// Deterministic only, per the approved decision: this sprint introduces no
-// LLM calls and never generates prose about a named executive — it scores the
-// company's management-*process* discipline from numbers and structural
-// filing signals, not a reading of anyone's character. 5 of the 9 requested
-// dimensions have a genuinely defensible non-fabricating path; the other 4
-// (Strategic Consistency, Long-Term Focus, Communication Quality, Shareholder
-// Alignment) are honestly `unavailable` — each needs either an LLM reading
-// the prose, multi-year filing comparison, R&D/reinvestment data, or insider/
-// buyback data this codebase doesn't have yet (the same category of gap
-// Investment Quality already disclosed for Share Dilution/Insider Ownership).
+// Sprint 23 shipped deterministic only, with 5 of 9 requested dimensions
+// scored and the other 4 (Strategic Consistency, Long-Term Focus,
+// Communication Quality, Shareholder Alignment) honestly `unavailable`.
+//
+// Phase 4, Sprint 63 — fills 3 of those 4, per the project owner's explicit
+// scope decision at this sprint's own kickoff (re-confirming, not assuming,
+// Sprint 23's own never-characterize-a-named-individual guarantee, since
+// CLAUDE.md names this module "the highest reputational/compliance risk in
+// Engine 1"):
+//   - Shareholder Alignment — filled DETERMINISTICALLY, zero LLM. Sprint 23's
+//     own cited blocker ("insider ownership and share-buyback data... planned
+//     for the Tom Nash Enhancement I sprint") was actually resolved by Sprint
+//     24, which added insiderOwnershipPct/sharesOutstandingChange5y to
+//     Fundamentals and wired them into Investment Quality's own "Insider
+//     Ownership"/"Share Dilution / Buybacks" metrics — this module simply
+//     never consumed that already-available data until now. Reused directly,
+//     the same "reuse, don't duplicate" pattern every other dimension here
+//     already follows.
+//   - Communication Quality and Long-Term Focus — filled via new, tightly
+//     guarded LLM narration (coachLLM.ts's narrateManagementCommunication
+//     Quality()/narrateManagementLongTermFocus()) reading the company's OWN
+//     already-extracted filing prose (Document Intelligence, Sprint 22/60).
+//     There is NO fallback score for either — when the LLM is unavailable,
+//     the completion fails, or the individual-characterization guard trips,
+//     the dimension is honestly `unavailable`, exactly like every other
+//     structurally-blocked dimension, never a fabricated middle score.
+//   - Strategic Consistency stays honestly `unavailable` — its blocker is
+//     structural, not an LLM-reading gap: it requires comparing strategy
+//     across MULTIPLE YEARS of filings, but Document Intelligence only ever
+//     fetches the single most recent filing. No amount of LLM reading fixes
+//     a data gap that doesn't exist yet; fetching multiple years of filings
+//     is a genuinely different, larger capability, explicitly out of this
+//     sprint's scope.
 
 import { buildFilingAnalysis, type FilingAnalysis } from "./filingAnalysis.js";
 import { buildValueResearchReport } from "./valueReport.js";
+import { narrateManagementCommunicationQuality, narrateManagementLongTermFocus } from "./coachLLM.js";
 import type { DocumentProvider, DocumentType, FetchDocumentOpts } from "./documentProviders.js";
 import type { FundamentalsProvider } from "./fundamentals.js";
 
@@ -50,17 +74,27 @@ export interface ManagementQualityAnalysis {
   disclaimer: string;
 }
 
-const DEFERRED_LLM_REASON =
-  "requires reading and interpreting the filing's prose (tone, candor, framing) — deliberately deferred; this sprint is deterministic only, per the approved decision not to introduce LLM-generated management opinions yet";
 const DEFERRED_MULTIYEAR_REASON =
-  "requires comparing management's stated strategy across multiple years' filings — only the single most recent 10-K is ingested today";
-const DEFERRED_REINVESTMENT_REASON =
-  "requires an R&D/reinvestment-intensity breakdown that isn't published as a distinct line item by any provider today";
-const DEFERRED_INSIDER_REASON =
-  "requires insider ownership and share-buyback data — the same gap already disclosed for Investment Quality's Share Dilution/Buybacks and Insider Ownership metrics, planned for the Tom Nash Enhancement I sprint";
+  "requires comparing management's stated strategy across multiple years' filings — only the single most recent filing is ingested today, a structural data gap no amount of LLM reading can close";
+// Honest fallback reasons for the two LLM-narrated dimensions (Phase 4,
+// Sprint 63) — reached whenever there's no filing text to read, the LLM is
+// unavailable, the completion fails, or the individual-characterization
+// guard trips. There is deliberately no fabricated fallback score for either.
+const NO_FILING_TEXT_REASON =
+  "requires the company's own filing text (Business/MD&A section), which could not be located or extracted";
+const LLM_UNAVAILABLE_REASON =
+  "AI narration is not available right now, and this dimension has no deterministic fallback — never a fabricated score";
+const NO_INSIDER_DATA_REASON =
+  "requires insider ownership and share-buyback data — currently only the SIMULATED provider supplies this; live FMP/Alpha Vantage do not yet";
 
+// Phase 4, Sprint 63 — updated to stay accurate now that Communication
+// Quality and Long-Term Focus are genuinely AI-narrated (they were not at
+// Sprint 23). The "never a characterization of any individual" guarantee is
+// unchanged and re-stated explicitly — the AI narration scores the FILING'S
+// OWN disclosure text as an artifact, never a person's competence, honesty,
+// or character.
 const DISCLAIMER =
-  "Educational research only — not investment advice, and not a characterization of any individual executive. Every scored dimension is a deterministic composite of already-computed financial/quality signals or the presence and size of the company's own Risk Factors disclosure — never an AI-generated opinion about management's conduct or character.";
+  "Educational research only — not investment advice, and not a characterization of any individual executive. Most dimensions are a deterministic composite of already-computed financial/quality signals or the presence and size of the company's own Risk Factors disclosure. Two dimensions (Communication Quality, Long-Term Focus) are AI-narrated from the company's own filing text when available — the AI scores the FILING'S disclosure characteristics only (clarity, specificity, candor, forward-looking detail), never any individual's conduct or character, and is honestly reported unavailable rather than guessed when it cannot be produced safely.";
 
 // Fixed design weights across all 9 dimensions (sum to 1.0, matching
 // Investment Quality's/Competitive Advantage's own WEIGHTS convention).
@@ -96,6 +130,19 @@ function riskAcknowledgementScore(wordCount: number): number {
 }
 
 const CONFIDENCE_SCORE: Record<ManagementQualityConfidenceLevel, number> = { High: 100, Moderate: 65, Low: 30 };
+
+// Phase 4, Sprint 63 — bounded raw text from an already-extracted filing
+// section, for the two LLM-narrated dimensions below. Reuses
+// ExtractedSection.rawText (filingExtraction.ts, Sprint 22) directly — no new
+// extraction logic. Capped well under the section's own 40,000-char storage
+// limit to keep each LLM call's token cost bounded; `null` when the section
+// itself wasn't found, never a fabricated excerpt.
+const FILING_PROSE_MAX_CHARS = 3000;
+function filingProseFor(filing: FilingAnalysis | null, sectionKey: string): string | null {
+  const section = filing?.sections.find((s) => s.key === sectionKey);
+  if (!section?.found || !section.rawText) return null;
+  return section.rawText.slice(0, FILING_PROSE_MAX_CHARS);
+}
 
 export async function buildManagementQualityAnalysis(
   symbol: string,
@@ -136,21 +183,64 @@ export async function buildManagementQualityAnalysis(
     reason: `Strategic consistency is unavailable — ${DEFERRED_MULTIYEAR_REASON}.`,
   });
 
-  dimensions.push({
-    dimension: "Long-Term Focus",
-    score: null,
-    weight: WEIGHTS.longTermFocus,
-    detail: "",
-    reason: `Long-term focus is unavailable — ${DEFERRED_REINVESTMENT_REASON}.`,
-  });
+  // Phase 4, Sprint 63 — LLM-narrated, reading the filing's own MD&A prose
+  // (present for both 10-K and 10-Q). Honestly unavailable — never a
+  // fabricated score — when there's no MD&A text to read, the LLM is
+  // unavailable, or the narration otherwise couldn't be produced safely.
+  const mdAndASection = filing?.sections.find((s) => s.key === "mdAndA");
+  const mdAndAProse = filingProseFor(filing, "mdAndA");
+  const longTermFocus = mdAndAProse ? await narrateManagementLongTermFocus(mdAndAProse, report.symbol) : null;
+  if (longTermFocus) {
+    dimensions.push({
+      dimension: "Long-Term Focus",
+      score: longTermFocus.score,
+      weight: WEIGHTS.longTermFocus,
+      detail: longTermFocus.detail,
+      sourceSection: {
+        key: "mdAndA",
+        label: "Management Discussion & Analysis",
+        excerpt: mdAndASection?.excerpt ?? null,
+        sourceUrl: filing?.sourceUrl ?? null,
+      },
+    });
+  } else {
+    dimensions.push({
+      dimension: "Long-Term Focus",
+      score: null,
+      weight: WEIGHTS.longTermFocus,
+      detail: "",
+      reason: `Long-term focus is unavailable — ${mdAndAProse ? LLM_UNAVAILABLE_REASON : NO_FILING_TEXT_REASON}.`,
+    });
+  }
 
-  dimensions.push({
-    dimension: "Communication Quality",
-    score: null,
-    weight: WEIGHTS.communicationQuality,
-    detail: "",
-    reason: `Communication quality is unavailable — ${DEFERRED_LLM_REASON}.`,
-  });
+  // Phase 4, Sprint 63 — LLM-narrated, reading the same MD&A prose. Sprint
+  // 23's own text explicitly named this dimension "deliberately deferred
+  // pending LLM reading comprehension" — this is that fill.
+  const communicationQuality = mdAndAProse
+    ? await narrateManagementCommunicationQuality(mdAndAProse, report.symbol)
+    : null;
+  if (communicationQuality) {
+    dimensions.push({
+      dimension: "Communication Quality",
+      score: communicationQuality.score,
+      weight: WEIGHTS.communicationQuality,
+      detail: communicationQuality.detail,
+      sourceSection: {
+        key: "mdAndA",
+        label: "Management Discussion & Analysis",
+        excerpt: mdAndASection?.excerpt ?? null,
+        sourceUrl: filing?.sourceUrl ?? null,
+      },
+    });
+  } else {
+    dimensions.push({
+      dimension: "Communication Quality",
+      score: null,
+      weight: WEIGHTS.communicationQuality,
+      detail: "",
+      reason: `Communication quality is unavailable — ${mdAndAProse ? LLM_UNAVAILABLE_REASON : NO_FILING_TEXT_REASON}.`,
+    });
+  }
 
   if (riskSection?.found) {
     const score = riskAcknowledgementScore(riskSection.wordCount);
@@ -185,13 +275,44 @@ export async function buildManagementQualityAnalysis(
     ...(durability?.score == null ? { reason: durability?.reason ?? "No underlying execution signal was computable." } : {}),
   });
 
-  dimensions.push({
-    dimension: "Shareholder Alignment",
-    score: null,
-    weight: WEIGHTS.shareholderAlignment,
-    detail: "",
-    reason: `Shareholder alignment is unavailable — ${DEFERRED_INSIDER_REASON}.`,
-  });
+  // Phase 4, Sprint 63 — filled DETERMINISTICALLY (zero LLM), reusing
+  // Investment Quality's own already-scored "Insider Ownership"/"Share
+  // Dilution / Buybacks" metrics (Sprint 24's insiderOwnershipPct/
+  // sharesOutstandingChange5y fields) — never recomputed here. Averaged over
+  // whichever of the two are genuinely available, matching every other
+  // renormalize-over-availability pattern in this codebase; honestly
+  // unavailable when neither metric has real data (e.g. a live FMP/Alpha
+  // Vantage provider today, which doesn't supply insiderOwnershipPct).
+  const insiderOwnership = report.investmentQuality.metrics.find((m) => m.metric === "Insider Ownership");
+  const dilutionBuybacks = report.investmentQuality.metrics.find((m) => m.metric === "Share Dilution / Buybacks");
+  const alignmentScores = [insiderOwnership, dilutionBuybacks].filter(
+    (m): m is NonNullable<typeof m> & { score: number } => m != null && m.availability === "available" && m.score != null,
+  );
+  if (alignmentScores.length > 0) {
+    const score = round(alignmentScores.reduce((a, m) => a + m.score, 0) / alignmentScores.length);
+    const parts = [
+      insiderOwnership?.availability === "available"
+        ? `Insider Ownership ${insiderOwnership.score}/100 (${insiderOwnership.detail})`
+        : "Insider Ownership unavailable",
+      dilutionBuybacks?.availability === "available"
+        ? `Share Dilution/Buybacks ${dilutionBuybacks.score}/100 (${dilutionBuybacks.detail})`
+        : "Share Dilution/Buybacks unavailable",
+    ];
+    dimensions.push({
+      dimension: "Shareholder Alignment",
+      score,
+      weight: WEIGHTS.shareholderAlignment,
+      detail: parts.join("; "),
+    });
+  } else {
+    dimensions.push({
+      dimension: "Shareholder Alignment",
+      score: null,
+      weight: WEIGHTS.shareholderAlignment,
+      detail: "",
+      reason: `Shareholder alignment is unavailable — ${NO_INSIDER_DATA_REASON}.`,
+    });
+  }
 
   // Composite of already-computed confidence/completeness signals — reused,
   // not a new opinion: how much of Investment Quality's and Competitive

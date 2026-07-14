@@ -80,6 +80,32 @@ describe("GET /stock-analyst/management-quality/:symbol (live route, EDGAR unrea
     expect(body.error).toMatch(/invalid documenttype/i);
   });
 
+  // Phase 4, Sprint 63 — Shareholder Alignment is now filled deterministically
+  // (Sprint 24's insiderOwnershipPct/sharesOutstandingChange5y data), live,
+  // over real HTTP, for the SIMULATED path — no EDGAR dependency at all.
+  it("Shareholder Alignment is now scored (Sprint 63), reusing Investment Quality's own Insider Ownership/Share Dilution metrics", async () => {
+    const res = await fetch(`${baseUrl}/api/stock-analyst/management-quality/ORCL`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { dimensions: { dimension: string; score: number | null; detail: string }[] };
+    const dim = body.dimensions.find((d) => d.dimension === "Shareholder Alignment")!;
+    expect(dim.score).not.toBeNull();
+    expect(dim.detail).toContain("Insider Ownership");
+  });
+
+  // Communication Quality/Long-Term Focus are honestly unavailable, live,
+  // over real HTTP, in this session — no LLM key AND EDGAR unreachable
+  // (either alone would already cause this), never a fabricated score.
+  it("Communication Quality and Long-Term Focus are honestly unavailable — never a fabricated score — in this live, key-less session", async () => {
+    const res = await fetch(`${baseUrl}/api/stock-analyst/management-quality/CRM`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { dimensions: { dimension: string; score: number | null; reason?: string }[] };
+    for (const name of ["Communication Quality", "Long-Term Focus"]) {
+      const dim = body.dimensions.find((d) => d.dimension === name)!;
+      expect(dim.score).toBeNull();
+      expect(dim.reason).toBeTruthy();
+    }
+  });
+
   it("never triggers a management-quality computation from the main value-research report", async () => {
     const res = await fetch(`${baseUrl}/api/stock-analyst/value/AAPL`);
     expect(res.status).toBe(200);

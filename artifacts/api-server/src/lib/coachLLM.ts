@@ -123,6 +123,29 @@ export function violatesAntiImpersonation(text: string): boolean {
   return IMPERSONATION_RE.test(text);
 }
 
+// Phase 4, Sprint 63 — Management Quality Analysis's LLM-narrated dimensions
+// safety guard. CLAUDE.md itself names this module "the highest reputational/
+// compliance risk in Engine 1," so this backstop is structural, not merely
+// prompt-based: it flags text that drifts from scoring the COMPANY's own
+// filing disclosure into evaluating a NAMED INDIVIDUAL's character or
+// conduct. Deliberately conservative, the same "catch the clear cases, rely
+// on the prompt + disclaimer for the rest" philosophy as
+// violatesAntiImpersonation() above (there is no reference list of every
+// possible executive name to check against, the way "Buffett" is a fixed,
+// known persona) — three patterns: an executive title paired with a
+// possessive/evaluative verb ("the CEO's integrity", "the CFO seems"), a
+// personal pronoun paired with character vocabulary ("her leadership
+// style", "his candor"), and an honorific-plus-name shape ("Mr. Smith").
+const TITLE_EVALUATIVE_RE =
+  /\b(?:CEO|CFO|COO|chief executive|chief financial|chairman|chairwoman|president|founder)(?:'s)?\W{0,15}(?:is|was|seems?|appears?|integrity|honest|trustworthy|competent|credible|character)\b/i;
+const PRONOUN_CHARACTER_RE =
+  /\b(?:he|she|his|her|him)\b[\s\S]{0,40}\b(?:integrity|honest|trustworthy|competent|credible|character|leadership\s+style|candor)\b/i;
+const HONORIFIC_NAME_RE = /\b(?:Mr|Ms|Mrs|Dr)\.\s+[A-Z][a-z]+\b/;
+
+export function violatesIndividualCharacterization(text: string): boolean {
+  return TITLE_EVALUATIVE_RE.test(text) || PRONOUN_CHARACTER_RE.test(text) || HONORIFIC_NAME_RE.test(text);
+}
+
 export function enforceValueDisclaimer(text: string): string {
   return text.includes(VALUE_DISCLAIMER) ? text : `${text}\n\n${VALUE_DISCLAIMER}`;
 }
@@ -681,4 +704,112 @@ export async function narrateTradeFreeformStream(
 ): Promise<Narration> {
   const prompt = `${tradeFreeformPrompt}\n\nQUESTION: ${question}`;
   return narrateStream(prompt, context ?? {}, fallback, onToken, cacheKey);
+}
+
+// Phase 4, Sprint 63 — Management Quality Analysis LLM-Narrated Dimensions.
+// The highest compliance/reputational-risk LLM integration in this codebase
+// (see CLAUDE.md's own framing) — approved scope, per the project owner's
+// explicit Sprint 63 decision, fills exactly 2 of Sprint 23's 4 deferred
+// dimensions this way (Communication Quality, Long-Term Focus); Shareholder
+// Alignment is filled deterministically elsewhere (managementAnalysis.ts,
+// reusing Sprint 24's own already-scored Investment Quality metrics, zero
+// LLM), and Strategic Consistency stays honestly deferred (it needs
+// multi-year filing data this codebase doesn't fetch — no amount of LLM
+// reading fixes a data gap that doesn't exist).
+//
+// SAFETY CONTRACT, stricter than every other narration in this file:
+//   1. NO template/fallback score exists. Unlike narrate()'s own
+//      always-something-to-show design, a fabricated 0-100 number here would
+//      be indistinguishable from a genuine signal — so when the LLM is
+//      unavailable, the completion fails, the JSON doesn't parse, or the
+//      individual-characterization guard trips, this returns `null` and the
+//      caller must report the dimension honestly `unavailable`, exactly like
+//      every other structurally-blocked dimension in this module.
+//   2. The model is instructed to score the FILING TEXT ITSELF (a disclosure
+//      artifact) — never a named individual's competence, honesty, or
+//      character. violatesIndividualCharacterization() is applied to the
+//      returned detail text as a structural backstop before it is ever
+//      returned to a caller.
+//   3. Reuses the exact JSON-completion pattern narrateJournalReview()
+//      already established (aiCoreComplete with json:true,
+//      extractJsonObject, try/catch) — no new LLM-calling machinery.
+export interface ManagementDimensionNarration {
+  score: number; // 0-100, clamped
+  detail: string;
+}
+
+const MANAGEMENT_DIMENSION_SYSTEM_PROMPT =
+  "You are a disciplined filing-disclosure analyst. You score characteristics of a company's OWN SEC " +
+  "filing text — never a person. You NEVER name, describe, or evaluate any individual (CEO, CFO, " +
+  "executive, director, or any named person) — not their competence, honesty, character, or leadership. " +
+  "You score only the FILING TEXT ITSELF as a disclosure artifact: its clarity, specificity, use of " +
+  "concrete numbers versus vague language, candor about risks and challenges, and forward-looking " +
+  "strategic detail. If you cannot assess the dimension from the provided text, say so honestly rather " +
+  "than inventing a score.";
+
+async function narrateManagementDimension(
+  instructionPrompt: string,
+  filingText: string,
+  context: { symbol: string; dimension: string },
+): Promise<ManagementDimensionNarration | null> {
+  if (!llmAvailable()) return null;
+  const content =
+    `${instructionPrompt}\n\nReply as strict JSON with two fields: "score" (integer 0-100) and ` +
+    `"detail" (1-2 sentence justification quoting or paraphrasing specific language from the filing ` +
+    `text — never naming or describing any individual). ` +
+    `\n\nCOMPANY: ${context.symbol}\n\nFILING TEXT (excerpt, this company's own SEC filing):\n${filingText}`;
+  const raw = await aiCoreComplete(MANAGEMENT_DIMENSION_SYSTEM_PROMPT, content, 400, { json: true, onWarn });
+  if (!raw) return null;
+  try {
+    const json = extractJsonObject(raw);
+    if (!json) return null;
+    const parsed = JSON.parse(json) as { score?: unknown; detail?: unknown };
+    if (typeof parsed.score !== "number" || !Number.isFinite(parsed.score)) return null;
+    if (typeof parsed.detail !== "string" || !parsed.detail.trim()) return null;
+    const detail = parsed.detail.trim();
+    if (violatesIndividualCharacterization(detail)) {
+      logger.warn(
+        { symbol: context.symbol, dimension: context.dimension },
+        "management dimension narration discarded — individual-characterization guard tripped",
+      );
+      return null;
+    }
+    const score = Math.max(0, Math.min(100, Math.round(parsed.score)));
+    return { score, detail };
+  } catch (err) {
+    logger.warn({ err, symbol: context.symbol, dimension: context.dimension }, "management dimension JSON parse failed");
+    return null;
+  }
+}
+
+const COMMUNICATION_QUALITY_PROMPT =
+  "Assess the COMMUNICATION QUALITY of this company's own SEC filing disclosure (not any individual's). " +
+  "Consider: does it use specific, concrete language versus vague hedging? Does it disclose challenges " +
+  "candidly, or only favorable framing? Is the writing clear and well-organized? Score 0 (evasive/vague) " +
+  "to 100 (exceptionally clear, specific, candid).";
+
+export async function narrateManagementCommunicationQuality(
+  filingText: string,
+  symbol: string,
+): Promise<ManagementDimensionNarration | null> {
+  return narrateManagementDimension(COMMUNICATION_QUALITY_PROMPT, filingText, {
+    symbol,
+    dimension: "Communication Quality",
+  });
+}
+
+const LONG_TERM_FOCUS_PROMPT =
+  "Assess how much this company's own SEC filing text discusses LONG-TERM STRATEGIC FOCUS (not any " +
+  "individual's plans) — multi-year initiatives, sustained R&D or capital investment, long-horizon " +
+  "business building — versus a focus only on the current quarter or year. Score 0 (no long-term " +
+  "framing) to 100 (strong, specific, multi-year strategic framing).";
+
+export async function narrateManagementLongTermFocus(
+  filingText: string,
+  symbol: string,
+): Promise<ManagementDimensionNarration | null> {
+  return narrateManagementDimension(LONG_TERM_FOCUS_PROMPT, filingText, {
+    symbol,
+    dimension: "Long-Term Focus",
+  });
 }
