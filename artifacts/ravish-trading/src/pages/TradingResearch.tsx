@@ -38,7 +38,16 @@
 // extracted, unmodified, into src/lib/trading-format.tsx so the new
 // pages/InstitutionalDashboard.tsx could reuse them instead of redefining
 // its own copies - a behavior-preserving refactor, not a logic change; this
-// page's own rendering is otherwise untouched.
+// page's own rendering is otherwise untouched. Sprint 50 also added a new,
+// separate "Institutional Dashboard" page/nav item (/institutional-
+// dashboard) as a condensed, no-tabs, at-a-glance overview of this same
+// Engine 2 data plus Recent Journal/Backtest summaries - this page remains
+// the place for the FULL detail views (support/resistance list, full
+// per-timeframe list, full probability cone table, full volume-profile
+// list) and all position/journal/backtest management actions; the two
+// pages are deliberately not merged, the same "distinct-but-related
+// surfaces, disclosed, not merged" precedent Sprint 36 established between
+// tradingRegime.ts and marketBriefing.ts.
 
 import { useState } from "react";
 import {
