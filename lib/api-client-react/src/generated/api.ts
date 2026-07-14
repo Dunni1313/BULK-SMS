@@ -121,6 +121,7 @@ import type {
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
   TradingMultiTimeframeAnalysis,
+  TradingProbabilityAnalysis,
   TradingRegimeAnalysis,
   TradingStructureAnalysis,
   UniverseSymbol,
@@ -7738,6 +7739,83 @@ export function useGetTradingRegime<TData = Awaited<ReturnType<typeof getTrading
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradingRegimeQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingProbabilityUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/probability/${symbol}`
+}
+
+/**
+ * @summary Probability analysis for a symbol — a driftless lognormal probability cone (±1σ/±2σ) at multiple day horizons, composed on Market Regime's own resolved price/volatility, SIMULATED-first, honestly labelled dataSource
+ */
+export const getTradingProbability = async (symbol: string, options?: RequestInit): Promise<TradingProbabilityAnalysis> => {
+
+  return customFetch<TradingProbabilityAnalysis>(getGetTradingProbabilityUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingProbabilityQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/probability/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingProbabilityQueryOptions = <TData = Awaited<ReturnType<typeof getTradingProbability>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingProbability>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingProbabilityQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingProbability>>> = ({ signal }) => getTradingProbability(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingProbability>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingProbabilityQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingProbability>>>
+export type GetTradingProbabilityQueryError = ErrorType<void>
+
+
+/**
+ * @summary Probability analysis for a symbol — a driftless lognormal probability cone (±1σ/±2σ) at multiple day horizons, composed on Market Regime's own resolved price/volatility, SIMULATED-first, honestly labelled dataSource
+ */
+
+export function useGetTradingProbability<TData = Awaited<ReturnType<typeof getTradingProbability>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingProbability>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingProbabilityQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -22,13 +22,15 @@ import {
   getGetTradingMultiTimeframeQueryKey,
   useGetTradingRegime,
   getGetTradingRegimeQueryKey,
+  useGetTradingProbability,
+  getGetTradingProbabilityQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers, Gauge } from "lucide-react";
+import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers, Gauge, Target } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -92,6 +94,14 @@ export default function TradingResearch() {
     isError: isRegimeError,
   } = useGetTradingRegime(symbol, {
     query: { queryKey: getGetTradingRegimeQueryKey(symbol), enabled: !!symbol },
+  });
+
+  const {
+    data: probability,
+    isLoading: isProbabilityLoading,
+    isError: isProbabilityError,
+  } = useGetTradingProbability(symbol, {
+    query: { queryKey: getGetTradingProbabilityQueryKey(symbol), enabled: !!symbol },
   });
 
   function handleSubmit(e: React.FormEvent) {
@@ -334,6 +344,89 @@ export default function TradingResearch() {
             </div>
 
             <p className="border-t border-border pt-3 text-sm text-muted-foreground">{regime.summary}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && isProbabilityLoading && (
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && isProbabilityError && (
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            Could not resolve probability data for "{symbol}".
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && probability && (
+        <Card data-testid="card-probability">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Probability — {probability.symbol}
+              </CardTitle>
+              <Badge variant="outline" className="text-xs">
+                {probability.dataSource}
+              </Badge>
+            </div>
+            <CardDescription>
+              Driftless lognormal probability cone (±1σ/±2σ) around {fmtUsd(probability.currentPrice)} current price
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!probability.available && (
+              <p className="text-sm text-muted-foreground">
+                {probability.unavailableReason ?? "Probability cone unavailable for this symbol."}
+              </p>
+            )}
+
+            {probability.available && (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="border-border text-muted-foreground">
+                    {probability.volatilityAnnualizedPct !== null
+                      ? `${probability.volatilityAnnualizedPct}% annualized volatility`
+                      : "Volatility unavailable"}
+                  </Badge>
+                  <Badge variant="outline" className={confidenceBadgeClass(probability.confidenceLevel)}>
+                    {probability.confidenceLevel} confidence
+                  </Badge>
+                </div>
+
+                <div>
+                  <h3 className="mb-2 text-sm font-medium">Probability Cone</h3>
+                  <ul className="space-y-1">
+                    {probability.cone.map((level) => (
+                      <li
+                        key={level.daysAhead}
+                        className="flex items-center justify-between rounded-md border border-border px-3 py-1.5 text-sm"
+                      >
+                        <span className="text-muted-foreground">{level.daysAhead}d</span>
+                        <span>
+                          1σ: {fmtUsd(level.low1Sigma)} – {fmtUsd(level.high1Sigma)}
+                        </span>
+                        <span className="text-muted-foreground">
+                          2σ: {fmtUsd(level.low2Sigma)} – {fmtUsd(level.high2Sigma)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
+
+            <p className="border-t border-border pt-3 text-sm text-muted-foreground">{probability.summary}</p>
           </CardContent>
         </Card>
       )}

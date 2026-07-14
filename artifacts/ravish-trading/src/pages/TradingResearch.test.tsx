@@ -3,7 +3,8 @@
 // Phase 3, Sprint 41 extended this file with the Multi-Timeframe confluence
 // card's own cases, mocking useGetTradingMultiTimeframe alongside the
 // existing useGetTradingStructure mock. Phase 3, Sprint 42 extended it
-// again with the Market Regime card's own cases.
+// again with the Market Regime card's own cases. Phase 3, Sprint 43
+// extended it again with the Probability card's own cases.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
@@ -20,6 +21,9 @@ const mockState = vi.hoisted(() => ({
   regime: undefined as unknown,
   isRegimeLoading: false,
   isRegimeError: false,
+  probability: undefined as unknown,
+  isProbabilityLoading: false,
+  isProbabilityError: false,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -42,6 +46,11 @@ vi.mock("@workspace/api-client-react", async () => {
       data: mockState.regime,
       isLoading: mockState.isRegimeLoading,
       isError: mockState.isRegimeError,
+    }),
+    useGetTradingProbability: () => ({
+      data: mockState.probability,
+      isLoading: mockState.isProbabilityLoading,
+      isError: mockState.isProbabilityError,
     }),
   };
 });
@@ -103,6 +112,25 @@ function regimeAnalysis(over: Record<string, unknown> = {}) {
   };
 }
 
+function probabilityAnalysis(over: Record<string, unknown> = {}) {
+  return {
+    symbol: "AAPL",
+    dataSource: "SIMULATED",
+    currentPrice: 195.5,
+    volatilityAnnualizedPct: 24.5,
+    available: true,
+    unavailableReason: null,
+    cone: [
+      { daysAhead: 5, low1Sigma: 190.1, high1Sigma: 201.2, low2Sigma: 184.9, high2Sigma: 206.8 },
+      { daysAhead: 30, low1Sigma: 175.4, high1Sigma: 218.9, low2Sigma: 158.2, high2Sigma: 240.1 },
+    ],
+    confidenceLevel: "High",
+    confidenceExplanation: "Trend confluence, liquidity, and realized volatility all have strong data support.",
+    summary: "AAPL probability cone at 24.5% annualized volatility. Confidence: High.",
+    ...over,
+  };
+}
+
 describe("TradingResearch page", () => {
   beforeEach(() => {
     mockState.structure = undefined;
@@ -114,6 +142,9 @@ describe("TradingResearch page", () => {
     mockState.regime = undefined;
     mockState.isRegimeLoading = false;
     mockState.isRegimeError = false;
+    mockState.probability = undefined;
+    mockState.isProbabilityLoading = false;
+    mockState.isProbabilityError = false;
   });
 
   it("renders the advisory-only copy and a prompt before any symbol is searched", () => {
@@ -221,5 +252,39 @@ describe("TradingResearch page", () => {
     expect(await screen.findByTestId("card-market-regime")).toBeInTheDocument();
     expect(screen.getByText("normal volatility")).toBeInTheDocument();
     expect(screen.queryByText(/normal volatility \(/i)).not.toBeInTheDocument();
+  });
+
+  it("renders the Probability card's cone once data resolves", async () => {
+    mockState.probability = probabilityAnalysis();
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+
+    expect(await screen.findByTestId("card-probability")).toBeInTheDocument();
+    expect(screen.getByText(/Probability — AAPL/i)).toBeInTheDocument();
+    expect(screen.getByText("24.5% annualized volatility")).toBeInTheDocument();
+    expect(screen.getByText(/High confidence/i)).toBeInTheDocument();
+    expect(screen.getByText("5d")).toBeInTheDocument();
+    expect(screen.getByText("30d")).toBeInTheDocument();
+  });
+
+  it("honestly shows the unavailable reason instead of a fabricated cone when probability can't be computed", async () => {
+    mockState.probability = probabilityAnalysis({
+      available: false,
+      unavailableReason: "Volatility could not be computed for this symbol.",
+      volatilityAnnualizedPct: null,
+      cone: [],
+      confidenceLevel: "Low",
+      summary: "AAPL probability cone unavailable — insufficient data. Confidence: Low.",
+    });
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+
+    expect(await screen.findByTestId("card-probability")).toBeInTheDocument();
+    expect(screen.getByText("Volatility could not be computed for this symbol.")).toBeInTheDocument();
+    expect(screen.queryByText(/annualized volatility/i)).not.toBeInTheDocument();
   });
 });

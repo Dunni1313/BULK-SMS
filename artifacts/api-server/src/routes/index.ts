@@ -21,6 +21,7 @@ import tradingJournalRouter from "./tradingJournal";
 import tradingStructureRouter from "./tradingStructure";
 import tradingMultiTimeframeRouter from "./tradingMultiTimeframe";
 import tradingRegimeRouter from "./tradingRegime";
+import tradingProbabilityRouter from "./tradingProbability";
 
 const router: IRouter = Router();
 
@@ -46,5 +47,6 @@ router.use(tradingJournalRouter);
 router.use(tradingStructureRouter);
 router.use(tradingMultiTimeframeRouter);
 router.use(tradingRegimeRouter);
+router.use(tradingProbabilityRouter);
 
 export default router;

@@ -42,6 +42,8 @@ tags:
     description: Engine 2 Multi-Timeframe trend confluence analysis — composes Market Structure across multiple timeframes, SIMULATED-first, advisory only, never places an order
   - name: trading-regime
     description: Engine 2 Market Regime analysis — composes trend (Multi-Timeframe), liquidity, and realized-volatility axes into a single regime read, SIMULATED-first, advisory only, never places an order
+  - name: trading-probability
+    description: Engine 2 Probability analysis — a driftless lognormal probability cone (±1σ/±2σ) and honest availability, composed on Market Regime's own resolved price/volatility, SIMULATED-first, advisory only, never places an order
 
 paths:
   /healthz:
@@ -1934,6 +1936,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TradingRegimeAnalysis"
+        "404":
+          description: Unknown or invalid symbol
+
+  # ─── Probability (Engine 2, Phase 3 Sprint 43) ──────────────────────────────
+  /trading/probability/{symbol}:
+    get:
+      operationId: getTradingProbability
+      tags: [trading-probability]
+      summary: Probability analysis for a symbol — a driftless lognormal probability cone (±1σ/±2σ) at multiple day horizons, composed on Market Regime's own resolved price/volatility, SIMULATED-first, honestly labelled dataSource
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Probability analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingProbabilityAnalysis"
         "404":
           description: Unknown or invalid symbol
 
@@ -6036,6 +6060,68 @@ components:
         liquidityRegime:
           type: string
           enum: [High, Moderate, Low]
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation:
+          type: string
+        summary:
+          type: string
+
+    # ─── Probability (Engine 2, Phase 3 Sprint 43) ────────────────────────────
+    TradingProbabilityConeLevel:
+      type: object
+      required: [daysAhead, low1Sigma, high1Sigma, low2Sigma, high2Sigma]
+      properties:
+        daysAhead:
+          type: number
+        low1Sigma:
+          type: number
+        high1Sigma:
+          type: number
+        low2Sigma:
+          type: number
+        high2Sigma:
+          type: number
+
+    # Deliberately a projection of ProbabilityAnalysis's own fields — the
+    # full nested `regime: TradingRegimeAnalysis` sub-analysis is not part
+    # of this documented contract (see routes/tradingProbability.ts's own
+    # disclosed scope comment for why): the Market Regime card (Sprint 42)
+    # already surfaces that detail on the same page.
+    TradingProbabilityAnalysis:
+      type: object
+      required:
+        [
+          symbol,
+          dataSource,
+          currentPrice,
+          volatilityAnnualizedPct,
+          available,
+          unavailableReason,
+          cone,
+          confidenceLevel,
+          confidenceExplanation,
+          summary,
+        ]
+      properties:
+        symbol:
+          type: string
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        currentPrice:
+          type: number
+        volatilityAnnualizedPct:
+          type: ["number", "null"]
+        available:
+          type: boolean
+        unavailableReason:
+          type: ["string", "null"]
+        cone:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingProbabilityConeLevel"
         confidenceLevel:
           type: string
           enum: [High, Moderate, Low]

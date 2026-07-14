@@ -3777,6 +3777,46 @@ export interface TradingRegimeAnalysis {
   summary: string;
 }
 
+export interface TradingProbabilityConeLevel {
+  daysAhead: number;
+  low1Sigma: number;
+  high1Sigma: number;
+  low2Sigma: number;
+  high2Sigma: number;
+}
+
+export type TradingProbabilityAnalysisDataSource = typeof TradingProbabilityAnalysisDataSource[keyof typeof TradingProbabilityAnalysisDataSource];
+
+
+export const TradingProbabilityAnalysisDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingProbabilityAnalysisConfidenceLevel = typeof TradingProbabilityAnalysisConfidenceLevel[keyof typeof TradingProbabilityAnalysisConfidenceLevel];
+
+
+export const TradingProbabilityAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface TradingProbabilityAnalysis {
+  symbol: string;
+  dataSource: TradingProbabilityAnalysisDataSource;
+  currentPrice: number;
+  /** @nullable */
+  volatilityAnnualizedPct: number | null;
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  cone: TradingProbabilityConeLevel[];
+  confidenceLevel: TradingProbabilityAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

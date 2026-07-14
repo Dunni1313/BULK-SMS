@@ -3832,3 +3832,30 @@ export const GetTradingRegimeResponse = zod.object({
 })
 
 
+/**
+ * @summary Probability analysis for a symbol — a driftless lognormal probability cone (±1σ/±2σ) at multiple day horizons, composed on Market Regime's own resolved price/volatility, SIMULATED-first, honestly labelled dataSource
+ */
+export const GetTradingProbabilityParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingProbabilityResponse = zod.object({
+  "symbol": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "currentPrice": zod.number(),
+  "volatilityAnnualizedPct": zod.number().nullable(),
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "cone": zod.array(zod.object({
+  "daysAhead": zod.number(),
+  "low1Sigma": zod.number(),
+  "high1Sigma": zod.number(),
+  "low2Sigma": zod.number(),
+  "high2Sigma": zod.number()
+})),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+})
+
+
