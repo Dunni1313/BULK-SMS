@@ -11,6 +11,9 @@ import userEvent from "@testing-library/user-event";
 import { renderWithClient } from "@/test/test-utils";
 
 const mockState = vi.hoisted(() => ({
+  valueReport: undefined as unknown,
+  isValueReportLoading: false,
+  isValueReportError: false,
   structure: undefined as unknown,
   isStructureLoading: false,
   isStructureError: false,
@@ -37,6 +40,11 @@ vi.mock("@workspace/api-client-react", async () => {
   );
   return {
     ...actual,
+    useGetValueReport: () => ({
+      data: mockState.valueReport,
+      isLoading: mockState.isValueReportLoading,
+      isError: mockState.isValueReportError,
+    }),
     useGetTradingStructure: () => ({
       data: mockState.structure,
       isLoading: mockState.isStructureLoading,
@@ -69,6 +77,26 @@ vi.mock("@workspace/api-client-react", async () => {
 });
 
 import InstitutionalDashboard from "./InstitutionalDashboard";
+
+function valueReport(over: Record<string, unknown> = {}) {
+  return {
+    symbol: "AAPL",
+    dataSource: "SIMULATED",
+    investmentCommittee: {
+      votes: [
+        { analyst: "Graham", verdict: "Buy", confidence: 70, rationale: "Cheap on Graham Number." },
+        { analyst: "Buffett", verdict: "Hold", confidence: 55, rationale: "Fair value, no margin of safety." },
+        { analyst: "Tom Nash", verdict: "Buy", confidence: 78, rationale: "High conviction score." },
+      ],
+      consolidatedVerdict: "Buy",
+      confidenceScore: 68,
+      agreement: "majority",
+      reasoning: ["Graham votes Buy.", "Buffett votes Hold.", "Tom Nash votes Buy.", "Majority agreement: Buy."],
+      summary: "2 of 3 analysts recommend Buy, with majority agreement.",
+    },
+    ...over,
+  };
+}
 
 function structureAnalysis(over: Record<string, unknown> = {}) {
   return {
@@ -214,6 +242,9 @@ function backtestResult(over: Record<string, unknown> = {}) {
 
 describe("InstitutionalDashboard page", () => {
   beforeEach(() => {
+    mockState.valueReport = undefined;
+    mockState.isValueReportLoading = false;
+    mockState.isValueReportError = false;
     mockState.structure = undefined;
     mockState.isStructureLoading = false;
     mockState.isStructureError = false;
@@ -237,8 +268,9 @@ describe("InstitutionalDashboard page", () => {
   it("shows advisory copy and no signal grid before a symbol is searched", () => {
     renderWithClient(<InstitutionalDashboard />);
     expect(screen.getByTestId("page-institutional-dashboard")).toBeInTheDocument();
-    expect(screen.getByText(/Enter a symbol above to see its full Engine 2 signal set/i)).toBeInTheDocument();
+    expect(screen.getByText(/Investment Committee verdict, Engine 2's technical read/i)).toBeInTheDocument();
     expect(screen.queryByTestId("grid-signal-cards")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("grid-cross-engine-verdict")).not.toBeInTheDocument();
   });
 
   it("renders all five per-symbol signal cards together with no additional navigation once a symbol is searched", async () => {
@@ -261,6 +293,48 @@ describe("InstitutionalDashboard page", () => {
     expect(screen.getByTestId("card-dashboard-probability")).toBeInTheDocument();
     expect(screen.getByTestId("card-dashboard-liquidity")).toBeInTheDocument();
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+  });
+
+  it("shows Engine 1's Investment Committee verdict alongside Engine 2's technical read on one screen once a symbol is searched", async () => {
+    mockState.valueReport = valueReport();
+    mockState.structure = structureAnalysis();
+    mockState.multiTimeframe = multiTimeframeAnalysis();
+    mockState.regime = regimeAnalysis();
+    mockState.probability = probabilityAnalysis();
+    mockState.liquidity = liquidityAnalysis();
+
+    const user = userEvent.setup();
+    renderWithClient(<InstitutionalDashboard />);
+    await user.type(screen.getByTestId("input-dashboard-symbol"), "AAPL");
+    await user.click(screen.getByTestId("button-dashboard-search"));
+
+    const committeeCard = screen.getByTestId("card-dashboard-committee");
+    expect(within(committeeCard).getByText("Buy")).toBeInTheDocument();
+    expect(within(committeeCard).getByText("majority")).toBeInTheDocument();
+    expect(within(committeeCard).getByText(/2 of 3 analysts recommend Buy/i)).toBeInTheDocument();
+
+    const technicalReadCard = screen.getByTestId("card-dashboard-technical-read");
+    expect(within(technicalReadCard).getByText("trending-bullish")).toBeInTheDocument();
+
+    // Both cards render together, in the same grid, without any extra
+    // navigation — the literal "on one screen" acceptance criterion.
+    const verdictGrid = screen.getByTestId("grid-cross-engine-verdict");
+    expect(within(verdictGrid).getByTestId("card-dashboard-committee")).toBeInTheDocument();
+    expect(within(verdictGrid).getByTestId("card-dashboard-technical-read")).toBeInTheDocument();
+  });
+
+  it("honestly shows an error card for the Investment Committee when Engine 1 can't resolve the symbol, without blocking Engine 2's own read", async () => {
+    mockState.isValueReportError = true;
+    mockState.regime = regimeAnalysis();
+
+    const user = userEvent.setup();
+    renderWithClient(<InstitutionalDashboard />);
+    await user.type(screen.getByTestId("input-dashboard-symbol"), "AAPL");
+    await user.click(screen.getByTestId("button-dashboard-search"));
+
+    expect(screen.getByText(/Could not resolve "AAPL"/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("card-dashboard-committee")).not.toBeInTheDocument();
+    expect(screen.getByTestId("card-dashboard-technical-read")).toBeInTheDocument();
   });
 
   it("honestly shows the probability-unavailable reason instead of a fabricated cone", async () => {

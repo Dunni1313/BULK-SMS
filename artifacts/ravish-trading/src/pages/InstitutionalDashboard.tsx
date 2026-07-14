@@ -35,10 +35,27 @@
 // any order, and never touches a real brokerage account. Every SIMULATED
 // data source is labeled exactly as its own originating card already
 // labels it — this page fabricates nothing of its own.
+//
+// Phase 4, Sprint 54 — Cross-Engine Command Center (approved Phase 4 plan,
+// Sprint 54; see docs/Phase-4-Master-Execution-Plan.md's Sprint 54 as-built
+// note). Adds a "Cross-Engine Verdict" section pairing Engine 1's
+// Investment Committee verdict (Phase 2, Sprint 17) with Engine 2's own
+// technical read (the already-fetched Market Regime analysis, Sprint 36) —
+// the Blueprint's own long-flagged "nice-to-have," deliberately deferred at
+// this page's own Sprint 50 kickoff to keep that sprint bounded. Zero new
+// engine calculations: the Engine 1 side is one more read of the existing,
+// already-tested GET /stock-analyst/value/:symbol route (unused elsewhere
+// in the frontend — StockResearch.tsx instead streams a narrated report via
+// a heavier SSE endpoint, which this page deliberately does not need for a
+// plain verdict read); the Engine 2 side reuses the `regime` object already
+// fetched by the signal grid below, not a second fetch or a new
+// computation.
 
 import { useState } from "react";
 import { Link } from "wouter";
 import {
+  useGetValueReport,
+  getGetValueReportQueryKey,
   useGetTradingStructure,
   getGetTradingStructureQueryKey,
   useGetTradingMultiTimeframe,
@@ -73,7 +90,20 @@ import {
   liquidityBandBadgeClass,
   pressureBadgeClass,
 } from "@/lib/trading-format";
-import { Activity, Layers, Gauge, Target, Droplets, Search, ShieldAlert, NotebookPen, History, MessageCircle } from "lucide-react";
+import {
+  Activity,
+  Layers,
+  Gauge,
+  Target,
+  Droplets,
+  Search,
+  ShieldAlert,
+  NotebookPen,
+  History,
+  MessageCircle,
+  Users,
+  Scale,
+} from "lucide-react";
 
 // Bounded — a fast-scan summary, not a full history dump. The full lists
 // live on Trading Journal / Trading Backtest, one link away.
@@ -110,9 +140,35 @@ function ErrorCard({ icon, title, message }: { icon: React.ReactNode; title: str
   );
 }
 
+// Investment Committee verdicts are Buy/Hold/Wait — a different vocabulary
+// than the Engine 2 badge helpers in trading-format.tsx (which are Engine
+// 2's own trend/regime/liquidity vocabulary). Kept local rather than added
+// to that shared module, since mixing Engine 1's vocabulary into an
+// Engine-2-labeled file would blur the "each engine's own vocabulary"
+// separation those helpers' own header comment already establishes.
+function committeeVerdictBadgeClass(verdict: string): string {
+  if (verdict === "Buy") return "border-emerald-500/40 text-emerald-400";
+  if (verdict === "Wait") return "border-rose-500/40 text-rose-400";
+  return "border-border text-muted-foreground";
+}
+
 export default function InstitutionalDashboard() {
   const [inputValue, setInputValue] = useState("");
   const [symbol, setSymbol] = useState("");
+
+  // Phase 4, Sprint 54 — Engine 1's side of the Cross-Engine Verdict.
+  // Resolves concurrently with every Engine 2 signal below, for the same
+  // symbol — the plain, non-streaming report route (GET
+  // /stock-analyst/value/:symbol), not the heavier SSE narration endpoint
+  // StockResearch.tsx uses, since this card only needs the already-computed
+  // Investment Committee field, not narrated commentary.
+  const {
+    data: valueReport,
+    isLoading: isValueReportLoading,
+    isError: isValueReportError,
+  } = useGetValueReport(symbol, {
+    query: { queryKey: getGetValueReportQueryKey(symbol), enabled: !!symbol },
+  });
 
   // All five per-symbol signals resolve concurrently, none gated behind a
   // tab — this is the page's entire point ("without any additional
@@ -164,8 +220,9 @@ export default function InstitutionalDashboard() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Institutional Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          One-screen Engine 2 overview — Structure, Multi-Timeframe, Regime, Probability, Liquidity, and your own
-          Portfolio Risk for a single symbol lookup. SIMULATED market data, advisory only. Never places an order.
+          One-screen cross-engine overview — Engine 1's Investment Committee verdict alongside Engine 2's Structure,
+          Multi-Timeframe, Regime, Probability, Liquidity, and your own Portfolio Risk, for a single symbol lookup.
+          SIMULATED market data, advisory only. Never places an order.
         </p>
       </div>
 
@@ -184,7 +241,85 @@ export default function InstitutionalDashboard() {
       </form>
 
       {!symbol && (
-        <p className="text-sm text-muted-foreground">Enter a symbol above to see its full Engine 2 signal set at a glance.</p>
+        <p className="text-sm text-muted-foreground">
+          Enter a symbol above to see Engine 1's Investment Committee verdict, Engine 2's technical read, and the full
+          Engine 2 signal set at a glance.
+        </p>
+      )}
+
+      {symbol && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="grid-cross-engine-verdict">
+          {isValueReportLoading && <SkeletonCard icon={<Users className="h-4 w-4" />} title="Engine 1 — Investment Committee" />}
+          {isValueReportError && (
+            <ErrorCard
+              icon={<Users className="h-4 w-4" />}
+              title="Engine 1 — Investment Committee"
+              message={`Could not resolve "${symbol}".`}
+            />
+          )}
+          {valueReport && (
+            <Card data-testid="card-dashboard-committee">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Users className="h-4 w-4" />
+                    Engine 1 — Investment Committee
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {valueReport.dataSource}
+                  </Badge>
+                </div>
+                <CardDescription>Consolidated Graham + Buffett + Tom Nash recommendation.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={committeeVerdictBadgeClass(valueReport.investmentCommittee.consolidatedVerdict)}
+                  >
+                    {valueReport.investmentCommittee.consolidatedVerdict}
+                  </Badge>
+                  <Badge variant="outline" className={agreementBadgeClass(valueReport.investmentCommittee.agreement)}>
+                    {valueReport.investmentCommittee.agreement.replace(/-/g, " ")}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{valueReport.investmentCommittee.summary}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {isRegimeLoading && <SkeletonCard icon={<Scale className="h-4 w-4" />} title="Engine 2 — Technical Read" />}
+          {isRegimeError && (
+            <ErrorCard icon={<Scale className="h-4 w-4" />} title="Engine 2 — Technical Read" message={`Could not resolve "${symbol}".`} />
+          )}
+          {regime && (
+            <Card data-testid="card-dashboard-technical-read">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Scale className="h-4 w-4" />
+                    Engine 2 — Technical Read
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {regime.dataSource}
+                  </Badge>
+                </div>
+                <CardDescription>Structure + Multi-Timeframe + Liquidity, consolidated into one regime.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={regimeBadgeClass(regime.regimeLabel)}>
+                    {regime.regimeLabel}
+                  </Badge>
+                  <Badge variant="outline" className={confidenceBadgeClass(regime.confidenceLevel)}>
+                    {regime.confidenceLevel}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{regime.summary}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {symbol && (
