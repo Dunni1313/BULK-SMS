@@ -60,6 +60,13 @@ export default function Assistant() {
   // True when the user aborted the in-flight stream — the partial reply stays
   // on screen (no query invalidation) until the next message is sent.
   const [stopped, setStopped] = useState(false);
+  // Phase 4, Sprint 59 — true when the server signals a genuine mid-stream
+  // `error` SSE event (routes/ai.ts's /ai/chat/stream really emits one on
+  // internal failure). Surfaces an honest failure turn instead of silently
+  // leaving the just-sent message stuck with no reply, matching the exact
+  // onError convention StockResearch.tsx's Ask panel (Sprint 30) and
+  // TradingResearch.tsx's coach panel (Sprint 48) already established.
+  const [erroredReply, setErroredReply] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +74,7 @@ export default function Assistant() {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isStreaming, streamingReply, pendingUser]);
+  }, [messages, isStreaming, streamingReply, pendingUser, erroredReply]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -86,6 +93,7 @@ export default function Assistant() {
     setPendingUser(msg);
     setStreamingReply("");
     setStopped(false);
+    setErroredReply(false);
     setIsStreaming(true);
 
     streamCoach(
@@ -101,6 +109,7 @@ export default function Assistant() {
         },
         onError: () => {
           setIsStreaming(false);
+          setErroredReply(true);
         },
       },
       controller.signal,
@@ -289,6 +298,25 @@ export default function Assistant() {
               </div>
             )}
 
+            {/* Phase 4, Sprint 59 — an honest failure turn on a genuine
+                mid-stream server error, matching the exact onError
+                convention StockResearch.tsx/TradingResearch.tsx already
+                established (Sprints 30, 48), instead of silently leaving
+                pendingUser stuck on screen with no reply. */}
+            {erroredReply && (
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                  <Bot size={16} />
+                </div>
+                <div
+                  className="px-4 py-3 rounded-lg max-w-[80%] bg-destructive/10 border border-destructive/30 text-foreground"
+                  data-testid="assistant-error-turn"
+                >
+                  <p className="text-sm">Failed to get an answer — please try again.</p>
+                </div>
+              </div>
+            )}
+
             {(isStreaming || (stopped && streamingReply)) && (
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
@@ -322,12 +350,13 @@ export default function Assistant() {
         
         <CardFooter className="p-4 border-t border-border bg-card">
           <form onSubmit={handleSend} className="flex w-full gap-2">
-            <Input 
-              value={input} 
+            <Input
+              value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Ask Ravish Coach..." 
+              placeholder="Ask Ravish Coach..."
               className="bg-background border-border flex-1 font-mono text-sm"
               disabled={isStreaming}
+              data-testid="assistant-input"
             />
             {isStreaming ? (
               <Button
@@ -336,11 +365,12 @@ export default function Assistant() {
                 size="icon"
                 variant="destructive"
                 title="Stop generating"
+                data-testid="assistant-stop"
               >
                 <Square className="w-4 h-4" />
               </Button>
             ) : (
-              <Button type="submit" disabled={!input.trim()} size="icon" className="bg-indigo-600 hover:bg-indigo-700">
+              <Button type="submit" disabled={!input.trim()} size="icon" className="bg-indigo-600 hover:bg-indigo-700" data-testid="assistant-submit">
                 <Send className="w-4 h-4" />
               </Button>
             )}
