@@ -24,6 +24,7 @@ import Events from "./pages/Events";
 import Adjustments from "./pages/Adjustments";
 import StockResearch from "./pages/StockResearch";
 import TradingResearch from "./pages/TradingResearch";
+import TradingJournal from "./pages/TradingJournal";
 import StockScanner from "./pages/StockScanner";
 import PortfolioConstruction from "./pages/PortfolioConstruction";
 import ValueInvestingSchool from "./pages/ValueInvestingSchool";
@@ -67,6 +68,7 @@ function Router() {
         <Route path="/events" component={Events} />
         <Route path="/adjustments" component={Adjustments} />
         <Route path="/trading-research" component={TradingResearch} />
+        <Route path="/trading-journal" component={TradingJournal} />
         <Route path="/stock-analyst/scanner" component={StockScanner} />
         <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />
         <Route path="/stock-analyst" component={StockResearch} />
