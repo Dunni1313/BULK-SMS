@@ -117,6 +117,8 @@ import type {
   TradeAdjustment,
   TradeInput,
   TradeMonitor,
+  TradingCoachAskInput,
+  TradingCoachAskResult,
   TradingJournalEntry,
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
@@ -8353,4 +8355,75 @@ export function useGetTradingLiquidity<TData = Awaited<ReturnType<typeof getTrad
 
 
 
+
+export const getAskTradingCoachUrl = () => {
+
+
+
+
+  return `/api/trading/coach/ask`
+}
+
+/**
+ * @summary Ask a free-form question about a symbol, grounded in Structure/Multi-Timeframe/Liquidity/Regime/Probability, the calling user's own portfolio Risk analysis, and recent Trading Journal reflections (read-only; never executes; SSE variant at /trading/coach/ask/stream is not modeled here)
+ */
+export const askTradingCoach = async (tradingCoachAskInput: TradingCoachAskInput, options?: RequestInit): Promise<TradingCoachAskResult> => {
+
+  return customFetch<TradingCoachAskResult>(getAskTradingCoachUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingCoachAskInput,)
+  }
+);}
+
+
+
+
+export const getAskTradingCoachMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askTradingCoach>>, TError,{data: BodyType<TradingCoachAskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof askTradingCoach>>, TError,{data: BodyType<TradingCoachAskInput>}, TContext> => {
+
+const mutationKey = ['askTradingCoach'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askTradingCoach>>, {data: BodyType<TradingCoachAskInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  askTradingCoach(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskTradingCoachMutationResult = NonNullable<Awaited<ReturnType<typeof askTradingCoach>>>
+    export type AskTradingCoachMutationBody = BodyType<TradingCoachAskInput>
+    export type AskTradingCoachMutationError = ErrorType<void>
+
+    /**
+ * @summary Ask a free-form question about a symbol, grounded in Structure/Multi-Timeframe/Liquidity/Regime/Probability, the calling user's own portfolio Risk analysis, and recent Trading Journal reflections (read-only; never executes; SSE variant at /trading/coach/ask/stream is not modeled here)
+ */
+export const useAskTradingCoach = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askTradingCoach>>, TError,{data: BodyType<TradingCoachAskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof askTradingCoach>>,
+        TError,
+        {data: BodyType<TradingCoachAskInput>},
+        TContext
+      > => {
+      return useMutation(getAskTradingCoachMutationOptions(options));
+    }
 

@@ -50,6 +50,8 @@ tags:
     description: Engine 2 portfolio risk analysis (position sizing, stop/target discipline, portfolio risk budget) over the calling user's own trading_positions, composed on Market Regime's own resolved price/volatility for touch-probability context, SIMULATED-first, advisory only, never places an order
   - name: trading-liquidity
     description: Engine 2 Liquidity / Order Flow analysis (volume profile, dollar-volume liquidity score, buy/sell pressure proxy) — a sibling engine to Market Structure, not built on top of it, SIMULATED-first, advisory only, never places an order
+  - name: trading-coach
+    description: Engine 2 AI Trade Coach — free-form Q&A grounded in Structure/Multi-Timeframe/Liquidity/Regime/Probability, the calling user's own portfolio Risk analysis, and recent Trading Journal reflections, SIMULATED-first, educational only, never places an order
 
 paths:
   /healthz:
@@ -2104,6 +2106,31 @@ paths:
           description: Unknown or invalid symbol
         "400":
           description: Invalid interval or lookback query override
+
+  # ─── AI Trade Coach (Engine 2, Phase 3 Sprint 47) ───────────────────────────
+  # SSE variant at /trading/coach/ask/stream is not modeled here, matching
+  # /stock-analyst/value-research/ask's own precedent — orval only models
+  # single-shot JSON responses.
+  /trading/coach/ask:
+    post:
+      operationId: askTradingCoach
+      tags: [trading-coach]
+      summary: Ask a free-form question about a symbol, grounded in Structure/Multi-Timeframe/Liquidity/Regime/Probability, the calling user's own portfolio Risk analysis, and recent Trading Journal reflections (read-only; never executes; SSE variant at /trading/coach/ask/stream is not modeled here)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingCoachAskInput"
+      responses:
+        "200":
+          description: Grounded answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingCoachAskResult"
+        "404":
+          description: Unknown or invalid symbol
 
 components:
   schemas:
@@ -6611,3 +6638,22 @@ components:
           type: string
         summary:
           type: string
+
+    TradingCoachAskInput:
+      type: object
+      required: [symbol, question]
+      properties:
+        symbol:
+          type: string
+        question:
+          type: string
+
+    TradingCoachAskResult:
+      type: object
+      required: [answer, answerSource]
+      properties:
+        answer:
+          type: string
+        answerSource:
+          type: string
+          enum: [llm, template]

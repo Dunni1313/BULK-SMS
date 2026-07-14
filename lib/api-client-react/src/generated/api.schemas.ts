@@ -4076,6 +4076,24 @@ export interface TradingLiquidityAnalysis {
   summary: string;
 }
 
+export interface TradingCoachAskInput {
+  symbol: string;
+  question: string;
+}
+
+export type TradingCoachAskResultAnswerSource = typeof TradingCoachAskResultAnswerSource[keyof typeof TradingCoachAskResultAnswerSource];
+
+
+export const TradingCoachAskResultAnswerSource = {
+  llm: 'llm',
+  template: 'template',
+} as const;
+
+export interface TradingCoachAskResult {
+  answer: string;
+  answerSource: TradingCoachAskResultAnswerSource;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

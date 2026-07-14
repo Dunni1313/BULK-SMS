@@ -4075,3 +4075,17 @@ export const GetTradingLiquidityResponse = zod.object({
 })
 
 
+/**
+ * @summary Ask a free-form question about a symbol, grounded in Structure/Multi-Timeframe/Liquidity/Regime/Probability, the calling user's own portfolio Risk analysis, and recent Trading Journal reflections (read-only; never executes; SSE variant at /trading/coach/ask/stream is not modeled here)
+ */
+export const AskTradingCoachBody = zod.object({
+  "symbol": zod.string(),
+  "question": zod.string()
+})
+
+export const AskTradingCoachResponse = zod.object({
+  "answer": zod.string(),
+  "answerSource": zod.enum(['llm', 'template'])
+})
+
+

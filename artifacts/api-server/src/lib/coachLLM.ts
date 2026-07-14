@@ -572,3 +572,55 @@ export async function narrateValueFreeformStream(
   const n = await narrateStream(prompt, context ?? {}, fallback, onToken, cacheKey);
   return enforceValueSafety(n, fallback);
 }
+
+// Phase 3, Sprint 47 — AI Trade Coach. Third proof point of the
+// deterministic-math -> ai-core narration -> enforced-disclaimer shape
+// (after the options coach and Engine 1's value coach, Sprint 30). Free-form
+// Q&A about a symbol, grounded in Engine 2's already-computed analyses
+// (Structure/Multi-Timeframe/Liquidity/Regime/Probability, reached via one
+// buildProbabilityAnalysis() call per Sprint 37's own composition design,
+// plus the user's own portfolio Risk analysis and recent Trading Journal
+// reflections — see routes/tradingCoach.ts's buildTradeCoachContext()).
+// Added directly inside this file (not a new file), per Sprint 30's own
+// disclosed reasoning: reusing the already-private narrate()/narrateStream()
+// machinery here is the safer, more central-enforcement-preserving choice
+// than forking a second domain file. No persona is invoked (unlike the
+// Value coach's "in the spirit of Warren Buffett" framing), so only the
+// baseline COACH_DISCLAIMER invariant applies — narrate()/narrateStream()
+// already guarantee it, so no extra enforceValueSafety()-style wrapper is
+// needed here, matching narrateReportComparison()'s own simpler precedent.
+const tradeFreeformPrompt =
+  "You are the Ravish Trading Coach, answering a specific question about a symbol's SIMULATED market " +
+  "structure, liquidity, multi-timeframe trend, regime, and probability cone, plus the user's own " +
+  "portfolio risk profile and recent trading journal reflections. Using ONLY the provided deterministic " +
+  "DATA, answer the user's QUESTION directly and specifically. If the question asks for something the " +
+  "DATA does not contain (e.g. a real-time quote, a future price prediction, live order-flow/Level 2 " +
+  "data, or a number not present in the DATA), say plainly that this report does not cover that rather " +
+  "than inventing an answer. NEVER tell the user to buy, sell, place, submit, or execute a trade — you " +
+  "are an educator, not a broker or advisor. The Ravish Engine never executes trades automatically; any " +
+  "order is a manual decision made elsewhere. This is education about SIMULATED data, not investment " +
+  "advice.";
+
+export async function narrateTradeFreeform(
+  question: string,
+  context: unknown,
+  fallback: string,
+  cacheKey?: string,
+): Promise<Narration> {
+  const prompt = `${tradeFreeformPrompt}\n\nQUESTION: ${question}`;
+  return narrate(prompt, context ?? {}, fallback, cacheKey);
+}
+
+// Streaming counterpart of narrateTradeFreeform. narrateStream() already
+// guarantees the COACH_DISCLAIMER invariant on the authoritative final
+// payload (the `done` event the frontend uses to replace streamed tokens).
+export async function narrateTradeFreeformStream(
+  question: string,
+  context: unknown,
+  fallback: string,
+  onToken: TokenSink,
+  cacheKey?: string,
+): Promise<Narration> {
+  const prompt = `${tradeFreeformPrompt}\n\nQUESTION: ${question}`;
+  return narrateStream(prompt, context ?? {}, fallback, onToken, cacheKey);
+}
