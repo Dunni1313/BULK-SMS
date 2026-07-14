@@ -48,6 +48,8 @@ tags:
     description: Engine 2 trading position ledger (open/closed positions, entry/stop/target) — instrument-agnostic, distinct from the options-income "trades" table, advisory only, never places an order
   - name: trading-risk
     description: Engine 2 portfolio risk analysis (position sizing, stop/target discipline, portfolio risk budget) over the calling user's own trading_positions, composed on Market Regime's own resolved price/volatility for touch-probability context, SIMULATED-first, advisory only, never places an order
+  - name: trading-liquidity
+    description: Engine 2 Liquidity / Order Flow analysis (volume profile, dollar-volume liquidity score, buy/sell pressure proxy) — a sibling engine to Market Structure, not built on top of it, SIMULATED-first, advisory only, never places an order
 
 paths:
   /healthz:
@@ -2072,6 +2074,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TradingRiskAnalysis"
+
+  # Deliberately documents the path parameter only. The route also accepts
+  # optional ?interval=&lookback= query overrides (defaulting to "1D"/90),
+  # validated and handled entirely server-side — kept out of this formal
+  # parameter list for the same reason routes/tradingStructure.ts's own
+  # Sprint 40 path is: Orval's zod+split-types generator produces a genuine
+  # duplicate-export collision when a path param and a query param are
+  # documented together on the same operation.
+  /trading/liquidity/{symbol}:
+    get:
+      operationId: getTradingLiquidity
+      tags: [trading-liquidity]
+      summary: Liquidity / Order Flow analysis for a symbol — volume profile, dollar-volume liquidity score, and a buy/sell pressure proxy derived from the candle series' own up/down closes, SIMULATED-first, honestly labelled dataSource
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Liquidity analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingLiquidityAnalysis"
+        "404":
+          description: Unknown or invalid symbol
+        "400":
+          description: Invalid interval or lookback query override
 
 components:
   schemas:
@@ -6505,3 +6537,77 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TradingPositionProbabilityContext"
+
+    TradingVolumeProfileLevel:
+      type: object
+      required: [price, volume, pctOfTotal]
+      properties:
+        price:
+          type: number
+        volume:
+          type: number
+        pctOfTotal:
+          type: number
+
+    TradingBuySellPressure:
+      type: object
+      required: [buyPct, sellPct, direction]
+      properties:
+        buyPct:
+          type: number
+        sellPct:
+          type: number
+        direction:
+          type: string
+          enum: [buying, selling, neutral]
+
+    TradingLiquidityAnalysis:
+      type: object
+      required:
+        [
+          symbol,
+          interval,
+          dataSource,
+          candleCount,
+          currentPrice,
+          volumeProfile,
+          avgDollarVolume,
+          liquidityScore,
+          liquidityBand,
+          buySellPressure,
+          confidenceLevel,
+          confidenceExplanation,
+          summary,
+        ]
+      properties:
+        symbol:
+          type: string
+        interval:
+          $ref: "#/components/schemas/TradingTimeframe"
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        candleCount:
+          type: integer
+        currentPrice:
+          type: number
+        volumeProfile:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingVolumeProfileLevel"
+        avgDollarVolume:
+          type: number
+        liquidityScore:
+          type: number
+        liquidityBand:
+          type: string
+          enum: [High, Moderate, Low]
+        buySellPressure:
+          $ref: "#/components/schemas/TradingBuySellPressure"
+        confidenceLevel:
+          type: string
+          enum: [High, Moderate, Low]
+        confidenceExplanation:
+          type: string
+        summary:
+          type: string

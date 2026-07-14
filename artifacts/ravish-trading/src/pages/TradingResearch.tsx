@@ -11,13 +11,20 @@
 // the Portfolio Risk section (the fifth bounded slice) - unlike the four
 // symbol-search-gated cards above, this section is portfolio-wide (reads
 // the calling user's own trading_positions), so it is always visible,
-// independent of the symbol search box.
+// independent of the symbol search box. Phase 3, Sprint 45 added the
+// Liquidity tab (the sixth bounded slice) - unlike Structure/Multi-
+// Timeframe/Regime/Probability (eager cards, per Phase 3 plan section 21's
+// "cheap enough to compute eagerly" group), Liquidity is designed as an
+// on-demand tab (matching Phase 2's Statements/Peers precedent), since it
+// carries its own volume-profile computation and is not part of that
+// eager-card group. The Structure/Multi-Timeframe/Regime/Probability cards
+// were moved into a "Research" tab (unchanged content, just a new tab
+// wrapper) so the on-demand "Liquidity" tab could sit alongside them
+// without restructuring their own logic.
 //
 // Advisory/education only: this page never previews, schedules, or submits
 // any order, and never touches a real brokerage account - Engine 2 is
 // read-only/advisory throughout this phase (Phase 3 plan section 19).
-// Future sprints add further panels (Liquidity) onto this same page shell
-// without touching any existing card's own logic.
 
 import { useState } from "react";
 import {
@@ -29,6 +36,8 @@ import {
   getGetTradingRegimeQueryKey,
   useGetTradingProbability,
   getGetTradingProbabilityQueryKey,
+  useGetTradingLiquidity,
+  getGetTradingLiquidityQueryKey,
   useListTradingPositions,
   getListTradingPositionsQueryKey,
   useCreateTradingPosition,
@@ -45,7 +54,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers, Gauge, Target, ShieldAlert, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers, Gauge, Target, ShieldAlert, Trash2, Droplets } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -94,9 +104,22 @@ function riskGradeBadgeClass(label: string): string {
   return "border-border text-muted-foreground";
 }
 
+function liquidityBandBadgeClass(band: string): string {
+  if (band === "High") return "border-emerald-500/40 text-emerald-400";
+  if (band === "Moderate") return "border-amber-500/40 text-amber-400";
+  return "border-rose-500/40 text-rose-400";
+}
+
+function pressureBadgeClass(direction: string): string {
+  if (direction === "buying") return "border-emerald-500/40 text-emerald-400";
+  if (direction === "selling") return "border-rose-500/40 text-rose-400";
+  return "border-border text-muted-foreground";
+}
+
 export default function TradingResearch() {
   const [inputValue, setInputValue] = useState("");
   const [symbol, setSymbol] = useState("");
+  const [tab, setTab] = useState("research");
 
   const { data: structure, isLoading, isError } = useGetTradingStructure(symbol, {
     query: { queryKey: getGetTradingStructureQueryKey(symbol), enabled: !!symbol },
@@ -124,6 +147,18 @@ export default function TradingResearch() {
     isError: isProbabilityError,
   } = useGetTradingProbability(symbol, {
     query: { queryKey: getGetTradingProbabilityQueryKey(symbol), enabled: !!symbol },
+  });
+
+  // On-demand: unlike the four eager cards above, liquidity is fetched only
+  // when the Liquidity tab is actually opened for a searched symbol,
+  // matching Phase 2's established queryKey + enabled-gated on-demand-tab
+  // pattern (Statements/Peers, Sprints 19-20).
+  const {
+    data: liquidity,
+    isLoading: isLiquidityLoading,
+    isError: isLiquidityError,
+  } = useGetTradingLiquidity(symbol, {
+    query: { queryKey: getGetTradingLiquidityQueryKey(symbol), enabled: tab === "liquidity" && !!symbol },
   });
 
   const queryClient = useQueryClient();
@@ -223,6 +258,17 @@ export default function TradingResearch() {
         </Button>
       </form>
 
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList>
+          <TabsTrigger value="research" data-testid="tab-research">
+            Research
+          </TabsTrigger>
+          <TabsTrigger value="liquidity" disabled={!symbol} data-testid="tab-liquidity">
+            Liquidity
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="research" className="mt-4 space-y-6">
       {!symbol && (
         <p className="text-sm text-muted-foreground">Enter a symbol above to view its market structure analysis.</p>
       )}
@@ -521,6 +567,91 @@ export default function TradingResearch() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="liquidity" className="mt-4">
+          {!symbol && (
+            <p className="text-sm text-muted-foreground">Enter a symbol above to view its liquidity analysis.</p>
+          )}
+
+          {symbol && isLiquidityLoading && (
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+            </Card>
+          )}
+
+          {symbol && isLiquidityError && (
+            <Card>
+              <CardContent className="pt-6 text-sm text-muted-foreground">
+                Could not resolve liquidity data for "{symbol}".
+              </CardContent>
+            </Card>
+          )}
+
+          {symbol && liquidity && (
+            <Card data-testid="card-liquidity">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Droplets className="h-5 w-5" />
+                    Liquidity — {liquidity.symbol}
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    {liquidity.dataSource}
+                  </Badge>
+                </div>
+                <CardDescription>
+                  {liquidity.interval} interval, {liquidity.candleCount} candles — {fmtUsd(liquidity.currentPrice)} current price
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={liquidityBandBadgeClass(liquidity.liquidityBand)}>
+                    {liquidity.liquidityBand} liquidity
+                  </Badge>
+                  <Badge variant="outline" className="border-border text-muted-foreground">
+                    {`$${(liquidity.avgDollarVolume / 1_000_000).toFixed(1)}M avg daily dollar volume`}
+                  </Badge>
+                  <Badge variant="outline" className={pressureBadgeClass(liquidity.buySellPressure.direction)}>
+                    {`${liquidity.buySellPressure.direction} pressure (${liquidity.buySellPressure.buyPct}% buy / ${liquidity.buySellPressure.sellPct}% sell)`}
+                  </Badge>
+                  <Badge variant="outline" className={confidenceBadgeClass(liquidity.confidenceLevel)}>
+                    {liquidity.confidenceLevel} confidence
+                  </Badge>
+                </div>
+
+                {liquidity.volumeProfile.length > 0 && (
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium">Volume Profile</h3>
+                    <ul className="space-y-1">
+                      {liquidity.volumeProfile.map((level, i) => (
+                        <li
+                          key={`${level.price}-${i}`}
+                          className="flex items-center justify-between rounded-md border border-border px-3 py-1.5 text-sm"
+                        >
+                          <span className="text-muted-foreground">{fmtUsd(level.price)}</span>
+                          <span>{level.pctOfTotal}% of volume</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {liquidity.volumeProfile.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No volume data available to build a profile for this sample.</p>
+                )}
+
+                <p className="border-t border-border pt-3 text-sm text-muted-foreground">{liquidity.summary}</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
 
       <Card data-testid="card-portfolio-risk">
         <CardHeader>

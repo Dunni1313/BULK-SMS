@@ -4013,6 +4013,69 @@ export interface TradingRiskAnalysis {
   positionContexts: TradingPositionProbabilityContext[];
 }
 
+export interface TradingVolumeProfileLevel {
+  price: number;
+  volume: number;
+  pctOfTotal: number;
+}
+
+export type TradingBuySellPressureDirection = typeof TradingBuySellPressureDirection[keyof typeof TradingBuySellPressureDirection];
+
+
+export const TradingBuySellPressureDirection = {
+  buying: 'buying',
+  selling: 'selling',
+  neutral: 'neutral',
+} as const;
+
+export interface TradingBuySellPressure {
+  buyPct: number;
+  sellPct: number;
+  direction: TradingBuySellPressureDirection;
+}
+
+export type TradingLiquidityAnalysisDataSource = typeof TradingLiquidityAnalysisDataSource[keyof typeof TradingLiquidityAnalysisDataSource];
+
+
+export const TradingLiquidityAnalysisDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingLiquidityAnalysisLiquidityBand = typeof TradingLiquidityAnalysisLiquidityBand[keyof typeof TradingLiquidityAnalysisLiquidityBand];
+
+
+export const TradingLiquidityAnalysisLiquidityBand = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export type TradingLiquidityAnalysisConfidenceLevel = typeof TradingLiquidityAnalysisConfidenceLevel[keyof typeof TradingLiquidityAnalysisConfidenceLevel];
+
+
+export const TradingLiquidityAnalysisConfidenceLevel = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export interface TradingLiquidityAnalysis {
+  symbol: string;
+  interval: TradingTimeframe;
+  dataSource: TradingLiquidityAnalysisDataSource;
+  candleCount: number;
+  currentPrice: number;
+  volumeProfile: TradingVolumeProfileLevel[];
+  avgDollarVolume: number;
+  liquidityScore: number;
+  liquidityBand: TradingLiquidityAnalysisLiquidityBand;
+  buySellPressure: TradingBuySellPressure;
+  confidenceLevel: TradingLiquidityAnalysisConfidenceLevel;
+  confidenceExplanation: string;
+  summary: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

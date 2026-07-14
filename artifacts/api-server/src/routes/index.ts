@@ -24,6 +24,7 @@ import tradingRegimeRouter from "./tradingRegime";
 import tradingProbabilityRouter from "./tradingProbability";
 import tradingPositionsRouter from "./tradingPositions";
 import tradingRiskRouter from "./tradingRisk";
+import tradingLiquidityRouter from "./tradingLiquidity";
 
 const router: IRouter = Router();
 
@@ -52,5 +53,6 @@ router.use(tradingRegimeRouter);
 router.use(tradingProbabilityRouter);
 router.use(tradingPositionsRouter);
 router.use(tradingRiskRouter);
+router.use(tradingLiquidityRouter);
 
 export default router;

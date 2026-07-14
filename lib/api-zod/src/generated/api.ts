@@ -4043,3 +4043,35 @@ export const GetTradingRiskResponse = zod.object({
 })
 
 
+/**
+ * @summary Liquidity / Order Flow analysis for a symbol — volume profile, dollar-volume liquidity score, and a buy/sell pressure proxy derived from the candle series' own up/down closes, SIMULATED-first, honestly labelled dataSource
+ */
+export const GetTradingLiquidityParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingLiquidityResponse = zod.object({
+  "symbol": zod.string(),
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "candleCount": zod.number(),
+  "currentPrice": zod.number(),
+  "volumeProfile": zod.array(zod.object({
+  "price": zod.number(),
+  "volume": zod.number(),
+  "pctOfTotal": zod.number()
+})),
+  "avgDollarVolume": zod.number(),
+  "liquidityScore": zod.number(),
+  "liquidityBand": zod.enum(['High', 'Moderate', 'Low']),
+  "buySellPressure": zod.object({
+  "buyPct": zod.number(),
+  "sellPct": zod.number(),
+  "direction": zod.enum(['buying', 'selling', 'neutral'])
+}),
+  "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
+  "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+})
+
+

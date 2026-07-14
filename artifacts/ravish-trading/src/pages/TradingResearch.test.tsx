@@ -6,7 +6,8 @@
 // again with the Market Regime card's own cases. Phase 3, Sprint 43
 // extended it again with the Probability card's own cases. Phase 3,
 // Sprint 44 extended it again with the Portfolio Risk section's own cases
-// (positions list/add/delete, account value, risk analysis).
+// (positions list/add/delete, account value, risk analysis). Phase 3,
+// Sprint 45 extended it again with the on-demand Liquidity tab's own cases.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
@@ -33,6 +34,9 @@ const mockState = vi.hoisted(() => ({
   positions: [] as unknown[],
   risk: undefined as unknown,
   settings: undefined as unknown,
+  liquidity: undefined as unknown,
+  isLiquidityLoading: false,
+  isLiquidityError: false,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -66,6 +70,11 @@ vi.mock("@workspace/api-client-react", async () => {
       data: mockState.probability,
       isLoading: mockState.isProbabilityLoading,
       isError: mockState.isProbabilityError,
+    }),
+    useGetTradingLiquidity: () => ({
+      data: mockState.liquidity,
+      isLoading: mockState.isLiquidityLoading,
+      isError: mockState.isLiquidityError,
     }),
   };
 });
@@ -210,6 +219,28 @@ function tradingRiskAnalysis(over: Record<string, unknown> = {}) {
   };
 }
 
+function liquidityAnalysis(over: Record<string, unknown> = {}) {
+  return {
+    symbol: "AAPL",
+    interval: "1D",
+    dataSource: "SIMULATED",
+    candleCount: 90,
+    currentPrice: 195.5,
+    volumeProfile: [
+      { price: 194.2, volume: 1200000, pctOfTotal: 25.4 },
+      { price: 196.8, volume: 900000, pctOfTotal: 19.1 },
+    ],
+    avgDollarVolume: 32_500_000,
+    liquidityScore: 92,
+    liquidityBand: "High",
+    buySellPressure: { buyPct: 62, sellPct: 38, direction: "buying" },
+    confidenceLevel: "High",
+    confidenceExplanation: "90 candles available — a strong sample for liquidity/volume-profile analysis.",
+    summary: "AAPL shows High liquidity (avg $32.5M daily dollar volume) with buying pressure. Confidence: High.",
+    ...over,
+  };
+}
+
 describe("TradingResearch page", () => {
   beforeEach(() => {
     mockState.structure = undefined;
@@ -227,6 +258,9 @@ describe("TradingResearch page", () => {
     mockState.positions = [];
     mockState.risk = undefined;
     mockState.settings = undefined;
+    mockState.liquidity = undefined;
+    mockState.isLiquidityLoading = false;
+    mockState.isLiquidityError = false;
     createPositionMutate.mockReset();
     deletePositionMutate.mockReset();
     updateSettingsMutate.mockReset();
@@ -444,5 +478,53 @@ describe("TradingResearch page", () => {
     expect(screen.getByText(/trending-bullish/)).toBeInTheDocument();
     expect(screen.getByText(/stop touch 12%/)).toBeInTheDocument();
     expect(screen.getByText(/target touch 34%/)).toBeInTheDocument();
+  });
+
+  it("disables the Liquidity tab until a symbol is searched, never fetching liquidity data eagerly", () => {
+    renderWithClient(<TradingResearch />);
+    expect(screen.getByTestId("tab-liquidity")).toBeDisabled();
+  });
+
+  it("enables the Liquidity tab once a symbol is searched, and renders liquidity data once the tab is opened", async () => {
+    mockState.liquidity = liquidityAnalysis();
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+
+    expect(screen.getByTestId("tab-liquidity")).not.toBeDisabled();
+    expect(screen.queryByTestId("card-liquidity")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId("tab-liquidity"));
+
+    expect(await screen.findByTestId("card-liquidity")).toBeInTheDocument();
+    expect(screen.getByText(/Liquidity — AAPL/i)).toBeInTheDocument();
+    expect(screen.getByText("High liquidity")).toBeInTheDocument();
+    expect(screen.getByText("$32.5M avg daily dollar volume")).toBeInTheDocument();
+    expect(screen.getByText(/buying pressure \(62% buy \/ 38% sell\)/)).toBeInTheDocument();
+    expect(screen.getByText("25.4% of volume")).toBeInTheDocument();
+  });
+
+  it("honestly shows an empty-volume-profile message rather than a fabricated profile", async () => {
+    mockState.liquidity = liquidityAnalysis({ volumeProfile: [] });
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+    await userEvent.click(screen.getByTestId("tab-liquidity"));
+
+    expect(await screen.findByTestId("card-liquidity")).toBeInTheDocument();
+    expect(screen.getByText("No volume data available to build a profile for this sample.")).toBeInTheDocument();
+  });
+
+  it("shows a not-found message on the Liquidity tab when the symbol can't be resolved", async () => {
+    mockState.isLiquidityError = true;
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "NOTATICKER");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+    await userEvent.click(screen.getByTestId("tab-liquidity"));
+
+    expect(await screen.findByText(/Could not resolve liquidity data for "NOTATICKER"/i)).toBeInTheDocument();
   });
 });

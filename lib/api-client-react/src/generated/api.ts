@@ -120,6 +120,7 @@ import type {
   TradingJournalEntry,
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
+  TradingLiquidityAnalysis,
   TradingMultiTimeframeAnalysis,
   TradingPosition,
   TradingPositionInput,
@@ -8264,6 +8265,83 @@ export function useGetTradingRisk<TData = Awaited<ReturnType<typeof getTradingRi
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradingRiskQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingLiquidityUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/liquidity/${symbol}`
+}
+
+/**
+ * @summary Liquidity / Order Flow analysis for a symbol — volume profile, dollar-volume liquidity score, and a buy/sell pressure proxy derived from the candle series' own up/down closes, SIMULATED-first, honestly labelled dataSource
+ */
+export const getTradingLiquidity = async (symbol: string, options?: RequestInit): Promise<TradingLiquidityAnalysis> => {
+
+  return customFetch<TradingLiquidityAnalysis>(getGetTradingLiquidityUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingLiquidityQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/liquidity/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingLiquidityQueryOptions = <TData = Awaited<ReturnType<typeof getTradingLiquidity>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingLiquidityQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingLiquidity>>> = ({ signal }) => getTradingLiquidity(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidity>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingLiquidityQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingLiquidity>>>
+export type GetTradingLiquidityQueryError = ErrorType<void>
+
+
+/**
+ * @summary Liquidity / Order Flow analysis for a symbol — volume profile, dollar-volume liquidity score, and a buy/sell pressure proxy derived from the candle series' own up/down closes, SIMULATED-first, honestly labelled dataSource
+ */
+
+export function useGetTradingLiquidity<TData = Awaited<ReturnType<typeof getTradingLiquidity>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidity>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingLiquidityQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
