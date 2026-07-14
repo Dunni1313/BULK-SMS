@@ -40,6 +40,7 @@ import {
   investingRiskSnapshotsTable,
   tradingPositionsTable,
   tradingJournalEntriesTable,
+  tradingBacktestResultsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -89,6 +90,8 @@ afterAll(async () => {
     // Phase 3, Sprint 32 — Institutional Trading Engine's own new tables.
     tradingJournalEntriesTable,
     tradingPositionsTable,
+    // Phase 3, Sprint 49 — Backtesting's own new table.
+    tradingBacktestResultsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -251,6 +254,16 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       title: "Test Entry",
       content: "content",
+    }));
+  });
+
+  // Phase 3, Sprint 49 — Backtesting's own new table.
+  it("trading_backtest_results: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(tradingBacktestResultsTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "AAPL",
+      strategy: "trend-following",
+      interval: "1D",
     }));
   });
 });

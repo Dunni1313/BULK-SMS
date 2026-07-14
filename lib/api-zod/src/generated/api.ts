@@ -4089,3 +4089,87 @@ export const AskTradingCoachResponse = zod.object({
 })
 
 
+/**
+ * @summary Run a genuine walk-forward price-action backtest for a symbol against a named strategy, persisting the result to the calling user's own history (read-only over historical candles; never places an order)
+ */
+export const RunTradingBacktestBody = zod.object({
+  "symbol": zod.string(),
+  "strategy": zod.enum(['trend-following', 'mean-reversion', 'structure-breakout']),
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']).optional(),
+  "lookback": zod.number().optional(),
+  "stopLossPct": zod.number().optional(),
+  "targetPct": zod.number().optional()
+})
+
+export const RunTradingBacktestResponse = zod.object({
+  "id": zod.number().optional(),
+  "createdAt": zod.string().optional(),
+  "symbol": zod.string(),
+  "strategy": zod.enum(['trend-following', 'mean-reversion', 'structure-breakout']),
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "candleCount": zod.number(),
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "trades": zod.array(zod.object({
+  "entryDate": zod.string(),
+  "entryPrice": zod.number(),
+  "exitDate": zod.string(),
+  "exitPrice": zod.number(),
+  "exitReason": zod.enum(['stop', 'target', 'trend-flip', 'time-limit', 'end-of-period']),
+  "pnlPct": zod.number(),
+  "rMultiple": zod.number()
+})),
+  "totalTrades": zod.number(),
+  "winRate": zod.number().nullable(),
+  "avgR": zod.number().nullable(),
+  "totalReturnPct": zod.number().nullable(),
+  "maxDrawdownPct": zod.number().nullable(),
+  "sharpeRatio": zod.number().nullable(),
+  "equityCurve": zod.array(zod.object({
+  "date": zod.string(),
+  "value": zod.number(),
+  "drawdownPct": zod.number()
+})),
+  "summary": zod.string()
+})
+
+
+/**
+ * @summary List the calling user's own persisted backtest results, newest first
+ */
+export const ListTradingBacktestResultsResponseItem = zod.object({
+  "id": zod.number().optional(),
+  "createdAt": zod.string().optional(),
+  "symbol": zod.string(),
+  "strategy": zod.enum(['trend-following', 'mean-reversion', 'structure-breakout']),
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "candleCount": zod.number(),
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "trades": zod.array(zod.object({
+  "entryDate": zod.string(),
+  "entryPrice": zod.number(),
+  "exitDate": zod.string(),
+  "exitPrice": zod.number(),
+  "exitReason": zod.enum(['stop', 'target', 'trend-flip', 'time-limit', 'end-of-period']),
+  "pnlPct": zod.number(),
+  "rMultiple": zod.number()
+})),
+  "totalTrades": zod.number(),
+  "winRate": zod.number().nullable(),
+  "avgR": zod.number().nullable(),
+  "totalReturnPct": zod.number().nullable(),
+  "maxDrawdownPct": zod.number().nullable(),
+  "sharpeRatio": zod.number().nullable(),
+  "equityCurve": zod.array(zod.object({
+  "date": zod.string(),
+  "value": zod.number(),
+  "drawdownPct": zod.number()
+})),
+  "summary": zod.string()
+})
+export const ListTradingBacktestResultsResponse = zod.array(ListTradingBacktestResultsResponseItem)
+
+

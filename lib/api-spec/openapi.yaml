@@ -52,6 +52,8 @@ tags:
     description: Engine 2 Liquidity / Order Flow analysis (volume profile, dollar-volume liquidity score, buy/sell pressure proxy) — a sibling engine to Market Structure, not built on top of it, SIMULATED-first, advisory only, never places an order
   - name: trading-coach
     description: Engine 2 AI Trade Coach — free-form Q&A grounded in Structure/Multi-Timeframe/Liquidity/Regime/Probability, the calling user's own portfolio Risk analysis, and recent Trading Journal reflections, SIMULATED-first, educational only, never places an order
+  - name: trading-backtest
+    description: Engine 2 Backtesting — a genuine walk-forward price-action backtest replaying SIMULATED candles through a named entry/exit rule set (trend-following, mean-reversion, structure-breakout), producing a real trade log and equity curve, SIMULATED-first, advisory only, never places an order
 
 paths:
   /healthz:
@@ -2131,6 +2133,43 @@ paths:
                 $ref: "#/components/schemas/TradingCoachAskResult"
         "404":
           description: Unknown or invalid symbol
+
+  # ─── Backtesting (Engine 2, Phase 3 Sprint 49) ──────────────────────────────
+  /trading/backtest/run:
+    post:
+      operationId: runTradingBacktest
+      tags: [trading-backtest]
+      summary: Run a genuine walk-forward price-action backtest for a symbol against a named strategy, persisting the result to the calling user's own history (read-only over historical candles; never places an order)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingRunBacktestInput"
+      responses:
+        "200":
+          description: Backtest result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingBacktestResult"
+        "404":
+          description: Unknown or invalid symbol
+
+  /trading/backtest/results:
+    get:
+      operationId: listTradingBacktestResults
+      tags: [trading-backtest]
+      summary: List the calling user's own persisted backtest results, newest first
+      responses:
+        "200":
+          description: Backtest results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingBacktestResult"
 
 components:
   schemas:
@@ -6657,3 +6696,123 @@ components:
         answerSource:
           type: string
           enum: [llm, template]
+
+    TradingBacktestStrategy:
+      type: string
+      enum: [trend-following, mean-reversion, structure-breakout]
+
+    TradingRunBacktestInput:
+      type: object
+      required: [symbol, strategy]
+      properties:
+        symbol:
+          type: string
+        strategy:
+          $ref: "#/components/schemas/TradingBacktestStrategy"
+        interval:
+          $ref: "#/components/schemas/TradingTimeframe"
+        lookback:
+          type: integer
+        stopLossPct:
+          type: number
+        targetPct:
+          type: number
+
+    TradingBacktestTrade:
+      type: object
+      required: [entryDate, entryPrice, exitDate, exitPrice, exitReason, pnlPct, rMultiple]
+      properties:
+        entryDate:
+          type: string
+        entryPrice:
+          type: number
+        exitDate:
+          type: string
+        exitPrice:
+          type: number
+        exitReason:
+          type: string
+          enum: [stop, target, trend-flip, time-limit, end-of-period]
+        pnlPct:
+          type: number
+        rMultiple:
+          type: number
+
+    TradingBacktestEquityPoint:
+      type: object
+      required: [date, value, drawdownPct]
+      properties:
+        date:
+          type: string
+        value:
+          type: number
+        drawdownPct:
+          type: number
+
+    TradingBacktestResult:
+      type: object
+      required:
+        - symbol
+        - strategy
+        - interval
+        - dataSource
+        - candleCount
+        - available
+        - unavailableReason
+        - trades
+        - totalTrades
+        - winRate
+        - avgR
+        - totalReturnPct
+        - maxDrawdownPct
+        - sharpeRatio
+        - equityCurve
+        - summary
+      properties:
+        id:
+          type: integer
+        createdAt:
+          type: string
+        symbol:
+          type: string
+        strategy:
+          $ref: "#/components/schemas/TradingBacktestStrategy"
+        interval:
+          $ref: "#/components/schemas/TradingTimeframe"
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        candleCount:
+          type: integer
+        available:
+          type: boolean
+        unavailableReason:
+          type: string
+          nullable: true
+        trades:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingBacktestTrade"
+        totalTrades:
+          type: integer
+        winRate:
+          type: number
+          nullable: true
+        avgR:
+          type: number
+          nullable: true
+        totalReturnPct:
+          type: number
+          nullable: true
+        maxDrawdownPct:
+          type: number
+          nullable: true
+        sharpeRatio:
+          type: number
+          nullable: true
+        equityCurve:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingBacktestEquityPoint"
+        summary:
+          type: string

@@ -4094,6 +4094,80 @@ export interface TradingCoachAskResult {
   answerSource: TradingCoachAskResultAnswerSource;
 }
 
+export type TradingBacktestStrategy = typeof TradingBacktestStrategy[keyof typeof TradingBacktestStrategy];
+
+
+export const TradingBacktestStrategy = {
+  'trend-following': 'trend-following',
+  'mean-reversion': 'mean-reversion',
+  'structure-breakout': 'structure-breakout',
+} as const;
+
+export interface TradingRunBacktestInput {
+  symbol: string;
+  strategy: TradingBacktestStrategy;
+  interval?: TradingTimeframe;
+  lookback?: number;
+  stopLossPct?: number;
+  targetPct?: number;
+}
+
+export type TradingBacktestTradeExitReason = typeof TradingBacktestTradeExitReason[keyof typeof TradingBacktestTradeExitReason];
+
+
+export const TradingBacktestTradeExitReason = {
+  stop: 'stop',
+  target: 'target',
+  'trend-flip': 'trend-flip',
+  'time-limit': 'time-limit',
+  'end-of-period': 'end-of-period',
+} as const;
+
+export interface TradingBacktestTrade {
+  entryDate: string;
+  entryPrice: number;
+  exitDate: string;
+  exitPrice: number;
+  exitReason: TradingBacktestTradeExitReason;
+  pnlPct: number;
+  rMultiple: number;
+}
+
+export interface TradingBacktestEquityPoint {
+  date: string;
+  value: number;
+  drawdownPct: number;
+}
+
+export type TradingBacktestResultDataSource = typeof TradingBacktestResultDataSource[keyof typeof TradingBacktestResultDataSource];
+
+
+export const TradingBacktestResultDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export interface TradingBacktestResult {
+  id?: number;
+  createdAt?: string;
+  symbol: string;
+  strategy: TradingBacktestStrategy;
+  interval: TradingTimeframe;
+  dataSource: TradingBacktestResultDataSource;
+  candleCount: number;
+  available: boolean;
+  unavailableReason: string | null;
+  trades: TradingBacktestTrade[];
+  totalTrades: number;
+  winRate: number | null;
+  avgR: number | null;
+  totalReturnPct: number | null;
+  maxDrawdownPct: number | null;
+  sharpeRatio: number | null;
+  equityCurve: TradingBacktestEquityPoint[];
+  summary: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

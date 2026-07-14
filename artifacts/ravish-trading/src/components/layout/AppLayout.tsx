@@ -41,7 +41,8 @@ import {
   Radar,
   Briefcase,
   Activity,
-  NotebookPen
+  NotebookPen,
+  History
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -105,6 +106,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { title: "Adjustments", href: "/adjustments", icon: Wrench, badge: attentionCount },
     { title: "Trading Research", href: "/trading-research", icon: Activity },
     { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
+    { title: "Trading Backtest", href: "/trading-backtest", icon: History },
     { title: "Value Research", href: "/stock-analyst", icon: Building2 },
     { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
     { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },

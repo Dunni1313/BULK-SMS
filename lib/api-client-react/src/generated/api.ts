@@ -117,6 +117,7 @@ import type {
   TradeAdjustment,
   TradeInput,
   TradeMonitor,
+  TradingBacktestResult,
   TradingCoachAskInput,
   TradingCoachAskResult,
   TradingJournalEntry,
@@ -130,6 +131,7 @@ import type {
   TradingProbabilityAnalysis,
   TradingRegimeAnalysis,
   TradingRiskAnalysis,
+  TradingRunBacktestInput,
   TradingStructureAnalysis,
   UniverseSymbol,
   ValueHistoryRow,
@@ -8426,4 +8428,152 @@ export const useAskTradingCoach = <TError = ErrorType<void>,
       > => {
       return useMutation(getAskTradingCoachMutationOptions(options));
     }
+
+export const getRunTradingBacktestUrl = () => {
+
+
+
+
+  return `/api/trading/backtest/run`
+}
+
+/**
+ * @summary Run a genuine walk-forward price-action backtest for a symbol against a named strategy, persisting the result to the calling user's own history (read-only over historical candles; never places an order)
+ */
+export const runTradingBacktest = async (tradingRunBacktestInput: TradingRunBacktestInput, options?: RequestInit): Promise<TradingBacktestResult> => {
+
+  return customFetch<TradingBacktestResult>(getRunTradingBacktestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingRunBacktestInput,)
+  }
+);}
+
+
+
+
+export const getRunTradingBacktestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runTradingBacktest>>, TError,{data: BodyType<TradingRunBacktestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runTradingBacktest>>, TError,{data: BodyType<TradingRunBacktestInput>}, TContext> => {
+
+const mutationKey = ['runTradingBacktest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runTradingBacktest>>, {data: BodyType<TradingRunBacktestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runTradingBacktest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunTradingBacktestMutationResult = NonNullable<Awaited<ReturnType<typeof runTradingBacktest>>>
+    export type RunTradingBacktestMutationBody = BodyType<TradingRunBacktestInput>
+    export type RunTradingBacktestMutationError = ErrorType<void>
+
+    /**
+ * @summary Run a genuine walk-forward price-action backtest for a symbol against a named strategy, persisting the result to the calling user's own history (read-only over historical candles; never places an order)
+ */
+export const useRunTradingBacktest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runTradingBacktest>>, TError,{data: BodyType<TradingRunBacktestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runTradingBacktest>>,
+        TError,
+        {data: BodyType<TradingRunBacktestInput>},
+        TContext
+      > => {
+      return useMutation(getRunTradingBacktestMutationOptions(options));
+    }
+
+export const getListTradingBacktestResultsUrl = () => {
+
+
+
+
+  return `/api/trading/backtest/results`
+}
+
+/**
+ * @summary List the calling user's own persisted backtest results, newest first
+ */
+export const listTradingBacktestResults = async ( options?: RequestInit): Promise<TradingBacktestResult[]> => {
+
+  return customFetch<TradingBacktestResult[]>(getListTradingBacktestResultsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingBacktestResultsQueryKey = () => {
+    return [
+    `/api/trading/backtest/results`
+    ] as const;
+    }
+
+
+export const getListTradingBacktestResultsQueryOptions = <TData = Awaited<ReturnType<typeof listTradingBacktestResults>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingBacktestResults>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingBacktestResultsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingBacktestResults>>> = ({ signal }) => listTradingBacktestResults({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingBacktestResults>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingBacktestResultsQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingBacktestResults>>>
+export type ListTradingBacktestResultsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's own persisted backtest results, newest first
+ */
+
+export function useListTradingBacktestResults<TData = Awaited<ReturnType<typeof listTradingBacktestResults>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingBacktestResults>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingBacktestResultsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
