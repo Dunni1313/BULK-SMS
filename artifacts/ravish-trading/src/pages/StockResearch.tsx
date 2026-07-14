@@ -64,6 +64,7 @@ import {
   CalendarClock,
   MessageCircle,
   Send,
+  Sparkles,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -286,6 +287,44 @@ export function ReportView({
         },
       },
     ).catch(() => setAsking(false));
+  };
+
+  // Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
+  // Local to ReportView (keyed only off report.symbol, reset per symbol via
+  // the key prop on ReportView's own parent render), reuses the same
+  // streamCoach() SSE client every other coach panel on this page already
+  // uses. The Committee's own deterministic summary/votes stay visible
+  // unconditionally (see the card below) — this is purely additive prose
+  // alongside them, never a replacement, matching this sprint's own
+  // "deterministic fallback still exists" acceptance criterion.
+  const [committeeNarrative, setCommitteeNarrative] = useState("");
+  const [committeeNarrating, setCommitteeNarrating] = useState(false);
+  const [committeeNarrationError, setCommitteeNarrationError] = useState(false);
+
+  const handleNarrateCommittee = () => {
+    if (committeeNarrating) return;
+    setCommitteeNarrating(true);
+    setCommitteeNarrative("");
+    setCommitteeNarrationError(false);
+    streamCoach(
+      "/stock-analyst/investment-committee/narrate/stream",
+      { symbol: report.symbol },
+      {
+        onDelta: (text) => setCommitteeNarrative((prev) => prev + text),
+        onDone: (data) => {
+          const d = data as { narrative?: string };
+          if (d.narrative) setCommitteeNarrative(d.narrative);
+          setCommitteeNarrating(false);
+        },
+        onError: () => {
+          setCommitteeNarrationError(true);
+          setCommitteeNarrating(false);
+        },
+      },
+    ).catch(() => {
+      setCommitteeNarrationError(true);
+      setCommitteeNarrating(false);
+    });
   };
 
   return (
@@ -931,8 +970,12 @@ export function ReportView({
       </Card>
 
       {/* Investment Committee — orchestrates Graham/Buffett/Tom Nash's own
-          verdicts into one consolidated recommendation; deterministic
-          reasoning only this sprint, no LLM narration. */}
+          verdicts into one consolidated recommendation. Deterministic
+          reasoning/summary/votes below are always shown (Sprint 17); the
+          "Narrate" button (Phase 4, Sprint 61) additively fetches an
+          on-demand, LLM-narrated prose explanation of the same verdict,
+          never replacing the deterministic text — it stays visible even
+          while narration is unavailable or still loading. */}
       <Card className="bg-card/60 border-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -957,6 +1000,39 @@ export function ReportView({
                 </span>
               </div>
             ))}
+          </div>
+          <div className="pt-1 border-t border-border/60">
+            {committeeNarrative ? (
+              <div className="pt-2 space-y-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" /> AI-Narrated Synthesis
+                </p>
+                <div className="text-xs text-muted-foreground">
+                  <Markdown className="text-xs inline">{committeeNarrative}</Markdown>
+                  {committeeNarrating && (
+                    <span className="inline-block w-1 h-3 ml-0.5 align-middle bg-indigo-400 animate-pulse" />
+                  )}
+                </div>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={committeeNarrating}
+                onClick={handleNarrateCommittee}
+                className="mt-2 h-7 text-[11px] border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
+                data-testid="narrate-committee-button"
+              >
+                <Sparkles className="w-3 h-3 mr-1.5" />
+                {committeeNarrating ? "Narrating…" : "Narrate this verdict"}
+              </Button>
+            )}
+            {committeeNarrationError && (
+              <p className="text-[11px] text-destructive mt-1" data-testid="narrate-committee-error">
+                Failed to narrate the verdict — please try again.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

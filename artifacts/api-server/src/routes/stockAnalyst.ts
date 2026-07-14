@@ -39,6 +39,8 @@ import {
   GetManagementQualityAnalysisResponse,
   GetEarningsIntelligenceResponse,
   GetMacroContextResponse,
+  NarrateInvestmentCommitteeBody,
+  NarrateInvestmentCommitteeResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider, resolveFundamentals } from "../lib/fundamentals.js";
@@ -63,6 +65,8 @@ import {
   narrateValueResearchStream,
   narrateValueFreeform,
   narrateValueFreeformStream,
+  narrateInvestmentCommitteeSynthesis,
+  narrateInvestmentCommitteeSynthesisStream,
   llmAvailable,
 } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
@@ -182,6 +186,34 @@ function freeformFallback(report: ValueResearchReport, question: string): string
     `AI narration is not available right now, so I can't directly answer "${question}". ` +
     `Here is what the deterministic report shows: ${narrationFallback(report)}`
   );
+}
+
+// Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
+// Compact context for narrating WHY the Committee reached its consolidated
+// verdict — reuses report.investmentCommittee directly (already computed by
+// synthesizeInvestmentCommittee(), Sprint 17), zero new computation.
+function committeeNarrationContext(report: ValueResearchReport) {
+  return {
+    symbol: report.symbol,
+    consolidatedVerdict: report.investmentCommittee.consolidatedVerdict,
+    confidenceScore: report.investmentCommittee.confidenceScore,
+    agreement: report.investmentCommittee.agreement,
+    votes: report.investmentCommittee.votes,
+  };
+}
+
+// Byte-identical to Sprint 17's own deterministic reasoning — the honest
+// fallback rendered when the LLM is unavailable, never a fabricated prose
+// summary.
+function committeeNarrationFallback(report: ValueResearchReport): string {
+  return [...report.investmentCommittee.reasoning, report.investmentCommittee.summary].join(" ");
+}
+
+// Deterministic per report state — a symbol's verdict/confidence only change
+// when the underlying analysis does, so concurrent narration requests for the
+// same, already-settled Committee outcome can share one LLM call.
+function committeeCacheKey(report: ValueResearchReport): string {
+  return `committee:${report.symbol}:${report.investmentCommittee.consolidatedVerdict}:${report.investmentCommittee.confidenceScore}`;
 }
 
 function narrationFallback(report: ValueResearchReport): string {
@@ -435,6 +467,84 @@ router.post("/value-research/ask/stream", async (req, res): Promise<void> => {
   } catch (err) {
     req.log.error({ err }, "value research ask stream failed");
     sse.send("error", { error: "Failed to answer question" });
+  } finally {
+    sse.close();
+  }
+});
+
+// Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
+// Deliberately a separate, on-demand route (not folded into
+// synthesizeInvestmentCommittee()'s own eager output on /value/:symbol,
+// which stays completely untouched, deterministic-only, and synchronous):
+// narration is an LLM call, and the eager report path stays fast, the same
+// discipline every on-demand module since Sprint 19 (Statements) follows.
+// Rebuilds the report server-side each call (same pattern as
+// /value-research/ask) — 404 for an unknown symbol, never a fabricated
+// narration.
+router.post("/investment-committee/narrate", async (req, res): Promise<void> => {
+  const parsed = NarrateInvestmentCommitteeBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(
+    parsed.data.symbol,
+    undefined,
+    undefined,
+    undefined,
+    { forceRefresh: parsed.data.forceRefresh },
+    userId,
+  );
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
+    return;
+  }
+  const n = await narrateInvestmentCommitteeSynthesis(
+    committeeNarrationContext(report),
+    committeeNarrationFallback(report),
+    committeeCacheKey(report),
+  );
+  res.json(NarrateInvestmentCommitteeResponse.parse({ narrative: n.text, narrativeSource: n.source }));
+});
+
+// SSE variant — same event contract as /value-research/ask/stream (meta →
+// delta… → done). Deliberately NOT in the OpenAPI/orval contract, matching
+// that route's own precedent — orval only models single-shot JSON responses.
+router.post("/investment-committee/narrate/stream", async (req, res): Promise<void> => {
+  const parsed = NarrateInvestmentCommitteeBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(
+    parsed.data.symbol,
+    undefined,
+    undefined,
+    undefined,
+    { forceRefresh: parsed.data.forceRefresh },
+    userId,
+  );
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
+    return;
+  }
+  const fallback = committeeNarrationFallback(report);
+
+  const sse = openSse(res);
+  try {
+    sse.send("meta", { source: llmAvailable() ? "llm" : "template", llmAvailable: llmAvailable() });
+    const n = await narrateInvestmentCommitteeSynthesisStream(
+      committeeNarrationContext(report),
+      fallback,
+      (t) => sse.send("delta", { text: t }),
+      committeeCacheKey(report),
+    );
+    sse.send("done", { narrative: n.text, narrativeSource: n.source });
+  } catch (err) {
+    req.log.error({ err }, "investment committee narrate stream failed");
+    sse.send("error", { error: "Failed to narrate the Investment Committee verdict" });
   } finally {
     sse.close();
   }

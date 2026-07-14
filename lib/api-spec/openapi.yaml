@@ -1344,6 +1344,33 @@ paths:
         "404":
           description: Unknown symbol
 
+  # Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
+  # Deliberately a separate, on-demand route (not folded into
+  # synthesizeInvestmentCommittee()'s own eager output on /value/:symbol):
+  # narration is an LLM call, and the eager report path stays deterministic-
+  # only and fast, the same discipline every on-demand module since Sprint 19
+  # follows.
+  /stock-analyst/investment-committee/narrate:
+    post:
+      operationId: narrateInvestmentCommittee
+      tags: [value]
+      summary: LLM-narrate why the AI Investment Committee reached its consolidated verdict, grounded in the votes already computed on the report (read-only; never executes; SSE variant at /investment-committee/narrate/stream is not modeled here)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NarrateInvestmentCommitteeInput"
+      responses:
+        "200":
+          description: Narrated synthesis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrateInvestmentCommitteeResult"
+        "404":
+          description: Unknown symbol
+
   /stock-analyst/value-history:
     get:
       operationId: getValueHistory
@@ -3113,6 +3140,24 @@ components:
       properties:
         answer: { type: string }
         answerSource:
+          type: string
+          enum: [llm, template]
+
+    # ─── AI Investment Committee LLM-Narrated Synthesis (Phase 4, Sprint 61;
+    # read-only, advisory/education only, never executes) ──────────────────────
+    NarrateInvestmentCommitteeInput:
+      type: object
+      required: [symbol]
+      properties:
+        symbol: { type: string }
+        forceRefresh: { type: boolean }
+
+    NarrateInvestmentCommitteeResult:
+      type: object
+      required: [narrative, narrativeSource]
+      properties:
+        narrative: { type: string }
+        narrativeSource:
           type: string
           enum: [llm, template]
 

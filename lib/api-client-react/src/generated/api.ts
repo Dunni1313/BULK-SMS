@@ -90,6 +90,8 @@ import type {
   ManagementQualityAnalysis,
   MarketBriefingResponse,
   MarketDataHealth,
+  NarrateInvestmentCommitteeInput,
+  NarrateInvestmentCommitteeResult,
   OptionChain,
   OptionsBacktestResult,
   OptionsRunBacktestInput,
@@ -5597,6 +5599,77 @@ export const useAskValueResearch = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getAskValueResearchMutationOptions(options));
+    }
+
+export const getNarrateInvestmentCommitteeUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/investment-committee/narrate`
+}
+
+/**
+ * @summary LLM-narrate why the AI Investment Committee reached its consolidated verdict, grounded in the votes already computed on the report (read-only; never executes; SSE variant at /investment-committee/narrate/stream is not modeled here)
+ */
+export const narrateInvestmentCommittee = async (narrateInvestmentCommitteeInput: NarrateInvestmentCommitteeInput, options?: RequestInit): Promise<NarrateInvestmentCommitteeResult> => {
+
+  return customFetch<NarrateInvestmentCommitteeResult>(getNarrateInvestmentCommitteeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      narrateInvestmentCommitteeInput,)
+  }
+);}
+
+
+
+
+export const getNarrateInvestmentCommitteeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof narrateInvestmentCommittee>>, TError,{data: BodyType<NarrateInvestmentCommitteeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof narrateInvestmentCommittee>>, TError,{data: BodyType<NarrateInvestmentCommitteeInput>}, TContext> => {
+
+const mutationKey = ['narrateInvestmentCommittee'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof narrateInvestmentCommittee>>, {data: BodyType<NarrateInvestmentCommitteeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  narrateInvestmentCommittee(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NarrateInvestmentCommitteeMutationResult = NonNullable<Awaited<ReturnType<typeof narrateInvestmentCommittee>>>
+    export type NarrateInvestmentCommitteeMutationBody = BodyType<NarrateInvestmentCommitteeInput>
+    export type NarrateInvestmentCommitteeMutationError = ErrorType<void>
+
+    /**
+ * @summary LLM-narrate why the AI Investment Committee reached its consolidated verdict, grounded in the votes already computed on the report (read-only; never executes; SSE variant at /investment-committee/narrate/stream is not modeled here)
+ */
+export const useNarrateInvestmentCommittee = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof narrateInvestmentCommittee>>, TError,{data: BodyType<NarrateInvestmentCommitteeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof narrateInvestmentCommittee>>,
+        TError,
+        {data: BodyType<NarrateInvestmentCommitteeInput>},
+        TContext
+      > => {
+      return useMutation(getNarrateInvestmentCommitteeMutationOptions(options));
     }
 
 export const getGetValueHistoryUrl = () => {

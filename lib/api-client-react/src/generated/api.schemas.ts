@@ -959,6 +959,24 @@ export interface AskValueResearchResult {
   answerSource: AskValueResearchResultAnswerSource;
 }
 
+export interface NarrateInvestmentCommitteeInput {
+  symbol: string;
+  forceRefresh?: boolean;
+}
+
+export type NarrateInvestmentCommitteeResultNarrativeSource = typeof NarrateInvestmentCommitteeResultNarrativeSource[keyof typeof NarrateInvestmentCommitteeResultNarrativeSource];
+
+
+export const NarrateInvestmentCommitteeResultNarrativeSource = {
+  llm: 'llm',
+  template: 'template',
+} as const;
+
+export interface NarrateInvestmentCommitteeResult {
+  narrative: string;
+  narrativeSource: NarrateInvestmentCommitteeResultNarrativeSource;
+}
+
 export type ValueMacroContextRegime = typeof ValueMacroContextRegime[keyof typeof ValueMacroContextRegime];
 
 

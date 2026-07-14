@@ -573,6 +573,64 @@ export async function narrateValueFreeformStream(
   return enforceValueSafety(n, fallback);
 }
 
+// Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
+// Upgrades Sprint 17's deterministic-only Committee reasoning to genuine
+// ai-core-narrated prose, reusing the exact narrate()/narrateStream() +
+// enforceValueSafety() machinery narrateValueResearch()/narrateValueFreeform()
+// already use — the same shape proven three times before this sprint
+// (options coach, Engine 1's value coach, Engine 2's trade coach).
+//
+// Deliberately additive and on-demand, NOT a change to
+// synthesizeInvestmentCommittee() itself (investmentCommittee.ts, Sprint 17,
+// untouched this sprint — confirmed by its own file's zero-line diff): that
+// function stays synchronous and deterministic-only, still called inside the
+// eager buildValueResearchReport() path, so viewing a report never pays LLM
+// latency — the same "deterministic math stays eager and fast; LLM narration
+// is a separate on-demand layer" discipline every on-demand module since
+// Sprint 19 (Statements) has followed. `fallback` is the Committee's own
+// already-computed deterministic reasoning/summary text — byte-identical to
+// Sprint 17's pre-Sprint-61 output whenever the LLM is unavailable, which is
+// this sprint's own explicit "deterministic fallback still exists" acceptance
+// criterion. enforceValueSafety() (VALUE_DISCLAIMER + the anti-impersonation
+// guard) is reused because the grounding DATA the model sees literally names
+// "Graham"/"Buffett" as voting analysts (their own vote rationale text),
+// the same impersonation-drift risk narrateValueResearch()/
+// narrateValueFreeform() already guard against.
+const investmentCommitteePrompt =
+  "You are a patient value-investing tutor explaining an AI Investment Committee's consolidated " +
+  "recommendation, in the spirit of value-investing principles (Graham's margin of safety, Buffett's " +
+  "quality-at-a-fair-price approach) — but you are NOT Warren Buffett, Benjamin Graham, or any real " +
+  "person, and you must never claim to be one of them. Using ONLY the provided deterministic DATA (each " +
+  "voting analyst's verdict, confidence, and rationale; the agreement level among them; and the " +
+  "consolidated verdict and confidence score), write 3-5 sentences explaining WHY the Committee reached " +
+  "this consolidated verdict — what the individual votes were, where they agreed or disagreed, and what " +
+  "that means for the confidence behind the call. NEVER invent a vote, a verdict, or a number not present " +
+  "in the DATA. Do not give a recommendation to buy or sell; explain the reasoning behind the verdict " +
+  "already reached. This is education about SIMULATED or provider data, not investment advice.";
+
+export async function narrateInvestmentCommitteeSynthesis(
+  context: unknown,
+  fallback: string,
+  cacheKey?: string,
+): Promise<Narration> {
+  const n = await narrate(investmentCommitteePrompt, context ?? {}, fallback, cacheKey);
+  return enforceValueSafety(n, fallback);
+}
+
+// Streaming counterpart of narrateInvestmentCommitteeSynthesis. Same
+// disclaimer + anti-impersonation invariant, applied to the authoritative
+// final payload (the `done` event the frontend uses to replace streamed
+// tokens).
+export async function narrateInvestmentCommitteeSynthesisStream(
+  context: unknown,
+  fallback: string,
+  onToken: TokenSink,
+  cacheKey?: string,
+): Promise<Narration> {
+  const n = await narrateStream(investmentCommitteePrompt, context ?? {}, fallback, onToken, cacheKey);
+  return enforceValueSafety(n, fallback);
+}
+
 // Phase 3, Sprint 47 — AI Trade Coach. Third proof point of the
 // deterministic-math -> ai-core narration -> enforced-disclaimer shape
 // (after the options coach and Engine 1's value coach, Sprint 30). Free-form

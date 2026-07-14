@@ -2684,6 +2684,20 @@ export const AskValueResearchResponse = zod.object({
 
 
 /**
+ * @summary LLM-narrate why the AI Investment Committee reached its consolidated verdict, grounded in the votes already computed on the report (read-only; never executes; SSE variant at /investment-committee/narrate/stream is not modeled here)
+ */
+export const NarrateInvestmentCommitteeBody = zod.object({
+  "symbol": zod.string(),
+  "forceRefresh": zod.boolean().optional()
+})
+
+export const NarrateInvestmentCommitteeResponse = zod.object({
+  "narrative": zod.string(),
+  "narrativeSource": zod.enum(['llm', 'template'])
+})
+
+
+/**
  * @summary List persisted value-research runs
  */
 export const GetValueHistoryResponseItem = zod.object({

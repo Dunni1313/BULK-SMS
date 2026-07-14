@@ -26,6 +26,7 @@ import { getValueLessons, generateValueQuiz, gradeValueQuiz } from "./valueSchoo
 import {
   narrateValueResearch,
   narrateValueFreeform,
+  narrateInvestmentCommitteeSynthesis,
   violatesAntiImpersonation,
   enforceValueDisclaimer,
 } from "./coachLLM.js";
@@ -546,4 +547,42 @@ describe("value narration safety invariants", () => {
     },
     35_000,
   );
+
+  // Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis
+  // reuses the exact same narrate()/enforceValueSafety() machinery
+  // narrateValueResearch()/narrateValueFreeform() already do, so it must
+  // carry the identical safety invariants.
+  it(
+    "Investment Committee narration always carries BOTH the coach and value disclaimers (LLM or template path)",
+    async () => {
+      const fallback = "Graham: Buy (confidence 92/100) — cheap. Consolidated: Buy — all voting analysts agree.";
+      const n = await narrateInvestmentCommitteeSynthesis(
+        {
+          symbol: "AAPL",
+          consolidatedVerdict: "Buy",
+          confidenceScore: 92,
+          agreement: "unanimous",
+          votes: [{ analyst: "Graham", verdict: "Buy", confidence: 92, rationale: "cheap" }],
+        },
+        fallback,
+      );
+      expect(n.text).toContain(COACH_DISCLAIMER);
+      expect(n.text).toContain(VALUE_DISCLAIMER);
+    },
+    35_000,
+  );
+
+  // Never fabricates a narrated verdict when the LLM is unavailable — the
+  // template path must be exactly the deterministic fallback text plus the
+  // two guaranteed disclaimers, never an invented narrative.
+  it("Investment Committee narration's template fallback is exactly the deterministic reasoning, never invented prose", async () => {
+    const fallback = "Tom Nash: Hold (confidence 55/100) — mixed signals. Consolidated: Hold — too few analysts voted to assess agreement.";
+    const n = await narrateInvestmentCommitteeSynthesis(
+      { symbol: "ZZZZ", consolidatedVerdict: "Hold", confidenceScore: 55, agreement: "insufficient-data", votes: [] },
+      fallback,
+    );
+    if (n.source === "template") {
+      expect(n.text).toBe(`${fallback}\n\n${COACH_DISCLAIMER}\n\n${VALUE_DISCLAIMER}`);
+    }
+  });
 });

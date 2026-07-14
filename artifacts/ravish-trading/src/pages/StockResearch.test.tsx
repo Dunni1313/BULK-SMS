@@ -122,6 +122,76 @@ describe("ReportView", () => {
     expect(await screen.findByText(/Committee's consolidated verdict is Hold/i)).toBeInTheDocument();
     expect(screen.getByText("Q: What is the verdict?")).toBeInTheDocument();
   });
+
+  // Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
+  it("shows a 'Narrate this verdict' button on the Investment Committee card, alongside the deterministic summary/votes", () => {
+    const report = makeValueReport();
+    renderWithClient(
+      <ReportView report={report} commentary="" isStreaming={false} />,
+    );
+
+    expect(screen.getByTestId("narrate-committee-button")).toHaveTextContent(/narrate this verdict/i);
+    // The deterministic Sprint 17 output is always visible, regardless of
+    // whether narration has ever been requested.
+    expect(screen.getByText(report.investmentCommittee.summary)).toBeInTheDocument();
+    expect(screen.getByText("Buy (65)")).toBeInTheDocument();
+  });
+
+  it("submits a narration request to the investment-committee/narrate/stream endpoint when clicked", async () => {
+    streamCoachMock.mockReset();
+    streamCoachMock.mockResolvedValue(undefined);
+    const report = makeValueReport();
+    renderWithClient(
+      <ReportView report={report} commentary="" isStreaming={false} />,
+    );
+
+    await userEvent.click(screen.getByTestId("narrate-committee-button"));
+
+    expect(streamCoachMock).toHaveBeenCalledWith(
+      "/stock-analyst/investment-committee/narrate/stream",
+      { symbol: report.symbol },
+      expect.anything(),
+    );
+  });
+
+  it("renders the narrated synthesis once the stream completes, without hiding the deterministic summary", async () => {
+    streamCoachMock.mockReset();
+    streamCoachMock.mockImplementation(async (_path, _body, handlers) => {
+      handlers.onDone?.({ narrative: "The Committee leans Buy because Graham and Tom Nash both see value." });
+    });
+    const report = makeValueReport();
+    renderWithClient(
+      <ReportView report={report} commentary="" isStreaming={false} />,
+    );
+
+    await userEvent.click(screen.getByTestId("narrate-committee-button"));
+
+    expect(await screen.findByText(/Committee leans Buy because Graham and Tom Nash/i)).toBeInTheDocument();
+    // The deterministic reasoning stays visible — narration is additive, never
+    // a replacement.
+    expect(screen.getByText(report.investmentCommittee.summary)).toBeInTheDocument();
+    // The button is replaced by the narration once it exists, not stacked
+    // alongside it.
+    expect(screen.queryByTestId("narrate-committee-button")).not.toBeInTheDocument();
+  });
+
+  it("honestly shows an error message when narration fails, never a fabricated synthesis", async () => {
+    streamCoachMock.mockReset();
+    streamCoachMock.mockImplementation(async (_path, _body, handlers) => {
+      handlers.onError?.("narration failed");
+    });
+    const report = makeValueReport();
+    renderWithClient(
+      <ReportView report={report} commentary="" isStreaming={false} />,
+    );
+
+    await userEvent.click(screen.getByTestId("narrate-committee-button"));
+
+    expect(await screen.findByTestId("narrate-committee-error")).toHaveTextContent(/failed to narrate/i);
+    // The deterministic summary is still there — an LLM failure never blanks
+    // the Committee's own already-computed verdict.
+    expect(screen.getByText(report.investmentCommittee.summary)).toBeInTheDocument();
+  });
 });
 
 describe("StockResearch page (mocked hooks)", () => {
