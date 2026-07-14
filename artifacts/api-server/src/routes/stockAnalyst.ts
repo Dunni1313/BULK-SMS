@@ -50,7 +50,7 @@ import { buildIndustryComparison } from "../lib/industryComparison.js";
 import { buildFilingAnalysis } from "../lib/filingAnalysis.js";
 import { buildManagementQualityAnalysis } from "../lib/managementAnalysis.js";
 import { buildEarningsIntelligence } from "../lib/earningsAnalysis.js";
-import { EdgarDocumentProvider } from "../lib/documentProviders.js";
+import { EdgarDocumentProvider, DOCUMENT_TYPES, type DocumentType } from "../lib/documentProviders.js";
 import { analyzeInvestmentSuitability } from "../lib/valueInvesting.js";
 import {
   getValueLessons,
@@ -702,20 +702,42 @@ router.get("/industry-comparison/:symbol", async (req, res): Promise<void> => {
 
 // Phase 2, Sprint 22 — Document Intelligence Engine (Annual Report Analysis).
 // Deliberately a separate, on-demand endpoint (not folded into /value/:symbol):
-// fetching and extracting a 10-K is far heavier than a fundamentals fetch, and
-// only the first supported document type ("10-K") is implemented — a future
-// document-type param can extend this route without redesign. Never 502s for
-// a missing/unreachable filing (that's an honest documentAvailable:false in a
-// normal 200) — only a genuinely unknown symbol 404s, matching every other
-// stock-analyst route's contract.
+// fetching and extracting a filing is far heavier than a fundamentals fetch.
+// Never 502s for a missing/unreachable filing (that's an honest
+// documentAvailable:false in a normal 200) — only a genuinely unknown symbol
+// 404s, matching every other stock-analyst route's contract.
 const edgarDocumentProvider = new EdgarDocumentProvider();
 
+// Phase 4, Sprint 60 — an optional ?documentType= override, defaulting to
+// "10-K" (byte-identical to every pre-Sprint-60 caller that never passed
+// one). Only "10-K"/"10-Q" produce real extracted content today
+// (EdgarDocumentProvider's own EDGAR_SUPPORTED_TYPES); any other syntactically
+// valid DocumentType (e.g. "earnings-transcript", already anticipated in the
+// union for future work per the approved, narrowed Sprint 60 scope) is
+// accepted here too and honestly degrades to documentAvailable:false via
+// buildFilingAnalysis()'s own existing catch — never a 502, never fabricated.
+// A value outside the DocumentType union entirely (a typo, garbage input) is
+// the one thing this rejects, with a 400.
+function parseDocumentTypeQuery(req: { query: Record<string, unknown> }): DocumentType | undefined {
+  const raw = req.query.documentType;
+  if (raw === undefined) return "10-K";
+  if (typeof raw === "string" && (DOCUMENT_TYPES as readonly string[]).includes(raw)) {
+    return raw as DocumentType;
+  }
+  return undefined;
+}
+
 router.get("/filings/:symbol", async (req, res): Promise<void> => {
+  const documentType = parseDocumentTypeQuery(req);
+  if (!documentType) {
+    res.status(400).json({ error: `Invalid documentType. Expected one of: ${DOCUMENT_TYPES.join(", ")}` });
+    return;
+  }
   const userId = await getScopedUserId(req);
   const provider = await getFundamentalsProvider(userId);
   let analysis;
   try {
-    analysis = await buildFilingAnalysis(req.params.symbol, edgarDocumentProvider, provider, "10-K", undefined, userId);
+    analysis = await buildFilingAnalysis(req.params.symbol, edgarDocumentProvider, provider, documentType, undefined, userId);
   } catch (err) {
     req.log.error({ err }, "filing analysis failed");
     res.status(502).json({ error: "Filing analysis is currently unavailable." });
@@ -736,11 +758,16 @@ router.get("/filings/:symbol", async (req, res): Promise<void> => {
 // unreachable filing (dimensions honestly report unavailable in a normal
 // 200) — only a genuinely unknown symbol 404s.
 router.get("/management-quality/:symbol", async (req, res): Promise<void> => {
+  const documentType = parseDocumentTypeQuery(req);
+  if (!documentType) {
+    res.status(400).json({ error: `Invalid documentType. Expected one of: ${DOCUMENT_TYPES.join(", ")}` });
+    return;
+  }
   const userId = await getScopedUserId(req);
   const provider = await getFundamentalsProvider(userId);
   let analysis;
   try {
-    analysis = await buildManagementQualityAnalysis(req.params.symbol, edgarDocumentProvider, provider, "10-K", undefined, userId);
+    analysis = await buildManagementQualityAnalysis(req.params.symbol, edgarDocumentProvider, provider, documentType, undefined, userId);
   } catch (err) {
     req.log.error({ err }, "management quality analysis failed");
     res.status(502).json({ error: "Management quality analysis is currently unavailable." });

@@ -6432,7 +6432,7 @@ export const getGetFilingAnalysisUrl = (symbol: string,) => {
 }
 
 /**
- * @summary Fetches and extracts a company's most recent 10-K filing, fetched on demand
+ * @summary Fetches and extracts a company's most recent 10-K or 10-Q filing, fetched on demand
  */
 export const getFilingAnalysis = async (symbol: string, options?: RequestInit): Promise<FilingAnalysis> => {
 
@@ -6479,7 +6479,7 @@ export type GetFilingAnalysisQueryError = ErrorType<void>
 
 
 /**
- * @summary Fetches and extracts a company's most recent 10-K filing, fetched on demand
+ * @summary Fetches and extracts a company's most recent 10-K or 10-Q filing, fetched on demand
  */
 
 export function useGetFilingAnalysis<TData = Awaited<ReturnType<typeof getFilingAnalysis>>, TError = ErrorType<void>>(

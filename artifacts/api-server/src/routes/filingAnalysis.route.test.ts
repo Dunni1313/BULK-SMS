@@ -64,6 +64,50 @@ describe("GET /stock-analyst/filings/:symbol (live route, EDGAR unreachable in t
     expect(rows[0].filingType).toBe("10-K");
   });
 
+  // Phase 4, Sprint 60 — the new ?documentType= query override, honestly
+  // degrading exactly like the pre-Sprint-60 default 10-K path (EDGAR is
+  // unreachable in this session either way).
+  it("honors ?documentType=10-Q, degrading honestly with 10-Q's own section keys and reason text", async () => {
+    const res = await fetch(`${baseUrl}/api/stock-analyst/filings/AMZN?documentType=10-Q`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      documentType: string;
+      documentAvailable: boolean;
+      documentUnavailableReason: string;
+      sections: { key: string; found: boolean }[];
+      keyFinancialHighlights: unknown[];
+    };
+    expect(body.documentType).toBe("10-Q");
+    expect(body.documentAvailable).toBe(false);
+    expect(body.documentUnavailableReason).toMatch(/no 10-q filing was found|currently unavailable/i);
+    expect(body.sections.map((s) => s.key)).toEqual(["financialStatements", "mdAndA", "riskFactors"]);
+    expect(body.keyFinancialHighlights.length).toBeGreaterThan(0);
+  });
+
+  it("returns 400 for an invalid ?documentType= value, never fabricating an analysis", async () => {
+    const res = await fetch(`${baseUrl}/api/stock-analyst/filings/AAPL?documentType=not-a-real-type`);
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toMatch(/invalid documenttype/i);
+  });
+
+  it("persists a 10-Q request with filingType '10-Q', not the default '10-K'", async () => {
+    const res = await fetch(`${baseUrl}/api/stock-analyst/filings/NFLX?documentType=10-Q`);
+    expect(res.status).toBe(200);
+    const rows = await db
+      .select()
+      .from(investingFilingAnalysisTable)
+      .where(eq(investingFilingAnalysisTable.symbol, "NFLX"));
+    expect(rows.some((r) => r.filingType === "10-Q")).toBe(true);
+  });
+
+  it("defaults to 10-K when ?documentType= is omitted, byte-identical to the pre-Sprint-60 route", async () => {
+    const res = await fetch(`${baseUrl}/api/stock-analyst/filings/CRM`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { documentType: string };
+    expect(body.documentType).toBe("10-K");
+  });
+
   it("never triggers a filing fetch from the main value-research report", async () => {
     // Sanity check on the scope-discipline decision: the main report endpoint
     // still responds normally and carries no filing-shaped field —

@@ -53,6 +53,41 @@ describe("EdgarDocumentProvider.fetchDocument (mocked fetch — live verificatio
     expect(doc!.html).toContain("Item 1. Business text.");
   });
 
+  it("resolves ticker -> CIK -> latest 10-Q -> primary document HTML (Phase 4, Sprint 60)", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
+      const url = String(input);
+      if (url.includes("company_tickers.json")) return jsonResponse(TICKER_MAP);
+      if (url.includes("data.sec.gov/submissions/")) return jsonResponse(SUBMISSIONS);
+      if (url.includes("aapl-10q.htm")) return textResponse("<html><body>Item 1. Financial Statements text.</body></html>");
+      throw new Error(`unexpected url ${url}`);
+    });
+
+    const provider = new EdgarDocumentProvider();
+    const doc = await provider.fetchDocument("AAPL", "10-Q");
+    expect(doc).not.toBeNull();
+    expect(doc!.documentType).toBe("10-Q");
+    // Resolves the 10-Q filing specifically, never the 10-K in the same
+    // recent-filings feed.
+    expect(doc!.filingDate).toBe("2025-08-01");
+    expect(doc!.accessionNumber).toBe("0000320193-25-000050");
+    expect(doc!.sourceUrl).toContain("aapl-10q.htm");
+    expect(doc!.html).toContain("Item 1. Financial Statements text.");
+  });
+
+  it("honestly returns null when the company has no 10-Q in its recent filings (Phase 4, Sprint 60)", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
+      const url = String(input);
+      if (url.includes("company_tickers.json")) return jsonResponse(TICKER_MAP);
+      if (url.includes("data.sec.gov/submissions/"))
+        return jsonResponse({ filings: { recent: { form: ["10-K", "8-K"], filingDate: ["2025-11-01", "2025-06-01"], accessionNumber: ["x", "y"], primaryDocument: ["x.htm", "y.htm"] } } });
+      throw new Error(`unexpected url ${url}`);
+    });
+
+    const provider = new EdgarDocumentProvider();
+    const doc = await provider.fetchDocument("AAPL", "10-Q");
+    expect(doc).toBeNull();
+  });
+
   it("honestly returns null when the ticker isn't in SEC's own ticker map, never guessing a CIK", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(async (input: Parameters<typeof fetch>[0]) => {
       const url = String(input);

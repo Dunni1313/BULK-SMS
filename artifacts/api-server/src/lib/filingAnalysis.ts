@@ -15,7 +15,7 @@
 
 import { db, investingFilingAnalysisTable } from "@workspace/db";
 import type { DocumentProvider, DocumentType, RawDocument, FetchDocumentOpts } from "./documentProviders.js";
-import { extractSections, type ExtractedSection } from "./filingExtraction.js";
+import { extractSections, emptySections, type ExtractedSection } from "./filingExtraction.js";
 import { buildValueResearchReport } from "./valueReport.js";
 import type { FundamentalsProvider } from "./fundamentals.js";
 import { logger } from "./logger.js";
@@ -49,14 +49,12 @@ export interface FilingAnalysis {
 const DISCLAIMER =
   "Educational research only — not investment advice. Section text is extracted directly from the company's own SEC filing; excerpts are a deterministic extractive preview (first + longest sentence), never an AI-generated summary or paraphrase. Always verify against the full source filing linked above.";
 
-const EMPTY_SECTION_SET: ExtractedSection[] = [
-  { key: "business", label: "Business Overview", found: false, rawText: null, excerpt: null, wordCount: 0 },
-  { key: "riskFactors", label: "Risk Factors", found: false, rawText: null, excerpt: null, wordCount: 0 },
-  { key: "mdAndA", label: "Management Discussion & Analysis", found: false, rawText: null, excerpt: null, wordCount: 0 },
-];
-
-function withReason(reason: string): ExtractedSection[] {
-  return EMPTY_SECTION_SET.map((s) => ({ ...s, reason }));
+// Phase 4, Sprint 60 — reuses filingExtraction.ts's own emptySections() (the
+// single source of truth for each document type's key/label set) instead of
+// a second, hand-maintained literal shape that could drift out of sync with
+// a real extraction's own keys/labels.
+function withReason(reason: string, documentType: DocumentType): ExtractedSection[] {
+  return emptySections(documentType).map((s) => ({ ...s, reason }));
 }
 
 function buildHighlights(report: NonNullable<Awaited<ReturnType<typeof buildValueResearchReport>>>): FilingFinancialHighlight[] {
@@ -94,6 +92,7 @@ function buildHighlights(report: NonNullable<Awaited<ReturnType<typeof buildValu
 
 function buildExecutiveSummary(
   symbol: string,
+  documentType: DocumentType,
   doc: RawDocument | null,
   report: NonNullable<Awaited<ReturnType<typeof buildValueResearchReport>>>,
   sections: ExtractedSection[],
@@ -102,33 +101,47 @@ function buildExecutiveSummary(
   if (doc) {
     const foundCount = sections.filter((s) => s.found).length;
     parts.push(
-      `${symbol}'s most recent 10-K was filed ${doc.filingDate ?? "on an unknown date"}; ${foundCount} of ${sections.length} tracked sections were located.`,
+      `${symbol}'s most recent ${documentType} was filed ${doc.filingDate ?? "on an unknown date"}; ${foundCount} of ${sections.length} tracked sections were located.`,
     );
   } else {
-    parts.push(`No 10-K filing could be located for ${symbol} in SEC EDGAR.`);
+    parts.push(`No ${documentType} filing could be located for ${symbol} in SEC EDGAR.`);
   }
   parts.push(`Investment Committee: ${report.investmentCommittee.consolidatedVerdict} (${report.investmentCommittee.agreement} agreement).`);
   parts.push(`Tom Nash conviction: ${report.tomNash.convictionScore}/100 (${report.tomNash.verdict}).`);
   return parts.join(" ");
 }
 
-function confidenceFor(doc: RawDocument | null, sections: ExtractedSection[]): { level: FilingConfidenceLevel; explanation: string } {
+// Phase 4, Sprint 60 — the "missing section" caveat is now documentType-
+// aware: a 10-Q's own Risk Factors item is only required when there's been a
+// material change since the last 10-K, so its own absence is frequently
+// honest, normal filing behavior, not a formatting-detection failure — the
+// generic 10-K caveat ("the filer's formatting may deviate") would overclaim
+// a defect that may not exist.
+function confidenceFor(
+  documentType: DocumentType,
+  doc: RawDocument | null,
+  sections: ExtractedSection[],
+): { level: FilingConfidenceLevel; explanation: string } {
   if (!doc) {
     return { level: "Low", explanation: "No filing was located, so this analysis is based only on the reused financial-analysis modules." };
   }
   const foundCount = sections.filter((s) => s.found).length;
   if (foundCount === sections.length) {
-    return { level: "High", explanation: `A 10-K was located and all ${sections.length} tracked sections were successfully extracted.` };
+    return { level: "High", explanation: `A ${documentType} was located and all ${sections.length} tracked sections were successfully extracted.` };
   }
+  const formattingCaveat =
+    documentType === "10-Q"
+      ? "the filer's formatting may deviate from standard SEC Item numbering, or a missing Risk Factors section may simply mean the filer reported no material change since its last 10-K, which is normal 10-Q behavior, not a formatting failure"
+      : "the filer's formatting may deviate from standard SEC Item numbering";
   if (foundCount > 0) {
     return {
       level: "Moderate",
-      explanation: `A 10-K was located but only ${foundCount} of ${sections.length} tracked sections could be reliably extracted (the filer's formatting may deviate from standard SEC Item numbering).`,
+      explanation: `A ${documentType} was located but only ${foundCount} of ${sections.length} tracked sections could be reliably extracted (${formattingCaveat}).`,
     };
   }
   return {
     level: "Low",
-    explanation: "A 10-K was located but no tracked section could be reliably extracted from its formatting.",
+    explanation: `A ${documentType} was located but no tracked section could be reliably extracted from its formatting.`,
   };
 }
 
@@ -180,10 +193,12 @@ export async function buildFilingAnalysis(
     documentUnavailableReason = "The live document provider is currently unavailable.";
   }
 
-  const sections = doc ? extractSections(doc.html) : withReason(documentUnavailableReason ?? "Document unavailable.");
+  const sections = doc
+    ? extractSections(doc.html, documentType)
+    : withReason(documentUnavailableReason ?? "Document unavailable.", documentType);
   const keyFinancialHighlights = buildHighlights(report);
-  const executiveSummary = buildExecutiveSummary(report.symbol, doc, report, sections);
-  const { level: confidenceLevel, explanation: confidenceExplanation } = confidenceFor(doc, sections);
+  const executiveSummary = buildExecutiveSummary(report.symbol, documentType, doc, report, sections);
+  const { level: confidenceLevel, explanation: confidenceExplanation } = confidenceFor(documentType, doc, sections);
 
   const analysis: FilingAnalysis = {
     symbol: report.symbol,

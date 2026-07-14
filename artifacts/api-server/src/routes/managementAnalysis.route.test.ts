@@ -63,6 +63,23 @@ describe("GET /stock-analyst/management-quality/:symbol (live route, EDGAR unrea
     expect(rows.length).toBe(0);
   });
 
+  // Phase 4, Sprint 60 — the new ?documentType= query override, plumbed
+  // through to buildFilingAnalysis() exactly like /filings/:symbol's own.
+  it("honors ?documentType=10-Q — the Risk Acknowledgement dimension still reuses the same 'riskFactors' section key", async () => {
+    const res = await fetch(`${baseUrl}/api/stock-analyst/management-quality/AMD?documentType=10-Q`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { dimensions: { dimension: string }[] };
+    expect(body.dimensions.length).toBe(9);
+    expect(body.dimensions.some((d) => d.dimension === "Risk Acknowledgement")).toBe(true);
+  });
+
+  it("returns 400 for an invalid ?documentType= value, never fabricating an analysis", async () => {
+    const res = await fetch(`${baseUrl}/api/stock-analyst/management-quality/AAPL?documentType=not-a-real-type`);
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toMatch(/invalid documenttype/i);
+  });
+
   it("never triggers a management-quality computation from the main value-research report", async () => {
     const res = await fetch(`${baseUrl}/api/stock-analyst/value/AAPL`);
     expect(res.status).toBe(200);

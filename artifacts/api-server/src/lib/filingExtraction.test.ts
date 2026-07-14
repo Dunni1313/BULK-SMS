@@ -1,8 +1,11 @@
 // Phase 2, Sprint 22 — Document Intelligence Engine: filingExtraction unit
 // tests (approved Phase 2 plan, Sprint 22). Pure text-processing, no I/O.
+//
+// Phase 4, Sprint 60 — 10-Q coverage added (approved, narrowed Sprint 60
+// scope: 10-Q only, per Phase-4-Readiness-Report.md §5).
 
 import { describe, it, expect } from "vitest";
-import { stripHtml, excerpt, chunkText, extractSections } from "./filingExtraction.js";
+import { stripHtml, excerpt, chunkText, extractSections, emptySections } from "./filingExtraction.js";
 
 describe("stripHtml", () => {
   it("removes script/style/comment blocks and tags, decodes common entities", () => {
@@ -92,6 +95,122 @@ describe("extractSections", () => {
     const sections = extractSections(html);
     expect(sections.every((s) => !s.found)).toBe(true);
     expect(sections.every((s) => s.rawText === null)).toBe(true);
+  });
+});
+
+// A synthetic-but-realistic 10-Q shape (Phase 4, Sprint 60): a repeating
+// table of contents, PLUS the genuine 10-Q ambiguity a 10-K never has — Item
+// 1 and Item 2 each appear TWICE (once in Part I, once in Part II) with
+// different titles. Proves the extractor's title-text disambiguation (not a
+// "Part I"/"Part II" prefix search) correctly separates Part I's "Item 1.
+// Financial Statements" from Part II's own "Item 1. Legal Proceedings", and
+// Part I's "Item 2. Management's Discussion" from Part II's own "Item 2.
+// Unregistered Sales of Equity Securities".
+function fixture10Q(): string {
+  const toc = `
+    <p>TABLE OF CONTENTS</p>
+    <p>PART I</p>
+    <p>Item 1. Financial Statements ... 3</p>
+    <p>Item 2. Management's Discussion and Analysis ... 15</p>
+    <p>Item 3. Quantitative and Qualitative Disclosures About Market Risk ... 22</p>
+    <p>PART II</p>
+    <p>Item 1. Legal Proceedings ... 24</p>
+    <p>Item 1A. Risk Factors ... 25</p>
+    <p>Item 2. Unregistered Sales of Equity Securities and Use of Proceeds ... 26</p>
+  `;
+  const financialStatements = `
+    <p>PART I — FINANCIAL INFORMATION</p>
+    <p>Item 1. Financial Statements</p>
+    <p>${"Condensed consolidated balance sheets show total assets of $4.2 billion. ".repeat(20)}</p>
+  `;
+  const mdAndA = `
+    <p>Item 2. Management's Discussion and Analysis of Financial Condition and Results of Operations</p>
+    <p>${"Quarterly revenue increased driven by strong seasonal demand. ".repeat(20)}</p>
+  `;
+  const marketRisk = `<p>Item 3. Quantitative and Qualitative Disclosures About Market Risk</p><p>No material change from the last 10-K.</p>`;
+  const controls = `<p>Item 4. Controls and Procedures</p><p>Disclosure controls were effective.</p>`;
+  const legalProceedings = `
+    <p>PART II — OTHER INFORMATION</p>
+    <p>Item 1. Legal Proceedings</p>
+    <p>${"The company is not currently party to any material litigation. ".repeat(10)}</p>
+  `;
+  const riskFactors = `
+    <p>Item 1A. Risk Factors</p>
+    <p>${"There have been no material changes to the risk factors previously disclosed. ".repeat(20)}</p>
+  `;
+  const unregisteredSales = `<p>Item 2. Unregistered Sales of Equity Securities and Use of Proceeds</p><p>None.</p>`;
+  return `<html><body>${toc}${financialStatements}${mdAndA}${marketRisk}${controls}${legalProceedings}${riskFactors}${unregisteredSales}</body></html>`;
+}
+
+describe("extractSections — 10-Q (Phase 4, Sprint 60)", () => {
+  it("extracts Financial Statements, MD&A, and Risk Factors, correctly disambiguating Part I's Item 1/2 from Part II's own Item 1/2", () => {
+    const sections = extractSections(fixture10Q(), "10-Q");
+    expect(sections.map((s) => s.key)).toEqual(["financialStatements", "mdAndA", "riskFactors"]);
+
+    const fs = sections.find((s) => s.key === "financialStatements")!;
+    expect(fs.found).toBe(true);
+    expect(fs.rawText).toContain("total assets of $4.2 billion");
+    // Never bled into Part II's own, differently-titled "Item 1".
+    expect(fs.rawText).not.toContain("Legal Proceedings");
+    expect(fs.rawText).not.toContain("material litigation");
+
+    const mda = sections.find((s) => s.key === "mdAndA")!;
+    expect(mda.found).toBe(true);
+    expect(mda.rawText).toContain("Quarterly revenue increased");
+    // Never bled into Part II's own, differently-titled "Item 2".
+    expect(mda.rawText).not.toContain("Unregistered Sales");
+
+    const risk = sections.find((s) => s.key === "riskFactors")!;
+    expect(risk.found).toBe(true);
+    expect(risk.rawText).toContain("no material changes to the risk factors");
+    expect(risk.rawText).not.toContain("Unregistered Sales");
+  });
+
+  it("produces a non-null excerpt for every found 10-Q section", () => {
+    const sections = extractSections(fixture10Q(), "10-Q");
+    for (const s of sections) {
+      expect(s.excerpt).not.toBeNull();
+      expect(s.excerpt!.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("skips a repeating table of contents for 10-Q headings too (the same last-match heuristic as 10-K)", () => {
+    const sections = extractSections(fixture10Q(), "10-Q");
+    const fs = sections.find((s) => s.key === "financialStatements")!;
+    expect(fs.rawText).not.toMatch(/^Item 1\. Financial Statements \.\.\. 3/);
+  });
+
+  it("honestly reports found:false with a reason when a 10-Q Risk Factors heading is genuinely absent (normal 10-Q behavior, not a formatting failure)", () => {
+    const html = `<html><body><p>Item 1. Financial Statements</p><p>${"Balance sheet text. ".repeat(20)}</p><p>Item 2. Management's Discussion and Analysis</p><p>${"MD&A text. ".repeat(20)}</p></body></html>`;
+    const sections = extractSections(html, "10-Q");
+    const risk = sections.find((s) => s.key === "riskFactors")!;
+    expect(risk.found).toBe(false);
+    expect(risk.rawText).toBeNull();
+    expect(risk.reason).toMatch(/could not locate/i);
+  });
+
+  it("defaults to the 10-K spec when documentType is omitted, preserving every pre-Sprint-60 call site's behavior", () => {
+    const html = `<html><body><p>Item 1. Business</p><p>${"Business text. ".repeat(20)}</p></body></html>`;
+    expect(extractSections(html)).toEqual(extractSections(html, "10-K"));
+  });
+});
+
+describe("emptySections (Phase 4, Sprint 60)", () => {
+  it("returns 10-K's own key/label set by default", () => {
+    expect(emptySections().map((s) => s.key)).toEqual(["business", "riskFactors", "mdAndA"]);
+    expect(emptySections("10-K").map((s) => s.key)).toEqual(["business", "riskFactors", "mdAndA"]);
+  });
+
+  it("returns 10-Q's own, different key/label set — no fabricated 'business' key for a filing type that has no Business item", () => {
+    const sections = emptySections("10-Q");
+    expect(sections.map((s) => s.key)).toEqual(["financialStatements", "mdAndA", "riskFactors"]);
+    expect(sections.every((s) => !s.found && s.rawText === null && s.excerpt === null)).toBe(true);
+  });
+
+  it("matches the exact key/label shape a real 10-Q extraction produces, for every section", () => {
+    const real = extractSections(fixture10Q(), "10-Q");
+    const empty = emptySections("10-Q");
+    expect(real.map((s) => ({ key: s.key, label: s.label }))).toEqual(empty.map((s) => ({ key: s.key, label: s.label })));
   });
 });
 

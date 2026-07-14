@@ -1557,11 +1557,19 @@ paths:
         "404":
           description: Unknown symbol
 
+  # Phase 4, Sprint 60 — both routes below also accept an optional
+  # ?documentType= query override (defaulting to "10-K" when omitted, so
+  # every pre-Sprint-60 caller is unaffected), now also honoring "10-Q".
+  # Deliberately left undocumented here rather than added as a formal query
+  # parameter: documenting a path parameter and a query parameter together
+  # on the same operation is a known Orval zod+split-types codegen
+  # collision, first disclosed at Sprint 40 (GetTradingStructureParams) and
+  # hit again at Sprint 45 — the same established workaround applies.
   /stock-analyst/filings/{symbol}:
     get:
       operationId: getFilingAnalysis
       tags: [value]
-      summary: Fetches and extracts a company's most recent 10-K filing, fetched on demand
+      summary: Fetches and extracts a company's most recent 10-K or 10-Q filing, fetched on demand
       parameters:
         - name: symbol
           in: path

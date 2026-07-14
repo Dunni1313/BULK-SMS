@@ -21,13 +21,20 @@
 
 import { isValidTickerShape } from "./investingUniverse.js";
 
-export type DocumentType =
-  | "10-K"
-  | "10-Q"
-  | "earnings-transcript"
-  | "investor-presentation"
-  | "sustainability-report"
-  | "management-commentary";
+// Phase 4, Sprint 60 — a runtime-checkable list mirroring DocumentType below,
+// since a TS union has no runtime representation of its own. Used by
+// routes/stockAnalyst.ts to validate a caller-supplied ?documentType= query
+// override without a second, drifting list of literals.
+export const DOCUMENT_TYPES = [
+  "10-K",
+  "10-Q",
+  "earnings-transcript",
+  "investor-presentation",
+  "sustainability-report",
+  "management-commentary",
+] as const;
+
+export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
 export interface FetchDocumentOpts {
   forceRefresh?: boolean;
@@ -114,11 +121,17 @@ function parseRecentFilings(submissions: unknown): EdgarFiling[] {
   return out;
 }
 
-// SEC Financial Modeling Prep / Alpha Vantage — Financial Reports (10-K/10-Q).
-// Only "10-K" is implemented this sprint; any other DocumentType honestly
-// throws rather than fabricating a result. Future sprints add real
-// implementations (transcripts, presentations, etc.) alongside this one,
-// never by modifying it.
+// SEC EDGAR — Financial Reports (10-K/10-Q). Both are the same kind of
+// object as far as EDGAR's own submissions feed is concerned (one more
+// "form" value in the same per-filer filings list), so both are served by
+// this one fetch path — only the requested `form` value differs. Any other
+// DocumentType honestly throws rather than fabricating a result. Future
+// sprints add real implementations (transcripts, presentations, etc.)
+// alongside this one, never by modifying it — those need a genuinely
+// different data source (EDGAR doesn't carry e.g. earnings-call transcripts
+// at all), not just a different `form` filter on this same feed.
+const EDGAR_SUPPORTED_TYPES: readonly DocumentType[] = ["10-K", "10-Q"];
+
 export class EdgarDocumentProvider implements DocumentProvider {
   readonly id = "edgar";
 
@@ -127,7 +140,7 @@ export class EdgarDocumentProvider implements DocumentProvider {
     documentType: DocumentType,
     _opts?: FetchDocumentOpts,
   ): Promise<RawDocument | null> {
-    if (documentType !== "10-K") {
+    if (!EDGAR_SUPPORTED_TYPES.includes(documentType)) {
       throw new Error(`EdgarDocumentProvider does not yet support document type "${documentType}"`);
     }
     const sym = symbol.toUpperCase();
@@ -139,19 +152,19 @@ export class EdgarDocumentProvider implements DocumentProvider {
 
     const submissions = await fetchJson(`https://data.sec.gov/submissions/CIK${cik}.json`);
     const filings = parseRecentFilings(submissions);
-    const tenK = filings.find((f) => f.form === "10-K");
-    if (!tenK) return null;
+    const filing = filings.find((f) => f.form === documentType);
+    if (!filing) return null;
 
-    const accessionNoDashes = tenK.accessionNumber.replace(/-/g, "");
-    const sourceUrl = `https://www.sec.gov/Archives/edgar/data/${parseInt(cik, 10)}/${accessionNoDashes}/${tenK.primaryDocument}`;
+    const accessionNoDashes = filing.accessionNumber.replace(/-/g, "");
+    const sourceUrl = `https://www.sec.gov/Archives/edgar/data/${parseInt(cik, 10)}/${accessionNoDashes}/${filing.primaryDocument}`;
     const html = await fetchText(sourceUrl, 25000);
 
     return {
       symbol: sym,
-      documentType: "10-K",
-      filingDate: tenK.filingDate,
+      documentType,
+      filingDate: filing.filingDate,
       sourceUrl,
-      accessionNumber: tenK.accessionNumber,
+      accessionNumber: filing.accessionNumber,
       fetchedAt: new Date().toISOString(),
       html,
     };

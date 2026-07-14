@@ -3252,7 +3252,7 @@ export const GetIndustryComparisonResponse = zod.object({
 
 
 /**
- * @summary Fetches and extracts a company's most recent 10-K filing, fetched on demand
+ * @summary Fetches and extracts a company's most recent 10-K or 10-Q filing, fetched on demand
  */
 export const GetFilingAnalysisParams = zod.object({
   "symbol": zod.coerce.string()
