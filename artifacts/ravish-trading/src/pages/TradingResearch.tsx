@@ -20,7 +20,12 @@
 // eager-card group. The Structure/Multi-Timeframe/Regime/Probability cards
 // were moved into a "Research" tab (unchanged content, just a new tab
 // wrapper) so the on-demand "Liquidity" tab could sit alongside them
-// without restructuring their own logic.
+// without restructuring their own logic. Phase 3, Sprint 48 added the AI
+// Trade Coach chat panel (the seventh bounded slice) to the Research tab,
+// after the Probability card - reuses Sprint 47's own POST
+// /trading/coach/ask/stream route and the exact streamCoach() SSE client
+// StockResearch.tsx's "Ask the AI Investment Analyst" panel already
+// established (Phase 2, Sprint 30), adapted (not rewritten) for Engine 2.
 //
 // Advisory/education only: this page never previews, schedules, or submits
 // any order, and never touches a real brokerage account - Engine 2 is
@@ -49,13 +54,29 @@ import {
   type TradingPositionInputSide,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { streamCoach } from "@/lib/coach-stream";
+import { Markdown } from "@/components/ui/markdown";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers, Gauge, Target, ShieldAlert, Trash2, Droplets } from "lucide-react";
+import {
+  Activity,
+  Search,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Layers,
+  Gauge,
+  Target,
+  ShieldAlert,
+  Trash2,
+  Droplets,
+  MessageCircle,
+  Send,
+} from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -233,6 +254,43 @@ export default function TradingResearch() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSymbol(inputValue.trim().toUpperCase());
+  }
+
+  // Phase 3, Sprint 48 — AI Trade Coach free-form Q&A. Local to this page
+  // (keyed only off `symbol`), reuses the exact streamCoach() SSE client
+  // StockResearch.tsx's own Ask panel already established (Phase 2, Sprint
+  // 30) against Sprint 47's already-shipped POST /trading/coach/ask/stream
+  // route — no new coaching logic here, only the chat UI.
+  const [coachQuestion, setCoachQuestion] = useState("");
+  const [coachHistory, setCoachHistory] = useState<{ question: string; answer: string }[]>([]);
+  const [coachStreamingAnswer, setCoachStreamingAnswer] = useState("");
+  const [coachAsking, setCoachAsking] = useState(false);
+
+  function handleAskCoach(e: React.FormEvent) {
+    e.preventDefault();
+    const question = coachQuestion.trim();
+    if (!question || coachAsking || !symbol) return;
+    setCoachAsking(true);
+    setCoachStreamingAnswer("");
+    setCoachQuestion("");
+    streamCoach(
+      "/trading/coach/ask/stream",
+      { symbol, question },
+      {
+        onDelta: (text) => setCoachStreamingAnswer((prev) => prev + text),
+        onDone: (data) => {
+          const d = data as { answer?: string };
+          setCoachHistory((prev) => [...prev, { question, answer: d.answer ?? coachStreamingAnswer }]);
+          setCoachStreamingAnswer("");
+          setCoachAsking(false);
+        },
+        onError: () => {
+          setCoachHistory((prev) => [...prev, { question, answer: "Failed to get an answer — please try again." }]);
+          setCoachStreamingAnswer("");
+          setCoachAsking(false);
+        },
+      },
+    ).catch(() => setCoachAsking(false));
   }
 
   return (
@@ -564,6 +622,62 @@ export default function TradingResearch() {
             )}
 
             <p className="border-t border-border pt-3 text-sm text-muted-foreground">{probability.summary}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {symbol && (
+        <Card data-testid="card-trade-coach">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Ask the AI Trade Coach
+            </CardTitle>
+            <CardDescription>
+              Ask anything about {symbol}'s structure, liquidity, regime, and probability cone, plus your own
+              portfolio risk and recent journal reflections. Grounded in the data above only — education, not
+              investment advice. Never places an order.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {coachHistory.length === 0 && !coachStreamingAnswer && (
+              <p className="text-sm text-muted-foreground" data-testid="trade-coach-empty">
+                No questions yet — ask something like "What does my portfolio risk look like for {symbol}?"
+              </p>
+            )}
+
+            {(coachHistory.length > 0 || coachStreamingAnswer) && (
+              <div className="max-h-72 space-y-3 overflow-y-auto pr-1" data-testid="trade-coach-history">
+                {coachHistory.map((turn, i) => (
+                  <div key={i} className="space-y-1">
+                    <p className="text-xs font-medium text-foreground/90">Q: {turn.question}</p>
+                    <div className="border-l border-border pl-3 text-xs text-muted-foreground">
+                      <Markdown className="inline text-xs">{turn.answer}</Markdown>
+                    </div>
+                  </div>
+                ))}
+                {coachAsking && (
+                  <div className="space-y-1" data-testid="trade-coach-loading">
+                    <p className="border-l border-border pl-3 text-xs text-muted-foreground">
+                      {coachStreamingAnswer || "thinking…"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <form onSubmit={handleAskCoach} className="flex gap-2">
+              <Input
+                value={coachQuestion}
+                onChange={(e) => setCoachQuestion(e.target.value)}
+                placeholder="e.g. Is now a good time to look at AAPL given my risk profile?"
+                disabled={coachAsking}
+                data-testid="trade-coach-input"
+              />
+              <Button type="submit" size="sm" disabled={!coachQuestion.trim() || coachAsking} data-testid="trade-coach-submit">
+                <Send className="h-3.5 w-3.5" />
+              </Button>
+            </form>
           </CardContent>
         </Card>
       )}

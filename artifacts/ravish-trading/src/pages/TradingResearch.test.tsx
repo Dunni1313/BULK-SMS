@@ -8,11 +8,19 @@
 // Sprint 44 extended it again with the Portfolio Risk section's own cases
 // (positions list/add/delete, account value, risk analysis). Phase 3,
 // Sprint 45 extended it again with the on-demand Liquidity tab's own cases.
+// Phase 3, Sprint 48 extended it again with the AI Trade Coach chat panel's
+// own cases, mocking streamCoach() the same way StockResearch.test.tsx
+// already does for its own Ask panel (Phase 2, Sprint 30).
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithClient } from "@/test/test-utils";
+
+const streamCoachMock = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/coach-stream", () => ({
+  streamCoach: streamCoachMock,
+}));
 
 const createPositionMutate = vi.fn();
 const deletePositionMutate = vi.fn();
@@ -264,6 +272,8 @@ describe("TradingResearch page", () => {
     createPositionMutate.mockReset();
     deletePositionMutate.mockReset();
     updateSettingsMutate.mockReset();
+    streamCoachMock.mockReset();
+    streamCoachMock.mockResolvedValue(undefined);
   });
 
   it("renders the advisory-only copy and a prompt before any symbol is searched", () => {
@@ -526,5 +536,69 @@ describe("TradingResearch page", () => {
     await userEvent.click(screen.getByTestId("tab-liquidity"));
 
     expect(await screen.findByText(/Could not resolve liquidity data for "NOTATICKER"/i)).toBeInTheDocument();
+  });
+
+  it("renders the AI Trade Coach panel with an honest empty-state once a symbol is searched", async () => {
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+
+    expect(await screen.findByTestId("card-trade-coach")).toBeInTheDocument();
+    expect(screen.getByTestId("trade-coach-empty")).toBeInTheDocument();
+    expect(screen.queryByTestId("trade-coach-history")).not.toBeInTheDocument();
+  });
+
+  it("does not render the AI Trade Coach panel before any symbol is searched", () => {
+    renderWithClient(<TradingResearch />);
+    expect(screen.queryByTestId("card-trade-coach")).not.toBeInTheDocument();
+  });
+
+  it("submits a free-form question to the trade coach ask/stream endpoint", async () => {
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+
+    await userEvent.type(
+      await screen.findByTestId("trade-coach-input"),
+      "Is now a good time to look at AAPL given my risk profile?",
+    );
+    await userEvent.click(screen.getByTestId("trade-coach-submit"));
+
+    expect(streamCoachMock).toHaveBeenCalledWith(
+      "/trading/coach/ask/stream",
+      { symbol: "AAPL", question: "Is now a good time to look at AAPL given my risk profile?" },
+      expect.anything(),
+    );
+  });
+
+  it("renders a streamed answer as a Q&A turn once the stream completes", async () => {
+    streamCoachMock.mockImplementation(async (_path, _body, handlers) => {
+      handlers.onDone?.({ answer: "AAPL is in a trending-bullish regime with High liquidity." });
+    });
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+    await userEvent.type(await screen.findByTestId("trade-coach-input"), "What is the regime?");
+    await userEvent.click(screen.getByTestId("trade-coach-submit"));
+
+    expect(await screen.findByText(/trending-bullish regime with High liquidity/i)).toBeInTheDocument();
+    expect(screen.getByText("Q: What is the regime?")).toBeInTheDocument();
+  });
+
+  it("shows an honest error message in the conversation when the stream fails, never fabricating an answer", async () => {
+    streamCoachMock.mockImplementation(async (_path, _body, handlers) => {
+      handlers.onError?.("network error");
+    });
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+    await userEvent.type(await screen.findByTestId("trade-coach-input"), "What is the regime?");
+    await userEvent.click(screen.getByTestId("trade-coach-submit"));
+
+    expect(await screen.findByText(/Failed to get an answer/i)).toBeInTheDocument();
   });
 });
