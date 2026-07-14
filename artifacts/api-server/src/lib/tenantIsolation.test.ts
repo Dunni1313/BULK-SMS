@@ -331,6 +331,25 @@ describe("IDOR — fetch-by-id must filter by userId in the same query, not fetc
     expect(asOwner).toHaveLength(1);
     expect(asOther).toHaveLength(0);
   });
+
+  it("trading_positions: User B's and(id, userId) lookup never resolves User A's position (Phase 3, Sprint 44)", async () => {
+    const [positionA] = await db
+      .insert(tradingPositionsTable)
+      .values({ userId: userA, symbol: "AAPL", quantity: 10, entryPrice: 190 })
+      .returning({ id: tradingPositionsTable.id });
+
+    const asOwner = await db
+      .select()
+      .from(tradingPositionsTable)
+      .where(and(eq(tradingPositionsTable.id, positionA.id), eq(tradingPositionsTable.userId, userA)));
+    const asOther = await db
+      .select()
+      .from(tradingPositionsTable)
+      .where(and(eq(tradingPositionsTable.id, positionA.id), eq(tradingPositionsTable.userId, userB)));
+
+    expect(asOwner).toHaveLength(1);
+    expect(asOther).toHaveLength(0);
+  });
 });
 
 describe("settings kill switches — independent per user through the real getSettingsRow path", () => {

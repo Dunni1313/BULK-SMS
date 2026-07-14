@@ -75,6 +75,16 @@ export const settingsTable = pgTable("settings", {
   // fundamentalsConnected's own established shape.
   tradingDataProvider: text("trading_data_provider").notNull().default("simulated"),
   tradingDataConnected: boolean("trading_data_connected").notNull().default(false),
+  // Phase 3, Sprint 44 — Risk Management Route + UI (approved Phase 3 plan
+  // §15, this sprint's own kickoff decision). computeTradingRisk() needs an
+  // account value to size position risk against; Engine 2 has no such
+  // concept yet and, per the explicit owner decision, this is intentionally
+  // NOT a reuse of Engine 3's options-derived getAccountValue() — a stock/
+  // futures trader's account value is a genuinely different number.
+  // Honestly nullable (no default) until the user sets it; position-sizing
+  // and portfolio-budget risk scoring reports itself "insufficient data"
+  // rather than fabricating a default account size.
+  tradingAccountValue: real("trading_account_value"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 

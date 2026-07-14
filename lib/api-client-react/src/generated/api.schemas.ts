@@ -2953,6 +2953,11 @@ export interface Settings {
   tradingDataProvider?: string;
   /** Whether a live trading market-data provider is configured (always false today) */
   tradingDataConnected?: boolean;
+  /**
+     * Account value used to size Engine 2 (trading) position risk — distinct from Engine 3's options-derived account value; null until the user sets it
+     * @nullable
+     */
+  tradingAccountValue?: number | null;
 }
 
 /**
@@ -3088,6 +3093,7 @@ export interface SettingsUpdate {
   investingDefaultDiscountRate?: number;
   investingFilingsProvider?: string;
   tradingDataProvider?: string;
+  tradingAccountValue?: number;
 }
 
 export type EarningsPlayRecommendedStrategy = typeof EarningsPlayRecommendedStrategy[keyof typeof EarningsPlayRecommendedStrategy];
@@ -3815,6 +3821,196 @@ export interface TradingProbabilityAnalysis {
   confidenceLevel: TradingProbabilityAnalysisConfidenceLevel;
   confidenceExplanation: string;
   summary: string;
+}
+
+export type TradingPositionSide = typeof TradingPositionSide[keyof typeof TradingPositionSide];
+
+
+export const TradingPositionSide = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export type TradingPositionStatus = typeof TradingPositionStatus[keyof typeof TradingPositionStatus];
+
+
+export const TradingPositionStatus = {
+  open: 'open',
+  closed: 'closed',
+} as const;
+
+export interface TradingPosition {
+  id: number;
+  symbol: string;
+  instrumentType: string;
+  side: TradingPositionSide;
+  status: TradingPositionStatus;
+  quantity: number;
+  entryPrice: number;
+  entryDate: string;
+  /** @nullable */
+  exitPrice?: number | null;
+  /** @nullable */
+  exitDate?: string | null;
+  /** @nullable */
+  stopPrice?: number | null;
+  /** @nullable */
+  targetPrice?: number | null;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TradingPositionInputSide = typeof TradingPositionInputSide[keyof typeof TradingPositionInputSide];
+
+
+export const TradingPositionInputSide = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export type TradingPositionInputStatus = typeof TradingPositionInputStatus[keyof typeof TradingPositionInputStatus];
+
+
+export const TradingPositionInputStatus = {
+  open: 'open',
+  closed: 'closed',
+} as const;
+
+export interface TradingPositionInput {
+  symbol: string;
+  instrumentType?: string;
+  side?: TradingPositionInputSide;
+  status?: TradingPositionInputStatus;
+  quantity: number;
+  entryPrice: number;
+  exitPrice?: number;
+  stopPrice?: number;
+  targetPrice?: number;
+  notes?: string;
+}
+
+export type TradingPositionUpdateSide = typeof TradingPositionUpdateSide[keyof typeof TradingPositionUpdateSide];
+
+
+export const TradingPositionUpdateSide = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export type TradingPositionUpdateStatus = typeof TradingPositionUpdateStatus[keyof typeof TradingPositionUpdateStatus];
+
+
+export const TradingPositionUpdateStatus = {
+  open: 'open',
+  closed: 'closed',
+} as const;
+
+export interface TradingPositionUpdate {
+  symbol?: string;
+  instrumentType?: string;
+  side?: TradingPositionUpdateSide;
+  status?: TradingPositionUpdateStatus;
+  quantity?: number;
+  entryPrice?: number;
+  exitPrice?: number;
+  stopPrice?: number;
+  targetPrice?: number;
+  notes?: string;
+}
+
+export interface TradingRiskScoreCard {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+}
+
+export interface TradingRiskComponent {
+  key: string;
+  label: string;
+  /** @nullable */
+  score: number | null;
+  weight: number;
+  detail: string;
+}
+
+export type TradingPositionSizingRisk = TradingRiskScoreCard & ({
+  /** @nullable */
+  largestPositionSymbol: string | null;
+  /** @nullable */
+  largestPositionRiskPct: number | null;
+  capBreached: boolean;
+  unpricedSymbols: string[];
+});
+
+export type TradingStopDisciplineRisk = TradingRiskScoreCard & {
+  openPositionsCount: number;
+  positionsWithStop: number;
+  positionsWithTarget: number;
+  positionsFullyPlanned: number;
+  missingStopSymbols: string[];
+  missingTargetSymbols: string[];
+};
+
+export interface TradingPerPositionBudget {
+  id: number;
+  symbol: string;
+  /** @nullable */
+  riskDollars: number | null;
+  /** @nullable */
+  riskPct: number | null;
+  /** @nullable */
+  withinLimit: boolean | null;
+}
+
+export type TradingPortfolioRiskBudget = TradingRiskScoreCard & ({
+  /** @nullable */
+  accountValue: number | null;
+  /** @nullable */
+  totalRiskDollars: number | null;
+  /** @nullable */
+  totalRiskUsedPct: number | null;
+  capBreached: boolean;
+  perPosition: TradingPerPositionBudget[];
+});
+
+/**
+ * @nullable
+ */
+export type TradingPositionProbabilityContextRegimeLabel = typeof TradingPositionProbabilityContextRegimeLabel[keyof typeof TradingPositionProbabilityContextRegimeLabel] | null;
+
+
+export const TradingPositionProbabilityContextRegimeLabel = {
+  'trending-bullish': 'trending-bullish',
+  'trending-bearish': 'trending-bearish',
+  'range-bound': 'range-bound',
+  'volatile-choppy': 'volatile-choppy',
+  'quiet-consolidation': 'quiet-consolidation',
+} as const;
+
+export interface TradingPositionProbabilityContext {
+  positionId: number;
+  symbol: string;
+  daysAhead: number;
+  /** @nullable */
+  regimeLabel: TradingPositionProbabilityContextRegimeLabel;
+  /** @nullable */
+  stopTouchProbability: number | null;
+  /** @nullable */
+  targetTouchProbability: number | null;
+}
+
+export interface TradingRiskAnalysis {
+  overall: TradingRiskScoreCard;
+  positionSizing: TradingPositionSizingRisk;
+  stopDiscipline: TradingStopDisciplineRisk;
+  portfolioBudget: TradingPortfolioRiskBudget;
+  components: TradingRiskComponent[];
+  /** @nullable */
+  accountValue: number | null;
+  openPositionsCount: number;
+  positionContexts: TradingPositionProbabilityContext[];
 }
 
 export type GetScannerResultsParams = {

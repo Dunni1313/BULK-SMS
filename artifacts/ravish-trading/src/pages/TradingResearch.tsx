@@ -6,13 +6,18 @@
 // bounded slice) onto this same shell, without touching the Market
 // Structure card's own logic, exactly as Sprint 40's own header comment
 // anticipated. Phase 3, Sprint 42 added the Market Regime card (the third
-// bounded slice) the same way.
+// bounded slice) the same way. Phase 3, Sprint 43 added the Probability
+// card (the fourth bounded slice) the same way. Phase 3, Sprint 44 added
+// the Portfolio Risk section (the fifth bounded slice) - unlike the four
+// symbol-search-gated cards above, this section is portfolio-wide (reads
+// the calling user's own trading_positions), so it is always visible,
+// independent of the symbol search box.
 //
 // Advisory/education only: this page never previews, schedules, or submits
-// any order, and never touches a real brokerage account — Engine 2 is
-// read-only/advisory throughout this phase (Phase 3 plan §19). Future
-// sprints add further panels (Liquidity, Risk, Probability) onto this same
-// page shell without touching any existing card's own logic.
+// any order, and never touches a real brokerage account - Engine 2 is
+// read-only/advisory throughout this phase (Phase 3 plan section 19).
+// Future sprints add further panels (Liquidity) onto this same page shell
+// without touching any existing card's own logic.
 
 import { useState } from "react";
 import {
@@ -24,13 +29,23 @@ import {
   getGetTradingRegimeQueryKey,
   useGetTradingProbability,
   getGetTradingProbabilityQueryKey,
+  useListTradingPositions,
+  getListTradingPositionsQueryKey,
+  useCreateTradingPosition,
+  useDeleteTradingPosition,
+  useGetTradingRisk,
+  getGetTradingRiskQueryKey,
+  useGetSettings,
+  useUpdateSettings,
+  type TradingPositionInputSide,
 } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers, Gauge, Target } from "lucide-react";
+import { Activity, Search, TrendingUp, TrendingDown, Minus, Layers, Gauge, Target, ShieldAlert, Trash2 } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -72,6 +87,13 @@ function volatilityBadgeClass(volatilityRegime: string): string {
   return "border-border text-muted-foreground";
 }
 
+function riskGradeBadgeClass(label: string): string {
+  if (label === "Excellent" || label === "Strong") return "border-emerald-500/40 text-emerald-400";
+  if (label === "Moderate") return "border-amber-500/40 text-amber-400";
+  if (label === "Elevated" || label === "Poor") return "border-rose-500/40 text-rose-400";
+  return "border-border text-muted-foreground";
+}
+
 export default function TradingResearch() {
   const [inputValue, setInputValue] = useState("");
   const [symbol, setSymbol] = useState("");
@@ -103,6 +125,75 @@ export default function TradingResearch() {
   } = useGetTradingProbability(symbol, {
     query: { queryKey: getGetTradingProbabilityQueryKey(symbol), enabled: !!symbol },
   });
+
+  const queryClient = useQueryClient();
+
+  const { data: settings } = useGetSettings();
+  const updateSettings = useUpdateSettings();
+  const [accountValueInput, setAccountValueInput] = useState("");
+
+  const { data: positions } = useListTradingPositions({
+    query: { queryKey: getListTradingPositionsQueryKey() },
+  });
+  const createPosition = useCreateTradingPosition();
+  const deletePosition = useDeleteTradingPosition();
+  const { data: risk } = useGetTradingRisk({
+    query: { queryKey: getGetTradingRiskQueryKey() },
+  });
+
+  const [newPosition, setNewPosition] = useState({
+    symbol: "",
+    side: "long" as TradingPositionInputSide,
+    quantity: "",
+    entryPrice: "",
+    stopPrice: "",
+    targetPrice: "",
+  });
+
+  function invalidatePositionsAndRisk() {
+    queryClient.invalidateQueries({ queryKey: getListTradingPositionsQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetTradingRiskQueryKey() });
+  }
+
+  function handleSaveAccountValue(e: React.FormEvent) {
+    e.preventDefault();
+    const value = Number(accountValueInput);
+    if (!accountValueInput || isNaN(value) || value <= 0) return;
+    updateSettings.mutate(
+      { data: { tradingAccountValue: value } },
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetTradingRiskQueryKey() }) },
+    );
+  }
+
+  function handleAddPosition(e: React.FormEvent) {
+    e.preventDefault();
+    const quantity = Number(newPosition.quantity);
+    const entryPrice = Number(newPosition.entryPrice);
+    if (!newPosition.symbol.trim() || !quantity || !entryPrice) return;
+
+    createPosition.mutate(
+      {
+        data: {
+          symbol: newPosition.symbol.trim().toUpperCase(),
+          side: newPosition.side,
+          quantity,
+          entryPrice,
+          stopPrice: newPosition.stopPrice ? Number(newPosition.stopPrice) : undefined,
+          targetPrice: newPosition.targetPrice ? Number(newPosition.targetPrice) : undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          invalidatePositionsAndRisk();
+          setNewPosition({ symbol: "", side: "long", quantity: "", entryPrice: "", stopPrice: "", targetPrice: "" });
+        },
+      },
+    );
+  }
+
+  function handleDeletePosition(id: number) {
+    deletePosition.mutate({ id }, { onSuccess: invalidatePositionsAndRisk });
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -430,6 +521,186 @@ export default function TradingResearch() {
           </CardContent>
         </Card>
       )}
+
+      <Card data-testid="card-portfolio-risk">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldAlert className="h-5 w-5" />
+            Portfolio Risk
+          </CardTitle>
+          <CardDescription>
+            Position sizing, stop/target discipline, and portfolio risk budget over your own open trading positions. Never places an order.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <form onSubmit={handleSaveAccountValue} className="flex items-end gap-2">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Account Value</label>
+              <Input
+                type="number"
+                value={accountValueInput}
+                onChange={(e) => setAccountValueInput(e.target.value)}
+                placeholder={settings?.tradingAccountValue != null ? String(settings.tradingAccountValue) : "e.g. 100000"}
+                className="w-40"
+                data-testid="input-account-value"
+              />
+            </div>
+            <Button type="submit" variant="outline" data-testid="button-save-account-value">
+              Save
+            </Button>
+            {settings?.tradingAccountValue != null && (
+              <span className="pb-2 text-sm text-muted-foreground">Current: {fmtUsd(settings.tradingAccountValue)}</span>
+            )}
+          </form>
+
+          <form onSubmit={handleAddPosition} className="flex flex-wrap items-end gap-2 border-t border-border pt-4">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Symbol</label>
+              <Input
+                value={newPosition.symbol}
+                onChange={(e) => setNewPosition({ ...newPosition, symbol: e.target.value })}
+                placeholder="AAPL"
+                className="w-24"
+                data-testid="input-position-symbol"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Side</label>
+              <select
+                value={newPosition.side}
+                onChange={(e) => setNewPosition({ ...newPosition, side: e.target.value as TradingPositionInputSide })}
+                className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                data-testid="select-position-side"
+              >
+                <option value="long">Long</option>
+                <option value="short">Short</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Quantity</label>
+              <Input
+                type="number"
+                value={newPosition.quantity}
+                onChange={(e) => setNewPosition({ ...newPosition, quantity: e.target.value })}
+                className="w-24"
+                data-testid="input-position-quantity"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Entry Price</label>
+              <Input
+                type="number"
+                value={newPosition.entryPrice}
+                onChange={(e) => setNewPosition({ ...newPosition, entryPrice: e.target.value })}
+                className="w-28"
+                data-testid="input-position-entry-price"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Stop Price</label>
+              <Input
+                type="number"
+                value={newPosition.stopPrice}
+                onChange={(e) => setNewPosition({ ...newPosition, stopPrice: e.target.value })}
+                className="w-28"
+                data-testid="input-position-stop-price"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Target Price</label>
+              <Input
+                type="number"
+                value={newPosition.targetPrice}
+                onChange={(e) => setNewPosition({ ...newPosition, targetPrice: e.target.value })}
+                className="w-28"
+                data-testid="input-position-target-price"
+              />
+            </div>
+            <Button type="submit" data-testid="button-add-position">
+              Add Position
+            </Button>
+          </form>
+
+          {positions && positions.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-sm font-medium">Positions</h3>
+              <ul className="space-y-1">
+                {positions.map((p) => (
+                  <li
+                    key={p.id}
+                    data-testid={`row-position-${p.id}`}
+                    className="flex items-center justify-between rounded-md border border-border px-3 py-1.5 text-sm"
+                  >
+                    <span>
+                      {p.symbol} · {p.side} · {p.quantity} @ {fmtUsd(p.entryPrice)}
+                      {p.stopPrice != null ? ` · stop ${fmtUsd(p.stopPrice)}` : ""}
+                      {p.targetPrice != null ? ` · target ${fmtUsd(p.targetPrice)}` : ""}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeletePosition(p.id)}
+                      data-testid={`button-delete-position-${p.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {(!positions || positions.length === 0) && (
+            <p className="text-sm text-muted-foreground">No trading positions yet — add one above.</p>
+          )}
+
+          {risk && (
+            <div className="space-y-3 border-t border-border pt-4" data-testid="section-risk-analysis">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className={riskGradeBadgeClass(risk.overall.label)}>
+                  Overall: {risk.overall.label}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">{risk.overall.detail}</p>
+
+              <ul className="space-y-1">
+                <li className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground">
+                  Position sizing: {risk.positionSizing.detail}
+                </li>
+                <li className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground">
+                  Stop/target discipline: {risk.stopDiscipline.detail}
+                </li>
+                <li className="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground">
+                  Portfolio risk budget: {risk.portfolioBudget.detail}
+                </li>
+              </ul>
+
+              {risk.positionContexts.length > 0 && (
+                <div>
+                  <h3 className="mb-2 text-sm font-medium">Per-Position Touch Probability (SIMULATED regime context)</h3>
+                  <ul className="space-y-1">
+                    {risk.positionContexts.map((ctx) => (
+                      <li
+                        key={ctx.positionId}
+                        className="flex items-center justify-between rounded-md border border-border px-3 py-1.5 text-sm"
+                      >
+                        <span className="text-muted-foreground">{ctx.symbol}</span>
+                        <span>
+                          {ctx.regimeLabel ?? "regime unavailable"}
+                          {ctx.stopTouchProbability != null ? ` · stop touch ${Math.round(ctx.stopTouchProbability * 100)}%` : ""}
+                          {ctx.targetTouchProbability != null
+                            ? ` · target touch ${Math.round(ctx.targetTouchProbability * 100)}%`
+                            : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

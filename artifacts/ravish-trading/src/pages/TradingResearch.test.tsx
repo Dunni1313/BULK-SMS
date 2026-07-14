@@ -4,12 +4,18 @@
 // card's own cases, mocking useGetTradingMultiTimeframe alongside the
 // existing useGetTradingStructure mock. Phase 3, Sprint 42 extended it
 // again with the Market Regime card's own cases. Phase 3, Sprint 43
-// extended it again with the Probability card's own cases.
+// extended it again with the Probability card's own cases. Phase 3,
+// Sprint 44 extended it again with the Portfolio Risk section's own cases
+// (positions list/add/delete, account value, risk analysis).
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithClient } from "@/test/test-utils";
+
+const createPositionMutate = vi.fn();
+const deletePositionMutate = vi.fn();
+const updateSettingsMutate = vi.fn();
 
 const mockState = vi.hoisted(() => ({
   structure: undefined as unknown,
@@ -24,6 +30,9 @@ const mockState = vi.hoisted(() => ({
   probability: undefined as unknown,
   isProbabilityLoading: false,
   isProbabilityError: false,
+  positions: [] as unknown[],
+  risk: undefined as unknown,
+  settings: undefined as unknown,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -47,6 +56,12 @@ vi.mock("@workspace/api-client-react", async () => {
       isLoading: mockState.isRegimeLoading,
       isError: mockState.isRegimeError,
     }),
+    useListTradingPositions: () => ({ data: mockState.positions }),
+    useGetTradingRisk: () => ({ data: mockState.risk }),
+    useGetSettings: () => ({ data: mockState.settings }),
+    useCreateTradingPosition: () => ({ mutate: createPositionMutate, isPending: false }),
+    useDeleteTradingPosition: () => ({ mutate: deletePositionMutate, isPending: false }),
+    useUpdateSettings: () => ({ mutate: updateSettingsMutate, isPending: false }),
     useGetTradingProbability: () => ({
       data: mockState.probability,
       isLoading: mockState.isProbabilityLoading,
@@ -131,6 +146,70 @@ function probabilityAnalysis(over: Record<string, unknown> = {}) {
   };
 }
 
+function tradingPosition(over: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    symbol: "AAPL",
+    instrumentType: "stock",
+    side: "long",
+    status: "open",
+    quantity: 10,
+    entryPrice: 190,
+    entryDate: "2026-07-01T00:00:00.000Z",
+    exitPrice: null,
+    exitDate: null,
+    stopPrice: 180,
+    targetPrice: 210,
+    notes: "",
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
+    ...over,
+  };
+}
+
+function tradingRiskAnalysis(over: Record<string, unknown> = {}) {
+  return {
+    overall: { score: 82, label: "Excellent", detail: "Composite of position sizing, stop/target discipline, and portfolio risk budget." },
+    positionSizing: {
+      score: 100,
+      label: "Excellent",
+      detail: "Largest single-position risk is AAPL at 0.1%, within the 2% cap.",
+      largestPositionSymbol: "AAPL",
+      largestPositionRiskPct: 0.1,
+      capBreached: false,
+      unpricedSymbols: [],
+    },
+    stopDiscipline: {
+      score: 100,
+      label: "Excellent",
+      detail: "All 1 open position(s) have both a stop and a target defined.",
+      openPositionsCount: 1,
+      positionsWithStop: 1,
+      positionsWithTarget: 1,
+      positionsFullyPlanned: 1,
+      missingStopSymbols: [],
+      missingTargetSymbols: [],
+    },
+    portfolioBudget: {
+      score: 100,
+      label: "Excellent",
+      detail: "Aggregate open-position risk is 0.1% of account value, within the 6% portfolio risk-budget cap.",
+      accountValue: 100000,
+      totalRiskDollars: 100,
+      totalRiskUsedPct: 0.1,
+      capBreached: false,
+      perPosition: [{ id: 1, symbol: "AAPL", riskDollars: 100, riskPct: 0.1, withinLimit: true }],
+    },
+    components: [],
+    accountValue: 100000,
+    openPositionsCount: 1,
+    positionContexts: [
+      { positionId: 1, symbol: "AAPL", daysAhead: 20, regimeLabel: "trending-bullish", stopTouchProbability: 0.12, targetTouchProbability: 0.34 },
+    ],
+    ...over,
+  };
+}
+
 describe("TradingResearch page", () => {
   beforeEach(() => {
     mockState.structure = undefined;
@@ -145,6 +224,12 @@ describe("TradingResearch page", () => {
     mockState.probability = undefined;
     mockState.isProbabilityLoading = false;
     mockState.isProbabilityError = false;
+    mockState.positions = [];
+    mockState.risk = undefined;
+    mockState.settings = undefined;
+    createPositionMutate.mockReset();
+    deletePositionMutate.mockReset();
+    updateSettingsMutate.mockReset();
   });
 
   it("renders the advisory-only copy and a prompt before any symbol is searched", () => {
@@ -286,5 +371,78 @@ describe("TradingResearch page", () => {
     expect(await screen.findByTestId("card-probability")).toBeInTheDocument();
     expect(screen.getByText("Volatility could not be computed for this symbol.")).toBeInTheDocument();
     expect(screen.queryByText(/annualized volatility/i)).not.toBeInTheDocument();
+  });
+
+  it("renders the Portfolio Risk section without requiring a symbol search, listing positions and the risk analysis", () => {
+    mockState.positions = [tradingPosition()];
+    mockState.risk = tradingRiskAnalysis();
+    mockState.settings = { tradingAccountValue: 100000 };
+    renderWithClient(<TradingResearch />);
+
+    expect(screen.getByTestId("card-portfolio-risk")).toBeInTheDocument();
+    expect(screen.getByTestId("row-position-1")).toBeInTheDocument();
+    expect(screen.getByText(/AAPL . long . 10/)).toBeInTheDocument();
+    expect(screen.getByText("Overall: Excellent")).toBeInTheDocument();
+    expect(screen.getByTestId("section-risk-analysis")).toBeInTheDocument();
+  });
+
+  it("shows an honest empty-positions message when no positions exist yet", () => {
+    renderWithClient(<TradingResearch />);
+    expect(screen.getByText("No trading positions yet — add one above.")).toBeInTheDocument();
+  });
+
+  it("submits the add-position form with the entered values", async () => {
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-position-symbol"), "msft");
+    await userEvent.type(screen.getByTestId("input-position-quantity"), "5");
+    await userEvent.type(screen.getByTestId("input-position-entry-price"), "400");
+    await userEvent.type(screen.getByTestId("input-position-stop-price"), "380");
+    await userEvent.click(screen.getByTestId("button-add-position"));
+
+    expect(createPositionMutate).toHaveBeenCalledWith(
+      {
+        data: {
+          symbol: "MSFT",
+          side: "long",
+          quantity: 5,
+          entryPrice: 400,
+          stopPrice: 380,
+          targetPrice: undefined,
+        },
+      },
+      expect.anything(),
+    );
+  });
+
+  it("submits a delete for the clicked position", async () => {
+    mockState.positions = [tradingPosition()];
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.click(screen.getByTestId("button-delete-position-1"));
+
+    expect(deletePositionMutate).toHaveBeenCalledWith({ id: 1 }, expect.anything());
+  });
+
+  it("submits the account value form with the entered value", async () => {
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-account-value"), "50000");
+    await userEvent.click(screen.getByTestId("button-save-account-value"));
+
+    expect(updateSettingsMutate).toHaveBeenCalledWith(
+      { data: { tradingAccountValue: 50000 } },
+      expect.anything(),
+    );
+  });
+
+  it("shows the per-position touch probability context when risk data resolves", () => {
+    mockState.positions = [tradingPosition()];
+    mockState.risk = tradingRiskAnalysis();
+    renderWithClient(<TradingResearch />);
+
+    expect(screen.getByText(/trending-bullish/)).toBeInTheDocument();
+    expect(screen.getByText(/stop touch 12%/)).toBeInTheDocument();
+    expect(screen.getByText(/target touch 34%/)).toBeInTheDocument();
   });
 });

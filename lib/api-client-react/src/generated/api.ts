@@ -121,8 +121,12 @@ import type {
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
   TradingMultiTimeframeAnalysis,
+  TradingPosition,
+  TradingPositionInput,
+  TradingPositionUpdate,
   TradingProbabilityAnalysis,
   TradingRegimeAnalysis,
+  TradingRiskAnalysis,
   TradingStructureAnalysis,
   UniverseSymbol,
   ValueHistoryRow,
@@ -7816,6 +7820,450 @@ export function useGetTradingProbability<TData = Awaited<ReturnType<typeof getTr
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradingProbabilityQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListTradingPositionsUrl = () => {
+
+
+
+
+  return `/api/trading/positions`
+}
+
+/**
+ * @summary List the calling user's trading positions, newest first
+ */
+export const listTradingPositions = async ( options?: RequestInit): Promise<TradingPosition[]> => {
+
+  return customFetch<TradingPosition[]>(getListTradingPositionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingPositionsQueryKey = () => {
+    return [
+    `/api/trading/positions`
+    ] as const;
+    }
+
+
+export const getListTradingPositionsQueryOptions = <TData = Awaited<ReturnType<typeof listTradingPositions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingPositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingPositionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingPositions>>> = ({ signal }) => listTradingPositions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingPositions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingPositionsQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingPositions>>>
+export type ListTradingPositionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's trading positions, newest first
+ */
+
+export function useListTradingPositions<TData = Awaited<ReturnType<typeof listTradingPositions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingPositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingPositionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingPositionUrl = () => {
+
+
+
+
+  return `/api/trading/positions`
+}
+
+/**
+ * @summary Create a trading position
+ */
+export const createTradingPosition = async (tradingPositionInput: TradingPositionInput, options?: RequestInit): Promise<TradingPosition> => {
+
+  return customFetch<TradingPosition>(getCreateTradingPositionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingPositionInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingPositionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingPosition>>, TError,{data: BodyType<TradingPositionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingPosition>>, TError,{data: BodyType<TradingPositionInput>}, TContext> => {
+
+const mutationKey = ['createTradingPosition'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingPosition>>, {data: BodyType<TradingPositionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTradingPosition(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingPositionMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingPosition>>>
+    export type CreateTradingPositionMutationBody = BodyType<TradingPositionInput>
+    export type CreateTradingPositionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a trading position
+ */
+export const useCreateTradingPosition = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingPosition>>, TError,{data: BodyType<TradingPositionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingPosition>>,
+        TError,
+        {data: BodyType<TradingPositionInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingPositionMutationOptions(options));
+    }
+
+export const getGetTradingPositionUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/positions/${id}`
+}
+
+/**
+ * @summary Get a trading position
+ */
+export const getTradingPosition = async (id: number, options?: RequestInit): Promise<TradingPosition> => {
+
+  return customFetch<TradingPosition>(getGetTradingPositionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingPositionQueryKey = (id: number,) => {
+    return [
+    `/api/trading/positions/${id}`
+    ] as const;
+    }
+
+
+export const getGetTradingPositionQueryOptions = <TData = Awaited<ReturnType<typeof getTradingPosition>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingPosition>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingPositionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingPosition>>> = ({ signal }) => getTradingPosition(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingPosition>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingPositionQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingPosition>>>
+export type GetTradingPositionQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a trading position
+ */
+
+export function useGetTradingPosition<TData = Awaited<ReturnType<typeof getTradingPosition>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingPosition>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingPositionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingPositionUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/positions/${id}`
+}
+
+/**
+ * @summary Update a trading position
+ */
+export const updateTradingPosition = async (id: number,
+    tradingPositionUpdate: TradingPositionUpdate, options?: RequestInit): Promise<TradingPosition> => {
+
+  return customFetch<TradingPosition>(getUpdateTradingPositionUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingPositionUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingPositionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingPosition>>, TError,{id: number;data: BodyType<TradingPositionUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingPosition>>, TError,{id: number;data: BodyType<TradingPositionUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingPosition'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingPosition>>, {id: number;data: BodyType<TradingPositionUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingPosition(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingPositionMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingPosition>>>
+    export type UpdateTradingPositionMutationBody = BodyType<TradingPositionUpdate>
+    export type UpdateTradingPositionMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a trading position
+ */
+export const useUpdateTradingPosition = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingPosition>>, TError,{id: number;data: BodyType<TradingPositionUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingPosition>>,
+        TError,
+        {id: number;data: BodyType<TradingPositionUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingPositionMutationOptions(options));
+    }
+
+export const getDeleteTradingPositionUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/positions/${id}`
+}
+
+/**
+ * @summary Delete a trading position
+ */
+export const deleteTradingPosition = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingPositionUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingPositionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingPosition>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingPosition>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingPosition'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingPosition>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingPosition(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingPositionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingPosition>>>
+
+    export type DeleteTradingPositionMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a trading position
+ */
+export const useDeleteTradingPosition = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingPosition>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingPosition>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingPositionMutationOptions(options));
+    }
+
+export const getGetTradingRiskUrl = () => {
+
+
+
+
+  return `/api/trading/risk`
+}
+
+/**
+ * @summary Portfolio risk analysis over the calling user's own open trading positions — position sizing, stop/target discipline, and portfolio risk budget, SIMULATED-first, honestly reports insufficient data rather than fabricating a default account value or position
+ */
+export const getTradingRisk = async ( options?: RequestInit): Promise<TradingRiskAnalysis> => {
+
+  return customFetch<TradingRiskAnalysis>(getGetTradingRiskUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingRiskQueryKey = () => {
+    return [
+    `/api/trading/risk`
+    ] as const;
+    }
+
+
+export const getGetTradingRiskQueryOptions = <TData = Awaited<ReturnType<typeof getTradingRisk>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingRisk>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingRiskQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingRisk>>> = ({ signal }) => getTradingRisk({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingRisk>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingRiskQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingRisk>>>
+export type GetTradingRiskQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio risk analysis over the calling user's own open trading positions — position sizing, stop/target discipline, and portfolio risk budget, SIMULATED-first, honestly reports insufficient data rather than fabricating a default account value or position
+ */
+
+export function useGetTradingRisk<TData = Awaited<ReturnType<typeof getTradingRisk>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingRisk>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingRiskQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

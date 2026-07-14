@@ -1636,7 +1636,8 @@ export const GetSettingsResponse = zod.object({
   "investingDefaultDiscountRate": zod.number().optional().describe('Default discount-rate assumption for the Investing Engine\'s DCF\/Buffett valuation models (default 0.09)'),
   "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)'),
   "tradingDataProvider": zod.string().optional().describe('Institutional Trading Engine market-data provider (only \"simulated\" is wired today)'),
-  "tradingDataConnected": zod.boolean().optional().describe('Whether a live trading market-data provider is configured (always false today)')
+  "tradingDataConnected": zod.boolean().optional().describe('Whether a live trading market-data provider is configured (always false today)'),
+  "tradingAccountValue": zod.number().nullish().describe('Account value used to size Engine 2 (trading) position risk — distinct from Engine 3\'s options-derived account value; null until the user sets it')
 })
 
 
@@ -1678,7 +1679,8 @@ export const UpdateSettingsBody = zod.object({
   "investingRiskFreeRate": zod.number().optional(),
   "investingDefaultDiscountRate": zod.number().optional(),
   "investingFilingsProvider": zod.string().optional(),
-  "tradingDataProvider": zod.string().optional()
+  "tradingDataProvider": zod.string().optional(),
+  "tradingAccountValue": zod.number().optional()
 })
 
 export const UpdateSettingsResponse = zod.object({
@@ -1720,7 +1722,8 @@ export const UpdateSettingsResponse = zod.object({
   "investingDefaultDiscountRate": zod.number().optional().describe('Default discount-rate assumption for the Investing Engine\'s DCF\/Buffett valuation models (default 0.09)'),
   "investingFilingsProvider": zod.string().optional().describe('Filings data source for Annual Report Analysis (only \"edgar\" is wired today)'),
   "tradingDataProvider": zod.string().optional().describe('Institutional Trading Engine market-data provider (only \"simulated\" is wired today)'),
-  "tradingDataConnected": zod.boolean().optional().describe('Whether a live trading market-data provider is configured (always false today)')
+  "tradingDataConnected": zod.boolean().optional().describe('Whether a live trading market-data provider is configured (always false today)'),
+  "tradingAccountValue": zod.number().nullish().describe('Account value used to size Engine 2 (trading) position risk — distinct from Engine 3\'s options-derived account value; null until the user sets it')
 })
 
 
@@ -3856,6 +3859,187 @@ export const GetTradingProbabilityResponse = zod.object({
   "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
   "confidenceExplanation": zod.string(),
   "summary": zod.string()
+})
+
+
+/**
+ * @summary List the calling user's trading positions, newest first
+ */
+export const ListTradingPositionsResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "instrumentType": zod.string(),
+  "side": zod.enum(['long', 'short']),
+  "status": zod.enum(['open', 'closed']),
+  "quantity": zod.number(),
+  "entryPrice": zod.number(),
+  "entryDate": zod.string(),
+  "exitPrice": zod.number().nullish(),
+  "exitDate": zod.string().nullish(),
+  "stopPrice": zod.number().nullish(),
+  "targetPrice": zod.number().nullish(),
+  "notes": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTradingPositionsResponse = zod.array(ListTradingPositionsResponseItem)
+
+
+/**
+ * @summary Create a trading position
+ */
+export const CreateTradingPositionBody = zod.object({
+  "symbol": zod.string(),
+  "instrumentType": zod.string().optional(),
+  "side": zod.enum(['long', 'short']).optional(),
+  "status": zod.enum(['open', 'closed']).optional(),
+  "quantity": zod.number(),
+  "entryPrice": zod.number(),
+  "exitPrice": zod.number().optional(),
+  "stopPrice": zod.number().optional(),
+  "targetPrice": zod.number().optional(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Get a trading position
+ */
+export const GetTradingPositionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetTradingPositionResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "instrumentType": zod.string(),
+  "side": zod.enum(['long', 'short']),
+  "status": zod.enum(['open', 'closed']),
+  "quantity": zod.number(),
+  "entryPrice": zod.number(),
+  "entryDate": zod.string(),
+  "exitPrice": zod.number().nullish(),
+  "exitDate": zod.string().nullish(),
+  "stopPrice": zod.number().nullish(),
+  "targetPrice": zod.number().nullish(),
+  "notes": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a trading position
+ */
+export const UpdateTradingPositionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTradingPositionBody = zod.object({
+  "symbol": zod.string().optional(),
+  "instrumentType": zod.string().optional(),
+  "side": zod.enum(['long', 'short']).optional(),
+  "status": zod.enum(['open', 'closed']).optional(),
+  "quantity": zod.number().optional(),
+  "entryPrice": zod.number().optional(),
+  "exitPrice": zod.number().optional(),
+  "stopPrice": zod.number().optional(),
+  "targetPrice": zod.number().optional(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateTradingPositionResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "instrumentType": zod.string(),
+  "side": zod.enum(['long', 'short']),
+  "status": zod.enum(['open', 'closed']),
+  "quantity": zod.number(),
+  "entryPrice": zod.number(),
+  "entryDate": zod.string(),
+  "exitPrice": zod.number().nullish(),
+  "exitDate": zod.string().nullish(),
+  "stopPrice": zod.number().nullish(),
+  "targetPrice": zod.number().nullish(),
+  "notes": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a trading position
+ */
+export const DeleteTradingPositionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Portfolio risk analysis over the calling user's own open trading positions — position sizing, stop/target discipline, and portfolio risk budget, SIMULATED-first, honestly reports insufficient data rather than fabricating a default account value or position
+ */
+export const GetTradingRiskResponse = zod.object({
+  "overall": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "positionSizing": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}).and(zod.object({
+  "largestPositionSymbol": zod.string().nullable(),
+  "largestPositionRiskPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "unpricedSymbols": zod.array(zod.string())
+})),
+  "stopDiscipline": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}).and(zod.object({
+  "openPositionsCount": zod.number(),
+  "positionsWithStop": zod.number(),
+  "positionsWithTarget": zod.number(),
+  "positionsFullyPlanned": zod.number(),
+  "missingStopSymbols": zod.array(zod.string()),
+  "missingTargetSymbols": zod.array(zod.string())
+})),
+  "portfolioBudget": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}).and(zod.object({
+  "accountValue": zod.number().nullable(),
+  "totalRiskDollars": zod.number().nullable(),
+  "totalRiskUsedPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "perPosition": zod.array(zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "riskDollars": zod.number().nullable(),
+  "riskPct": zod.number().nullable(),
+  "withinLimit": zod.boolean().nullable()
+}))
+})),
+  "components": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number().nullable(),
+  "weight": zod.number(),
+  "detail": zod.string()
+})),
+  "accountValue": zod.number().nullable(),
+  "openPositionsCount": zod.number(),
+  "positionContexts": zod.array(zod.object({
+  "positionId": zod.number(),
+  "symbol": zod.string(),
+  "daysAhead": zod.number(),
+  "regimeLabel": zod.union([zod.literal('trending-bullish'),zod.literal('trending-bearish'),zod.literal('range-bound'),zod.literal('volatile-choppy'),zod.literal('quiet-consolidation'),zod.literal(null)]).nullable(),
+  "stopTouchProbability": zod.number().nullable(),
+  "targetTouchProbability": zod.number().nullable()
+}))
 })
 
 

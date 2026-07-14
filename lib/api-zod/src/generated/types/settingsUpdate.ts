@@ -46,4 +46,5 @@ export interface SettingsUpdate {
   investingDefaultDiscountRate?: number;
   investingFilingsProvider?: string;
   tradingDataProvider?: string;
+  tradingAccountValue?: number;
 }

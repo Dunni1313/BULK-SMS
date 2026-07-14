@@ -82,4 +82,9 @@ export interface Settings {
   tradingDataProvider?: string;
   /** Whether a live trading market-data provider is configured (always false today) */
   tradingDataConnected?: boolean;
+  /**
+     * Account value used to size Engine 2 (trading) position risk — distinct from Engine 3's options-derived account value; null until the user sets it
+     * @nullable
+     */
+  tradingAccountValue?: number | null;
 }

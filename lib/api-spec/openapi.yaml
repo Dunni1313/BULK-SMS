@@ -44,6 +44,10 @@ tags:
     description: Engine 2 Market Regime analysis — composes trend (Multi-Timeframe), liquidity, and realized-volatility axes into a single regime read, SIMULATED-first, advisory only, never places an order
   - name: trading-probability
     description: Engine 2 Probability analysis — a driftless lognormal probability cone (±1σ/±2σ) and honest availability, composed on Market Regime's own resolved price/volatility, SIMULATED-first, advisory only, never places an order
+  - name: trading-positions
+    description: Engine 2 trading position ledger (open/closed positions, entry/stop/target) — instrument-agnostic, distinct from the options-income "trades" table, advisory only, never places an order
+  - name: trading-risk
+    description: Engine 2 portfolio risk analysis (position sizing, stop/target discipline, portfolio risk budget) over the calling user's own trading_positions, composed on Market Regime's own resolved price/volatility for touch-probability context, SIMULATED-first, advisory only, never places an order
 
 paths:
   /healthz:
@@ -1960,6 +1964,114 @@ paths:
                 $ref: "#/components/schemas/TradingProbabilityAnalysis"
         "404":
           description: Unknown or invalid symbol
+
+  # ─── Trading Positions (Engine 2, Phase 3 Sprint 44) ────────────────────────
+  /trading/positions:
+    get:
+      operationId: listTradingPositions
+      tags: [trading-positions]
+      summary: List the calling user's trading positions, newest first
+      responses:
+        "200":
+          description: Trading positions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingPosition"
+    post:
+      operationId: createTradingPosition
+      tags: [trading-positions]
+      summary: Create a trading position
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingPositionInput"
+      responses:
+        "201":
+          description: Trading position created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingPosition"
+
+  /trading/positions/{id}:
+    get:
+      operationId: getTradingPosition
+      tags: [trading-positions]
+      summary: Get a trading position
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trading position
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingPosition"
+        "404":
+          description: Trading position not found
+    patch:
+      operationId: updateTradingPosition
+      tags: [trading-positions]
+      summary: Update a trading position
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingPositionUpdate"
+      responses:
+        "200":
+          description: Updated trading position
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingPosition"
+        "404":
+          description: Trading position not found
+    delete:
+      operationId: deleteTradingPosition
+      tags: [trading-positions]
+      summary: Delete a trading position
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Trading position deleted
+        "404":
+          description: Trading position not found
+
+  # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
+  /trading/risk:
+    get:
+      operationId: getTradingRisk
+      tags: [trading-risk]
+      summary: Portfolio risk analysis over the calling user's own open trading positions — position sizing, stop/target discipline, and portfolio risk budget, SIMULATED-first, honestly reports insufficient data rather than fabricating a default account value or position
+      responses:
+        "200":
+          description: Trading risk analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingRiskAnalysis"
 
 components:
   schemas:
@@ -5002,6 +5114,9 @@ components:
         tradingDataConnected:
           type: boolean
           description: Whether a live trading market-data provider is configured (always false today)
+        tradingAccountValue:
+          type: ["number", "null"]
+          description: Account value used to size Engine 2 (trading) position risk — distinct from Engine 3's options-derived account value; null until the user sets it
 
     FundamentalsProviderStatus:
       type: object
@@ -5125,6 +5240,8 @@ components:
           type: string
         tradingDataProvider:
           type: string
+        tradingAccountValue:
+          type: number
 
     # ─── Earnings & Market Data ──────────────────────────────────────────────────
     EarningsPlay:
@@ -6129,3 +6246,262 @@ components:
           type: string
         summary:
           type: string
+
+    TradingPosition:
+      type: object
+      required: [id, symbol, instrumentType, side, status, quantity, entryPrice, entryDate, notes, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        instrumentType:
+          type: string
+        side:
+          type: string
+          enum: [long, short]
+        status:
+          type: string
+          enum: [open, closed]
+        quantity:
+          type: number
+        entryPrice:
+          type: number
+        entryDate:
+          type: string
+        exitPrice:
+          type: ["number", "null"]
+        exitDate:
+          type: ["string", "null"]
+        stopPrice:
+          type: ["number", "null"]
+        targetPrice:
+          type: ["number", "null"]
+        notes:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TradingPositionInput:
+      type: object
+      required: [symbol, quantity, entryPrice]
+      properties:
+        symbol:
+          type: string
+        instrumentType:
+          type: string
+        side:
+          type: string
+          enum: [long, short]
+        status:
+          type: string
+          enum: [open, closed]
+        quantity:
+          type: number
+        entryPrice:
+          type: number
+        exitPrice:
+          type: number
+        stopPrice:
+          type: number
+        targetPrice:
+          type: number
+        notes:
+          type: string
+
+    TradingPositionUpdate:
+      type: object
+      properties:
+        symbol:
+          type: string
+        instrumentType:
+          type: string
+        side:
+          type: string
+          enum: [long, short]
+        status:
+          type: string
+          enum: [open, closed]
+        quantity:
+          type: number
+        entryPrice:
+          type: number
+        exitPrice:
+          type: number
+        stopPrice:
+          type: number
+        targetPrice:
+          type: number
+        notes:
+          type: string
+
+    TradingRiskScoreCard:
+      type: object
+      required: [score, label, detail]
+      properties:
+        score:
+          type: ["number", "null"]
+        label:
+          type: string
+        detail:
+          type: string
+
+    TradingRiskComponent:
+      type: object
+      required: [key, label, score, weight, detail]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        score:
+          type: ["number", "null"]
+        weight:
+          type: number
+        detail:
+          type: string
+
+    TradingPositionSizingRisk:
+      allOf:
+        - $ref: "#/components/schemas/TradingRiskScoreCard"
+        - type: object
+          required: [largestPositionSymbol, largestPositionRiskPct, capBreached, unpricedSymbols]
+          properties:
+            largestPositionSymbol:
+              type: ["string", "null"]
+            largestPositionRiskPct:
+              type: ["number", "null"]
+            capBreached:
+              type: boolean
+            unpricedSymbols:
+              type: array
+              items:
+                type: string
+
+    TradingStopDisciplineRisk:
+      allOf:
+        - $ref: "#/components/schemas/TradingRiskScoreCard"
+        - type: object
+          required:
+            [
+              openPositionsCount,
+              positionsWithStop,
+              positionsWithTarget,
+              positionsFullyPlanned,
+              missingStopSymbols,
+              missingTargetSymbols,
+            ]
+          properties:
+            openPositionsCount:
+              type: integer
+            positionsWithStop:
+              type: integer
+            positionsWithTarget:
+              type: integer
+            positionsFullyPlanned:
+              type: integer
+            missingStopSymbols:
+              type: array
+              items:
+                type: string
+            missingTargetSymbols:
+              type: array
+              items:
+                type: string
+
+    TradingPerPositionBudget:
+      type: object
+      required: [id, symbol, riskDollars, riskPct, withinLimit]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        riskDollars:
+          type: ["number", "null"]
+        riskPct:
+          type: ["number", "null"]
+        withinLimit:
+          type: ["boolean", "null"]
+
+    TradingPortfolioRiskBudget:
+      allOf:
+        - $ref: "#/components/schemas/TradingRiskScoreCard"
+        - type: object
+          required: [accountValue, totalRiskDollars, totalRiskUsedPct, capBreached, perPosition]
+          properties:
+            accountValue:
+              type: ["number", "null"]
+            totalRiskDollars:
+              type: ["number", "null"]
+            totalRiskUsedPct:
+              type: ["number", "null"]
+            capBreached:
+              type: boolean
+            perPosition:
+              type: array
+              items:
+                $ref: "#/components/schemas/TradingPerPositionBudget"
+
+    TradingPositionProbabilityContext:
+      type: object
+      required: [positionId, symbol, daysAhead, regimeLabel, stopTouchProbability, targetTouchProbability]
+      properties:
+        positionId:
+          type: integer
+        symbol:
+          type: string
+        daysAhead:
+          type: number
+        regimeLabel:
+          type: ["string", "null"]
+          enum:
+            [
+              trending-bullish,
+              trending-bearish,
+              range-bound,
+              volatile-choppy,
+              quiet-consolidation,
+              null,
+            ]
+        stopTouchProbability:
+          type: ["number", "null"]
+        targetTouchProbability:
+          type: ["number", "null"]
+
+    TradingRiskAnalysis:
+      type: object
+      required:
+        [
+          overall,
+          positionSizing,
+          stopDiscipline,
+          portfolioBudget,
+          components,
+          accountValue,
+          openPositionsCount,
+          positionContexts,
+        ]
+      properties:
+        overall:
+          $ref: "#/components/schemas/TradingRiskScoreCard"
+        positionSizing:
+          $ref: "#/components/schemas/TradingPositionSizingRisk"
+        stopDiscipline:
+          $ref: "#/components/schemas/TradingStopDisciplineRisk"
+        portfolioBudget:
+          $ref: "#/components/schemas/TradingPortfolioRiskBudget"
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingRiskComponent"
+        accountValue:
+          type: ["number", "null"]
+        openPositionsCount:
+          type: integer
+        positionContexts:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingPositionProbabilityContext"
