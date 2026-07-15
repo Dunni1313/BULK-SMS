@@ -1,6 +1,6 @@
 # Phase 6 — Testing, Security & Production-Readiness — Master Planning Document
 
-**Status: PHASE 6 IN PROGRESS.** This document proposed a candidate Phase 6 scope, sequence, and strategy; the project owner has approved and Sprint 69 has now shipped (§2a) — the platform's first browser-level E2E testing capability. **No sprint number below Sprint 69 is a commitment** — per the established per-sprint approval process (`CLAUDE.md` §3, unbroken since Phase 1), each further proposed sprint still requires its own explicit kickoff, scope confirmation, and approval before any code is written, exactly as every sprint from 1 through 69 required.
+**Status: PHASE 6 IN PROGRESS.** This document proposed a candidate Phase 6 scope, sequence, and strategy; the project owner has approved and **Sprint 69 (§2a) and Sprint 70 (§2c) have both shipped** — the platform's first browser-level E2E testing capability, plus 2 genuine cross-engine E2E flows. A post-Sprint-69 roadmap review (§2b) recommended promoting the Cross-Engine E2E Integration Suite ahead of the originally-listed frontend legacy-page coverage sweep, which the project owner approved; that review also recommends (not yet applied) narrowing Phase 6 to its Testing charter and re-homing Monitoring/Alerting, Live-Data Verification, and the Rollout Plan to a future Phase 7. **No sprint number below Sprint 70 is a commitment** — per the established per-sprint approval process (`CLAUDE.md` §3, unbroken since Phase 1), each further proposed sprint still requires its own explicit kickoff, scope confirmation, and approval before any code is written, exactly as every sprint from 1 through 70 required.
 
 **Prepared after:** Phase 5's close (`docs/Phase-5-Final-Completion-Report.md`), the Sprint 69 planning review that recommended closing Phase 5 rather than opening a further sprint, and a fresh reading of `docs/DK-AI-OS-Architecture-Blueprint.md`'s own original Phase 6 (Testing) and Phase 7 (Production) sections against the platform as it actually exists today at the close of Sprint 68.
 
@@ -36,17 +36,19 @@ Phase 6, as proposed here, combines the remainder of the Blueprint's own Phase 6
 
 Numbering continues the project's single global counter, starting at **Sprint 69**. Every sprint below is a proposal, not a commitment — sequencing may change based on what the project owner actually wants to prioritize, and any sprint may be split further (mirroring the Sprint 33/34, 57/58 Core-then-Route+UI precedent) once its true scope is better understood at kickoff.
 
+**Renumbered after the post-Sprint-69 roadmap review (§2b):** the Cross-Engine E2E Integration Suite (originally listed as candidate #72) was promoted to Sprint 70, ahead of the frontend legacy-page coverage sweep. The table below reflects the actual shipped/assigned order; items not yet reached keep their original candidate numbers as placeholders only — still not commitments.
+
 | # | Sprint | Type | Status | Rationale for this position |
 |---|---|---|---|---|
 | 69 | E2E Testing Framework Selection + First Smoke Slice | Foundation | **SHIPPED (§2a)** | Nothing else in this phase can be scoped concretely until a framework (Playwright is the natural default — headless Chromium is already pre-installed in this environment) is chosen; ships with one real smoke test per engine (login → one Engine 1/2/3 flow each) to prove the harness works end-to-end, not just install tooling |
-| 70 | Frontend Legacy-Page Test Coverage — Slice 1 | Testing | Not started | Bounded to 4–5 of the 14 untested pages (mirroring the Route+UI backlog-reduction pattern from Phase 3, Sprints 40–46, which handled exactly this kind of "many similar items, one at a time" backlog) |
-| 71 | Frontend Legacy-Page Test Coverage — Slice 2 | Testing | Not started | Remaining 9–10 pages, or however many Slice 1 didn't reach |
-| 72 | Cross-Engine E2E Integration Suite | Testing | Not started | Now that the framework exists (69) and unit-level coverage is closed (70/71), add real browser-level flows spanning 2+ engines (e.g., search a symbol in Engine 1 → see it reflected in the Command Center → see it in Engine 2) — the genuinely new capability neither the existing unit tests nor the existing live-HTTP route tests provide |
+| 70 | Cross-Engine E2E Integration Suite | Testing | **SHIPPED (§2c)** | Promoted ahead of the coverage sweep per §2b's review — highest remaining business value, zero new tooling decisions, directly reuses Sprint 69's harness; adds real browser-level flows spanning 2+ engines on the Institutional Dashboard and the Cross-Engine Daily Report |
+| 71 | Frontend Legacy-Page Test Coverage — Slice 1 | Testing | Not started | Bounded to 4–5 of the 14 untested pages (mirroring the Route+UI backlog-reduction pattern from Phase 3, Sprints 40–46, which handled exactly this kind of "many similar items, one at a time" backlog) |
+| 72 | Frontend Legacy-Page Test Coverage — Slice 2 | Testing | Not started | Remaining 9–10 pages, or however many Slice 1 didn't reach |
 | 73 | Load & Chaos Testing — Automation Scheduler | Testing/Security | Not started | The Blueprint's own explicitly-named highest-risk gap ("if this phase gets compressed... it's the automation/execution path... that pays for it first") — requires a tooling decision (k6/artillery) as its own first sub-step, mirroring Sprint 69's own framework-selection precedent |
-| 74 | Monitoring, Alerting & Incident Runbook | Production-readiness | Not started | Reuses `pino` (already the logging foundation) + `platform_audit_log`/`auto_execution_log` (already the compliance/observability substrate) per the Blueprint's own explicit reuse guidance; produces a real, testable incident-response runbook, not just a document |
+| 74 | Monitoring, Alerting & Incident Runbook | Production-readiness | Not started (§2b recommends re-homing to a future Phase 7) | Reuses `pino` (already the logging foundation) + `platform_audit_log`/`auto_execution_log` (already the compliance/observability substrate) per the Blueprint's own explicit reuse guidance; produces a real, testable incident-response runbook, not just a document |
 | 75 | Live Provider Verification — Engine 1 (FMP/Alpha Vantage) | Conditional | Blocked (no credentials) | Fires the moment `FMP_API_KEY`/`ALPHA_VANTAGE_API_KEY` become available — this is Sprint 62 finally unblocked, a pure verification pass over already-built code, no new logic; can run at any point once credentials arrive, independent of this sequence |
 | 76 | Live Provider Verification — Options Income Engine | Conditional | Blocked (no credentials) | Same shape as 75, for the Options Income Engine's own live-data path (the Blueprint's original Phase 4 item that was never executed) |
-| 77 | Staged Production Rollout Plan — Documentation + Go-Live Checklist | Production-readiness | Not started | Produces the actual staged rollout plan and go-live checklist the Blueprint calls for (Options Income → Investing → Trading), explicitly covering the automation kill-switch — a planning/documentation sprint, not a go-live event itself |
+| 77 | Staged Production Rollout Plan — Documentation + Go-Live Checklist | Production-readiness | Not started (§2b recommends re-homing to a future Phase 7) | Produces the actual staged rollout plan and go-live checklist the Blueprint calls for (Options Income → Investing → Trading), explicitly covering the automation kill-switch — a planning/documentation sprint, not a go-live event itself |
 | — | Notification Delivery — email/push | Conditional, unscheduled | Blocked (no infra) | Fires the moment SMTP/VAPID credentials + infrastructure exist; not sequenced into the numbered list above since it has no dependency on anything else in this phase |
 
 **Estimated sprint count: 9 numbered sprints (69–77), plus 1 unscheduled conditional item.** Realistically, 6 of the 9 (69–74) are unconditionally implementable today; the remaining 3 (75–77) are either credential-gated or deliberately positioned last since they depend on 69–74's own output (a rollout plan needs the testing/monitoring groundwork to already exist to be credible).
@@ -80,6 +82,45 @@ No trading logic, options execution, scheduler behavior, guardrails, kill switch
 **Validation:** `pnpm run typecheck` clean (including the new `artifacts/e2e` package). `pnpm --filter @workspace/api-server run test` — the first parallel run was fully clean (112 files / 1,190 tests); a second parallel run hit two separate, previously-disclosed pre-existing flake categories (the `fetchedAt`-timing race in `value.test.ts`, and one instance of the shared-legacy-owner-account live-Postgres-parallelism flake in `phase4Unification.route.test.ts`), both confirmed via `git status --porcelain` to be in files untouched by Sprint 69; a definitive serial re-run confirmed clean: 112 files / 1,190 tests, zero failures. `pnpm --filter @workspace/ravish-trading run test` — 17 files / 149 tests, unchanged. `PORT=5000 BASE_PATH=/ pnpm run build` — all packages build successfully; largest frontend chunk unchanged at 461.57 kB.
 
 **Sprint 70 was not started.**
+
+---
+
+## 2b. Post-Sprint-69 Phase 6 Roadmap Review
+
+Performed at the project owner's explicit request before Sprint 70 began. Reviewed every remaining item (frontend legacy-page coverage, cross-engine E2E, load/chaos testing, monitoring/alerting, live-data verification, production rollout, release readiness) for business value, technical value, dependencies, effort, and correct phase placement.
+
+**Key conclusions:**
+- **Cross-Engine Browser E2E Integration Suite (originally Sprint 72) promoted ahead of the frontend legacy-page coverage sweep (originally 70/71).** It's the highest-remaining-business-value item — the literal Blueprint Phase 6 "integration test suite" deliverable Phase 5's own closure review flagged by name — and directly reuses Sprint 69's harness with zero new tooling decisions, unlike the coverage sweep's own (still real, but lower-urgency) mechanical debt closure.
+- **Recommended (not yet applied): narrow Phase 6 to its actual Testing charter** (69, cross-engine E2E, the 2 frontend-coverage slices, and load/chaos testing as its capstone) and re-home Monitoring/Alerting, Live-Data Verification, and the Staged Rollout Plan into a distinctly-named future **Phase 7 — Production Readiness**, mirroring the Blueprint's own original Phase 6/Phase 7 split.
+- **Production-readiness score at the time of review: 51/100** — strong on security/tenancy/guardrails (30/30) and testing maturity building (14/25), weak on operational readiness (2/20), live-data readiness (2/15), and deployment/rollout readiness (3/10).
+- **Top risks named:** no monitoring/alerting or incident runbook; the kill-switch/guardrail logic untested under real concurrent load; live-data paths entirely unverified against real APIs; the production CORS origin still unset; no staged rollout plan or go-live checklist yet.
+
+Full analysis delivered in chat per the project owner's request; this section is the durable record. See §2c for Sprint 70's own as-built result.
+
+---
+
+## 2c. Sprint 70 — Cross-Engine Browser E2E Integration Suite — SHIPPED
+
+Implemented exactly as proposed in §2b's own recommendation, no scope expansion.
+
+Extends Sprint 69's harness with 2 new specs, reusing `signUpAndLogin` and the exact same `playwright.config.ts`/`webServer`/CI wiring unmodified — zero new npm dependencies, zero new tooling.
+
+- **`cross-engine-command-center.spec.ts`** — drives `InstitutionalDashboard.tsx`: asserts the always-visible Portfolio Overview section shows Engine 1's honest-empty Portfolio Construction state alongside Engine 3's real, auto-seeded Options Income account data side by side, without either being blended; then searches AAPL and asserts Engine 1's Investment Committee card and Engine 2's Technical Read card both render together — the literal Cross-Engine Command Center guarantee (Phase 4, Sprint 54).
+- **`cross-engine-daily-report.spec.ts`** — drives `CrossEngineDailyReport.tsx`: asserts all 3 engine sections render together for a fresh user — Engine 1's honest "Watchlist is empty" state, Engine 2's honest insufficient-data trading-risk read, and Engine 3's real, auto-seeded health/open-position data.
+
+**One genuine, pre-existing backend bug discovered (not introduced) by this sprint's own test run, disclosed and explicitly NOT fixed, per the sprint's own scope boundary:** `lib/serverState.ts`'s `getSettingsRow()` is a plain check-then-insert with no upsert safety, dormant since Phase 1 Sprint 5 — no prior test had ever driven multiple concurrent settings-touching requests for a genuinely brand-new user within a single page load. `InstitutionalDashboard.tsx`'s own pre-existing multi-hook-on-mount design is exactly that trigger, and intermittently reproduced a duplicate-settings-row race during local validation (1 failure in 3 early runs). Diagnosed honestly as pre-existing backend business logic entirely outside Sprint 70's E2E-only scope — not fixed here. Instead, `cross-engine-command-center.spec.ts` makes one isolated, deterministic `GET /api/settings` warm-up call immediately after sign-up and before navigating to the multi-hook dashboard page, so the settings row already exists by the time the dashboard's own concurrent hooks resolve it — a legitimate, scope-preserving E2E test-design choice, not a production code change. The underlying `getSettingsRow()` race itself remains open technical debt, flagged here for a future sprint's consideration.
+
+**Files changed:** `artifacts/e2e/tests/cross-engine-command-center.spec.ts` (new), `artifacts/e2e/tests/cross-engine-daily-report.spec.ts` (new) — nothing else. No database migration, no `openapi.yaml` change, no application route/component/business-logic change.
+
+**Tests:** 2 new Playwright specs (7 total across the E2E suite now), confirmed stable across 2 full clean runs after the settings-race warm-up fix (5/5 passing both times, zero flakes).
+
+No trading logic, options execution, scheduler behavior, guardrails, kill switches, authentication, tenant isolation, or audit logging were touched; `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts`/`serverState.ts` all have a zero-line diff this sprint.
+
+**Rollback:** `git revert` — 2 new spec files only; no database migration to unwind, no application behavior changed.
+
+**Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — run twice per the explicit instruction, both fully clean: 112 files / 1,190 tests, zero failures, zero flakes either run. `pnpm --filter @workspace/ravish-trading run test` — 17 files / 149 tests, unchanged. `PORT=5000 BASE_PATH=/ pnpm run build` — all packages build successfully, no size warning. Full 5-spec E2E suite run twice after the fix: both fully clean, 5/5 passing, zero flakes.
+
+**Sprint 71 was not started.**
 
 ---
 
