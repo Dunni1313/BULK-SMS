@@ -1,6 +1,6 @@
 # Phase 6 — Testing, Security & Production-Readiness — Master Planning Document
 
-**Status: PHASE 6 IN PROGRESS.** This document proposed a candidate Phase 6 scope, sequence, and strategy; the project owner has approved and **Sprint 69 (§2a) and Sprint 70 (§2c) have both shipped** — the platform's first browser-level E2E testing capability, plus 2 genuine cross-engine E2E flows. A post-Sprint-69 roadmap review (§2b) recommended promoting the Cross-Engine E2E Integration Suite ahead of the originally-listed frontend legacy-page coverage sweep, which the project owner approved; that review also recommends (not yet applied) narrowing Phase 6 to its Testing charter and re-homing Monitoring/Alerting, Live-Data Verification, and the Rollout Plan to a future Phase 7. **No sprint number below Sprint 70 is a commitment** — per the established per-sprint approval process (`CLAUDE.md` §3, unbroken since Phase 1), each further proposed sprint still requires its own explicit kickoff, scope confirmation, and approval before any code is written, exactly as every sprint from 1 through 70 required.
+**Status: PHASE 6 IN PROGRESS.** This document proposed a candidate Phase 6 scope, sequence, and strategy; the project owner has approved and **Sprints 69 (§2a), 70 (§2c), and 71 (§2d) have all shipped** — the platform's first browser-level E2E testing capability, 2 genuine cross-engine E2E flows, and dedicated Vitest coverage for the first 5 of 14 previously-untested legacy pages. A post-Sprint-69 roadmap review (§2b) recommended promoting the Cross-Engine E2E Integration Suite ahead of the originally-listed frontend legacy-page coverage sweep, which the project owner approved; that review also recommends (not yet applied) narrowing Phase 6 to its Testing charter and re-homing Monitoring/Alerting, Live-Data Verification, and the Rollout Plan to a future Phase 7. **No sprint number below Sprint 71 is a commitment** — per the established per-sprint approval process (`CLAUDE.md` §3, unbroken since Phase 1), each further proposed sprint still requires its own explicit kickoff, scope confirmation, and approval before any code is written, exactly as every sprint from 1 through 71 required.
 
 **Prepared after:** Phase 5's close (`docs/Phase-5-Final-Completion-Report.md`), the Sprint 69 planning review that recommended closing Phase 5 rather than opening a further sprint, and a fresh reading of `docs/DK-AI-OS-Architecture-Blueprint.md`'s own original Phase 6 (Testing) and Phase 7 (Production) sections against the platform as it actually exists today at the close of Sprint 68.
 
@@ -42,8 +42,8 @@ Numbering continues the project's single global counter, starting at **Sprint 69
 |---|---|---|---|---|
 | 69 | E2E Testing Framework Selection + First Smoke Slice | Foundation | **SHIPPED (§2a)** | Nothing else in this phase can be scoped concretely until a framework (Playwright is the natural default — headless Chromium is already pre-installed in this environment) is chosen; ships with one real smoke test per engine (login → one Engine 1/2/3 flow each) to prove the harness works end-to-end, not just install tooling |
 | 70 | Cross-Engine E2E Integration Suite | Testing | **SHIPPED (§2c)** | Promoted ahead of the coverage sweep per §2b's review — highest remaining business value, zero new tooling decisions, directly reuses Sprint 69's harness; adds real browser-level flows spanning 2+ engines on the Institutional Dashboard and the Cross-Engine Daily Report |
-| 71 | Frontend Legacy-Page Test Coverage — Slice 1 | Testing | Not started | Bounded to 4–5 of the 14 untested pages (mirroring the Route+UI backlog-reduction pattern from Phase 3, Sprints 40–46, which handled exactly this kind of "many similar items, one at a time" backlog) |
-| 72 | Frontend Legacy-Page Test Coverage — Slice 2 | Testing | Not started | Remaining 9–10 pages, or however many Slice 1 didn't reach |
+| 71 | Frontend Legacy-Page Test Coverage — Slice 1 | Testing | **SHIPPED (§2d)** | Bounded to the 5 smallest/simplest of the 14 untested pages (not-found, Scoring, Login, OptionChain, Portfolio) — smallest-first, mirroring the Route+UI backlog-reduction pattern from Phase 3, Sprints 40–46, which handled exactly this kind of "many similar items, one at a time" backlog |
+| 72 | Frontend Legacy-Page Test Coverage — Slice 2 | Testing | Not started | Remaining 9 pages (Events, Backtest, Journal, AutoPilot, Performance, Dashboard, TradeTicket, Adjustments — plus any Slice 1 didn't reach) |
 | 73 | Load & Chaos Testing — Automation Scheduler | Testing/Security | Not started | The Blueprint's own explicitly-named highest-risk gap ("if this phase gets compressed... it's the automation/execution path... that pays for it first") — requires a tooling decision (k6/artillery) as its own first sub-step, mirroring Sprint 69's own framework-selection precedent |
 | 74 | Monitoring, Alerting & Incident Runbook | Production-readiness | Not started (§2b recommends re-homing to a future Phase 7) | Reuses `pino` (already the logging foundation) + `platform_audit_log`/`auto_execution_log` (already the compliance/observability substrate) per the Blueprint's own explicit reuse guidance; produces a real, testable incident-response runbook, not just a document |
 | 75 | Live Provider Verification — Engine 1 (FMP/Alpha Vantage) | Conditional | Blocked (no credentials) | Fires the moment `FMP_API_KEY`/`ALPHA_VANTAGE_API_KEY` become available — this is Sprint 62 finally unblocked, a pure verification pass over already-built code, no new logic; can run at any point once credentials arrive, independent of this sequence |
@@ -121,6 +121,35 @@ No trading logic, options execution, scheduler behavior, guardrails, kill switch
 **Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — run twice per the explicit instruction, both fully clean: 112 files / 1,190 tests, zero failures, zero flakes either run. `pnpm --filter @workspace/ravish-trading run test` — 17 files / 149 tests, unchanged. `PORT=5000 BASE_PATH=/ pnpm run build` — all packages build successfully, no size warning. Full 5-spec E2E suite run twice after the fix: both fully clean, 5/5 passing, zero flakes.
 
 **Sprint 71 was not started.**
+
+---
+
+## 2d. Sprint 71 — Frontend Legacy Page Test Coverage — Slice 1 — SHIPPED
+
+Implemented exactly as proposed in §2's own table row (renumbered to 71 after §2b's re-sequencing), no scope expansion.
+
+**Slice selected: the 5 smallest/simplest of the 14 untested legacy pages** — `not-found.tsx` (21 lines), `Scoring.tsx` (93), `Login.tsx` (119), `OptionChain.tsx` (145), `Portfolio.tsx` (147) — smallest-first, establishing the per-page test-writing pattern before Slice 2 tackles the larger remaining 9 pages. Not a genuinely new owner decision — an implementation-level choice within the already-approved "Slice 1" boundary, matching the precedent Sprint 40 set picking Market Structure as the Route+UI backlog's own first slice.
+
+All 5 new test files follow the established mocked-generated-hook pattern (`vi.hoisted` state object, top-level `vi.mock("@workspace/api-client-react", ...)` spreading `importActual`) already used by every other page test in this codebase:
+- `not-found.test.tsx` (1 test) — the static 404 heading/message, no hooks to mock.
+- `Scoring.test.tsx` (3 tests) — loading skeletons, the honest empty-leaderboard message, real leaderboard rows once resolved.
+- `Login.test.tsx` (6 tests) — following `App.test.tsx`'s own established `@/lib/auth-client` mocking pattern (Sprint 53): the default sign-in form, toggling to sign-up, successful sign-in/sign-up submitting the right credentials and navigating home, an honest error toast on a failed sign-in (the first test in this codebase asserting real `<Toaster />` content, rendered alongside `<Login />` for that one case only), and the already-signed-in state.
+- `Portfolio.test.tsx` (5 tests) — loading skeletons, an honest empty-positions message, real greeks/position rendering, AI recommendations shown only when genuinely present, and a proof an empty recommendations array never fabricates the card.
+- `OptionChain.test.tsx` (3 tests) — rendered standalone with no `<Route>` ancestor, so wouter's `useParams()` correctly falls back to the page's own documented "SPY" default; loading skeletons, real call/put chain rendering, and a proof chain data is never fabricated before it resolves.
+
+**One locator bug caught and fixed during this sprint's own test-writing, not a production bug:** `OptionChain.test.tsx`'s first draft used `getByRole("combobox", { name: "SPY" })`, whose accessible-name computation didn't match the rendered text the way expected — fixed with `getByRole("combobox")` + `.toHaveTextContent("SPY")`.
+
+**Files changed:** 5 new test files only (listed above) — zero application source files (backend or frontend) touched.
+
+**Tests:** 23 new tests total across the 5 files. `src/test/page-test-pattern.guardrail.test.ts` (22 tests, unmodified) confirms none of the 5 new files violate the established `vi.resetModules()`/dynamic-`import()` prohibition.
+
+No trading logic, options execution, scheduler behavior, guardrails, kill switches, authentication, tenant isolation, or audit logging were touched; `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts`/`serverState.ts` all have a zero-line diff this sprint.
+
+**Rollback:** `git revert` — 5 new test files only; no database migration to unwind, no application behavior changed.
+
+**Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — run twice, both fully clean: 112 files / 1,190 tests, zero failures (expected, since this sprint touched zero backend files). `pnpm --filter @workspace/ravish-trading run test` — 22 files / 172 tests (5 new files, 23 new tests), all passing. `PORT=5000 BASE_PATH=/ pnpm run build` — all packages build successfully, no size warning. The full Playwright E2E suite (5 specs, unchanged from Sprint 70) was run 4 times total to reach 2 clean, definitive back-to-back runs: the first 2 exploratory runs each hit the well-documented, previously-disclosed `getSettingsRow()` concurrency race (Sprint 70's own disclosure — this time via `engine1-investing.spec.ts` and `routes/scanner.ts`'s `scanAndPersist`, confirmed unrelated to Sprint 71 via `git status --porcelain` showing zero backend files changed), never a failure in any of the 5 new frontend test files; the final 2 definitive runs were both fully clean, 5/5 passing, zero flakes.
+
+**Sprint 72 was not started.**
 
 ---
 
