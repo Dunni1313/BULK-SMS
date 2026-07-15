@@ -1,6 +1,6 @@
 # Phase 5 — Final Execution Plan
 
-**Status: IN PROGRESS.** All four flagged scope decisions have been resolved by the project owner (§2). **Sprint 65 (Housekeeping & Outstanding Decisions Closure) and Sprint 66 (Unified Portfolio Dashboard, side-by-side view only) are both SHIPPED** — see §3 for both as-built write-ups. A pre-Sprint-66 milestone review (§3b) confirmed Phases 3–5 are accurately documented, no incomplete work was left behind, every deferred item is explicitly tracked, and all protected files remain zero-diff across the entire Sprint 32–65 range. Sprint 67 onward remains planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3). Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51, Phase 4 was Sprints 52–64 (12 shipped; Sprint 62 blocked, open). **Phase 5 began at Sprint 65.**
+**Status: IN PROGRESS.** All four flagged scope decisions have been resolved by the project owner (§2). **Sprint 65 (Housekeeping & Outstanding Decisions Closure), Sprint 66 (Unified Portfolio Dashboard, side-by-side view only), and Sprint 67 (Testing & Security Audit checkpoint — first bounded slice) are all SHIPPED** — see §3 for all three as-built write-ups. A pre-Sprint-66 milestone review (§3b) confirmed Phases 3–5 are accurately documented, no incomplete work was left behind, every deferred item is explicitly tracked, and all protected files remain zero-diff across the entire Sprint 32–65 range. Sprint 68 onward remains planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3). Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51, Phase 4 was Sprints 52–64 (12 shipped; Sprint 62 blocked, open). **Phase 5 began at Sprint 65.**
 
 **Prepared after:** Phase 4's close (`docs/Phase-4-Final-Completion-Report.md`), a fresh reconciliation of `docs/DK-AI-OS-Architecture-Blueprint.md`'s original 7-phase roadmap against what this repository's own phase-by-phase execution actually did (§0, unchanged from the draft), and the project owner's explicit resolution of the four scope decisions the draft surfaced (§2).
 
@@ -31,7 +31,7 @@ The Blueprint (§5) laid out 7 phases: Foundation → Investing Engine → Tradi
 - Sprint 62 (Live FMP/Alpha Vantage Provider Verification) — still blocked on credentials. Unaffected by Phase 5.
 - Two housekeeping items flagged since the original Technical Audit: `ravish-trading-engine.zip` and `artifacts/mockup-sandbox`. **RESOLVED (Sprint 65, §3):** the zip is kept as an intentional archival backup (investigated, confirmed safe to remove, but explicitly not deleted per the project owner's instruction — revisit after a future release); `mockup-sandbox` is documented (`artifacts/mockup-sandbox/README.md`) and kept as active design tooling.
 - Two items from CLAUDE.md §3's own outstanding-decisions list: `stock_analysis_history` per-user-vs-shared caching (item #3), the `OPENAI_API_KEY` deprecation window (item #7). **RESOLVED (Sprint 65, §3)** — both closed as documentation-only decisions, zero code change; see `CLAUDE.md` §3 for the exact resolution text.
-- The Blueprint's own Phase 6 (Testing/Security Audit) — has never been run as its own dedicated phase. **Remains an open candidate, unscheduled (§4)** — the project owner did not select this as Sprint 65's priority, so it is deferred behind housekeeping, timing otherwise undecided.
+- The Blueprint's own Phase 6 (Testing/Security Audit) — **RESOLVED (Sprint 67, §3):** a first bounded slice shipped, a dedicated read-only security review of the auto-execution/auto-adjustment kill-switch and guardrail logic plus the genuine test-coverage gaps it surfaced. The broader Blueprint Phase 6 deliverables (frontend coverage sweep, full cross-engine integration suite, load/chaos testing) remain unscoped candidates for a future sprint.
 
 ---
 
@@ -106,13 +106,39 @@ No trading logic, options execution, scheduler behavior, guardrails, kill switch
 
 ---
 
+## 3c. Sprint 67 — Testing & Security Audit checkpoint (first bounded slice) — SHIPPED
+
+Resolved via `AskUserQuestion` before any work began: of the two live (non-blocked) Phase 5 candidates in §4, the project owner chose the Testing & Security Audit checkpoint over the Cross-Engine Daily Report, scoped to a dedicated, read-only security review of the auto-execution/auto-adjustment kill-switch and guardrail logic (`execution.ts`, `autoExecution.ts`, `autoAdjustment.ts`, `risk.ts`), plus any genuine test-coverage gaps it surfaces — the Blueprint's own explicitly-named highest-priority sub-item.
+
+**Read-only with respect to the protected files, per CLAUDE.md rule 2's maximum-scrutiny requirement.** New `.agents/memory/kill-switch-security-review.md` is the durable record of the review. Summary:
+
+- **No bug or security gap was found in the protected logic itself.** Every invariant already documented in `auto-execution-engine.md`/`trade-adjustment-engine.md` was independently re-verified against the current source and holds: two-switch (opening) / three-switch (adjustment, master checked before subordinate) gating; per-user single-flight; the live gate re-check before EVERY execution/close (not once per cycle); the shared risk path (`buildTicket` → `decideCandidate` → `executeValidatedTicket`, identical to the manual/semi-auto submission path); the restricted `AUTO_ACTIONABLE` subset (never roll/convert); audit logging that never changes accounting on a write failure; and genuine per-user query isolation throughout both engines.
+- **One previously-undocumented safety property was found and recorded** (not a gap): `autoAdjustment.ts` re-confirms a trade's `open` status immediately before closing it, a second independent check beyond the initial open-trades snapshot, guarding against a race with a manual close landing mid-cycle.
+- **The manual trigger routes were confirmed NOT to be a bypass path** — `POST /execution/auto/run`/`/execution/auto/adjust/run` call the exact same gated cycle functions the scheduler uses; calling them while disarmed reports `blocked: true`, never executes anything.
+- **Three genuine test-coverage gaps were found and closed, all purely additive:**
+  1. No integration-level regression test existed for a kill-switch flip occurring *mid-cycle* — the exact historical bug the live re-check was built to prevent. Closed by new `lib/autoExecutionSecurityReview.test.ts` (2 tests: a mocked side effect disarms the switch between the first and second candidate/trade for each engine, proving the loop halts on the second one).
+  2. `routes/autoExecution.ts` had zero dedicated route-level tests. Closed by new `routes/autoExecution.route.test.ts` (5 live end-to-end HTTP tests: status shape, both manual triggers honestly blocked with the correct precedence-ordered reason at either the master or subordinate level, and both audit logs resolving correctly).
+  3. No test proved the kill-switch fields themselves are audit-logged. Closed by one new case in `auditLog.test.ts` (a fresh isolated user, `PATCH /settings` flipping both switches, confirming the audit row's `changedFields` names them without ever carrying the boolean values).
+
+**Files changed:** `.agents/memory/kill-switch-security-review.md` (new), `artifacts/api-server/src/lib/autoExecutionSecurityReview.test.ts` (new), `artifacts/api-server/src/routes/autoExecution.route.test.ts` (new), `artifacts/api-server/src/lib/auditLog.test.ts` (one new case appended) — nothing else. No database migration, no `openapi.yaml` change, no frontend change.
+
+**Tests:** 8 new tests total (2 + 5 + 1), all passed on the first isolated run.
+
+No trading logic, options execution, scheduler behavior, guardrails, kill switches, authentication, tenant isolation, or audit logging were *modified*; `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` have a zero-line diff this sprint, confirmed via `git diff --stat`.
+
+**Rollback:** `git revert` — one new memory doc, two new test files, one existing test file with one new case appended; no database migration to unwind, no production code changed anywhere.
+
+**Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — run twice per the explicit instruction, both fully clean: 109 files / 1,170 tests (+8 new), zero failures, zero flakes either run. `pnpm --filter @workspace/ravish-trading run test` — 16 files / 138 tests, unchanged — no frontend change this sprint. `PORT=5000 BASE_PATH=/ pnpm run build` — all 3 packages build successfully; largest frontend chunk unchanged at 460.62 kB.
+
+---
+
 ## 4. Open Candidates — Unscheduled, No Sprint Number Yet
 
 These remain genuine Phase 5 candidates per the Blueprint reconciliation (§0) but have no committed sprint number. Each will need its own kickoff and explicit approval when the project owner chooses to schedule it, per the established per-sprint process:
 
 - **Cross-Engine Daily Report** spanning all three engines (Blueprint Phase 5) — no decision made yet on whether this is wanted.
 - **Options Income Engine — Live-Data End-to-End Verification** (Blueprint Phase 4) — conditional on live broker/data credentials, likely blocked the same way Sprint 62 is.
-- **Testing & Security Audit checkpoint** (Blueprint Phase 6) — a dedicated cross-engine integration/security review. Deferred behind Sprint 65 by the project owner's own priority choice; exact timing otherwise undecided.
+- **Testing & Security Audit checkpoint — remaining scope** (Blueprint Phase 6) — the broader deliverables beyond Sprint 67's own first bounded slice (a frontend test-coverage gap sweep, a full cross-engine integration suite, load/chaos testing for the scheduler-driven automation engine) remain unscoped.
 - **Notification Delivery — email/push channels** — remains blocked without real SMTP/push credentials or infrastructure, unchanged since Sprint 56.
 
 **No code will be written for any item in this section** until it is separately scoped, presented, and explicitly approved.

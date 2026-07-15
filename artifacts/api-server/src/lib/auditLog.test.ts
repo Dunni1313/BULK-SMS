@@ -256,6 +256,49 @@ describe("live end-to-end: auth + settings events land in platform_audit_log", (
     expect(serialized).not.toContain("super-secret-broker-key");
   });
 
+  // Phase 5, Sprint 67 — Testing & Security Audit checkpoint, first bounded
+  // slice (see .agents/memory/kill-switch-security-review.md, finding #3).
+  // The general settings.updated mechanism above was only ever proven with an
+  // unrelated field (alpacaApiKey) — this proves the master/subordinate
+  // automation kill switches themselves are genuinely audit-logged when
+  // flipped, so a switch flip always leaves a traceable record.
+  it("PATCH /settings toggling the automation kill switches creates a settings.updated audit row naming autoExecuteEnabled/autoAdjustEnabled", async () => {
+    const email = `audit-e2e-killswitch-${randomUUID()}@example.com`;
+    const password = "correcthorsebattery";
+    const signUpRes = await fetch(`${baseUrl}/api/auth/sign-up/email`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password, name: "Audit E2E Kill Switch" }),
+    });
+    const { user } = (await signUpRes.json()) as { user: { id: string } };
+    seededUserIds.push(user.id);
+    const cookie = getCookie(signUpRes);
+
+    const patchRes = await fetch(`${baseUrl}/api/settings`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", cookie },
+      body: JSON.stringify({ executionMode: "full_auto", autoExecuteEnabled: true, autoAdjustEnabled: true }),
+    });
+    expect(patchRes.status).toBe(200);
+
+    const rows = await db
+      .select()
+      .from(platformAuditLogTable)
+      .where(
+        and(eq(platformAuditLogTable.userId, user.id), eq(platformAuditLogTable.eventType, "settings.updated")),
+      );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].metadata).toMatchObject({
+      changedFields: expect.arrayContaining(["executionMode", "autoExecuteEnabled", "autoAdjustEnabled"]),
+    });
+    // The audit row must never itself carry the boolean values, matching the
+    // established field-names-only privacy contract — a reader can see THAT
+    // the kill switch changed, never a bypass of that same discipline for
+    // this specific field.
+    expect(rows[0].metadata).not.toHaveProperty("autoExecuteEnabled");
+    expect(rows[0].metadata).not.toHaveProperty("autoAdjustEnabled");
+  });
+
   it("none of this sprint's new write paths touch autoExecutionLog", async () => {
     const [{ count: before }] = await db
       .select({ count: sql<number>`count(*)::int` })
