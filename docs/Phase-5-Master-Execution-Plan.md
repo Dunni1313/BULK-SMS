@@ -1,6 +1,6 @@
 # Phase 5 — Final Execution Plan
 
-**Status: FINALIZED.** All four flagged scope decisions have been resolved by the project owner (§2). Sprint 65 is scoped and proposed for approval (§3) but **has not been implemented** — no code has been written under this plan. Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51, Phase 4 was Sprints 52–64 (12 shipped; Sprint 62 blocked, open). **Phase 5 begins at Sprint 65.**
+**Status: IN PROGRESS.** All four flagged scope decisions have been resolved by the project owner (§2). **Sprint 65 (Phase 5 Housekeeping & Outstanding Decisions Closure) is SHIPPED** — see §3 for the as-built write-up. Sprint 66 onward remains planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3). Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51, Phase 4 was Sprints 52–64 (12 shipped; Sprint 62 blocked, open). **Phase 5 began at Sprint 65.**
 
 **Prepared after:** Phase 4's close (`docs/Phase-4-Final-Completion-Report.md`), a fresh reconciliation of `docs/DK-AI-OS-Architecture-Blueprint.md`'s original 7-phase roadmap against what this repository's own phase-by-phase execution actually did (§0, unchanged from the draft), and the project owner's explicit resolution of the four scope decisions the draft surfaced (§2).
 
@@ -29,8 +29,8 @@ The Blueprint (§5) laid out 7 phases: Foundation → Investing Engine → Tradi
 
 **Genuinely new since the Blueprint was written, not in its original 7-phase list at all, and not resolved by Phase 4:**
 - Sprint 62 (Live FMP/Alpha Vantage Provider Verification) — still blocked on credentials. Unaffected by Phase 5.
-- Two housekeeping items flagged since the original Technical Audit: `ravish-trading-engine.zip` (860KB, still at the repo root) and `artifacts/mockup-sandbox` (still present, still undecided). **In scope for Sprint 65 (§3) — investigation and a recommendation, not unilateral deletion, per CLAUDE.md rule 4.**
-- Two items from CLAUDE.md §3's own outstanding-decisions list: `stock_analysis_history` per-user-vs-shared caching (item #3), the `OPENAI_API_KEY` deprecation window (item #7). **In scope for Sprint 65 (§3).**
+- Two housekeeping items flagged since the original Technical Audit: `ravish-trading-engine.zip` and `artifacts/mockup-sandbox`. **RESOLVED (Sprint 65, §3):** the zip is kept as an intentional archival backup (investigated, confirmed safe to remove, but explicitly not deleted per the project owner's instruction — revisit after a future release); `mockup-sandbox` is documented (`artifacts/mockup-sandbox/README.md`) and kept as active design tooling.
+- Two items from CLAUDE.md §3's own outstanding-decisions list: `stock_analysis_history` per-user-vs-shared caching (item #3), the `OPENAI_API_KEY` deprecation window (item #7). **RESOLVED (Sprint 65, §3)** — both closed as documentation-only decisions, zero code change; see `CLAUDE.md` §3 for the exact resolution text.
 - The Blueprint's own Phase 6 (Testing/Security Audit) — has never been run as its own dedicated phase. **Remains an open candidate, unscheduled (§4)** — the project owner did not select this as Sprint 65's priority, so it is deferred behind housekeeping, timing otherwise undecided.
 
 ---
