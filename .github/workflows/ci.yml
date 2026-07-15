@@ -52,14 +52,18 @@ jobs:
         with:
           node-version: 24
 
-      # pnpm version pinned to 9 to match pnpm-lock.yaml's lockfileVersion
-      # ('9.0') — not pinned anywhere else in the repo (no packageManager
-      # field in package.json), so this is inferred from the lockfile, not
-      # an explicit project setting. Flagging in case a different pnpm
-      # major version was actually intended.
+      # pnpm major version pinned to 10, matching the pnpm CLI that has
+      # actually generated and validated pnpm-lock.yaml throughout local
+      # development (lockfileVersion '9.0' is the lockfile FORMAT, not the
+      # CLI version — pnpm 10.x continues to write that format). pnpm 9.x's
+      # frozen-install validation of the workspace `overrides` block does
+      # not agree with a lockfile produced by pnpm 10.x, even when the
+      # override content is identical, which is what PR #1's first-ever CI
+      # run surfaced (ERR_PNPM_LOCKFILE_CONFIG_MISMATCH). Not pinned
+      # anywhere else in the repo (no packageManager field in package.json).
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -119,7 +123,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
