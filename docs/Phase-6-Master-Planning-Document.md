@@ -1,6 +1,6 @@
 # Phase 6 — Testing, Security & Production-Readiness — Master Planning Document
 
-**Status: PLANNING ONLY. NOT APPROVED. NOT SCHEDULED.** This document proposes a candidate Phase 6 scope, sequence, and strategy for the project owner's review. **No sprint number below is a commitment** — per the established per-sprint approval process (`CLAUDE.md` §3, unbroken since Phase 1), each proposed sprint requires its own explicit kickoff, scope confirmation, and approval before any code is written, exactly as every sprint from 1 through 68 required. Nothing in this document authorizes implementation of anything.
+**Status: PHASE 6 IN PROGRESS.** This document proposed a candidate Phase 6 scope, sequence, and strategy; the project owner has approved and Sprint 69 has now shipped (§2a) — the platform's first browser-level E2E testing capability. **No sprint number below Sprint 69 is a commitment** — per the established per-sprint approval process (`CLAUDE.md` §3, unbroken since Phase 1), each further proposed sprint still requires its own explicit kickoff, scope confirmation, and approval before any code is written, exactly as every sprint from 1 through 69 required.
 
 **Prepared after:** Phase 5's close (`docs/Phase-5-Final-Completion-Report.md`), the Sprint 69 planning review that recommended closing Phase 5 rather than opening a further sprint, and a fresh reading of `docs/DK-AI-OS-Architecture-Blueprint.md`'s own original Phase 6 (Testing) and Phase 7 (Production) sections against the platform as it actually exists today at the close of Sprint 68.
 
@@ -36,20 +36,50 @@ Phase 6, as proposed here, combines the remainder of the Blueprint's own Phase 6
 
 Numbering continues the project's single global counter, starting at **Sprint 69**. Every sprint below is a proposal, not a commitment — sequencing may change based on what the project owner actually wants to prioritize, and any sprint may be split further (mirroring the Sprint 33/34, 57/58 Core-then-Route+UI precedent) once its true scope is better understood at kickoff.
 
-| # | Sprint | Type | Rationale for this position |
-|---|---|---|---|
-| 69 | E2E Testing Framework Selection + First Smoke Slice | Foundation | Nothing else in this phase can be scoped concretely until a framework (Playwright is the natural default — headless Chromium is already pre-installed in this environment) is chosen; ships with one real smoke test per engine (login → one Engine 1/2/3 flow each) to prove the harness works end-to-end, not just install tooling |
-| 70 | Frontend Legacy-Page Test Coverage — Slice 1 | Testing | Bounded to 4–5 of the 14 untested pages (mirroring the Route+UI backlog-reduction pattern from Phase 3, Sprints 40–46, which handled exactly this kind of "many similar items, one at a time" backlog) |
-| 71 | Frontend Legacy-Page Test Coverage — Slice 2 | Testing | Remaining 9–10 pages, or however many Slice 1 didn't reach |
-| 72 | Cross-Engine E2E Integration Suite | Testing | Now that the framework exists (69) and unit-level coverage is closed (70/71), add real browser-level flows spanning 2+ engines (e.g., search a symbol in Engine 1 → see it reflected in the Command Center → see it in Engine 2) — the genuinely new capability neither the existing unit tests nor the existing live-HTTP route tests provide |
-| 73 | Load & Chaos Testing — Automation Scheduler | Testing/Security | The Blueprint's own explicitly-named highest-risk gap ("if this phase gets compressed... it's the automation/execution path... that pays for it first") — requires a tooling decision (k6/artillery) as its own first sub-step, mirroring Sprint 69's own framework-selection precedent |
-| 74 | Monitoring, Alerting & Incident Runbook | Production-readiness | Reuses `pino` (already the logging foundation) + `platform_audit_log`/`auto_execution_log` (already the compliance/observability substrate) per the Blueprint's own explicit reuse guidance; produces a real, testable incident-response runbook, not just a document |
-| 75 | Live Provider Verification — Engine 1 (FMP/Alpha Vantage) | Conditional | Fires the moment `FMP_API_KEY`/`ALPHA_VANTAGE_API_KEY` become available — this is Sprint 62 finally unblocked, a pure verification pass over already-built code, no new logic; can run at any point once credentials arrive, independent of this sequence |
-| 76 | Live Provider Verification — Options Income Engine | Conditional | Same shape as 75, for the Options Income Engine's own live-data path (the Blueprint's original Phase 4 item that was never executed) |
-| 77 | Staged Production Rollout Plan — Documentation + Go-Live Checklist | Production-readiness | Produces the actual staged rollout plan and go-live checklist the Blueprint calls for (Options Income → Investing → Trading), explicitly covering the automation kill-switch — a planning/documentation sprint, not a go-live event itself |
-| — | Notification Delivery — email/push | Conditional, unscheduled | Fires the moment SMTP/VAPID credentials + infrastructure exist; not sequenced into the numbered list above since it has no dependency on anything else in this phase |
+| # | Sprint | Type | Status | Rationale for this position |
+|---|---|---|---|---|
+| 69 | E2E Testing Framework Selection + First Smoke Slice | Foundation | **SHIPPED (§2a)** | Nothing else in this phase can be scoped concretely until a framework (Playwright is the natural default — headless Chromium is already pre-installed in this environment) is chosen; ships with one real smoke test per engine (login → one Engine 1/2/3 flow each) to prove the harness works end-to-end, not just install tooling |
+| 70 | Frontend Legacy-Page Test Coverage — Slice 1 | Testing | Not started | Bounded to 4–5 of the 14 untested pages (mirroring the Route+UI backlog-reduction pattern from Phase 3, Sprints 40–46, which handled exactly this kind of "many similar items, one at a time" backlog) |
+| 71 | Frontend Legacy-Page Test Coverage — Slice 2 | Testing | Not started | Remaining 9–10 pages, or however many Slice 1 didn't reach |
+| 72 | Cross-Engine E2E Integration Suite | Testing | Not started | Now that the framework exists (69) and unit-level coverage is closed (70/71), add real browser-level flows spanning 2+ engines (e.g., search a symbol in Engine 1 → see it reflected in the Command Center → see it in Engine 2) — the genuinely new capability neither the existing unit tests nor the existing live-HTTP route tests provide |
+| 73 | Load & Chaos Testing — Automation Scheduler | Testing/Security | Not started | The Blueprint's own explicitly-named highest-risk gap ("if this phase gets compressed... it's the automation/execution path... that pays for it first") — requires a tooling decision (k6/artillery) as its own first sub-step, mirroring Sprint 69's own framework-selection precedent |
+| 74 | Monitoring, Alerting & Incident Runbook | Production-readiness | Not started | Reuses `pino` (already the logging foundation) + `platform_audit_log`/`auto_execution_log` (already the compliance/observability substrate) per the Blueprint's own explicit reuse guidance; produces a real, testable incident-response runbook, not just a document |
+| 75 | Live Provider Verification — Engine 1 (FMP/Alpha Vantage) | Conditional | Blocked (no credentials) | Fires the moment `FMP_API_KEY`/`ALPHA_VANTAGE_API_KEY` become available — this is Sprint 62 finally unblocked, a pure verification pass over already-built code, no new logic; can run at any point once credentials arrive, independent of this sequence |
+| 76 | Live Provider Verification — Options Income Engine | Conditional | Blocked (no credentials) | Same shape as 75, for the Options Income Engine's own live-data path (the Blueprint's original Phase 4 item that was never executed) |
+| 77 | Staged Production Rollout Plan — Documentation + Go-Live Checklist | Production-readiness | Not started | Produces the actual staged rollout plan and go-live checklist the Blueprint calls for (Options Income → Investing → Trading), explicitly covering the automation kill-switch — a planning/documentation sprint, not a go-live event itself |
+| — | Notification Delivery — email/push | Conditional, unscheduled | Blocked (no infra) | Fires the moment SMTP/VAPID credentials + infrastructure exist; not sequenced into the numbered list above since it has no dependency on anything else in this phase |
 
 **Estimated sprint count: 9 numbered sprints (69–77), plus 1 unscheduled conditional item.** Realistically, 6 of the 9 (69–74) are unconditionally implementable today; the remaining 3 (75–77) are either credential-gated or deliberately positioned last since they depend on 69–74's own output (a rollout plan needs the testing/monitoring groundwork to already exist to be credible).
+
+---
+
+## 2a. Sprint 69 — E2E Testing Framework Selection + First Smoke Slice — SHIPPED
+
+Implemented exactly as proposed in §2's own table row, no scope expansion.
+
+**Framework selected: Playwright (`@playwright/test`), confirmed, not just assumed from this document's own earlier recommendation** — verified this environment's pre-installed Chromium (`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`) is directly usable, `webServer` natively launches this repo's own two-process (Express + Vite) architecture with health-checked startup/teardown and no custom orchestration script, and it's a single npm dependency (no browser-farm/grid service) — the same "no new infrastructure beyond installing a package" bar every prior sprint's dependency additions have met.
+
+New workspace package `artifacts/e2e` (fits the existing `artifacts/*` glob, no `pnpm-workspace.yaml` change): `@playwright/test` pinned to the **exact** version `1.56.0`, empirically confirmed via a real browser-launch check to match the pre-installed Chromium revision (1194) — a version bump later must re-verify this match, documented in `artifacts/e2e/README.md`.
+
+**One small, disclosed, opt-in-only change to `vite.config.ts`** (test/dev-server config, not application business logic): a new `E2E_API_PROXY_TARGET` env var (undefined by default, zero effect on any existing invocation) enables a `/api` proxy on the Vite dev/preview servers, required because Playwright's two separate local processes (frontend on 4173, backend on 4300) have no other way to reach each other — this repo's real deployment target merges both origins at the infrastructure level, a detail invisible to this repo's own config. `CORS_ALLOWED_ORIGINS` is set on the backend's `webServer` process (an env var, not a code change) so Better-Auth's own `trustedOrigins` (Phase 1 Sprint 6) accepts the frontend's local origin during sign-up/sign-in.
+
+**First smoke slice, exactly as scoped:** 3 tests, one per engine, each independently signing up a fresh user then exercising one real flow — Engine 1 (select AAPL from the Coverage Universe, `/stock-analyst`), Engine 2 (search AAPL, `/trading-research`, assert Market Structure renders), Engine 3 (open `/portfolio-ai`, assert real Portfolio Health/Market Exposure scores render via the existing auto-seeded-trades behavior). No cross-engine flow, no per-page coverage sweep, no other Phase 6 sprint's scope was started.
+
+New `.github/workflows/ci.yml` `e2e` job, genuinely separate from the existing `test` job, with its own disposable Postgres service and a freshly-generated `BETTER_AUTH_SECRET` (installs Chromium itself via `playwright install --with-deps chromium`, since a fresh GitHub Actions runner has no pre-installed browser).
+
+**No genuinely new owner decisions surfaced** — framework choice, ports, and proxy wiring were all resolvable from this document's own already-approved recommendation and Sprint 69's own explicit scope.
+
+**Files changed:** `artifacts/e2e/` (new package — `package.json`, `playwright.config.ts`, `tests/`, `README.md`), `artifacts/ravish-trading/vite.config.ts` (additive, opt-in proxy), `.github/workflows/ci.yml` (new `e2e` job), `.gitignore` (Playwright artifact dirs). No database migration, no `openapi.yaml` change, no application route/component/business-logic change.
+
+**Tests:** 3 new Playwright specs, all passing, run twice locally with zero flakes (one strict-mode locator ambiguity — "Portfolio Health" also matching an unrelated "Portfolio Health Trend" heading — caught and fixed with `{ exact: true }` during the first local run).
+
+No trading logic, options execution, scheduler behavior, guardrails, kill switches, authentication, tenant isolation, or audit logging were touched; `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` have a zero-line diff this sprint.
+
+**Rollback:** `git revert` — one new package directory, one additive `vite.config.ts` change (a no-op unless `E2E_API_PROXY_TARGET` is explicitly set), one new CI job, a `.gitignore` addition; no database migration to unwind, no application behavior changed for any existing user-facing path.
+
+**Validation:** `pnpm run typecheck` clean (including the new `artifacts/e2e` package). `pnpm --filter @workspace/api-server run test` — the first parallel run was fully clean (112 files / 1,190 tests); a second parallel run hit two separate, previously-disclosed pre-existing flake categories (the `fetchedAt`-timing race in `value.test.ts`, and one instance of the shared-legacy-owner-account live-Postgres-parallelism flake in `phase4Unification.route.test.ts`), both confirmed via `git status --porcelain` to be in files untouched by Sprint 69; a definitive serial re-run confirmed clean: 112 files / 1,190 tests, zero failures. `pnpm --filter @workspace/ravish-trading run test` — 17 files / 149 tests, unchanged. `PORT=5000 BASE_PATH=/ pnpm run build` — all packages build successfully; largest frontend chunk unchanged at 461.57 kB.
+
+**Sprint 70 was not started.**
 
 ---
 

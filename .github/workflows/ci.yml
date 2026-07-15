@@ -78,3 +78,60 @@ jobs:
 
       - name: Test — ravish-trading (frontend)
         run: pnpm --filter @workspace/ravish-trading run test
+
+  # Phase 6, Sprint 69 — first E2E smoke slice (see
+  # docs/Phase-6-Master-Planning-Document.md §5 / the Sprint 69 as-built
+  # note). A separate job, not appended to `test` above, per the Phase 6
+  # plan's own "run separately from the existing unit-test job so a slow
+  # E2E suite never blocks fast unit-test feedback" testing strategy.
+  #
+  # Unlike the local dev sandbox this repo is normally built in (which has
+  # Chromium pre-installed at a fixed path — see artifacts/e2e/playwright.config.ts's
+  # own comment), a fresh GitHub Actions runner has no browser at all, so
+  # this job installs one itself via `playwright install`.
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dkos
+          POSTGRES_PASSWORD: dkos
+          POSTGRES_DB: dkos_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://dkos:dkos@localhost:5432/dkos_e2e
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright's Chromium
+        run: pnpm --filter @workspace/e2e exec playwright install --with-deps chromium
+
+      - name: Push database schema
+        run: pnpm --filter @workspace/db run push-force
+
+      - name: Generate a session secret for this run only
+        run: echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+
+      - name: E2E smoke tests
+        run: pnpm --filter @workspace/e2e run test

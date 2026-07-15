@@ -26,6 +26,25 @@ if (!basePath) {
   );
 }
 
+// Phase 6, Sprint 69 — E2E testing only. The generated API client
+// (lib/api-client-react/src/custom-fetch.ts) makes relative `/api/...`
+// requests resolved against whatever origin the page was loaded from; no
+// dev/preview proxy exists anywhere in this repo today because the real
+// deployment target (Replit Autoscale, `router: "application"`) serves
+// frontend and backend under one origin at the infrastructure level, which
+// this repo's own config has no visibility into. Playwright's own webServer
+// starts the frontend (`vite preview`) and backend (`api-server`) as two
+// separate local processes on two separate ports, so `/api/...` requests
+// from the frontend's own origin would otherwise 404 with nothing to route
+// them to the backend. This proxy is opt-in only (undefined unless
+// E2E_API_PROXY_TARGET is explicitly set by artifacts/e2e's own Playwright
+// config) — every existing `pnpm dev`/`pnpm build`/`pnpm preview` invocation
+// that doesn't set this var is completely unaffected.
+const apiProxyTarget = process.env.E2E_API_PROXY_TARGET;
+const apiProxy = apiProxyTarget
+  ? { "/api": { target: apiProxyTarget, changeOrigin: true } }
+  : undefined;
+
 export default defineConfig({
   base: basePath,
   plugins: [
@@ -66,10 +85,12 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    proxy: apiProxy,
   },
   preview: {
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: apiProxy,
   },
 });
