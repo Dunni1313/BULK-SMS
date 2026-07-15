@@ -2912,6 +2912,156 @@ export interface PlatformNotificationUpdate {
   isRead: boolean;
 }
 
+export interface ReportWatchlistCrossing {
+  symbol: string;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  priceTargetCrossed: boolean | null;
+  /** @nullable */
+  marginOfSafetyTargetCrossed: boolean | null;
+}
+
+export interface ReportEngine1Summary {
+  macro: ValueMacroContext;
+  watchlistTotalItems: number;
+  watchlistCrossings: ReportWatchlistCrossing[];
+}
+
+export interface TradingRiskScoreCard {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+}
+
+export type TradingPositionSizingRisk = TradingRiskScoreCard & ({
+  /** @nullable */
+  largestPositionSymbol: string | null;
+  /** @nullable */
+  largestPositionRiskPct: number | null;
+  capBreached: boolean;
+  unpricedSymbols: string[];
+});
+
+export type TradingStopDisciplineRisk = TradingRiskScoreCard & {
+  openPositionsCount: number;
+  positionsWithStop: number;
+  positionsWithTarget: number;
+  positionsFullyPlanned: number;
+  missingStopSymbols: string[];
+  missingTargetSymbols: string[];
+};
+
+export interface TradingPerPositionBudget {
+  id: number;
+  symbol: string;
+  /** @nullable */
+  riskDollars: number | null;
+  /** @nullable */
+  riskPct: number | null;
+  /** @nullable */
+  withinLimit: boolean | null;
+}
+
+export type TradingPortfolioRiskBudget = TradingRiskScoreCard & ({
+  /** @nullable */
+  accountValue: number | null;
+  /** @nullable */
+  totalRiskDollars: number | null;
+  /** @nullable */
+  totalRiskUsedPct: number | null;
+  capBreached: boolean;
+  perPosition: TradingPerPositionBudget[];
+});
+
+export interface TradingRiskComponent {
+  key: string;
+  label: string;
+  /** @nullable */
+  score: number | null;
+  weight: number;
+  detail: string;
+}
+
+/**
+ * @nullable
+ */
+export type TradingPositionProbabilityContextRegimeLabel = typeof TradingPositionProbabilityContextRegimeLabel[keyof typeof TradingPositionProbabilityContextRegimeLabel] | null;
+
+
+export const TradingPositionProbabilityContextRegimeLabel = {
+  'trending-bullish': 'trending-bullish',
+  'trending-bearish': 'trending-bearish',
+  'range-bound': 'range-bound',
+  'volatile-choppy': 'volatile-choppy',
+  'quiet-consolidation': 'quiet-consolidation',
+} as const;
+
+export interface TradingPositionProbabilityContext {
+  positionId: number;
+  symbol: string;
+  daysAhead: number;
+  /** @nullable */
+  regimeLabel: TradingPositionProbabilityContextRegimeLabel;
+  /** @nullable */
+  stopTouchProbability: number | null;
+  /** @nullable */
+  targetTouchProbability: number | null;
+}
+
+export interface TradingRiskAnalysis {
+  overall: TradingRiskScoreCard;
+  positionSizing: TradingPositionSizingRisk;
+  stopDiscipline: TradingStopDisciplineRisk;
+  portfolioBudget: TradingPortfolioRiskBudget;
+  components: TradingRiskComponent[];
+  /** @nullable */
+  accountValue: number | null;
+  openPositionsCount: number;
+  positionContexts: TradingPositionProbabilityContext[];
+}
+
+export interface ReportEngine2Summary {
+  risk: TradingRiskAnalysis;
+}
+
+export interface ReportEngine3Summary {
+  healthScore: number;
+  healthLabel: string;
+  openPositions: number;
+  totalUnrealizedPnl: number;
+  attentionCount: number;
+  criticalCount: number;
+  /** @nullable */
+  topOpportunitySymbol: string | null;
+  /** @nullable */
+  topOpportunityRavishScore: number | null;
+}
+
+export interface CrossEngineDailyReport {
+  date: string;
+  generatedAt: string;
+  engine1: ReportEngine1Summary;
+  engine2: ReportEngine2Summary;
+  engine3: ReportEngine3Summary;
+  summary: string;
+  disclaimer: string;
+}
+
+export type NarrateCrossEngineDailyReportResultNarrativeSource = typeof NarrateCrossEngineDailyReportResultNarrativeSource[keyof typeof NarrateCrossEngineDailyReportResultNarrativeSource];
+
+
+export const NarrateCrossEngineDailyReportResultNarrativeSource = {
+  llm: 'llm',
+  template: 'template',
+} as const;
+
+export interface NarrateCrossEngineDailyReportResult {
+  narrative: string;
+  narrativeSource: NarrateCrossEngineDailyReportResultNarrativeSource;
+}
+
 export type SettingsExecutionMode = typeof SettingsExecutionMode[keyof typeof SettingsExecutionMode];
 
 
@@ -3995,100 +4145,6 @@ export interface TradingPositionUpdate {
   stopPrice?: number;
   targetPrice?: number;
   notes?: string;
-}
-
-export interface TradingRiskScoreCard {
-  /** @nullable */
-  score: number | null;
-  label: string;
-  detail: string;
-}
-
-export interface TradingRiskComponent {
-  key: string;
-  label: string;
-  /** @nullable */
-  score: number | null;
-  weight: number;
-  detail: string;
-}
-
-export type TradingPositionSizingRisk = TradingRiskScoreCard & ({
-  /** @nullable */
-  largestPositionSymbol: string | null;
-  /** @nullable */
-  largestPositionRiskPct: number | null;
-  capBreached: boolean;
-  unpricedSymbols: string[];
-});
-
-export type TradingStopDisciplineRisk = TradingRiskScoreCard & {
-  openPositionsCount: number;
-  positionsWithStop: number;
-  positionsWithTarget: number;
-  positionsFullyPlanned: number;
-  missingStopSymbols: string[];
-  missingTargetSymbols: string[];
-};
-
-export interface TradingPerPositionBudget {
-  id: number;
-  symbol: string;
-  /** @nullable */
-  riskDollars: number | null;
-  /** @nullable */
-  riskPct: number | null;
-  /** @nullable */
-  withinLimit: boolean | null;
-}
-
-export type TradingPortfolioRiskBudget = TradingRiskScoreCard & ({
-  /** @nullable */
-  accountValue: number | null;
-  /** @nullable */
-  totalRiskDollars: number | null;
-  /** @nullable */
-  totalRiskUsedPct: number | null;
-  capBreached: boolean;
-  perPosition: TradingPerPositionBudget[];
-});
-
-/**
- * @nullable
- */
-export type TradingPositionProbabilityContextRegimeLabel = typeof TradingPositionProbabilityContextRegimeLabel[keyof typeof TradingPositionProbabilityContextRegimeLabel] | null;
-
-
-export const TradingPositionProbabilityContextRegimeLabel = {
-  'trending-bullish': 'trending-bullish',
-  'trending-bearish': 'trending-bearish',
-  'range-bound': 'range-bound',
-  'volatile-choppy': 'volatile-choppy',
-  'quiet-consolidation': 'quiet-consolidation',
-} as const;
-
-export interface TradingPositionProbabilityContext {
-  positionId: number;
-  symbol: string;
-  daysAhead: number;
-  /** @nullable */
-  regimeLabel: TradingPositionProbabilityContextRegimeLabel;
-  /** @nullable */
-  stopTouchProbability: number | null;
-  /** @nullable */
-  targetTouchProbability: number | null;
-}
-
-export interface TradingRiskAnalysis {
-  overall: TradingRiskScoreCard;
-  positionSizing: TradingPositionSizingRisk;
-  stopDiscipline: TradingStopDisciplineRisk;
-  portfolioBudget: TradingPortfolioRiskBudget;
-  components: TradingRiskComponent[];
-  /** @nullable */
-  accountValue: number | null;
-  openPositionsCount: number;
-  positionContexts: TradingPositionProbabilityContext[];
 }
 
 export interface TradingVolumeProfileLevel {

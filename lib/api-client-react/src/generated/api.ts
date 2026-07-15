@@ -47,6 +47,7 @@ import type {
   ConstructionPortfolioSummary,
   ConstructionPortfolioUpdate,
   ConstructionRiskSnapshot,
+  CrossEngineDailyReport,
   DailyReport,
   DailyReportSummary,
   DeleteReportResult,
@@ -90,6 +91,7 @@ import type {
   ManagementQualityAnalysis,
   MarketBriefingResponse,
   MarketDataHealth,
+  NarrateCrossEngineDailyReportResult,
   NarrateInvestmentCommitteeInput,
   NarrateInvestmentCommitteeResult,
   OptionChain,
@@ -4377,6 +4379,153 @@ export const useUpdateNotification = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getUpdateNotificationMutationOptions(options));
+    }
+
+export const getGetCrossEngineDailyReportUrl = () => {
+
+
+
+
+  return `/api/cross-engine-report`
+}
+
+/**
+ * @summary On-demand deterministic cross-engine daily report (Engine 1 macro + watchlist target crossings, Engine 2 trading risk, Engine 3 options income portfolio health) for the calling user — no LLM call
+ */
+export const getCrossEngineDailyReport = async ( options?: RequestInit): Promise<CrossEngineDailyReport> => {
+
+  return customFetch<CrossEngineDailyReport>(getGetCrossEngineDailyReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCrossEngineDailyReportQueryKey = () => {
+    return [
+    `/api/cross-engine-report`
+    ] as const;
+    }
+
+
+export const getGetCrossEngineDailyReportQueryOptions = <TData = Awaited<ReturnType<typeof getCrossEngineDailyReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineDailyReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCrossEngineDailyReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCrossEngineDailyReport>>> = ({ signal }) => getCrossEngineDailyReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineDailyReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCrossEngineDailyReportQueryResult = NonNullable<Awaited<ReturnType<typeof getCrossEngineDailyReport>>>
+export type GetCrossEngineDailyReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary On-demand deterministic cross-engine daily report (Engine 1 macro + watchlist target crossings, Engine 2 trading risk, Engine 3 options income portfolio health) for the calling user — no LLM call
+ */
+
+export function useGetCrossEngineDailyReport<TData = Awaited<ReturnType<typeof getCrossEngineDailyReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineDailyReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCrossEngineDailyReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getNarrateCrossEngineDailyReportUrl = () => {
+
+
+
+
+  return `/api/cross-engine-report/narrate`
+}
+
+/**
+ * @summary LLM-narrate the calling user's cross-engine daily report (read-only; never executes; SSE variant at .../narrate/stream is not modeled here)
+ */
+export const narrateCrossEngineDailyReport = async ( options?: RequestInit): Promise<NarrateCrossEngineDailyReportResult> => {
+
+  return customFetch<NarrateCrossEngineDailyReportResult>(getNarrateCrossEngineDailyReportUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getNarrateCrossEngineDailyReportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof narrateCrossEngineDailyReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof narrateCrossEngineDailyReport>>, TError,void, TContext> => {
+
+const mutationKey = ['narrateCrossEngineDailyReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof narrateCrossEngineDailyReport>>, void> = () => {
+
+
+          return  narrateCrossEngineDailyReport(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NarrateCrossEngineDailyReportMutationResult = NonNullable<Awaited<ReturnType<typeof narrateCrossEngineDailyReport>>>
+
+    export type NarrateCrossEngineDailyReportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary LLM-narrate the calling user's cross-engine daily report (read-only; never executes; SSE variant at .../narrate/stream is not modeled here)
+ */
+export const useNarrateCrossEngineDailyReport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof narrateCrossEngineDailyReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof narrateCrossEngineDailyReport>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getNarrateCrossEngineDailyReportMutationOptions(options));
     }
 
 export const getGetPerformanceAnalyticsUrl = (params?: GetPerformanceAnalyticsParams,) => {

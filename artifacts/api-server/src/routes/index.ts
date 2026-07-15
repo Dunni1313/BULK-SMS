@@ -29,6 +29,7 @@ import tradingCoachRouter from "./tradingCoach";
 import tradingBacktestRouter from "./tradingBacktest";
 import notificationsRouter from "./notifications";
 import optionsBacktestRouter from "./optionsBacktest";
+import crossEngineDailyReportRouter from "./crossEngineDailyReport";
 
 const router: IRouter = Router();
 
@@ -62,5 +63,6 @@ router.use(tradingCoachRouter);
 router.use(tradingBacktestRouter);
 router.use(notificationsRouter);
 router.use(optionsBacktestRouter);
+router.use(crossEngineDailyReportRouter);
 
 export default router;

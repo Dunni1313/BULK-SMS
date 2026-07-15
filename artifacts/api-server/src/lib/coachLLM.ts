@@ -813,3 +813,45 @@ export async function narrateManagementLongTermFocus(
     dimension: "Long-Term Focus",
   });
 }
+
+// Phase 5, Sprint 68 — Cross-Engine Daily Report (approved Phase 5 roadmap
+// review). Fourth proof point of the deterministic-math -> ai-core narration
+// -> enforced-disclaimer shape (after the options coach, Engine 1's value
+// coach Sprint 30, and Engine 2's trade coach Sprint 47) — the first time
+// that pattern is applied to a genuinely CROSS-engine composition rather
+// than one engine's own data. No persona is invoked (unlike the Value
+// coach's "in the spirit of Warren Buffett" framing), so only the baseline
+// COACH_DISCLAIMER invariant applies — narrate()/narrateStream() already
+// guarantee it, matching narrateTradeFreeform()'s own simpler precedent
+// (no extra enforceValueSafety()-style wrapper needed, since the composed
+// context here never names a specific analyst/persona).
+const crossEngineDailyReportPrompt =
+  "You are narrating a user's own cross-engine daily report, combining three SIMULATED/provider-derived " +
+  "summaries already computed deterministically: Engine 1 (today's macro/rate regime and any watchlist " +
+  "price/margin-of-safety target crossings), Engine 2 (the user's own trading positions' risk status), and " +
+  "Engine 3 (the user's own options-income portfolio health, unrealized P&L, and top scanner opportunity). " +
+  "Using ONLY the provided deterministic DATA, write 3-5 sentences giving the user a coherent narrative of " +
+  "their day across all three engines — what changed, what needs attention, and what's notable. NEVER " +
+  "invent a number, a symbol, or an event not present in the DATA. This is education/advisory about " +
+  "SIMULATED or provider data, not investment or trading advice, and never a suggestion to place a trade.";
+
+export async function narrateCrossEngineDailyReport(
+  context: unknown,
+  fallback: string,
+  cacheKey?: string,
+): Promise<Narration> {
+  return narrate(crossEngineDailyReportPrompt, context ?? {}, fallback, cacheKey);
+}
+
+// Streaming counterpart of narrateCrossEngineDailyReport. narrateStream()
+// already guarantees the COACH_DISCLAIMER invariant on the authoritative
+// final payload (the `done` event the frontend uses to replace streamed
+// tokens).
+export async function narrateCrossEngineDailyReportStream(
+  context: unknown,
+  fallback: string,
+  onToken: TokenSink,
+  cacheKey?: string,
+): Promise<Narration> {
+  return narrateStream(crossEngineDailyReportPrompt, context ?? {}, fallback, onToken, cacheKey);
+}

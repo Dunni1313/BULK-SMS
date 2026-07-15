@@ -1044,6 +1044,41 @@ paths:
         "404":
           description: Notification not found
 
+  # Cross-Engine Daily Report (Phase 5, Sprint 68). On-demand only: computed
+  # when requested, never scheduled/emailed/pushed. Pure composition of
+  # already-shipped Engine 1/2/3 outputs — zero new engine calculations.
+  # Ownership-scoped like /notifications above.
+  /cross-engine-report:
+    get:
+      operationId: getCrossEngineDailyReport
+      tags: [daily-report]
+      summary: >-
+        On-demand deterministic cross-engine daily report (Engine 1 macro +
+        watchlist target crossings, Engine 2 trading risk, Engine 3 options
+        income portfolio health) for the calling user — no LLM call
+      responses:
+        "200":
+          description: Cross-engine daily report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossEngineDailyReport"
+
+  /cross-engine-report/narrate:
+    post:
+      operationId: narrateCrossEngineDailyReport
+      tags: [daily-report]
+      summary: >-
+        LLM-narrate the calling user's cross-engine daily report (read-only;
+        never executes; SSE variant at .../narrate/stream is not modeled here)
+      responses:
+        "200":
+          description: Narrated cross-engine daily report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrateCrossEngineDailyReportResult"
+
   # ─── Performance ──────────────────────────────────────────────────────────────
   /performance/analytics:
     get:
@@ -5317,6 +5352,82 @@ components:
       required: [isRead]
       properties:
         isRead: { type: boolean }
+
+    # ─── Cross-Engine Daily Report (Phase 5, Sprint 68) ────────────────────────
+    ReportWatchlistCrossing:
+      type: object
+      required: [symbol, currentPrice, priceTargetCrossed, marginOfSafetyTargetCrossed]
+      properties:
+        symbol: { type: string }
+        currentPrice: { type: ["number", "null"] }
+        priceTargetCrossed: { type: ["boolean", "null"] }
+        marginOfSafetyTargetCrossed: { type: ["boolean", "null"] }
+
+    ReportEngine1Summary:
+      type: object
+      required: [macro, watchlistTotalItems, watchlistCrossings]
+      properties:
+        macro:
+          $ref: "#/components/schemas/ValueMacroContext"
+        watchlistTotalItems: { type: integer }
+        watchlistCrossings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportWatchlistCrossing"
+
+    ReportEngine2Summary:
+      type: object
+      required: [risk]
+      properties:
+        risk:
+          $ref: "#/components/schemas/TradingRiskAnalysis"
+
+    ReportEngine3Summary:
+      type: object
+      required:
+        [
+          healthScore,
+          healthLabel,
+          openPositions,
+          totalUnrealizedPnl,
+          attentionCount,
+          criticalCount,
+          topOpportunitySymbol,
+          topOpportunityRavishScore,
+        ]
+      properties:
+        healthScore: { type: number }
+        healthLabel: { type: string }
+        openPositions: { type: integer }
+        totalUnrealizedPnl: { type: number }
+        attentionCount: { type: integer }
+        criticalCount: { type: integer }
+        topOpportunitySymbol: { type: ["string", "null"] }
+        topOpportunityRavishScore: { type: ["number", "null"] }
+
+    CrossEngineDailyReport:
+      type: object
+      required: [date, generatedAt, engine1, engine2, engine3, summary, disclaimer]
+      properties:
+        date: { type: string }
+        generatedAt: { type: string }
+        engine1:
+          $ref: "#/components/schemas/ReportEngine1Summary"
+        engine2:
+          $ref: "#/components/schemas/ReportEngine2Summary"
+        engine3:
+          $ref: "#/components/schemas/ReportEngine3Summary"
+        summary: { type: string }
+        disclaimer: { type: string }
+
+    NarrateCrossEngineDailyReportResult:
+      type: object
+      required: [narrative, narrativeSource]
+      properties:
+        narrative: { type: string }
+        narrativeSource:
+          type: string
+          enum: [llm, template]
 
     # ─── Settings ──────────────────────────────────────────────────────────────
     Settings:

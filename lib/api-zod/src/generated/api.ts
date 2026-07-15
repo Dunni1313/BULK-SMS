@@ -1805,6 +1805,118 @@ export const UpdateNotificationResponse = zod.object({
 
 
 /**
+ * @summary On-demand deterministic cross-engine daily report (Engine 1 macro + watchlist target crossings, Engine 2 trading risk, Engine 3 options income portfolio health) for the calling user — no LLM call
+ */
+export const GetCrossEngineDailyReportResponse = zod.object({
+  "date": zod.string(),
+  "generatedAt": zod.string(),
+  "engine1": zod.object({
+  "macro": zod.object({
+  "asOf": zod.string(),
+  "regime": zod.enum(['rising_rates', 'falling_rates', 'stable_rates']),
+  "regimeLabel": zod.string(),
+  "rateTrendPct": zod.number(),
+  "dataSource": zod.enum(['SIMULATED']),
+  "summary": zod.string()
+}),
+  "watchlistTotalItems": zod.number(),
+  "watchlistCrossings": zod.array(zod.object({
+  "symbol": zod.string(),
+  "currentPrice": zod.number().nullable(),
+  "priceTargetCrossed": zod.boolean().nullable(),
+  "marginOfSafetyTargetCrossed": zod.boolean().nullable()
+}))
+}),
+  "engine2": zod.object({
+  "risk": zod.object({
+  "overall": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "positionSizing": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}).and(zod.object({
+  "largestPositionSymbol": zod.string().nullable(),
+  "largestPositionRiskPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "unpricedSymbols": zod.array(zod.string())
+})),
+  "stopDiscipline": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}).and(zod.object({
+  "openPositionsCount": zod.number(),
+  "positionsWithStop": zod.number(),
+  "positionsWithTarget": zod.number(),
+  "positionsFullyPlanned": zod.number(),
+  "missingStopSymbols": zod.array(zod.string()),
+  "missingTargetSymbols": zod.array(zod.string())
+})),
+  "portfolioBudget": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}).and(zod.object({
+  "accountValue": zod.number().nullable(),
+  "totalRiskDollars": zod.number().nullable(),
+  "totalRiskUsedPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "perPosition": zod.array(zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "riskDollars": zod.number().nullable(),
+  "riskPct": zod.number().nullable(),
+  "withinLimit": zod.boolean().nullable()
+}))
+})),
+  "components": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "score": zod.number().nullable(),
+  "weight": zod.number(),
+  "detail": zod.string()
+})),
+  "accountValue": zod.number().nullable(),
+  "openPositionsCount": zod.number(),
+  "positionContexts": zod.array(zod.object({
+  "positionId": zod.number(),
+  "symbol": zod.string(),
+  "daysAhead": zod.number(),
+  "regimeLabel": zod.union([zod.literal('trending-bullish'),zod.literal('trending-bearish'),zod.literal('range-bound'),zod.literal('volatile-choppy'),zod.literal('quiet-consolidation'),zod.literal(null)]).nullable(),
+  "stopTouchProbability": zod.number().nullable(),
+  "targetTouchProbability": zod.number().nullable()
+}))
+})
+}),
+  "engine3": zod.object({
+  "healthScore": zod.number(),
+  "healthLabel": zod.string(),
+  "openPositions": zod.number(),
+  "totalUnrealizedPnl": zod.number(),
+  "attentionCount": zod.number(),
+  "criticalCount": zod.number(),
+  "topOpportunitySymbol": zod.string().nullable(),
+  "topOpportunityRavishScore": zod.number().nullable()
+}),
+  "summary": zod.string(),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary LLM-narrate the calling user's cross-engine daily report (read-only; never executes; SSE variant at .../narrate/stream is not modeled here)
+ */
+export const NarrateCrossEngineDailyReportResponse = zod.object({
+  "narrative": zod.string(),
+  "narrativeSource": zod.enum(['llm', 'template'])
+})
+
+
+/**
  * @summary Get performance analytics and metrics
  */
 export const getPerformanceAnalyticsQueryPeriodDefault = `1y`;

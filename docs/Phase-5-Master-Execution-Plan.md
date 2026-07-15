@@ -1,6 +1,6 @@
 # Phase 5 — Final Execution Plan
 
-**Status: IN PROGRESS.** All four flagged scope decisions have been resolved by the project owner (§2). **Sprint 65 (Housekeeping & Outstanding Decisions Closure), Sprint 66 (Unified Portfolio Dashboard, side-by-side view only), and Sprint 67 (Testing & Security Audit checkpoint — first bounded slice) are all SHIPPED** — see §3 for all three as-built write-ups. A pre-Sprint-66 milestone review (§3b) confirmed Phases 3–5 are accurately documented, no incomplete work was left behind, every deferred item is explicitly tracked, and all protected files remain zero-diff across the entire Sprint 32–65 range. Sprint 68 onward remains planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3). Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51, Phase 4 was Sprints 52–64 (12 shipped; Sprint 62 blocked, open). **Phase 5 began at Sprint 65.**
+**Status: IN PROGRESS.** All four flagged scope decisions have been resolved by the project owner (§2). **Sprint 65 (Housekeeping & Outstanding Decisions Closure), Sprint 66 (Unified Portfolio Dashboard, side-by-side view only), Sprint 67 (Testing & Security Audit checkpoint — first bounded slice), and Sprint 68 (Cross-Engine Daily Report, on-demand only) are all SHIPPED** — see §3 for all four as-built write-ups. A pre-Sprint-66 milestone review (§3b) confirmed Phases 3–5 are accurately documented, no incomplete work was left behind, every deferred item is explicitly tracked, and all protected files remain zero-diff across the entire Sprint 32–65 range. A pre-Sprint-68 roadmap review (§3d) recommended implementing the Cross-Engine Daily Report next, which the project owner approved. Sprint 69 onward remains planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3). Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51, Phase 4 was Sprints 52–64 (12 shipped; Sprint 62 blocked, open). **Phase 5 began at Sprint 65.**
 
 **Prepared after:** Phase 4's close (`docs/Phase-4-Final-Completion-Report.md`), a fresh reconciliation of `docs/DK-AI-OS-Architecture-Blueprint.md`'s original 7-phase roadmap against what this repository's own phase-by-phase execution actually did (§0, unchanged from the draft), and the project owner's explicit resolution of the four scope decisions the draft surfaced (§2).
 
@@ -132,12 +132,48 @@ No trading logic, options execution, scheduler behavior, guardrails, kill switch
 
 ---
 
+## 3d. Pre-Sprint-68 Phase 5 Roadmap Review
+
+Performed at the project owner's explicit request, before any Sprint 68 code was written. Reviewed the 4 remaining §4 candidates:
+
+1. **Cross-Engine Daily Report** — high business value (a genuine daily-use surface spanning all 3 engines), low technical complexity (pure composition over already-shipped modules, no new engine logic), no blocking dependency. **Recommended: implement next**, on-demand only per the Blueprint's own Phase 5 framing.
+2. **Testing & Security Audit checkpoint — remaining scope** — real but open-ended (frontend coverage sweep, full cross-engine integration suite, load/chaos testing); Sprint 67's own bounded slice already covered the single highest-consequence sub-item (the kill-switch/guardrail review). Recommended: defer the remainder to a future, separately-scoped sprint rather than open-ended scope now.
+3. **Options Live-Data Verification** — blocked, same precondition as Sprint 62 (no FMP/Alpha Vantage credentials in this session). Recommended: stays blocked, revisit only when credentials arrive.
+4. **Notification Delivery expansion** — blocked, no SMTP/VAPID credentials or infrastructure in this session. Recommended: stays blocked, revisit only when infrastructure is provisioned.
+
+The project owner approved implementing the Cross-Engine Daily Report next, scoped strictly to an on-demand, AI-narrated reporting feature — no scheduling, no email/push delivery, no cron/background job of any kind. See §3e for the as-built result.
+
+---
+
+## 3e. Sprint 68 — Cross-Engine Daily Report (on-demand only) — SHIPPED
+
+Per the project owner's own kickoff (§3d), scoped strictly on-demand: the report is computed only when a user calls `GET /cross-engine-report` or opens the new `/daily-report` page — no scheduling, no email/push delivery, no cron/background job.
+
+**Pure composition, zero new engine calculations:** Engine 1's `buildMacroContext()` (Phase 2 Sprint 26) plus `computeWatchlistTargets()` (Phase 4 Sprint 56) over the user's own watchlist; Engine 2's `buildTradingRiskAnalysis()` (Phase 3 Sprint 38/44); Engine 3's existing, unmodified `assembleDailyReport()`. New `lib/crossEngineDailyReport.ts` assembles these into one `{engine1, engine2, engine3, summary, disclaimer}` shape with a deterministic, rule-based summary sentence — never LLM-generated. Deliberately bounded: Engine 1's section runs only the already-cheap watchlist-target-crossing check, not a full Investment Committee pass per symbol, matching the established on-demand cost-control discipline (Sprints 19/20/22/23).
+
+**AI narration is a separate, explicit, on-demand action** — new `narrateCrossEngineDailyReport()`/`narrateCrossEngineDailyReportStream()` in `coachLLM.ts` (the fourth proof point of the deterministic-math → `ai-core` narration → enforced-disclaimer shape, and the first applied to a genuinely cross-engine composition), reached via `POST /cross-engine-report/narrate` (+ SSE `.../narrate/stream`, kept outside the OpenAPI contract per Sprint 61's own precedent) — never blocking or replacing the eager `GET`.
+
+**One real routing bug caught and fixed during implementation:** the route was initially named `/reports/cross-engine-daily`, which collided with `routes/portfolioAI.ts`'s own pre-existing `GET/DELETE /reports/:id` — Express matched "cross-engine-daily" as the `:id` param, returning Engine 3's own 400 before this sprint's handler ever ran. Fixed by renaming to the collision-free `/cross-engine-report` namespace, with a permanent regression test added.
+
+New page `pages/CrossEngineDailyReport.tsx` at `/daily-report` — fetches on mount (no symbol search needed, portfolio/user-wide), showing the deterministic summary and all 3 engine cards unconditionally, with a "Narrate My Day" button reusing the existing `streamCoach()` SSE client.
+
+**Files changed:** `lib/crossEngineDailyReport.ts` (new), `coachLLM.ts` (narration functions appended), `routes/crossEngineDailyReport.ts` (new), `routes/index.ts` (mount), `openapi.yaml` + regenerated `api-zod`/`api-client-react`, `pages/CrossEngineDailyReport.tsx` (new), `App.tsx` + `AppLayout.tsx` (route/nav wiring). No database migration — the report is computed fresh on every call, nothing persisted.
+
+**Tests:** `lib/crossEngineDailyReport.test.ts` (11), `coachLLM.crossEngineDailyReport.test.ts` (3), `routes/crossEngineDailyReport.route.test.ts` (6, including the route-collision regression proof), `pages/CrossEngineDailyReport.test.tsx` (10) — 30 new tests total, all passed.
+
+No trading logic, options execution, scheduler behavior, guardrails, kill switches, authentication, tenant isolation, or audit logging were touched; `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` have a zero-line diff this sprint.
+
+**Rollback:** `git revert` — 2 new backend lib files, 1 new backend route file, 1 new frontend page, additive changes to `coachLLM.ts`/`routes/index.ts`/`openapi.yaml`/`App.tsx`/`AppLayout.tsx`, plus regenerated codegen output; no database migration to unwind.
+
+**Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — run 3 times per the explicit instruction: the first parallel run was fully clean (112 files / 1,190 tests); the second parallel run hit the well-documented, previously-disclosed `fetchedAt`-timing race in `value.test.ts`'s own SIMULATED-determinism check (confirmed via `git status --porcelain` that `value.test.ts`/`fundamentals.ts` are both untouched by Sprint 68) — 110 files passed / 2 failed, 1,188 tests passed / 2 failed; a third parallel run confirmed clean again: 112 files / 1,190 tests (+20 new), zero failures. `pnpm --filter @workspace/ravish-trading run test` — 17 files / 149 tests (11 new), all passing. `PORT=5000 BASE_PATH=/ pnpm run build` — all 3 packages build successfully; largest frontend chunk 461.57 kB, still under the 500 kB threshold Sprint 53 established, no size warning printed.
+
+---
+
 ## 4. Open Candidates — Unscheduled, No Sprint Number Yet
 
 These remain genuine Phase 5 candidates per the Blueprint reconciliation (§0) but have no committed sprint number. Each will need its own kickoff and explicit approval when the project owner chooses to schedule it, per the established per-sprint process:
 
-- **Cross-Engine Daily Report** spanning all three engines (Blueprint Phase 5) — no decision made yet on whether this is wanted.
-- **Options Income Engine — Live-Data End-to-End Verification** (Blueprint Phase 4) — conditional on live broker/data credentials, likely blocked the same way Sprint 62 is.
+- **Options Income Engine — Live-Data End-to-End Verification** (Blueprint Phase 4) — conditional on live broker/data credentials, blocked the same way Sprint 62 is. No credentials available in this session.
 - **Testing & Security Audit checkpoint — remaining scope** (Blueprint Phase 6) — the broader deliverables beyond Sprint 67's own first bounded slice (a frontend test-coverage gap sweep, a full cross-engine integration suite, load/chaos testing for the scheduler-driven automation engine) remain unscoped.
 - **Notification Delivery — email/push channels** — remains blocked without real SMTP/push credentials or infrastructure, unchanged since Sprint 56.
 

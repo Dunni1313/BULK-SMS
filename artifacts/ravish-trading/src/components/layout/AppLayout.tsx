@@ -45,7 +45,8 @@ import {
   NotebookPen,
   History,
   LayoutGrid,
-  TestTube2
+  TestTube2,
+  Newspaper
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -108,6 +109,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { title: "Event Calendar", href: "/events", icon: CalendarClock },
     { title: "Adjustments", href: "/adjustments", icon: Wrench, badge: attentionCount },
     { title: "Institutional Dashboard", href: "/institutional-dashboard", icon: LayoutGrid },
+    { title: "Daily Report", href: "/daily-report", icon: Newspaper },
     { title: "Trading Research", href: "/trading-research", icon: Activity },
     { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
     { title: "Trading Backtest", href: "/trading-backtest", icon: History },
