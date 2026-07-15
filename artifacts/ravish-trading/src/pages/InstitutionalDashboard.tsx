@@ -71,6 +71,29 @@
 // Zero engine-logic merging: each card is independently attributable to
 // its own originating engine, and none of the three values are combined,
 // averaged, or reconciled into a new consolidated reading anywhere.
+//
+// Phase 5, Sprint 66 — Unified Portfolio Dashboard (approved Phase 5 plan,
+// Sprint 66; see docs/Phase-5-Master-Execution-Plan.md's Sprint 66 as-built
+// note). Adds a "Portfolio Overview" section pairing Engine 1's Portfolio
+// Construction (target-weight stock holdings, Phase 2 Sprint 28,
+// GET /portfolio-construction/portfolios, the same list the
+// PortfolioConstruction.tsx page itself already fetches) with Engine 3's
+// real trades-backed account (GET /portfolio/summary, the same summary
+// PortfolioAI.tsx's own cockpit already fetches) — side by side only, per
+// the project owner's own explicit decision: NO blended net-worth or
+// combined-allocation computation, since a target-weight model and a live
+// P&L ledger are structurally different things. Zero new backend routes,
+// zero new engine calculations — both hooks were already generated and
+// already used elsewhere in the frontend; this section is the first place
+// either is fetched inside InstitutionalDashboard.tsx itself. Always
+// visible, not gated by the page's per-symbol search (matching the
+// existing Portfolio Risk section's own Sprint 50 precedent, since a
+// portfolio isn't scoped to a single symbol lookup), positioned directly
+// above that row so every portfolio-wide card sits together. Each card
+// stays a condensed summary that links out to its own full page
+// (/stock-analyst/portfolio-construction, /portfolio) for management
+// actions, the same "link out, don't re-implement" pattern every other
+// summary card on this page already follows.
 
 import { useState } from "react";
 import { Link } from "wouter";
@@ -97,6 +120,10 @@ import {
   getListTradingJournalEntriesQueryKey,
   useListTradingBacktestResults,
   getListTradingBacktestResultsQueryKey,
+  useGetPortfolios,
+  getGetPortfoliosQueryKey,
+  useGetPortfolioSummary,
+  getGetPortfolioSummaryQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -130,6 +157,8 @@ import {
   Scale,
   Newspaper,
   Landmark,
+  Briefcase,
+  PieChart,
 } from "lucide-react";
 
 // Bounded — a fast-scan summary, not a full history dump. The full lists
@@ -269,6 +298,19 @@ export default function InstitutionalDashboard() {
     query: { queryKey: getListTradingBacktestResultsQueryKey() },
   });
 
+  // Phase 5, Sprint 66 — Portfolio Overview. Portfolio-wide, not per-symbol
+  // (like the risk/journal/backtest hooks above), so likewise always
+  // fetched, no `enabled` gate. Neither hook is new — useGetPortfolios()
+  // already powers PortfolioConstruction.tsx's own list, and
+  // useGetPortfolioSummary() already powers PortfolioAI.tsx's own cockpit;
+  // this is the first time either is fetched inside this page.
+  const { data: constructionPortfolios } = useGetPortfolios({
+    query: { queryKey: getGetPortfoliosQueryKey() },
+  });
+  const { data: optionsPortfolioSummary } = useGetPortfolioSummary({
+    query: { queryKey: getGetPortfolioSummaryQueryKey() },
+  });
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSymbol(inputValue.trim().toUpperCase());
@@ -276,6 +318,7 @@ export default function InstitutionalDashboard() {
 
   const recentJournalEntries = (journalEntries ?? []).slice(0, RECENT_ITEMS_LIMIT);
   const recentBacktests = (backtestResults ?? []).slice(0, RECENT_ITEMS_LIMIT);
+  const totalConstructionHoldings = (constructionPortfolios ?? []).reduce((sum, p) => sum + p.holdingsCount, 0);
 
   return (
     <div className="space-y-6 p-6" data-testid="page-institutional-dashboard">
@@ -284,8 +327,9 @@ export default function InstitutionalDashboard() {
         <p className="text-sm text-muted-foreground">
           One-screen cross-engine overview — Engine 1's Investment Committee verdict, all 3 engines' own independent
           macro/regime reads side-by-side, and Engine 2's Structure, Multi-Timeframe, Regime, Probability, Liquidity,
-          and your own Portfolio Risk, for a single symbol lookup. SIMULATED market data, advisory only. Never places
-          an order.
+          for a single symbol lookup — plus your own Portfolio Risk and a side-by-side view of Engine 1's Portfolio
+          Construction and Engine 3's Options Income Portfolio (no blended net-worth figure — they're structurally
+          different things). SIMULATED market data, advisory only. Never places an order.
         </p>
       </div>
 
@@ -647,6 +691,82 @@ export default function InstitutionalDashboard() {
           )}
         </div>
       )}
+
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground mb-2">Portfolio Overview</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="grid-portfolio-overview">
+          <Card data-testid="card-dashboard-portfolio-construction">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Briefcase className="h-4 w-4" />
+                Engine 1 — Portfolio Construction
+              </CardTitle>
+              <CardDescription>Target-weight stock allocations. Never a live P&L ledger.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {constructionPortfolios && constructionPortfolios.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="border-border text-muted-foreground">
+                    {constructionPortfolios.length} portfolio{constructionPortfolios.length === 1 ? "" : "s"}
+                  </Badge>
+                  <Badge variant="outline" className="border-border text-muted-foreground">
+                    {totalConstructionHoldings} holding{totalConstructionHoldings === 1 ? "" : "s"}
+                  </Badge>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground" data-testid="text-dashboard-construction-empty">
+                  No portfolios yet.
+                </p>
+              )}
+              <Link href="/stock-analyst/portfolio-construction" className="text-xs text-primary hover:underline">
+                Manage portfolios →
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-dashboard-options-portfolio">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <PieChart className="h-4 w-4" />
+                Engine 3 — Options Income Portfolio
+              </CardTitle>
+              <CardDescription>Real trades-backed account. Never a target-weight model.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {optionsPortfolioSummary ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="border-border text-muted-foreground">
+                      {fmtUsd(optionsPortfolioSummary.accountValue)}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={
+                        optionsPortfolioSummary.totalPnl >= 0
+                          ? "border-emerald-500/40 text-emerald-400"
+                          : "border-rose-500/40 text-rose-400"
+                      }
+                    >
+                      {fmtUsd(optionsPortfolioSummary.totalPnl)} P&L
+                    </Badge>
+                    <Badge variant="outline" className="border-border text-muted-foreground">
+                      {optionsPortfolioSummary.openPositions} open position
+                      {optionsPortfolioSummary.openPositions === 1 ? "" : "s"}
+                    </Badge>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground" data-testid="text-dashboard-options-portfolio-empty">
+                  No account activity yet.
+                </p>
+              )}
+              <Link href="/portfolio" className="text-xs text-primary hover:underline">
+                Manage portfolio →
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card data-testid="card-dashboard-risk">

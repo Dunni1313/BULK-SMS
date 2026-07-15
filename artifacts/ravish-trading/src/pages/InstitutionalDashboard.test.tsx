@@ -36,6 +36,8 @@ const mockState = vi.hoisted(() => ({
   risk: undefined as unknown,
   journalEntries: [] as unknown[],
   backtestResults: [] as unknown[],
+  constructionPortfolios: undefined as unknown,
+  optionsPortfolioSummary: undefined as unknown,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -85,6 +87,8 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetTradingRisk: () => ({ data: mockState.risk }),
     useListTradingJournalEntries: () => ({ data: mockState.journalEntries }),
     useListTradingBacktestResults: () => ({ data: mockState.backtestResults }),
+    useGetPortfolios: () => ({ data: mockState.constructionPortfolios }),
+    useGetPortfolioSummary: () => ({ data: mockState.optionsPortfolioSummary }),
   };
 });
 
@@ -285,6 +289,31 @@ function backtestResult(over: Record<string, unknown> = {}) {
   };
 }
 
+function constructionPortfolio(over: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    name: "Core Holdings",
+    description: "Long-term stock allocation.",
+    holdingsCount: 8,
+    createdAt: "2026-06-01T12:00:00.000Z",
+    updatedAt: "2026-06-01T12:00:00.000Z",
+    ...over,
+  };
+}
+
+function optionsPortfolioSummary(over: Record<string, unknown> = {}) {
+  return {
+    accountValue: 125_430.5,
+    cashBalance: 42_000,
+    buyingPower: 84_000,
+    totalPnl: 3_250.75,
+    totalPnlPercent: 2.66,
+    dayPnl: 120.4,
+    openPositions: 4,
+    ...over,
+  };
+}
+
 describe("InstitutionalDashboard page", () => {
   beforeEach(() => {
     mockState.valueReport = undefined;
@@ -312,6 +341,8 @@ describe("InstitutionalDashboard page", () => {
     mockState.risk = undefined;
     mockState.journalEntries = [];
     mockState.backtestResults = [];
+    mockState.constructionPortfolios = undefined;
+    mockState.optionsPortfolioSummary = undefined;
   });
 
   it("shows advisory copy and no signal grid before a symbol is searched", () => {
@@ -472,5 +503,55 @@ describe("InstitutionalDashboard page", () => {
     expect(screen.getByText("View journal →").closest("a")).toHaveAttribute("href", "/trading-journal");
     expect(screen.getByText("Run backtest →").closest("a")).toHaveAttribute("href", "/trading-backtest");
     expect(screen.getByTestId("button-dashboard-open-coach").closest("a")).toHaveAttribute("href", "/trading-research");
+  });
+
+  // Phase 5, Sprint 66 — Unified Portfolio Dashboard (side-by-side view only).
+  it("always shows the Portfolio Overview section with honest empty states, even with no symbol searched", () => {
+    renderWithClient(<InstitutionalDashboard />);
+    expect(screen.getByTestId("grid-portfolio-overview")).toBeInTheDocument();
+    expect(screen.getByTestId("text-dashboard-construction-empty")).toBeInTheDocument();
+    expect(screen.getByTestId("text-dashboard-options-portfolio-empty")).toBeInTheDocument();
+  });
+
+  it("renders Engine 1's Portfolio Construction and Engine 3's Options Income Portfolio side by side, each independently attributable to its own engine", () => {
+    mockState.constructionPortfolios = [constructionPortfolio(), constructionPortfolio({ id: 2, name: "Growth Sleeve", holdingsCount: 5 })];
+    mockState.optionsPortfolioSummary = optionsPortfolioSummary();
+
+    renderWithClient(<InstitutionalDashboard />);
+
+    const overviewGrid = screen.getByTestId("grid-portfolio-overview");
+    const constructionCard = within(overviewGrid).getByTestId("card-dashboard-portfolio-construction");
+    expect(within(constructionCard).getByText("2 portfolios")).toBeInTheDocument();
+    expect(within(constructionCard).getByText("13 holdings")).toBeInTheDocument();
+
+    const optionsCard = within(overviewGrid).getByTestId("card-dashboard-options-portfolio");
+    expect(within(optionsCard).getByText("$125,430.50")).toBeInTheDocument();
+    expect(within(optionsCard).getByText("$3,250.75 P&L")).toBeInTheDocument();
+    expect(within(optionsCard).getByText("4 open positions")).toBeInTheDocument();
+
+    // No blended/combined net-worth figure is ever computed anywhere on the
+    // page — Decision 2's own explicit boundary.
+    expect(screen.queryByText(/total net worth/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/combined portfolio/i)).not.toBeInTheDocument();
+  });
+
+  it("links Portfolio Overview cards out to Portfolio Construction and Portfolio for management actions rather than duplicating them", () => {
+    renderWithClient(<InstitutionalDashboard />);
+    expect(screen.getByText("Manage portfolios →").closest("a")).toHaveAttribute(
+      "href",
+      "/stock-analyst/portfolio-construction",
+    );
+    expect(screen.getByText("Manage portfolio →").closest("a")).toHaveAttribute("href", "/portfolio");
+  });
+
+  it("shows the Portfolio Overview section regardless of whether a symbol has been searched", async () => {
+    const user = userEvent.setup();
+    renderWithClient(<InstitutionalDashboard />);
+    expect(screen.getByTestId("grid-portfolio-overview")).toBeInTheDocument();
+
+    await user.type(screen.getByTestId("input-dashboard-symbol"), "AAPL");
+    await user.click(screen.getByTestId("button-dashboard-search"));
+
+    expect(screen.getByTestId("grid-portfolio-overview")).toBeInTheDocument();
   });
 });

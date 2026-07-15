@@ -1,6 +1,6 @@
 # Phase 5 — Final Execution Plan
 
-**Status: IN PROGRESS.** All four flagged scope decisions have been resolved by the project owner (§2). **Sprint 65 (Phase 5 Housekeeping & Outstanding Decisions Closure) is SHIPPED** — see §3 for the as-built write-up. Sprint 66 onward remains planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3). Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51, Phase 4 was Sprints 52–64 (12 shipped; Sprint 62 blocked, open). **Phase 5 began at Sprint 65.**
+**Status: IN PROGRESS.** All four flagged scope decisions have been resolved by the project owner (§2). **Sprint 65 (Housekeeping & Outstanding Decisions Closure) and Sprint 66 (Unified Portfolio Dashboard, side-by-side view only) are both SHIPPED** — see §3 for both as-built write-ups. A pre-Sprint-66 milestone review (§3b) confirmed Phases 3–5 are accurately documented, no incomplete work was left behind, every deferred item is explicitly tracked, and all protected files remain zero-diff across the entire Sprint 32–65 range. Sprint 67 onward remains planning only until each sprint's own pre-implementation plan is separately approved, per the established per-sprint process (`CLAUDE.md` §3). Sprint numbering continues the project's single global counter: Phase 1 was Sprints 1–10, Phase 2 was Sprints 11–31, Phase 3 was Sprints 32–51, Phase 4 was Sprints 52–64 (12 shipped; Sprint 62 blocked, open). **Phase 5 began at Sprint 65.**
 
 **Prepared after:** Phase 4's close (`docs/Phase-4-Final-Completion-Report.md`), a fresh reconciliation of `docs/DK-AI-OS-Architecture-Blueprint.md`'s original 7-phase roadmap against what this repository's own phase-by-phase execution actually did (§0, unchanged from the draft), and the project owner's explicit resolution of the four scope decisions the draft surfaced (§2).
 
@@ -21,7 +21,7 @@ The Blueprint (§5) laid out 7 phases: Foundation → Investing Engine → Tradi
 - The `trades` table was never migrated into a "shared Portfolio DB schema" — Phase 1 Sprint 4/7 added `userId` scoping to it in place, which satisfied the *multi-tenancy* half of "move to shared platform," but no cross-engine portfolio schema unification happened. Superseded by decision 2 below (side-by-side view only — no schema unification needed for that scope).
 
 **From the Blueprint's original Phase 5 (Integration), still outstanding after Phase 4's partial delivery:**
-- **Unified Portfolio Dashboard (stocks + options combined)** — does not exist. **Resolved (§2, decision 2): side-by-side view only, no blended net-worth computation.** Remains an open candidate for a future sprint, unscheduled (§4).
+- **Unified Portfolio Dashboard (stocks + options combined)** — **RESOLVED (Sprint 66, §3):** shipped as a side-by-side view only, no blended net-worth computation, per Decision 2.
 - **Cross-engine Reporting** — `dailyReport.ts` remains Engine-3-only. No decision has been made on this yet; remains an open candidate, unscheduled (§4).
 - **Unified Settings UI** — `settings` is already one shared per-user table/route (`routes/settings.ts`, since Phase 1 Sprint 5), so the *data layer* is already unified; whether the `Settings.tsx` *page* should be reorganized is a smaller, optional UX question, not tracked as a Phase 5 deliverable unless separately raised.
 - **Cross-engine AI Assistant routing** — does not exist. **Resolved (§2, decision 3): skip. The three existing specialized coach panels (Engine 1/2/3) stay as they are.**
@@ -69,11 +69,47 @@ No better sequencing than the draft's own candidate ordering was found during th
 
 ---
 
+## 3a. Pre-Sprint-66 Milestone Review
+
+Performed before Sprint 66's own implementation began, covering Phases 3–5 (Sprint 32 through Sprint 65):
+
+- **Documentation accuracy:** every commit from Sprint 52 through Sprint 65 (16 commits: 12 shipped Phase 4 sprints, 1 blocked-sprint commit, 3 Phase 5 planning commits) is correctly reflected in `CLAUDE.md`, the Phase 4 plan's roadmap/dependency tables and all 13 `§10` as-built subsections, and this Phase 5 plan. Two small stale cross-references were found and fixed (commit `8a2a4da`, documentation-only): this plan's own top status line still said Sprint 65 hadn't shipped after it had, and `CLAUDE.md`'s Sprint 65 entry reported test results vaguely instead of with the exact counts every other entry states.
+- **No incomplete implementation items:** a full diff scan (`git diff 1c8c273~1..HEAD`) for `TODO`/`FIXME`/`XXX` markers introduced across Sprints 52–65 found zero genuine hits.
+- **Every deferred item explicitly documented:** cross-referenced Sprint 62, the Composable Strategy Builder, Unified AI Chat Routing, Notification Delivery beyond in-app, the Live Market-Data Provider, and the Testing & Security Audit checkpoint — each traces to a specific, named decision with a stated reason in at least one of the three living docs, never silently dropped.
+- **Protected files:** `git diff --stat` across the **entire Phase 3–5 range** (Sprint 32's own baseline commit through Sprint 65, not just Phase 4–5) confirms zero-line diff on `execution.ts`, `optionsMath.ts`, `risk.ts`, `autoExecution.ts`, `autoAdjustment.ts`. A direct content scan of all five files for incomplete-work markers also came back clean.
+- **Technical debt noted, none blocking:** no formal Testing & Security Audit checkpoint has ever run (Blueprint Phase 6); 3 known, long-standing, transient test-flake categories remain (none ever blocking); the CORS production origin value is still a real deployment-time gap; `uuid` vs `serial` (CLAUDE.md item #5) is effectively settled by 65 sprints of unbroken precedent but never formally marked resolved; the frontend's largest bundle chunk has crept from 436.95 kB to ~460.6 kB, still comfortably under the 500 kB threshold.
+
+Full findings delivered in chat per the project owner's request; this section is the durable record.
+
+---
+
+## 3b. Sprint 66 — Unified Portfolio Dashboard (side-by-side view only) — SHIPPED
+
+Implements Decision 2 exactly as scoped: a page pairing Engine 1's Portfolio Construction and Engine 3's real trades-backed account, side by side, with no blended net-worth or combined-allocation computation.
+
+- New, always-visible "Portfolio Overview" section on `InstitutionalDashboard.tsx`, positioned directly above the existing Portfolio Risk/Journal/Backtest row — not gated by the page's per-symbol search, since a portfolio isn't scoped to a single symbol lookup (matching that row's own Sprint 50 precedent).
+- **Zero new backend routes, zero new engine calculations.** Reuses `useGetPortfolios()` (Engine 1, already powering `PortfolioConstruction.tsx`'s own list) and `useGetPortfolioSummary()` (Engine 3, already powering `PortfolioAI.tsx`'s own cockpit) — both already generated, both already used elsewhere in the frontend; this is the first time either is fetched inside `InstitutionalDashboard.tsx` itself.
+- Engine 1's card shows portfolio count + total holdings count (summed from the list endpoint's own summary shape, avoiding an N+1 per-portfolio detail fetch). Engine 3's card shows account value, total P&L (color-coded), and open-position count, reusing the page's existing `fmtUsd` helper and badge conventions.
+- Icons reused directly from `AppLayout.tsx`'s own nav (`Briefcase` for Portfolio Construction, `PieChart` for Portfolio) rather than picking new ones.
+- Each card links out to its own full page (`/stock-analyst/portfolio-construction`, `/portfolio`) for management actions — the same "link out, don't re-implement" pattern every other summary card on this page already follows.
+- Honest empty states when a user has no portfolios/no account activity, never a fabricated "0".
+
+**Files changed:** `artifacts/ravish-trading/src/pages/InstitutionalDashboard.tsx`, `artifacts/ravish-trading/src/pages/InstitutionalDashboard.test.tsx` — nothing else. No database migration, no `openapi.yaml` change (both consumed endpoints already existed and were already documented).
+
+**Tests:** 5 new `InstitutionalDashboard.test.tsx` cases — the section's always-visible honest-empty-state proof, both cards' real-data rendering with an explicit proof that no blended/combined net-worth text ever appears anywhere on the page, the two outbound links, and a proof the section persists whether or not a symbol has been searched. All 14 tests in the file (9 existing + 5 new) passed on the first isolated run.
+
+No trading logic, options execution, scheduler behavior, guardrails, kill switches, authentication, tenant isolation, or audit logging were touched; `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` have a zero-line diff this sprint — frontend-only, the entire `artifacts/api-server` tree is untouched.
+
+**Rollback:** `git revert` — two frontend files, no database migration to unwind, no backend changes.
+
+**Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — run twice per the explicit instruction: the first run hit the well-documented, previously-disclosed `fetchedAt`-timing race in `value.test.ts`'s own SIMULATED-determinism check (confirmed via `git status --porcelain` that `value.test.ts`/`fundamentals.ts` are both untouched by Sprint 66) — 106 files passed / 1 failed, 1,161 tests passed / 1 failed; the second run was fully clean — 107 files / 1,162 tests, zero failures. `pnpm --filter @workspace/ravish-trading run test` — 16 files / 138 tests (5 new), all passing. `PORT=5000 BASE_PATH=/ pnpm run build` — all 3 packages build successfully; largest frontend chunk 460.62 kB, still comfortably under the 500 kB threshold Sprint 53 established.
+
+---
+
 ## 4. Open Candidates — Unscheduled, No Sprint Number Yet
 
-These remain genuine Phase 5 candidates per the Blueprint reconciliation (§0) but were not selected as Sprint 65's priority and have no committed sprint number. Each will need its own kickoff and explicit approval when the project owner chooses to schedule it, per the established per-sprint process:
+These remain genuine Phase 5 candidates per the Blueprint reconciliation (§0) but have no committed sprint number. Each will need its own kickoff and explicit approval when the project owner chooses to schedule it, per the established per-sprint process:
 
-- **Unified Portfolio Dashboard (side-by-side view only, per decision 2).**
 - **Cross-Engine Daily Report** spanning all three engines (Blueprint Phase 5) — no decision made yet on whether this is wanted.
 - **Options Income Engine — Live-Data End-to-End Verification** (Blueprint Phase 4) — conditional on live broker/data credentials, likely blocked the same way Sprint 62 is.
 - **Testing & Security Audit checkpoint** (Blueprint Phase 6) — a dedicated cross-engine integration/security review. Deferred behind Sprint 65 by the project owner's own priority choice; exact timing otherwise undecided.
