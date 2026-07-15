@@ -1362,6 +1362,84 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface MonitoringDatabaseHealth {
+  connected: boolean;
+  latencyMs: number | null;
+  error: string | null;
+}
+
+export type MonitoringJobHealthLastStatus = typeof MonitoringJobHealthLastStatus[keyof typeof MonitoringJobHealthLastStatus];
+
+
+export const MonitoringJobHealthLastStatus = {
+  ok: 'ok',
+  error: 'error',
+  never_run: 'never_run',
+} as const;
+
+export interface MonitoringJobHealth {
+  job: string;
+  lastRunAt: string | null;
+  lastDurationMs: number | null;
+  lastStatus: MonitoringJobHealthLastStatus;
+  lastError: string | null;
+  consecutiveFailures: number;
+  totalRuns: number;
+  totalFailures: number;
+}
+
+export type MonitoringRequestMetricsByStatusClass = {
+  '2xx': number;
+  '3xx': number;
+  '4xx': number;
+  '5xx': number;
+  other: number;
+};
+
+export interface MonitoringRequestMetrics {
+  total: number;
+  byStatusClass: MonitoringRequestMetricsByStatusClass;
+}
+
+export interface MonitoringAuditSignals {
+  guardrailBlocksLastHour: number;
+  authFailuresLastHour: number;
+  /** When these two counts were last computed by the periodic monitoring tick — null before the server's first tick (every 5 minutes) since these are deliberately not queried on the live request path. */
+  computedAt: string | null;
+}
+
+export type MonitoringAlertSeverity = typeof MonitoringAlertSeverity[keyof typeof MonitoringAlertSeverity];
+
+
+export const MonitoringAlertSeverity = {
+  warning: 'warning',
+  critical: 'critical',
+} as const;
+
+export interface MonitoringAlert {
+  category: string;
+  severity: MonitoringAlertSeverity;
+  message: string;
+}
+
+export type MonitoringStatusStatus = typeof MonitoringStatusStatus[keyof typeof MonitoringStatusStatus];
+
+
+export const MonitoringStatusStatus = {
+  ok: 'ok',
+  degraded: 'degraded',
+} as const;
+
+export interface MonitoringStatus {
+  status: MonitoringStatusStatus;
+  timestamp: string;
+  database: MonitoringDatabaseHealth;
+  jobs: MonitoringJobHealth[];
+  requestMetrics: MonitoringRequestMetrics;
+  auditSignals: MonitoringAuditSignals;
+  alerts: MonitoringAlert[];
+}
+
 export type ScannerResultStrategy = typeof ScannerResultStrategy[keyof typeof ScannerResultStrategy];
 
 

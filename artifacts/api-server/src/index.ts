@@ -4,6 +4,7 @@ import { runAutoExecutionCycleForAllUsers } from "./lib/autoExecution";
 import { runAutoAdjustmentCycleForAllUsers } from "./lib/autoAdjustment";
 import { startRequestMetricsTimer } from "./lib/requestMetrics";
 import { startAlertsScheduler } from "./lib/notifications";
+import { recordJobRun, startMonitoringTimer } from "./lib/systemHealth";
 
 // Phase 6 — full-auto scheduler. Fires on an interval but is a guaranteed no-op
 // unless mode=full_auto AND the master switch is armed (the cycle itself enforces
@@ -20,6 +21,10 @@ const AUTO_CYCLE_INTERVAL_MS = 60_000;
 
 function startAutoScheduler(): void {
   const tick = async (): Promise<void> => {
+    // Phase 6, Sprint 74 — recordJobRun() is pure observation: it times and
+    // records the outcome of the exact same call already made below, and
+    // never changes what that call does or its return value.
+    const execStart = performance.now();
     try {
       const results = await runAutoExecutionCycleForAllUsers();
       for (const result of results) {
@@ -35,12 +40,19 @@ function startAutoScheduler(): void {
           );
         }
       }
+      recordJobRun("auto-execution", { success: true, durationMs: performance.now() - execStart });
     } catch (err) {
       logger.error({ err }, "Auto-execution scheduler tick failed");
+      recordJobRun("auto-execution", {
+        success: false,
+        durationMs: performance.now() - execStart,
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
     }
 
     // Task #20 — auto-adjustment cycle. Same no-op-unless-armed contract (gated on
     // mode=full_auto AND the auto-adjust switch); only ever de-risks open trades.
+    const adjStart = performance.now();
     try {
       const adjResults = await runAutoAdjustmentCycleForAllUsers();
       for (const adj of adjResults) {
@@ -51,8 +63,14 @@ function startAutoScheduler(): void {
           );
         }
       }
+      recordJobRun("auto-adjustment", { success: true, durationMs: performance.now() - adjStart });
     } catch (err) {
       logger.error({ err }, "Auto-adjustment scheduler tick failed");
+      recordJobRun("auto-adjustment", {
+        success: false,
+        durationMs: performance.now() - adjStart,
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
     }
   };
   const timer = setInterval(() => void tick(), AUTO_CYCLE_INTERVAL_MS);
@@ -92,4 +110,9 @@ app.listen(port, (err) => {
   // startAutoScheduler's own auto-execution/auto-adjustment cycles above —
   // never touches trades, the kill switch, or autoExecutionLog.
   startAlertsScheduler();
+  // Phase 6, Sprint 74 — same "real entrypoint only" precedent as the two
+  // timers above. Wholly independent of every engine's own logic; only
+  // observes job outcomes recorded via recordJobRun() and periodically
+  // evaluates already-existing tables for alert-worthy conditions.
+  startMonitoringTimer();
 });

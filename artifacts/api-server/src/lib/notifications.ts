@@ -36,6 +36,7 @@ import { buildTradingRiskAnalysis, type TradingPositionInput } from "./tradingRi
 import { getMarketDataProvider } from "./tradingMarketData.js";
 import { getSettingsRow } from "./serverState.js";
 import { logger } from "./logger.js";
+import { recordJobRun } from "./systemHealth.js";
 
 export type AlertType = "watchlist_target_crossed" | "risk_cap_breached";
 
@@ -225,9 +226,20 @@ let alertsTimer: NodeJS.Timeout | null = null;
 export function startAlertsScheduler(): void {
   if (alertsTimer) return;
   alertsTimer = setInterval(() => {
-    evaluateAndPersistAlertsForAllUsers().catch((err) => {
-      logger.error({ err }, "Alerts scheduler tick failed");
-    });
+    // Phase 6, Sprint 74 — recordJobRun() is pure observation: it times and
+    // records the outcome of the exact same call below, never changing what
+    // it does.
+    const start = performance.now();
+    evaluateAndPersistAlertsForAllUsers()
+      .then(() => recordJobRun("alerts", { success: true, durationMs: performance.now() - start }))
+      .catch((err) => {
+        logger.error({ err }, "Alerts scheduler tick failed");
+        recordJobRun("alerts", {
+          success: false,
+          durationMs: performance.now() - start,
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
+      });
   }, ALERTS_SCHEDULER_INTERVAL_MS);
   alertsTimer.unref();
 }

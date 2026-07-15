@@ -17,6 +17,50 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Operational health status — database, background jobs, request-error rate, and active alerts
+ */
+export const GetMonitoringStatusResponse = zod.object({
+  "status": zod.enum(['ok', 'degraded']),
+  "timestamp": zod.coerce.date(),
+  "database": zod.object({
+  "connected": zod.boolean(),
+  "latencyMs": zod.number().nullable(),
+  "error": zod.string().nullable()
+}),
+  "jobs": zod.array(zod.object({
+  "job": zod.string(),
+  "lastRunAt": zod.coerce.date().nullable(),
+  "lastDurationMs": zod.number().nullable(),
+  "lastStatus": zod.enum(['ok', 'error', 'never_run']),
+  "lastError": zod.string().nullable(),
+  "consecutiveFailures": zod.number(),
+  "totalRuns": zod.number(),
+  "totalFailures": zod.number()
+})),
+  "requestMetrics": zod.object({
+  "total": zod.number(),
+  "byStatusClass": zod.object({
+  "2xx": zod.number(),
+  "3xx": zod.number(),
+  "4xx": zod.number(),
+  "5xx": zod.number(),
+  "other": zod.number()
+})
+}),
+  "auditSignals": zod.object({
+  "guardrailBlocksLastHour": zod.number(),
+  "authFailuresLastHour": zod.number(),
+  "computedAt": zod.coerce.date().nullable().describe('When these two counts were last computed by the periodic monitoring tick — null before the server\'s first tick (every 5 minutes) since these are deliberately not queried on the live request path.')
+}),
+  "alerts": zod.array(zod.object({
+  "category": zod.string(),
+  "severity": zod.enum(['warning', 'critical']),
+  "message": zod.string()
+}))
+})
+
+
+/**
  * @summary Get latest scanner results
  */
 export const getScannerResultsQueryLimitDefault = 20;

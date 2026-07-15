@@ -25,7 +25,7 @@ import { logger } from "./logger.js";
 
 export const REQUEST_METRICS_WINDOW_MS = 5 * 60_000; // 5 minutes
 
-interface WindowCounts {
+export interface WindowCounts {
   total: number;
   byStatusClass: Record<"2xx" | "3xx" | "4xx" | "5xx" | "other", number>;
 }
@@ -58,6 +58,14 @@ export function requestMetrics(req: Request, res: Response, next: NextFunction):
     recordRequest(res.statusCode);
   });
   next();
+}
+
+// Phase 6, Sprint 74 — a read-only snapshot of the CURRENT (not-yet-flushed)
+// window, for lib/systemHealth.ts's live status endpoint. Deliberately never
+// resets or logs anything itself — that stays flushRequestMetricsWindow's own
+// job on its own 5-minute cadence.
+export function getCurrentWindowSnapshot(): WindowCounts {
+  return { total: counts.total, byStatusClass: { ...counts.byStatusClass } };
 }
 
 // Exported for tests — logs and resets the current window without waiting

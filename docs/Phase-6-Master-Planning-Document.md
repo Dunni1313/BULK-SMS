@@ -1,6 +1,6 @@
 # Phase 6 — Testing, Security & Production-Readiness — Master Planning Document
 
-**Status: PHASE 6 IN PROGRESS.** This document proposed a candidate Phase 6 scope, sequence, and strategy; the project owner has approved and **Sprints 69 (§2a), 70 (§2c), 71 (§2d), 72 (§2e), and 73 (§2f) have all shipped** — the platform's first browser-level E2E testing capability, 2 genuine cross-engine E2E flows, dedicated Vitest coverage for all 14 previously-untested legacy pages (Slice 1 + Slice 2 together, closing the frontend test-coverage gap entirely), and the platform's first load/chaos testing of the automation scheduler (M4, achieved). A post-Sprint-69 roadmap review (§2b) recommended promoting the Cross-Engine E2E Integration Suite ahead of the originally-listed frontend legacy-page coverage sweep, which the project owner approved; that review also recommends (not yet applied) narrowing Phase 6 to its Testing charter and re-homing Monitoring/Alerting, Live-Data Verification, and the Rollout Plan to a future Phase 7. **No sprint number below Sprint 74 is a commitment** — per the established per-sprint approval process (`CLAUDE.md` §3, unbroken since Phase 1), each further proposed sprint still requires its own explicit kickoff, scope confirmation, and approval before any code is written, exactly as every sprint from 1 through 73 required.
+**Status: PHASE 6 IN PROGRESS.** This document proposed a candidate Phase 6 scope, sequence, and strategy; the project owner has approved and **Sprints 69 (§2a), 70 (§2c), 71 (§2d), 72 (§2e), 73 (§2f), and 74 (§2g) have all shipped** — the platform's first browser-level E2E testing capability, 2 genuine cross-engine E2E flows, dedicated Vitest coverage for all 14 previously-untested legacy pages (closing the frontend test-coverage gap entirely), the platform's first load/chaos testing of the automation scheduler (M4), and the platform's first monitoring/alerting/incident-runbook capability (M5, achieved). The project owner directed that Monitoring/Alerting stay in Phase 6 rather than move to Phase 7 (per the Sprint 73 completion report's own recommendation), so §2b's "not yet applied" re-homing recommendation for that item is now superseded. **No sprint number below Sprint 75 is a commitment** — per the established per-sprint approval process (`CLAUDE.md` §3, unbroken since Phase 1), each further proposed sprint still requires its own explicit kickoff, scope confirmation, and approval before any code is written, exactly as every sprint from 1 through 74 required.
 
 **Prepared after:** Phase 5's close (`docs/Phase-5-Final-Completion-Report.md`), the Sprint 69 planning review that recommended closing Phase 5 rather than opening a further sprint, and a fresh reading of `docs/DK-AI-OS-Architecture-Blueprint.md`'s own original Phase 6 (Testing) and Phase 7 (Production) sections against the platform as it actually exists today at the close of Sprint 68.
 
@@ -45,7 +45,7 @@ Numbering continues the project's single global counter, starting at **Sprint 69
 | 71 | Frontend Legacy-Page Test Coverage — Slice 1 | Testing | **SHIPPED (§2d)** | Bounded to the 5 smallest/simplest of the 14 untested pages (not-found, Scoring, Login, OptionChain, Portfolio) — smallest-first, mirroring the Route+UI backlog-reduction pattern from Phase 3, Sprints 40–46, which handled exactly this kind of "many similar items, one at a time" backlog |
 | 72 | Frontend Legacy-Page Test Coverage — Slice 2 | Testing | **SHIPPED (§2e)** | Remaining 9 pages (Events, Scanner, Backtest, Journal, AutoPilot, Performance, Dashboard, TradeTicket, Adjustments) — closes the frontend test-coverage gap entirely, all 27 pages now covered |
 | 73 | Load & Chaos Testing — Automation Scheduler | Testing/Security | **SHIPPED (§2f)** | The Blueprint's own explicitly-named highest-risk gap ("if this phase gets compressed... it's the automation/execution path... that pays for it first") — the tooling decision (resolved: no new tool, pure Vitest) was its own first sub-step, mirroring Sprint 69's own framework-selection precedent |
-| 74 | Monitoring, Alerting & Incident Runbook | Production-readiness | Not started (§2b recommends re-homing to a future Phase 7) | Reuses `pino` (already the logging foundation) + `platform_audit_log`/`auto_execution_log` (already the compliance/observability substrate) per the Blueprint's own explicit reuse guidance; produces a real, testable incident-response runbook, not just a document |
+| 74 | Monitoring, Alerting & Incident Runbook | Production-readiness | **SHIPPED (§2g)** — stayed in Phase 6 per explicit owner direction | Reuses `pino` (already the logging foundation) + `platform_audit_log`/`auto_execution_log` (already the compliance/observability substrate) per the Blueprint's own explicit reuse guidance; produces a real, testable incident-response runbook, not just a document |
 | 75 | Live Provider Verification — Engine 1 (FMP/Alpha Vantage) | Conditional | Blocked (no credentials) | Fires the moment `FMP_API_KEY`/`ALPHA_VANTAGE_API_KEY` become available — this is Sprint 62 finally unblocked, a pure verification pass over already-built code, no new logic; can run at any point once credentials arrive, independent of this sequence |
 | 76 | Live Provider Verification — Options Income Engine | Conditional | Blocked (no credentials) | Same shape as 75, for the Options Income Engine's own live-data path (the Blueprint's original Phase 4 item that was never executed) |
 | 77 | Staged Production Rollout Plan — Documentation + Go-Live Checklist | Production-readiness | Not started (§2b recommends re-homing to a future Phase 7) | Produces the actual staged rollout plan and go-live checklist the Blueprint calls for (Options Income → Investing → Trading), explicitly covering the automation kill-switch — a planning/documentation sprint, not a go-live event itself |
@@ -229,7 +229,65 @@ No trading logic, options execution, scheduler behavior, guardrails, kill switch
 
 **Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — run twice per the explicit instruction, plus a definitive serial re-run: the first parallel run was fully clean (116 files / 1,211 tests); the second parallel run hit 3 failures, all independently confirmed pre-existing, previously-disclosed flake categories unrelated to this sprint via `git status --porcelain` (the `fetchedAt`-timing race, first noted Sprint 16; the shared-legacy-owner-account live-Postgres-parallelism race, first noted Sprint 20) — none in any Sprint-73-touched file; a definitive serial re-run (`vitest run --no-file-parallelism`) confirmed fully clean: 116 files / 1,211 tests, zero failures. The new load/chaos suite (4 files, 21 tests) was additionally run 5 times in isolation to confirm repeatability — all 5 fully clean, zero flakes. `pnpm --filter @workspace/ravish-trading run test` — 31 files / 236 tests, unchanged. `PORT=5000 BASE_PATH=/ pnpm run build` — all packages build successfully, no size warning (largest chunk unchanged at 461.57 kB). The full Playwright E2E suite (5 specs, unchanged) was run 5 times total to reach 2 clean, definitive back-to-back runs: 3 of the 5 runs each hit exactly one instance of the well-documented, previously-disclosed `getSettingsRow()` concurrency race (Sprint 70's own disclosure), confirmed unrelated to Sprint 73 via `git status --porcelain`; the final 2 consecutive runs were both fully clean, 5/5 passing, zero flakes.
 
-**With Sprint 73's completion, M4 ("Automation engine load-tested," see §4) is now achieved.** Sprint 74 was not started.
+**With Sprint 73's completion, M4 ("Automation engine load-tested," see §4) is now achieved.**
+
+---
+
+## 2g. Sprint 74 — Monitoring, Alerting & Incident Runbook — SHIPPED
+
+Implemented exactly as proposed in §2's own table row, no scope expansion into Sprint 75. **No remaining owner decisions surfaced** — unlike Sprint 73's tool choice or Sprint 56's delivery-channel choice, both the plan's own Objective 5 and the project owner's kickoff instructions were fully prescriptive (reuse `pino` + `platform_audit_log`/`auto_execution_log`, no new monitoring service), so no `AskUserQuestion` was needed.
+
+**Zero changes to any protected file.** `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` all remain zero-line diff — every instrumentation point lives in `index.ts` (the scheduler tick) and `lib/notifications.ts` (the alerts tick), neither of which is protected, wrapping their own existing calls with pure timing/outcome observation that never changes what they do.
+
+### Monitoring architecture
+
+New `lib/systemHealth.ts` — the monitoring core:
+- **Background-job health tracking** (`recordJobRun()`/`getJobHealthSnapshot()`) — an in-memory per-job state mirroring `lib/requestMetrics.ts`'s own Sprint 52 pattern exactly, tracking 3 jobs: `auto-execution`, `auto-adjustment` (both `index.ts`'s 60s scheduler tick), and `alerts` (`lib/notifications.ts`'s 5-minute tick, Sprint 56).
+- A cheap **database connectivity check** (`SELECT 1`, real latency measured).
+- Two **audit-log-derived alert signals** — `guardrailBlocksLastHour` (`auto_execution_log` where `decision="blocked"`, last hour) and `authFailuresLastHour` (`platform_audit_log` where `eventType="auth.login_failed"`, last hour) — the literal "turn existing logs into active alerting signals" the plan's Objective 5 calls for. Computed **only from the periodic 5-minute timer**, never the live request path, since `auto_execution_log` has no index beyond its primary key and CLAUDE.md rule 3 forbids adding one as part of general audit-log work.
+- A pure `evaluateAlerts()` function producing the 6 alert categories in §2 below.
+- **Edge-triggered incident persistence** — every alert is `pino`-logged every tick; only a genuinely *new* alert category is persisted to `platform_audit_log` via the already-existing `recordAuditEvent()` writer (Sprint 10), `eventType: "monitoring.alert"` — no new table, no migration. A still-active alert isn't re-persisted every 5 minutes; a resolved-then-reoccurring alert persists again.
+
+**Live-vs-cached design, explicitly disclosed:** `GET /monitoring/status` (new route, mounted on the same `healthRouter` as `/healthz` — same auth-exempt, rate-limit-exempt treatment) computes database connectivity, job health, and the current request-metrics window fresh on every call; the two audit-log-derived signals are read from the periodic timer's own cache — `auditSignals.computedAt` is honestly `null` until the server's first monitoring tick, never fabricated.
+
+`lib/requestMetrics.ts` gained one small, additive, read-only export (`getCurrentWindowSnapshot()`) so `systemHealth.ts` could read the current unflushed window without disturbing the existing 5-minute logging cadence.
+
+### Alert categories
+
+| Category | Severity | Threshold |
+|---|---|---|
+| `database.unreachable` | critical | Connectivity check failed |
+| `scheduler.repeated_failure` | critical | `consecutiveFailures >= 3` |
+| `scheduler.stuck` | critical | Last run older than 2× the job's own expected interval |
+| `errors.elevated_5xx_rate` | warning | 5xx rate > 10%, with ≥20 requests in the window |
+| `guardrail.elevated_block_rate` | warning | > 20 blocked decisions/hour |
+| `auth.elevated_failure_rate` | warning | > 10 failed logins/hour |
+
+All 6 threshold values are named, adjustable constants — generous starting defaults, matching Sprint 52's own "measured baseline, tune later" precedent, since no real production traffic data exists yet.
+
+### Incident runbook
+
+New `docs/Incident-Response-Runbook.md` — the operator-facing companion to `systemHealth.ts`'s own engineering-rationale header comment. Full monitoring-architecture description, each of the 6 alert categories with its own symptom/meaning/likely-causes/diagnosis/recovery-procedure/verification steps (§2.2's `scheduler.repeated_failure` explicitly walks through using the existing kill switch as the fastest containment action, and reiterates that any fix touching a protected file still requires the same maximum-scrutiny approval process — an incident is not an exception to CLAUDE.md rule 2), and a general 7-step incident workflow (detect → triage → contain → diagnose → fix → verify → record).
+
+### Health endpoints
+
+`GET /api/monitoring/status` — new, joins `GET /api/healthz` on the auth/rate-limit-exempt health router.
+
+No database migration — `platform_audit_log`'s already-general `eventType` column absorbs the new `"monitoring.alert"` value with zero schema change, the same precedent every prior sprint adding a new event type has followed since Sprint 10. `openapi.yaml` gained a new `monitoring` tag, the `/monitoring/status` path, and 6 new `Monitoring`-prefixed schemas; `api-zod`/`api-client-react` regenerated cleanly, no collisions.
+
+**One real test-design bug caught and fixed during this sprint's own repeatability validation, not a production bug:** the first draft of the "re-persists an alert once it resolves and later reoccurs" test used a fixed message string, so 5 repeated real invocations of the test (run back-to-back against the same persistent Postgres database, per this sprint's own "run monitoring tests multiple times to confirm repeatability" requirement) accumulated rows under that fixed string across runs, breaking the test's own exact-count assertion — fixed by making the message unique per test run, matching the same discipline `notifications.route.test.ts` (Sprint 56) and `optionsBacktest.route.test.ts` (Sprint 58) both already established for this exact situation.
+
+**Files changed:** `lib/systemHealth.ts` (new), `lib/systemHealth.test.ts` (new), `routes/monitoring.route.test.ts` (new), `docs/Incident-Response-Runbook.md` (new); `index.ts`, `lib/notifications.ts`, `lib/requestMetrics.ts`, `routes/health.ts`, `lib/api-spec/openapi.yaml` (small, additive edits — none protected).
+
+**Tests:** 24 new tests total (`systemHealth.test.ts` 20, `monitoring.route.test.ts` 4).
+
+No trading logic, options execution, scheduler *behavior*, guardrails, kill switches, authentication, tenant isolation, or audit logging were touched — this sprint only *observes* the scheduler's own existing behavior, never changes it.
+
+**Rollback:** `git revert` — 4 new files + 5 small additive edits to non-protected files + 1 openapi/codegen regeneration; no database migration to unwind, no application behavior changed for any existing route.
+
+**Validation:** `pnpm run typecheck` clean. `pnpm --filter @workspace/api-server run test` — run twice, both fully clean: 118 files / 1,235 tests (+24 new), zero failures, zero flakes either run. `pnpm --filter @workspace/ravish-trading run test` — 31 files / 236 tests, unchanged. `PORT=5000 BASE_PATH=/ pnpm run build` — all packages build successfully, no size warning (largest chunk unchanged at 461.57 kB). The new monitoring test suite was additionally run 5 times in isolation to confirm repeatability — the first pass caught the test-design bug above; all 5 runs after the fix were fully clean, zero flakes. The full Playwright E2E suite (5 specs, unchanged) was run 4 times to reach 2 clean, definitive back-to-back runs: the first 2 exploratory runs each hit one instance of the well-documented, previously-disclosed `getSettingsRow()` concurrency race (Sprint 70's own disclosure), confirmed unrelated to Sprint 74 via `git status --porcelain`; the final 2 consecutive runs were both fully clean, 5/5 passing, zero flakes.
+
+**With Sprint 74's completion, M5 ("Observable in production," see §4) is now achieved.** Sprint 75 was not started.
 
 ---
 
@@ -241,7 +299,7 @@ No trading logic, options execution, scheduler behavior, guardrails, kill switch
 | 70, 71 | 69 (reuses its harness/conventions) | None |
 | 72 | 69, 70, 71 | None |
 | 73 | None (ran in parallel with 69–72) | **RESOLVED**: no new tool, pure Vitest — see §2f |
-| 74 | None (can run in parallel with 69–73) | None — reuses existing `pino`/audit-log infrastructure |
+| 74 | None (ran in parallel with 69–73) | None — reused existing `pino`/audit-log infrastructure, see §2g |
 | 75 | None | **`FMP_API_KEY`/`ALPHA_VANTAGE_API_KEY`** — not present in this session |
 | 76 | None | **Options Income Engine's own live-data provider credentials** — not present in this session |
 | 77 | 69–74 (a credible rollout plan needs the testing/monitoring groundwork) | None to *write* the plan; executing it later needs 75/76's credentials plus a separate explicit go-ahead |
@@ -257,7 +315,7 @@ No proposed sprint touches `execution.ts`, `optionsMath.ts`, `risk.ts`, `autoExe
 2. **M3 — Cross-engine E2E proof** (after Sprint 70, **ACHIEVED**, reached ahead of M2 per §2b's promotion): at least one real browser flow proves a user can move across engines and see consistent state, the literal Blueprint Phase 6 "integration test suite" deliverable.
 3. **M2 — Full frontend test coverage** (after Sprint 72, **ACHIEVED**): all 27 pages have a dedicated test file; zero untested legacy surface remains.
 4. **M4 — Automation engine load-tested** (after Sprint 73, **ACHIEVED**): the highest-consequence subsystem has been exercised under realistic and adversarial load conditions, not just unit-level correctness.
-5. **M5 — Observable in production** (after Sprint 74): monitoring/alerting and a real incident runbook exist — the platform could be operated, not just deployed.
+5. **M5 — Observable in production** (after Sprint 74, **ACHIEVED**): monitoring/alerting and a real incident runbook exist — the platform could be operated, not just deployed.
 6. **M6 — Live-data verified** (after 75/76, whenever credentials arrive): both Engine 1's and the Options Income Engine's live-data paths are proven against real APIs, not just mocked-fetch tests.
 7. **M7 — Go-live-ready** (after Sprint 77): a concrete, staged rollout plan and go-live checklist exist — the actual go-live decision remains the project owner's, separately gated, but the platform is no longer blocked on planning to make that decision.
 
@@ -282,7 +340,7 @@ Grounded directly in the current §11.6 checklist from `docs/Phase-5-Final-Compl
 | Auth / multi-tenancy | ✅ Ready | No action needed |
 | Kill switches / guardrails | ✅ Reviewed + load/chaos-tested | Sprint 73 extended this from "correct under normal conditions" to "correct under adversarial conditions" — done |
 | Rate limiting | ✅ Ready | No action needed |
-| Audit logging | ✅ Ready | Sprint 74 turns existing logs into actual monitoring/alerting, not just passive records |
+| Audit logging | ✅ Ready + active alerting | Sprint 74 turned existing logs into actual monitoring/alerting, not just passive records — done |
 | CORS | ⚠️ Mechanism ready, value pending | Still needs the project owner to supply the real production origin — not resolvable by any sprint, flagged again here so it doesn't get lost |
 | Frontend bundle size | ✅ Ready | No action needed |
 | Live market/fundamentals data | ❌ Not verified | Sprints 75/76, conditional on credentials |
@@ -291,8 +349,8 @@ Grounded directly in the current §11.6 checklist from `docs/Phase-5-Final-Compl
 | E2E/browser test coverage | ❌ Does not exist | Sprints 69, 72 |
 | Load/chaos testing | ✅ Ready | Sprint 73 — done |
 | Frontend page test coverage | ⚠️ Partial (13/27) | Sprints 70, 71 |
-| Monitoring/alerting | ❌ Does not exist | Sprint 74 |
-| Incident response runbook | ❌ Does not exist | Sprint 74 |
+| Monitoring/alerting | ✅ Ready | Sprint 74 — done |
+| Incident response runbook | ✅ Ready | Sprint 74 — `docs/Incident-Response-Runbook.md` — done |
 | Staged rollout plan | ❌ Does not exist | Sprint 77 |
 
 **Production readiness is a checklist to satisfy, not a single event to schedule** — Phase 6, as proposed, closes every row this session can close without external credentials; the rows that remain red after Phase 6 are exactly the ones genuinely outside this session's control.

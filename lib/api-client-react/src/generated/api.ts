@@ -91,6 +91,7 @@ import type {
   ManagementQualityAnalysis,
   MarketBriefingResponse,
   MarketDataHealth,
+  MonitoringStatus,
   NarrateCrossEngineDailyReportResult,
   NarrateInvestmentCommitteeInput,
   NarrateInvestmentCommitteeResult,
@@ -233,6 +234,83 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getHealthCheckQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMonitoringStatusUrl = () => {
+
+
+
+
+  return `/api/monitoring/status`
+}
+
+/**
+ * @summary Operational health status — database, background jobs, request-error rate, and active alerts
+ */
+export const getMonitoringStatus = async ( options?: RequestInit): Promise<MonitoringStatus> => {
+
+  return customFetch<MonitoringStatus>(getGetMonitoringStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMonitoringStatusQueryKey = () => {
+    return [
+    `/api/monitoring/status`
+    ] as const;
+    }
+
+
+export const getGetMonitoringStatusQueryOptions = <TData = Awaited<ReturnType<typeof getMonitoringStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMonitoringStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMonitoringStatus>>> = ({ signal }) => getMonitoringStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMonitoringStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMonitoringStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getMonitoringStatus>>>
+export type GetMonitoringStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Operational health status — database, background jobs, request-error rate, and active alerts
+ */
+
+export function useGetMonitoringStatus<TData = Awaited<ReturnType<typeof getMonitoringStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMonitoringStatusQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

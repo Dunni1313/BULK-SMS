@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: monitoring
+    description: Operational monitoring — background-job health, database connectivity, request-error rate, and audit-log-derived alerting signals (Phase 6, Sprint 74)
   - name: scanner
     description: Daily options scanner
   - name: options
@@ -68,6 +70,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Monitoring (Phase 6, Sprint 74) ────────────────────────────────────
+  /monitoring/status:
+    get:
+      operationId: getMonitoringStatus
+      tags: [monitoring]
+      summary: Operational health status — database, background jobs, request-error rate, and active alerts
+      responses:
+        "200":
+          description: Current monitoring status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringStatus"
 
   # ─── Scanner ───────────────────────────────────────────────────────────────
   /scanner/results:
@@ -3589,6 +3605,84 @@ components:
       properties:
         status:
           type: string
+
+    # ─── Monitoring (Phase 6, Sprint 74) ────────────────────────────────────
+    MonitoringDatabaseHealth:
+      type: object
+      required: [connected, latencyMs, error]
+      properties:
+        connected: { type: boolean }
+        latencyMs: { type: number, nullable: true }
+        error: { type: string, nullable: true }
+
+    MonitoringJobHealth:
+      type: object
+      required: [job, lastRunAt, lastDurationMs, lastStatus, lastError, consecutiveFailures, totalRuns, totalFailures]
+      properties:
+        job: { type: string }
+        lastRunAt: { type: string, format: date-time, nullable: true }
+        lastDurationMs: { type: number, nullable: true }
+        lastStatus: { type: string, enum: [ok, error, never_run] }
+        lastError: { type: string, nullable: true }
+        consecutiveFailures: { type: integer }
+        totalRuns: { type: integer }
+        totalFailures: { type: integer }
+
+    MonitoringRequestMetrics:
+      type: object
+      required: [total, byStatusClass]
+      properties:
+        total: { type: integer }
+        byStatusClass:
+          type: object
+          required: ["2xx", "3xx", "4xx", "5xx", other]
+          properties:
+            "2xx": { type: integer }
+            "3xx": { type: integer }
+            "4xx": { type: integer }
+            "5xx": { type: integer }
+            other: { type: integer }
+
+    MonitoringAuditSignals:
+      type: object
+      required: [guardrailBlocksLastHour, authFailuresLastHour, computedAt]
+      properties:
+        guardrailBlocksLastHour: { type: integer }
+        authFailuresLastHour: { type: integer }
+        computedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When these two counts were last computed by the periodic monitoring tick — null before the server's first tick (every 5 minutes) since these are deliberately not queried on the live request path.
+
+    MonitoringAlert:
+      type: object
+      required: [category, severity, message]
+      properties:
+        category: { type: string }
+        severity: { type: string, enum: [warning, critical] }
+        message: { type: string }
+
+    MonitoringStatus:
+      type: object
+      required: [status, timestamp, database, jobs, requestMetrics, auditSignals, alerts]
+      properties:
+        status: { type: string, enum: [ok, degraded] }
+        timestamp: { type: string, format: date-time }
+        database:
+          $ref: "#/components/schemas/MonitoringDatabaseHealth"
+        jobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoringJobHealth"
+        requestMetrics:
+          $ref: "#/components/schemas/MonitoringRequestMetrics"
+        auditSignals:
+          $ref: "#/components/schemas/MonitoringAuditSignals"
+        alerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoringAlert"
 
     # ─── Scanner ─────────────────────────────────────────────────────────────
     ScannerResult:
