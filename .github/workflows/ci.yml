@@ -71,6 +71,13 @@ jobs:
       - name: Push database schema
         run: pnpm --filter @workspace/db run push-force
 
+      # lib/auth/src/index.ts requires BETTER_AUTH_SECRET at import time
+      # (Phase 1, Sprint 6) — app.ts, imported by every *.route.test.ts
+      # file, throws immediately without it. Mirrors the e2e job's own
+      # "Generate a session secret for this run only" step below.
+      - name: Generate a session secret for this run only
+        run: echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+
       - name: Typecheck
         run: pnpm run typecheck
 
