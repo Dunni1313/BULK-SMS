@@ -54,9 +54,18 @@ No better sequencing than the draft's own candidate ordering was found during th
 
 ---
 
-## 3. Sprint 65 — Phase 5 Housekeeping & Outstanding Decisions Closure (PROPOSED, awaiting approval)
+## 3. Sprint 65 — Phase 5 Housekeeping & Outstanding Decisions Closure — SHIPPED
 
-See the standalone Sprint 65 Implementation Proposal delivered alongside this plan for the full objective/boundary/acceptance-criteria/risk breakdown. Summary: investigate and resolve, non-destructively, the four items CLAUDE.md and the original Technical Audit have carried open since Phase 1/pre-Phase-1 — `ravish-trading-engine.zip`, `artifacts/mockup-sandbox`, the `stock_analysis_history` per-user-vs-shared-cache decision, and the `OPENAI_API_KEY` deprecation window — closing each with either a safe code change or a documented decision, never a unilateral deletion of flagged legacy content.
+**One change from the original proposal, per the project owner's explicit instruction:** `ravish-trading-engine.zip` was **not** deleted, despite the investigation below confirming it would have been safe to remove. It is kept, treated as an intentional archival backup, with removal deferred to a future release rather than acted on now.
+
+- **`ravish-trading-engine.zip`** — confirmed by direct inspection (`unzip -l`) to be a full point-in-time monorepo backup: 860KB compressed, 2.7MB / 451 files uncompressed, covering `.agents/memory/`, `artifacts/` (including a snapshot of `mockup-sandbox`), `lib/`, `scripts/`, and root config files, dated May 28–June 8, 2026 — fully redundant with git history and unreferenced by any build, CI config, or doc. **Kept unchanged**, per the project owner's explicit instruction; `CLAUDE.md` §3 item #8 documents the investigation findings and the decision to defer removal.
+- **`artifacts/mockup-sandbox`** — confirmed by `git log` to have existed unchanged since the very first commit: a 60-file Vite + Radix-UI design/prototyping sandbox with its own `package.json`/`vite.config.ts`, still typechecked and built every sprint via the monorepo-wide `pnpm run build`, never wired into the shipped product. Resolved with a new `artifacts/mockup-sandbox/README.md` documenting its purpose and its deliberate exclusion from the production application — the Technical Audit's own "document ongoing purpose" branch, chosen over archiving/deleting a working 60-file tool.
+- **`stock_analysis_history` per-user-vs-shared-cache decision** (CLAUDE.md §3 item #3) — confirmed by schema inspection to already be fully per-user (`userId` FK, `NOT NULL`, `ON DELETE RESTRICT`, enforced since Phase 1 Sprint 4), with 21+ Phase 2 sprints and every Phase 4 sprint built on that assumption. Resolved as a pure documentation closure — per-user confirmed as the final design, no shared-cache optimization planned, zero code change.
+- **`OPENAI_API_KEY` deprecation window** (CLAUDE.md §3 item #7) — resolved the same way: the Sprint 2 fallback stays open indefinitely (negligible maintenance cost, no evidence any real deployment has migrated off it, removing it would be a pure breaking change with no offsetting benefit), zero code change to `coachLLM.ts`/`@workspace/ai-core`.
+
+**Zero feature work, zero database migrations, zero changes to any protected file** — `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` confirmed zero-line diff via `git diff --stat`. Files changed: `CLAUDE.md` (§3 items #3, #6, #7, #8, #9 resolved) and the new `artifacts/mockup-sandbox/README.md` — nothing else. No new test surface was introduced, so the existing suites were run once each rather than flake-checked twice, per the sprint's own pre-approved validation plan.
+
+**Validation:** `pnpm run typecheck` clean (including `mockup-sandbox`). `pnpm --filter @workspace/api-server run test` — 107 files / 1,162 tests, fully clean. `pnpm --filter @workspace/ravish-trading run test` — 16 files / 134 tests, all passing, unmodified. `PORT=5000 BASE_PATH=/ pnpm run build` — all packages, including `mockup-sandbox`, build successfully.
 
 ---
 
