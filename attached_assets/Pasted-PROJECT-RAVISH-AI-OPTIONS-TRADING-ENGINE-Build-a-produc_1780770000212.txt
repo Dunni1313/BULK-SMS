@@ -1,0 +1,378 @@
+PROJECT: RAVISH AI OPTIONS TRADING ENGINE
+
+Build a production-ready web application called Ravish AI Options Trading Engine.
+
+The system is based on Ravish's probability-based options selling framework.
+
+The platform should NOT attempt to predict market direction.
+
+The platform's objective is:
+
+Find positive expectancy trades
+Sell premium
+Collect theta decay
+Maintain delta neutrality
+Manage risk automatically
+Backtest strategies
+Execute trades through Alpaca
+EXISTING INFRASTRUCTURE
+
+The platform already has:
+
+Alpaca Account Integration
+User Authentication
+Existing Portfolio Dashboard
+
+Reuse existing infrastructure.
+
+Do NOT rebuild broker connectivity.
+
+Build a new module called:
+
+Ravish Options Engine
+CORE STRATEGIES
+
+Implement:
+
+Iron Condor
+
+Rules:
+
+Short Put = 20 Delta
+Short Call = 20 Delta
+Long Put Wing = 5-20 points lower
+Long Call Wing = 5-20 points higher
+
+Calculate:
+
+Max Profit
+Max Loss
+Probability of Profit
+Expected Value
+Theta Income
+Return On Capital
+Iron Fly
+
+Rules:
+
+Sell ATM Call
+Sell ATM Put
+Buy protection wings
+
+Calculate:
+
+Max Profit
+Max Loss
+POP
+EV
+Earnings Edge
+Calendar Spread
+
+Ravish signature strategy.
+
+Rules:
+
+Buy:
+
+Back Month Option
+
+Sell:
+
+Front Month Option
+
+Same Strike
+
+Target:
+
+20-30 Delta
+
+Calculate:
+
+Theta Differential
+Daily Theta Income
+Max Risk
+Max Profit
+EV
+POP
+MARKET DATA
+
+Pull:
+
+Option Chains
+Delta
+Theta
+Vega
+Gamma
+IV
+IV Rank
+Earnings Dates
+Open Interest
+Bid Ask Spread
+
+Universe:
+
+SPY
+QQQ
+IWM
+NVDA
+META
+AAPL
+AMZN
+MSFT
+GOOGL
+TSLA
+DAILY SCANNER
+
+Every morning run scanner.
+
+Find:
+
+Best Iron Condor
+
+Rank by:
+
+Highest POP
+Highest EV
+Highest Theta
+Best Calendar Spread
+
+Rank by:
+
+Theta Differential
+EV
+Historical Success
+Best Earnings Trade
+
+Rank by:
+
+Historical Earnings Moves
+IV Crush Potential
+EV
+EXPECTED VALUE ENGINE
+
+Formula:
+
+EV = (Win Rate × Average Win) - (Loss Rate × Average Loss)
+
+Display:
+
+EV per Trade
+EV Monthly
+EV Annualized
+
+Reject trades with negative EV.
+
+BACKTEST ENGINE
+
+Backtest every strategy.
+
+Periods:
+
+1 Year
+2 Years
+5 Years
+
+Metrics:
+
+Win Rate
+Average Win
+Average Loss
+Expectancy
+Max Drawdown
+Sharpe Ratio
+Sortino Ratio
+
+Generate equity curve.
+
+AI RANKING SYSTEM
+
+Create Ravish Score.
+
+Weightings:
+
+30% Probability Of Profit
+
+25% Expected Value
+
+15% Theta Efficiency
+
+15% Historical Win Rate
+
+10% Liquidity
+
+5% IV Rank
+
+Scores:
+
+95-100 = Elite
+
+85-94 = High Conviction
+
+75-84 = Good
+
+Below 75 = Ignore
+
+PORTFOLIO GREEKS
+
+Pull live Alpaca positions.
+
+Calculate:
+
+Portfolio Delta
+Portfolio Theta
+Portfolio Vega
+Portfolio Gamma
+
+Display:
+
+Delta Neutral Status
+
+Bullish Exposure
+
+Bearish Exposure
+
+AI Recommendations
+
+AUTO EXECUTION
+
+Allow:
+
+Manual Execution
+
+Semi-Automatic Execution
+
+Full Automatic Execution
+
+Workflow:
+
+Scanner
+
+↓
+
+Risk Validation
+
+↓
+
+Position Sizing
+
+↓
+
+Generate Option Structure
+
+↓
+
+Submit Alpaca Order
+
+↓
+
+Monitor Position
+
+↓
+
+Exit Automatically
+
+RISK RULES
+
+Never allow:
+
+Naked Calls
+Naked Puts
+Undefined Risk Trades
+
+Always require:
+
+Defined Risk Structures
+
+Maximum risk per trade:
+
+1% of account
+
+Maximum portfolio risk:
+
+10% of account
+
+AUTOMATED EXITS
+
+Profit Targets:
+
+50%
+
+75%
+
+90%
+
+Stop Loss:
+
+2x Credit Received
+
+Or user configurable.
+
+AI OPTIONS ASSISTANT
+
+Add chat interface.
+
+Examples:
+
+"Show best iron condor today"
+
+"Find highest expected value trade"
+
+"Am I delta neutral"
+
+"Show best calendar spread"
+
+"Analyze my portfolio risk"
+
+UI
+
+Institutional style.
+
+Think:
+
+Bloomberg Terminal
+
+OptionStrat
+
+Tastytrade
+
+Dark mode.
+
+Responsive.
+
+Fast.
+
+FINAL DELIVERABLE
+
+Create:
+
+Options Scanner
+Backtest Engine
+Ravish Score Engine
+Portfolio Greeks Dashboard
+Auto Trade Execution
+AI Assistant
+Trade Journal
+Performance Analytics
+
+Build using:
+
+Frontend:
+
+Next.js
+TypeScript
+Tailwind
+ShadCN
+
+Backend:
+
+FastAPI Python
+
+Database:
+
+PostgreSQL
+
+Broker:
+
+Existing Alpaca Integration
+
+Architecture must support 10,000+ users and future expansion into a complete AI-powered options trading platform.

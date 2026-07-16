@@ -1,0 +1,273 @@
+PROJECT: RAVISH AI PORTFOLIO MANAGER
+
+IMPORTANT
+
+This is NOT a new application.
+
+Build this as a new module inside the existing Ravish AI Options Trading Engine.
+
+Reuse:
+
+* Existing Authentication
+* Existing Database
+* Existing Dashboard
+* Existing Scanner
+* Existing Leaderboard
+* Existing AutoPilot
+* Existing Alpaca Integration
+* Existing Event Calendar
+* Existing AI Assistant
+
+Do not rebuild existing functionality.
+
+OBJECTIVE
+
+Transform Ravish from a trade scanner into a complete AI-powered options portfolio management system.
+
+The system should:
+
+* Find trades
+* Explain trades
+* Monitor trades
+* Manage trades
+* Recommend adjustments
+* Track portfolio Greeks
+* Generate daily reports
+
+MODULE 1 — AI PORTFOLIO MANAGER
+
+Create a new page:
+
+Portfolio AI
+
+Display:
+
+Account Value
+Buying Power
+Portfolio Risk
+Open Positions
+Portfolio Delta
+Portfolio Theta
+Portfolio Vega
+Portfolio Gamma
+
+Daily Theta Income
+Weekly Theta Income
+Monthly Theta Income
+
+Display overall portfolio health score from 0–100.
+
+MODULE 2 — DAILY AI MARKET BRIEFING
+
+Generate automatically every morning.
+
+Include:
+
+Market Regime
+VIX Analysis
+IV Environment
+Risk-On / Risk-Off
+Major Earnings
+Economic Events
+
+Output example:
+
+Market Environment: Favorable for premium selling
+
+VIX: 17.2
+
+IV Rank Average: 62
+
+Recommendation:
+Continue selling premium using defined-risk iron condors.
+
+MODULE 3 — AI TRADE EXPLANATIONS
+
+Every trade must have:
+
+Why This Trade?
+
+AI explains:
+
+* POP
+* EV
+* Theta
+* IV Rank
+* Expected Move
+* Risk
+* Max Profit
+* Max Loss
+
+Example:
+
+GOOGL Iron Condor
+
+POP: 77%
+
+EV: Positive
+
+IV Rank: 68
+
+Reason:
+Elevated volatility allows premium collection with breakevens outside expected move.
+
+MODULE 4 — TRADE CONSTRUCTION ENGINE
+
+Scanner currently finds opportunities.
+
+Build the actual strategy automatically.
+
+Iron Condor:
+
+* Short Put = target delta
+* Long Put = wing width
+* Short Call = target delta
+* Long Call = wing width
+
+Iron Fly:
+
+* Sell ATM Put
+* Sell ATM Call
+* Buy wings
+
+Calendar Spread:
+
+* Buy longer DTE
+* Sell shorter DTE
+
+Automatically calculate:
+
+POP
+EV
+Theta
+ROC
+Breakevens
+Risk/Reward
+
+MODULE 5 — AI POSITION MONITOR
+
+Every open trade receives:
+
+Threat Level:
+
+GREEN
+YELLOW
+RED
+
+Monitor:
+
+Price movement
+Delta drift
+Theta remaining
+IV changes
+Earnings risk
+
+Recommendations:
+
+Hold
+Take Profit
+Roll Position
+Close Position
+Hedge Position
+
+MODULE 6 — ADJUSTMENT ENGINE
+
+When trade becomes threatened:
+
+Generate adjustment suggestions.
+
+Examples:
+
+Roll tested side
+Convert to Iron Fly
+Close trade
+Reduce size
+Add hedge
+
+Explain:
+
+Why adjustment is recommended.
+
+MODULE 7 — PORTFOLIO GREEKS ENGINE
+
+Calculate:
+
+Total Delta
+Total Theta
+Total Vega
+Total Gamma
+
+Display:
+
+Delta Neutrality Score
+
+Portfolio Exposure Score
+
+Risk Concentration Score
+
+MODULE 8 — DAILY AI REPORT
+
+Generate every morning.
+
+Sections:
+
+Portfolio Summary
+Open Positions
+Risk Analysis
+Market Analysis
+New Opportunities
+Trades To Avoid
+Adjustment Recommendations
+
+Store report history.
+
+MODULE 9 — AUTO EXECUTION READINESS
+
+Before submitting orders:
+
+Validate:
+
+Positive EV
+POP threshold
+Liquidity threshold
+Risk threshold
+Event risk
+
+Display exact rejection reason.
+
+Examples:
+
+Rejected: Liquidity Too Low
+Rejected: Negative EV
+Rejected: Earnings Risk
+Rejected: Risk Limit Exceeded
+
+MODULE 10 — LEARNING MODE
+
+Create educational explanations for:
+
+Delta
+Theta
+Gamma
+Vega
+POP
+Expected Value
+Iron Condors
+Iron Flys
+Calendar Spreads
+
+Use the user's actual trades as examples.
+
+GOAL
+
+Turn Ravish AI Options Trading Engine into a complete AI-powered options operating system that acts as:
+
+* Scanner
+* Coach
+* Portfolio Manager
+* Risk Manager
+* Trade Builder
+* Adjustment Engine
+* AutoPilot Assistant
+
+while keeping the user in control of execution.

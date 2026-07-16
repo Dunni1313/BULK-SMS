@@ -1,0 +1,217 @@
+name: CI
+
+# Phase 1, Sprint 1 — wires the existing pnpm scripts (typecheck, build, test)
+# into CI. No new scripts are introduced; this workflow only calls what
+# already exists in package.json files across the workspace.
+#
+# Assumption (flagged, not confirmed): GitHub Actions as the CI platform,
+# per the approved Phase 1 Foundation plan. If the project is hosted
+# elsewhere (GitLab, Bitbucket, Replit-native CI), this file's shape carries
+# over but the platform-specific syntax will need to change.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # The api-server test suite imports @workspace/db, which throws at
+    # import time if DATABASE_URL is unset (lib/db/src/index.ts) — several
+    # test files (adjustmentTicket.test.ts, autoAdjustment.cycle.test.ts,
+    # tradeClose.test.ts, phase7.coach.test.ts) touch the database directly.
+    # A disposable Postgres service is required for the suite to run at all,
+    # not just for Phase 1's new tests.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dkos
+          POSTGRES_PASSWORD: dkos
+          POSTGRES_DB: dkos_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://dkos:dkos@localhost:5432/dkos_ci
+      NODE_ENV: test
+      PORT: "8080"
+      BASE_PATH: "/"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # pnpm major version pinned to 10, matching the pnpm CLI that has
+      # actually generated and validated pnpm-lock.yaml throughout local
+      # development (lockfileVersion '9.0' is the lockfile FORMAT, not the
+      # CLI version — pnpm 10.x continues to write that format). pnpm 9.x's
+      # frozen-install validation of the workspace `overrides` block does
+      # not agree with a lockfile produced by pnpm 10.x, even when the
+      # override content is identical, which is what PR #1's first-ever CI
+      # run surfaced (ERR_PNPM_LOCKFILE_CONFIG_MISMATCH). Not pinned
+      # anywhere else in the repo (no packageManager field in package.json).
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Push database schema
+        run: pnpm --filter @workspace/db run push-force
+
+      # CLAUDE.md rule 7: every data-touching migration lives in a
+      # hand-reviewed SQL file under lib/db/manual-migrations/, run
+      # separately from `drizzle-kit push` (which only creates table
+      # shape). `drizzle-kit push` alone leaves a fresh CI database with
+      # correct tables but no seeded rows — most critically, no legacy-owner
+      # user (lib/db/manual-migrations/002_backfill_and_enforce.sql), which
+      # lib/legacyOwner.ts requires for every unauthenticated request this
+      # suite's *.route.test.ts files rely on. Files are named 000-016 so
+      # plain glob/lexicographic ordering is already correct run order;
+      # -v ON_ERROR_STOP=1 makes any single statement's failure fail this
+      # step immediately, EXCEPT for one narrowly-targeted, understood,
+      # harmless case (see below).
+      #
+      # Known exception — 003_settings_user_scoped.sql only:
+      # that file's own `ADD CONSTRAINT settings_user_id_unique UNIQUE
+      # (user_id)` was written years ago to run against an OLDER database
+      # state, before the unique constraint existed. `drizzle-kit push
+      # --force` (the step directly above) already creates that exact
+      # constraint from the CURRENT schema.ts on a brand-new database, so
+      # replaying 003 hits a deterministic, harmless
+      # "settings_user_id_unique already exists" — the constraint 003 wants
+      # is already present with identical semantics, not a masked failure.
+      # This is matched narrowly by BOTH filename AND exact error text: any
+      # other error from this file, or any error from any other file, still
+      # fails the step immediately, per ON_ERROR_STOP=1 below.
+      - name: Apply manual migrations
+        run: |
+          set -e
+          for f in lib/db/manual-migrations/*.sql; do
+            echo "Applying $f"
+            set +e
+            output=$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f" 2>&1)
+            status=$?
+            set -e
+            echo "$output"
+            if [ $status -ne 0 ]; then
+              if [[ "$f" == *"003_settings_user_scoped.sql" ]] && echo "$output" | grep -q 'settings_user_id_unique" already exists'; then
+                echo "Known no-op for 003_settings_user_scoped.sql: settings_user_id_unique was already created by the schema push above — continuing."
+              else
+                echo "FAILED: $f"
+                exit 1
+              fi
+            fi
+          done
+
+      # lib/auth/src/index.ts requires BETTER_AUTH_SECRET at import time
+      # (Phase 1, Sprint 6) — app.ts, imported by every *.route.test.ts
+      # file, throws immediately without it. Mirrors the e2e job's own
+      # "Generate a session secret for this run only" step below.
+      - name: Generate a session secret for this run only
+        run: echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Test — api-server
+        run: pnpm --filter @workspace/api-server run test
+
+      - name: Test — ravish-trading (frontend)
+        run: pnpm --filter @workspace/ravish-trading run test
+
+  # Phase 6, Sprint 69 — first E2E smoke slice (see
+  # docs/Phase-6-Master-Planning-Document.md §5 / the Sprint 69 as-built
+  # note). A separate job, not appended to `test` above, per the Phase 6
+  # plan's own "run separately from the existing unit-test job so a slow
+  # E2E suite never blocks fast unit-test feedback" testing strategy.
+  #
+  # Unlike the local dev sandbox this repo is normally built in (which has
+  # Chromium pre-installed at a fixed path — see artifacts/e2e/playwright.config.ts's
+  # own comment), a fresh GitHub Actions runner has no browser at all, so
+  # this job installs one itself via `playwright install`.
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dkos
+          POSTGRES_PASSWORD: dkos
+          POSTGRES_DB: dkos_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://dkos:dkos@localhost:5432/dkos_e2e
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright's Chromium
+        run: pnpm --filter @workspace/e2e exec playwright install --with-deps chromium
+
+      - name: Push database schema
+        run: pnpm --filter @workspace/db run push-force
+
+      # Mirrors the test job's own "Apply manual migrations" step exactly,
+      # including its narrowly-targeted 003_settings_user_scoped.sql
+      # exception (see that step's own comment for the full explanation) —
+      # this job provisions its own fresh database too.
+      - name: Apply manual migrations
+        run: |
+          set -e
+          for f in lib/db/manual-migrations/*.sql; do
+            echo "Applying $f"
+            set +e
+            output=$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f" 2>&1)
+            status=$?
+            set -e
+            echo "$output"
+            if [ $status -ne 0 ]; then
+              if [[ "$f" == *"003_settings_user_scoped.sql" ]] && echo "$output" | grep -q 'settings_user_id_unique" already exists'; then
+                echo "Known no-op for 003_settings_user_scoped.sql: settings_user_id_unique was already created by the schema push above — continuing."
+              else
+                echo "FAILED: $f"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Generate a session secret for this run only
+        run: echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
+
+      - name: E2E smoke tests
+        run: pnpm --filter @workspace/e2e run test

@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "HfDpQ-hD6rphtYW5-yCPj"
+uri = "file://ravish-trading-engine.zip"
+type = "unspecified"
+title = "Ravish Trading Engine — full source code"

@@ -1,0 +1,126 @@
+PHASE 4: REAL MARKET DATA + LIVE OPTIONS ENGINE
+
+The current Ravish Options Engine is now deterministic and risk-safe.
+
+Next build phase:
+
+Connect the scanner to real options market data.
+
+Do NOT rebuild:
+
+* Auth
+* Alpaca integration
+* Existing dashboard
+* Existing risk engine
+* Existing backtest engine
+
+Add:
+
+1. Real Options Chain Provider Layer
+   Create a provider abstraction:
+
+* AlpacaOptionsProvider
+* PolygonOptionsProvider placeholder
+* MockOptionsProvider fallback for development
+
+Required data:
+
+* Bid
+* Ask
+* Mid
+* Delta
+* Theta
+* Vega
+* Gamma
+* IV
+* IV Rank
+* Open Interest
+* Volume
+* Expiration
+* Strike
+* Earnings date if available
+
+2. Live Scanner Mode
+   Add scanner setting:
+
+* mock mode
+* live mode
+
+When live mode is enabled:
+
+* Pull real chains
+* Calculate Iron Condors
+* Calculate Iron Flies
+* Calculate Calendar Spreads
+* Reject stale, illiquid, or wide-spread contracts
+
+Liquidity rules:
+
+* Open interest > 100
+* Volume > 10
+* Bid/ask spread less than 15%
+* No zero-bid options
+
+3. Data Freshness Checks
+   Reject contracts if:
+
+* quote is older than 15 minutes
+* Greeks missing
+* IV missing
+* bid/ask invalid
+
+4. Earnings Engine
+   Add earnings scanner:
+
+Universe:
+SPY, QQQ, IWM, NVDA, META, AAPL, AMZN, MSFT, GOOGL, TSLA
+
+Find:
+
+* Earnings within 14 days
+* IV Rank above 50
+* Expected move
+* Historical earnings move
+* IV crush potential
+* Best strategy: iron fly, iron condor, or calendar
+
+5. Theta Income Dashboard
+   Add dashboard card:
+
+* Daily theta income
+* Weekly theta income
+* Monthly theta income
+* Annualized theta income
+* Theta by symbol
+* Theta by strategy
+
+6. Market Data Health Panel
+   Show:
+
+* Provider connected
+* Last chain update
+* Live/mock mode
+* Number of contracts scanned
+* Number rejected by liquidity
+* Number rejected by risk
+* Number of positive EV trades found
+
+7. Tests
+   Add tests for:
+
+* provider fallback
+* stale quote rejection
+* missing Greeks rejection
+* liquidity rejection
+* live scanner output
+* earnings scanner
+* theta income calculations
+
+After implementation:
+
+* Run backend typecheck
+* Run frontend typecheck
+* Run tests
+* Open dashboard
+* Check browser logs
+* Fix all runtime errors

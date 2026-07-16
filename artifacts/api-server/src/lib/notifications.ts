@@ -1,0 +1,252 @@
+// Phase 4, Sprint 56 — Alerts & Notifications (approved Phase 4 plan,
+// Sprint 56; see docs/Phase-4-Master-Execution-Plan.md's Sprint 56 as-built
+// note). Delivery channel: in-app notification center, per the project
+// owner's own explicit kickoff decision (email/push both need real
+// credentials/infrastructure this session doesn't have and can't verify
+// end-to-end).
+//
+// Zero new detection logic — both trigger sources are already-tested,
+// already-shipped engine functions, reused unmodified:
+//   - Engine 1: computeWatchlistTargets() (lib/watchlistTargets.ts,
+//     extracted from routes/stockAnalyst.ts this sprint — the exact same
+//     detection the Watchlist Polish "Check Targets" button, Phase 2
+//     Sprint 27, already exercises).
+//   - Engine 2: buildTradingRiskAnalysis()'s own capBreached flags (Phase 3
+//     Sprint 38/44 — the exact same detection GET /trading/risk already
+//     exposes).
+// This module's only genuinely new logic is the alert-candidate framing
+// (title/message/dedup key) and the persistence/dedup bookkeeping.
+//
+// Every alert candidate carries an honest dataSource ("SIMULATED"|"LIVE")
+// sourced directly from the provider that produced the underlying
+// detection — never hardcoded, never fabricated.
+
+import {
+  db,
+  valueWatchlistTable,
+  tradingPositionsTable,
+  settingsTable,
+  platformNotificationsTable,
+  type PlatformNotificationRow,
+} from "@workspace/db";
+import { and, eq } from "drizzle-orm";
+import { computeWatchlistTargets } from "./watchlistTargets.js";
+import { getFundamentalsProvider } from "./fundamentals.js";
+import { buildTradingRiskAnalysis, type TradingPositionInput } from "./tradingRisk.js";
+import { getMarketDataProvider } from "./tradingMarketData.js";
+import { getSettingsRow } from "./serverState.js";
+import { logger } from "./logger.js";
+import { recordJobRun } from "./systemHealth.js";
+
+export type AlertType = "watchlist_target_crossed" | "risk_cap_breached";
+
+export interface AlertCandidate {
+  type: AlertType;
+  title: string;
+  message: string;
+  dataSource: "SIMULATED" | "LIVE";
+  relatedSymbol: string | null;
+  dedupKey: string;
+}
+
+function fmtUsd(n: number | null): string {
+  return n == null ? "n/a" : `$${n.toFixed(2)}`;
+}
+
+// Engine 1 trigger source (Phase 2, Sprint 27's own watchlist target-
+// crossing check). A watchlist row with no target set for a given field
+// honestly never fires that field's alert (computeWatchlistTargets()
+// itself returns null, not a fabricated crossed/not-crossed verdict).
+export async function evaluateWatchlistAlerts(userId: string): Promise<AlertCandidate[]> {
+  const rows = await db.select().from(valueWatchlistTable).where(eq(valueWatchlistTable.userId, userId));
+  if (rows.length === 0) return [];
+
+  const provider = await getFundamentalsProvider(userId);
+  const candidates: AlertCandidate[] = [];
+  for (const row of rows) {
+    const check = await computeWatchlistTargets(row, provider);
+    if (check.priceTargetCrossed === true) {
+      candidates.push({
+        type: "watchlist_target_crossed",
+        title: `${row.symbol}: buy price target reached`,
+        message: `${row.symbol} is now at ${fmtUsd(check.currentPrice)}, at or below your desired buy price of ${fmtUsd(row.desiredBuyPrice)}.`,
+        dataSource: provider.dataSource,
+        relatedSymbol: row.symbol,
+        dedupKey: `watchlist:${row.id}:price`,
+      });
+    }
+    if (check.marginOfSafetyTargetCrossed === true) {
+      candidates.push({
+        type: "watchlist_target_crossed",
+        title: `${row.symbol}: margin of safety target reached`,
+        message: `${row.symbol} is now at ${fmtUsd(check.currentPrice)}, meeting or exceeding your ${row.marginOfSafetyTarget}% margin-of-safety target.`,
+        dataSource: provider.dataSource,
+        relatedSymbol: row.symbol,
+        dedupKey: `watchlist:${row.id}:mos`,
+      });
+    }
+  }
+  return candidates;
+}
+
+// Engine 2 trigger source (Phase 3, Sprint 38/44's own Risk Management hard-
+// cap breach detection). A user with no open, stop/target-defined positions
+// or no account value set gets an honest empty result — never a fabricated
+// breach.
+export async function evaluateRiskAlerts(userId: string): Promise<AlertCandidate[]> {
+  const positionRows = await db.select().from(tradingPositionsTable).where(eq(tradingPositionsTable.userId, userId));
+  if (positionRows.length === 0) return [];
+
+  const positions: TradingPositionInput[] = positionRows.map((r) => ({
+    id: r.id,
+    symbol: r.symbol,
+    side: r.side === "short" ? "short" : "long",
+    status: r.status === "closed" ? "closed" : "open",
+    quantity: r.quantity,
+    entryPrice: r.entryPrice,
+    stopPrice: r.stopPrice ?? null,
+    targetPrice: r.targetPrice ?? null,
+  }));
+
+  const settings = await getSettingsRow(userId);
+  const provider = await getMarketDataProvider(userId);
+  const analysis = await buildTradingRiskAnalysis(positions, settings.tradingAccountValue ?? null, provider);
+  const dataSource: "SIMULATED" | "LIVE" = provider.isLive ? "LIVE" : "SIMULATED";
+
+  const candidates: AlertCandidate[] = [];
+  if (analysis.positionSizing.capBreached) {
+    candidates.push({
+      type: "risk_cap_breached",
+      title: "Position sizing risk cap breached",
+      message: analysis.positionSizing.detail,
+      dataSource,
+      relatedSymbol: analysis.positionSizing.largestPositionSymbol ?? null,
+      dedupKey: `risk:position-sizing`,
+    });
+  }
+  if (analysis.portfolioBudget.capBreached) {
+    candidates.push({
+      type: "risk_cap_breached",
+      title: "Portfolio risk budget cap breached",
+      message: analysis.portfolioBudget.detail,
+      dataSource,
+      relatedSymbol: null,
+      dedupKey: `risk:portfolio-budget`,
+    });
+  }
+  return candidates;
+}
+
+// Persists alert candidates for one user, honoring the alertsEnabled
+// settings toggle and the active-dedup-key uniqueness (a candidate is
+// skipped, never duplicated, if an unread notification with the same
+// dedupKey already exists for this user — see
+// manual-migrations/014_platform_notifications.sql for the full dedup
+// design rationale).
+export async function evaluateAndPersistAlertsForUser(userId: string): Promise<PlatformNotificationRow[]> {
+  const settings = await getSettingsRow(userId);
+  if (!settings.alertsEnabled) return [];
+
+  const [watchlistCandidates, riskCandidates] = await Promise.all([
+    evaluateWatchlistAlerts(userId).catch(() => [] as AlertCandidate[]),
+    evaluateRiskAlerts(userId).catch(() => [] as AlertCandidate[]),
+  ]);
+  const candidates = [...watchlistCandidates, ...riskCandidates];
+  if (candidates.length === 0) return [];
+
+  const existingUnread = await db
+    .select({ dedupKey: platformNotificationsTable.dedupKey })
+    .from(platformNotificationsTable)
+    .where(and(eq(platformNotificationsTable.userId, userId), eq(platformNotificationsTable.isRead, false)));
+  const existingKeys = new Set(existingUnread.map((r) => r.dedupKey));
+
+  const created: PlatformNotificationRow[] = [];
+  for (const c of candidates) {
+    if (existingKeys.has(c.dedupKey)) continue;
+    try {
+      const [row] = await db
+        .insert(platformNotificationsTable)
+        .values({
+          userId,
+          type: c.type,
+          title: c.title,
+          message: c.message,
+          dataSource: c.dataSource,
+          relatedSymbol: c.relatedSymbol,
+          dedupKey: c.dedupKey,
+        })
+        .returning();
+      created.push(row);
+      existingKeys.add(c.dedupKey);
+    } catch {
+      // Best-effort: a concurrent evaluation could race the same dedup key
+      // past the check above and into the partial unique index — never
+      // treated as a hard failure, matching recordAuditEvent's own
+      // established best-effort-write philosophy (Sprint 10).
+    }
+  }
+  return created;
+}
+
+// Phase 1 Sprint 8's own "armed users" query shape (autoExecution.ts's
+// getArmedExecutionUserIds — read for pattern reference only, that
+// protected file is not imported or modified here), applied to alerts:
+// only users with alertsEnabled=true are evaluated on each scheduler tick.
+// Never touches autoExecutionLog, the kill switch, or either automation
+// engine — this is a wholly independent, purely informational capability.
+export async function evaluateAndPersistAlertsForAllUsers(): Promise<void> {
+  const enabledUsers = await db
+    .select({ userId: settingsTable.userId })
+    .from(settingsTable)
+    .where(eq(settingsTable.alertsEnabled, true));
+  for (const { userId } of enabledUsers) {
+    await evaluateAndPersistAlertsForUser(userId).catch(() => []);
+  }
+}
+
+// Background generation — this is what makes the notification center a
+// genuine push surface (a new unread alert can appear even if the user
+// never revisits a page to trigger POST /notifications/check), the
+// platform's first push-based (not pull-only) capability. A longer
+// interval than the 60s auto-execution/auto-adjustment tick, since each
+// run makes real provider calls per watchlist row / open position across
+// every alerts-enabled user — 5 minutes is frequent enough for an
+// advisory alert, not so frequent it hammers the fundamentals/market-data
+// provider seams. Mirrors lib/requestMetrics.ts's own
+// startRequestMetricsTimer() shape exactly: idempotent, unref'd so it
+// never keeps the process alive on its own, and started only from the
+// real server entrypoint (index.ts), never from app.ts — so the ~1,000+
+// existing tests that import app.js directly never accumulate a real
+// setInterval. Wholly independent of, and never touches, the auto-
+// execution/auto-adjustment scheduler, their kill switch, or
+// autoExecutionLog.
+const ALERTS_SCHEDULER_INTERVAL_MS = 5 * 60_000;
+let alertsTimer: NodeJS.Timeout | null = null;
+
+export function startAlertsScheduler(): void {
+  if (alertsTimer) return;
+  alertsTimer = setInterval(() => {
+    // Phase 6, Sprint 74 — recordJobRun() is pure observation: it times and
+    // records the outcome of the exact same call below, never changing what
+    // it does.
+    const start = performance.now();
+    evaluateAndPersistAlertsForAllUsers()
+      .then(() => recordJobRun("alerts", { success: true, durationMs: performance.now() - start }))
+      .catch((err) => {
+        logger.error({ err }, "Alerts scheduler tick failed");
+        recordJobRun("alerts", {
+          success: false,
+          durationMs: performance.now() - start,
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
+      });
+  }, ALERTS_SCHEDULER_INTERVAL_MS);
+  alertsTimer.unref();
+}
+
+export function stopAlertsScheduler(): void {
+  if (alertsTimer) {
+    clearInterval(alertsTimer);
+    alertsTimer = null;
+  }
+}

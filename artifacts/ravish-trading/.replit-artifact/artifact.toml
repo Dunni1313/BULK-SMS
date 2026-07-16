@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "DK Option Engine"
+version = "1.0.0"
+id = "artifacts/ravish-trading"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21294
+
+[services.development]
+run = "pnpm --filter @workspace/ravish-trading run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ravish-trading", "run", "build" ]
+publicDir = "artifacts/ravish-trading/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21294"
+BASE_PATH = "/"

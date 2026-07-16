@@ -1,0 +1,348 @@
+PROJECT UPDATE: RAVISH AI OPTIONS ENGINE — AI TRADING COACH & GREEKS TUTOR
+
+Build a new module inside the existing Ravish AI Options Trading Engine called:
+
+AI Trading Coach
+
+The goal is to make the AI Assistant not only answer questions, but also teach the user how options trades work, especially Delta, Theta, Gamma, Vega, probability of profit, and risk management.
+
+Do not rebuild the existing app.
+Reuse the current:
+- AI Assistant page
+- Scanner
+- Option chain
+- Portfolio
+- Trades
+- Backtest
+- AutoPilot
+- Risk engine
+- Alpaca integration
+- Existing database and auth
+
+OBJECTIVE
+
+The AI Assistant must become a learning and explanation layer for every trade.
+
+The assistant should help the user become an expert in the Ravish probability-based options-selling strategy.
+
+The assistant must explain trades in simple language first, then advanced language if requested.
+
+The assistant must NOT give reckless financial advice.
+The assistant must always explain risk clearly.
+The assistant must not promise profits.
+The assistant must always remind the user that options trading has risk.
+
+CORE FEATURES TO BUILD
+
+1. TRADE EXPLAINER
+
+For any scanned trade, open trade, backtest result, or executed trade, the user should be able to ask:
+
+- Why is this trade good?
+- Why did the scanner choose this?
+- Explain this iron condor
+- Explain this calendar spread
+- What is the risk?
+- What happens if the stock moves up?
+- What happens if the stock moves down?
+- What happens if volatility increases?
+- What happens if time passes?
+- Should I avoid this trade?
+- What would Ravish look at here?
+
+The AI must respond with:
+
+- Strategy type
+- Underlying ticker
+- Expiration date
+- Strikes
+- Credit/debit
+- Max profit
+- Max loss
+- Probability of profit
+- Expected value
+- Return on capital
+- Delta exposure
+- Theta income
+- Vega risk
+- Gamma risk
+- Breakeven prices
+- Why it fits or fails the Ravish strategy
+- Plain-English explanation
+- Beginner lesson
+- Advanced trader note
+- Risk warning
+
+2. GREEKS EDUCATION ENGINE
+
+Create a Greeks Tutor system that can explain:
+
+DELTA:
+- What Delta means
+- Delta as directional exposure
+- Delta as approximate probability
+- Why 20 Delta short strikes are used
+- Why lower Delta means higher probability but lower premium
+- Why higher Delta means more credit but more risk
+- How total position Delta works
+- What delta-neutral means
+- Why Ravish prefers neutral trades
+
+THETA:
+- What Theta means
+- Why option sellers collect Theta
+- How Theta decay accelerates near expiration
+- Why premium selling benefits from time passing
+- Why Theta is the income engine
+
+GAMMA:
+- What Gamma means
+- Why Gamma risk increases near expiration
+- Why short options can become dangerous near expiry
+- Why risk must be controlled
+
+VEGA:
+- What Vega means
+- Why implied volatility matters
+- Why selling premium is better when IV is elevated
+- Why volatility expansion can hurt short premium trades
+
+Also explain:
+- IV Rank
+- Probability of Profit
+- Expected Value
+- Risk/Reward
+- Max Loss
+- Buying power usage
+- Return on capital
+- Assignment risk
+- Pin risk
+- Liquidity and bid/ask spread
+
+3. DELTA MASTERCLASS PAGE
+
+Create a new frontend page:
+
+/learn/delta
+
+Name in sidebar:
+
+Delta Masterclass
+
+The page should include:
+
+- Beginner explanation of Delta
+- Visual examples
+- 20 Delta short strike explanation
+- Delta-neutral explanation
+- Interactive examples using real or mock option data
+- Mini quizzes
+- Examples of:
+  - 20 Delta iron condor
+  - 30 Delta strangle
+  - ATM iron fly
+  - Calendar spread Delta exposure
+
+Include a simple learning path:
+
+Level 1: What is Delta?
+Level 2: Delta as probability
+Level 3: Delta as directional risk
+Level 4: Position Delta
+Level 5: Delta-neutral income trades
+Level 6: How Ravish uses 20 Delta strikes
+
+4. AI ASSISTANT MODES
+
+Add AI Assistant modes:
+
+- Explain Trade
+- Teach Greeks
+- Risk Coach
+- Ravish Strategy Coach
+- Beginner Mode
+- Advanced Mode
+- Quiz Me
+
+The assistant should detect intent automatically, but also allow the user to choose a mode.
+
+Examples:
+
+User: "Explain delta"
+Assistant teaches Delta.
+
+User: "Why is this SPY iron condor good?"
+Assistant explains the specific trade.
+
+User: "Quiz me on Delta"
+Assistant asks 5 questions and grades the answers.
+
+User: "Teach me like I am new"
+Assistant uses beginner language.
+
+User: "Give me advanced explanation"
+Assistant uses advanced options terminology.
+
+5. TRADE LEARNING CARDS
+
+For every recommended trade, add a button:
+
+"Explain This Trade"
+
+When clicked, open a learning card with:
+
+- Why this trade was found
+- What the short Delta is
+- Why the long wings exist
+- How much Theta is collected
+- What the profit zone is
+- What the danger zone is
+- What could go wrong
+- When to adjust or exit
+- What the user should learn from this setup
+
+6. AI TRADE JOURNAL COACH
+
+Enhance the Journal so after a trade is closed, the AI can explain:
+
+- Did the trade follow the rules?
+- Was the entry good?
+- Was the Delta correct?
+- Was the risk too high?
+- Did Theta work as expected?
+- Did volatility help or hurt?
+- What should be improved next time?
+- What lesson should be saved?
+
+Create an AI-generated "Lesson Learned" field for every closed trade.
+
+7. DATABASE ADDITIONS
+
+Add tables or fields if needed:
+
+ai_lessons
+- id
+- user_id
+- trade_id nullable
+- ticker nullable
+- topic
+- level
+- explanation
+- quiz_score nullable
+- created_at
+
+trade_explanations
+- id
+- user_id
+- trade_id
+- explanation_json
+- created_at
+
+greeks_quiz_results
+- id
+- user_id
+- topic
+- score
+- answers_json
+- created_at
+
+8. API ENDPOINTS
+
+Add backend endpoints:
+
+GET /learn/delta
+GET /learn/greeks
+POST /assistant/explain-trade
+POST /assistant/teach-greek
+POST /assistant/quiz
+POST /assistant/journal-review
+GET /assistant/lessons
+GET /assistant/lessons/:id
+
+9. AI RESPONSE STRUCTURE
+
+The AI should respond in a structured format:
+
+For trade explanations:
+
+- Summary
+- Why this trade was selected
+- Greeks breakdown
+- Profit zone
+- Risk zone
+- What needs to happen to win
+- What can cause loss
+- Ravish strategy fit score
+- Beginner explanation
+- Advanced explanation
+- Final risk reminder
+
+For Greek teaching:
+
+- Simple definition
+- Real trading meaning
+- Ravish strategy meaning
+- Example
+- Common mistake
+- Quick quiz question
+
+10. SAFETY RULES
+
+The AI Assistant must:
+- Educate, not hype
+- Never promise profit
+- Never say a trade is guaranteed
+- Always explain max loss
+- Always mention assignment risk where relevant
+- Always explain that options can lose money
+- Encourage paper trading and backtesting first
+- Respect existing risk engine and AutoPilot guardrails
+
+11. UI REQUIREMENTS
+
+Update the sidebar with:
+
+- AI Assistant
+- Delta Masterclass
+- Greeks Tutor
+- Trade Lessons
+
+Update the existing AI Assistant page to show:
+
+- Suggested prompts
+- Mode selector
+- Recent lessons
+- Explain latest trade button
+- Quiz me button
+
+Add clear visual cards for:
+
+- Delta
+- Theta
+- Gamma
+- Vega
+- Probability of Profit
+- Expected Value
+
+12. TESTING
+
+Add tests for:
+
+- AI trade explanation endpoint
+- Delta teaching endpoint
+- Quiz generation
+- Journal review generation
+- Safety disclaimers included
+- Trade explanation includes max loss
+- Trade explanation includes probability of profit
+- Trade explanation includes Delta and Theta
+- No execution action happens from education endpoints
+
+13. IMPORTANT FINAL REQUIREMENT
+
+The AI Trading Coach must never execute trades.
+It only explains, teaches, reviews, and coaches.
+
+Trade execution must remain inside the existing execution and AutoPilot system with all guardrails.
+
+The result should be a production-ready AI learning assistant that teaches the user to understand Ravish-style probability-based options trading deeply, especially Delta, Theta, probability, and risk.

@@ -1,0 +1,173 @@
+PHASE 5: SEMI-AUTOMATIC TRADE EXECUTION
+
+The Ravish Options Engine now has:
+
+* Live/mock market data provider layer
+* Scanner
+* Earnings engine
+* Theta income engine
+* Portfolio Greeks
+* Risk validation
+* Trade journal
+* AI assistant endpoints
+
+Do NOT rebuild existing auth, Alpaca integration, dashboard, scanner, backtest engine, or database.
+
+Build the next phase: semi-automatic execution.
+
+GOAL:
+Allow a user to review a scanner trade, validate risk, generate the exact option order legs, and submit the trade through the existing Alpaca integration.
+
+Add:
+
+1. Trade Ticket Page
+   Create a trade ticket for:
+
+* Iron Condor
+* Iron Fly
+* Calendar Spread
+
+Display:
+
+* Symbol
+* Expiration
+* Strike legs
+* Buy/sell direction
+* Quantity
+* Net credit/debit
+* Max profit
+* Max loss
+* POP
+* EV
+* Ravish Score
+* Required buying power
+* Risk % of account
+* Portfolio risk after entry
+
+2. Pre-Trade Risk Validation
+   Before order submission, validate:
+
+* Defined risk only
+* No naked calls
+* No naked puts
+* Max risk per trade <= 1% of account
+* Total portfolio risk <= 10%
+* Liquidity passed
+* Data freshness passed
+* Positive EV only
+* Ravish Score >= 75
+
+If validation fails, block execution and show exact reason.
+
+3. Alpaca Multi-Leg Order Builder
+   Reuse existing Alpaca connection.
+
+Create backend service:
+
+* buildOptionOrderFromTrade()
+* submitOptionOrder()
+* previewOptionOrder()
+
+Support:
+
+* Iron Condor as 4 legs
+* Iron Fly as 4 legs
+* Calendar Spread as 2 legs
+
+Do not send orders automatically yet unless user clicks Confirm.
+
+4. Execution Modes
+   Add setting:
+
+* Manual only
+* Semi-auto approval
+* Full-auto disabled for now
+
+For this phase:
+
+* Manual only = scanner only, no submit button
+* Semi-auto approval = show Submit to Alpaca button after validation
+* Full-auto = visible but locked with “Coming in Phase 6”
+
+5. Order Preview Endpoint
+   Add:
+   POST /execution/preview
+
+Input:
+
+* trade candidate ID or full trade structure
+* account ID
+* quantity
+
+Output:
+
+* order legs
+* estimated credit/debit
+* max profit
+* max loss
+* buying power required
+* validation result
+* warnings
+
+6. Order Submit Endpoint
+   Add:
+   POST /execution/submit
+
+Rules:
+
+* Must call preview validation first
+* Must reject invalid trades
+* Must save pending trade to journal
+* Must return Alpaca order ID/status
+
+7. Journal Integration
+   When order is submitted:
+
+* Create journal entry
+* Status = pending/open
+* Store Alpaca order ID
+* Store full option legs
+* Store EV, POP, Ravish Score, risk metrics
+
+8. Dashboard Integration
+   On scanner cards add:
+
+* Review Trade button
+* Opens Trade Ticket
+* Shows validation
+* Allows submit only if valid
+
+9. AI Assistant Commands
+   Add support:
+
+* “Review this trade”
+* “Can I take this trade?”
+* “Submit this trade”
+* “Why was this trade rejected?”
+* “Show my pending orders”
+
+Important:
+Do NOT enable full auto-trading.
+Do NOT bypass risk checks.
+Do NOT submit any order without explicit user confirmation.
+
+10. Tests
+    Add tests for:
+
+* valid iron condor order preview
+* invalid naked option rejection
+* negative EV rejection
+* risk > 1% rejection
+* portfolio risk > 10% rejection
+* calendar spread order legs
+* journal entry created after submit
+* full-auto remains locked
+
+After implementation:
+
+* Run backend tests
+* Run frontend typecheck
+* Run backend typecheck
+* Check browser console
+* Verify dashboard renders
+* Verify order preview works in mock/sandbox mode
