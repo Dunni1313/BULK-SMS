@@ -51,7 +51,8 @@ import {
   Wallet,
   Clock,
   ChartColumn,
-  ClipboardCheck
+  ClipboardCheck,
+  Scale
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -126,6 +127,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { title: "Trade History", href: "/trade-history", icon: Clock },
     { title: "Trade Performance", href: "/trade-performance", icon: ChartColumn },
     { title: "Order Preview", href: "/order-preview", icon: ClipboardCheck },
+    { title: "Position Sizing", href: "/position-sizing", icon: Scale },
     { title: "Broker Reconciliation", href: "/broker-reconciliation", icon: GitCompare },
     { title: "Settings", href: "/settings", icon: Settings },
   ];

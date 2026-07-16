@@ -112,6 +112,8 @@ import type {
   PortfolioHealth,
   PortfolioSummary,
   Position,
+  PositionSizingInput,
+  PositionSizingResult,
   QuizGradeResult,
   QuizInput,
   QuizProgress,
@@ -2691,6 +2693,77 @@ export const usePreviewOrder = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getPreviewOrderMutationOptions(options));
+    }
+
+export const getPreviewPositionSizingUrl = () => {
+
+
+
+
+  return `/api/execution/position-sizing`
+}
+
+/**
+ * @summary Read-only position-sizing and portfolio-impact analysis, extending the Order Preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly reflects that in the nested preview.available field rather than fabricating figures.
+ */
+export const previewPositionSizing = async (positionSizingInput: PositionSizingInput, options?: RequestInit): Promise<PositionSizingResult> => {
+
+  return customFetch<PositionSizingResult>(getPreviewPositionSizingUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      positionSizingInput,)
+  }
+);}
+
+
+
+
+export const getPreviewPositionSizingMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPositionSizing>>, TError,{data: BodyType<PositionSizingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewPositionSizing>>, TError,{data: BodyType<PositionSizingInput>}, TContext> => {
+
+const mutationKey = ['previewPositionSizing'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewPositionSizing>>, {data: BodyType<PositionSizingInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewPositionSizing(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewPositionSizingMutationResult = NonNullable<Awaited<ReturnType<typeof previewPositionSizing>>>
+    export type PreviewPositionSizingMutationBody = BodyType<PositionSizingInput>
+    export type PreviewPositionSizingMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Read-only position-sizing and portfolio-impact analysis, extending the Order Preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly reflects that in the nested preview.available field rather than fabricating figures.
+ */
+export const usePreviewPositionSizing = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPositionSizing>>, TError,{data: BodyType<PositionSizingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewPositionSizing>>,
+        TError,
+        {data: BodyType<PositionSizingInput>},
+        TContext
+      > => {
+      return useMutation(getPreviewPositionSizingMutationOptions(options));
     }
 
 export const getGetAutoExecutionStatusUrl = () => {

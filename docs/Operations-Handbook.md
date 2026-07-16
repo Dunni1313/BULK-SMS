@@ -212,6 +212,34 @@ on page load.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.8 and
 `docs/Order-Preview.md`.
 
+### 6.11 Using the Position Sizing & Portfolio Impact Calculator
+
+The "Position Sizing" nav item (`/position-sizing`) extends the Order
+Preview above with a full pre-trade sizing and portfolio-impact
+experience: recommended position size, position size as % of portfolio,
+buying power utilization, capital at risk, maximum theoretical loss/gain,
+break-even price(s), risk/reward ratio, and portfolio concentration
+before/after the trade — plus a side-by-side **Current Portfolio** vs.
+**Hypothetical Post-Preview Portfolio** comparison (exposure by symbol,
+long/short exposure, estimated delta/theta/gamma/vega impact), an 8-item
+risk-warnings list, and a 50%/75%/100%/custom quantity scenario
+comparison table. **There is no submit button on this page — it is a
+dry-run only, and no order can be placed from it.**
+
+All calculations reuse this platform's existing execution and options
+logic (`execution.ts`'s `previewOptionOrder()`, via last sprint's Order
+Preview endpoint, and `serverState.ts`'s `computeTradeGreeks()`) — no
+execution logic was modified, no broker writes occur, and no orders are
+submitted. **Portfolio impact is hypothetical only**: the "Hypothetical
+Post-Preview Portfolio" section is always clearly labeled as a simulation
+and is never confused with real, already-open positions. The "Current
+Portfolio" section reads this user's own real open trades but
+deliberately does not auto-seed demo trades into an empty account — an
+account with no open positions is shown as genuinely empty.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.9 and
+`docs/Position-Sizing.md`.
+
 ---
 
 ## 7. Escalation
@@ -229,9 +257,10 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.8 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, and the Order Preview & Risk Simulator), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, and the Order Preview page referenced in §6.10 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, and the Position Sizing & Portfolio Impact Calculator), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, and the Position Sizing page referenced in §6.11 above.
 - `docs/Trading-Journal.md` — the Trading Journal system's own full detail, referenced in §6.9 above.
 - `docs/Order-Preview.md` — the Order Preview & Risk Simulator's own full detail, referenced in §6.10 above.
+- `docs/Position-Sizing.md` — the Position Sizing & Portfolio Impact Calculator's own full detail, referenced in §6.11 above.
 - `docs/Incident-Response-Runbook.md` — per-alert-category diagnosis and recovery.
 - `docs/Production-Rollout-Plan.md` — the one-time go-live procedure and backup/recovery details this handbook's §6/§7 draw on.
 - `docs/Production-Readiness-Report.md` — current-state readiness assessment.

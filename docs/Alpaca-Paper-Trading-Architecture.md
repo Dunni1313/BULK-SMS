@@ -457,6 +457,127 @@ No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`
 change. No new database write of any kind — every function in
 `lib/orderPreview.ts` only ever `SELECT`s.
 
+### 4.9 Position Sizing & Portfolio Impact Calculator
+
+Extends §4.8's Order Preview & Risk Simulator with a full pre-trade
+Position Sizing and Portfolio Impact experience, `/position-sizing` — a
+new backend composition layer, `lib/positionSizing.ts`, plus one new
+endpoint, `POST /execution/position-sizing`. There is still no submit
+button anywhere on this page.
+
+**`buildPositionSizingAnalysis()` reuses §4.8's own `buildOrderPreview()`
+directly** (unmodified) for the underlying preview ticket, and reuses
+`execution.ts`'s own `previewOptionOrder()` a second time (for a 1-lot
+reference ticket, used only to back out a recommended quantity — see
+below) and `serverState.ts`'s own `computeTradeGreeks()` (the same
+function `routes/portfolio.ts`'s Engine 3 dashboard already uses) for
+every Greeks figure. `execution.ts`, `optionsMath.ts`, and `risk.ts` are
+not modified by this sprint.
+
+**Position Sizing figures**, all either a direct reuse of the ticket's own
+already-computed fields or a small, disclosed derivation on top of them:
+- **Recommended position size** — the one genuinely new formula this
+  sprint: a 1-lot reference ticket for the same symbol/strategy gives the
+  per-spread capital at risk, and `floor((accountValue × maxRiskPerTrade%) / oneLotMaxLoss)`
+  applies the account's own already-configured per-trade risk cap
+  (the exact same setting `execution.ts`'s own `validatePreTrade` already
+  enforces) backwards into a suggested quantity — a sizing suggestion, not
+  a new risk rule.
+- **Position size % of portfolio** / **Concentration before/after trade**
+  — direct reuse of the ticket's own `riskPct`/`portfolioRiskBeforePct`/
+  `portfolioRiskAfterPct` (already computed by `execution.ts`'s
+  `validatePreTrade`, Sprint 4.8's own reuse).
+- **Buying power utilization** — `buyingPowerRequired ÷ accountValue`, a
+  disclosed percentage derivation.
+- **Capital at risk** / **Maximum theoretical loss** — both `= maxLoss`
+  (the same figure, matching §4.8's own `marginImpact = maxLoss`
+  precedent for these defined-risk spreads).
+- **Maximum theoretical gain** — `= maxProfit`, always present for the 4
+  supported strategies.
+- **Risk/Reward ratio** — reused directly from §4.8's own already-derived
+  `riskRewardRatio` field.
+- **Break-even price(s)** — a genuinely new, disclosed derivation, but
+  built entirely from already-public ticket data (each leg's own
+  `side`/`optionType`/`strike`, plus `entryPricePerSpread`): the standard
+  credit-spread formula, `shortPutStrike − creditPerShare` (lower) and
+  `shortCallStrike + creditPerShare` (upper). **Computed only for iron
+  condor / iron fly** — calendar spreads and earnings plays involve
+  multiple expirations, so a simple break-even formula would misrepresent
+  the real payoff; those honestly report `breakEvens: []` with an explicit
+  reason, never an approximated number.
+
+**Portfolio Impact** is always presented as two clearly separate,
+independently-labeled sections — **"Current Portfolio"** (the user's real,
+already-open `trades` rows, read via a plain `SELECT`, deliberately
+**without** calling `ensureSeedTrades()` the way `routes/portfolio.ts`
+does, so an empty portfolio is honestly shown as empty rather than
+silently auto-seeded — "No portfolio mutation" is taken literally) and
+**"Hypothetical Post-Preview Portfolio"** (current positions plus one
+synthetic entry reconstructed purely from the already-public
+`OrderPreviewTicket`'s own `legs`/`netCredit`/`maxProfit`/`maxLoss` fields
+— `OrderLeg.ratioQty × ticket.quantity` reproduces exactly the same
+per-trade leg quantity `execution.ts`'s own private `storedLegs` would
+have used, all from public data, never a second private call into
+`execution.ts` and never persisted anywhere). The hypothetical section is
+never rendered as if it were real.
+
+Both sections show: open position count, total capital at risk (dollars
+and % of account), **exposure by symbol** (grouped, summed `maxLoss` per
+symbol), **long vs. short exposure** (the exact same net-credit-sign
+convention §4.7's `tradeDirection()` already established on the frontend
+— a net-credit trade is "short" the spread, net-debit is "long" — applied
+here on the backend for portfolio aggregation), and portfolio-level
+**Greeks** (`computeTradeGreeks()`, unmodified, summed across every
+position in the snapshot). **Estimated delta/theta/gamma/vega impact** is
+simply `hypothetical.greeks − current.greeks`, honestly `null` whenever no
+valid preview exists to build a hypothetical snapshot from.
+
+**Exposure by sector is always honestly reported unavailable** —
+`{available: false, reason: "No sector/industry classification is stored
+on options positions in this engine."}` — no sector data exists anywhere
+on the `trades` table or any Options Income Engine structure, and pulling
+one in from Engine 1's own sector taxonomy (`lib/industryPeers.ts`) would
+have introduced a cross-engine dependency outside this sprint's explicit
+"reuse execution.ts, optionsMath.ts, and previewOptionOrder() calculations
+only" instruction. Never fabricated.
+
+**Risk Warnings** (8 categories, all informational — since this page never
+submits anything, none of these ever actually block a real order):
+- **Oversized position** / **Excess concentration** — direct reuses,
+  relabeled, of two of `execution.ts`'s own `validatePreTrade` checks
+  ("Max risk per trade ≤ X%" / "Total portfolio risk ≤ Y%") — matched by
+  label prefix since the real label is dynamically templated with the
+  account's own configured caps. Zero new threshold logic.
+- **Buying power exhaustion** — a new, disclosed, named threshold
+  (`BUYING_POWER_EXHAUSTION_THRESHOLD_PCT = 90`) on the ticket's own
+  already-computed buying-power-utilization percentage.
+- **Excess leverage** — a new, disclosed, named threshold
+  (`MAX_LEVERAGE_RATIO = 3`) on `notionalValue ÷ accountValue` — reusing
+  §4.8's own already-derived `notionalValue`, never a new pricing
+  calculation. Both named constants follow the same "state a reasonable
+  default, disclose it" precedent as `tradingRisk.ts`'s own 2%/6% caps and
+  `investingRisk.ts`'s own 25%/40% concentration caps.
+- **Existing position conflict** / **Existing open order conflict** /
+  **Missing credentials** — reused directly, unmodified, from §4.8's own
+  8-item Order Preview checklist.
+- **Missing broker data** — a new, honest disclosure distinct from
+  "missing credentials": whenever no successful Broker Health check exists
+  this session, every *current-portfolio* figure shown is explicitly
+  labeled as sourced from local trade records, not a live Alpaca account.
+
+**Scenario Comparison** — 50%/75%/100% of the entered quantity (rounded,
+floored at 1), plus an optional user-supplied "Custom" quantity. Each
+scenario is computed by an **independent call to the same reused
+`buildOrderPreview()`** with only the quantity varied — genuinely
+re-derived, not interpolated or estimated — showing capital at risk,
+buying power required/utilization, and concentration-after for each. When
+the base symbol/strategy input itself is invalid, the scenario list is
+honestly empty rather than computing 4 doomed previews.
+
+No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`
+change. No new database write of any kind — every function in
+`lib/positionSizing.ts` only ever `SELECT`s.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -515,6 +636,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/orderPreview.ts` | Unit tests against an isolated, fresh test user — the honest-missing-fields/invalid-quantity/invalid-symbol/invalid-strategy paths, a byte-identical-to-`previewOptionOrder()` proof for a valid preview, the 4 derived fields' own formulas, the honest no-credentials/no-broker-check states, the local-estimate-only buying-power disclosure, position-conflict and existing-open-order detection scoped strictly to the calling user (including the closed-trade-doesn't-count proof), and a never-mutates-the-trades-table proof. |
 | `routes/orderPreview.route.test.ts` | Live end-to-end HTTP tests against the real app — well-shaped honest-unavailable responses for missing fields/invalid quantity/invalid symbol, a well-shaped successful preview (including that the response never carries an `orderId`/`tradeId`/`journalId`-shaped field), determinism across repeated identical calls, the honest no-credentials state, the real disconnected-broker state (via a genuine `GET /broker/health` round trip in this credential-free environment), and a 400 for a genuinely malformed request body. |
 | `OrderPreview.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode badge and "no order will be submitted" notice, the empty-preview state before any request, the submitted-payload proof for symbol/strategy/quantity, loading and error states, honest validation-error rendering (missing fields/invalid symbol/invalid quantity), a full successful-preview render across every requested field, the missing-credentials/broker-disconnected/buying-power-unavailable/position-conflict/existing-order checklist warnings, and the Broker Connection Status card's independent not-yet-checked/checked states and its own Refresh button. |
+| `lib/positionSizing.ts` | Unit tests against isolated, fresh test users — an empty-portfolio proof (zero current exposure, no crash), a hypothetical-snapshot-with-one-synthetic-position proof for an empty starting portfolio, multi-position exposure-by-symbol grouping and long/short classification against 3 constructed trades, real portfolio-level Greeks (proving `computeTradeGreeks()` is genuinely called, not a placeholder), the always-unavailable sector-exposure disclosure, all 8 risk-warning categories including the reused-`validatePreTrade`-check proofs for oversized-position/excess-concentration, the named buying-power-exhaustion/excess-leverage thresholds, position-conflict detection, the missing-credentials/missing-broker-data disclosures, the 2-break-even-bracketing-short-strikes proof for iron condor, the honest break-even-unavailable path for calendar spreads, direct-reuse proofs (capital-at-risk/max-loss/max-gain/risk-reward/concentration all equal the ticket's own fields, never a second calculation), the recommended-quantity derivation, 50%/75%/100% scenario scaling with monotonic capital-at-risk, the optional Custom scenario, the honest-empty-scenario-list path for an invalid base symbol, and a never-mutates-the-trades-table proof. |
+| `routes/positionSizing.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped successful analysis, the honest-unavailable-preview/empty-scenarios/still-computed-current-portfolio path for an invalid symbol, the presence of every one of the 8 risk-warning categories, the Custom-scenario wiring, determinism across repeated identical calls, a 400 for a genuinely malformed request body, and the never-a-broker-write-surface proof. |
+| `PositionSizing.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and Preview Only badges, the submitted-payload proof for symbol/strategy/quantity/customQuantity, loading and error states, honest validation-error rendering, the full Position Sizing card (all 9 requested fields plus break-evens), the honest break-even-unavailable message, the honest empty-current-portfolio message, multi-position exposure-by-symbol rendering, the clearly-labeled current-vs-hypothetical section distinction, the estimated delta/theta/gamma/vega impact display, the always-honest sector-exposure disclosure, oversized-position/excess-concentration/buying-power-exhaustion blocked-warning rendering, missing-credentials/missing-broker-data warning rendering, the 50%/75%/100% scenario table, the optional 4th Custom scenario row, an honest unavailable-scenario message, and the scenario table's own absence when the base preview is unavailable. |
 
 ## 8. Cross-references
 
@@ -528,6 +652,11 @@ to everything else in this codebase. Specifically for this document's scope:
   detail (§4.8 above): the 4 derived display fields' formulas, the 8-item
   pre-trade checklist's exact semantics, and its relationship to
   `execution.ts`'s own real, unmodified pre-trade risk gate.
+- `docs/Position-Sizing.md` — the Position Sizing & Portfolio Impact
+  Calculator's own full detail (§4.9 above): the recommended-quantity
+  formula, the break-even derivation, the current-vs-hypothetical
+  portfolio-impact model, the 8-category risk-warnings list, and the
+  scenario-comparison design.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

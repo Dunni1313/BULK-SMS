@@ -2333,6 +2333,125 @@ export interface OrderPreviewResult {
   generatedAt: string;
 }
 
+export type PositionSizingInput = OrderPreviewInput & ({
+  /** @nullable */
+  customQuantity?: number | null;
+});
+
+export interface BreakEvenPrice {
+  label: string;
+  price: number;
+}
+
+export interface PositionSizingFigures {
+  /** @nullable */
+  recommendedQuantity: number | null;
+  /** @nullable */
+  positionSizePctOfPortfolio: number | null;
+  /** @nullable */
+  buyingPowerUtilizationPct: number | null;
+  /** @nullable */
+  capitalAtRisk: number | null;
+  /** @nullable */
+  maxTheoreticalLoss: number | null;
+  /** @nullable */
+  maxTheoreticalGain: number | null;
+  breakEvens: BreakEvenPrice[];
+  /** @nullable */
+  breakEvenUnavailableReason: string | null;
+  /** @nullable */
+  riskRewardRatio: number | null;
+  /** @nullable */
+  concentrationBeforePct: number | null;
+  /** @nullable */
+  concentrationAfterPct: number | null;
+}
+
+export interface SymbolExposure {
+  symbol: string;
+  riskDollars: number;
+  pctOfAccount: number;
+}
+
+export interface PortfolioGreeksSnapshot {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export interface PortfolioSnapshot {
+  openPositionsCount: number;
+  totalRiskDollars: number;
+  totalRiskPct: number;
+  exposureBySymbol: SymbolExposure[];
+  longExposureDollars: number;
+  shortExposureDollars: number;
+  greeks: PortfolioGreeksSnapshot;
+}
+
+export interface SectorExposure {
+  available: false;
+  reason: string;
+}
+
+export interface PortfolioImpact {
+  current: PortfolioSnapshot;
+  hypothetical: PortfolioSnapshot | null;
+  sectorExposure: SectorExposure;
+  /** @nullable */
+  deltaImpact: number | null;
+  /** @nullable */
+  thetaImpact: number | null;
+  /** @nullable */
+  gammaImpact: number | null;
+  /** @nullable */
+  vegaImpact: number | null;
+}
+
+export type PositionSizingWarningStatus = typeof PositionSizingWarningStatus[keyof typeof PositionSizingWarningStatus];
+
+
+export const PositionSizingWarningStatus = {
+  ok: 'ok',
+  warning: 'warning',
+  blocked: 'blocked',
+} as const;
+
+export interface PositionSizingWarning {
+  code: string;
+  label: string;
+  status: PositionSizingWarningStatus;
+  detail: string;
+}
+
+export interface ScenarioResult {
+  label: string;
+  quantity: number;
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  /** @nullable */
+  capitalAtRisk: number | null;
+  /** @nullable */
+  buyingPowerRequired: number | null;
+  /** @nullable */
+  buyingPowerUtilizationPct: number | null;
+  /** @nullable */
+  concentrationAfterPct: number | null;
+  /** @nullable */
+  positionSizePctOfPortfolio: number | null;
+}
+
+export interface PositionSizingResult {
+  preview: OrderPreviewResult;
+  positionSizing: PositionSizingFigures | null;
+  portfolioImpact: PortfolioImpact;
+  riskWarnings: PositionSizingWarning[];
+  scenarios: ScenarioResult[];
+  generatedAt: string;
+}
+
 export type AutoExecutionStatusExecutionMode = typeof AutoExecutionStatusExecutionMode[keyof typeof AutoExecutionStatusExecutionMode];
 
 

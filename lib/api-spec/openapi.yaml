@@ -652,6 +652,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/OrderPreviewResult"
 
+  # ─── Position Sizing & Portfolio Impact Calculator (Paper Trading) ──────────
+  /execution/position-sizing:
+    post:
+      operationId: previewPositionSizing
+      tags: [execution]
+      summary: >-
+        Read-only position-sizing and portfolio-impact analysis, extending
+        the Order Preview: never routes to a broker, never creates an
+        order, never mutates local state. Always returns 200 — an
+        unresolvable/invalid input honestly reflects that in the nested
+        preview.available field rather than fabricating figures.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PositionSizingInput"
+      responses:
+        "200":
+          description: Position sizing & portfolio impact analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PositionSizingResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -4844,6 +4869,225 @@ components:
           type: ["string", "null"]
         accountValue:
           type: number
+        generatedAt:
+          type: string
+
+    # ─── Position Sizing & Portfolio Impact Calculator (Paper Trading) ──────────
+    # Extends OrderPreviewResult above with position-sizing figures, a
+    # before/after portfolio-impact snapshot, a risk-warnings list, and a
+    # scenario comparison — read-only, never routes to a broker.
+    PositionSizingInput:
+      allOf:
+        - $ref: "#/components/schemas/OrderPreviewInput"
+        - type: object
+          properties:
+            customQuantity:
+              type: ["integer", "null"]
+
+    BreakEvenPrice:
+      type: object
+      required: [label, price]
+      properties:
+        label:
+          type: string
+        price:
+          type: number
+
+    PositionSizingFigures:
+      type: object
+      required:
+        [
+          recommendedQuantity,
+          positionSizePctOfPortfolio,
+          buyingPowerUtilizationPct,
+          capitalAtRisk,
+          maxTheoreticalLoss,
+          maxTheoreticalGain,
+          breakEvens,
+          breakEvenUnavailableReason,
+          riskRewardRatio,
+          concentrationBeforePct,
+          concentrationAfterPct,
+        ]
+      properties:
+        recommendedQuantity:
+          type: ["integer", "null"]
+        positionSizePctOfPortfolio:
+          type: ["number", "null"]
+        buyingPowerUtilizationPct:
+          type: ["number", "null"]
+        capitalAtRisk:
+          type: ["number", "null"]
+        maxTheoreticalLoss:
+          type: ["number", "null"]
+        maxTheoreticalGain:
+          type: ["number", "null"]
+        breakEvens:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakEvenPrice"
+        breakEvenUnavailableReason:
+          type: ["string", "null"]
+        riskRewardRatio:
+          type: ["number", "null"]
+        concentrationBeforePct:
+          type: ["number", "null"]
+        concentrationAfterPct:
+          type: ["number", "null"]
+
+    SymbolExposure:
+      type: object
+      required: [symbol, riskDollars, pctOfAccount]
+      properties:
+        symbol:
+          type: string
+        riskDollars:
+          type: number
+        pctOfAccount:
+          type: number
+
+    PortfolioGreeksSnapshot:
+      type: object
+      required: [delta, gamma, theta, vega]
+      properties:
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+
+    PortfolioSnapshot:
+      type: object
+      required:
+        [
+          openPositionsCount,
+          totalRiskDollars,
+          totalRiskPct,
+          exposureBySymbol,
+          longExposureDollars,
+          shortExposureDollars,
+          greeks,
+        ]
+      properties:
+        openPositionsCount:
+          type: integer
+        totalRiskDollars:
+          type: number
+        totalRiskPct:
+          type: number
+        exposureBySymbol:
+          type: array
+          items:
+            $ref: "#/components/schemas/SymbolExposure"
+        longExposureDollars:
+          type: number
+        shortExposureDollars:
+          type: number
+        greeks:
+          $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+
+    SectorExposure:
+      type: object
+      required: [available, reason]
+      properties:
+        available:
+          type: boolean
+          enum: [false]
+        reason:
+          type: string
+
+    PortfolioImpact:
+      type: object
+      required: [current, hypothetical, sectorExposure, deltaImpact, thetaImpact, gammaImpact, vegaImpact]
+      properties:
+        current:
+          $ref: "#/components/schemas/PortfolioSnapshot"
+        hypothetical:
+          oneOf:
+            - $ref: "#/components/schemas/PortfolioSnapshot"
+            - type: "null"
+        sectorExposure:
+          $ref: "#/components/schemas/SectorExposure"
+        deltaImpact:
+          type: ["number", "null"]
+        thetaImpact:
+          type: ["number", "null"]
+        gammaImpact:
+          type: ["number", "null"]
+        vegaImpact:
+          type: ["number", "null"]
+
+    PositionSizingWarning:
+      type: object
+      required: [code, label, status, detail]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [ok, warning, blocked]
+        detail:
+          type: string
+
+    ScenarioResult:
+      type: object
+      required:
+        [
+          label,
+          quantity,
+          available,
+          unavailableReason,
+          capitalAtRisk,
+          buyingPowerRequired,
+          buyingPowerUtilizationPct,
+          concentrationAfterPct,
+          positionSizePctOfPortfolio,
+        ]
+      properties:
+        label:
+          type: string
+        quantity:
+          type: integer
+        available:
+          type: boolean
+        unavailableReason:
+          type: ["string", "null"]
+        capitalAtRisk:
+          type: ["number", "null"]
+        buyingPowerRequired:
+          type: ["number", "null"]
+        buyingPowerUtilizationPct:
+          type: ["number", "null"]
+        concentrationAfterPct:
+          type: ["number", "null"]
+        positionSizePctOfPortfolio:
+          type: ["number", "null"]
+
+    PositionSizingResult:
+      type: object
+      required: [preview, positionSizing, portfolioImpact, riskWarnings, scenarios, generatedAt]
+      properties:
+        preview:
+          $ref: "#/components/schemas/OrderPreviewResult"
+        positionSizing:
+          oneOf:
+            - $ref: "#/components/schemas/PositionSizingFigures"
+            - type: "null"
+        portfolioImpact:
+          $ref: "#/components/schemas/PortfolioImpact"
+        riskWarnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/PositionSizingWarning"
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioResult"
         generatedAt:
           type: string
 
