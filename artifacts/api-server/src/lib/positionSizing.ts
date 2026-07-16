@@ -147,7 +147,11 @@ export interface PositionSizingAnalysis {
   generatedAt: string;
 }
 
-interface TradeRow {
+// Exported (additive, Trade Adjustment Preview sprint) so
+// lib/tradeAdjustmentPreview.ts can reuse the exact same portfolio-
+// aggregation logic below rather than duplicating it — zero behavior
+// change to this file's own exports/tests.
+export interface TradeRow {
   id: number;
   symbol: string;
   strategy: string;
@@ -157,7 +161,7 @@ interface TradeRow {
   legs: unknown;
 }
 
-async function currentOpenTrades(userId: string): Promise<TradeRow[]> {
+export async function currentOpenTrades(userId: string): Promise<TradeRow[]> {
   const rows = await db
     .select()
     .from(tradesTable)
@@ -230,7 +234,7 @@ function greeksTotal(trades: TradeRow[]): PortfolioGreeksSnapshot {
 // it (premium paid) — the exact same credit-sign convention
 // tradeAnalytics.ts's tradeDirection() already established on the
 // frontend, reused here on the backend for portfolio-level aggregation.
-function buildSnapshot(trades: TradeRow[], accountValue: number): PortfolioSnapshot {
+export function buildSnapshot(trades: TradeRow[], accountValue: number): PortfolioSnapshot {
   const bySymbol = new Map<string, number>();
   let longExposureDollars = 0;
   let shortExposureDollars = 0;

@@ -58,6 +58,7 @@ const TradeHistory = lazy(() => import("./pages/TradeHistory"));
 const TradePerformance = lazy(() => import("./pages/TradePerformance"));
 const OrderPreview = lazy(() => import("./pages/OrderPreview"));
 const PositionSizing = lazy(() => import("./pages/PositionSizing"));
+const TradeAdjustmentPreview = lazy(() => import("./pages/TradeAdjustmentPreview"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Login"));
 
@@ -123,6 +124,7 @@ function Router() {
           <Route path="/trade-performance" component={TradePerformance} />
           <Route path="/order-preview" component={OrderPreview} />
           <Route path="/position-sizing" component={PositionSizing} />
+          <Route path="/adjustment-preview" component={TradeAdjustmentPreview} />
           <Route path="/settings" component={Settings} />
           <Route path="/learn/delta" component={DeltaMasterclass} />
           <Route path="/learn/greeks" component={GreeksTutor} />

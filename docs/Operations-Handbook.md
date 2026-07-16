@@ -240,6 +240,45 @@ account with no open positions is shown as genuinely empty.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.9 and
 `docs/Position-Sizing.md`.
 
+### 6.12 Using the Trade Adjustment & Roll/Convert Preview Simulator
+
+The "Adjustment Preview" nav item (`/adjustment-preview`) lets a user
+pick an existing open position and preview one of 8 adjustment intents
+(Roll Forward, Roll Out, Roll Up, Roll Down, Roll Out & Up, Roll Out &
+Down, Convert Position, Close & Replace). **Only 3 are genuinely
+computable** by this platform's existing adjustment engine — Roll
+Forward and Convert Position (which only succeed when the position is
+actually roll/convert-eligible, exactly matching the real submission
+flow's own eligibility check) and Close & Replace (which works for any
+open position). **The other 5 always honestly report themselves
+unavailable**, with a clear, consistent, disclosed reason, rather than
+being silently hidden or approximated. **There is no submit action
+anywhere on this page — it is a dry-run only, and no adjustment can be
+placed from it.**
+
+The page shows the existing position, the proposed position, estimated
+debit/credit, Greeks before/after, break-evens before/after, portfolio
+exposure before/after (correctly modeling a *replace*, not an *add* —
+unlike §6.11's Position Sizing page), and 6 side-by-side comparisons
+(max risk, max reward, buying power impact, margin impact, risk/reward
+ratio, concentration), each explicitly labeled Improved, Worse, or
+Neutral — plus a 9-item risk-warnings list.
+
+**Existing `buildAdjustmentTicket()` and `previewOptionOrder()` logic is
+reused completely unchanged** — this page calls the exact same functions
+the real roll/convert/order-preview flows already call, unmodified. **No
+execution logic was modified. No order-routing logic was modified. No
+broker writes occur. No orders or adjustments are submitted. Portfolio
+impact remains hypothetical only** — the "after" exposure is always a
+simulated reconstruction, never confused with a real position change.
+**Real Alpaca credential verification remains deferred** — this page's
+figures are computed the same way every other page in this integration
+computes them today: from local trade data and this platform's own
+deterministic SIMULATED pricing engine, not a live broker call.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.10 and
+`docs/Trade-Adjustment.md`.
+
 ---
 
 ## 7. Escalation
@@ -257,7 +296,8 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.9 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, and the Position Sizing & Portfolio Impact Calculator), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, and the Position Sizing page referenced in §6.11 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, and the Trade Adjustment & Roll/Convert Preview Simulator), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, and the Trade Adjustment Preview page referenced in §6.12 above.
+- `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview Simulator's own full detail (§6.12 above): the 3-computable/5-honestly-unavailable intent scope decision, the Close & Replace composition, the replace-semantics portfolio exposure model, the 9-category risk-warnings list, and the Improved/Worse/Neutral comparison design.
 - `docs/Trading-Journal.md` — the Trading Journal system's own full detail, referenced in §6.9 above.
 - `docs/Order-Preview.md` — the Order Preview & Risk Simulator's own full detail, referenced in §6.10 above.
 - `docs/Position-Sizing.md` — the Position Sizing & Portfolio Impact Calculator's own full detail, referenced in §6.11 above.

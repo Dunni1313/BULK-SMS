@@ -133,6 +133,8 @@ import type {
   TopOpportunities,
   Trade,
   TradeAdjustment,
+  TradeAdjustmentPreviewInput,
+  TradeAdjustmentPreviewResult,
   TradeInput,
   TradeMonitor,
   TradingBacktestResult,
@@ -2764,6 +2766,77 @@ export const usePreviewPositionSizing = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getPreviewPositionSizingMutationOptions(options));
+    }
+
+export const getPreviewTradeAdjustmentUrl = () => {
+
+
+
+
+  return `/api/execution/adjustment/preview-simulator`
+}
+
+/**
+ * @summary Read-only dry-run adjustment (roll/convert/close & replace) preview over an existing open position: never routes to a broker, never creates or closes an order, never mutates local state. Always returns 200 — a missing position or unavailable intent honestly sets available:false rather than fabricating a preview.
+ */
+export const previewTradeAdjustment = async (tradeAdjustmentPreviewInput: TradeAdjustmentPreviewInput, options?: RequestInit): Promise<TradeAdjustmentPreviewResult> => {
+
+  return customFetch<TradeAdjustmentPreviewResult>(getPreviewTradeAdjustmentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradeAdjustmentPreviewInput,)
+  }
+);}
+
+
+
+
+export const getPreviewTradeAdjustmentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewTradeAdjustment>>, TError,{data: BodyType<TradeAdjustmentPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewTradeAdjustment>>, TError,{data: BodyType<TradeAdjustmentPreviewInput>}, TContext> => {
+
+const mutationKey = ['previewTradeAdjustment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewTradeAdjustment>>, {data: BodyType<TradeAdjustmentPreviewInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewTradeAdjustment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewTradeAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof previewTradeAdjustment>>>
+    export type PreviewTradeAdjustmentMutationBody = BodyType<TradeAdjustmentPreviewInput>
+    export type PreviewTradeAdjustmentMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Read-only dry-run adjustment (roll/convert/close & replace) preview over an existing open position: never routes to a broker, never creates or closes an order, never mutates local state. Always returns 200 — a missing position or unavailable intent honestly sets available:false rather than fabricating a preview.
+ */
+export const usePreviewTradeAdjustment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewTradeAdjustment>>, TError,{data: BodyType<TradeAdjustmentPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewTradeAdjustment>>,
+        TError,
+        {data: BodyType<TradeAdjustmentPreviewInput>},
+        TContext
+      > => {
+      return useMutation(getPreviewTradeAdjustmentMutationOptions(options));
     }
 
 export const getGetAutoExecutionStatusUrl = () => {

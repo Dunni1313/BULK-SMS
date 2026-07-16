@@ -2452,6 +2452,115 @@ export interface PositionSizingResult {
   generatedAt: string;
 }
 
+export type AdjustmentIntent = typeof AdjustmentIntent[keyof typeof AdjustmentIntent];
+
+
+export const AdjustmentIntent = {
+  roll_forward: 'roll_forward',
+  roll_out: 'roll_out',
+  roll_up: 'roll_up',
+  roll_down: 'roll_down',
+  roll_out_up: 'roll_out_up',
+  roll_out_down: 'roll_out_down',
+  convert: 'convert',
+  close_replace: 'close_replace',
+} as const;
+
+export interface TradeAdjustmentPreviewInput {
+  /** @nullable */
+  tradeId?: number | null;
+  intent?: AdjustmentIntent | null;
+  /** @nullable */
+  quantity?: number | null;
+}
+
+export type TradeAdjustmentInputIssueField = typeof TradeAdjustmentInputIssueField[keyof typeof TradeAdjustmentInputIssueField];
+
+
+export const TradeAdjustmentInputIssueField = {
+  tradeId: 'tradeId',
+  intent: 'intent',
+  quantity: 'quantity',
+} as const;
+
+export interface TradeAdjustmentInputIssue {
+  field: TradeAdjustmentInputIssueField;
+  code: string;
+  message: string;
+}
+
+export type TradeAdjustmentWarningStatus = typeof TradeAdjustmentWarningStatus[keyof typeof TradeAdjustmentWarningStatus];
+
+
+export const TradeAdjustmentWarningStatus = {
+  ok: 'ok',
+  warning: 'warning',
+  blocked: 'blocked',
+} as const;
+
+export interface TradeAdjustmentWarning {
+  code: string;
+  label: string;
+  status: TradeAdjustmentWarningStatus;
+  detail: string;
+}
+
+export type MetricComparisonDirection = typeof MetricComparisonDirection[keyof typeof MetricComparisonDirection];
+
+
+export const MetricComparisonDirection = {
+  improved: 'improved',
+  worse: 'worse',
+  neutral: 'neutral',
+  unknown: 'unknown',
+} as const;
+
+export interface MetricComparison {
+  code: string;
+  label: string;
+  /** @nullable */
+  before: number | null;
+  /** @nullable */
+  after: number | null;
+  /** @nullable */
+  change: number | null;
+  direction: MetricComparisonDirection;
+}
+
+export interface TradeAdjustmentPreviewResult {
+  available: boolean;
+  inputIssues: TradeAdjustmentInputIssue[];
+  intent: AdjustmentIntent | null;
+  /** @nullable */
+  intentLabel: string | null;
+  intentAvailable: boolean;
+  /** @nullable */
+  intentUnavailableReason: string | null;
+  existingPosition: AdjustmentSourcePosition | null;
+  proposedPosition: ExecutionTicket | null;
+  /** @nullable */
+  netCashflow: number | null;
+  greeksBefore: PortfolioGreeksSnapshot | null;
+  greeksAfter: PortfolioGreeksSnapshot | null;
+  breakEvenBefore: BreakEvenPrice[];
+  /** @nullable */
+  breakEvenBeforeUnavailableReason: string | null;
+  breakEvenAfter: BreakEvenPrice[];
+  /** @nullable */
+  breakEvenAfterUnavailableReason: string | null;
+  portfolioExposureBefore: PortfolioSnapshot;
+  portfolioExposureAfter: PortfolioSnapshot | null;
+  comparisons: MetricComparison[];
+  riskWarnings: TradeAdjustmentWarning[];
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  accountValue: number;
+  generatedAt: string;
+}
+
 export type AutoExecutionStatusExecutionMode = typeof AutoExecutionStatusExecutionMode[keyof typeof AutoExecutionStatusExecutionMode];
 
 

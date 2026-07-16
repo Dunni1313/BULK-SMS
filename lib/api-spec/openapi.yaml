@@ -677,6 +677,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/PositionSizingResult"
 
+  # ─── Trade Adjustment & Roll/Convert Preview Simulator (Paper Trading) ──────
+  /execution/adjustment/preview-simulator:
+    post:
+      operationId: previewTradeAdjustment
+      tags: [execution]
+      summary: >-
+        Read-only dry-run adjustment (roll/convert/close & replace)
+        preview over an existing open position: never routes to a broker,
+        never creates or closes an order, never mutates local state.
+        Always returns 200 — a missing position or unavailable intent
+        honestly sets available:false rather than fabricating a preview.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradeAdjustmentPreviewInput"
+      responses:
+        "200":
+          description: Trade adjustment preview result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeAdjustmentPreviewResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -5088,6 +5113,172 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ScenarioResult"
+        generatedAt:
+          type: string
+
+    # ─── Trade Adjustment & Roll/Convert Preview Simulator (Paper Trading) ──────
+    # Read-only dry-run over an EXISTING open position: never contacts a
+    # broker execution endpoint, never creates or closes an order. Reuses
+    # execution.ts's own buildAdjustmentTicket()/previewAdjustmentOrder()/
+    # previewOptionOrder() for its numeric figures.
+    AdjustmentIntent:
+      type: string
+      enum: [roll_forward, roll_out, roll_up, roll_down, roll_out_up, roll_out_down, convert, close_replace]
+
+    TradeAdjustmentPreviewInput:
+      type: object
+      properties:
+        tradeId:
+          type: ["integer", "null"]
+        intent:
+          oneOf:
+            - $ref: "#/components/schemas/AdjustmentIntent"
+            - type: "null"
+        quantity:
+          type: ["integer", "null"]
+
+    TradeAdjustmentInputIssue:
+      type: object
+      required: [field, code, message]
+      properties:
+        field:
+          type: string
+          enum: [tradeId, intent, quantity]
+        code:
+          type: string
+        message:
+          type: string
+
+    TradeAdjustmentWarning:
+      type: object
+      required: [code, label, status, detail]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [ok, warning, blocked]
+        detail:
+          type: string
+
+    MetricComparison:
+      type: object
+      required: [code, label, before, after, change, direction]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        before:
+          type: ["number", "null"]
+        after:
+          type: ["number", "null"]
+        change:
+          type: ["number", "null"]
+        direction:
+          type: string
+          enum: [improved, worse, neutral, unknown]
+
+    TradeAdjustmentPreviewResult:
+      type: object
+      required:
+        [
+          available,
+          inputIssues,
+          intent,
+          intentLabel,
+          intentAvailable,
+          intentUnavailableReason,
+          existingPosition,
+          proposedPosition,
+          netCashflow,
+          greeksBefore,
+          greeksAfter,
+          breakEvenBefore,
+          breakEvenBeforeUnavailableReason,
+          breakEvenAfter,
+          breakEvenAfterUnavailableReason,
+          portfolioExposureBefore,
+          portfolioExposureAfter,
+          comparisons,
+          riskWarnings,
+          credentialsConfigured,
+          brokerConnected,
+          lastBrokerCheckAt,
+          accountValue,
+          generatedAt,
+        ]
+      properties:
+        available:
+          type: boolean
+        inputIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeAdjustmentInputIssue"
+        intent:
+          oneOf:
+            - $ref: "#/components/schemas/AdjustmentIntent"
+            - type: "null"
+        intentLabel:
+          type: ["string", "null"]
+        intentAvailable:
+          type: boolean
+        intentUnavailableReason:
+          type: ["string", "null"]
+        existingPosition:
+          oneOf:
+            - $ref: "#/components/schemas/AdjustmentSourcePosition"
+            - type: "null"
+        proposedPosition:
+          oneOf:
+            - $ref: "#/components/schemas/ExecutionTicket"
+            - type: "null"
+        netCashflow:
+          type: ["number", "null"]
+        greeksBefore:
+          oneOf:
+            - $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+            - type: "null"
+        greeksAfter:
+          oneOf:
+            - $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+            - type: "null"
+        breakEvenBefore:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakEvenPrice"
+        breakEvenBeforeUnavailableReason:
+          type: ["string", "null"]
+        breakEvenAfter:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakEvenPrice"
+        breakEvenAfterUnavailableReason:
+          type: ["string", "null"]
+        portfolioExposureBefore:
+          $ref: "#/components/schemas/PortfolioSnapshot"
+        portfolioExposureAfter:
+          oneOf:
+            - $ref: "#/components/schemas/PortfolioSnapshot"
+            - type: "null"
+        comparisons:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricComparison"
+        riskWarnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeAdjustmentWarning"
+        credentialsConfigured:
+          type: boolean
+        brokerConnected:
+          type: ["boolean", "null"]
+        lastBrokerCheckAt:
+          type: ["string", "null"]
+        accountValue:
+          type: number
         generatedAt:
           type: string
 

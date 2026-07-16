@@ -1442,6 +1442,210 @@ export const PreviewPositionSizingResponse = zod.object({
 
 
 /**
+ * @summary Read-only dry-run adjustment (roll/convert/close & replace) preview over an existing open position: never routes to a broker, never creates or closes an order, never mutates local state. Always returns 200 — a missing position or unavailable intent honestly sets available:false rather than fabricating a preview.
+ */
+export const PreviewTradeAdjustmentBody = zod.object({
+  "tradeId": zod.number().nullish(),
+  "intent": zod.union([zod.enum(['roll_forward', 'roll_out', 'roll_up', 'roll_down', 'roll_out_up', 'roll_out_down', 'convert', 'close_replace']),zod.null()]).optional(),
+  "quantity": zod.number().nullish()
+})
+
+export const PreviewTradeAdjustmentResponse = zod.object({
+  "available": zod.boolean(),
+  "inputIssues": zod.array(zod.object({
+  "field": zod.enum(['tradeId', 'intent', 'quantity']),
+  "code": zod.string(),
+  "message": zod.string()
+})),
+  "intent": zod.union([zod.enum(['roll_forward', 'roll_out', 'roll_up', 'roll_down', 'roll_out_up', 'roll_out_down', 'convert', 'close_replace']),zod.null()]),
+  "intentLabel": zod.string().nullable(),
+  "intentAvailable": zod.boolean(),
+  "intentUnavailableReason": zod.string().nullable(),
+  "existingPosition": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "strategyLabel": zod.string(),
+  "expiration": zod.string().nullable(),
+  "daysToExpiry": zod.number(),
+  "legs": zod.array(zod.object({
+  "side": zod.enum(['buy', 'sell']),
+  "optionType": zod.enum(['call', 'put']),
+  "strike": zod.number(),
+  "expiration": zod.string(),
+  "quantity": zod.number()
+})),
+  "credit": zod.number(),
+  "maxProfit": zod.number(),
+  "maxLoss": zod.number(),
+  "pop": zod.number(),
+  "costToClose": zod.number(),
+  "currentPnl": zod.number(),
+  "isCredit": zod.boolean()
+}),zod.null()]),
+  "proposedPosition": zod.union([zod.object({
+  "symbol": zod.string(),
+  "strategy": zod.enum(['iron_condor', 'iron_fly', 'calendar_spread', 'earnings']),
+  "expiration": zod.string(),
+  "daysToExpiry": zod.number(),
+  "quantity": zod.number(),
+  "legs": zod.array(zod.object({
+  "occSymbol": zod.string(),
+  "side": zod.enum(['buy', 'sell']),
+  "optionType": zod.enum(['call', 'put']),
+  "strike": zod.number(),
+  "expiration": zod.string(),
+  "ratioQty": zod.number(),
+  "positionIntent": zod.enum(['buy_to_open', 'sell_to_open']),
+  "price": zod.number()
+})),
+  "netCredit": zod.number(),
+  "isCredit": zod.boolean(),
+  "maxProfit": zod.number(),
+  "maxLoss": zod.number(),
+  "pop": zod.number(),
+  "ev": zod.number(),
+  "ravishScore": zod.number(),
+  "ravishTier": zod.string(),
+  "returnOnCapital": zod.number(),
+  "buyingPowerRequired": zod.number(),
+  "accountValue": zod.number(),
+  "riskPct": zod.number(),
+  "portfolioRiskBeforePct": zod.number(),
+  "portfolioRiskAfterPct": zod.number(),
+  "executionMode": zod.enum(['manual', 'semi_auto', 'full_auto']),
+  "canSubmit": zod.boolean(),
+  "validation": zod.object({
+  "valid": zod.boolean(),
+  "checks": zod.array(zod.object({
+  "label": zod.string(),
+  "passed": zod.boolean(),
+  "detail": zod.string()
+})),
+  "violations": zod.array(zod.string()),
+  "warnings": zod.array(zod.string()),
+  "riskDollars": zod.number(),
+  "riskPct": zod.number(),
+  "portfolioRiskBeforePct": zod.number(),
+  "portfolioRiskAfterPct": zod.number()
+}),
+  "warnings": zod.array(zod.string()),
+  "adjustment": zod.union([zod.object({
+  "sourceTradeId": zod.number(),
+  "action": zod.enum(['roll_threatened', 'roll_untested', 'convert']),
+  "actionLabel": zod.string(),
+  "kind": zod.enum(['roll', 'convert']),
+  "fromStrategy": zod.string(),
+  "toStrategy": zod.string(),
+  "closeDescription": zod.string(),
+  "rationale": zod.string(),
+  "source": zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "strategyLabel": zod.string(),
+  "expiration": zod.string().nullable(),
+  "daysToExpiry": zod.number(),
+  "legs": zod.array(zod.object({
+  "side": zod.enum(['buy', 'sell']),
+  "optionType": zod.enum(['call', 'put']),
+  "strike": zod.number(),
+  "expiration": zod.string(),
+  "quantity": zod.number()
+})),
+  "credit": zod.number(),
+  "maxProfit": zod.number(),
+  "maxLoss": zod.number(),
+  "pop": zod.number(),
+  "costToClose": zod.number(),
+  "currentPnl": zod.number(),
+  "isCredit": zod.boolean()
+}),
+  "netCashflow": zod.number()
+}),zod.null()]).optional()
+}),zod.null()]),
+  "netCashflow": zod.number().nullable(),
+  "greeksBefore": zod.union([zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),zod.null()]),
+  "greeksAfter": zod.union([zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),zod.null()]),
+  "breakEvenBefore": zod.array(zod.object({
+  "label": zod.string(),
+  "price": zod.number()
+})),
+  "breakEvenBeforeUnavailableReason": zod.string().nullable(),
+  "breakEvenAfter": zod.array(zod.object({
+  "label": zod.string(),
+  "price": zod.number()
+})),
+  "breakEvenAfterUnavailableReason": zod.string().nullable(),
+  "portfolioExposureBefore": zod.object({
+  "openPositionsCount": zod.number(),
+  "totalRiskDollars": zod.number(),
+  "totalRiskPct": zod.number(),
+  "exposureBySymbol": zod.array(zod.object({
+  "symbol": zod.string(),
+  "riskDollars": zod.number(),
+  "pctOfAccount": zod.number()
+})),
+  "longExposureDollars": zod.number(),
+  "shortExposureDollars": zod.number(),
+  "greeks": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+})
+}),
+  "portfolioExposureAfter": zod.union([zod.object({
+  "openPositionsCount": zod.number(),
+  "totalRiskDollars": zod.number(),
+  "totalRiskPct": zod.number(),
+  "exposureBySymbol": zod.array(zod.object({
+  "symbol": zod.string(),
+  "riskDollars": zod.number(),
+  "pctOfAccount": zod.number()
+})),
+  "longExposureDollars": zod.number(),
+  "shortExposureDollars": zod.number(),
+  "greeks": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+})
+}),zod.null()]),
+  "comparisons": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "before": zod.number().nullable(),
+  "after": zod.number().nullable(),
+  "change": zod.number().nullable(),
+  "direction": zod.enum(['improved', 'worse', 'neutral', 'unknown'])
+})),
+  "riskWarnings": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['ok', 'warning', 'blocked']),
+  "detail": zod.string()
+})),
+  "credentialsConfigured": zod.boolean(),
+  "brokerConnected": zod.boolean().nullable(),
+  "lastBrokerCheckAt": zod.string().nullable(),
+  "accountValue": zod.number(),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Current full-auto engine state, guardrails, and today's stats
  */
 export const GetAutoExecutionStatusResponse = zod.object({

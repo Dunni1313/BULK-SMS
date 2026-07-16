@@ -578,6 +578,89 @@ No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`
 change. No new database write of any kind — every function in
 `lib/positionSizing.ts` only ever `SELECT`s.
 
+### 4.10 Trade Adjustment & Roll/Convert Preview Simulator
+
+Extends §4.9's Position Sizing & Portfolio Impact Calculator with a
+dedicated pre-decision simulator for adjusting an *existing* open
+position, `/adjustment-preview` — a new backend composition layer,
+`lib/tradeAdjustmentPreview.ts`, plus one new endpoint,
+`POST /execution/adjustment/preview-simulator`. There is still no submit
+action anywhere on this page.
+
+**Investigation finding that shaped this sprint's whole design:**
+`execution.ts`'s `buildAdjustmentTicket()`/`resolveAdjustmentTarget()`
+only support exactly 2 real adjustment shapes — "roll" (always re-centers
+every strike on the current spot price at a fixed 45-day cycle, no
+strike-shift or expiration-only-extend parameter exists) and "convert"
+(Iron Condor ↔ Iron Fly tightening/widening only) — and
+`buildAdjustmentTicket()` hard-gates on the position's own
+`evaluateTradeAdjustment()` recommendation being roll/convert-eligible,
+throwing a 409 otherwise. Of the 8 adjustment intents this sprint's spec
+requested, only 3 are therefore genuinely computable without writing new
+strike-selection logic (explicitly outside this sprint's reuse-only
+scope): **Roll Forward** (maps to the real "roll," only works when
+roll-eligible), **Convert Position** (maps to the real "convert," only
+works when convert-eligible), and **Close & Replace** (a new, small
+composition built entirely from already-exported `previewOptionOrder()` +
+`computeTradeGreeks()`, which works for *any* open position regardless of
+its own adjustment recommendation, since it bypasses
+`buildAdjustmentTicket()`'s eligibility gate entirely). The other 5 (Roll
+Out, Roll Up, Roll Down, Roll Out & Up, Roll Out & Down) are shown in the
+UI picker but **always** honestly report `available: false` with one
+consistent, disclosed reason — never fabricated, matching the same
+"never fabricate, always disclose gaps" precedent §4.8's sector-exposure
+disclosure and §4.9's calendar-spread-break-even disclosure already
+established. Full detail: `docs/Trade-Adjustment.md` §2.
+
+**`buildTradeAdjustmentPreview()` reuses, unmodified:**
+`buildAdjustmentTicket()` (Roll Forward/Convert), `previewOptionOrder()`
+(Close & Replace, reused a second time from §4.8), `evaluateTradeAdjustment()`
+(eligibility reads for both the source position and conflict detection),
+`computeTradeGreeks()` (Greeks before/after), and §4.9's own
+`buildSnapshot()`/`currentOpenTrades()` (portfolio exposure before/after
+— both made `export`ed from `lib/positionSizing.ts` this sprint, a
+purely additive keyword change, zero logic change to either function).
+`execution.ts`, `optionsMath.ts`, `risk.ts`, `autoExecution.ts`, and
+`autoAdjustment.ts` are not modified by this sprint.
+
+**Display fields** — existing position, proposed position,
+debit/credit (`netCashflow = proposed.netCredit − existing.costToClose`),
+Greeks before/after, break-evens before/after (the same generalized
+credit-spread formula §4.9 established, iron condor/iron fly only), and
+**6 side-by-side comparisons** (max risk, max reward, buying power
+impact, margin impact, risk/reward ratio, concentration), each carrying
+an explicit Improved/Worse/Neutral `direction` derived by a small,
+disclosed `compareMetric()` function with a `|change| < 0.01` neutral
+threshold and an explicit per-metric polarity (e.g. lower max risk is
+"improved").
+
+**Portfolio exposure before/after** reuses §4.9's `buildSnapshot()`
+twice, but unlike §4.9's own simpler *add* model, this sprint correctly
+models *replace* semantics: "after" excludes the source position from the
+trade set and adds one synthetic reconstruction of the proposed position
+(built from the proposed ticket's own public `legs[]`, the same
+`ratioQty × quantity` technique §4.9 established — never a second private
+call into `execution.ts`, never persisted).
+
+**Risk Warnings (9 categories)**, all informational since nothing is ever
+actually submitted: `missing_position`, `invalid_adjustment` (new — the
+requested intent is unavailable or the position isn't eligible for the
+requested roll/convert), `buying_power_unavailable`,
+`broker_disconnected`, `missing_credentials` (all 3 reused from §4.8's
+checklist), `excess_concentration` (reused, relabeled, from
+`execution.ts`'s own `validatePreTrade` check, evaluated against the
+*after* exposure), `excess_leverage` (a named threshold,
+`ADJUSTMENT_LEVERAGE_RATIO = 3`, matching §4.9's own `MAX_LEVERAGE_RATIO`),
+`conflicting_order` (new — a pending order already exists for the same
+symbol), and `conflicting_adjustment` (new — a *different* open position
+in the same symbol also currently has its own roll/convert-eligible
+recommendation).
+
+No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
+`autoExecution.ts`/`autoAdjustment.ts` change. No new database write of
+any kind — every function in `lib/tradeAdjustmentPreview.ts` only ever
+`SELECT`s.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -639,6 +722,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/positionSizing.ts` | Unit tests against isolated, fresh test users — an empty-portfolio proof (zero current exposure, no crash), a hypothetical-snapshot-with-one-synthetic-position proof for an empty starting portfolio, multi-position exposure-by-symbol grouping and long/short classification against 3 constructed trades, real portfolio-level Greeks (proving `computeTradeGreeks()` is genuinely called, not a placeholder), the always-unavailable sector-exposure disclosure, all 8 risk-warning categories including the reused-`validatePreTrade`-check proofs for oversized-position/excess-concentration, the named buying-power-exhaustion/excess-leverage thresholds, position-conflict detection, the missing-credentials/missing-broker-data disclosures, the 2-break-even-bracketing-short-strikes proof for iron condor, the honest break-even-unavailable path for calendar spreads, direct-reuse proofs (capital-at-risk/max-loss/max-gain/risk-reward/concentration all equal the ticket's own fields, never a second calculation), the recommended-quantity derivation, 50%/75%/100% scenario scaling with monotonic capital-at-risk, the optional Custom scenario, the honest-empty-scenario-list path for an invalid base symbol, and a never-mutates-the-trades-table proof. |
 | `routes/positionSizing.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped successful analysis, the honest-unavailable-preview/empty-scenarios/still-computed-current-portfolio path for an invalid symbol, the presence of every one of the 8 risk-warning categories, the Custom-scenario wiring, determinism across repeated identical calls, a 400 for a genuinely malformed request body, and the never-a-broker-write-surface proof. |
 | `PositionSizing.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and Preview Only badges, the submitted-payload proof for symbol/strategy/quantity/customQuantity, loading and error states, honest validation-error rendering, the full Position Sizing card (all 9 requested fields plus break-evens), the honest break-even-unavailable message, the honest empty-current-portfolio message, multi-position exposure-by-symbol rendering, the clearly-labeled current-vs-hypothetical section distinction, the estimated delta/theta/gamma/vega impact display, the always-honest sector-exposure disclosure, oversized-position/excess-concentration/buying-power-exhaustion blocked-warning rendering, missing-credentials/missing-broker-data warning rendering, the 50%/75%/100% scenario table, the optional 4th Custom scenario row, an honest unavailable-scenario message, and the scenario table's own absence when the base preview is unavailable. |
+| `lib/tradeAdjustmentPreview.ts` | Unit tests against isolated, fresh test users, using empirically-verified real `buildIronCondor()` quotes (never fabricated financials, which would trigger spurious stop-loss-breach recommendations) — input validation, a full Roll Forward scenario for a real roll-eligible position (including the 5 always-unavailable strike-shift intents proven via `it.each`), a Convert Position scenario for a real convert-eligible position, 2 Close & Replace scenarios (including a position with no adjustment recommendation at all, proving the eligibility-gate bypass), 7 invalid-adjustment paths, missing-credentials/broker-disconnected warnings, concentration/leverage warnings, and existing conflicting-order/conflicting-adjustment detection. |
+| `routes/tradeAdjustmentPreview.route.test.ts` | Live end-to-end HTTP tests against the real app — honest missing-field/missing-position responses, a well-shaped successful Close & Replace preview against a real, self-inserted position (including that the response never carries an `orderId`/`tradeId`/`journalId`-shaped field), all 5 strike-shift intents' consistent unavailable reason, determinism across repeated identical calls, a 400 for a genuinely malformed request body, and a 400 for an invalid intent enum value. |
+| `TradeAdjustmentPreview.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Preview Only — No adjustment will be submitted" badges, the honest empty-positions message, the submitted-payload proof for tradeId/intent/quantity, loading and error states, honest validation-error rendering, the invalid-adjustment message for an unavailable intent, full Roll Forward/Convert Position/Close & Replace comparison rendering, Greeks before/after display, the honest break-even-unavailable message, portfolio exposure before/after, all 6 comparison direction badges (including a "worse" case), excess-concentration/buying-power-unavailable/missing-credentials warning rendering, and the Broker Connection Status card's not-yet-checked/disconnected states with its own independent Refresh button. |
 
 ## 8. Cross-references
 
@@ -657,6 +743,12 @@ to everything else in this codebase. Specifically for this document's scope:
   formula, the break-even derivation, the current-vs-hypothetical
   portfolio-impact model, the 8-category risk-warnings list, and the
   scenario-comparison design.
+- `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview
+  Simulator's own full detail (§4.10 above): the reused adjustment
+  engine's real capability boundary, the 3-computable/5-honestly-
+  unavailable intent scope decision, the Close & Replace composition, the
+  replace-semantics portfolio exposure model, the 9-category
+  risk-warnings list, and the Improved/Worse/Neutral comparison design.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

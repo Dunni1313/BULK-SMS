@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adjustmentIntent';
 export * from './adjustmentPreviewInput';
 export * from './adjustmentSourceLeg';
 export * from './adjustmentSourceLegOptionType';
@@ -188,6 +189,8 @@ export * from './marketDataHealth';
 export * from './marketDataHealthMode';
 export * from './marketDataHealthProvider';
 export * from './marketDataHealthRequestedProvider';
+export * from './metricComparison';
+export * from './metricComparisonDirection';
 export * from './monitoringAlert';
 export * from './monitoringAlertSeverity';
 export * from './monitoringAuditSignals';
@@ -316,9 +319,15 @@ export * from './trade';
 export * from './tradeAdjustment';
 export * from './tradeAdjustmentAction';
 export * from './tradeAdjustmentGreeks';
+export * from './tradeAdjustmentInputIssue';
+export * from './tradeAdjustmentInputIssueField';
+export * from './tradeAdjustmentPreviewInput';
+export * from './tradeAdjustmentPreviewResult';
 export * from './tradeAdjustmentSeverity';
 export * from './tradeAdjustmentSignal';
 export * from './tradeAdjustmentThreatenedSide';
+export * from './tradeAdjustmentWarning';
+export * from './tradeAdjustmentWarningStatus';
 export * from './tradeExecutionMode';
 export * from './tradeExplanation';
 export * from './tradeExplanationGreeksPlain';
