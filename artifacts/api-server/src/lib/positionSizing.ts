@@ -151,6 +151,13 @@ export interface PositionSizingAnalysis {
 // lib/tradeAdjustmentPreview.ts can reuse the exact same portfolio-
 // aggregation logic below rather than duplicating it — zero behavior
 // change to this file's own exports/tests.
+//
+// `expiration` added (additive, Earnings & Event Risk Portfolio Overlay
+// sprint) so lib/portfolioEventRisk.ts can reuse this same shared row
+// shape rather than querying tradesTable a second time — every existing
+// field is unchanged; the 2 synthetic-row construction sites below
+// (syntheticTradeRow() and tradeAdjustmentPreview.ts's own afterTradeRow)
+// were updated to populate it from their own ticket's real `expiration`.
 export interface TradeRow {
   id: number;
   symbol: string;
@@ -159,6 +166,7 @@ export interface TradeRow {
   maxLoss: number;
   maxProfit: number;
   legs: unknown;
+  expiration: string | null;
 }
 
 export async function currentOpenTrades(userId: string): Promise<TradeRow[]> {
@@ -174,6 +182,7 @@ export async function currentOpenTrades(userId: string): Promise<TradeRow[]> {
     maxLoss: r.maxLoss,
     maxProfit: r.maxProfit,
     legs: r.legs,
+    expiration: r.expiration,
   }));
 }
 
@@ -206,6 +215,7 @@ function syntheticTradeRow(ticket: OrderPreviewTicket): TradeRow {
     maxLoss: ticket.maxLoss,
     maxProfit: ticket.maxProfit,
     legs: syntheticLegsFromTicket(ticket),
+    expiration: ticket.expiration,
   };
 }
 

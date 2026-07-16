@@ -748,6 +748,77 @@ No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
 any kind — every function in `lib/portfolioStressTest.ts` only ever
 `SELECT`s, and no scenario/shock/comparison is ever persisted.
 
+### 4.12 Earnings & Event Risk Portfolio Overlay
+
+A dedicated, read-only overlay, `/event-risk` — a new backend
+composition layer, `lib/portfolioEventRisk.ts`, plus one new endpoint,
+`GET /portfolio/event-risk`. There is no submit action anywhere on this
+page; every risk-guidance label is purely informational.
+
+**Investigation finding that shaped this sprint's whole design:** this
+sprint's own request text lists "FDA decisions" and "product launches" as
+example event categories, but no data source for either exists anywhere
+in this codebase — `lib/eventRisk.ts`'s own header comment describes
+itself as "a deterministic, simulated economic/market event calendar"
+covering exactly 7 categories (`earnings`, `dividend`, `fomc`, `cpi`,
+`jobs`, `economic`, and the currently-inert `news`). Per this sprint's
+own explicit "do not invent new event models" instruction, neither
+category is fabricated — the response's own `unsupportedEventCategories`
+field discloses this gap directly, and the frontend renders it as its
+own always-visible "Event Categories" card. Full detail:
+`docs/Portfolio-Event-Risk.md` §2.
+
+**`assessPosition()` reuses `getEventRiskForSymbol()` directly,
+unmodified** — the exact same function `execution.ts`/`autoExecution.ts`
+already call for their own event-risk gating — for every open position
+with a known expiration. **`enabled: true` is deliberately always
+passed**, regardless of the user's own `settings.eventRiskEnabled`
+toggle: that setting controls whether event risk *blocks* trade
+execution/AutoPilot, a different concern from whether this read-only
+page is allowed to show real event data; the response's own
+`eventRiskEnabled` field surfaces the current setting so the UI can
+disclose the distinction without ever gating visibility on it.
+
+**`lib/positionSizing.ts`'s `TradeRow` gained one additive field,
+`expiration: string | null`** (populated in `currentOpenTrades()`), since
+the shared row shape reused since the Trade Adjustment sprint didn't
+previously carry it. The 2 downstream synthetic-`TradeRow`-construction
+sites this touched (`positionSizing.ts`'s own `syntheticTradeRow()` and
+`tradeAdjustmentPreview.ts`'s own `afterTradeRow`) were updated to
+populate it from their own ticket's real `expiration` field — confirmed
+behavior-preserving by both files' own pre-existing test suites passing
+unmodified.
+
+**Risk Guidance** is a pure, exhaustive label mapping over the existing
+`EventRiskLevel` enum (`high`→Consider Adjustment, `medium`→Consider
+Review, `low`→Monitor, `none`→No Immediate Event Risk) — zero new risk
+scoring, and never wired to any adjustment/order action. **Confidence**
+is a disclosed classification of an event's own source shape (market-wide
+macro events, generated on a formulaic calendar schedule, are
+`"scheduled"`; symbol-specific earnings/dividend events, derived from a
+per-symbol seeded estimate, are `"simulated_estimate"`) — not a
+fabricated new signal. **Event source is always `"SIMULATED"`** — no live
+earnings/dividend/macro-calendar provider exists anywhere in this
+codebase.
+
+**Portfolio Summary**: positions with/without events, high-risk count,
+countdown buckets (1/3/7/14 days, counting *positions* whose own
+soonest event falls within each window — not raw events), aggregate
+event exposure (the sum of `portfolioWeightPct`, a genuine % of the
+account, across only the positions that carry event risk), and the
+highest-risk position (ranked by `EventRiskLevel`, ties broken by the
+soonest event, honestly `null` when nothing carries any risk).
+
+**Past events are never fabricated** — `eventRisk.ts`'s own existing
+date filters already guarantee every returned event has `daysAway >= 0`
+for any caller, proven directly by this sprint's own test suite rather
+than merely asserted.
+
+No database migration. No `eventRisk.ts`/`optionsMath.ts`/`execution.ts`/
+`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` change. No new database
+write of any kind — every function in `lib/portfolioEventRisk.ts` only
+ever `SELECT`s.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -815,6 +886,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/portfolioStressTest.ts` | Unit tests against isolated, fresh test users, using real `buildIronCondor()`/`buildCalendar()` quotes — an empty-portfolio proof (zeroed-out base and scenarios, no crash), the zero-shock byte-identical-to-`computeTradeGreeks()` regression proof, a never-mutates-the-trades-table proof, single/multiple-position exposure-by-symbol/by-strategy grouping, largest losing/gaining position detection, concentration-changes coverage, combined price+IV shocks producing genuinely different results than either alone, all 4 requested time-decay presets, extreme scenarios (huge crash/melt-up, expiration-exceeding time decay) staying finite via clamping, honest input-issue flags for a no-op scenario and a too-many-scenarios request, risk-threshold-breach detection and the risk-score hard-cap override, the honestly-always-zero buying-power-impact proof, scenario-comparison independence and labeling, drawdown honesty (zero for a net-positive scenario), and determinism. |
 | `routes/portfolioStressTest.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped default-presets response for an empty request body, custom combined-shock scenarios, honest field presence regardless of portfolio state, the never-a-broker-write-surface proof, honest credentials/broker-connection disclosure, a 400 for a genuinely malformed request body, and determinism across repeated identical calls. |
 | `PortfolioStressTest.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Simulation Only — No broker interaction occurs" badges, adding a quick preset scenario to the queue, building and adding a custom combined-shock scenario, removing a queued scenario, the submitted-payload proof for both the empty-queue (server-defaults) and populated-queue cases, loading and error states, honest input-issue notices, the base-case portfolio value/P/L/buying-power/risk-score/Greeks display, the honest empty-portfolio exposure message, the always-visible sector-exposure disclosure, one comparison card per requested scenario with its own shock/P&L-impact/risk-score, largest gaining/losing position and threshold-breach warning display, the honest no-breaches message, drawdown display (None vs. a percentage), and concentration-change display. |
+| `lib/portfolioEventRisk.ts` | Unit tests against isolated, fresh test users, using empirically-verified real symbol/expiration combinations (never guessed) — an empty-portfolio proof (zeroed-out summary, no crash), the honest unsupported-event-category disclosure, an event-free position (short expiration, non-dividend symbol), multiple positions with multiple distinct event categories (earnings + economic + jobs + cpi) on one position, events sorted soonest-first with a proven-correct primary-event selection, high-risk earnings-bearing positions with Consider Adjustment guidance, the highest-risk-position summary derivation, aggregate-exposure-only-counts-at-risk-positions proof, medium-risk macro-only positions with Consider Review guidance and "scheduled" confidence, low-risk dividend-only positions with Monitor guidance and "simulated_estimate" confidence, countdown-bucket (1/3/7/14 day) position counting, a never-fabricates-a-past-event proof for an already-expired position, honest degradation for a symbol with no known earnings snapshot, honest `expiration_unknown` handling for a defensively-malformed open trade with no expiration on record, quantity/portfolio-weight derivation, the always-SIMULATED event-source disclosure, determinism, and a never-mutates-the-trades-table proof. |
+| `routes/portfolioEventRisk.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped result with a real summary and honest unsupported-category disclosure, every position carrying a well-shaped assessment with non-past events, honest credentials/broker-connection disclosure, the `eventRiskEnabled` setting surfaced, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
+| `PortfolioEventRisk.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Event Risk Analysis" badges, loading and error states, the honest empty-portfolio message, the honest no-events-position message, multiple positions with multiple event categories rendering together, high-risk Consider Adjustment guidance and highest-risk-position summary, countdown-bucket and aggregate-exposure display, the always-visible unsupported-category (FDA decisions, product launches) disclosure, filtering by event status, filtering by risk level, an honest no-matches-filtered message, sorting by portfolio weight, and the Broker Connection Status card's not-yet-checked state with its own independent Refresh button. |
 
 ## 8. Cross-references
 
@@ -845,6 +919,12 @@ to everything else in this codebase. Specifically for this document's scope:
   the portfolio-level aggregation model, the honestly-always-zero
   buying-power-impact disclosure, the risk-score formula, the risk-
   analysis fields, and the scenario-comparison design.
+- `docs/Portfolio-Event-Risk.md` — the Earnings & Event Risk Portfolio
+  Overlay's own full detail (§4.12 above): the honest disclosure of the
+  2 requested-but-unsupported event categories, the direct
+  `getEventRiskForSymbol()` reuse, the Risk Guidance label mapping, the
+  confidence/source disclosure model, and the portfolio summary
+  derivation.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

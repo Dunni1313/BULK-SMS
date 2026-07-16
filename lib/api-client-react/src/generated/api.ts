@@ -108,6 +108,7 @@ import type {
   PerformanceBreakdownBucket,
   PlatformNotification,
   PlatformNotificationUpdate,
+  PortfolioEventRiskResult,
   PortfolioGreeks,
   PortfolioHealth,
   PortfolioStressTestInput,
@@ -2911,6 +2912,83 @@ export const useRunPortfolioStressTest = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getRunPortfolioStressTestMutationOptions(options));
     }
+
+export const getGetPortfolioEventRiskUrl = () => {
+
+
+
+
+  return `/api/portfolio/event-risk`
+}
+
+/**
+ * @summary Read-only overlay of upcoming earnings/dividend/macro event risk across the user's own current open portfolio, reusing eventRisk.ts's existing getEventRiskForSymbol() unmodified: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out summary figures rather than fabricating exposure.
+ */
+export const getPortfolioEventRisk = async ( options?: RequestInit): Promise<PortfolioEventRiskResult> => {
+
+  return customFetch<PortfolioEventRiskResult>(getGetPortfolioEventRiskUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioEventRiskQueryKey = () => {
+    return [
+    `/api/portfolio/event-risk`
+    ] as const;
+    }
+
+
+export const getGetPortfolioEventRiskQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioEventRiskQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioEventRisk>>> = ({ signal }) => getPortfolioEventRisk({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioEventRiskQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioEventRisk>>>
+export type GetPortfolioEventRiskQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only overlay of upcoming earnings/dividend/macro event risk across the user's own current open portfolio, reusing eventRisk.ts's existing getEventRiskForSymbol() unmodified: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out summary figures rather than fabricating exposure.
+ */
+
+export function useGetPortfolioEventRisk<TData = Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioEventRiskQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetAutoExecutionStatusUrl = () => {
 

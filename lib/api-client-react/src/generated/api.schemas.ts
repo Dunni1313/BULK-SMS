@@ -5090,6 +5090,124 @@ export interface PortfolioStressTestResult {
   generatedAt: string;
 }
 
+export type PortfolioEventRiskPrimaryEvent = EventRiskEvent | null;
+
+export type PositionEventRiskEventStatus = typeof PositionEventRiskEventStatus[keyof typeof PositionEventRiskEventStatus];
+
+
+export const PositionEventRiskEventStatus = {
+  has_events: 'has_events',
+  no_events: 'no_events',
+  expiration_unknown: 'expiration_unknown',
+} as const;
+
+export type PositionEventRiskRiskLevel = typeof PositionEventRiskRiskLevel[keyof typeof PositionEventRiskRiskLevel];
+
+
+export const PositionEventRiskRiskLevel = {
+  none: 'none',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export type PositionEventRiskRiskGuidance = typeof PositionEventRiskRiskGuidance[keyof typeof PositionEventRiskRiskGuidance];
+
+
+export const PositionEventRiskRiskGuidance = {
+  monitor: 'monitor',
+  consider_review: 'consider_review',
+  consider_adjustment: 'consider_adjustment',
+  no_immediate_event_risk: 'no_immediate_event_risk',
+} as const;
+
+/**
+ * @nullable
+ */
+export type PositionEventRiskConfidence = typeof PositionEventRiskConfidence[keyof typeof PositionEventRiskConfidence] | null;
+
+
+export const PositionEventRiskConfidence = {
+  scheduled: 'scheduled',
+  simulated_estimate: 'simulated_estimate',
+} as const;
+
+export type PositionEventRiskEventSource = typeof PositionEventRiskEventSource[keyof typeof PositionEventRiskEventSource];
+
+
+export const PositionEventRiskEventSource = {
+  SIMULATED: 'SIMULATED',
+} as const;
+
+export interface PositionEventRisk {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  quantity: number;
+  portfolioWeightPct: number;
+  /** @nullable */
+  expiration: string | null;
+  eventStatus: PositionEventRiskEventStatus;
+  primaryEvent: PortfolioEventRiskPrimaryEvent;
+  events: EventRiskEvent[];
+  riskLevel: PositionEventRiskRiskLevel;
+  riskGuidance: PositionEventRiskRiskGuidance;
+  riskGuidanceLabel: string;
+  /** @nullable */
+  confidence: PositionEventRiskConfidence;
+  eventSource: PositionEventRiskEventSource;
+  lastUpdated: string;
+}
+
+export type HighestRiskPositionRiskLevel = typeof HighestRiskPositionRiskLevel[keyof typeof HighestRiskPositionRiskLevel];
+
+
+export const HighestRiskPositionRiskLevel = {
+  none: 'none',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface HighestRiskPosition {
+  tradeId: number;
+  symbol: string;
+  riskLevel: HighestRiskPositionRiskLevel;
+}
+
+export interface PortfolioEventRiskSummary {
+  totalPositions: number;
+  positionsWithEvents: number;
+  positionsWithoutEvents: number;
+  highRiskCount: number;
+  within1Day: number;
+  within3Days: number;
+  within7Days: number;
+  within14Days: number;
+  aggregateExposurePct: number;
+  highestRiskPosition: HighestRiskPosition | null;
+}
+
+export interface UnsupportedEventCategory {
+  category: string;
+  label: string;
+  reason: string;
+}
+
+export interface PortfolioEventRiskResult {
+  positions: PositionEventRisk[];
+  summary: PortfolioEventRiskSummary;
+  accountValue: number;
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  eventRiskEnabled: boolean;
+  unsupportedEventCategories: UnsupportedEventCategory[];
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

@@ -54,7 +54,8 @@ import {
   ClipboardCheck,
   Scale,
   GitCompareArrows,
-  Zap
+  Zap,
+  ShieldAlert
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -132,6 +133,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { title: "Position Sizing", href: "/position-sizing", icon: Scale },
     { title: "Adjustment Preview", href: "/adjustment-preview", icon: GitCompareArrows },
     { title: "Stress Test", href: "/stress-test", icon: Zap },
+    { title: "Event Risk", href: "/event-risk", icon: ShieldAlert },
     { title: "Broker Reconciliation", href: "/broker-reconciliation", icon: GitCompare },
     { title: "Settings", href: "/settings", icon: Settings },
   ];

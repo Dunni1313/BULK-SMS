@@ -312,6 +312,38 @@ unimplemented feature.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.11 and
 `docs/Portfolio-Stress-Testing.md`.
 
+### 6.14 Using the Earnings & Event Risk Portfolio Overlay
+
+The "Event Risk" nav item (`/event-risk`) shows every current open
+position together with its own upcoming earnings, dividend, and macro
+(FOMC/CPI/jobs/economic-release) event risk before its own expiration —
+symbol, strategy, quantity, portfolio weight, event status/type/date,
+days remaining, risk level, confidence, event source, and last update —
+plus a portfolio summary (positions with/without events, high-risk
+count, 1/3/7/14-day countdown buckets, aggregate event exposure, and the
+highest-risk position) and read-only Risk Guidance (Monitor / Consider
+Review / Consider Adjustment / No Immediate Event Risk). **These
+guidance labels are informational only — this page never generates an
+execution recommendation, and there is no submit action anywhere on
+it.**
+
+All event data reuses this platform's existing, unmodified event-risk
+engine (`getEventRiskForSymbol()`, the same function
+`execution.ts`/`autoExecution.ts` already call for their own event-risk
+gating) — no execution logic was modified, no broker writes occur, and
+no orders are submitted. **This platform's event-risk engine covers 7
+categories (earnings, dividends, FOMC, CPI, jobs, economic releases,
+and a currently-inert "news" category) — it does not, and per this
+project's own "do not invent new event models" discipline never will
+without a real data source, cover FDA decisions or product launches**;
+the page's own "Event Categories" card discloses this honestly rather
+than silently omitting it. Every event is labeled `SIMULATED` — there is
+no live earnings/dividend/macro-calendar provider anywhere in this
+codebase.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.12 and
+`docs/Portfolio-Event-Risk.md`.
+
 ---
 
 ## 7. Escalation
@@ -329,9 +361,10 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.11 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, and the Portfolio Stress Test & Scenario Simulator), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, and the Portfolio Stress Test page referenced in §6.13 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, and the Earnings & Event Risk Portfolio Overlay), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, and the Portfolio Event Risk page referenced in §6.14 above.
 - `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview Simulator's own full detail (§6.12 above): the 3-computable/5-honestly-unavailable intent scope decision, the Close & Replace composition, the replace-semantics portfolio exposure model, the 9-category risk-warnings list, and the Improved/Worse/Neutral comparison design.
 - `docs/Portfolio-Stress-Testing.md` — the Portfolio Stress Test & Scenario Simulator's own full detail (§6.13 above): the shock-parameterized repricing engine, the portfolio-level aggregation model, the honestly-always-zero buying-power-impact disclosure, the risk-score formula, the risk-analysis fields, and the scenario-comparison design.
+- `docs/Portfolio-Event-Risk.md` — the Earnings & Event Risk Portfolio Overlay's own full detail (§6.14 above): the honest disclosure of the 2 requested-but-unsupported event categories (FDA decisions, product launches), the direct event-risk-engine reuse, the Risk Guidance label mapping, the confidence/source disclosure model, and the portfolio summary derivation.
 - `docs/Trading-Journal.md` — the Trading Journal system's own full detail, referenced in §6.9 above.
 - `docs/Order-Preview.md` — the Order Preview & Risk Simulator's own full detail, referenced in §6.10 above.
 - `docs/Position-Sizing.md` — the Position Sizing & Portfolio Impact Calculator's own full detail, referenced in §6.11 above.

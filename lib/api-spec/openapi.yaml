@@ -728,6 +728,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/PortfolioStressTestResult"
 
+  # ─── Earnings & Event Risk Portfolio Overlay (Paper Trading) ────────────────
+  /portfolio/event-risk:
+    get:
+      operationId: getPortfolioEventRisk
+      tags: [execution]
+      summary: >-
+        Read-only overlay of upcoming earnings/dividend/macro event risk
+        across the user's own current open portfolio, reusing
+        eventRisk.ts's existing getEventRiskForSymbol() unmodified: never
+        routes to a broker, never creates or modifies an order or
+        position, never mutates local state. Always returns 200 — an
+        empty portfolio honestly returns zeroed-out summary figures
+        rather than fabricating exposure.
+      responses:
+        "200":
+          description: Portfolio event risk overlay result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioEventRiskResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -8614,5 +8635,174 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ScenarioComparisonEntry"
+        generatedAt:
+          type: string
+
+    # ─── Earnings & Event Risk Portfolio Overlay (Paper Trading) ────────────────
+    # Read-only overlay reusing eventRisk.ts's own existing
+    # getEventRiskForSymbol()/EventRiskEvent unmodified. Never contacts a
+    # broker execution endpoint, never creates or modifies an order or
+    # position.
+    PortfolioEventRiskPrimaryEvent:
+      oneOf:
+        - $ref: "#/components/schemas/EventRiskEvent"
+        - type: "null"
+
+    PositionEventRisk:
+      type: object
+      required:
+        [
+          tradeId,
+          symbol,
+          strategy,
+          quantity,
+          portfolioWeightPct,
+          expiration,
+          eventStatus,
+          primaryEvent,
+          events,
+          riskLevel,
+          riskGuidance,
+          riskGuidanceLabel,
+          confidence,
+          eventSource,
+          lastUpdated,
+        ]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+        quantity:
+          type: integer
+        portfolioWeightPct:
+          type: number
+        expiration:
+          type: ["string", "null"]
+        eventStatus:
+          type: string
+          enum: [has_events, no_events, expiration_unknown]
+        primaryEvent:
+          $ref: "#/components/schemas/PortfolioEventRiskPrimaryEvent"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventRiskEvent"
+        riskLevel:
+          type: string
+          enum: [none, low, medium, high]
+        riskGuidance:
+          type: string
+          enum: [monitor, consider_review, consider_adjustment, no_immediate_event_risk]
+        riskGuidanceLabel:
+          type: string
+        confidence:
+          type: ["string", "null"]
+          enum: [scheduled, simulated_estimate, null]
+        eventSource:
+          type: string
+          enum: [SIMULATED]
+        lastUpdated:
+          type: string
+
+    HighestRiskPosition:
+      type: object
+      required: [tradeId, symbol, riskLevel]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        riskLevel:
+          type: string
+          enum: [none, low, medium, high]
+
+    PortfolioEventRiskSummary:
+      type: object
+      required:
+        [
+          totalPositions,
+          positionsWithEvents,
+          positionsWithoutEvents,
+          highRiskCount,
+          within1Day,
+          within3Days,
+          within7Days,
+          within14Days,
+          aggregateExposurePct,
+          highestRiskPosition,
+        ]
+      properties:
+        totalPositions:
+          type: integer
+        positionsWithEvents:
+          type: integer
+        positionsWithoutEvents:
+          type: integer
+        highRiskCount:
+          type: integer
+        within1Day:
+          type: integer
+        within3Days:
+          type: integer
+        within7Days:
+          type: integer
+        within14Days:
+          type: integer
+        aggregateExposurePct:
+          type: number
+        highestRiskPosition:
+          oneOf:
+            - $ref: "#/components/schemas/HighestRiskPosition"
+            - type: "null"
+
+    UnsupportedEventCategory:
+      type: object
+      required: [category, label, reason]
+      properties:
+        category:
+          type: string
+        label:
+          type: string
+        reason:
+          type: string
+
+    PortfolioEventRiskResult:
+      type: object
+      required:
+        [
+          positions,
+          summary,
+          accountValue,
+          credentialsConfigured,
+          brokerConnected,
+          lastBrokerCheckAt,
+          eventRiskEnabled,
+          unsupportedEventCategories,
+          generatedAt,
+        ]
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PositionEventRisk"
+        summary:
+          $ref: "#/components/schemas/PortfolioEventRiskSummary"
+        accountValue:
+          type: number
+        credentialsConfigured:
+          type: boolean
+        brokerConnected:
+          type: ["boolean", "null"]
+        lastBrokerCheckAt:
+          type: ["string", "null"]
+        eventRiskEnabled:
+          type: boolean
+        unsupportedEventCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnsupportedEventCategory"
         generatedAt:
           type: string

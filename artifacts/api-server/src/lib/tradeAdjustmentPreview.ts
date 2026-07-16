@@ -655,6 +655,7 @@ export async function buildTradeAdjustmentPreview(
     maxLoss: proposed.maxLoss,
     maxProfit: proposed.maxProfit,
     legs: proposed.legs.map((l: OrderLeg) => ({ side: l.side, optionType: l.optionType, strike: l.strike, expiration: l.expiration, openPrice: l.price, quantity: l.ratioQty * proposed!.quantity })),
+    expiration: proposed.expiration,
   };
   const tradesExcludingSource = allTrades.filter((t) => t.id !== existing!.trade.id);
   const portfolioExposureAfter = buildSnapshot([...tradesExcludingSource, afterTradeRow], accountValue);

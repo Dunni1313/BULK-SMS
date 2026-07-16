@@ -1795,6 +1795,73 @@ export const RunPortfolioStressTestResponse = zod.object({
 
 
 /**
+ * @summary Read-only overlay of upcoming earnings/dividend/macro event risk across the user's own current open portfolio, reusing eventRisk.ts's existing getEventRiskForSymbol() unmodified: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out summary figures rather than fabricating exposure.
+ */
+export const GetPortfolioEventRiskResponse = zod.object({
+  "positions": zod.array(zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "quantity": zod.number(),
+  "portfolioWeightPct": zod.number(),
+  "expiration": zod.string().nullable(),
+  "eventStatus": zod.enum(['has_events', 'no_events', 'expiration_unknown']),
+  "primaryEvent": zod.union([zod.object({
+  "type": zod.enum(['earnings', 'fomc', 'cpi', 'jobs', 'economic', 'news', 'dividend']),
+  "label": zod.string(),
+  "date": zod.string().describe('Event date (YYYY-MM-DD)'),
+  "daysAway": zod.number(),
+  "impact": zod.enum(['low', 'medium', 'high']),
+  "scope": zod.enum(['market', 'symbol']),
+  "symbol": zod.string().nullish()
+}),zod.null()]),
+  "events": zod.array(zod.object({
+  "type": zod.enum(['earnings', 'fomc', 'cpi', 'jobs', 'economic', 'news', 'dividend']),
+  "label": zod.string(),
+  "date": zod.string().describe('Event date (YYYY-MM-DD)'),
+  "daysAway": zod.number(),
+  "impact": zod.enum(['low', 'medium', 'high']),
+  "scope": zod.enum(['market', 'symbol']),
+  "symbol": zod.string().nullish()
+})),
+  "riskLevel": zod.enum(['none', 'low', 'medium', 'high']),
+  "riskGuidance": zod.enum(['monitor', 'consider_review', 'consider_adjustment', 'no_immediate_event_risk']),
+  "riskGuidanceLabel": zod.string(),
+  "confidence": zod.union([zod.literal('scheduled'),zod.literal('simulated_estimate'),zod.literal(null)]).nullable(),
+  "eventSource": zod.enum(['SIMULATED']),
+  "lastUpdated": zod.string()
+})),
+  "summary": zod.object({
+  "totalPositions": zod.number(),
+  "positionsWithEvents": zod.number(),
+  "positionsWithoutEvents": zod.number(),
+  "highRiskCount": zod.number(),
+  "within1Day": zod.number(),
+  "within3Days": zod.number(),
+  "within7Days": zod.number(),
+  "within14Days": zod.number(),
+  "aggregateExposurePct": zod.number(),
+  "highestRiskPosition": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "riskLevel": zod.enum(['none', 'low', 'medium', 'high'])
+}),zod.null()])
+}),
+  "accountValue": zod.number(),
+  "credentialsConfigured": zod.boolean(),
+  "brokerConnected": zod.boolean().nullable(),
+  "lastBrokerCheckAt": zod.string().nullable(),
+  "eventRiskEnabled": zod.boolean(),
+  "unsupportedEventCategories": zod.array(zod.object({
+  "category": zod.string(),
+  "label": zod.string(),
+  "reason": zod.string()
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Current full-auto engine state, guardrails, and today's stats
  */
 export const GetAutoExecutionStatusResponse = zod.object({
