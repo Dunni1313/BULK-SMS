@@ -819,6 +819,83 @@ No database migration. No `eventRisk.ts`/`optionsMath.ts`/`execution.ts`/
 write of any kind — every function in `lib/portfolioEventRisk.ts` only
 ever `SELECT`s.
 
+### 4.13 Correlation & Concentration Risk Overlay
+
+A dedicated, read-only overlay, `/concentration-risk` — a new backend
+composition layer, `lib/portfolioConcentration.ts`, plus one new
+endpoint, `GET /portfolio/concentration`. There is no submit action
+anywhere on this page; every risk-guidance label is purely
+informational.
+
+**Investigation finding that shaped this sprint's whole design:** two
+real data gaps exist in this engine and neither is fabricated. **Net
+beta** has no data source anywhere — `optionsMath.ts`'s own SIMULATED
+`UNIVERSE` carries no beta field for any symbol, so `netBeta` is
+**always** `null`, with an explicit `netBetaUnavailableReason` string.
+**Sector classification** *does* have a defensible, disclosed source:
+Engine 1's own `lib/industryPeers.ts` (Phase 2 Sprint 20) already
+established the precedent that a small, hand-curated table of real,
+publicly-known sector classifications for a fixed, known symbol set is
+categorical metadata, not fabricated financial data — this sprint's own
+new `KNOWN_SECTOR_MAP` reuses that exact precedent, assigning the same
+coarse sector values Engine 1's own table assigns to the same real
+companies (NVDA/AAPL/MSFT → "Technology", GOOGL/META → "Communication
+Services", AMZN/TSLA → "Consumer Discretionary", plus dedicated
+ETF-fund labels for SPY/QQQ/IWM). Any symbol outside this fixed table
+honestly reports `"Unclassified"`, never a guessed classification; the
+response's own `sectorDataSource` field (`"KNOWN_UNIVERSE_METADATA"`)
+discloses this. Full detail: `docs/Portfolio-Correlation-Concentration.md`
+§2.
+
+**Zero new pricing, Greeks, or portfolio-snapshot math.** Every figure
+is built directly on `currentOpenTrades()` / `buildSnapshot()`
+(`lib/positionSizing.ts`, unmodified) and `computeTradeGreeks()`
+(`lib/serverState.ts`, unmodified) — the same primitives every prior
+sprint in this family already reuses.
+
+**Concentration weight is deliberately not the same figure as "portfolio
+weight."** Earlier sprints (Position Sizing, Stress Test, Event Risk)
+express a position's weight as `maxLoss ÷ accountValue × 100` — a share
+of account buying power. Concentration bucketing instead needs each
+position's share of the portfolio's **own total deployed risk**
+(`maxLoss ÷ Σ maxLoss`), computed against `structural.totalRiskDollars`
+from the same already-computed `buildSnapshot()` result — the correct
+denominator for a Herfindahl-Hirschman-Index-based score. Using the
+account-relative figure here would silently understate concentration for
+any account that isn't fully deployed.
+
+**Concentration Analysis** covers 7 dimensions (symbol, underlying,
+sector, strategy, expiration, asset class, directional bias), each
+scored via a standard **Herfindahl-Hirschman Index**
+(`Σ(bucket weight fraction)² × 100`) — a disclosed, well-established
+statistical convention, not an invented formula. Underlying is
+deliberately identical to symbol (every position here is
+single-underlying); asset class is always "Equity Option" and is
+excluded from the most/least-diversified-area comparison since it's
+always 100% concentrated by construction, not a meaningful signal.
+
+**Correlation Overlay is categorical clustering only** — per this
+sprint's own explicit "do not invent new correlation models"
+instruction, `buildClusters()` groups positions sharing an already-known
+trait (same underlying, sector, strategy, expiration, or directional
+bias), filtered to groups of 2+ positions. No statistical correlation
+coefficient, no external market-correlation data, of any kind.
+
+**Portfolio Summary**: largest concentration, highest directional
+exposure, highest Greeks contributor (by `|delta|` share), most/least
+diversified area, concentration/diversification scores, and a 4-tier
+portfolio health label. **Risk Guidance** is a pure, exhaustive label
+mapping (well_diversified/moderate_concentration/high_concentration/
+review_exposure on the symbol concentration score, plus an independent
+monitor_sector_concentration advisory when the sector score crosses its
+own threshold) — zero execution logic, never wired to any
+adjustment/order action.
+
+No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
+`autoExecution.ts`/`autoAdjustment.ts`/`eventRisk.ts` change. No new
+database write of any kind — every function in
+`lib/portfolioConcentration.ts` only ever `SELECT`s.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -889,6 +966,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/portfolioEventRisk.ts` | Unit tests against isolated, fresh test users, using empirically-verified real symbol/expiration combinations (never guessed) — an empty-portfolio proof (zeroed-out summary, no crash), the honest unsupported-event-category disclosure, an event-free position (short expiration, non-dividend symbol), multiple positions with multiple distinct event categories (earnings + economic + jobs + cpi) on one position, events sorted soonest-first with a proven-correct primary-event selection, high-risk earnings-bearing positions with Consider Adjustment guidance, the highest-risk-position summary derivation, aggregate-exposure-only-counts-at-risk-positions proof, medium-risk macro-only positions with Consider Review guidance and "scheduled" confidence, low-risk dividend-only positions with Monitor guidance and "simulated_estimate" confidence, countdown-bucket (1/3/7/14 day) position counting, a never-fabricates-a-past-event proof for an already-expired position, honest degradation for a symbol with no known earnings snapshot, honest `expiration_unknown` handling for a defensively-malformed open trade with no expiration on record, quantity/portfolio-weight derivation, the always-SIMULATED event-source disclosure, determinism, and a never-mutates-the-trades-table proof. |
 | `routes/portfolioEventRisk.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped result with a real summary and honest unsupported-category disclosure, every position carrying a well-shaped assessment with non-past events, honest credentials/broker-connection disclosure, the `eventRiskEnabled` setting surfaced, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
 | `PortfolioEventRisk.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Event Risk Analysis" badges, loading and error states, the honest empty-portfolio message, the honest no-events-position message, multiple positions with multiple event categories rendering together, high-risk Consider Adjustment guidance and highest-risk-position summary, countdown-bucket and aggregate-exposure display, the always-visible unsupported-category (FDA decisions, product launches) disclosure, filtering by event status, filtering by risk level, an honest no-matches-filtered message, sorting by portfolio weight, and the Broker Connection Status card's not-yet-checked state with its own independent Refresh button. |
+| `lib/portfolioConcentration.ts` | Unit tests against isolated, fresh test users — an empty-portfolio proof (zeroed-out figures across all 7 dimensions, always-unavailable net beta, no crash), single-position 100%-concentration across every dimension including the underlying===symbol equality proof, balanced multi-symbol portfolios, high-concentration scenarios (4 same-symbol positions) with `review_exposure` guidance and genuine clusters, multiple-sector and multiple-strategy and multiple-expiration breakdowns (including shared-expiration clustering), the honest `"Unclassified"` sector fallback for a symbol outside `KNOWN_SECTOR_MAP`, net Greeks/directional-exposure/calls-vs-puts derivation, most/least-diversified-area selection, the sector-concentration advisory firing when 3 different symbols share one real sector, determinism, a never-mutates-the-trades-table proof, and the `sectorDataSource` disclosure. |
+| `routes/portfolioConcentration.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped result with all 7 breakdown dimensions, the always-unavailable net-beta disclosure, the `sectorDataSource` disclosure, honest credentials/broker-connection disclosure, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
+| `PortfolioConcentration.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Portfolio Analysis" badges, loading and error states, the honest empty-portfolio message across every card, net Greeks/net-beta-unavailable/directional-exposure display, the Portfolio Summary card (largest concentration, highest directional exposure, highest Greeks contributor, most/least diversified area, concentration/diversification scores, portfolio health badge), the sector-concentration advisory and its honest no-advisories fallback, long/short and call/put exposure display, the default symbol allocation chart and bucket list, switching the dimension selector to sector, switching sort mode to label A-Z, the minimum-positions filter hiding single-position buckets, the Greeks Contribution chart, the Concentration Heat Map, the Correlation Clusters list, and a never-fabricates-a-beta-figure proof. |
 
 ## 8. Cross-references
 
@@ -925,6 +1005,14 @@ to everything else in this codebase. Specifically for this document's scope:
   `getEventRiskForSymbol()` reuse, the Risk Guidance label mapping, the
   confidence/source disclosure model, and the portfolio summary
   derivation.
+- `docs/Portfolio-Correlation-Concentration.md` — the Correlation &
+  Concentration Risk Overlay's own full detail (§4.13 above): the
+  always-unavailable net-beta disclosure, the `KNOWN_SECTOR_MAP`
+  categorical-metadata precedent borrowed from Engine 1's own
+  `lib/industryPeers.ts`, the concentration-weight-vs-portfolio-weight
+  distinction, the Herfindahl-Hirschman-Index concentration scoring, the
+  categorical-clustering-only correlation model, and the Portfolio
+  Summary/Risk Guidance derivation.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

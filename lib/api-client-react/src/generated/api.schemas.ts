@@ -5208,6 +5208,167 @@ export interface PortfolioEventRiskResult {
   generatedAt: string;
 }
 
+export interface ConcentrationBucket {
+  key: string;
+  label: string;
+  positionCount: number;
+  weightPct: number;
+}
+
+export interface ConcentrationBreakdown {
+  dimension: string;
+  buckets: ConcentrationBucket[];
+  concentrationScore: number;
+  largestBucket: ConcentrationBucket | null;
+}
+
+export interface LongShortExposure {
+  longExposureDollars: number;
+  shortExposureDollars: number;
+  longPct: number;
+  shortPct: number;
+}
+
+export interface CallPutExposure {
+  callNotional: number;
+  putNotional: number;
+  callPct: number;
+  putPct: number;
+}
+
+export interface PositionGreeksContribution {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+  deltaSharePct: number;
+}
+
+export interface ClusterGroup {
+  dimension: string;
+  key: string;
+  label: string;
+  tradeIds: number[];
+  positionCount: number;
+}
+
+export interface DimensionScoreRef {
+  dimension: string;
+  label: string;
+  concentrationScore: number;
+}
+
+export type PortfolioSummaryHighlightsLargestConcentration = {
+  dimension: string;
+  bucket: ConcentrationBucket;
+} | null;
+
+export type PortfolioSummaryHighlightsHighestDirectionalExposure = {
+  direction: 'long' | 'short';
+  exposureDollars: number;
+  pct: number;
+} | null;
+
+export type PortfolioSummaryHighlightsHighestGreeksContributor = {
+  tradeId: number;
+  symbol: string;
+  delta: number;
+} | null;
+
+export interface PortfolioSummaryHighlights {
+  largestConcentration: PortfolioSummaryHighlightsLargestConcentration;
+  highestDirectionalExposure: PortfolioSummaryHighlightsHighestDirectionalExposure;
+  highestGreeksContributor: PortfolioSummaryHighlightsHighestGreeksContributor;
+  mostDiversifiedArea: DimensionScoreRef | null;
+  leastDiversifiedArea: DimensionScoreRef | null;
+  concentrationScore: number;
+  diversificationScore: number;
+  portfolioHealthLabel: string;
+}
+
+export interface RiskGuidanceAdvisory {
+  code: string;
+  label: string;
+  detail: string;
+}
+
+export type ConcentrationRiskGuidanceCode = typeof ConcentrationRiskGuidanceCode[keyof typeof ConcentrationRiskGuidanceCode];
+
+
+export const ConcentrationRiskGuidanceCode = {
+  well_diversified: 'well_diversified',
+  moderate_concentration: 'moderate_concentration',
+  high_concentration: 'high_concentration',
+  review_exposure: 'review_exposure',
+} as const;
+
+export interface ConcentrationRiskGuidance {
+  code: ConcentrationRiskGuidanceCode;
+  label: string;
+  advisories: RiskGuidanceAdvisory[];
+}
+
+export interface PortfolioConcentrationBreakdowns {
+  symbol: ConcentrationBreakdown;
+  underlying: ConcentrationBreakdown;
+  sector: ConcentrationBreakdown;
+  strategy: ConcentrationBreakdown;
+  expiration: ConcentrationBreakdown;
+  assetClass: ConcentrationBreakdown;
+  directionalBias: ConcentrationBreakdown;
+}
+
+export type PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel = typeof PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel[keyof typeof PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel];
+
+
+export const PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel = {
+  net_long: 'net_long',
+  net_short: 'net_short',
+  balanced: 'balanced',
+} as const;
+
+export type PortfolioConcentrationResultNetDirectionalExposure = {
+  longExposureDollars: number;
+  shortExposureDollars: number;
+  netExposureDollars: number;
+  netBiasLabel: PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel;
+};
+
+export type PortfolioConcentrationResultSectorDataSource = typeof PortfolioConcentrationResultSectorDataSource[keyof typeof PortfolioConcentrationResultSectorDataSource];
+
+
+export const PortfolioConcentrationResultSectorDataSource = {
+  KNOWN_UNIVERSE_METADATA: 'KNOWN_UNIVERSE_METADATA',
+} as const;
+
+export interface PortfolioConcentrationResult {
+  totalPositions: number;
+  totalPortfolioValue: number;
+  accountValue: number;
+  netGreeks: PortfolioGreeksSnapshot;
+  /** @nullable */
+  netBeta: null;
+  netBetaUnavailableReason: string;
+  netDirectionalExposure: PortfolioConcentrationResultNetDirectionalExposure;
+  breakdowns: PortfolioConcentrationBreakdowns;
+  longShort: LongShortExposure;
+  callPut: CallPutExposure;
+  greeksContributions: PositionGreeksContribution[];
+  clusters: ClusterGroup[];
+  summary: PortfolioSummaryHighlights;
+  riskGuidance: ConcentrationRiskGuidance;
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  sectorDataSource: PortfolioConcentrationResultSectorDataSource;
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

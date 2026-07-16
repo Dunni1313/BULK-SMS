@@ -749,6 +749,26 @@ paths:
               schema:
                 $ref: "#/components/schemas/PortfolioEventRiskResult"
 
+  # ─── Correlation & Concentration Risk Overlay (Paper Trading) ───────────────
+  /portfolio/concentration:
+    get:
+      operationId: getPortfolioConcentration
+      tags: [execution]
+      summary: >-
+        Read-only concentration, directional-exposure, net-Greeks, and
+        correlation-cluster overlay across the user's own current open
+        portfolio: never routes to a broker, never creates or modifies
+        an order or position, never mutates local state. Always returns
+        200 — an empty portfolio honestly returns zeroed-out figures
+        rather than fabricating exposure.
+      responses:
+        "200":
+          description: Portfolio correlation & concentration result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioConcentrationResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -8804,5 +8824,306 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UnsupportedEventCategory"
+        generatedAt:
+          type: string
+
+    # ─── Correlation & Concentration Risk Overlay (Paper Trading) ───────────────
+    # Read-only overlay reusing lib/positionSizing.ts's own existing
+    # currentOpenTrades()/buildSnapshot() and serverState.ts's own existing
+    # computeTradeGreeks() unmodified. Never contacts a broker execution
+    # endpoint, never creates or modifies an order or position. Every
+    # "correlation" here is a categorical cluster (grouping over already-
+    # known traits), never a fabricated statistical correlation
+    # coefficient.
+    ConcentrationBucket:
+      type: object
+      required: [key, label, positionCount, weightPct]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        positionCount:
+          type: integer
+        weightPct:
+          type: number
+
+    ConcentrationBreakdown:
+      type: object
+      required: [dimension, buckets, concentrationScore, largestBucket]
+      properties:
+        dimension:
+          type: string
+        buckets:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        concentrationScore:
+          type: number
+        largestBucket:
+          oneOf:
+            - $ref: "#/components/schemas/ConcentrationBucket"
+            - type: "null"
+
+    LongShortExposure:
+      type: object
+      required: [longExposureDollars, shortExposureDollars, longPct, shortPct]
+      properties:
+        longExposureDollars:
+          type: number
+        shortExposureDollars:
+          type: number
+        longPct:
+          type: number
+        shortPct:
+          type: number
+
+    CallPutExposure:
+      type: object
+      required: [callNotional, putNotional, callPct, putPct]
+      properties:
+        callNotional:
+          type: number
+        putNotional:
+          type: number
+        callPct:
+          type: number
+        putPct:
+          type: number
+
+    PositionGreeksContribution:
+      type: object
+      required: [tradeId, symbol, strategy, delta, gamma, theta, vega, deltaSharePct]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+        deltaSharePct:
+          type: number
+
+    ClusterGroup:
+      type: object
+      required: [dimension, key, label, tradeIds, positionCount]
+      properties:
+        dimension:
+          type: string
+        key:
+          type: string
+        label:
+          type: string
+        tradeIds:
+          type: array
+          items:
+            type: integer
+        positionCount:
+          type: integer
+
+    DimensionScoreRef:
+      type: object
+      required: [dimension, label, concentrationScore]
+      properties:
+        dimension:
+          type: string
+        label:
+          type: string
+        concentrationScore:
+          type: number
+
+    PortfolioSummaryHighlights:
+      type: object
+      required:
+        [
+          largestConcentration,
+          highestDirectionalExposure,
+          highestGreeksContributor,
+          mostDiversifiedArea,
+          leastDiversifiedArea,
+          concentrationScore,
+          diversificationScore,
+          portfolioHealthLabel,
+        ]
+      properties:
+        largestConcentration:
+          oneOf:
+            - type: object
+              required: [dimension, bucket]
+              properties:
+                dimension:
+                  type: string
+                bucket:
+                  $ref: "#/components/schemas/ConcentrationBucket"
+            - type: "null"
+        highestDirectionalExposure:
+          oneOf:
+            - type: object
+              required: [direction, exposureDollars, pct]
+              properties:
+                direction:
+                  type: string
+                  enum: [long, short]
+                exposureDollars:
+                  type: number
+                pct:
+                  type: number
+            - type: "null"
+        highestGreeksContributor:
+          oneOf:
+            - type: object
+              required: [tradeId, symbol, delta]
+              properties:
+                tradeId:
+                  type: integer
+                symbol:
+                  type: string
+                delta:
+                  type: number
+            - type: "null"
+        mostDiversifiedArea:
+          oneOf:
+            - $ref: "#/components/schemas/DimensionScoreRef"
+            - type: "null"
+        leastDiversifiedArea:
+          oneOf:
+            - $ref: "#/components/schemas/DimensionScoreRef"
+            - type: "null"
+        concentrationScore:
+          type: number
+        diversificationScore:
+          type: number
+        portfolioHealthLabel:
+          type: string
+
+    RiskGuidanceAdvisory:
+      type: object
+      required: [code, label, detail]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        detail:
+          type: string
+
+    ConcentrationRiskGuidance:
+      type: object
+      required: [code, label, advisories]
+      properties:
+        code:
+          type: string
+          enum: [well_diversified, moderate_concentration, high_concentration, review_exposure]
+        label:
+          type: string
+        advisories:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskGuidanceAdvisory"
+
+    PortfolioConcentrationBreakdowns:
+      type: object
+      required: [symbol, underlying, sector, strategy, expiration, assetClass, directionalBias]
+      properties:
+        symbol:
+          $ref: "#/components/schemas/ConcentrationBreakdown"
+        underlying:
+          $ref: "#/components/schemas/ConcentrationBreakdown"
+        sector:
+          $ref: "#/components/schemas/ConcentrationBreakdown"
+        strategy:
+          $ref: "#/components/schemas/ConcentrationBreakdown"
+        expiration:
+          $ref: "#/components/schemas/ConcentrationBreakdown"
+        assetClass:
+          $ref: "#/components/schemas/ConcentrationBreakdown"
+        directionalBias:
+          $ref: "#/components/schemas/ConcentrationBreakdown"
+
+    PortfolioConcentrationResult:
+      type: object
+      required:
+        [
+          totalPositions,
+          totalPortfolioValue,
+          accountValue,
+          netGreeks,
+          netBeta,
+          netBetaUnavailableReason,
+          netDirectionalExposure,
+          breakdowns,
+          longShort,
+          callPut,
+          greeksContributions,
+          clusters,
+          summary,
+          riskGuidance,
+          credentialsConfigured,
+          brokerConnected,
+          lastBrokerCheckAt,
+          sectorDataSource,
+          generatedAt,
+        ]
+      properties:
+        totalPositions:
+          type: integer
+        totalPortfolioValue:
+          type: number
+        accountValue:
+          type: number
+        netGreeks:
+          $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+        netBeta:
+          type: "null"
+        netBetaUnavailableReason:
+          type: string
+        netDirectionalExposure:
+          type: object
+          required: [longExposureDollars, shortExposureDollars, netExposureDollars, netBiasLabel]
+          properties:
+            longExposureDollars:
+              type: number
+            shortExposureDollars:
+              type: number
+            netExposureDollars:
+              type: number
+            netBiasLabel:
+              type: string
+              enum: [net_long, net_short, balanced]
+        breakdowns:
+          $ref: "#/components/schemas/PortfolioConcentrationBreakdowns"
+        longShort:
+          $ref: "#/components/schemas/LongShortExposure"
+        callPut:
+          $ref: "#/components/schemas/CallPutExposure"
+        greeksContributions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PositionGreeksContribution"
+        clusters:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClusterGroup"
+        summary:
+          $ref: "#/components/schemas/PortfolioSummaryHighlights"
+        riskGuidance:
+          $ref: "#/components/schemas/ConcentrationRiskGuidance"
+        credentialsConfigured:
+          type: boolean
+        brokerConnected:
+          type: ["boolean", "null"]
+        lastBrokerCheckAt:
+          type: ["string", "null"]
+        sectorDataSource:
+          type: string
+          enum: [KNOWN_UNIVERSE_METADATA]
         generatedAt:
           type: string

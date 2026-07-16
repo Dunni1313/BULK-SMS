@@ -37,6 +37,7 @@ import positionSizingRouter from "./positionSizing";
 import tradeAdjustmentPreviewRouter from "./tradeAdjustmentPreview";
 import portfolioStressTestRouter from "./portfolioStressTest";
 import portfolioEventRiskRouter from "./portfolioEventRisk";
+import portfolioConcentrationRouter from "./portfolioConcentration";
 
 const router: IRouter = Router();
 
@@ -78,5 +79,6 @@ router.use(positionSizingRouter);
 router.use(tradeAdjustmentPreviewRouter);
 router.use(portfolioStressTestRouter);
 router.use(portfolioEventRiskRouter);
+router.use(portfolioConcentrationRouter);
 
 export default router;

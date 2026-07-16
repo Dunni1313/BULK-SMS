@@ -108,6 +108,7 @@ import type {
   PerformanceBreakdownBucket,
   PlatformNotification,
   PlatformNotificationUpdate,
+  PortfolioConcentrationResult,
   PortfolioEventRiskResult,
   PortfolioGreeks,
   PortfolioHealth,
@@ -2978,6 +2979,83 @@ export function useGetPortfolioEventRisk<TData = Awaited<ReturnType<typeof getPo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetPortfolioEventRiskQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioConcentrationUrl = () => {
+
+
+
+
+  return `/api/portfolio/concentration`
+}
+
+/**
+ * @summary Read-only concentration, directional-exposure, net-Greeks, and correlation-cluster overlay across the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+export const getPortfolioConcentration = async ( options?: RequestInit): Promise<PortfolioConcentrationResult> => {
+
+  return customFetch<PortfolioConcentrationResult>(getGetPortfolioConcentrationUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioConcentrationQueryKey = () => {
+    return [
+    `/api/portfolio/concentration`
+    ] as const;
+    }
+
+
+export const getGetPortfolioConcentrationQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioConcentration>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentration>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioConcentrationQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioConcentration>>> = ({ signal }) => getPortfolioConcentration({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentration>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioConcentrationQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioConcentration>>>
+export type GetPortfolioConcentrationQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only concentration, directional-exposure, net-Greeks, and correlation-cluster overlay across the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+
+export function useGetPortfolioConcentration<TData = Awaited<ReturnType<typeof getPortfolioConcentration>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentration>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioConcentrationQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

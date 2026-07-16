@@ -344,6 +344,41 @@ codebase.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.12 and
 `docs/Portfolio-Event-Risk.md`.
 
+### 6.15 Using the Correlation & Concentration Risk Overlay
+
+The "Concentration Risk" nav item (`/concentration-risk`) shows a
+portfolio-wide view of concentration and correlation risk: total
+portfolio value, net Greeks, net directional exposure, and net beta
+(always honestly disclosed as unavailable — no beta figure exists
+anywhere in this engine's data model); concentration broken down by
+symbol, underlying, sector, strategy, expiration, asset class, and
+directional bias, each scored via a standard Herfindahl-Hirschman Index;
+categorical correlation clusters (positions genuinely sharing an
+underlying/sector/strategy/expiration/directional bias, never a
+statistical correlation coefficient); a Portfolio Summary (largest
+concentration, highest directional exposure, highest Greeks contributor,
+most/least diversified area, concentration/diversification scores,
+portfolio health indicator); and read-only Risk Guidance (Well
+Diversified / Moderate Concentration / High Concentration / Review
+Exposure, plus an independent Monitor Sector Concentration advisory).
+**This page never generates an execution recommendation, and there is no
+submit action anywhere on it.**
+
+All portfolio and Greeks figures reuse this platform's existing,
+unmodified `currentOpenTrades()` / `buildSnapshot()`
+(`lib/positionSizing.ts`) and `computeTradeGreeks()`
+(`lib/serverState.ts`) — no execution logic was modified, no broker
+writes occur, and no orders are submitted. **Sector classification uses
+a small, hand-curated table of real, publicly-known sector labels for
+this engine's own fixed symbol universe** (the same categorical-metadata
+precedent Engine 1's own `lib/industryPeers.ts` already established) —
+any symbol outside that table honestly shows `"Unclassified"`. Every
+response discloses its own `sectorDataSource` so this is never mistaken
+for a live classification feed.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.13 and
+`docs/Portfolio-Correlation-Concentration.md`.
+
 ---
 
 ## 7. Escalation
@@ -361,10 +396,11 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.12 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, and the Earnings & Event Risk Portfolio Overlay), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, and the Portfolio Event Risk page referenced in §6.14 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, and the Correlation & Concentration Risk Overlay), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, and the Correlation & Concentration Risk page referenced in §6.15 above.
 - `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview Simulator's own full detail (§6.12 above): the 3-computable/5-honestly-unavailable intent scope decision, the Close & Replace composition, the replace-semantics portfolio exposure model, the 9-category risk-warnings list, and the Improved/Worse/Neutral comparison design.
 - `docs/Portfolio-Stress-Testing.md` — the Portfolio Stress Test & Scenario Simulator's own full detail (§6.13 above): the shock-parameterized repricing engine, the portfolio-level aggregation model, the honestly-always-zero buying-power-impact disclosure, the risk-score formula, the risk-analysis fields, and the scenario-comparison design.
 - `docs/Portfolio-Event-Risk.md` — the Earnings & Event Risk Portfolio Overlay's own full detail (§6.14 above): the honest disclosure of the 2 requested-but-unsupported event categories (FDA decisions, product launches), the direct event-risk-engine reuse, the Risk Guidance label mapping, the confidence/source disclosure model, and the portfolio summary derivation.
+- `docs/Portfolio-Correlation-Concentration.md` — the Correlation & Concentration Risk Overlay's own full detail (§6.15 above): the always-unavailable net-beta disclosure, the `KNOWN_SECTOR_MAP` categorical-metadata precedent, the concentration-weight-vs-portfolio-weight distinction, the Herfindahl-Hirschman-Index concentration scoring, the categorical-clustering-only correlation model, and the Portfolio Summary/Risk Guidance derivation.
 - `docs/Trading-Journal.md` — the Trading Journal system's own full detail, referenced in §6.9 above.
 - `docs/Order-Preview.md` — the Order Preview & Risk Simulator's own full detail, referenced in §6.10 above.
 - `docs/Position-Sizing.md` — the Position Sizing & Portfolio Impact Calculator's own full detail, referenced in §6.11 above.

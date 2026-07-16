@@ -1862,6 +1862,221 @@ export const GetPortfolioEventRiskResponse = zod.object({
 
 
 /**
+ * @summary Read-only concentration, directional-exposure, net-Greeks, and correlation-cluster overlay across the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+export const GetPortfolioConcentrationResponse = zod.object({
+  "totalPositions": zod.number(),
+  "totalPortfolioValue": zod.number(),
+  "accountValue": zod.number(),
+  "netGreeks": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),
+  "netBeta": zod.null(),
+  "netBetaUnavailableReason": zod.string(),
+  "netDirectionalExposure": zod.object({
+  "longExposureDollars": zod.number(),
+  "shortExposureDollars": zod.number(),
+  "netExposureDollars": zod.number(),
+  "netBiasLabel": zod.enum(['net_long', 'net_short', 'balanced'])
+}),
+  "breakdowns": zod.object({
+  "symbol": zod.object({
+  "dimension": zod.string(),
+  "buckets": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "concentrationScore": zod.number(),
+  "largestBucket": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+}),zod.null()])
+}),
+  "underlying": zod.object({
+  "dimension": zod.string(),
+  "buckets": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "concentrationScore": zod.number(),
+  "largestBucket": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+}),zod.null()])
+}),
+  "sector": zod.object({
+  "dimension": zod.string(),
+  "buckets": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "concentrationScore": zod.number(),
+  "largestBucket": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+}),zod.null()])
+}),
+  "strategy": zod.object({
+  "dimension": zod.string(),
+  "buckets": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "concentrationScore": zod.number(),
+  "largestBucket": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+}),zod.null()])
+}),
+  "expiration": zod.object({
+  "dimension": zod.string(),
+  "buckets": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "concentrationScore": zod.number(),
+  "largestBucket": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+}),zod.null()])
+}),
+  "assetClass": zod.object({
+  "dimension": zod.string(),
+  "buckets": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "concentrationScore": zod.number(),
+  "largestBucket": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+}),zod.null()])
+}),
+  "directionalBias": zod.object({
+  "dimension": zod.string(),
+  "buckets": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "concentrationScore": zod.number(),
+  "largestBucket": zod.union([zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+}),zod.null()])
+})
+}),
+  "longShort": zod.object({
+  "longExposureDollars": zod.number(),
+  "shortExposureDollars": zod.number(),
+  "longPct": zod.number(),
+  "shortPct": zod.number()
+}),
+  "callPut": zod.object({
+  "callNotional": zod.number(),
+  "putNotional": zod.number(),
+  "callPct": zod.number(),
+  "putPct": zod.number()
+}),
+  "greeksContributions": zod.array(zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number(),
+  "deltaSharePct": zod.number()
+})),
+  "clusters": zod.array(zod.object({
+  "dimension": zod.string(),
+  "key": zod.string(),
+  "label": zod.string(),
+  "tradeIds": zod.array(zod.number()),
+  "positionCount": zod.number()
+})),
+  "summary": zod.object({
+  "largestConcentration": zod.union([zod.object({
+  "dimension": zod.string(),
+  "bucket": zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})
+}),zod.null()]),
+  "highestDirectionalExposure": zod.union([zod.object({
+  "direction": zod.enum(['long', 'short']),
+  "exposureDollars": zod.number(),
+  "pct": zod.number()
+}),zod.null()]),
+  "highestGreeksContributor": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "delta": zod.number()
+}),zod.null()]),
+  "mostDiversifiedArea": zod.union([zod.object({
+  "dimension": zod.string(),
+  "label": zod.string(),
+  "concentrationScore": zod.number()
+}),zod.null()]),
+  "leastDiversifiedArea": zod.union([zod.object({
+  "dimension": zod.string(),
+  "label": zod.string(),
+  "concentrationScore": zod.number()
+}),zod.null()]),
+  "concentrationScore": zod.number(),
+  "diversificationScore": zod.number(),
+  "portfolioHealthLabel": zod.string()
+}),
+  "riskGuidance": zod.object({
+  "code": zod.enum(['well_diversified', 'moderate_concentration', 'high_concentration', 'review_exposure']),
+  "label": zod.string(),
+  "advisories": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "detail": zod.string()
+}))
+}),
+  "credentialsConfigured": zod.boolean(),
+  "brokerConnected": zod.boolean().nullable(),
+  "lastBrokerCheckAt": zod.string().nullable(),
+  "sectorDataSource": zod.enum(['KNOWN_UNIVERSE_METADATA']),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Current full-auto engine state, guardrails, and today's stats
  */
 export const GetAutoExecutionStatusResponse = zod.object({
