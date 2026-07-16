@@ -3195,6 +3195,7 @@ export interface Settings {
   profitTarget90: number;
   /** Stop loss as multiple of credit received (default 2x) */
   stopLossMultiplier: number;
+  /** Whether the most recent Alpaca Paper Trading broker health check (GET /broker/health) authenticated successfully — computed, never client-settable, and honestly false until a check has actually been performed */
   alpacaConnected: boolean;
   /** @nullable */
   alpacaApiKey?: string | null;
@@ -3483,6 +3484,37 @@ export interface MarketDataHealth {
   positiveEvFound: number;
   /** @nullable */
   lastScannedAt?: string | null;
+}
+
+export interface BrokerHealth {
+  /** True only when Alpaca's own account endpoint was reached and authenticated successfully this check. */
+  connected: boolean;
+  /** True only when the configured credentials were accepted by Alpaca — currently always equal to `connected`, kept as a distinct field since a future check may reach Alpaca but fail some other way. */
+  authenticationSuccessful: boolean;
+  /**
+     * Alpaca's own account status string (e.g. ACTIVE), null when not connected.
+     * @nullable
+     */
+  accountStatus?: string | null;
+  /** @nullable */
+  buyingPower?: number | null;
+  /** @nullable */
+  cashBalance?: number | null;
+  /** @nullable */
+  portfolioValue?: number | null;
+  /** @nullable */
+  openPositionsCount?: number | null;
+  /** @nullable */
+  openOrdersCount?: number | null;
+  /**
+     * Timestamp of the most recent check that authenticated successfully — never updated by a failed check, so a broken connection never appears "recently successful."
+     * @nullable
+     */
+  lastSuccessfulCheckAt?: string | null;
+  /** Human-readable explanation of the current status (never connected/not connected/authentication failed). */
+  reason: string;
+  /** Timestamp of this specific check. */
+  checkedAt: string;
 }
 
 export interface TickerStat {

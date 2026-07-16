@@ -45,6 +45,7 @@ export * from './backtestInputPeriod';
 export * from './backtestInputStrategy';
 export * from './backtestResult';
 export * from './balanceSheetYear';
+export * from './brokerHealth';
 export * from './cashFlowYear';
 export * from './clearReportsResult';
 export * from './coachGreeks';

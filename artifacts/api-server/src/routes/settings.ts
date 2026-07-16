@@ -12,6 +12,7 @@ import {
   getLastLiveFetch,
   getFundamentalsProviderStatuses,
 } from "../lib/fundamentals.js";
+import { getLastBrokerCheckConnected } from "../lib/providers/alpacaBroker.js";
 import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
@@ -56,9 +57,13 @@ router.get("/settings", async (req, res): Promise<void> => {
   const settings = await getOrCreateSettings(userId);
   // fundamentalsConnected reflects whether a live provider is actually usable
   // (selected provider + matching API key present), never a stale stored value.
+  // alpacaConnected reflects the outcome of the most recent GET /broker/health
+  // check (a real, authenticated round trip to Alpaca) rather than the static
+  // column value — honestly false until a check has actually been performed.
   res.json(
     GetSettingsResponse.parse({
       ...settings,
+      alpacaConnected: getLastBrokerCheckConnected() ?? false,
       fundamentalsConnected: fundamentalsConnectionStatus(settings).connected,
       fundamentalsLastFetchedAt: getLastLiveFetch()?.at ?? null,
     }),
@@ -100,6 +105,7 @@ router.patch("/settings", async (req, res): Promise<void> => {
   res.json(
     UpdateSettingsResponse.parse({
       ...updated,
+      alpacaConnected: getLastBrokerCheckConnected() ?? false,
       fundamentalsConnected: fundamentalsConnectionStatus(updated).connected,
       fundamentalsLastFetchedAt: getLastLiveFetch()?.at ?? null,
     }),

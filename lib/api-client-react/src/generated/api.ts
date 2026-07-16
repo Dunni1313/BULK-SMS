@@ -34,6 +34,7 @@ import type {
   AutoExecutionStatus,
   BacktestInput,
   BacktestResult,
+  BrokerHealth,
   ClearReportsResult,
   CoachLesson,
   CompareReportsRequest,
@@ -781,6 +782,84 @@ export function useGetMarketDataHealth<TData = Awaited<ReturnType<typeof getMark
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMarketDataHealthQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerHealthUrl = () => {
+
+
+
+
+  return `/api/broker/health`
+}
+
+/**
+ * Performs a live, authenticated read-only round trip to Alpaca's Paper Trading API (GET /v2/account, /v2/positions, /v2/orders) and reports connection status, account balances, and open position/order counts. Never places, modifies, or cancels an order. Always targets Alpaca's Paper Trading endpoint — there is no live-trading equivalent.
+ * @summary Get Alpaca Paper Trading broker connection/account health (read-only)
+ */
+export const getBrokerHealth = async ( options?: RequestInit): Promise<BrokerHealth> => {
+
+  return customFetch<BrokerHealth>(getGetBrokerHealthUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerHealthQueryKey = () => {
+    return [
+    `/api/broker/health`
+    ] as const;
+    }
+
+
+export const getGetBrokerHealthQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerHealth>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerHealthQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerHealth>>> = ({ signal }) => getBrokerHealth({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerHealth>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerHealth>>>
+export type GetBrokerHealthQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get Alpaca Paper Trading broker connection/account health (read-only)
+ */
+
+export function useGetBrokerHealth<TData = Awaited<ReturnType<typeof getBrokerHealth>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerHealthQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

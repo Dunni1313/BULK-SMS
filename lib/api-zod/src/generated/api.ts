@@ -331,6 +331,25 @@ export const GetMarketDataHealthResponse = zod.object({
 
 
 /**
+ * Performs a live, authenticated read-only round trip to Alpaca's Paper Trading API (GET /v2/account, /v2/positions, /v2/orders) and reports connection status, account balances, and open position/order counts. Never places, modifies, or cancels an order. Always targets Alpaca's Paper Trading endpoint — there is no live-trading equivalent.
+ * @summary Get Alpaca Paper Trading broker connection/account health (read-only)
+ */
+export const GetBrokerHealthResponse = zod.object({
+  "connected": zod.boolean().describe('True only when Alpaca\'s own account endpoint was reached and authenticated successfully this check.'),
+  "authenticationSuccessful": zod.boolean().describe('True only when the configured credentials were accepted by Alpaca — currently always equal to `connected`, kept as a distinct field since a future check may reach Alpaca but fail some other way.'),
+  "accountStatus": zod.string().nullish().describe('Alpaca\'s own account status string (e.g. ACTIVE), null when not connected.'),
+  "buyingPower": zod.number().nullish(),
+  "cashBalance": zod.number().nullish(),
+  "portfolioValue": zod.number().nullish(),
+  "openPositionsCount": zod.number().nullish(),
+  "openOrdersCount": zod.number().nullish(),
+  "lastSuccessfulCheckAt": zod.string().nullish().describe('Timestamp of the most recent check that authenticated successfully — never updated by a failed check, so a broken connection never appears \"recently successful.\"'),
+  "reason": zod.string().describe('Human-readable explanation of the current status (never connected\/not connected\/authentication failed).'),
+  "checkedAt": zod.string().describe('Timestamp of this specific check.')
+})
+
+
+/**
  * @summary Get live option chain for a symbol
  */
 export const GetOptionChainParams = zod.object({
@@ -1649,7 +1668,7 @@ export const GetSettingsResponse = zod.object({
   "profitTarget75": zod.number(),
   "profitTarget90": zod.number(),
   "stopLossMultiplier": zod.number().describe('Stop loss as multiple of credit received (default 2x)'),
-  "alpacaConnected": zod.boolean(),
+  "alpacaConnected": zod.boolean().describe('Whether the most recent Alpaca Paper Trading broker health check (GET \/broker\/health) authenticated successfully — computed, never client-settable, and honestly false until a check has actually been performed'),
   "alpacaApiKey": zod.string().nullish(),
   "scannerMode": zod.enum(['mock', 'live']).optional().describe('Scanner data mode — mock (simulated) or live (provider chains)'),
   "marketDataProvider": zod.enum(['mock', 'alpaca', 'polygon']).optional().describe('Preferred options-data provider when in live mode'),
@@ -1737,7 +1756,7 @@ export const UpdateSettingsResponse = zod.object({
   "profitTarget75": zod.number(),
   "profitTarget90": zod.number(),
   "stopLossMultiplier": zod.number().describe('Stop loss as multiple of credit received (default 2x)'),
-  "alpacaConnected": zod.boolean(),
+  "alpacaConnected": zod.boolean().describe('Whether the most recent Alpaca Paper Trading broker health check (GET \/broker\/health) authenticated successfully — computed, never client-settable, and honestly false until a check has actually been performed'),
   "alpacaApiKey": zod.string().nullish(),
   "scannerMode": zod.enum(['mock', 'live']).optional().describe('Scanner data mode — mock (simulated) or live (provider chains)'),
   "marketDataProvider": zod.enum(['mock', 'alpaca', 'polygon']).optional().describe('Preferred options-data provider when in live mode'),

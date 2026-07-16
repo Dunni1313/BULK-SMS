@@ -21,6 +21,7 @@ export interface Settings {
   profitTarget90: number;
   /** Stop loss as multiple of credit received (default 2x) */
   stopLossMultiplier: number;
+  /** Whether the most recent Alpaca Paper Trading broker health check (GET /broker/health) authenticated successfully — computed, never client-settable, and honestly false until a check has actually been performed */
   alpacaConnected: boolean;
   /** @nullable */
   alpacaApiKey?: string | null;

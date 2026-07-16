@@ -69,7 +69,20 @@ Whoever holds day-to-day operational responsibility for a running deployment of 
 
 `GET /api/settings` for current state; `platform_audit_log` (filtered by `userId`) for the history of changes to it, including who/when/which fields changed (never the values themselves, per the established privacy-preserving `changedFields`-only logging convention).
 
-### 6.5 Adding a new operator/admin user
+### 6.5 Verifying the Alpaca Paper Trading broker connection
+
+`GET /api/broker/health` performs a live, read-only, authenticated round trip
+to Alpaca's Paper Trading API (`GET /v2/account`, `/v2/positions`,
+`/v2/orders`) and reports connection status, account balances, and open
+position/order counts — never places, modifies, or cancels an order. It does
+not run automatically; call it explicitly to check or refresh the connection
+status. `GET /api/settings`'s `alpacaConnected` field reflects the outcome of
+the most recently-performed check (a passive cache read, not a live call
+triggered by `/settings` itself) — it stays honestly `false` until
+`/api/broker/health` has been called at least once in the running process.
+Full detail: `docs/Broker-Health-API.md`.
+
+### 6.6 Adding a new operator/admin user
 
 This platform's `role` field on `users` exists but — confirmed by direct inspection — has no differentiated admin-only functionality built on top of it as of Sprint 77; every route's own authorization is per-user data scoping (`getScopedUserId()`), not role-based. There is currently no "operator dashboard" distinct from a regular user's own account. Standing up one is out of scope for this handbook and would be its own future sprint if ever needed.
 
@@ -89,6 +102,7 @@ This platform's `role` field on `users` exists but — confirmed by direct inspe
 
 ## 8. Cross-References
 
+- `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
 - `docs/Incident-Response-Runbook.md` — per-alert-category diagnosis and recovery.
 - `docs/Production-Rollout-Plan.md` — the one-time go-live procedure and backup/recovery details this handbook's §6/§7 draw on.
 - `docs/Production-Readiness-Report.md` — current-state readiness assessment.
