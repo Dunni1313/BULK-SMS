@@ -661,6 +661,93 @@ No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
 any kind — every function in `lib/tradeAdjustmentPreview.ts` only ever
 `SELECT`s.
 
+### 4.11 Portfolio Stress Test & Scenario Simulator
+
+Extends §4.9's/§4.10's own reused portfolio-aggregation helpers with a
+full What-If simulator, `/stress-test` — a new backend composition
+layer, `lib/portfolioStressTest.ts`, plus one new endpoint,
+`POST /execution/stress-test`. There is no submit action anywhere on
+this page; every result is a hypothetical, in-memory computation over
+the user's own current open portfolio.
+
+**The one genuinely new pricing function this sprint introduces,
+`computeShockedGreeks()`, is a shock-parameterized sibling of
+`serverState.ts`'s own `computeTradeGreeks()` — not a modification of
+it.** It reprices every leg of a position at a shocked underlying price
+(`snap.price × (1 + priceShockPct/100)`), a shocked implied volatility
+(`snap.iv × (1 + ivShockPct/100)`), and a reduced days-to-expiration
+(`daysUntil(leg.expiration) − timeDecayDays`) via `optionsMath.ts`'s own
+unmodified `bs()` — the identical function `computeTradeGreeks()` already
+calls for the unshocked mark. **At `Shock = {0,0,0}` this function is
+byte-identical to `computeTradeGreeks()`'s own output**, proven by a
+dedicated regression test, not just asserted. `bs()`'s own existing
+internal floors (`T` at 1/365, `sigma` at 0.01) handle extreme shocks
+honestly without a duplicated ad-hoc clamp; shock inputs are separately
+bounded (price -99%..+1000%, IV -99%..+2000%, time decay 0..3650 days)
+so a nonsensical input (e.g. a -100% price crash) is never passed
+through to `bs()`. `serverState.ts` gained one purely additive change:
+its previously-private `daysUntil()` was `export`ed (zero logic change)
+for this reuse.
+
+**Portfolio-level aggregation** (`evaluateScenario()`) is called exactly
+twice per request path: once with a zero shock (the always-present
+`base` field — the real, current, unshocked portfolio) and once per
+requested scenario — "before" is never duplicated logic, just the same
+function called with `Shock={0,0,0}`. Portfolio value follows
+`routes/portfolio.ts`'s own established convention
+(`accountValue + Σ(unrealizedPnl)`). Exposure by symbol/strategy is
+grouped by shocked mark-to-market value (`costToClose`) — deliberately
+genuinely shock-driven, unlike §4.9's own `exposureBySymbol` (maxLoss-
+based, intentionally static). Structural risk figures
+(`totalRiskDollars`/`totalRiskPct`) reuse §4.9's own already-exported
+`buildSnapshot()` unmodified. Sector exposure is always honestly
+reported unavailable, the exact same disclosure §4.9 established.
+
+**Buying power impact is honestly always zero, by design, not by
+omission**: it reuses `routes/portfolio.ts`'s own
+`(accountValue − totalRiskDollars) × 2` formula, and since every
+supported strategy is defined-risk, its reserved margin (`maxLoss`) is
+fixed at trade open and never moves under a price/IV/time shock — only
+the position's mark-to-market value does. This is a real, computed
+value whose lack of movement is a disclosed, correct structural property
+of defined-risk strategies, proven by a dedicated test.
+
+**Risk score before/after** is the one genuinely new scoring formula
+this sprint introduces, following the same "state a reasonable default,
+disclose it" precedent as §4.9's `MAX_LEVERAGE_RATIO` and §4.10's
+`ADJUSTMENT_LEVERAGE_RATIO`: a 3-component equal-weighted blend
+(concentration vs. a new named `RISK_SCORE_CONCENTRATION_CAP_PCT = 25`,
+portfolio-risk utilization vs. the user's own already-configured
+`settings.maxPortfolioRisk`, and drawdown vs. a new named
+`RISK_SCORE_DRAWDOWN_SCALE = 5`), with a hard-cap override
+(`RISK_THRESHOLD_BREACH_SCORE_CAP = 60`) whenever any position breaches
+the configured per-trade risk threshold — the same hard-cap-override
+pattern Engine 1's `investingRisk.ts` and Engine 2's `tradingRisk.ts`
+already established for their own portfolio risk scores.
+
+**Risk Analysis** fields: largest losing/gaining position (by shocked
+P&L impact), positions breaching `settings.maxRiskPerTrade` (the same
+setting `execution.ts`'s own `validatePreTrade` enforces at trade-open
+time, reused here as an informational proxy, never a live enforcement
+action), concentration changes per symbol, and portfolio drawdown
+(`max(0, −portfolioValueImpact ÷ base.portfolioValue × 100)`, honestly
+zero for a net-positive scenario).
+
+**Scenario Comparison**: `scenarios` defaults to
+`DEFAULT_SCENARIO_PRESETS` (Bullish +5% / Bearish -5% / High Vol +20%
+IV / Low Vol -20% IV) whenever the caller omits or empties the field, so
+every request returns a useful comparison with zero configuration; a
+caller-supplied list combines any mix of price/IV/time-decay shocks per
+scenario (support for combining multiple shocks in one scenario is
+inherent in the shape of a single scenario, not a separate mode), capped
+at 12 scenarios per request (truncated, not rejected, with an honest
+`inputIssues` notice).
+
+No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
+`autoExecution.ts`/`autoAdjustment.ts` change. No new database write of
+any kind — every function in `lib/portfolioStressTest.ts` only ever
+`SELECT`s, and no scenario/shock/comparison is ever persisted.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -725,6 +812,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/tradeAdjustmentPreview.ts` | Unit tests against isolated, fresh test users, using empirically-verified real `buildIronCondor()` quotes (never fabricated financials, which would trigger spurious stop-loss-breach recommendations) — input validation, a full Roll Forward scenario for a real roll-eligible position (including the 5 always-unavailable strike-shift intents proven via `it.each`), a Convert Position scenario for a real convert-eligible position, 2 Close & Replace scenarios (including a position with no adjustment recommendation at all, proving the eligibility-gate bypass), 7 invalid-adjustment paths, missing-credentials/broker-disconnected warnings, concentration/leverage warnings, and existing conflicting-order/conflicting-adjustment detection. |
 | `routes/tradeAdjustmentPreview.route.test.ts` | Live end-to-end HTTP tests against the real app — honest missing-field/missing-position responses, a well-shaped successful Close & Replace preview against a real, self-inserted position (including that the response never carries an `orderId`/`tradeId`/`journalId`-shaped field), all 5 strike-shift intents' consistent unavailable reason, determinism across repeated identical calls, a 400 for a genuinely malformed request body, and a 400 for an invalid intent enum value. |
 | `TradeAdjustmentPreview.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Preview Only — No adjustment will be submitted" badges, the honest empty-positions message, the submitted-payload proof for tradeId/intent/quantity, loading and error states, honest validation-error rendering, the invalid-adjustment message for an unavailable intent, full Roll Forward/Convert Position/Close & Replace comparison rendering, Greeks before/after display, the honest break-even-unavailable message, portfolio exposure before/after, all 6 comparison direction badges (including a "worse" case), excess-concentration/buying-power-unavailable/missing-credentials warning rendering, and the Broker Connection Status card's not-yet-checked/disconnected states with its own independent Refresh button. |
+| `lib/portfolioStressTest.ts` | Unit tests against isolated, fresh test users, using real `buildIronCondor()`/`buildCalendar()` quotes — an empty-portfolio proof (zeroed-out base and scenarios, no crash), the zero-shock byte-identical-to-`computeTradeGreeks()` regression proof, a never-mutates-the-trades-table proof, single/multiple-position exposure-by-symbol/by-strategy grouping, largest losing/gaining position detection, concentration-changes coverage, combined price+IV shocks producing genuinely different results than either alone, all 4 requested time-decay presets, extreme scenarios (huge crash/melt-up, expiration-exceeding time decay) staying finite via clamping, honest input-issue flags for a no-op scenario and a too-many-scenarios request, risk-threshold-breach detection and the risk-score hard-cap override, the honestly-always-zero buying-power-impact proof, scenario-comparison independence and labeling, drawdown honesty (zero for a net-positive scenario), and determinism. |
+| `routes/portfolioStressTest.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped default-presets response for an empty request body, custom combined-shock scenarios, honest field presence regardless of portfolio state, the never-a-broker-write-surface proof, honest credentials/broker-connection disclosure, a 400 for a genuinely malformed request body, and determinism across repeated identical calls. |
+| `PortfolioStressTest.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Simulation Only — No broker interaction occurs" badges, adding a quick preset scenario to the queue, building and adding a custom combined-shock scenario, removing a queued scenario, the submitted-payload proof for both the empty-queue (server-defaults) and populated-queue cases, loading and error states, honest input-issue notices, the base-case portfolio value/P/L/buying-power/risk-score/Greeks display, the honest empty-portfolio exposure message, the always-visible sector-exposure disclosure, one comparison card per requested scenario with its own shock/P&L-impact/risk-score, largest gaining/losing position and threshold-breach warning display, the honest no-breaches message, drawdown display (None vs. a percentage), and concentration-change display. |
 
 ## 8. Cross-references
 
@@ -749,6 +839,12 @@ to everything else in this codebase. Specifically for this document's scope:
   unavailable intent scope decision, the Close & Replace composition, the
   replace-semantics portfolio exposure model, the 9-category
   risk-warnings list, and the Improved/Worse/Neutral comparison design.
+- `docs/Portfolio-Stress-Testing.md` — the Portfolio Stress Test &
+  Scenario Simulator's own full detail (§4.11 above): the shock-
+  parameterized repricing engine and its zero-shock equivalence proof,
+  the portfolio-level aggregation model, the honestly-always-zero
+  buying-power-impact disclosure, the risk-score formula, the risk-
+  analysis fields, and the scenario-comparison design.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

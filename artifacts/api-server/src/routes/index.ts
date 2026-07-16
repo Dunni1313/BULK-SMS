@@ -35,6 +35,7 @@ import crossEngineDailyReportRouter from "./crossEngineDailyReport";
 import orderPreviewRouter from "./orderPreview";
 import positionSizingRouter from "./positionSizing";
 import tradeAdjustmentPreviewRouter from "./tradeAdjustmentPreview";
+import portfolioStressTestRouter from "./portfolioStressTest";
 
 const router: IRouter = Router();
 
@@ -74,5 +75,6 @@ router.use(crossEngineDailyReportRouter);
 router.use(orderPreviewRouter);
 router.use(positionSizingRouter);
 router.use(tradeAdjustmentPreviewRouter);
+router.use(portfolioStressTestRouter);
 
 export default router;

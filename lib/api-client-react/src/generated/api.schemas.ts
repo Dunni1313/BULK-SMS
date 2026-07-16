@@ -4962,6 +4962,134 @@ export interface OptionsBacktestResult {
   summary: string;
 }
 
+export interface ScenarioShockInput {
+  /** @nullable */
+  label?: string | null;
+  /** @nullable */
+  priceShockPct?: number | null;
+  /** @nullable */
+  ivShockPct?: number | null;
+  /** @nullable */
+  timeDecayDays?: number | null;
+}
+
+export interface PortfolioStressTestInput {
+  /** @nullable */
+  scenarios?: ScenarioShockInput[] | null;
+}
+
+export interface StressTestInputIssue {
+  /** @nullable */
+  index: number | null;
+  field: string;
+  code: string;
+  message: string;
+}
+
+export interface Shock {
+  priceShockPct: number;
+  ivShockPct: number;
+  timeDecayDays: number;
+}
+
+export interface PositionGreeksLike {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export interface PositionScenarioResult {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  greeks: PositionGreeksLike;
+  costToClose: number;
+  unrealizedPnl: number;
+  unrealizedPnlPercent: number;
+}
+
+export interface MarkExposureBySymbol {
+  symbol: string;
+  markValue: number;
+  pctOfAccount: number;
+}
+
+export interface MarkExposureByStrategy {
+  strategy: string;
+  markValue: number;
+  pctOfAccount: number;
+}
+
+export interface ScenarioEvaluation {
+  portfolioValue: number;
+  totalUnrealizedPnl: number;
+  greeks: PortfolioGreeksSnapshot;
+  exposureBySymbol: MarkExposureBySymbol[];
+  exposureByStrategy: MarkExposureByStrategy[];
+  totalRiskDollars: number;
+  totalRiskPct: number;
+  buyingPower: number;
+  positions: PositionScenarioResult[];
+}
+
+export interface RiskThresholdBreach {
+  tradeId: number;
+  symbol: string;
+  lossDollars: number;
+  lossPctOfAccount: number;
+  thresholdPct: number;
+}
+
+export interface ConcentrationChange {
+  symbol: string;
+  beforePct: number;
+  afterPct: number;
+  changePts: number;
+}
+
+export interface LargestPositionImpact {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  pnlImpact: number;
+}
+
+export interface ScenarioComparisonEntry {
+  label: string;
+  shock: Shock;
+  after: ScenarioEvaluation;
+  portfolioValueImpact: number;
+  unrealizedPnlImpact: number;
+  buyingPowerImpactDollars: number;
+  deltaChange: number;
+  gammaChange: number;
+  thetaChange: number;
+  vegaChange: number;
+  largestLosingPosition: LargestPositionImpact | null;
+  largestGainingPosition: LargestPositionImpact | null;
+  positionsBreachingThreshold: RiskThresholdBreach[];
+  concentrationChanges: ConcentrationChange[];
+  drawdownPct: number;
+  riskScoreAfter: number;
+}
+
+export interface PortfolioStressTestResult {
+  available: boolean;
+  inputIssues: StressTestInputIssue[];
+  accountValue: number;
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  sectorExposure: SectorExposure;
+  base: ScenarioEvaluation;
+  riskScoreBefore: number;
+  scenarios: ScenarioComparisonEntry[];
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

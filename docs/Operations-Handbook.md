@@ -279,6 +279,39 @@ deterministic SIMULATED pricing engine, not a live broker call.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.10 and
 `docs/Trade-Adjustment.md`.
 
+### 6.13 Using the Portfolio Stress Test & Scenario Simulator
+
+The "Stress Test" nav item (`/stress-test`) lets a user build one or
+more hypothetical scenarios — an underlying price change (±1/2/5/10% or
+a custom %), an implied-volatility change (±5/10/20% or a custom %),
+and/or time decay (+1/7/14/30 days or a custom number of days), any
+combination of which can be combined into a single scenario — and see
+the full impact against their **current open portfolio**: portfolio
+value before/after, unrealized P/L impact, buying power impact
+(estimated — honestly always zero for this platform's defined-risk
+strategies, see below), Greeks before/after and their deltas, exposure
+by symbol/strategy, a risk score before/after, largest losing/gaining
+position, positions breaching the configured per-trade risk threshold,
+concentration changes, and portfolio drawdown. Four named quick presets
+(Bullish, Bearish, High Volatility, Low Volatility) can be added to the
+scenario queue with one click; running with an empty queue uses these
+same four presets automatically. **There is no submit action anywhere
+on this page — every result is a hypothetical, in-memory computation,
+and nothing here ever places, closes, or modifies a real order.**
+
+All pricing reuses this platform's existing options-math engine
+(`optionsMath.ts`'s own `bs()`) via a new, shock-parameterized sibling of
+`serverState.ts`'s existing `computeTradeGreeks()` — never a
+modification of that function, and proven byte-identical to it at zero
+shock. **Buying power impact is honestly always zero**: since every
+supported strategy is a defined-risk spread, its reserved margin doesn't
+move under a price/IV/time shock — only the position's current mark-to-
+market value does; this is a real, disclosed structural fact, not an
+unimplemented feature.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.11 and
+`docs/Portfolio-Stress-Testing.md`.
+
 ---
 
 ## 7. Escalation
@@ -296,8 +329,9 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.10 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, and the Trade Adjustment & Roll/Convert Preview Simulator), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, and the Trade Adjustment Preview page referenced in §6.12 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, and the Portfolio Stress Test & Scenario Simulator), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, and the Portfolio Stress Test page referenced in §6.13 above.
 - `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview Simulator's own full detail (§6.12 above): the 3-computable/5-honestly-unavailable intent scope decision, the Close & Replace composition, the replace-semantics portfolio exposure model, the 9-category risk-warnings list, and the Improved/Worse/Neutral comparison design.
+- `docs/Portfolio-Stress-Testing.md` — the Portfolio Stress Test & Scenario Simulator's own full detail (§6.13 above): the shock-parameterized repricing engine, the portfolio-level aggregation model, the honestly-always-zero buying-power-impact disclosure, the risk-score formula, the risk-analysis fields, and the scenario-comparison design.
 - `docs/Trading-Journal.md` — the Trading Journal system's own full detail, referenced in §6.9 above.
 - `docs/Order-Preview.md` — the Order Preview & Risk Simulator's own full detail, referenced in §6.10 above.
 - `docs/Position-Sizing.md` — the Position Sizing & Portfolio Impact Calculator's own full detail, referenced in §6.11 above.

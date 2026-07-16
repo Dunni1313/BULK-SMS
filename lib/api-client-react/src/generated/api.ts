@@ -110,6 +110,8 @@ import type {
   PlatformNotificationUpdate,
   PortfolioGreeks,
   PortfolioHealth,
+  PortfolioStressTestInput,
+  PortfolioStressTestResult,
   PortfolioSummary,
   Position,
   PositionSizingInput,
@@ -2837,6 +2839,77 @@ export const usePreviewTradeAdjustment = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getPreviewTradeAdjustmentMutationOptions(options));
+    }
+
+export const getRunPortfolioStressTestUrl = () => {
+
+
+
+
+  return `/api/execution/stress-test`
+}
+
+/**
+ * @summary Read-only What-If stress test applying hypothetical underlying price, implied-volatility, and time-decay shocks to the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+export const runPortfolioStressTest = async (portfolioStressTestInput: PortfolioStressTestInput, options?: RequestInit): Promise<PortfolioStressTestResult> => {
+
+  return customFetch<PortfolioStressTestResult>(getRunPortfolioStressTestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      portfolioStressTestInput,)
+  }
+);}
+
+
+
+
+export const getRunPortfolioStressTestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runPortfolioStressTest>>, TError,{data: BodyType<PortfolioStressTestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runPortfolioStressTest>>, TError,{data: BodyType<PortfolioStressTestInput>}, TContext> => {
+
+const mutationKey = ['runPortfolioStressTest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runPortfolioStressTest>>, {data: BodyType<PortfolioStressTestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runPortfolioStressTest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunPortfolioStressTestMutationResult = NonNullable<Awaited<ReturnType<typeof runPortfolioStressTest>>>
+    export type RunPortfolioStressTestMutationBody = BodyType<PortfolioStressTestInput>
+    export type RunPortfolioStressTestMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Read-only What-If stress test applying hypothetical underlying price, implied-volatility, and time-decay shocks to the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+export const useRunPortfolioStressTest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runPortfolioStressTest>>, TError,{data: BodyType<PortfolioStressTestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runPortfolioStressTest>>,
+        TError,
+        {data: BodyType<PortfolioStressTestInput>},
+        TContext
+      > => {
+      return useMutation(getRunPortfolioStressTestMutationOptions(options));
     }
 
 export const getGetAutoExecutionStatusUrl = () => {

@@ -702,6 +702,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/TradeAdjustmentPreviewResult"
 
+  # ─── Portfolio Stress Test & Scenario Simulator (Paper Trading) ─────────────
+  /execution/stress-test:
+    post:
+      operationId: runPortfolioStressTest
+      tags: [execution]
+      summary: >-
+        Read-only What-If stress test applying hypothetical underlying
+        price, implied-volatility, and time-decay shocks to the user's own
+        current open portfolio: never routes to a broker, never creates or
+        modifies an order or position, never mutates local state. Always
+        returns 200 — an empty portfolio honestly returns zeroed-out
+        figures rather than fabricating exposure.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortfolioStressTestInput"
+      responses:
+        "200":
+          description: Portfolio stress test result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioStressTestResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -8297,4 +8323,296 @@ components:
           items:
             $ref: "#/components/schemas/OptionsBacktestEquityPoint"
         summary:
+          type: string
+
+    # ─── Portfolio Stress Test & Scenario Simulator (Paper Trading) ─────────────
+    # Read-only What-If simulator over the user's OWN current open
+    # portfolio: applies hypothetical underlying price / implied-volatility
+    # / time-decay shocks and reprices every open position via
+    # optionsMath.ts's own unmodified bs(). Never contacts a broker
+    # execution endpoint, never creates or modifies an order or position.
+    ScenarioShockInput:
+      type: object
+      properties:
+        label:
+          type: ["string", "null"]
+        priceShockPct:
+          type: ["number", "null"]
+        ivShockPct:
+          type: ["number", "null"]
+        timeDecayDays:
+          type: ["number", "null"]
+
+    PortfolioStressTestInput:
+      type: object
+      properties:
+        scenarios:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/ScenarioShockInput"
+
+    StressTestInputIssue:
+      type: object
+      required: [index, field, code, message]
+      properties:
+        index:
+          type: ["integer", "null"]
+        field:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+
+    Shock:
+      type: object
+      required: [priceShockPct, ivShockPct, timeDecayDays]
+      properties:
+        priceShockPct:
+          type: number
+        ivShockPct:
+          type: number
+        timeDecayDays:
+          type: number
+
+    PositionGreeksLike:
+      type: object
+      required: [delta, gamma, theta, vega]
+      properties:
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+
+    PositionScenarioResult:
+      type: object
+      required: [tradeId, symbol, strategy, greeks, costToClose, unrealizedPnl, unrealizedPnlPercent]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+        greeks:
+          $ref: "#/components/schemas/PositionGreeksLike"
+        costToClose:
+          type: number
+        unrealizedPnl:
+          type: number
+        unrealizedPnlPercent:
+          type: number
+
+    MarkExposureBySymbol:
+      type: object
+      required: [symbol, markValue, pctOfAccount]
+      properties:
+        symbol:
+          type: string
+        markValue:
+          type: number
+        pctOfAccount:
+          type: number
+
+    MarkExposureByStrategy:
+      type: object
+      required: [strategy, markValue, pctOfAccount]
+      properties:
+        strategy:
+          type: string
+        markValue:
+          type: number
+        pctOfAccount:
+          type: number
+
+    ScenarioEvaluation:
+      type: object
+      required:
+        [
+          portfolioValue,
+          totalUnrealizedPnl,
+          greeks,
+          exposureBySymbol,
+          exposureByStrategy,
+          totalRiskDollars,
+          totalRiskPct,
+          buyingPower,
+          positions,
+        ]
+      properties:
+        portfolioValue:
+          type: number
+        totalUnrealizedPnl:
+          type: number
+        greeks:
+          $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+        exposureBySymbol:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarkExposureBySymbol"
+        exposureByStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarkExposureByStrategy"
+        totalRiskDollars:
+          type: number
+        totalRiskPct:
+          type: number
+        buyingPower:
+          type: number
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PositionScenarioResult"
+
+    RiskThresholdBreach:
+      type: object
+      required: [tradeId, symbol, lossDollars, lossPctOfAccount, thresholdPct]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        lossDollars:
+          type: number
+        lossPctOfAccount:
+          type: number
+        thresholdPct:
+          type: number
+
+    ConcentrationChange:
+      type: object
+      required: [symbol, beforePct, afterPct, changePts]
+      properties:
+        symbol:
+          type: string
+        beforePct:
+          type: number
+        afterPct:
+          type: number
+        changePts:
+          type: number
+
+    LargestPositionImpact:
+      type: object
+      required: [tradeId, symbol, strategy, pnlImpact]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+        pnlImpact:
+          type: number
+
+    ScenarioComparisonEntry:
+      type: object
+      required:
+        [
+          label,
+          shock,
+          after,
+          portfolioValueImpact,
+          unrealizedPnlImpact,
+          buyingPowerImpactDollars,
+          deltaChange,
+          gammaChange,
+          thetaChange,
+          vegaChange,
+          largestLosingPosition,
+          largestGainingPosition,
+          positionsBreachingThreshold,
+          concentrationChanges,
+          drawdownPct,
+          riskScoreAfter,
+        ]
+      properties:
+        label:
+          type: string
+        shock:
+          $ref: "#/components/schemas/Shock"
+        after:
+          $ref: "#/components/schemas/ScenarioEvaluation"
+        portfolioValueImpact:
+          type: number
+        unrealizedPnlImpact:
+          type: number
+        buyingPowerImpactDollars:
+          type: number
+        deltaChange:
+          type: number
+        gammaChange:
+          type: number
+        thetaChange:
+          type: number
+        vegaChange:
+          type: number
+        largestLosingPosition:
+          oneOf:
+            - $ref: "#/components/schemas/LargestPositionImpact"
+            - type: "null"
+        largestGainingPosition:
+          oneOf:
+            - $ref: "#/components/schemas/LargestPositionImpact"
+            - type: "null"
+        positionsBreachingThreshold:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskThresholdBreach"
+        concentrationChanges:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationChange"
+        drawdownPct:
+          type: number
+        riskScoreAfter:
+          type: number
+
+    PortfolioStressTestResult:
+      type: object
+      required:
+        [
+          available,
+          inputIssues,
+          accountValue,
+          credentialsConfigured,
+          brokerConnected,
+          lastBrokerCheckAt,
+          sectorExposure,
+          base,
+          riskScoreBefore,
+          scenarios,
+          generatedAt,
+        ]
+      properties:
+        available:
+          type: boolean
+        inputIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/StressTestInputIssue"
+        accountValue:
+          type: number
+        credentialsConfigured:
+          type: boolean
+        brokerConnected:
+          type: ["boolean", "null"]
+        lastBrokerCheckAt:
+          type: ["string", "null"]
+        sectorExposure:
+          $ref: "#/components/schemas/SectorExposure"
+        base:
+          $ref: "#/components/schemas/ScenarioEvaluation"
+        riskScoreBefore:
+          type: number
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioComparisonEntry"
+        generatedAt:
           type: string

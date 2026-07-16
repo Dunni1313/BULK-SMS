@@ -1646,6 +1646,155 @@ export const PreviewTradeAdjustmentResponse = zod.object({
 
 
 /**
+ * @summary Read-only What-If stress test applying hypothetical underlying price, implied-volatility, and time-decay shocks to the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+export const RunPortfolioStressTestBody = zod.object({
+  "scenarios": zod.array(zod.object({
+  "label": zod.string().nullish(),
+  "priceShockPct": zod.number().nullish(),
+  "ivShockPct": zod.number().nullish(),
+  "timeDecayDays": zod.number().nullish()
+})).nullish()
+})
+
+export const RunPortfolioStressTestResponse = zod.object({
+  "available": zod.boolean(),
+  "inputIssues": zod.array(zod.object({
+  "index": zod.number().nullable(),
+  "field": zod.string(),
+  "code": zod.string(),
+  "message": zod.string()
+})),
+  "accountValue": zod.number(),
+  "credentialsConfigured": zod.boolean(),
+  "brokerConnected": zod.boolean().nullable(),
+  "lastBrokerCheckAt": zod.string().nullable(),
+  "sectorExposure": zod.object({
+  "available": zod.literal(false),
+  "reason": zod.string()
+}),
+  "base": zod.object({
+  "portfolioValue": zod.number(),
+  "totalUnrealizedPnl": zod.number(),
+  "greeks": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),
+  "exposureBySymbol": zod.array(zod.object({
+  "symbol": zod.string(),
+  "markValue": zod.number(),
+  "pctOfAccount": zod.number()
+})),
+  "exposureByStrategy": zod.array(zod.object({
+  "strategy": zod.string(),
+  "markValue": zod.number(),
+  "pctOfAccount": zod.number()
+})),
+  "totalRiskDollars": zod.number(),
+  "totalRiskPct": zod.number(),
+  "buyingPower": zod.number(),
+  "positions": zod.array(zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "greeks": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),
+  "costToClose": zod.number(),
+  "unrealizedPnl": zod.number(),
+  "unrealizedPnlPercent": zod.number()
+}))
+}),
+  "riskScoreBefore": zod.number(),
+  "scenarios": zod.array(zod.object({
+  "label": zod.string(),
+  "shock": zod.object({
+  "priceShockPct": zod.number(),
+  "ivShockPct": zod.number(),
+  "timeDecayDays": zod.number()
+}),
+  "after": zod.object({
+  "portfolioValue": zod.number(),
+  "totalUnrealizedPnl": zod.number(),
+  "greeks": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),
+  "exposureBySymbol": zod.array(zod.object({
+  "symbol": zod.string(),
+  "markValue": zod.number(),
+  "pctOfAccount": zod.number()
+})),
+  "exposureByStrategy": zod.array(zod.object({
+  "strategy": zod.string(),
+  "markValue": zod.number(),
+  "pctOfAccount": zod.number()
+})),
+  "totalRiskDollars": zod.number(),
+  "totalRiskPct": zod.number(),
+  "buyingPower": zod.number(),
+  "positions": zod.array(zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "greeks": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),
+  "costToClose": zod.number(),
+  "unrealizedPnl": zod.number(),
+  "unrealizedPnlPercent": zod.number()
+}))
+}),
+  "portfolioValueImpact": zod.number(),
+  "unrealizedPnlImpact": zod.number(),
+  "buyingPowerImpactDollars": zod.number(),
+  "deltaChange": zod.number(),
+  "gammaChange": zod.number(),
+  "thetaChange": zod.number(),
+  "vegaChange": zod.number(),
+  "largestLosingPosition": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "pnlImpact": zod.number()
+}),zod.null()]),
+  "largestGainingPosition": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "pnlImpact": zod.number()
+}),zod.null()]),
+  "positionsBreachingThreshold": zod.array(zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "lossDollars": zod.number(),
+  "lossPctOfAccount": zod.number(),
+  "thresholdPct": zod.number()
+})),
+  "concentrationChanges": zod.array(zod.object({
+  "symbol": zod.string(),
+  "beforePct": zod.number(),
+  "afterPct": zod.number(),
+  "changePts": zod.number()
+})),
+  "drawdownPct": zod.number(),
+  "riskScoreAfter": zod.number()
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Current full-auto engine state, guardrails, and today's stats
  */
 export const GetAutoExecutionStatusResponse = zod.object({

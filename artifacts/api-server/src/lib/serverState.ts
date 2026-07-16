@@ -50,7 +50,11 @@ export async function getAccountValue(userId: string): Promise<number> {
   return ACCOUNT_BASE + realized;
 }
 
-function daysUntil(dateStr: string | null): number {
+// Exported (additive, Portfolio Stress Test sprint) so
+// lib/portfolioStressTest.ts can reuse the exact same days-to-expiration
+// derivation this file's own computeTradeGreeks() already uses — zero
+// behavior change to this file's own exports/tests.
+export function daysUntil(dateStr: string | null): number {
   if (!dateStr) return 30;
   const ms = new Date(dateStr).getTime() - Date.now();
   return Math.max(1, Math.round(ms / (24 * 60 * 60 * 1000)));
