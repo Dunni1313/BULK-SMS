@@ -71,6 +71,51 @@ jobs:
       - name: Push database schema
         run: pnpm --filter @workspace/db run push-force
 
+      # CLAUDE.md rule 7: every data-touching migration lives in a
+      # hand-reviewed SQL file under lib/db/manual-migrations/, run
+      # separately from `drizzle-kit push` (which only creates table
+      # shape). `drizzle-kit push` alone leaves a fresh CI database with
+      # correct tables but no seeded rows — most critically, no legacy-owner
+      # user (lib/db/manual-migrations/002_backfill_and_enforce.sql), which
+      # lib/legacyOwner.ts requires for every unauthenticated request this
+      # suite's *.route.test.ts files rely on. Files are named 000-016 so
+      # plain glob/lexicographic ordering is already correct run order;
+      # -v ON_ERROR_STOP=1 makes any single statement's failure fail this
+      # step immediately, EXCEPT for one narrowly-targeted, understood,
+      # harmless case (see below).
+      #
+      # Known exception — 003_settings_user_scoped.sql only:
+      # that file's own `ADD CONSTRAINT settings_user_id_unique UNIQUE
+      # (user_id)` was written years ago to run against an OLDER database
+      # state, before the unique constraint existed. `drizzle-kit push
+      # --force` (the step directly above) already creates that exact
+      # constraint from the CURRENT schema.ts on a brand-new database, so
+      # replaying 003 hits a deterministic, harmless
+      # "settings_user_id_unique already exists" — the constraint 003 wants
+      # is already present with identical semantics, not a masked failure.
+      # This is matched narrowly by BOTH filename AND exact error text: any
+      # other error from this file, or any error from any other file, still
+      # fails the step immediately, per ON_ERROR_STOP=1 below.
+      - name: Apply manual migrations
+        run: |
+          set -e
+          for f in lib/db/manual-migrations/*.sql; do
+            echo "Applying $f"
+            set +e
+            output=$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f" 2>&1)
+            status=$?
+            set -e
+            echo "$output"
+            if [ $status -ne 0 ]; then
+              if [[ "$f" == *"003_settings_user_scoped.sql" ]] && echo "$output" | grep -q 'settings_user_id_unique" already exists'; then
+                echo "Known no-op for 003_settings_user_scoped.sql: settings_user_id_unique was already created by the schema push above — continuing."
+              else
+                echo "FAILED: $f"
+                exit 1
+              fi
+            fi
+          done
+
       # lib/auth/src/index.ts requires BETTER_AUTH_SECRET at import time
       # (Phase 1, Sprint 6) — app.ts, imported by every *.route.test.ts
       # file, throws immediately without it. Mirrors the e2e job's own
@@ -140,6 +185,30 @@ jobs:
 
       - name: Push database schema
         run: pnpm --filter @workspace/db run push-force
+
+      # Mirrors the test job's own "Apply manual migrations" step exactly,
+      # including its narrowly-targeted 003_settings_user_scoped.sql
+      # exception (see that step's own comment for the full explanation) —
+      # this job provisions its own fresh database too.
+      - name: Apply manual migrations
+        run: |
+          set -e
+          for f in lib/db/manual-migrations/*.sql; do
+            echo "Applying $f"
+            set +e
+            output=$(psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f" 2>&1)
+            status=$?
+            set -e
+            echo "$output"
+            if [ $status -ne 0 ]; then
+              if [[ "$f" == *"003_settings_user_scoped.sql" ]] && echo "$output" | grep -q 'settings_user_id_unique" already exists'; then
+                echo "Known no-op for 003_settings_user_scoped.sql: settings_user_id_unique was already created by the schema push above — continuing."
+              else
+                echo "FAILED: $f"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Generate a session secret for this run only
         run: echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
