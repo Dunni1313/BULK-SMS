@@ -188,6 +188,30 @@ data.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.7 and
 `docs/Trading-Journal.md`.
 
+### 6.10 Using the Order Preview & Risk Simulator
+
+The "Order Preview" nav item (`/order-preview`) lets a user type in a
+symbol, strategy, and quantity and see the full estimated economics of an
+order — estimated entry price, notional value, buying power impact, margin
+impact, maximum risk, maximum reward, and risk/reward ratio — plus an
+8-item pre-trade checklist (missing fields, invalid quantity, invalid
+symbol, buying power unavailable, broker disconnected, missing
+credentials, position conflict, existing open order). **There is no submit
+button on this page — it is a dry-run only, and no order can be placed
+from it.**
+
+Every number shown is either reused, unmodified, from `execution.ts`'s own
+real ticket-building logic (the same numbers a genuine order preview/
+submit would compute), or a small, disclosed derivation on top of them
+(entry price per spread, notional value, margin impact, risk/reward
+ratio) — never a fabricated figure. Broker connection status on this page
+is read via the same manual-only "Refresh Broker Health" button every
+other broker-touching page in this app uses (§6.5) — it never auto-checks
+on page load.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.8 and
+`docs/Order-Preview.md`.
+
 ---
 
 ## 7. Escalation
@@ -205,8 +229,9 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.7 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, and Trade History/Performance Analytics), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, and the Trade History/Performance pages referenced in §6.9 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, and the Order Preview & Risk Simulator), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, and the Order Preview page referenced in §6.10 above.
 - `docs/Trading-Journal.md` — the Trading Journal system's own full detail, referenced in §6.9 above.
+- `docs/Order-Preview.md` — the Order Preview & Risk Simulator's own full detail, referenced in §6.10 above.
 - `docs/Incident-Response-Runbook.md` — per-alert-category diagnosis and recovery.
 - `docs/Production-Rollout-Plan.md` — the one-time go-live procedure and backup/recovery details this handbook's §6/§7 draw on.
 - `docs/Production-Readiness-Report.md` — current-state readiness assessment.

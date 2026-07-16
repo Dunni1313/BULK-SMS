@@ -2258,6 +2258,81 @@ export interface ExecutionSubmitResult {
   ticket: ExecutionTicket;
 }
 
+/**
+ * @nullable
+ */
+export type OrderPreviewInputStrategy = typeof OrderPreviewInputStrategy[keyof typeof OrderPreviewInputStrategy] | null;
+
+
+export const OrderPreviewInputStrategy = {
+  iron_condor: 'iron_condor',
+  iron_fly: 'iron_fly',
+  calendar_spread: 'calendar_spread',
+  earnings: 'earnings',
+} as const;
+
+export interface OrderPreviewInput {
+  /** @nullable */
+  symbol?: string | null;
+  /** @nullable */
+  strategy?: OrderPreviewInputStrategy;
+  /** @nullable */
+  quantity?: number | null;
+}
+
+export type OrderPreviewInputIssueField = typeof OrderPreviewInputIssueField[keyof typeof OrderPreviewInputIssueField];
+
+
+export const OrderPreviewInputIssueField = {
+  symbol: 'symbol',
+  strategy: 'strategy',
+  quantity: 'quantity',
+} as const;
+
+export interface OrderPreviewInputIssue {
+  field: OrderPreviewInputIssueField;
+  code: string;
+  message: string;
+}
+
+export type OrderPreviewValidationItemStatus = typeof OrderPreviewValidationItemStatus[keyof typeof OrderPreviewValidationItemStatus];
+
+
+export const OrderPreviewValidationItemStatus = {
+  ok: 'ok',
+  warning: 'warning',
+  blocked: 'blocked',
+} as const;
+
+export interface OrderPreviewValidationItem {
+  code: string;
+  label: string;
+  status: OrderPreviewValidationItemStatus;
+  detail: string;
+}
+
+export type OrderPreviewTicket = ExecutionTicket & ({
+  entryPricePerSpread: number;
+  notionalValue: number;
+  marginImpact: number;
+  /** @nullable */
+  riskRewardRatio: number | null;
+});
+
+export interface OrderPreviewResult {
+  available: boolean;
+  inputIssues: OrderPreviewInputIssue[];
+  ticket: OrderPreviewTicket | null;
+  preTradeChecklist: OrderPreviewValidationItem[];
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  accountValue: number;
+  generatedAt: string;
+}
+
 export type AutoExecutionStatusExecutionMode = typeof AutoExecutionStatusExecutionMode[keyof typeof AutoExecutionStatusExecutionMode];
 
 

@@ -378,6 +378,85 @@ No database migration beyond the two new nullable journal columns; no
 change to `execution.ts`'s order-submission path, `routes/journal.ts`'s
 own route logic, or any existing page.
 
+### 4.8 Order Preview & Risk Simulator
+
+A dedicated dry-run page, `/order-preview` ("Order Preview & Risk
+Simulator"), lets a user type in a symbol/strategy/quantity and inspect the
+full estimated economics of an order — **before, and without ever, actually
+placing it.** There is no submit button anywhere on this page; the only
+action is "Preview Only."
+
+**Backend: one new, purely additive, read-only endpoint,
+`POST /execution/order-preview`** (`lib/orderPreview.ts` +
+`routes/orderPreview.ts`, both new files — `execution.ts` itself is
+untouched, confirmed via `git diff --stat` at every checkpoint this
+sprint). This endpoint is a **composition layer**, not a second execution
+engine: it reuses `execution.ts`'s own existing, unmodified
+`canonicalQuote()` and `previewOptionOrder()` (itself just an alias for the
+same `buildTicket()` the real submit path calls) for every core number —
+net credit/debit, max profit, max loss, buying power required, the full
+`PreTradeValidation` risk-check list — so the figures shown on this page
+are byte-identical to what a real ticket build would compute, proven by a
+dedicated regression test (`lib/orderPreview.test.ts`) that cross-checks
+this endpoint's output against a direct, standalone call to
+`previewOptionOrder()`.
+
+Four fields are genuine, disclosed **derivations** on top of the reused
+ticket, never fabricated:
+- **Estimated Entry Price** — net credit/debit ÷ quantity (per-spread
+  price).
+- **Estimated Notional Value** — the standard options-notional formula,
+  `Σ (strike × 100 × ratioQty × quantity)` across legs — explicitly
+  disclosed as distinct from capital at risk (`maxLoss`), not a synonym
+  for it.
+- **Estimated Margin Impact** — for these all-defined-risk multi-leg
+  spread strategies, margin requirement equals the position's own max
+  loss; reused directly, not a separate calculation.
+- **Risk/Reward Ratio** — max profit ÷ max loss, honestly `null` (shown as
+  "N/A") when max loss is 0.
+
+**The 8-item pre-trade checklist this sprint's scope requested (missing
+fields, invalid quantity, invalid symbol, buying power unavailable, broker
+disconnected, missing credentials, position conflict, existing open
+order)** is a separate, additive layer computed entirely in
+`lib/orderPreview.ts` — **not** part of `execution.ts`'s own real
+pre-trade risk gate (`validatePreTrade`, completely unmodified and shown
+unmodified in the ticket's own `validation` field on this same page). This
+distinction is deliberate and disclosed: since this page never submits
+anything, none of these 8 items are ever hard-blocking in the sense of
+"this order would be rejected" — they are informational, honestly labeled
+`ok`/`warning`/`blocked` per item:
+- **Missing required fields / Invalid quantity / Invalid symbol** are
+  computed from the raw input alone, before any call into `execution.ts` —
+  an unresolvable symbol is caught two ways: a cheap ticker-shape regex
+  first, then (for a shape-valid but nonexistent symbol) a side-effect-free
+  call to `canonicalQuote()`, reused unmodified.
+- **Buying power unavailable / Broker disconnected / Missing credentials**
+  read already-existing, already-cached state — `readAlpacaCreds()`
+  (`lib/providers/alpacaProvider.ts`, unmodified) for credential presence,
+  and `getLastBrokerCheckConnected()`/`getLastSuccessfulBrokerCheck()`
+  (`lib/providers/alpacaBroker.ts`, unmodified) for the outcome of the most
+  recent `GET /broker/health` check — **never a new live broker call**.
+  Local account value (from `getAccountValue()`, unmodified,
+  `serverState.ts`) is always computable; "buying power" is honestly
+  labeled a **local estimate only** unless the most recent Broker Health
+  check actually succeeded.
+- **Position conflict / Existing open order** are a plain, new, read-only
+  `SELECT` against this user's own `trades` rows for the entered symbol
+  (`status = 'open'` vs. `status = 'pending'`) — the one genuinely new
+  piece of logic this sprint added, and still purely a read.
+
+**Broker connection status on this page is read from the same,
+already-existing, manual-only `GET /broker/health` endpoint** — the page's
+own "Refresh Broker Health" button, matching the exact `enabled: false` +
+explicit-refetch convention every broker-touching page in this app has
+followed since the Broker Connection UI sprint. Nothing on this page
+auto-triggers a live broker call on mount.
+
+No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`
+change. No new database write of any kind — every function in
+`lib/orderPreview.ts` only ever `SELECT`s.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -433,6 +512,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/tradeAnalytics.ts` | Pure-function unit tests — direction/exit-price/holding-period/spread-quantity derivation (including the honest-null paths for an unclosed trade or a trade with unknown P&L), `isMockOrderId`'s classification, `computePerformanceAnalytics()`'s win rate/averages/largest winner-loser/breakeven-exclusion/open-vs-closed counting over a real mixed trade set, and `computeReconciliationSuccess()`'s honest-null-before-checked path and its real-percentage computation over constructed `OrderReconciliationEntry` fixtures. |
 | `TradeHistory.tsx` | Frontend smoke tests — loading/error/honest-empty states, a populated row's direction/exit-price/status/holding-period rendering, search-by-symbol, status filtering, strategy filtering, symbol sorting (both directions), pagination across multiple pages, the honest "Simulated (no broker order)" label for a mock-originated trade (independent of whether reconciliation has ever run), the "Not yet checked" vs. Matched vs. Mismatch reconciliation badge progression, the Check Reconciliation button's disabled/click-triggers-refetch behavior, linked journal entries rendering and editing (a real `PATCH /journal/:id` payload proof), the honest "no journal entries" message, and the static AI review placeholder. |
 | `TradePerformance.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode badge and local-data-only disclosure, loading/error/honest-empty states, every one of the 11 analytics cards computed from real local trade data, the reconciliation success percentage's honest-not-yet-checked/real-percentage/unavailable-reason states, and the Check Reconciliation button's disabled/click-triggers-refetch behavior. |
+| `lib/orderPreview.ts` | Unit tests against an isolated, fresh test user — the honest-missing-fields/invalid-quantity/invalid-symbol/invalid-strategy paths, a byte-identical-to-`previewOptionOrder()` proof for a valid preview, the 4 derived fields' own formulas, the honest no-credentials/no-broker-check states, the local-estimate-only buying-power disclosure, position-conflict and existing-open-order detection scoped strictly to the calling user (including the closed-trade-doesn't-count proof), and a never-mutates-the-trades-table proof. |
+| `routes/orderPreview.route.test.ts` | Live end-to-end HTTP tests against the real app — well-shaped honest-unavailable responses for missing fields/invalid quantity/invalid symbol, a well-shaped successful preview (including that the response never carries an `orderId`/`tradeId`/`journalId`-shaped field), determinism across repeated identical calls, the honest no-credentials state, the real disconnected-broker state (via a genuine `GET /broker/health` round trip in this credential-free environment), and a 400 for a genuinely malformed request body. |
+| `OrderPreview.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode badge and "no order will be submitted" notice, the empty-preview state before any request, the submitted-payload proof for symbol/strategy/quantity, loading and error states, honest validation-error rendering (missing fields/invalid symbol/invalid quantity), a full successful-preview render across every requested field, the missing-credentials/broker-disconnected/buying-power-unavailable/position-conflict/existing-order checklist warnings, and the Broker Connection Status card's independent not-yet-checked/checked states and its own Refresh button. |
 
 ## 8. Cross-references
 
@@ -442,6 +524,10 @@ to everything else in this codebase. Specifically for this document's scope:
   (the new `thesis`/`entryReasoning` columns, how entries are edited from
   the Trade History detail panel, the AI-review placeholder, and the
   broker-reconciliation summary integration described in §4.7 above).
+- `docs/Order-Preview.md` — the Order Preview & Risk Simulator's own full
+  detail (§4.8 above): the 4 derived display fields' formulas, the 8-item
+  pre-trade checklist's exact semantics, and its relationship to
+  `execution.ts`'s own real, unmodified pre-trade risk gate.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

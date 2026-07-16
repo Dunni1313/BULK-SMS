@@ -56,6 +56,7 @@ const PaperTradingReconciliation = lazy(() => import("./pages/PaperTradingReconc
 const PaperPortfolio = lazy(() => import("./pages/PaperPortfolio"));
 const TradeHistory = lazy(() => import("./pages/TradeHistory"));
 const TradePerformance = lazy(() => import("./pages/TradePerformance"));
+const OrderPreview = lazy(() => import("./pages/OrderPreview"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Login"));
 
@@ -119,6 +120,7 @@ function Router() {
           <Route path="/paper-portfolio" component={PaperPortfolio} />
           <Route path="/trade-history" component={TradeHistory} />
           <Route path="/trade-performance" component={TradePerformance} />
+          <Route path="/order-preview" component={OrderPreview} />
           <Route path="/settings" component={Settings} />
           <Route path="/learn/delta" component={DeltaMasterclass} />
           <Route path="/learn/greeks" component={GreeksTutor} />

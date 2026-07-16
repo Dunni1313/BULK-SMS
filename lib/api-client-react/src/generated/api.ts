@@ -102,6 +102,8 @@ import type {
   OptionChain,
   OptionsBacktestResult,
   OptionsRunBacktestInput,
+  OrderPreviewInput,
+  OrderPreviewResult,
   PerformanceAnalytics,
   PerformanceBreakdownBucket,
   PlatformNotification,
@@ -2618,6 +2620,77 @@ export const useSubmitAdjustmentExecution = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSubmitAdjustmentExecutionMutationOptions(options));
+    }
+
+export const getPreviewOrderUrl = () => {
+
+
+
+
+  return `/api/execution/order-preview`
+}
+
+/**
+ * @summary Read-only dry-run order preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly sets available:false and populates inputIssues rather than fabricating a partial ticket.
+ */
+export const previewOrder = async (orderPreviewInput: OrderPreviewInput, options?: RequestInit): Promise<OrderPreviewResult> => {
+
+  return customFetch<OrderPreviewResult>(getPreviewOrderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      orderPreviewInput,)
+  }
+);}
+
+
+
+
+export const getPreviewOrderMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewOrder>>, TError,{data: BodyType<OrderPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewOrder>>, TError,{data: BodyType<OrderPreviewInput>}, TContext> => {
+
+const mutationKey = ['previewOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewOrder>>, {data: BodyType<OrderPreviewInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewOrderMutationResult = NonNullable<Awaited<ReturnType<typeof previewOrder>>>
+    export type PreviewOrderMutationBody = BodyType<OrderPreviewInput>
+    export type PreviewOrderMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Read-only dry-run order preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly sets available:false and populates inputIssues rather than fabricating a partial ticket.
+ */
+export const usePreviewOrder = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewOrder>>, TError,{data: BodyType<OrderPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewOrder>>,
+        TError,
+        {data: BodyType<OrderPreviewInput>},
+        TContext
+      > => {
+      return useMutation(getPreviewOrderMutationOptions(options));
     }
 
 export const getGetAutoExecutionStatusUrl = () => {

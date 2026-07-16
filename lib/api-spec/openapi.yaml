@@ -628,6 +628,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdjustmentSubmitResult"
 
+  # ─── Order Preview & Risk Simulator (Paper Trading dry-run) ─────────────────
+  /execution/order-preview:
+    post:
+      operationId: previewOrder
+      tags: [execution]
+      summary: >-
+        Read-only dry-run order preview: never routes to a broker, never
+        creates an order, never mutates local state. Always returns 200 —
+        an unresolvable/invalid input honestly sets available:false and
+        populates inputIssues rather than fabricating a partial ticket.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderPreviewInput"
+      responses:
+        "200":
+          description: Order preview result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderPreviewResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -4725,6 +4749,103 @@ components:
           type: string
         ticket:
           $ref: "#/components/schemas/ExecutionTicket"
+
+    # ─── Order Preview & Risk Simulator (Paper Trading dry-run) ─────────────────
+    # Read-only pre-trade simulation: never contacts a broker execution
+    # endpoint, never creates an order, never mutates local state. Reuses
+    # execution.ts's own unmodified previewOptionOrder()/canonicalQuote()
+    # for its numeric figures.
+    OrderPreviewInput:
+      type: object
+      properties:
+        symbol:
+          type: ["string", "null"]
+        strategy:
+          type: ["string", "null"]
+          enum: [iron_condor, iron_fly, calendar_spread, earnings, null]
+        quantity:
+          type: ["integer", "null"]
+
+    OrderPreviewInputIssue:
+      type: object
+      required: [field, code, message]
+      properties:
+        field:
+          type: string
+          enum: [symbol, strategy, quantity]
+        code:
+          type: string
+        message:
+          type: string
+
+    OrderPreviewValidationItem:
+      type: object
+      required: [code, label, status, detail]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+          enum: [ok, warning, blocked]
+        detail:
+          type: string
+
+    OrderPreviewTicket:
+      allOf:
+        - $ref: "#/components/schemas/ExecutionTicket"
+        - type: object
+          required: [entryPricePerSpread, notionalValue, marginImpact, riskRewardRatio]
+          properties:
+            entryPricePerSpread:
+              type: number
+            notionalValue:
+              type: number
+            marginImpact:
+              type: number
+            riskRewardRatio:
+              type: ["number", "null"]
+
+    OrderPreviewResult:
+      type: object
+      required:
+        [
+          available,
+          inputIssues,
+          ticket,
+          preTradeChecklist,
+          credentialsConfigured,
+          brokerConnected,
+          lastBrokerCheckAt,
+          accountValue,
+          generatedAt,
+        ]
+      properties:
+        available:
+          type: boolean
+        inputIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderPreviewInputIssue"
+        ticket:
+          oneOf:
+            - $ref: "#/components/schemas/OrderPreviewTicket"
+            - type: "null"
+        preTradeChecklist:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderPreviewValidationItem"
+        credentialsConfigured:
+          type: boolean
+        brokerConnected:
+          type: ["boolean", "null"]
+        lastBrokerCheckAt:
+          type: ["string", "null"]
+        accountValue:
+          type: number
+        generatedAt:
+          type: string
 
     # ─── Full-Auto execution (Phase 6) ───────────────────────────────────────────
     AutoExecutionStatus:

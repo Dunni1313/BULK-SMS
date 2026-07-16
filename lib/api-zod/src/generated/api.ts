@@ -1126,6 +1126,122 @@ export const SubmitAdjustmentExecutionBody = zod.object({
 
 
 /**
+ * @summary Read-only dry-run order preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly sets available:false and populates inputIssues rather than fabricating a partial ticket.
+ */
+export const PreviewOrderBody = zod.object({
+  "symbol": zod.string().nullish(),
+  "strategy": zod.union([zod.literal('iron_condor'),zod.literal('iron_fly'),zod.literal('calendar_spread'),zod.literal('earnings'),zod.literal(null)]).nullish(),
+  "quantity": zod.number().nullish()
+})
+
+export const PreviewOrderResponse = zod.object({
+  "available": zod.boolean(),
+  "inputIssues": zod.array(zod.object({
+  "field": zod.enum(['symbol', 'strategy', 'quantity']),
+  "code": zod.string(),
+  "message": zod.string()
+})),
+  "ticket": zod.union([zod.object({
+  "symbol": zod.string(),
+  "strategy": zod.enum(['iron_condor', 'iron_fly', 'calendar_spread', 'earnings']),
+  "expiration": zod.string(),
+  "daysToExpiry": zod.number(),
+  "quantity": zod.number(),
+  "legs": zod.array(zod.object({
+  "occSymbol": zod.string(),
+  "side": zod.enum(['buy', 'sell']),
+  "optionType": zod.enum(['call', 'put']),
+  "strike": zod.number(),
+  "expiration": zod.string(),
+  "ratioQty": zod.number(),
+  "positionIntent": zod.enum(['buy_to_open', 'sell_to_open']),
+  "price": zod.number()
+})),
+  "netCredit": zod.number(),
+  "isCredit": zod.boolean(),
+  "maxProfit": zod.number(),
+  "maxLoss": zod.number(),
+  "pop": zod.number(),
+  "ev": zod.number(),
+  "ravishScore": zod.number(),
+  "ravishTier": zod.string(),
+  "returnOnCapital": zod.number(),
+  "buyingPowerRequired": zod.number(),
+  "accountValue": zod.number(),
+  "riskPct": zod.number(),
+  "portfolioRiskBeforePct": zod.number(),
+  "portfolioRiskAfterPct": zod.number(),
+  "executionMode": zod.enum(['manual', 'semi_auto', 'full_auto']),
+  "canSubmit": zod.boolean(),
+  "validation": zod.object({
+  "valid": zod.boolean(),
+  "checks": zod.array(zod.object({
+  "label": zod.string(),
+  "passed": zod.boolean(),
+  "detail": zod.string()
+})),
+  "violations": zod.array(zod.string()),
+  "warnings": zod.array(zod.string()),
+  "riskDollars": zod.number(),
+  "riskPct": zod.number(),
+  "portfolioRiskBeforePct": zod.number(),
+  "portfolioRiskAfterPct": zod.number()
+}),
+  "warnings": zod.array(zod.string()),
+  "adjustment": zod.union([zod.object({
+  "sourceTradeId": zod.number(),
+  "action": zod.enum(['roll_threatened', 'roll_untested', 'convert']),
+  "actionLabel": zod.string(),
+  "kind": zod.enum(['roll', 'convert']),
+  "fromStrategy": zod.string(),
+  "toStrategy": zod.string(),
+  "closeDescription": zod.string(),
+  "rationale": zod.string(),
+  "source": zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "strategyLabel": zod.string(),
+  "expiration": zod.string().nullable(),
+  "daysToExpiry": zod.number(),
+  "legs": zod.array(zod.object({
+  "side": zod.enum(['buy', 'sell']),
+  "optionType": zod.enum(['call', 'put']),
+  "strike": zod.number(),
+  "expiration": zod.string(),
+  "quantity": zod.number()
+})),
+  "credit": zod.number(),
+  "maxProfit": zod.number(),
+  "maxLoss": zod.number(),
+  "pop": zod.number(),
+  "costToClose": zod.number(),
+  "currentPnl": zod.number(),
+  "isCredit": zod.boolean()
+}),
+  "netCashflow": zod.number()
+}),zod.null()]).optional()
+}).and(zod.object({
+  "entryPricePerSpread": zod.number(),
+  "notionalValue": zod.number(),
+  "marginImpact": zod.number(),
+  "riskRewardRatio": zod.number().nullable()
+})),zod.null()]),
+  "preTradeChecklist": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['ok', 'warning', 'blocked']),
+  "detail": zod.string()
+})),
+  "credentialsConfigured": zod.boolean(),
+  "brokerConnected": zod.boolean().nullable(),
+  "lastBrokerCheckAt": zod.string().nullable(),
+  "accountValue": zod.number(),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Current full-auto engine state, guardrails, and today's stats
  */
 export const GetAutoExecutionStatusResponse = zod.object({
