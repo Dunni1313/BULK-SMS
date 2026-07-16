@@ -49,6 +49,8 @@ export * from './brokerHealth';
 export * from './brokerOrder';
 export * from './brokerOrderResult';
 export * from './brokerOrdersResult';
+export * from './brokerPosition';
+export * from './brokerPositionsResult';
 export * from './cashFlowYear';
 export * from './clearReportsResult';
 export * from './coachGreeks';

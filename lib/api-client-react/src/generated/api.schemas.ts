@@ -3567,6 +3567,23 @@ export interface BrokerOrderResult {
   checkedAt: string;
 }
 
+export interface BrokerPosition {
+  symbol: string;
+  qty: number;
+  side: string;
+  marketValue: number;
+  avgEntryPrice: number;
+  unrealizedPl: number;
+}
+
+export interface BrokerPositionsResult {
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  positions: BrokerPosition[];
+  checkedAt: string;
+}
+
 /**
  * The local trades table's own coarse status vocabulary, normalized for comparison against NormalizedOrderStatus.
  */

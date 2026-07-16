@@ -37,6 +37,15 @@ const rawOrder = {
   submitted_at: "2026-07-16T10:00:00Z",
 };
 
+const rawPosition = {
+  symbol: "AAPL",
+  qty: "10",
+  side: "long",
+  market_value: "1750.00",
+  avg_entry_price: "170.00",
+  unrealized_pl: "50.00",
+};
+
 describe("Broker orders + reconciliation (live routes)", () => {
   let server: Server;
   let baseUrl: string;
@@ -157,6 +166,96 @@ describe("Broker orders + reconciliation (live routes)", () => {
       const body = (await res.json()) as { available: boolean; order: unknown };
       expect(body.available).toBe(false);
       expect(body.order).toBeNull();
+    });
+  });
+
+  describe("GET /broker/positions", () => {
+    it("returns 200 with available:false and an honest reason with no credentials configured (real environment state)", async () => {
+      const res = await fetch(`${baseUrl}/api/broker/positions`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { available: boolean; unavailableReason: string | null; positions: unknown[] };
+      expect(body.available).toBe(false);
+      expect(body.unavailableReason).toMatch(/no alpaca credentials configured/i);
+      expect(body.positions).toEqual([]);
+    });
+
+    it("returns 200 with a well-shaped, mapped position list on success (mocked network only)", async () => {
+      process.env.ALPACA_API_KEY = "k";
+      process.env.ALPACA_API_SECRET = "s";
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const url = String(input);
+        if (url.startsWith(baseUrl)) return realFetch(input, init);
+        if (url.includes("/v2/positions")) return jsonResponse(200, [rawPosition]);
+        throw new Error(`unexpected fetch url in test: ${url}`);
+      });
+
+      const res = await fetch(`${baseUrl}/api/broker/positions`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as {
+        available: boolean;
+        positions: { symbol: string; qty: number; side: string; avgEntryPrice: number; unrealizedPl: number }[];
+      };
+      expect(body.available).toBe(true);
+      expect(body.positions).toHaveLength(1);
+      expect(body.positions[0]).toEqual({
+        symbol: "AAPL",
+        qty: 10,
+        side: "long",
+        marketValue: 1750,
+        avgEntryPrice: 170,
+        unrealizedPl: 50,
+      });
+    });
+
+    it("returns 200 with an honest empty position list when the account has no open positions", async () => {
+      process.env.ALPACA_API_KEY = "k";
+      process.env.ALPACA_API_SECRET = "s";
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const url = String(input);
+        if (url.startsWith(baseUrl)) return realFetch(input, init);
+        if (url.includes("/v2/positions")) return jsonResponse(200, []);
+        throw new Error(`unexpected fetch url in test: ${url}`);
+      });
+
+      const res = await fetch(`${baseUrl}/api/broker/positions`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { available: boolean; positions: unknown[] };
+      expect(body.available).toBe(true);
+      expect(body.positions).toEqual([]);
+    });
+
+    it("returns 200 with available:false on an authentication failure (mocked network only)", async () => {
+      process.env.ALPACA_API_KEY = "bad";
+      process.env.ALPACA_API_SECRET = "bad";
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const url = String(input);
+        if (url.startsWith(baseUrl)) return realFetch(input, init);
+        if (url.includes("/v2/positions")) return jsonResponse(401, { message: "unauthorized" });
+        throw new Error(`unexpected fetch url in test: ${url}`);
+      });
+
+      const res = await fetch(`${baseUrl}/api/broker/positions`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { available: boolean; unavailableReason: string | null };
+      expect(body.available).toBe(false);
+      expect(body.unavailableReason).toMatch(/authentication failed/i);
+    });
+
+    it("returns 200 with available:false on a network failure (mocked network only)", async () => {
+      process.env.ALPACA_API_KEY = "k";
+      process.env.ALPACA_API_SECRET = "s";
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const url = String(input);
+        if (url.startsWith(baseUrl)) return realFetch(input, init);
+        if (url.includes("/v2/positions")) throw new Error("ECONNREFUSED");
+        throw new Error(`unexpected fetch url in test: ${url}`);
+      });
+
+      const res = await fetch(`${baseUrl}/api/broker/positions`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { available: boolean; unavailableReason: string | null };
+      expect(body.available).toBe(false);
+      expect(body.unavailableReason).toMatch(/could not reach alpaca/i);
     });
   });
 

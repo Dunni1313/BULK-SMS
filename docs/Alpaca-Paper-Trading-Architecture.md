@@ -206,6 +206,7 @@ such cache was built).
 |---|---|
 | `GET /api/broker/orders` | Thin pass-through to `getAlpacaAllOrders()`. |
 | `GET /api/broker/orders/:orderId` | Thin pass-through to `getAlpacaOrder()`. |
+| `GET /api/broker/positions` | Thin pass-through to `getAlpacaPositions()` — added in the Paper Portfolio Dashboard sprint, see §4.6. |
 | `GET /api/broker/reconciliation` | Thin pass-through to `buildReconciliation()`, resolving the calling user's own local trades and their `settings.alpacaApiKey`. |
 
 All three always return HTTP `200` for a well-formed request — a
@@ -238,6 +239,62 @@ broker status/quantity/fill side by side, with per-row issue badges), and a
 position-comparison table (local vs. broker quantity, a matched/mismatch
 badge, and a human-readable detail sentence).
 
+### 4.6 The Paper Portfolio Dashboard — a pure composition over the other three layers
+
+New page, `/paper-portfolio` ("Paper Portfolio" nav item). The one
+genuinely new piece of backend surface this sprint added is
+`GET /api/broker/positions` — a direct sibling of `GET /api/broker/orders`,
+a thin pass-through to the already-existing `getAlpacaPositions()` function
+(built in the very first Broker Health milestone, §3) — no new provider
+logic of any kind. Everything else on this page is pure composition: it
+fetches `GET /api/broker/health`, `GET /api/broker/positions`, and
+`GET /api/broker/reconciliation` independently and renders them together,
+cross-referencing the reconciliation result onto each position card
+client-side (matching `position.symbol` against
+`reconciliation.positions[].occSymbol`) — no new backend join, no new
+comparison logic beyond what `buildReconciliation()` (§4.3) already
+computes.
+
+**"Keep all refreshes user-initiated only" is taken literally, and is
+stricter than the Reconciliation panel's own design (§4.5), which fetches
+once automatically on page load.** None of this page's three underlying
+queries fetch on mount — each of the three sections (Account/Broker Health,
+Portfolio, Reconciliation) independently shows an honest "Not yet checked"
+placeholder until its own Refresh button (Refresh Broker Health, Refresh
+Portfolio, Refresh Reconciliation) is clicked, and each button is
+independently disabled — with its own spinner — only while its own request
+is in flight; the other two sections remain fully interactive. There is no
+polling, timer, or scheduled job anywhere on this page.
+
+**Two P/L figures, one real and one honestly absent:**
+- **Unrealized P/L** is computed client-side as the sum of every position's
+  own `unrealizedPl` (an unmodified Alpaca field, §4.1) — but only once the
+  Portfolio section has actually been checked successfully this session;
+  before that, or if it's unavailable, the page shows "Not available"
+  rather than a stale or zeroed number.
+- **Realized P/L is always "Not available,"** on every load, with a
+  disclosed one-line reason. Alpaca's realized profit/loss is not a field on
+  either `/v2/account` or `/v2/positions` — it requires the portfolio
+  history or account-activities endpoints, neither of which this platform
+  fetches (no provider method for either was added this sprint, since none
+  was requested and adding one to satisfy a "when available" display would
+  have meant introducing new provider surface outside this sprint's own
+  scope of "uses the existing Broker Health and Reconciliation APIs"). This
+  is a real, structural gap — not a bug, and not something this dashboard
+  papers over with an estimate.
+
+Position cards show: Symbol, Quantity, Average Cost (`avgEntryPrice`),
+Market Value, Unrealized P/L (all straight from `GET /api/broker/positions`,
+unmodified), a Long/Short badge (from the position's own `side` field — this
+is what "Current status" in the sprint's own request maps to), and a
+Reconciliation badge — "Not yet checked" before the Reconciliation section
+has ever been refreshed, "Not compared" if reconciliation ran but that exact
+symbol wasn't present in its own comparison set (an edge case — normally
+every broker position the Portfolio fetch sees will also appear in
+Reconciliation's own independently-fetched position list), or
+Matched/Mismatch with the same `detail` sentence the Reconciliation page
+itself shows.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -252,6 +309,11 @@ badge, and a human-readable detail sentence).
 - **Pagination for `GET /v2/orders?status=all`** — bounded to Alpaca's own
   default page size this sprint; an account with a very long order history
   would need a follow-up sprint to page through it.
+- **Realized P/L.** No provider method exists anywhere in this codebase for
+  Alpaca's portfolio-history or account-activities endpoints, the only
+  sources for a real realized profit/loss figure — the Paper Portfolio
+  Dashboard (§4.6) always shows "Not available" for this field, honestly,
+  rather than estimating it from the data this platform does fetch.
 - **Any automatic correction, cancellation, or position-closing action.**
   Explicitly and permanently out of scope for this reconciliation layer by
   design — it is a read-only comparison tool, not a repair tool. If a future
@@ -282,8 +344,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `alpacaOrderLifecycle.ts` | Pure-function unit tests — every raw→normalized mapping, case-insensitivity, the honest-unknown-fallback path, and every `isStatusContradiction()` rule (including the "never guess when either side is unknown" proof). |
 | `alpacaBroker.ts` (orders/positions additions) | Mocked-fetch unit tests for `getAlpacaOrder`/`getAlpacaAllOrders`/`getAlpacaPosition` — success, `no_credentials`, `unauthorized`, `http_error`, `network_error` for each, plus the 404-as-honest-null proof for `getAlpacaPosition` specifically (distinguished from `getAlpacaOrder`'s 404-as-`http_error` behavior). |
 | `brokerReconciliation.ts` | Unit tests against a real, isolated test-database user (never the shared legacy-owner account) — every issue type (`missing_at_broker`, `missing_locally`, `status_mismatch`, `quantity_mismatch`, `symbol_mismatch`), filled-order/partially-filled/rejected/cancelled/unknown broker statuses, the mock-order-id exclusion, the closed-trade exclusion, position-mismatch scenarios (missing at broker, missing locally, quantity mismatch), the "only open trades contribute a position" rule, and a genuine fully-reconciled (`issueCount: 0`) scenario. |
-| `routes/brokerReconciliation.ts` | Live end-to-end HTTP tests against the real app — the real, live "no credentials" state for all 3 routes (this environment's actual state, unmocked), plus mocked-network success/auth-failure/network-failure branches for each. |
+| `routes/brokerReconciliation.ts` | Live end-to-end HTTP tests against the real app — the real, live "no credentials" state for all 4 routes (including `/broker/positions`, this environment's actual state, unmocked), plus mocked-network success/empty-list/auth-failure/network-failure branches for each. |
 | `PaperTradingReconciliation.tsx` | Frontend smoke tests — loading, a genuine request-level error, the honest no-credentials/auth-failure/network-failure states with the page remaining usable, a fully-reconciled render, every issue-type render, filled/partially-filled/rejected/cancelled/unknown order status rendering, position-mismatch and matched-position rendering, and the Refresh button's loading/disabled/click-triggers-refetch behavior. |
+| `PaperPortfolio.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode badge, the honest "not yet checked" state for all 3 sections before any refresh (proving nothing auto-fetches), Realized P/L's permanent "Not available" disclosure, empty-portfolio and populated-portfolio (long and short) rendering with a real summed Unrealized P/L, no-credentials/auth-failure/network-failure for each of the 3 independent sections, position-card reconciliation cross-referencing (not-yet-checked/matched/mismatch), and each Refresh button's independent loading/disabled/click-triggers-only-its-own-refetch behavior. |
 
 ## 8. Cross-references
 

@@ -126,6 +126,27 @@ reconciliation rule: `docs/Alpaca-Paper-Trading-Architecture.md`.
 
 This platform's `role` field on `users` exists but — confirmed by direct inspection — has no differentiated admin-only functionality built on top of it as of Sprint 77; every route's own authorization is per-user data scoping (`getScopedUserId()`), not role-based. There is currently no "operator dashboard" distinct from a regular user's own account. Standing up one is out of scope for this handbook and would be its own future sprint if ever needed.
 
+### 6.8 Checking the Paper Portfolio Dashboard
+
+The "Paper Portfolio" nav item (`/paper-portfolio`) composes Broker Health,
+positions, and Reconciliation into one at-a-glance view: account status,
+buying power, cash balance, portfolio value, open position/order counts,
+Unrealized P/L (summed live from real positions once checked), Realized P/L
+(always honestly "Not available" — no endpoint exists for it, see
+`docs/Alpaca-Paper-Trading-Architecture.md` §4.6), and one card per open
+position (symbol, quantity, average cost, long/short, and a reconciliation
+badge).
+
+**Every section requires its own explicit Refresh** — Refresh Broker
+Health, Refresh Portfolio, Refresh Reconciliation. None of the three fetch
+automatically on page load; this page is stricter about "manual only" than
+the Broker Reconciliation page (§6.6), which does fetch once on load. Each
+button disables itself, independently, only while its own request is in
+flight. When credentials are missing or a check fails, each section shows
+its own honest reason and the rest of the page stays fully usable.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.6.
+
 ---
 
 ## 7. Escalation
@@ -143,7 +164,7 @@ This platform's `role` field on `users` exists but — confirmed by direct inspe
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, and Order Lifecycle & Reconciliation), including the reconciliation panel referenced in §6.6 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, and the Paper Portfolio Dashboard), including the reconciliation panel referenced in §6.6 and the portfolio dashboard referenced in §6.8 above.
 - `docs/Incident-Response-Runbook.md` — per-alert-category diagnosis and recovery.
 - `docs/Production-Rollout-Plan.md` — the one-time go-live procedure and backup/recovery details this handbook's §6/§7 draw on.
 - `docs/Production-Readiness-Report.md` — current-state readiness assessment.

@@ -47,7 +47,8 @@ import {
   LayoutGrid,
   TestTube2,
   Newspaper,
-  GitCompare
+  GitCompare,
+  Wallet
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -118,6 +119,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { title: "Value Research", href: "/stock-analyst", icon: Building2 },
     { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
     { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },
+    { title: "Paper Portfolio", href: "/paper-portfolio", icon: Wallet },
     { title: "Broker Reconciliation", href: "/broker-reconciliation", icon: GitCompare },
     { title: "Settings", href: "/settings", icon: Settings },
   ];

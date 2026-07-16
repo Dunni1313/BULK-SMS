@@ -399,6 +399,25 @@ export const GetBrokerOrderResponse = zod.object({
 
 
 /**
+ * A thin, read-only pass-through to GET /v2/positions. Distinct from GET /broker/reconciliation's own positions array, which is a local-vs-broker comparison, not a plain display list — this route surfaces Alpaca's own position fields (average entry price, side, market value, unrealized P/L) directly. Never modifies or closes a position.
+ * @summary List all Alpaca Paper Trading positions, read-only
+ */
+export const GetBrokerPositionsResponse = zod.object({
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "positions": zod.array(zod.object({
+  "symbol": zod.string(),
+  "qty": zod.number(),
+  "side": zod.string(),
+  "marketValue": zod.number(),
+  "avgEntryPrice": zod.number(),
+  "unrealizedPl": zod.number()
+})),
+  "checkedAt": zod.string()
+})
+
+
+/**
  * Manual, on-demand only — never runs on a schedule or background timer. Read-only: identifies discrepancies (missing at broker, missing locally, status/quantity/symbol mismatches, open-position mismatches) without correcting, cancelling, or closing anything on either side.
  * @summary Compare local trade/order records against Alpaca Paper Trading orders and positions, read-only
  */

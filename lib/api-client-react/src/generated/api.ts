@@ -37,6 +37,7 @@ import type {
   BrokerHealth,
   BrokerOrderResult,
   BrokerOrdersResult,
+  BrokerPositionsResult,
   ClearReportsResult,
   CoachLesson,
   CompareReportsRequest,
@@ -1018,6 +1019,84 @@ export function useGetBrokerOrder<TData = Awaited<ReturnType<typeof getBrokerOrd
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetBrokerOrderQueryOptions(orderId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerPositionsUrl = () => {
+
+
+
+
+  return `/api/broker/positions`
+}
+
+/**
+ * A thin, read-only pass-through to GET /v2/positions. Distinct from GET /broker/reconciliation's own positions array, which is a local-vs-broker comparison, not a plain display list — this route surfaces Alpaca's own position fields (average entry price, side, market value, unrealized P/L) directly. Never modifies or closes a position.
+ * @summary List all Alpaca Paper Trading positions, read-only
+ */
+export const getBrokerPositions = async ( options?: RequestInit): Promise<BrokerPositionsResult> => {
+
+  return customFetch<BrokerPositionsResult>(getGetBrokerPositionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerPositionsQueryKey = () => {
+    return [
+    `/api/broker/positions`
+    ] as const;
+    }
+
+
+export const getGetBrokerPositionsQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerPositions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerPositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerPositionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerPositions>>> = ({ signal }) => getBrokerPositions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerPositions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerPositionsQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerPositions>>>
+export type GetBrokerPositionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all Alpaca Paper Trading positions, read-only
+ */
+
+export function useGetBrokerPositions<TData = Awaited<ReturnType<typeof getBrokerPositions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerPositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerPositionsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

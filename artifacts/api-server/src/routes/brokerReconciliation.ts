@@ -1,6 +1,11 @@
 import { Router, type IRouter } from "express";
-import { GetBrokerOrdersResponse, GetBrokerOrderResponse, GetBrokerReconciliationResponse } from "@workspace/api-zod";
-import { getAlpacaAllOrders, getAlpacaOrder, type BrokerFailureReason } from "../lib/providers/alpacaBroker.js";
+import {
+  GetBrokerOrdersResponse,
+  GetBrokerOrderResponse,
+  GetBrokerReconciliationResponse,
+  GetBrokerPositionsResponse,
+} from "@workspace/api-zod";
+import { getAlpacaAllOrders, getAlpacaOrder, getAlpacaPositions, type BrokerFailureReason } from "../lib/providers/alpacaBroker.js";
 import { buildReconciliation } from "../lib/brokerReconciliation.js";
 import { getSettingsRow } from "../lib/serverState.js";
 import { getScopedUserId } from "../lib/tenantScope.js";
@@ -78,6 +83,40 @@ router.get("/broker/orders/:orderId", async (req, res): Promise<void> => {
       available: true,
       unavailableReason: null,
       order: result.data,
+      checkedAt,
+    }),
+  );
+});
+
+// The raw broker position list (Paper Portfolio Dashboard's "Portfolio"
+// refresh action) — distinct from GET /broker/reconciliation's own
+// positions[], which is a LOCAL-vs-BROKER comparison, not a display list.
+// This route surfaces Alpaca's own position fields (avg entry price, side,
+// market value, unrealized P/L) directly, refreshable independently of
+// both Broker Health and Reconciliation.
+router.get("/broker/positions", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const settings = await getSettingsRow(userId);
+  const checkedAt = new Date().toISOString();
+  const result = await getAlpacaPositions(settings.alpacaApiKey);
+
+  if (!result.ok) {
+    res.json(
+      GetBrokerPositionsResponse.parse({
+        available: false,
+        unavailableReason: reasonForFailure(result.reason, result.message),
+        positions: [],
+        checkedAt,
+      }),
+    );
+    return;
+  }
+
+  res.json(
+    GetBrokerPositionsResponse.parse({
+      available: true,
+      unavailableReason: null,
+      positions: result.data,
       checkedAt,
     }),
   );

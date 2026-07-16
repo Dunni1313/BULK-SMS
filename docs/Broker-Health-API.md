@@ -362,6 +362,8 @@ above:
 
 - `GET /api/broker/orders` — all orders (any status), read-only pass-through.
 - `GET /api/broker/orders/:orderId` — a single order by id, read-only pass-through.
+- `GET /api/broker/positions` — all positions, read-only pass-through (added
+  in the Paper Portfolio Dashboard sprint — see §12 below).
 - `GET /api/broker/reconciliation` — compares local trade records against
   Alpaca's real orders and positions, read-only, manual/on-demand only.
 
@@ -371,3 +373,37 @@ model, the reconciliation rules, and the UI panel — in
 the original account-verification (`/broker/health`) surface it was written
 for. Nothing in this section changes anything described in §§1–10 above —
 `GET /api/broker/health` and `settings.alpacaConnected` are untouched.
+
+## 12. The Paper Portfolio Dashboard — a pure composition, no new logic
+
+The Paper Portfolio Dashboard sprint added one small, thin route,
+`GET /api/broker/positions` (a direct pass-through to the already-existing
+`getAlpacaPositions()` — no new provider logic, since that function was
+built in the very first Broker Health milestone this document describes),
+and one new page, `/paper-portfolio` ("Paper Portfolio" nav item). The page
+composes three already-independent endpoints — `GET /api/broker/health`,
+`GET /api/broker/positions`, and `GET /api/broker/reconciliation` — into one
+dashboard, cross-referencing the reconciliation result onto each position
+card client-side (by symbol) rather than by any new backend join.
+
+**Every refresh on this page is user-initiated only** — none of the three
+underlying queries fetch automatically on mount; each section shows an
+honest "Not yet checked" placeholder until its own Refresh button is
+clicked, and each button is independently disabled while its own request is
+in flight. There is no polling, timer, or scheduled job anywhere on this
+page — the same manual-only discipline `GET /api/broker/health` and
+`GET /api/broker/reconciliation` already established.
+
+**Two figures are honestly never fabricated:** Unrealized P/L is only ever a
+real number once the Portfolio section has been successfully checked this
+session (summed from the real position list) — never a stale or zeroed
+placeholder beforehand. Realized P/L is **always** shown as "Not available,"
+with a one-line disclosed reason, on every load — Alpaca's realized P&L
+requires the portfolio history/activities endpoints, which this platform
+does not fetch, and no new provider method for it was added this sprint.
+This is a genuine capability gap, not a bug: the dashboard never approximates
+or estimates a realized P&L figure from data that doesn't actually support
+computing one.
+
+Full detail on `GET /api/broker/positions` and the dashboard's own design:
+`docs/Alpaca-Paper-Trading-Architecture.md` §4.6.
