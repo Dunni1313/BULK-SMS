@@ -1854,6 +1854,11 @@ export interface Trade {
   exitReason?: string | null;
   /** @nullable */
   notes?: string | null;
+  /**
+     * The broker order id returned at submission time, or a "mock-<uuid>" id when no broker credentials were configured at submission (this trade was never actually sent to Alpaca). Added in the Trade History sprint — previously stored but not exposed via this API.
+     * @nullable
+     */
+  alpacaOrderId?: string | null;
 }
 
 export type TradeInputStrategy = typeof TradeInputStrategy[keyof typeof TradeInputStrategy];
@@ -2509,6 +2514,16 @@ export interface JournalEntry {
   mood: JournalEntryMood;
   /** @nullable */
   lessonLearned?: string | null;
+  /**
+     * The case for taking the trade — distinct from the general-purpose `content` notes field.
+     * @nullable
+     */
+  thesis?: string | null;
+  /**
+     * What specifically triggered entry.
+     * @nullable
+     */
+  entryReasoning?: string | null;
   tags?: string[];
   /** @nullable */
   strategy?: string | null;
@@ -2550,6 +2565,8 @@ export interface JournalEntryInput {
   content: string;
   mood: JournalEntryInputMood;
   lessonLearned?: string;
+  thesis?: string;
+  entryReasoning?: string;
   tags?: string[];
   /** @nullable */
   strategy?: string | null;
@@ -2587,6 +2604,8 @@ export interface JournalEntryUpdate {
   content?: string;
   mood?: JournalEntryUpdateMood;
   lessonLearned?: string;
+  thesis?: string;
+  entryReasoning?: string;
   tags?: string[];
 }
 

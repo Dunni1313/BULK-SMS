@@ -295,6 +295,89 @@ Reconciliation's own independently-fetched position list), or
 Matched/Mismatch with the same `detail` sentence the Reconciliation page
 itself shows.
 
+### 4.7 Trade History, Performance Analytics & Trading Journal
+
+Three new pages — `/trade-history` ("Trade History"), `/trade-performance`
+("Trade Performance" — named distinctly to avoid colliding with the
+existing, unrelated options-side "Performance" page at `/performance`), and
+an extended existing Trading Journal (via the same `/journal` page and its
+own `PATCH /journal/:id` endpoint, unmodified) — together form a historical
+review layer over the local `trades` and `journal_entries` tables. **No new
+broker endpoint was added or is needed** — the one broker call this layer
+makes is `GET /broker/reconciliation`, reused exactly as it already exists
+(§4.3), cross-referenced client-side by `tradeId`/`alpacaOrderId`, the same
+technique the Paper Portfolio Dashboard (§4.6) already established.
+
+**Trade History is local-data-driven, not broker-driven, so it fetches on
+page load like any other list page** (`GET /trades?limit=500`, unmodified —
+sorting/filtering/searching/pagination all happen client-side over that one
+bounded fetch; a future sprint can add real server-side pagination if trade
+volume ever outgrows one call). **Broker reconciliation stays fully
+manual** — a "Check Reconciliation" button, never fetched automatically,
+matching the discipline every broker-touching page in this app has followed
+since the Broker Connection UI sprint.
+
+Two fields Trade History displays are genuine **derivations**, disclosed as
+such, never presented as literal broker-reported values:
+- **Direction (Long/Short)** — a net-credit trade (`credit >= 0`) is "Short"
+  the spread (premium received); a net-debit trade is "Long" it (premium
+  paid). A real mapping onto the trade's own already-stored `credit` sign.
+- **Exit Price** — no literal exit fill price is stored anywhere on a
+  trade, only the realized dollar P&L (`currentPnl`) at close. Since
+  `realizedPnl = creditReceivedAtEntry − costToClose`, this platform derives
+  `costToClose = credit − currentPnl` once a trade has genuinely closed
+  with a known P&L — never fabricated, never shown for an open trade.
+
+`Trade.alpacaOrderId` — stored since the very first sprint that touched
+`execution.ts`'s order submission but never previously exposed via the API
+— was added to the `Trade` OpenAPI schema this sprint (a purely additive,
+backward-compatible field; every existing consumer of `GET /trades`
+continues to work unchanged). A `mock-<uuid>`-prefixed id means the trade
+was never actually sent to Alpaca (no broker credentials were configured at
+submission time) — Trade History labels this "Simulated (no broker order)"
+immediately, from local data alone, without waiting for a reconciliation
+check to reveal it.
+
+**Performance Analytics is explicitly, unavoidably local-only.** As §4.6
+already disclosed for Realized P/L, this platform has no broker-side
+realized-P&L source at all — so every single figure on the Trade
+Performance page (win rate, average win/loss, largest winner/loser, average
+holding time, open/closed counts) is computed by
+`lib/tradeAnalytics.ts::computePerformanceAnalytics()`, a pure function over
+the same local `trades` array Trade History already fetched, never invented
+or approximated from any broker call. The one figure that does touch the
+broker layer — **Reconciliation Success Percentage** — is computed by the
+same file's `computeReconciliationSuccess()` over
+`GET /broker/reconciliation`'s own already-computed `orders[]` (the
+percentage of order comparisons with zero issues), honestly `null` ("Not
+yet checked") until that manual check has actually been run at least once.
+
+**Trading Journal** gained two new, purely additive, nullable columns —
+`thesis` (the case for taking the trade) and `entry_reasoning` (what
+specifically triggered entry) — distinct from the pre-existing `content`
+(general notes) and `lesson_learned` fields. "Exit Reasoning" needed no new
+column at all — it reuses the already-existing `exit_reason` field, simply
+relabeled in the UI. **No code change was needed in `routes/journal.ts`
+itself** — its `PATCH /journal/:id` handler already does a generic
+`db.update(journalEntriesTable).set(parsed.data)`, the same
+spread-whatever-the-schema-allows pattern `routes/settings.ts` established
+back in Phase 1 — so once the OpenAPI schema allowed the two new fields
+through, editing them "just worked." Trade History's own per-trade detail
+panel is where a user actually views and edits a trade's linked journal
+entries (looked up by `tradeId`, which is a loose, unenforced reference —
+the same precedent `journal_entries.trade_id` has followed since Phase 1)
+— **not** a duplicate of the existing `/journal` page, which remains
+completely untouched and unmodified by this sprint.
+
+**"AI review placeholder" is a static, non-interactive line of text**
+("AI-generated trade review is not available yet — coming in a future
+sprint") — per the sprint's own explicit "Do not add AI generation yet"
+instruction, no LLM call of any kind was added for this.
+
+No database migration beyond the two new nullable journal columns; no
+change to `execution.ts`'s order-submission path, `routes/journal.ts`'s
+own route logic, or any existing page.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -347,11 +430,18 @@ to everything else in this codebase. Specifically for this document's scope:
 | `routes/brokerReconciliation.ts` | Live end-to-end HTTP tests against the real app — the real, live "no credentials" state for all 4 routes (including `/broker/positions`, this environment's actual state, unmocked), plus mocked-network success/empty-list/auth-failure/network-failure branches for each. |
 | `PaperTradingReconciliation.tsx` | Frontend smoke tests — loading, a genuine request-level error, the honest no-credentials/auth-failure/network-failure states with the page remaining usable, a fully-reconciled render, every issue-type render, filled/partially-filled/rejected/cancelled/unknown order status rendering, position-mismatch and matched-position rendering, and the Refresh button's loading/disabled/click-triggers-refetch behavior. |
 | `PaperPortfolio.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode badge, the honest "not yet checked" state for all 3 sections before any refresh (proving nothing auto-fetches), Realized P/L's permanent "Not available" disclosure, empty-portfolio and populated-portfolio (long and short) rendering with a real summed Unrealized P/L, no-credentials/auth-failure/network-failure for each of the 3 independent sections, position-card reconciliation cross-referencing (not-yet-checked/matched/mismatch), and each Refresh button's independent loading/disabled/click-triggers-only-its-own-refetch behavior. |
+| `lib/tradeAnalytics.ts` | Pure-function unit tests — direction/exit-price/holding-period/spread-quantity derivation (including the honest-null paths for an unclosed trade or a trade with unknown P&L), `isMockOrderId`'s classification, `computePerformanceAnalytics()`'s win rate/averages/largest winner-loser/breakeven-exclusion/open-vs-closed counting over a real mixed trade set, and `computeReconciliationSuccess()`'s honest-null-before-checked path and its real-percentage computation over constructed `OrderReconciliationEntry` fixtures. |
+| `TradeHistory.tsx` | Frontend smoke tests — loading/error/honest-empty states, a populated row's direction/exit-price/status/holding-period rendering, search-by-symbol, status filtering, strategy filtering, symbol sorting (both directions), pagination across multiple pages, the honest "Simulated (no broker order)" label for a mock-originated trade (independent of whether reconciliation has ever run), the "Not yet checked" vs. Matched vs. Mismatch reconciliation badge progression, the Check Reconciliation button's disabled/click-triggers-refetch behavior, linked journal entries rendering and editing (a real `PATCH /journal/:id` payload proof), the honest "no journal entries" message, and the static AI review placeholder. |
+| `TradePerformance.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode badge and local-data-only disclosure, loading/error/honest-empty states, every one of the 11 analytics cards computed from real local trade data, the reconciliation success percentage's honest-not-yet-checked/real-percentage/unavailable-reason states, and the Check Reconciliation button's disabled/click-triggers-refetch behavior. |
 
 ## 8. Cross-references
 
 - `docs/Broker-Health-API.md` — the account-verification (`/broker/health`)
   endpoint's own full detail, including its UI panel on the Settings page.
+- `docs/Trading-Journal.md` — the Trading Journal system's own full detail
+  (the new `thesis`/`entryReasoning` columns, how entries are edited from
+  the Trade History detail panel, the AI-review placeholder, and the
+  broker-reconciliation summary integration described in §4.7 above).
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

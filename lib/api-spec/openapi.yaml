@@ -4243,6 +4243,14 @@ components:
           type: ["string", "null"]
         notes:
           type: ["string", "null"]
+        alpacaOrderId:
+          type: ["string", "null"]
+          description: >-
+            The broker order id returned at submission time, or a
+            "mock-<uuid>" id when no broker credentials were configured at
+            submission (this trade was never actually sent to Alpaca).
+            Added in the Trade History sprint — previously stored but not
+            exposed via this API.
 
     TradeLeg:
       type: object
@@ -5024,6 +5032,12 @@ components:
           enum: [confident, neutral, cautious, frustrated, excited]
         lessonLearned:
           type: ["string", "null"]
+        thesis:
+          type: ["string", "null"]
+          description: The case for taking the trade — distinct from the general-purpose `content` notes field.
+        entryReasoning:
+          type: ["string", "null"]
+          description: What specifically triggered entry.
         tags:
           type: array
           items:
@@ -5066,6 +5080,10 @@ components:
           enum: [confident, neutral, cautious, frustrated, excited]
         lessonLearned:
           type: string
+        thesis:
+          type: string
+        entryReasoning:
+          type: string
         tags:
           type: array
           items:
@@ -5100,6 +5118,10 @@ components:
           type: string
           enum: [confident, neutral, cautious, frustrated, excited]
         lessonLearned:
+          type: string
+        thesis:
+          type: string
+        entryReasoning:
           type: string
         tags:
           type: array

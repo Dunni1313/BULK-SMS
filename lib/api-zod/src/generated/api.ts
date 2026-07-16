@@ -687,7 +687,8 @@ export const ListTradesResponseItem = zod.object({
   "theta": zod.number(),
   "ravishScore": zod.number(),
   "exitReason": zod.string().nullish(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "alpacaOrderId": zod.string().nullish().describe('The broker order id returned at submission time, or a \"mock-<uuid>\" id when no broker credentials were configured at submission (this trade was never actually sent to Alpaca). Added in the Trade History sprint — previously stored but not exposed via this API.')
 })
 export const ListTradesResponse = zod.array(ListTradesResponseItem)
 
@@ -748,7 +749,8 @@ export const GetTradeResponse = zod.object({
   "theta": zod.number(),
   "ravishScore": zod.number(),
   "exitReason": zod.string().nullish(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "alpacaOrderId": zod.string().nullish().describe('The broker order id returned at submission time, or a \"mock-<uuid>\" id when no broker credentials were configured at submission (this trade was never actually sent to Alpaca). Added in the Trade History sprint — previously stored but not exposed via this API.')
 })
 
 
@@ -787,7 +789,8 @@ export const CloseTradeResponse = zod.object({
   "theta": zod.number(),
   "ravishScore": zod.number(),
   "exitReason": zod.string().nullish(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "alpacaOrderId": zod.string().nullish().describe('The broker order id returned at submission time, or a \"mock-<uuid>\" id when no broker credentials were configured at submission (this trade was never actually sent to Alpaca). Added in the Trade History sprint — previously stored but not exposed via this API.')
 })
 
 
@@ -1372,6 +1375,8 @@ export const ListJournalEntriesResponseItem = zod.object({
   "content": zod.string(),
   "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']),
   "lessonLearned": zod.string().nullish(),
+  "thesis": zod.string().nullish().describe('The case for taking the trade — distinct from the general-purpose `content` notes field.'),
+  "entryReasoning": zod.string().nullish().describe('What specifically triggered entry.'),
   "tags": zod.array(zod.string()).optional(),
   "strategy": zod.string().nullish(),
   "entryCredit": zod.number().nullish(),
@@ -1397,6 +1402,8 @@ export const CreateJournalEntryBody = zod.object({
   "content": zod.string(),
   "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']),
   "lessonLearned": zod.string().optional(),
+  "thesis": zod.string().optional(),
+  "entryReasoning": zod.string().optional(),
   "tags": zod.array(zod.string()).optional(),
   "strategy": zod.string().nullish(),
   "entryCredit": zod.number().nullish(),
@@ -1424,6 +1431,8 @@ export const GetJournalEntryResponse = zod.object({
   "content": zod.string(),
   "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']),
   "lessonLearned": zod.string().nullish(),
+  "thesis": zod.string().nullish().describe('The case for taking the trade — distinct from the general-purpose `content` notes field.'),
+  "entryReasoning": zod.string().nullish().describe('What specifically triggered entry.'),
   "tags": zod.array(zod.string()).optional(),
   "strategy": zod.string().nullish(),
   "entryCredit": zod.number().nullish(),
@@ -1451,6 +1460,8 @@ export const UpdateJournalEntryBody = zod.object({
   "content": zod.string().optional(),
   "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']).optional(),
   "lessonLearned": zod.string().optional(),
+  "thesis": zod.string().optional(),
+  "entryReasoning": zod.string().optional(),
   "tags": zod.array(zod.string()).optional()
 })
 
@@ -1461,6 +1472,8 @@ export const UpdateJournalEntryResponse = zod.object({
   "content": zod.string(),
   "mood": zod.enum(['confident', 'neutral', 'cautious', 'frustrated', 'excited']),
   "lessonLearned": zod.string().nullish(),
+  "thesis": zod.string().nullish().describe('The case for taking the trade — distinct from the general-purpose `content` notes field.'),
+  "entryReasoning": zod.string().nullish().describe('What specifically triggered entry.'),
   "tags": zod.array(zod.string()).optional(),
   "strategy": zod.string().nullish(),
   "entryCredit": zod.number().nullish(),

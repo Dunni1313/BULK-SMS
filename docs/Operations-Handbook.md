@@ -147,6 +147,47 @@ its own honest reason and the rest of the page stays fully usable.
 
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.6.
 
+### 6.9 Trade History, Trade Performance, and the Trading Journal
+
+Three related nav items, all built on **local trade data only** unless a
+manual broker reconciliation check has been run:
+
+- **"Trade History"** (`/trade-history`) — a sortable, filterable,
+  searchable, paginated table of every local trade (date/time, symbol,
+  strategy, derived Long/Short direction, quantity, entry price, a derived
+  exit price when the trade is closed, status, holding period, local trade
+  id, and broker order id when one exists). Expanding a row opens a detail
+  panel with the full journal entry for that trade (editable in place —
+  Notes, Thesis, Entry Reasoning, Lessons Learned, plus the trade's own
+  existing Exit Reason), a static AI-review placeholder (no LLM call yet),
+  and a broker cross-reference summary (local status, broker status,
+  mismatches, fill quantity, average fill price) sourced from the same
+  reconciliation endpoint as §6.6, checked only via an explicit "Check
+  Reconciliation" button — never automatically.
+- **"Trade Performance"** (`/trade-performance`) — dashboard cards (total/
+  winning/losing trades, win rate, average win/loss, average holding time,
+  largest winner/loser, open/closed trade counts) computed entirely from
+  local trade history, plus a separately-labeled Reconciliation Success
+  percentage that is the one card genuinely dependent on a manual broker
+  check. Named "Trade Performance," not "Performance," to avoid colliding
+  with the pre-existing, unrelated Options Income Engine performance page
+  at `/performance`.
+- **Trading Journal** — no new page; journal entries continue to be
+  createable and editable from the pre-existing `/journal` page exactly as
+  before, and are now also editable per-trade from the Trade History detail
+  panel above. Two new optional fields, Thesis and Entry Reasoning, were
+  added to journal entries this sprint.
+
+**Every figure on these two pages is either derived from real, already-
+stored local data or explicitly labeled as unavailable/not-yet-checked —
+none is a fabricated or invented broker value.** Direction and exit price
+are honest derivations from stored fields (documented in
+`docs/Alpaca-Paper-Trading-Architecture.md` §4.7), not literal broker fill
+data.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.7 and
+`docs/Trading-Journal.md`.
+
 ---
 
 ## 7. Escalation
@@ -164,7 +205,8 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.6.
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, and the Paper Portfolio Dashboard), including the reconciliation panel referenced in §6.6 and the portfolio dashboard referenced in §6.8 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, and Trade History/Performance Analytics), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, and the Trade History/Performance pages referenced in §6.9 above.
+- `docs/Trading-Journal.md` — the Trading Journal system's own full detail, referenced in §6.9 above.
 - `docs/Incident-Response-Runbook.md` — per-alert-category diagnosis and recovery.
 - `docs/Production-Rollout-Plan.md` — the one-time go-live procedure and backup/recovery details this handbook's §6/§7 draw on.
 - `docs/Production-Readiness-Report.md` — current-state readiness assessment.

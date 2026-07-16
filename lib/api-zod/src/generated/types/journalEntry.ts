@@ -16,6 +16,16 @@ export interface JournalEntry {
   mood: JournalEntryMood;
   /** @nullable */
   lessonLearned?: string | null;
+  /**
+     * The case for taking the trade — distinct from the general-purpose `content` notes field.
+     * @nullable
+     */
+  thesis?: string | null;
+  /**
+     * What specifically triggered entry.
+     * @nullable
+     */
+  entryReasoning?: string | null;
   tags?: string[];
   /** @nullable */
   strategy?: string | null;

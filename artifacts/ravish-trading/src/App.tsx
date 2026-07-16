@@ -54,6 +54,8 @@ const PortfolioConstruction = lazy(() => import("./pages/PortfolioConstruction")
 const ValueInvestingSchool = lazy(() => import("./pages/ValueInvestingSchool"));
 const PaperTradingReconciliation = lazy(() => import("./pages/PaperTradingReconciliation"));
 const PaperPortfolio = lazy(() => import("./pages/PaperPortfolio"));
+const TradeHistory = lazy(() => import("./pages/TradeHistory"));
+const TradePerformance = lazy(() => import("./pages/TradePerformance"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Login"));
 
@@ -115,6 +117,8 @@ function Router() {
           <Route path="/stock-analyst" component={StockResearch} />
           <Route path="/broker-reconciliation" component={PaperTradingReconciliation} />
           <Route path="/paper-portfolio" component={PaperPortfolio} />
+          <Route path="/trade-history" component={TradeHistory} />
+          <Route path="/trade-performance" component={TradePerformance} />
           <Route path="/settings" component={Settings} />
           <Route path="/learn/delta" component={DeltaMasterclass} />
           <Route path="/learn/greeks" component={GreeksTutor} />

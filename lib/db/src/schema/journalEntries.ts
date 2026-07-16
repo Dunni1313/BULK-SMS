@@ -14,6 +14,11 @@ export const journalEntriesTable = pgTable("journal_entries", {
   content: text("content").notNull(),
   mood: text("mood").notNull().default("neutral"),
   lessonLearned: text("lesson_learned"),
+  // Trade History, Performance Analytics & Trading Journal sprint — the case
+  // for taking the trade, and what specifically triggered entry, distinct
+  // from the general-purpose `content` notes field.
+  thesis: text("thesis"),
+  entryReasoning: text("entry_reasoning"),
   tags: text("tags").array().notNull().default([]),
   strategy: text("strategy"),
   entryCredit: real("entry_credit"),
