@@ -966,6 +966,82 @@ No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
 change. No new database write of any kind — every function in
 `lib/portfolioDashboard.ts` only ever `SELECT`s.
 
+### 4.15 Institutional Command Center
+
+The application's primary landing page, mounted at `/` — a single
+executive workspace consolidating every existing dashboard in this
+platform into 8 sections. **This sprint adds zero new backend routes,
+zero new database queries, and zero new calculations of any kind** — it
+is a frontend-only composition over already-existing generated hooks,
+confirmed by `git diff --stat` showing no new backend files aside from
+one small, additive extension (below). Full detail:
+`docs/Institutional-Command-Center.md`.
+
+**Not to be confused with the pre-existing `/institutional-dashboard`
+page** — an earlier, unrelated sprint's own cross-engine composition for
+this platform's stock-research/trading-signal surfaces. The two are
+deliberately never merged; `docs/Institutional-Command-Center.md` §2
+discloses the naming similarity directly.
+
+**One data source, `useGetPortfolioDashboard()` (Portfolio Risk
+Dashboard sprint), satisfies the majority of this page** — its own
+`widgets[]`, `guidance[]`, `netGreeks`, allocation buckets, and
+credentials/broker disclosure directly populate Sections 1, 2, 4 (Beta),
+5, 6, and 7. Section 3 (Options Income Engine) reuses
+`useGetPerformanceAnalytics({ period: "all" })`'s own `thetaCollected`
+and `useGetThetaIncome()`'s own `monthly` projection — both pre-existing
+`pages/Dashboard.tsx`/`pages/TradePerformance.tsx` figures. Section 4's
+Delta/Gamma/Theta/Vega reuse `useGetPortfolioGreeks()` directly, the
+platform's own original Greeks engine (`pages/Portfolio.tsx`). Section 8
+(AI Insights) is deterministic client-side text synthesis over data the
+other sections already fetched, plus `useGetTopOpportunities()`'s own
+top-ranked candidate (the identical `topPick` derivation
+`pages/Dashboard.tsx` already uses) — no LLM call, never an execution
+recommendation.
+
+**Wheel Positions, Covered Calls, and Cash Secured Puts are always
+honestly disclosed as "Not tracked in this engine," never fabricated as
+a zero count** — direct inspection of `execution.ts`'s own `Strategy`
+type (`"iron_condor" | "iron_fly" | "calendar_spread" | "earnings"`)
+confirmed none of these 3 requested strategy types has ever existed
+anywhere in this platform's pricing/scanner/execution logic, the same
+"unsupported category, disclosed rather than silently omitted"
+precedent the Earnings & Event Risk Portfolio Overlay sprint already
+established for FDA decisions and product launches.
+
+**One small, additive backend extension, not a new calculation:**
+`lib/portfolioDashboard.ts`'s own `PortfolioDashboardResult` gained
+`netBeta`/`netBetaUnavailableReason` fields, populated by directly
+assigning the already-received `concentration.netBeta`/
+`concentration.netBetaUnavailableReason` (Correlation & Concentration
+Overlay, unmodified) — a pure surface-level exposure of an
+already-computed value, needed so this page's Greeks Summary section can
+honestly disclose Beta's permanent unavailability without a second
+network call.
+
+**The Broker section deliberately does not call `GET /broker/health` on
+page load** — that endpoint is manual-trigger-only everywhere else in
+this codebase, matching this whole project's "no automatic polling"
+discipline; this section shows the same cached disclosure fields
+`useGetPortfolioDashboard()` already carries, with a link to Settings for
+a fresh check.
+
+**Navigation change, the only category of change outside pure
+composition this sprint made, explicitly permitted by the sprint's own
+"no routing changes outside navigation" instruction:** `App.tsx`'s `/`
+route now renders the new `CommandCenter` component; the pre-existing,
+completely unmodified `Dashboard` component moved to
+`/options-dashboard`. `AppLayout.tsx`'s "Dashboard" nav entry was renamed
+"Command Center" (still `href="/"`); a new "Options Dashboard" nav entry
+was added immediately after it.
+
+No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
+`autoExecution.ts`/`autoAdjustment.ts`/`eventRisk.ts`/`positionSizing.ts`/
+`portfolioStressTest.ts`/`portfolioEventRisk.ts`/`portfolioConcentration.ts`
+change. `pages/Dashboard.tsx`, `pages/Portfolio.tsx`,
+`pages/PortfolioAI.tsx`, `pages/TradePerformance.tsx`, `pages/Scanner.tsx`
+— all zero-line diff.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -1042,6 +1118,7 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/portfolioDashboard.ts` | Unit tests against isolated, fresh test users — an empty-portfolio proof (a fully-healthy 100 score across all 8 factors, no fabricated largest position/risk contributor/highest-risk entries, no crash), single-position fully-concentrated factor scoring, balanced multi-symbol portfolios, high-concentration scenarios with guidance surfacing Elevated Concentration and Review Large Positions, an empirically-verified real high-event-risk fixture (AAPL at 45 DTE, matching `portfolioEventRisk.test.ts`'s own established fixture) with guidance surfacing Elevated Event Risk, high-Greeks-exposure scenarios where one position dominates net delta, honest missing-credentials disclosure, the Health Score's own equal-weighted-average formula proven by direct recomputation, the Overall Risk Rating's own deterministic banding, the exact 7 dashboard widgets and their `linkHref`s, visualisation-data pass-through proofs (allocation/expiration/event-timeline/stress-test), determinism, and a never-mutates-the-trades-table proof. |
 | `routes/portfolioDashboard.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped executive dashboard with all requested Executive Summary fields, exactly 8 Health Score factors each disclosing its own `sourceModule`, all 9 Risk Panel fields, exactly 7 dashboard widgets each with a real `linkHref`, visualisation data for every requested chart, informational-only guidance, honest credentials/broker-connection disclosure, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
 | `PortfolioDashboard.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Portfolio Dashboard" badges, loading and error states, the honest empty-portfolio state (healthy score, no fabricated highlights, honest empty allocation charts), the Executive Summary fields including the Health Score gauge and Overall Risk Rating badge, all 8 Health Score factors rendering by default, sorting factors by Score (Worst First), filtering factors by a minimum-score threshold (including the honest no-factors-match message), all 9 Risk Panel fields, exactly 7 dashboard widget links to their own existing detailed pages, the Portfolio Allocation and Concentration Snapshot charts, the Event Timeline Summary, the Stress Test Summary scenario list, and informational-only guidance rendering with a never-an-execution-action proof. |
+| `CommandCenter.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Command Center" badges, loading and error states, the Executive Overview fields (Portfolio Value, Buying Power, Health Score, Overall Risk Rating, Broker/Paper Trading Status), Daily P/L reused from the pre-existing Options Income Engine summary, exactly 7 Portfolio Health widget links to their own existing detailed pages, the Options Income Engine section's Iron Condor/Calendar Spread counts and the honest "Not tracked in this engine" disclosure for Wheel Positions/Covered Calls/Cash Secured Puts, Net Delta/Gamma/Theta/Vega from the pre-existing Greeks engine plus the always-honest Beta-unavailable disclosure, the honest no-alerts message, elevated Risk Alerts reused from Concentration/Event Risk guidance plus the worst Stress Test scenario, all 4 Portfolio Allocation charts, the cached (never-auto-fetched) Broker section, and all 5 AI Insights each linking to their own source page with a never-an-execution-recommendation proof. |
 
 ## 8. Cross-references
 
@@ -1092,6 +1169,13 @@ to everything else in this codebase. Specifically for this document's scope:
   averaging formula, the 4-tier Overall Risk Rating banding, the 7
   dashboard widgets and their existing detail-page links, and the
   disclosed `getSettingsRow()` concurrency fix.
+- `docs/Institutional-Command-Center.md` — the Institutional Command
+  Center's own full detail (§4.15 above): the per-section data-source
+  table, the disclosure distinguishing this page from the pre-existing
+  `/institutional-dashboard`, the honest "not tracked in this engine"
+  disclosure for Wheel Positions/Covered Calls/Cash Secured Puts, the
+  one small additive `netBeta` backend extension, and the navigation
+  changes that install it as the primary landing page.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

@@ -5461,6 +5461,9 @@ export interface PortfolioDashboardResult {
   openPositionsCount: number;
   healthFactors: DashboardHealthScoreFactor[];
   netGreeks: PortfolioGreeksSnapshot;
+  /** @nullable */
+  netBeta: null;
+  netBetaUnavailableReason: string;
   largestPosition: SymbolExposure | null;
   largestRiskContributor: DashboardRiskContributor | null;
   highestEventRisk: HighestRiskPosition | null;

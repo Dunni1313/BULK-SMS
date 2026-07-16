@@ -57,7 +57,8 @@ import {
   Zap,
   ShieldAlert,
   Network,
-  Gauge
+  Gauge,
+  BarChart3
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -105,7 +106,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [adjustments]);
 
   const navItems = [
-    { title: "Dashboard", href: "/", icon: LayoutDashboard },
+    { title: "Command Center", href: "/", icon: LayoutDashboard },
+    { title: "Options Dashboard", href: "/options-dashboard", icon: BarChart3 },
     { title: "Portfolio AI", href: "/portfolio-ai", icon: BrainCircuit },
     { title: "Scanner", href: "/scanner", icon: Search },
     { title: "Option Chain", href: "/options/SPY", icon: LineChart },

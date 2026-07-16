@@ -413,6 +413,35 @@ threshold).
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.14 and
 `docs/Portfolio-Dashboard.md`.
 
+### 6.17 Using the Institutional Command Center (primary landing page)
+
+The application now opens on the **Command Center** (`/`) — a single
+executive workspace consolidating Executive Overview, Portfolio Health
+(the 7 widget cards from the Portfolio Risk Dashboard), the Options
+Income Engine (Total Premium Collected, Expected Monthly Income, Iron
+Condor/Calendar Spread counts, with an honest "Not tracked in this
+engine" disclosure for Wheel Positions/Covered Calls/Cash Secured Puts),
+Greeks Summary, Risk Alerts (the highest-priority alerts only, reused
+from Concentration/Event Risk/Stress Test), Portfolio Allocation (4
+charts), Broker status (cached, never auto-fetched), and AI Insights (a
+deterministic, non-LLM summary — Largest Risk, Largest Opportunity,
+Concentration, Diversification, Income Status). **Every card links to
+its own existing detailed page. This page never generates an execution
+recommendation, and there is no submit action anywhere on it.**
+
+The pre-existing Options Income Engine dashboard (the platform's
+original `/` page) was **not modified** and remains fully available at
+the "Options Dashboard" nav item (`/options-dashboard`). **This sprint
+made zero new backend calculations** — every figure on the Command
+Center reuses an existing `GET` request another page already makes; the
+one exception is a small, additive extension surfacing the Concentration
+overlay's own already-computed `netBeta`/`netBetaUnavailableReason` on
+the Portfolio Dashboard's own response, needed for an honest Beta
+disclosure without a second network call.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.15 and
+`docs/Institutional-Command-Center.md`.
+
 ---
 
 ## 7. Escalation
@@ -430,12 +459,13 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.14 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, the Correlation & Concentration Risk Overlay, and the Portfolio Risk Dashboard & Health Score), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, the Correlation & Concentration Risk page referenced in §6.15, and the Portfolio Risk Dashboard referenced in §6.16 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, the Correlation & Concentration Risk Overlay, the Portfolio Risk Dashboard & Health Score, and the Institutional Command Center), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, the Correlation & Concentration Risk page referenced in §6.15, the Portfolio Risk Dashboard referenced in §6.16, and the Institutional Command Center referenced in §6.17 above.
 - `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview Simulator's own full detail (§6.12 above): the 3-computable/5-honestly-unavailable intent scope decision, the Close & Replace composition, the replace-semantics portfolio exposure model, the 9-category risk-warnings list, and the Improved/Worse/Neutral comparison design.
 - `docs/Portfolio-Stress-Testing.md` — the Portfolio Stress Test & Scenario Simulator's own full detail (§6.13 above): the shock-parameterized repricing engine, the portfolio-level aggregation model, the honestly-always-zero buying-power-impact disclosure, the risk-score formula, the risk-analysis fields, and the scenario-comparison design.
 - `docs/Portfolio-Event-Risk.md` — the Earnings & Event Risk Portfolio Overlay's own full detail (§6.14 above): the honest disclosure of the 2 requested-but-unsupported event categories (FDA decisions, product launches), the direct event-risk-engine reuse, the Risk Guidance label mapping, the confidence/source disclosure model, and the portfolio summary derivation.
 - `docs/Portfolio-Correlation-Concentration.md` — the Correlation & Concentration Risk Overlay's own full detail (§6.15 above): the always-unavailable net-beta disclosure, the `KNOWN_SECTOR_MAP` categorical-metadata precedent, the concentration-weight-vs-portfolio-weight distinction, the Herfindahl-Hirschman-Index concentration scoring, the categorical-clustering-only correlation model, and the Portfolio Summary/Risk Guidance derivation.
 - `docs/Portfolio-Dashboard.md` — the Portfolio Risk Dashboard & Health Score's own full detail (§6.16 above): the 8-factor Health Score derivation table, the equal-weighted averaging formula, the 4-tier Overall Risk Rating banding, the 7 dashboard widgets, and the disclosed `getSettingsRow()` concurrency fix.
+- `docs/Institutional-Command-Center.md` — the Institutional Command Center's own full detail (§6.17 above): the per-section data-source table, the disclosure distinguishing this page from the pre-existing `/institutional-dashboard`, the honest "not tracked in this engine" disclosure for Wheel Positions/Covered Calls/Cash Secured Puts, the one small additive `netBeta` backend extension, and the navigation changes that install it as the primary landing page.
 - `docs/Trading-Journal.md` — the Trading Journal system's own full detail, referenced in §6.9 above.
 - `docs/Order-Preview.md` — the Order Preview & Risk Simulator's own full detail, referenced in §6.10 above.
 - `docs/Position-Sizing.md` — the Position Sizing & Portfolio Impact Calculator's own full detail, referenced in §6.11 above.

@@ -2108,6 +2108,8 @@ export const GetPortfolioDashboardResponse = zod.object({
   "theta": zod.number(),
   "vega": zod.number()
 }),
+  "netBeta": zod.null(),
+  "netBetaUnavailableReason": zod.string(),
   "largestPosition": zod.union([zod.object({
   "symbol": zod.string(),
   "riskDollars": zod.number(),

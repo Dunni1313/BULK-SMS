@@ -169,6 +169,12 @@ export interface PortfolioDashboardResult {
 
   // Risk Panels
   netGreeks: PortfolioGreeksSnapshot;
+  // Direct, unmodified reuse of the Concentration overlay's own already-
+  // computed netBeta/netBetaUnavailableReason fields (Correlation &
+  // Concentration Risk Overlay sprint) — always honestly unavailable, no
+  // beta figure exists anywhere in this engine's own data model.
+  netBeta: null;
+  netBetaUnavailableReason: string;
   largestPosition: DashboardLargestPosition | null;
   largestRiskContributor: DashboardRiskContributor | null;
   highestEventRisk: PortfolioEventRiskResult["summary"]["highestRiskPosition"];
@@ -567,6 +573,8 @@ export async function buildPortfolioDashboard(userId: string): Promise<Portfolio
     openPositionsCount: trades.length,
     healthFactors,
     netGreeks: concentration.netGreeks,
+    netBeta: concentration.netBeta,
+    netBetaUnavailableReason: concentration.netBetaUnavailableReason,
     largestPosition,
     largestRiskContributor,
     highestEventRisk: eventRisk.summary.highestRiskPosition,

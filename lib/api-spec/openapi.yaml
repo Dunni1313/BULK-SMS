@@ -9262,6 +9262,8 @@ components:
           openPositionsCount,
           healthFactors,
           netGreeks,
+          netBeta,
+          netBetaUnavailableReason,
           largestPosition,
           largestRiskContributor,
           highestEventRisk,
@@ -9309,6 +9311,10 @@ components:
             $ref: "#/components/schemas/DashboardHealthScoreFactor"
         netGreeks:
           $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+        netBeta:
+          type: "null"
+        netBetaUnavailableReason:
+          type: string
         largestPosition:
           oneOf:
             - $ref: "#/components/schemas/SymbolExposure"

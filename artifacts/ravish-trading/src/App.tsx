@@ -27,6 +27,7 @@ import { useEffect } from "react";
 
 // Pages
 const NotFound = lazy(() => import("@/pages/not-found"));
+const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Scanner = lazy(() => import("./pages/Scanner"));
 const OptionChain = lazy(() => import("./pages/OptionChain"));
@@ -97,7 +98,8 @@ function Router() {
       <Suspense fallback={<PageLoadingFallback />}>
         <Switch>
           <Route path="/login" component={Login} />
-          <Route path="/" component={Dashboard} />
+          <Route path="/" component={CommandCenter} />
+          <Route path="/options-dashboard" component={Dashboard} />
           <Route path="/scanner" component={Scanner} />
           <Route path="/options/:symbol" component={OptionChain} />
           <Route path="/portfolio" component={Portfolio} />
