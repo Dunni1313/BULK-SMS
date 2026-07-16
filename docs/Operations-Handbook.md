@@ -95,7 +95,34 @@ endpoint.
 
 Full detail: `docs/Broker-Health-API.md` (§10 covers the UI specifically).
 
-### 6.6 Adding a new operator/admin user
+### 6.6 Reconciling local trades against Alpaca Paper Trading orders/positions
+
+`GET /api/broker/reconciliation` compares this platform's own local trade
+records against Alpaca's real Paper Trading orders and positions and
+reports discrepancies — missing at broker, missing locally, status/quantity/
+symbol mismatches, open-position mismatches. **Entirely read-only**: it
+never corrects, cancels, or closes anything on either side, and it only
+runs when explicitly requested (page load or a manual Refresh button) —
+never on a schedule.
+
+**Via the UI:** the "Broker Reconciliation" nav item (`/broker-reconciliation`).
+Shows a summary (Fully Reconciled or an issue count), an order-reconciliation
+table (local vs. broker status/quantity/fill side by side), and a
+position-comparison table — plus a Refresh button, disabled while a check is
+in flight. When credentials are missing, the page stays fully usable and
+shows the honest reason rather than a blank or fabricated result. There is
+no distinct admin role in this platform (§6.7 below) — this page is
+reachable by any signed-in user, scoped to their own account's own trades.
+
+Two related read-only endpoints exist alongside it: `GET /api/broker/orders`
+(every order, any status) and `GET /api/broker/orders/:orderId` (a single
+order by id) — useful for direct inspection outside the reconciliation
+comparison itself.
+
+Full detail, including the normalized order-lifecycle model and every
+reconciliation rule: `docs/Alpaca-Paper-Trading-Architecture.md`.
+
+### 6.7 Adding a new operator/admin user
 
 This platform's `role` field on `users` exists but — confirmed by direct inspection — has no differentiated admin-only functionality built on top of it as of Sprint 77; every route's own authorization is per-user data scoping (`getScopedUserId()`), not role-based. There is currently no "operator dashboard" distinct from a regular user's own account. Standing up one is out of scope for this handbook and would be its own future sprint if ever needed.
 
@@ -116,6 +143,7 @@ This platform's `role` field on `users` exists but — confirmed by direct inspe
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, and Order Lifecycle & Reconciliation), including the reconciliation panel referenced in §6.6 above.
 - `docs/Incident-Response-Runbook.md` — per-alert-category diagnosis and recovery.
 - `docs/Production-Rollout-Plan.md` — the one-time go-live procedure and backup/recovery details this handbook's §6/§7 draw on.
 - `docs/Production-Readiness-Report.md` — current-state readiness assessment.

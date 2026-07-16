@@ -35,6 +35,8 @@ import type {
   BacktestInput,
   BacktestResult,
   BrokerHealth,
+  BrokerOrderResult,
+  BrokerOrdersResult,
   ClearReportsResult,
   CoachLesson,
   CompareReportsRequest,
@@ -111,6 +113,7 @@ import type {
   QuizInput,
   QuizProgress,
   RavishScore,
+  ReconciliationResult,
   RestoreReportsRequest,
   RestoreReportsResult,
   RiskStatus,
@@ -860,6 +863,239 @@ export function useGetBrokerHealth<TData = Awaited<ReturnType<typeof getBrokerHe
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetBrokerHealthQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerOrdersUrl = () => {
+
+
+
+
+  return `/api/broker/orders`
+}
+
+/**
+ * A thin, read-only pass-through to GET /v2/orders?status=all. Never places, modifies, or cancels an order. Bounded to Alpaca's own default page size (no further pagination this sprint).
+ * @summary List all Alpaca Paper Trading orders (any status), read-only
+ */
+export const getBrokerOrders = async ( options?: RequestInit): Promise<BrokerOrdersResult> => {
+
+  return customFetch<BrokerOrdersResult>(getGetBrokerOrdersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerOrdersQueryKey = () => {
+    return [
+    `/api/broker/orders`
+    ] as const;
+    }
+
+
+export const getGetBrokerOrdersQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerOrders>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerOrdersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerOrders>>> = ({ signal }) => getBrokerOrders({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrders>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerOrders>>>
+export type GetBrokerOrdersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all Alpaca Paper Trading orders (any status), read-only
+ */
+
+export function useGetBrokerOrders<TData = Awaited<ReturnType<typeof getBrokerOrders>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerOrdersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerOrderUrl = (orderId: string,) => {
+
+
+
+
+  return `/api/broker/orders/${orderId}`
+}
+
+/**
+ * @summary Get a single Alpaca Paper Trading order by id, read-only
+ */
+export const getBrokerOrder = async (orderId: string, options?: RequestInit): Promise<BrokerOrderResult> => {
+
+  return customFetch<BrokerOrderResult>(getGetBrokerOrderUrl(orderId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerOrderQueryKey = (orderId: string,) => {
+    return [
+    `/api/broker/orders/${orderId}`
+    ] as const;
+    }
+
+
+export const getGetBrokerOrderQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerOrder>>, TError = ErrorType<unknown>>(orderId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrder>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerOrderQueryKey(orderId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerOrder>>> = ({ signal }) => getBrokerOrder(orderId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(orderId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrder>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerOrder>>>
+export type GetBrokerOrderQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get a single Alpaca Paper Trading order by id, read-only
+ */
+
+export function useGetBrokerOrder<TData = Awaited<ReturnType<typeof getBrokerOrder>>, TError = ErrorType<unknown>>(
+ orderId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrder>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerOrderQueryOptions(orderId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerReconciliationUrl = () => {
+
+
+
+
+  return `/api/broker/reconciliation`
+}
+
+/**
+ * Manual, on-demand only — never runs on a schedule or background timer. Read-only: identifies discrepancies (missing at broker, missing locally, status/quantity/symbol mismatches, open-position mismatches) without correcting, cancelling, or closing anything on either side.
+ * @summary Compare local trade/order records against Alpaca Paper Trading orders and positions, read-only
+ */
+export const getBrokerReconciliation = async ( options?: RequestInit): Promise<ReconciliationResult> => {
+
+  return customFetch<ReconciliationResult>(getGetBrokerReconciliationUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerReconciliationQueryKey = () => {
+    return [
+    `/api/broker/reconciliation`
+    ] as const;
+    }
+
+
+export const getGetBrokerReconciliationQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerReconciliation>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerReconciliation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerReconciliationQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerReconciliation>>> = ({ signal }) => getBrokerReconciliation({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerReconciliation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerReconciliationQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerReconciliation>>>
+export type GetBrokerReconciliationQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compare local trade/order records against Alpaca Paper Trading orders and positions, read-only
+ */
+
+export function useGetBrokerReconciliation<TData = Awaited<ReturnType<typeof getBrokerReconciliation>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerReconciliation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerReconciliationQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

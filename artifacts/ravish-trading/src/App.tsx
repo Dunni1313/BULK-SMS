@@ -52,6 +52,7 @@ const CrossEngineDailyReport = lazy(() => import("./pages/CrossEngineDailyReport
 const StockScanner = lazy(() => import("./pages/StockScanner"));
 const PortfolioConstruction = lazy(() => import("./pages/PortfolioConstruction"));
 const ValueInvestingSchool = lazy(() => import("./pages/ValueInvestingSchool"));
+const PaperTradingReconciliation = lazy(() => import("./pages/PaperTradingReconciliation"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Login"));
 
@@ -111,6 +112,7 @@ function Router() {
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />
           <Route path="/stock-analyst" component={StockResearch} />
+          <Route path="/broker-reconciliation" component={PaperTradingReconciliation} />
           <Route path="/settings" component={Settings} />
           <Route path="/learn/delta" component={DeltaMasterclass} />
           <Route path="/learn/greeks" component={GreeksTutor} />

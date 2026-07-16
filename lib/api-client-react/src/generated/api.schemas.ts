@@ -3517,6 +3517,133 @@ export interface BrokerHealth {
   checkedAt: string;
 }
 
+/**
+ * This platform's own normalized order-lifecycle bucket, mapped from Alpaca's larger raw status vocabulary — see lib/providers/alpacaOrderLifecycle.ts.
+ */
+export type NormalizedOrderStatus = typeof NormalizedOrderStatus[keyof typeof NormalizedOrderStatus];
+
+
+export const NormalizedOrderStatus = {
+  new: 'new',
+  accepted: 'accepted',
+  pending: 'pending',
+  partially_filled: 'partially_filled',
+  filled: 'filled',
+  cancelled: 'cancelled',
+  rejected: 'rejected',
+  expired: 'expired',
+  unknown: 'unknown',
+} as const;
+
+export interface BrokerOrder {
+  id: string;
+  symbol: string;
+  side: string;
+  qty: number;
+  type: string;
+  /** Alpaca's own raw status string, unmodified. */
+  status: string;
+  normalizedStatus: NormalizedOrderStatus;
+  filledQty: number;
+  /** @nullable */
+  filledAvgPrice: number | null;
+  /** @nullable */
+  submittedAt: string | null;
+}
+
+export interface BrokerOrdersResult {
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  orders: BrokerOrder[];
+  checkedAt: string;
+}
+
+export interface BrokerOrderResult {
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  order: BrokerOrder | null;
+  checkedAt: string;
+}
+
+/**
+ * The local trades table's own coarse status vocabulary, normalized for comparison against NormalizedOrderStatus.
+ */
+export type NormalizedLocalStatus = typeof NormalizedLocalStatus[keyof typeof NormalizedLocalStatus];
+
+
+export const NormalizedLocalStatus = {
+  pending: 'pending',
+  open: 'open',
+  closed: 'closed',
+  unknown: 'unknown',
+} as const;
+
+export type ReconciliationIssueType = typeof ReconciliationIssueType[keyof typeof ReconciliationIssueType];
+
+
+export const ReconciliationIssueType = {
+  missing_at_broker: 'missing_at_broker',
+  missing_locally: 'missing_locally',
+  status_mismatch: 'status_mismatch',
+  quantity_mismatch: 'quantity_mismatch',
+  symbol_mismatch: 'symbol_mismatch',
+} as const;
+
+export interface OrderReconciliationEntry {
+  /** @nullable */
+  tradeId: number | null;
+  /** @nullable */
+  alpacaOrderId: string | null;
+  /** @nullable */
+  localSymbol: string | null;
+  /** @nullable */
+  brokerSymbol: string | null;
+  localStatus: NormalizedLocalStatus | null;
+  brokerStatus: NormalizedOrderStatus | null;
+  /** @nullable */
+  brokerRawStatus: string | null;
+  /** @nullable */
+  localQuantity: number | null;
+  /** @nullable */
+  brokerQuantity: number | null;
+  /** @nullable */
+  filledQuantity: number | null;
+  /** @nullable */
+  averageFillPrice: number | null;
+  issues: ReconciliationIssueType[];
+}
+
+export interface PositionReconciliationEntry {
+  occSymbol: string;
+  /** @nullable */
+  tradeId: number | null;
+  /** @nullable */
+  localQuantity: number | null;
+  /** @nullable */
+  brokerQuantity: number | null;
+  mismatch: boolean;
+  detail: string;
+}
+
+export interface ReconciliationResult {
+  /** False when credentials are missing or Alpaca could not be reached/authenticated — never a fabricated reconciled result in that case. */
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  /** When this reconciliation was computed — the manual, on-demand "last reconciliation time." */
+  generatedAt: string;
+  /** Count of local, trackable (non-mock, non-closed) trade records compared. */
+  localOrdersConsidered: number;
+  brokerOrdersConsidered: number;
+  orders: OrderReconciliationEntry[];
+  positions: PositionReconciliationEntry[];
+  issueCount: number;
+  /** True only when available and zero issues were found across every order and position entry. */
+  fullyReconciled: boolean;
+}
+
 export interface TickerStat {
   symbol: string;
   totalTrades: number;

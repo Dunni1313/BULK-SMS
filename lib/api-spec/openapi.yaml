@@ -215,6 +215,61 @@ paths:
               schema:
                 $ref: "#/components/schemas/BrokerHealth"
 
+  /broker/orders:
+    get:
+      operationId: getBrokerOrders
+      tags: [broker]
+      summary: List all Alpaca Paper Trading orders (any status), read-only
+      description: >-
+        A thin, read-only pass-through to GET /v2/orders?status=all. Never
+        places, modifies, or cancels an order. Bounded to Alpaca's own
+        default page size (no further pagination this sprint).
+      responses:
+        "200":
+          description: Broker orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerOrdersResult"
+
+  /broker/orders/{orderId}:
+    get:
+      operationId: getBrokerOrder
+      tags: [broker]
+      summary: Get a single Alpaca Paper Trading order by id, read-only
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Broker order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerOrderResult"
+
+  /broker/reconciliation:
+    get:
+      operationId: getBrokerReconciliation
+      tags: [broker]
+      summary: Compare local trade/order records against Alpaca Paper Trading orders and positions, read-only
+      description: >-
+        Manual, on-demand only — never runs on a schedule or background
+        timer. Read-only: identifies discrepancies (missing at broker,
+        missing locally, status/quantity/symbol mismatches, open-position
+        mismatches) without correcting, cancelling, or closing anything on
+        either side.
+      responses:
+        "200":
+          description: Reconciliation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReconciliationResult"
+
   # ─── Options Chain ─────────────────────────────────────────────────────────
   /options/chain/{symbol}:
     get:
@@ -5922,6 +5977,184 @@ components:
         checkedAt:
           type: string
           description: Timestamp of this specific check.
+
+    NormalizedOrderStatus:
+      type: string
+      enum: [new, accepted, pending, partially_filled, filled, cancelled, rejected, expired, unknown]
+      description: This platform's own normalized order-lifecycle bucket, mapped from Alpaca's larger raw status vocabulary — see lib/providers/alpacaOrderLifecycle.ts.
+
+    BrokerOrder:
+      type: object
+      required: [id, symbol, side, qty, type, status, normalizedStatus, filledQty, filledAvgPrice, submittedAt]
+      properties:
+        id:
+          type: string
+        symbol:
+          type: string
+        side:
+          type: string
+        qty:
+          type: number
+        type:
+          type: string
+        status:
+          type: string
+          description: Alpaca's own raw status string, unmodified.
+        normalizedStatus:
+          $ref: "#/components/schemas/NormalizedOrderStatus"
+        filledQty:
+          type: number
+        filledAvgPrice:
+          type: ["number", "null"]
+        submittedAt:
+          type: ["string", "null"]
+
+    BrokerOrdersResult:
+      type: object
+      required: [available, unavailableReason, orders, checkedAt]
+      properties:
+        available:
+          type: boolean
+        unavailableReason:
+          type: ["string", "null"]
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/BrokerOrder"
+        checkedAt:
+          type: string
+
+    BrokerOrderResult:
+      type: object
+      required: [available, unavailableReason, order, checkedAt]
+      properties:
+        available:
+          type: boolean
+        unavailableReason:
+          type: ["string", "null"]
+        order:
+          oneOf:
+            - $ref: "#/components/schemas/BrokerOrder"
+            - type: "null"
+        checkedAt:
+          type: string
+
+    NormalizedLocalStatus:
+      type: string
+      enum: [pending, open, closed, unknown]
+      description: The local trades table's own coarse status vocabulary, normalized for comparison against NormalizedOrderStatus.
+
+    ReconciliationIssueType:
+      type: string
+      enum: [missing_at_broker, missing_locally, status_mismatch, quantity_mismatch, symbol_mismatch]
+
+    OrderReconciliationEntry:
+      type: object
+      required:
+        [
+          tradeId,
+          alpacaOrderId,
+          localSymbol,
+          brokerSymbol,
+          localStatus,
+          brokerStatus,
+          brokerRawStatus,
+          localQuantity,
+          brokerQuantity,
+          filledQuantity,
+          averageFillPrice,
+          issues,
+        ]
+      properties:
+        tradeId:
+          type: ["integer", "null"]
+        alpacaOrderId:
+          type: ["string", "null"]
+        localSymbol:
+          type: ["string", "null"]
+        brokerSymbol:
+          type: ["string", "null"]
+        localStatus:
+          oneOf:
+            - $ref: "#/components/schemas/NormalizedLocalStatus"
+            - type: "null"
+        brokerStatus:
+          oneOf:
+            - $ref: "#/components/schemas/NormalizedOrderStatus"
+            - type: "null"
+        brokerRawStatus:
+          type: ["string", "null"]
+        localQuantity:
+          type: ["number", "null"]
+        brokerQuantity:
+          type: ["number", "null"]
+        filledQuantity:
+          type: ["number", "null"]
+        averageFillPrice:
+          type: ["number", "null"]
+        issues:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReconciliationIssueType"
+
+    PositionReconciliationEntry:
+      type: object
+      required: [occSymbol, tradeId, localQuantity, brokerQuantity, mismatch, detail]
+      properties:
+        occSymbol:
+          type: string
+        tradeId:
+          type: ["integer", "null"]
+        localQuantity:
+          type: ["number", "null"]
+        brokerQuantity:
+          type: ["number", "null"]
+        mismatch:
+          type: boolean
+        detail:
+          type: string
+
+    ReconciliationResult:
+      type: object
+      required:
+        [
+          available,
+          unavailableReason,
+          generatedAt,
+          localOrdersConsidered,
+          brokerOrdersConsidered,
+          orders,
+          positions,
+          issueCount,
+          fullyReconciled,
+        ]
+      properties:
+        available:
+          type: boolean
+          description: False when credentials are missing or Alpaca could not be reached/authenticated — never a fabricated reconciled result in that case.
+        unavailableReason:
+          type: ["string", "null"]
+        generatedAt:
+          type: string
+          description: When this reconciliation was computed — the manual, on-demand "last reconciliation time."
+        localOrdersConsidered:
+          type: integer
+          description: Count of local, trackable (non-mock, non-closed) trade records compared.
+        brokerOrdersConsidered:
+          type: integer
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderReconciliationEntry"
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PositionReconciliationEntry"
+        issueCount:
+          type: integer
+        fullyReconciled:
+          type: boolean
+          description: True only when available and zero issues were found across every order and position entry.
 
     # ─── Performance ───────────────────────────────────────────────────────────
     PerformanceAnalytics:

@@ -350,6 +350,92 @@ export const GetBrokerHealthResponse = zod.object({
 
 
 /**
+ * A thin, read-only pass-through to GET /v2/orders?status=all. Never places, modifies, or cancels an order. Bounded to Alpaca's own default page size (no further pagination this sprint).
+ * @summary List all Alpaca Paper Trading orders (any status), read-only
+ */
+export const GetBrokerOrdersResponse = zod.object({
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "orders": zod.array(zod.object({
+  "id": zod.string(),
+  "symbol": zod.string(),
+  "side": zod.string(),
+  "qty": zod.number(),
+  "type": zod.string(),
+  "status": zod.string().describe('Alpaca\'s own raw status string, unmodified.'),
+  "normalizedStatus": zod.enum(['new', 'accepted', 'pending', 'partially_filled', 'filled', 'cancelled', 'rejected', 'expired', 'unknown']).describe('This platform\'s own normalized order-lifecycle bucket, mapped from Alpaca\'s larger raw status vocabulary — see lib\/providers\/alpacaOrderLifecycle.ts.'),
+  "filledQty": zod.number(),
+  "filledAvgPrice": zod.number().nullable(),
+  "submittedAt": zod.string().nullable()
+})),
+  "checkedAt": zod.string()
+})
+
+
+/**
+ * @summary Get a single Alpaca Paper Trading order by id, read-only
+ */
+export const GetBrokerOrderParams = zod.object({
+  "orderId": zod.coerce.string()
+})
+
+export const GetBrokerOrderResponse = zod.object({
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "order": zod.union([zod.object({
+  "id": zod.string(),
+  "symbol": zod.string(),
+  "side": zod.string(),
+  "qty": zod.number(),
+  "type": zod.string(),
+  "status": zod.string().describe('Alpaca\'s own raw status string, unmodified.'),
+  "normalizedStatus": zod.enum(['new', 'accepted', 'pending', 'partially_filled', 'filled', 'cancelled', 'rejected', 'expired', 'unknown']).describe('This platform\'s own normalized order-lifecycle bucket, mapped from Alpaca\'s larger raw status vocabulary — see lib\/providers\/alpacaOrderLifecycle.ts.'),
+  "filledQty": zod.number(),
+  "filledAvgPrice": zod.number().nullable(),
+  "submittedAt": zod.string().nullable()
+}),zod.null()]),
+  "checkedAt": zod.string()
+})
+
+
+/**
+ * Manual, on-demand only — never runs on a schedule or background timer. Read-only: identifies discrepancies (missing at broker, missing locally, status/quantity/symbol mismatches, open-position mismatches) without correcting, cancelling, or closing anything on either side.
+ * @summary Compare local trade/order records against Alpaca Paper Trading orders and positions, read-only
+ */
+export const GetBrokerReconciliationResponse = zod.object({
+  "available": zod.boolean().describe('False when credentials are missing or Alpaca could not be reached\/authenticated — never a fabricated reconciled result in that case.'),
+  "unavailableReason": zod.string().nullable(),
+  "generatedAt": zod.string().describe('When this reconciliation was computed — the manual, on-demand \"last reconciliation time.\"'),
+  "localOrdersConsidered": zod.number().describe('Count of local, trackable (non-mock, non-closed) trade records compared.'),
+  "brokerOrdersConsidered": zod.number(),
+  "orders": zod.array(zod.object({
+  "tradeId": zod.number().nullable(),
+  "alpacaOrderId": zod.string().nullable(),
+  "localSymbol": zod.string().nullable(),
+  "brokerSymbol": zod.string().nullable(),
+  "localStatus": zod.union([zod.enum(['pending', 'open', 'closed', 'unknown']).describe('The local trades table\'s own coarse status vocabulary, normalized for comparison against NormalizedOrderStatus.'),zod.null()]),
+  "brokerStatus": zod.union([zod.enum(['new', 'accepted', 'pending', 'partially_filled', 'filled', 'cancelled', 'rejected', 'expired', 'unknown']).describe('This platform\'s own normalized order-lifecycle bucket, mapped from Alpaca\'s larger raw status vocabulary — see lib\/providers\/alpacaOrderLifecycle.ts.'),zod.null()]),
+  "brokerRawStatus": zod.string().nullable(),
+  "localQuantity": zod.number().nullable(),
+  "brokerQuantity": zod.number().nullable(),
+  "filledQuantity": zod.number().nullable(),
+  "averageFillPrice": zod.number().nullable(),
+  "issues": zod.array(zod.enum(['missing_at_broker', 'missing_locally', 'status_mismatch', 'quantity_mismatch', 'symbol_mismatch']))
+})),
+  "positions": zod.array(zod.object({
+  "occSymbol": zod.string(),
+  "tradeId": zod.number().nullable(),
+  "localQuantity": zod.number().nullable(),
+  "brokerQuantity": zod.number().nullable(),
+  "mismatch": zod.boolean(),
+  "detail": zod.string()
+})),
+  "issueCount": zod.number(),
+  "fullyReconciled": zod.boolean().describe('True only when available and zero issues were found across every order and position entry.')
+})
+
+
+/**
  * @summary Get live option chain for a symbol
  */
 export const GetOptionChainParams = zod.object({

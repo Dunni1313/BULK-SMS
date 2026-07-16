@@ -19,6 +19,7 @@
 
 import { logger } from "../logger.js";
 import { readAlpacaCreds } from "./alpacaProvider.js";
+import { normalizeAlpacaOrderStatus, type NormalizedOrderStatus } from "./alpacaOrderLifecycle.js";
 
 // Paper Trading only — matches execution.ts's own ALPACA_ORDERS_URL host.
 // There is deliberately no live-trading equivalent of this constant.
@@ -52,6 +53,9 @@ export interface AlpacaOrder {
   qty: number;
   type: string;
   status: string;
+  normalizedStatus: NormalizedOrderStatus;
+  filledQty: number;
+  filledAvgPrice: number | null;
   submittedAt: string | null;
 }
 
@@ -119,7 +123,31 @@ interface RawAlpacaOrder {
   qty: string;
   type: string;
   status: string;
+  filled_qty?: string | null;
+  filled_avg_price?: string | null;
   submitted_at?: string | null;
+}
+
+// Shared raw-to-normalized mapper, reused by every order-returning function
+// below (open orders, all orders, a single order by id) so the mapping can
+// never drift between call sites. filled_qty defaults to "0" (a genuinely
+// unfilled order has zero filled shares, not an unknown quantity — Alpaca
+// itself always includes this field); filled_avg_price is honestly null
+// (never fabricated as 0) until Alpaca actually reports one, which it only
+// does once at least a partial fill has occurred.
+function mapOrder(raw: RawAlpacaOrder): AlpacaOrder {
+  return {
+    id: raw.id,
+    symbol: raw.symbol,
+    side: raw.side,
+    qty: parseFloat(raw.qty),
+    type: raw.type,
+    status: raw.status,
+    normalizedStatus: normalizeAlpacaOrderStatus(raw.status),
+    filledQty: parseFloat(raw.filled_qty ?? "0"),
+    filledAvgPrice: raw.filled_avg_price != null ? parseFloat(raw.filled_avg_price) : null,
+    submittedAt: raw.submitted_at ?? null,
+  };
 }
 
 export async function getAlpacaAccount(settingsApiKey?: string | null): Promise<BrokerResult<AlpacaAccount>> {
@@ -176,18 +204,83 @@ export async function getAlpacaOrders(settingsApiKey?: string | null): Promise<B
   const result = await alpacaGet<RawAlpacaOrder[]>("/v2/orders?status=open", creds);
   if (!result.ok) return result;
 
-  return {
-    ok: true,
-    data: result.data.map((o) => ({
-      id: o.id,
-      symbol: o.symbol,
-      side: o.side,
-      qty: parseFloat(o.qty),
-      type: o.type,
-      status: o.status,
-      submittedAt: o.submitted_at ?? null,
-    })),
-  };
+  return { ok: true, data: result.data.map(mapOrder) };
+}
+
+// GET /v2/orders?status=all — every order regardless of status, for
+// reconciliation purposes (getAlpacaOrders() above stays open-only and
+// unchanged, since checkAlpacaBrokerHealth()'s own openOrdersCount depends
+// on that exact scope). Alpaca bounds this to its own default page size
+// (100 most recent) server-side; this function does not paginate further —
+// a documented scope limit for this foundation sprint, not a bug.
+export async function getAlpacaAllOrders(settingsApiKey?: string | null): Promise<BrokerResult<AlpacaOrder[]>> {
+  const creds = readAlpacaCreds(settingsApiKey);
+  if (!creds) return { ok: false, reason: "no_credentials", message: "No Alpaca API key/secret configured" };
+
+  const result = await alpacaGet<RawAlpacaOrder[]>("/v2/orders?status=all", creds);
+  if (!result.ok) return result;
+
+  return { ok: true, data: result.data.map(mapOrder) };
+}
+
+// GET /v2/orders/{order_id} — a single order by its own Alpaca-assigned id.
+export async function getAlpacaOrder(
+  orderId: string,
+  settingsApiKey?: string | null,
+): Promise<BrokerResult<AlpacaOrder>> {
+  const creds = readAlpacaCreds(settingsApiKey);
+  if (!creds) return { ok: false, reason: "no_credentials", message: "No Alpaca API key/secret configured" };
+
+  const result = await alpacaGet<RawAlpacaOrder>(`/v2/orders/${encodeURIComponent(orderId)}`, creds);
+  if (!result.ok) return result;
+
+  return { ok: true, data: mapOrder(result.data) };
+}
+
+// GET /v2/positions/{symbol} — a single position by its own OCC or
+// underlying symbol. Alpaca returns a 404 when no position exists for that
+// symbol — this is an honest, legitimate "no position," not a failure, so
+// it is reported as `{ ok: true, data: null }` rather than an error result;
+// every other non-2xx status is still a genuine failure (unauthorized/
+// http_error/network_error), handled identically to every other call here.
+export async function getAlpacaPosition(
+  symbol: string,
+  settingsApiKey?: string | null,
+): Promise<BrokerResult<AlpacaPosition | null>> {
+  const creds = readAlpacaCreds(settingsApiKey);
+  if (!creds) return { ok: false, reason: "no_credentials", message: "No Alpaca API key/secret configured" };
+
+  try {
+    const resp = await fetch(`${ALPACA_TRADING_BASE_URL}/v2/positions/${encodeURIComponent(symbol)}`, {
+      headers: {
+        "APCA-API-KEY-ID": creds.key,
+        "APCA-API-SECRET-KEY": creds.secret,
+        accept: "application/json",
+      },
+    });
+    if (resp.status === 404) return { ok: true, data: null };
+    if (resp.status === 401 || resp.status === 403) {
+      return { ok: false, reason: "unauthorized", status: resp.status, message: "Alpaca rejected the configured credentials" };
+    }
+    if (!resp.ok) {
+      return { ok: false, reason: "http_error", status: resp.status, message: `Alpaca returned HTTP ${resp.status}` };
+    }
+    const raw = (await resp.json()) as RawAlpacaPosition;
+    return {
+      ok: true,
+      data: {
+        symbol: raw.symbol,
+        qty: parseFloat(raw.qty),
+        side: raw.side,
+        marketValue: parseFloat(raw.market_value),
+        avgEntryPrice: parseFloat(raw.avg_entry_price),
+        unrealizedPl: parseFloat(raw.unrealized_pl),
+      },
+    };
+  } catch (err) {
+    logger.error({ err, symbol }, "Alpaca broker request failed");
+    return { ok: false, reason: "network_error", message: err instanceof Error ? err.message : "network request failed" };
+  }
 }
 
 export interface BrokerHealth {

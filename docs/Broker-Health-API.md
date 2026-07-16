@@ -351,3 +351,23 @@ check.
 **No new route, schema, or backend behavior was introduced for this UI** —
 it consumes the exact same `GET /api/broker/health` endpoint described in
 §§2–7 above, unmodified.
+
+## 11. Order & position reconciliation (read-only) — separate endpoints, same connection
+
+The Alpaca Paper Order Lifecycle & Reconciliation Foundation sprint added
+three more **read-only** endpoints on the same `broker` route family this
+document covers, sharing the exact same Paper Trading connection, credential
+resolution (`readAlpacaCreds()`), and honest-degradation contract described
+above:
+
+- `GET /api/broker/orders` — all orders (any status), read-only pass-through.
+- `GET /api/broker/orders/:orderId` — a single order by id, read-only pass-through.
+- `GET /api/broker/reconciliation` — compares local trade records against
+  Alpaca's real orders and positions, read-only, manual/on-demand only.
+
+These are documented in full — including the normalized order-lifecycle
+model, the reconciliation rules, and the UI panel — in
+`docs/Alpaca-Paper-Trading-Architecture.md`, to keep this document focused on
+the original account-verification (`/broker/health`) surface it was written
+for. Nothing in this section changes anything described in §§1–10 above —
+`GET /api/broker/health` and `settings.alpacaConnected` are untouched.

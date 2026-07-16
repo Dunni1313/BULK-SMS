@@ -17,6 +17,9 @@ import {
   getAlpacaAccount,
   getAlpacaPositions,
   getAlpacaOrders,
+  getAlpacaAllOrders,
+  getAlpacaOrder,
+  getAlpacaPosition,
   checkAlpacaBrokerHealth,
   getLastSuccessfulBrokerCheck,
   getLastBrokerCheckConnected,
@@ -56,7 +59,9 @@ const rawOrders = [
     side: "sell",
     qty: "1",
     type: "limit",
-    status: "open",
+    status: "accepted",
+    filled_qty: "0",
+    filled_avg_price: null,
     submitted_at: "2026-07-16T10:00:00Z",
   },
 ];
@@ -209,7 +214,10 @@ describe("getAlpacaOrders", () => {
           side: "sell",
           qty: 1,
           type: "limit",
-          status: "open",
+          status: "accepted",
+          normalizedStatus: "accepted",
+          filledQty: 0,
+          filledAvgPrice: null,
           submittedAt: "2026-07-16T10:00:00Z",
         },
       ]);
@@ -323,5 +331,192 @@ describe("checkAlpacaBrokerHealth orchestrator", () => {
     expect(getLastSuccessfulBrokerCheck()).toBe(successAt);
     // But the current-connection flag honestly flips to false.
     expect(getLastBrokerCheckConnected()).toBe(false);
+  });
+});
+
+describe("getAlpacaAllOrders", () => {
+  it("is honestly unavailable with no credentials configured", async () => {
+    const result = await getAlpacaAllOrders(null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("no_credentials");
+  });
+
+  it("requests status=all and maps every order, including its normalized status and fill fields", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse(200, [
+        { ...rawOrders[0], status: "filled", filled_qty: "1", filled_avg_price: "2.35" },
+      ]),
+    );
+
+    const result = await getAlpacaAllOrders(null);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data[0].status).toBe("filled");
+      expect(result.data[0].normalizedStatus).toBe("filled");
+      expect(result.data[0].filledQty).toBe(1);
+      expect(result.data[0].filledAvgPrice).toBe(2.35);
+    }
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    expect(calledUrl).toBe("https://paper-api.alpaca.markets/v2/orders?status=all");
+  });
+
+  it("honestly reports 'unknown' normalizedStatus for a raw status this codebase doesn't recognize, never guessing", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse(200, [{ ...rawOrders[0], status: "some_future_status" }]),
+    );
+
+    const result = await getAlpacaAllOrders(null);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data[0].normalizedStatus).toBe("unknown");
+  });
+
+  it("reports every failure mode identically to getAlpacaOrders", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(401, { message: "unauthorized" }));
+
+    const result = await getAlpacaAllOrders(null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("unauthorized");
+  });
+});
+
+describe("getAlpacaOrder (single order by id)", () => {
+  it("is honestly unavailable with no credentials configured", async () => {
+    const result = await getAlpacaOrder("order-1", null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("no_credentials");
+  });
+
+  it("fetches the exact order-id path and maps the result, including fill info", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse(200, { ...rawOrders[0], status: "partially_filled", filled_qty: "1", filled_avg_price: "2.10" }),
+    );
+
+    const result = await getAlpacaOrder("order-1", null);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.id).toBe("order-1");
+      expect(result.data.normalizedStatus).toBe("partially_filled");
+      expect(result.data.filledQty).toBe(1);
+      expect(result.data.filledAvgPrice).toBe(2.1);
+    }
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    expect(calledUrl).toBe("https://paper-api.alpaca.markets/v2/orders/order-1");
+  });
+
+  it("URL-encodes the order id", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(200, rawOrders[0]));
+
+    await getAlpacaOrder("order/with slash", null);
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    expect(calledUrl).toBe("https://paper-api.alpaca.markets/v2/orders/order%2Fwith%20slash");
+  });
+
+  it("reports a rejected order honestly", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(200, { ...rawOrders[0], status: "rejected" }));
+
+    const result = await getAlpacaOrder("order-1", null);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.normalizedStatus).toBe("rejected");
+  });
+
+  it("reports a cancelled order honestly (normalizing Alpaca's own 'canceled' spelling)", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(200, { ...rawOrders[0], status: "canceled" }));
+
+    const result = await getAlpacaOrder("order-1", null);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.normalizedStatus).toBe("cancelled");
+  });
+
+  it("reports 404 (order not found) as an http_error, not a fabricated order", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(404, { message: "order not found" }));
+
+    const result = await getAlpacaOrder("does-not-exist", null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("http_error");
+  });
+
+  it("reports a network failure honestly", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("ETIMEDOUT"));
+
+    const result = await getAlpacaOrder("order-1", null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("network_error");
+  });
+});
+
+describe("getAlpacaPosition (single position by symbol)", () => {
+  it("is honestly unavailable with no credentials configured", async () => {
+    const result = await getAlpacaPosition("AAPL", null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("no_credentials");
+  });
+
+  it("fetches the exact symbol path and maps a real position", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(200, rawPositions[0]));
+
+    const result = await getAlpacaPosition("AAPL", null);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toEqual({
+        symbol: "AAPL",
+        qty: 10,
+        side: "long",
+        marketValue: 1750,
+        avgEntryPrice: 170,
+        unrealizedPl: 50,
+      });
+    }
+    const calledUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    expect(calledUrl).toBe("https://paper-api.alpaca.markets/v2/positions/AAPL");
+  });
+
+  it("treats a 404 as an honest 'no position' result — ok:true, data:null — never an error", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(404, { message: "position does not exist" }));
+
+    const result = await getAlpacaPosition("MSFT", null);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data).toBeNull();
+  });
+
+  it("still reports a genuine authentication failure as unauthorized, not confused with a 404", async () => {
+    process.env.ALPACA_API_KEY = "bad";
+    process.env.ALPACA_API_SECRET = "bad";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(401, { message: "unauthorized" }));
+
+    const result = await getAlpacaPosition("AAPL", null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("unauthorized");
+  });
+
+  it("reports a network failure honestly", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("ECONNREFUSED"));
+
+    const result = await getAlpacaPosition("AAPL", null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("network_error");
   });
 });
