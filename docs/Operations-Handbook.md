@@ -80,7 +80,20 @@ status. `GET /api/settings`'s `alpacaConnected` field reflects the outcome of
 the most recently-performed check (a passive cache read, not a live call
 triggered by `/settings` itself) — it stays honestly `false` until
 `/api/broker/health` has been called at least once in the running process.
-Full detail: `docs/Broker-Health-API.md`.
+
+**Via the UI:** Settings → Broker Connection → **Check Connection**. The
+button is disabled while the check is in flight and re-enables once it
+completes. On success it shows account status, buying power, cash balance,
+portfolio value, open position/order counts, and the last successful check
+time; on failure it shows the exact reason, plus — specifically when
+credentials are missing — a friendly note naming the required
+`ALPACA_API_KEY`/`ALPACA_API_SECRET` environment variables. The connection
+indicator at the top of the card updates immediately from the response,
+before any settings reload. A permanent "Paper Trading Only" badge on the
+card is a standing reminder that this connection never targets a live
+endpoint.
+
+Full detail: `docs/Broker-Health-API.md` (§10 covers the UI specifically).
 
 ### 6.6 Adding a new operator/admin user
 

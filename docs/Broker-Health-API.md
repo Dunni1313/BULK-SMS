@@ -17,6 +17,7 @@ submission path (`execution.ts`), which is untouched by this work.
 | Route | `GET /api/broker/health` (`routes/brokerHealth.ts`) |
 | Settings | `GET /api/settings`'s `alpacaConnected` field is now computed from the most recent broker-health check, not a static stored value |
 | OpenAPI | `BrokerHealth` schema, `getBrokerHealth` operation, `broker` tag |
+| UI | Settings → Broker Connection card (`artifacts/ravish-trading/src/pages/Settings.tsx`) — a "Check Connection" button and full result panel, added in the Broker Connection UI sprint (see §10) |
 
 Nothing under `execution.ts`, `optionsMath.ts`, `risk.ts`, `autoExecution.ts`,
 or `autoAdjustment.ts` was touched. The hardcoded order-submission endpoint
@@ -286,3 +287,67 @@ session** — that requires the project owner to supply real
 `ALPACA_API_KEY`/`ALPACA_API_SECRET` values. Once available, no further code
 changes should be needed: set the two environment variables and call
 `GET /api/broker/health` to confirm.
+
+## 10. UI workflow — Settings → Broker Connection
+
+The Settings page's existing "Broker Connection" card now drives
+`GET /api/broker/health` directly, rather than only showing the static,
+previously-inert `alpacaConnected` value.
+
+**Layout, top to bottom:**
+
+1. A **"Paper Trading Only"** badge next to the card title, and a description
+   line stating this connection targets `paper-api.alpaca.markets`
+   exclusively and never places, modifies, or cancels a live order. This is
+   always visible — it does not depend on a check having been run.
+2. The existing **connection indicator** (label + disabled switch) —
+   unchanged in position, but its source of truth changed (see below).
+3. The existing **API Key** field, with a new one-line note clarifying that
+   the API *secret* is never entered here — it comes only from the
+   `ALPACA_API_SECRET` environment variable and is never stored, displayed,
+   or returned by any endpoint.
+4. A new **"Check Connection"** button. Clicking it calls
+   `GET /api/broker/health` on demand — the check never runs automatically
+   (no polling, no check on page load) — and:
+   - shows a spinner and "Checking..." label while in flight,
+   - is **disabled** for the duration of the check (`isFetching`), so a
+     second click can't fire a second overlapping request,
+   - re-enables immediately once the check completes, regardless of outcome.
+5. Once a check completes, a **results panel** appears showing all 8
+   requested fields: Authentication (Successful/Failed), Account Status,
+   Buying Power, Cash Balance, Portfolio Value, Open Positions, Open Orders,
+   and Last Successful Check (a relative time, or "Never" if no check has
+   ever succeeded). Every field the check couldn't resolve is shown as an
+   honest **"—"**, never a fabricated `$0` or `0`.
+6. If the check reports `connected: false`, a **failure-reason line** appears
+   (the exact `reason` string from the API — "No Alpaca credentials
+   configured," "…authentication failed," or "Could not reach Alpaca: …").
+7. **Specifically when the reason is "no credentials configured,"** an
+   additional friendly explanation appears naming the two required
+   environment variables, `ALPACA_API_KEY` and `ALPACA_API_SECRET`, and
+   clarifying that the API key may alternatively be entered in the field
+   above, while the secret must always come from the environment. This extra
+   help text does **not** appear for an authentication-failure or
+   network-failure result — only for the specific "no credentials" case,
+   since those other two cases mean credentials exist but something else is
+   wrong.
+8. If the request to this platform's own `/api/broker/health` endpoint
+   itself fails (as opposed to Alpaca-side failures, which are honestly
+   reported *inside* a normal 200 response — see §5 above), a separate,
+   distinct error line appears ("Could not reach the broker health check
+   endpoint. Try again in a moment.").
+
+**The connection indicator (step 2) updates immediately, client-side, from
+the just-completed check's own response** — it does not wait for a
+`GET /api/settings` round trip. In the background, a successful check also
+invalidates the Settings query so a later full page load (or a different
+part of the UI reading `settings.alpacaConnected`) picks up the same result
+without the user needing to press "Check Connection" again. Before any check
+has been performed this session, the indicator falls back to whatever
+`alpacaConnected` was last computed as (see §7) — which is honestly `false`
+on a fresh server process until someone, somewhere, has actually run a
+check.
+
+**No new route, schema, or backend behavior was introduced for this UI** —
+it consumes the exact same `GET /api/broker/health` endpoint described in
+§§2–7 above, unmodified.
