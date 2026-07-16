@@ -5369,6 +5369,114 @@ export interface PortfolioConcentrationResult {
   generatedAt: string;
 }
 
+export type DashboardOverallRiskRatingCode = typeof DashboardOverallRiskRatingCode[keyof typeof DashboardOverallRiskRatingCode];
+
+
+export const DashboardOverallRiskRatingCode = {
+  healthy: 'healthy',
+  moderate_risk: 'moderate_risk',
+  elevated_risk: 'elevated_risk',
+  high_risk: 'high_risk',
+} as const;
+
+export interface DashboardOverallRiskRating {
+  code: DashboardOverallRiskRatingCode;
+  label: string;
+}
+
+export interface DashboardHealthScoreFactor {
+  code: string;
+  label: string;
+  score: number;
+  sourceModule: string;
+  detail: string;
+}
+
+export interface DashboardRiskContributor {
+  tradeId: number;
+  symbol: string;
+  delta: number;
+  deltaSharePct: number;
+}
+
+export interface DashboardWidgetSummary {
+  code: string;
+  label: string;
+  headline: string;
+  detail: string;
+  linkHref: string;
+}
+
+export type DashboardGuidanceAdvisoryCode = typeof DashboardGuidanceAdvisoryCode[keyof typeof DashboardGuidanceAdvisoryCode];
+
+
+export const DashboardGuidanceAdvisoryCode = {
+  healthy_portfolio: 'healthy_portfolio',
+  moderate_risk: 'moderate_risk',
+  elevated_risk: 'elevated_risk',
+  high_risk: 'high_risk',
+  elevated_concentration: 'elevated_concentration',
+  elevated_event_risk: 'elevated_event_risk',
+  diversification_recommended: 'diversification_recommended',
+  review_large_positions: 'review_large_positions',
+} as const;
+
+export interface DashboardGuidanceAdvisory {
+  code: DashboardGuidanceAdvisoryCode;
+  label: string;
+  detail: string;
+}
+
+export interface DashboardStressTestSummaryEntry {
+  label: string;
+  portfolioValueImpact: number;
+  riskScoreAfter: number;
+}
+
+export type PortfolioDashboardResultHighestConcentration = {
+  dimension: string;
+  bucket: ConcentrationBucket;
+} | null;
+
+export type PortfolioDashboardResultHighestDirectionalExposure = {
+  direction: 'long' | 'short';
+  exposureDollars: number;
+  pct: number;
+} | null;
+
+export interface PortfolioDashboardResult {
+  portfolioValue: number;
+  buyingPower: number;
+  totalRiskDollars: number;
+  totalRiskPct: number;
+  healthScore: number;
+  overallRiskRating: DashboardOverallRiskRating;
+  paperTradingMode: true;
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  lastPortfolioUpdate: string;
+  openPositionsCount: number;
+  healthFactors: DashboardHealthScoreFactor[];
+  netGreeks: PortfolioGreeksSnapshot;
+  largestPosition: SymbolExposure | null;
+  largestRiskContributor: DashboardRiskContributor | null;
+  highestEventRisk: HighestRiskPosition | null;
+  highestConcentration: PortfolioDashboardResultHighestConcentration;
+  highestDirectionalExposure: PortfolioDashboardResultHighestDirectionalExposure;
+  widgets: DashboardWidgetSummary[];
+  allocationBySymbol: ConcentrationBucket[];
+  allocationBySector: ConcentrationBucket[];
+  allocationByStrategy: ConcentrationBucket[];
+  expirationDistribution: ConcentrationBucket[];
+  eventTimelineSummary: PortfolioEventRiskSummary;
+  stressTestSummary: DashboardStressTestSummaryEntry[];
+  guidance: DashboardGuidanceAdvisory[];
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

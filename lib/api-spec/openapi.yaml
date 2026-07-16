@@ -769,6 +769,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/PortfolioConcentrationResult"
 
+  # ─── Portfolio Risk Dashboard & Health Score (Paper Trading) ────────────────
+  /portfolio/dashboard:
+    get:
+      operationId: getPortfolioDashboard
+      tags: [execution]
+      summary: >-
+        Read-only executive dashboard unifying Position Sizing, the
+        Portfolio Stress Test, the Earnings & Event Risk Portfolio
+        Overlay, and the Correlation & Concentration Risk Overlay into
+        one Portfolio Health Score and executive summary: never routes
+        to a broker, never creates or modifies an order or position,
+        never mutates local state. Always returns 200 — an empty
+        portfolio honestly returns a healthy-by-default score rather
+        than fabricating risk.
+      responses:
+        "200":
+          description: Portfolio dashboard result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioDashboardResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -9125,5 +9147,232 @@ components:
         sectorDataSource:
           type: string
           enum: [KNOWN_UNIVERSE_METADATA]
+        generatedAt:
+          type: string
+
+    # ─── Portfolio Risk Dashboard & Health Score (Paper Trading) ────────────────
+    # Read-only executive dashboard composing the 3 already-existing
+    # overlays (Portfolio Stress Test, Earnings & Event Risk, Correlation
+    # & Concentration) plus lib/positionSizing.ts's own existing
+    # currentOpenTrades()/buildSnapshot() — never a new pricing/provider
+    # call, never a fabricated statistical model. Every Health Score
+    # factor is a direct projection of an already-computed figure from
+    # one of those 3 overlays.
+    DashboardOverallRiskRating:
+      type: object
+      required: [code, label]
+      properties:
+        code:
+          type: string
+          enum: [healthy, moderate_risk, elevated_risk, high_risk]
+        label:
+          type: string
+
+    DashboardHealthScoreFactor:
+      type: object
+      required: [code, label, score, sourceModule, detail]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        score:
+          type: number
+        sourceModule:
+          type: string
+        detail:
+          type: string
+
+    DashboardRiskContributor:
+      type: object
+      required: [tradeId, symbol, delta, deltaSharePct]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        delta:
+          type: number
+        deltaSharePct:
+          type: number
+
+    DashboardWidgetSummary:
+      type: object
+      required: [code, label, headline, detail, linkHref]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        headline:
+          type: string
+        detail:
+          type: string
+        linkHref:
+          type: string
+
+    DashboardGuidanceAdvisory:
+      type: object
+      required: [code, label, detail]
+      properties:
+        code:
+          type: string
+          enum:
+            [
+              healthy_portfolio,
+              moderate_risk,
+              elevated_risk,
+              high_risk,
+              elevated_concentration,
+              elevated_event_risk,
+              diversification_recommended,
+              review_large_positions,
+            ]
+        label:
+          type: string
+        detail:
+          type: string
+
+    DashboardStressTestSummaryEntry:
+      type: object
+      required: [label, portfolioValueImpact, riskScoreAfter]
+      properties:
+        label:
+          type: string
+        portfolioValueImpact:
+          type: number
+        riskScoreAfter:
+          type: number
+
+    PortfolioDashboardResult:
+      type: object
+      required:
+        [
+          portfolioValue,
+          buyingPower,
+          totalRiskDollars,
+          totalRiskPct,
+          healthScore,
+          overallRiskRating,
+          paperTradingMode,
+          credentialsConfigured,
+          brokerConnected,
+          lastBrokerCheckAt,
+          lastPortfolioUpdate,
+          openPositionsCount,
+          healthFactors,
+          netGreeks,
+          largestPosition,
+          largestRiskContributor,
+          highestEventRisk,
+          highestConcentration,
+          highestDirectionalExposure,
+          widgets,
+          allocationBySymbol,
+          allocationBySector,
+          allocationByStrategy,
+          expirationDistribution,
+          eventTimelineSummary,
+          stressTestSummary,
+          guidance,
+          generatedAt,
+        ]
+      properties:
+        portfolioValue:
+          type: number
+        buyingPower:
+          type: number
+        totalRiskDollars:
+          type: number
+        totalRiskPct:
+          type: number
+        healthScore:
+          type: number
+        overallRiskRating:
+          $ref: "#/components/schemas/DashboardOverallRiskRating"
+        paperTradingMode:
+          type: boolean
+          enum: [true]
+        credentialsConfigured:
+          type: boolean
+        brokerConnected:
+          type: ["boolean", "null"]
+        lastBrokerCheckAt:
+          type: ["string", "null"]
+        lastPortfolioUpdate:
+          type: string
+        openPositionsCount:
+          type: integer
+        healthFactors:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardHealthScoreFactor"
+        netGreeks:
+          $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+        largestPosition:
+          oneOf:
+            - $ref: "#/components/schemas/SymbolExposure"
+            - type: "null"
+        largestRiskContributor:
+          oneOf:
+            - $ref: "#/components/schemas/DashboardRiskContributor"
+            - type: "null"
+        highestEventRisk:
+          oneOf:
+            - $ref: "#/components/schemas/HighestRiskPosition"
+            - type: "null"
+        highestConcentration:
+          oneOf:
+            - type: object
+              required: [dimension, bucket]
+              properties:
+                dimension:
+                  type: string
+                bucket:
+                  $ref: "#/components/schemas/ConcentrationBucket"
+            - type: "null"
+        highestDirectionalExposure:
+          oneOf:
+            - type: object
+              required: [direction, exposureDollars, pct]
+              properties:
+                direction:
+                  type: string
+                  enum: [long, short]
+                exposureDollars:
+                  type: number
+                pct:
+                  type: number
+            - type: "null"
+        widgets:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardWidgetSummary"
+        allocationBySymbol:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        allocationBySector:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        allocationByStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        expirationDistribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        eventTimelineSummary:
+          $ref: "#/components/schemas/PortfolioEventRiskSummary"
+        stressTestSummary:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardStressTestSummaryEntry"
+        guidance:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardGuidanceAdvisory"
         generatedAt:
           type: string

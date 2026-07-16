@@ -896,6 +896,76 @@ No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
 database write of any kind — every function in
 `lib/portfolioConcentration.ts` only ever `SELECT`s.
 
+### 4.14 Portfolio Risk Dashboard & Health Score
+
+A single, dedicated, read-only executive dashboard, `/portfolio-dashboard`
+— a new backend composition layer, `lib/portfolioDashboard.ts`, plus one
+new endpoint, `GET /portfolio/dashboard`, unifying every prior overlay in
+this family (Position Sizing, the Portfolio Stress Test, the Earnings &
+Event Risk Portfolio Overlay, the Correlation & Concentration Risk
+Overlay) into one Portfolio Health Score. There is no submit action
+anywhere on this page; every risk-guidance label is purely informational.
+
+**Portfolio Health Score design discipline:** per this sprint's own
+explicit "do not invent statistical models — every component must be
+derived from existing calculations" instruction, every one of the 8
+requested Health Score factors (Concentration, Diversification, Event
+Risk, Net Greeks Exposure, Directional Exposure, Position Sizing
+Quality, Number of Positions, Expiration Distribution) is a direct 0-100
+health projection of a figure **already computed** by one of the 3
+reused overlays — never a new pricing call, never a fabricated
+statistic. Only 2 small, disclosed, named threshold constants are
+genuinely new (`EVENT_RISK_LEVEL_HEALTH_SCORE`'s label→score table and
+`DASHBOARD_HEALTHY_POSITION_COUNT = 5`), the same "state a reasonable
+default, disclose it" precedent this codebase has followed since
+Position Sizing's own thresholds. The overall Health Score is the
+equal-weighted average of all 8 factors; the Overall Risk Rating is a
+4-tier banding of that score (healthy/moderate_risk/elevated_risk/
+high_risk), matching the Concentration overlay's own 4-tier convention.
+Full detail: `docs/Portfolio-Dashboard.md` §2.
+
+**Zero new risk logic — every figure is a direct reuse:** `buildSnapshot()`
+supplies Total Risk and Largest Position; `buildPortfolioStressTest({}, userId)`
+supplies Portfolio Value/Buying Power and the base-case risk score
+(reused directly, unmodified, as the Position Sizing Quality factor);
+`buildPortfolioEventRiskOverlay(userId)` supplies Highest Event Risk and
+the Event Timeline Summary; `buildPortfolioConcentrationOverlay(userId)`
+supplies Net Greeks, Largest Risk Contributor, Highest Concentration,
+Highest Directional Exposure, 4 of the 8 Health Score factors, and the
+Portfolio Allocation / Concentration Snapshot visualisations — all 4
+prior overlay files are completely unmodified by this sprint.
+
+**Guidance reuses, rather than re-derives, existing thresholds**:
+"Elevated Concentration" reuses the Concentration overlay's own
+`riskGuidance.code`; "Diversification Recommended" reuses its own
+already-exported `SECTOR_CONCENTRATION_ADVISORY_THRESHOLD`; "Review Large
+Positions" reuses its own already-exported `CONCENTRATION_HIGH_MAX`;
+"Elevated Event Risk" reuses the Event Risk overlay's own `highRiskCount`.
+
+**7 dashboard widget cards** each link to their own existing detailed
+page (`/position-sizing`, `/stress-test`, `/event-risk`,
+`/concentration-risk` ×3, `/settings`) rather than re-implementing that
+page's own logic.
+
+**One real concurrency bug caught and fixed during this sprint's own
+validation, not anticipated in the pre-code design:** the first draft
+fired all 3 reused overlays concurrently via `Promise.all` while also
+independently calling `getSettingsRow()` a 4th time itself — since
+`getSettingsRow()` (`serverState.ts`, unmodified) is a plain
+check-then-insert with no upsert safety, and each of the 3 overlays
+already calls it internally, this reliably raced 4 simultaneous
+`INSERT`s against the `settings_user_id_unique` constraint for any
+brand-new user, reproducing on the very first test run. Fixed entirely
+within this sprint's own new `portfolioDashboard.ts` by resolving
+`getSettingsRow(userId)` once, alone, before the concurrent fan-out —
+`serverState.ts` itself was not touched.
+
+No database migration. No `execution.ts`/`optionsMath.ts`/`risk.ts`/
+`autoExecution.ts`/`autoAdjustment.ts`/`eventRisk.ts`/`positionSizing.ts`/
+`portfolioStressTest.ts`/`portfolioEventRisk.ts`/`portfolioConcentration.ts`
+change. No new database write of any kind — every function in
+`lib/portfolioDashboard.ts` only ever `SELECT`s.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -969,6 +1039,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/portfolioConcentration.ts` | Unit tests against isolated, fresh test users — an empty-portfolio proof (zeroed-out figures across all 7 dimensions, always-unavailable net beta, no crash), single-position 100%-concentration across every dimension including the underlying===symbol equality proof, balanced multi-symbol portfolios, high-concentration scenarios (4 same-symbol positions) with `review_exposure` guidance and genuine clusters, multiple-sector and multiple-strategy and multiple-expiration breakdowns (including shared-expiration clustering), the honest `"Unclassified"` sector fallback for a symbol outside `KNOWN_SECTOR_MAP`, net Greeks/directional-exposure/calls-vs-puts derivation, most/least-diversified-area selection, the sector-concentration advisory firing when 3 different symbols share one real sector, determinism, a never-mutates-the-trades-table proof, and the `sectorDataSource` disclosure. |
 | `routes/portfolioConcentration.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped result with all 7 breakdown dimensions, the always-unavailable net-beta disclosure, the `sectorDataSource` disclosure, honest credentials/broker-connection disclosure, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
 | `PortfolioConcentration.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Portfolio Analysis" badges, loading and error states, the honest empty-portfolio message across every card, net Greeks/net-beta-unavailable/directional-exposure display, the Portfolio Summary card (largest concentration, highest directional exposure, highest Greeks contributor, most/least diversified area, concentration/diversification scores, portfolio health badge), the sector-concentration advisory and its honest no-advisories fallback, long/short and call/put exposure display, the default symbol allocation chart and bucket list, switching the dimension selector to sector, switching sort mode to label A-Z, the minimum-positions filter hiding single-position buckets, the Greeks Contribution chart, the Concentration Heat Map, the Correlation Clusters list, and a never-fabricates-a-beta-figure proof. |
+| `lib/portfolioDashboard.ts` | Unit tests against isolated, fresh test users — an empty-portfolio proof (a fully-healthy 100 score across all 8 factors, no fabricated largest position/risk contributor/highest-risk entries, no crash), single-position fully-concentrated factor scoring, balanced multi-symbol portfolios, high-concentration scenarios with guidance surfacing Elevated Concentration and Review Large Positions, an empirically-verified real high-event-risk fixture (AAPL at 45 DTE, matching `portfolioEventRisk.test.ts`'s own established fixture) with guidance surfacing Elevated Event Risk, high-Greeks-exposure scenarios where one position dominates net delta, honest missing-credentials disclosure, the Health Score's own equal-weighted-average formula proven by direct recomputation, the Overall Risk Rating's own deterministic banding, the exact 7 dashboard widgets and their `linkHref`s, visualisation-data pass-through proofs (allocation/expiration/event-timeline/stress-test), determinism, and a never-mutates-the-trades-table proof. |
+| `routes/portfolioDashboard.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped executive dashboard with all requested Executive Summary fields, exactly 8 Health Score factors each disclosing its own `sourceModule`, all 9 Risk Panel fields, exactly 7 dashboard widgets each with a real `linkHref`, visualisation data for every requested chart, informational-only guidance, honest credentials/broker-connection disclosure, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
+| `PortfolioDashboard.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Portfolio Dashboard" badges, loading and error states, the honest empty-portfolio state (healthy score, no fabricated highlights, honest empty allocation charts), the Executive Summary fields including the Health Score gauge and Overall Risk Rating badge, all 8 Health Score factors rendering by default, sorting factors by Score (Worst First), filtering factors by a minimum-score threshold (including the honest no-factors-match message), all 9 Risk Panel fields, exactly 7 dashboard widget links to their own existing detailed pages, the Portfolio Allocation and Concentration Snapshot charts, the Event Timeline Summary, the Stress Test Summary scenario list, and informational-only guidance rendering with a never-an-execution-action proof. |
 
 ## 8. Cross-references
 
@@ -1013,6 +1086,12 @@ to everything else in this codebase. Specifically for this document's scope:
   distinction, the Herfindahl-Hirschman-Index concentration scoring, the
   categorical-clustering-only correlation model, and the Portfolio
   Summary/Risk Guidance derivation.
+- `docs/Portfolio-Dashboard.md` — the Portfolio Risk Dashboard & Health
+  Score's own full detail (§4.14 above): the 8-factor Health Score
+  design discipline and its exact derivation table, the equal-weighted
+  averaging formula, the 4-tier Overall Risk Rating banding, the 7
+  dashboard widgets and their existing detail-page links, and the
+  disclosed `getSettingsRow()` concurrency fix.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

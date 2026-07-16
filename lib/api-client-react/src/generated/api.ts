@@ -109,6 +109,7 @@ import type {
   PlatformNotification,
   PlatformNotificationUpdate,
   PortfolioConcentrationResult,
+  PortfolioDashboardResult,
   PortfolioEventRiskResult,
   PortfolioGreeks,
   PortfolioHealth,
@@ -3056,6 +3057,83 @@ export function useGetPortfolioConcentration<TData = Awaited<ReturnType<typeof g
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetPortfolioConcentrationQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioDashboardUrl = () => {
+
+
+
+
+  return `/api/portfolio/dashboard`
+}
+
+/**
+ * @summary Read-only executive dashboard unifying Position Sizing, the Portfolio Stress Test, the Earnings & Event Risk Portfolio Overlay, and the Correlation & Concentration Risk Overlay into one Portfolio Health Score and executive summary: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns a healthy-by-default score rather than fabricating risk.
+ */
+export const getPortfolioDashboard = async ( options?: RequestInit): Promise<PortfolioDashboardResult> => {
+
+  return customFetch<PortfolioDashboardResult>(getGetPortfolioDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioDashboardQueryKey = () => {
+    return [
+    `/api/portfolio/dashboard`
+    ] as const;
+    }
+
+
+export const getGetPortfolioDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioDashboard>>> = ({ signal }) => getPortfolioDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioDashboard>>>
+export type GetPortfolioDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only executive dashboard unifying Position Sizing, the Portfolio Stress Test, the Earnings & Event Risk Portfolio Overlay, and the Correlation & Concentration Risk Overlay into one Portfolio Health Score and executive summary: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns a healthy-by-default score rather than fabricating risk.
+ */
+
+export function useGetPortfolioDashboard<TData = Awaited<ReturnType<typeof getPortfolioDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioDashboardQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

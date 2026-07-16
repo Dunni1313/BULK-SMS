@@ -56,7 +56,8 @@ import {
   GitCompareArrows,
   Zap,
   ShieldAlert,
-  Network
+  Network,
+  Gauge
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -136,6 +137,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { title: "Stress Test", href: "/stress-test", icon: Zap },
     { title: "Event Risk", href: "/event-risk", icon: ShieldAlert },
     { title: "Concentration Risk", href: "/concentration-risk", icon: Network },
+    { title: "Portfolio Dashboard", href: "/portfolio-dashboard", icon: Gauge },
     { title: "Broker Reconciliation", href: "/broker-reconciliation", icon: GitCompare },
     { title: "Settings", href: "/settings", icon: Settings },
   ];

@@ -2077,6 +2077,129 @@ export const GetPortfolioConcentrationResponse = zod.object({
 
 
 /**
+ * @summary Read-only executive dashboard unifying Position Sizing, the Portfolio Stress Test, the Earnings & Event Risk Portfolio Overlay, and the Correlation & Concentration Risk Overlay into one Portfolio Health Score and executive summary: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns a healthy-by-default score rather than fabricating risk.
+ */
+export const GetPortfolioDashboardResponse = zod.object({
+  "portfolioValue": zod.number(),
+  "buyingPower": zod.number(),
+  "totalRiskDollars": zod.number(),
+  "totalRiskPct": zod.number(),
+  "healthScore": zod.number(),
+  "overallRiskRating": zod.object({
+  "code": zod.enum(['healthy', 'moderate_risk', 'elevated_risk', 'high_risk']),
+  "label": zod.string()
+}),
+  "paperTradingMode": zod.literal(true),
+  "credentialsConfigured": zod.boolean(),
+  "brokerConnected": zod.boolean().nullable(),
+  "lastBrokerCheckAt": zod.string().nullable(),
+  "lastPortfolioUpdate": zod.string(),
+  "openPositionsCount": zod.number(),
+  "healthFactors": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "sourceModule": zod.string(),
+  "detail": zod.string()
+})),
+  "netGreeks": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),
+  "largestPosition": zod.union([zod.object({
+  "symbol": zod.string(),
+  "riskDollars": zod.number(),
+  "pctOfAccount": zod.number()
+}),zod.null()]),
+  "largestRiskContributor": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "delta": zod.number(),
+  "deltaSharePct": zod.number()
+}),zod.null()]),
+  "highestEventRisk": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "riskLevel": zod.enum(['none', 'low', 'medium', 'high'])
+}),zod.null()]),
+  "highestConcentration": zod.union([zod.object({
+  "dimension": zod.string(),
+  "bucket": zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})
+}),zod.null()]),
+  "highestDirectionalExposure": zod.union([zod.object({
+  "direction": zod.enum(['long', 'short']),
+  "exposureDollars": zod.number(),
+  "pct": zod.number()
+}),zod.null()]),
+  "widgets": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "headline": zod.string(),
+  "detail": zod.string(),
+  "linkHref": zod.string()
+})),
+  "allocationBySymbol": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "allocationBySector": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "allocationByStrategy": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "expirationDistribution": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "eventTimelineSummary": zod.object({
+  "totalPositions": zod.number(),
+  "positionsWithEvents": zod.number(),
+  "positionsWithoutEvents": zod.number(),
+  "highRiskCount": zod.number(),
+  "within1Day": zod.number(),
+  "within3Days": zod.number(),
+  "within7Days": zod.number(),
+  "within14Days": zod.number(),
+  "aggregateExposurePct": zod.number(),
+  "highestRiskPosition": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "riskLevel": zod.enum(['none', 'low', 'medium', 'high'])
+}),zod.null()])
+}),
+  "stressTestSummary": zod.array(zod.object({
+  "label": zod.string(),
+  "portfolioValueImpact": zod.number(),
+  "riskScoreAfter": zod.number()
+})),
+  "guidance": zod.array(zod.object({
+  "code": zod.enum(['healthy_portfolio', 'moderate_risk', 'elevated_risk', 'high_risk', 'elevated_concentration', 'elevated_event_risk', 'diversification_recommended', 'review_large_positions']),
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Current full-auto engine state, guardrails, and today's stats
  */
 export const GetAutoExecutionStatusResponse = zod.object({

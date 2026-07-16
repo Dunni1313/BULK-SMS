@@ -62,6 +62,7 @@ const TradeAdjustmentPreview = lazy(() => import("./pages/TradeAdjustmentPreview
 const PortfolioStressTest = lazy(() => import("./pages/PortfolioStressTest"));
 const PortfolioEventRisk = lazy(() => import("./pages/PortfolioEventRisk"));
 const PortfolioConcentration = lazy(() => import("./pages/PortfolioConcentration"));
+const PortfolioDashboard = lazy(() => import("./pages/PortfolioDashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Login"));
 
@@ -131,6 +132,7 @@ function Router() {
           <Route path="/stress-test" component={PortfolioStressTest} />
           <Route path="/event-risk" component={PortfolioEventRisk} />
           <Route path="/concentration-risk" component={PortfolioConcentration} />
+          <Route path="/portfolio-dashboard" component={PortfolioDashboard} />
           <Route path="/settings" component={Settings} />
           <Route path="/learn/delta" component={DeltaMasterclass} />
           <Route path="/learn/greeks" component={GreeksTutor} />
