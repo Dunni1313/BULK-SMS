@@ -1,0 +1,124 @@
+// Phase 10 — Institutional Platform Polish & Control Center. Extracted
+// from AppLayout.tsx's own previously-inline navItems/learnItems arrays —
+// a pure, behavior-preserving refactor (AppLayout's sidebar renders
+// exactly the same items, in the same order, with the same icons) so the
+// new Command Palette / Global Search can reuse the single, real
+// navigation index instead of maintaining a second, easily-drifting copy.
+// "Unify, don't duplicate" — this file is the one deliberate consistency
+// win this phase's own Command Palette work required.
+
+import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  Search,
+  LineChart,
+  PieChart,
+  List,
+  FlaskConical,
+  Trophy,
+  BookOpen,
+  MessageSquare,
+  TrendingUp,
+  Bot,
+  Settings,
+  GraduationCap,
+  BrainCircuit,
+  Library,
+  CalendarClock,
+  Wrench,
+  Building2,
+  Radar,
+  Briefcase,
+  Activity,
+  NotebookPen,
+  History,
+  LayoutGrid,
+  TestTube2,
+  Newspaper,
+  GitCompare,
+  Wallet,
+  Clock,
+  ChartColumn,
+  ClipboardCheck,
+  Scale,
+  GitCompareArrows,
+  Zap,
+  ShieldAlert,
+  Network,
+  Gauge,
+  BarChart3,
+  Sparkles,
+  FileBarChart,
+  BookMarked,
+  Landmark,
+  Home,
+  Bell,
+} from "lucide-react";
+
+export interface NavItem {
+  title: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+// Institutional Home is now "/" (Phase 10) — Command Center moved to its
+// own route, still fully reachable, per the Institutional Home design
+// decision documented in docs/Institutional-Control-Center.md.
+export const NAV_ITEMS: NavItem[] = [
+  { title: "Institutional Home", href: "/", icon: Home },
+  { title: "Command Center", href: "/command-center", icon: LayoutDashboard },
+  { title: "Notifications", href: "/notifications", icon: Bell },
+  { title: "Options Dashboard", href: "/options-dashboard", icon: BarChart3 },
+  { title: "Portfolio AI", href: "/portfolio-ai", icon: BrainCircuit },
+  { title: "Scanner", href: "/scanner", icon: Search },
+  { title: "Option Chain", href: "/options/SPY", icon: LineChart },
+  { title: "Portfolio", href: "/portfolio", icon: PieChart },
+  { title: "Trades", href: "/trades", icon: List },
+  { title: "Backtest", href: "/backtest", icon: FlaskConical },
+  { title: "Leaderboard", href: "/scoring", icon: Trophy },
+  { title: "Journal", href: "/journal", icon: BookOpen },
+  { title: "AI Assistant", href: "/assistant", icon: MessageSquare },
+  { title: "Performance", href: "/performance", icon: TrendingUp },
+  { title: "AutoPilot", href: "/autopilot", icon: Bot },
+  { title: "Event Calendar", href: "/events", icon: CalendarClock },
+  { title: "Adjustments", href: "/adjustments", icon: Wrench },
+  { title: "Institutional Dashboard", href: "/institutional-dashboard", icon: LayoutGrid },
+  { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
+  { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
+  { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },
+  { title: "Institutional Mentor", href: "/institutional-mentor", icon: Landmark },
+  { title: "Daily Report", href: "/daily-report", icon: Newspaper },
+  { title: "Trading Research", href: "/trading-research", icon: Activity },
+  { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
+  { title: "Trading Backtest", href: "/trading-backtest", icon: History },
+  { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
+  { title: "Value Research", href: "/stock-analyst", icon: Building2 },
+  { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
+  { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },
+  { title: "Paper Portfolio", href: "/paper-portfolio", icon: Wallet },
+  { title: "Trade History", href: "/trade-history", icon: Clock },
+  { title: "Trade Performance", href: "/trade-performance", icon: ChartColumn },
+  { title: "Order Preview", href: "/order-preview", icon: ClipboardCheck },
+  { title: "Position Sizing", href: "/position-sizing", icon: Scale },
+  { title: "Adjustment Preview", href: "/adjustment-preview", icon: GitCompareArrows },
+  { title: "Stress Test", href: "/stress-test", icon: Zap },
+  { title: "Event Risk", href: "/event-risk", icon: ShieldAlert },
+  { title: "Concentration Risk", href: "/concentration-risk", icon: Network },
+  { title: "Portfolio Dashboard", href: "/portfolio-dashboard", icon: Gauge },
+  { title: "Broker Reconciliation", href: "/broker-reconciliation", icon: GitCompare },
+  { title: "Settings", href: "/settings", icon: Settings },
+];
+
+export const LEARN_NAV_ITEMS: NavItem[] = [
+  { title: "AI Teacher & Learning Centre", href: "/learn", icon: Sparkles },
+  { title: "Learning Paths", href: "/learn/paths", icon: BookOpen },
+  { title: "Strategy Academy", href: "/learn/strategy-academy", icon: GraduationCap },
+  { title: "Glossary", href: "/learn/glossary", icon: Library },
+  { title: "Delta Masterclass", href: "/learn/delta", icon: GraduationCap },
+  { title: "Greeks Tutor", href: "/learn/greeks", icon: Library },
+  { title: "Trading Quiz", href: "/learn/quiz", icon: BrainCircuit },
+  { title: "Trade Lessons", href: "/lessons", icon: BookOpen },
+  { title: "Value Investing School", href: "/stock-analyst/value-investing-school", icon: GraduationCap },
+];
+
+export const ALL_NAV_ITEMS: NavItem[] = [...NAV_ITEMS, ...LEARN_NAV_ITEMS];
