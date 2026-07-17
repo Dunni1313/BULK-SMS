@@ -23,6 +23,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useEffect } from "react";
 
 // Pages
@@ -81,11 +82,19 @@ const LearningPaths = lazy(() => import("./pages/learn/LearningPaths"));
 const StrategyAcademy = lazy(() => import("./pages/learn/StrategyAcademy"));
 const Glossary = lazy(() => import("./pages/learn/Glossary"));
 
+// Phase 9 — a modest default staleTime avoids an immediate, redundant
+// refetch every time a component using an already-fresh query remounts
+// (e.g. navigating away and back within the window below), while staying
+// short enough that no page shows meaningfully outdated data. Any page
+// that needs tighter freshness already overrides this per-query (e.g.
+// NotificationBell's own 20s poll) — this is only the default floor.
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: false,
+      staleTime: 15_000,
+      gcTime: 5 * 60_000,
     },
   },
 });
@@ -174,14 +183,16 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors, { type CorsOptions } from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
@@ -7,11 +7,19 @@ import authRouter from "./routes/auth";
 import { loadSession } from "./middlewares/auth";
 import { requireAuth } from "./middlewares/requireAuth";
 import { generalRateLimiter, authRateLimiter } from "./middlewares/rateLimit";
+import { securityHeaders } from "./middlewares/securityHeaders";
 import { requestMetrics } from "./lib/requestMetrics";
 import { authRequired } from "./lib/tenantScope";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+
+// Phase 9 — Production Readiness. Mounted first (before logging/CORS/
+// rate-limiting) so every response, including health checks and
+// rate-limited/error responses, carries these headers — see
+// middlewares/securityHeaders.ts's own doc comment for what each header
+// does and why.
+app.use(securityHeaders);
 
 app.use(
   pinoHttp({
@@ -108,5 +116,25 @@ if (authRequired()) {
 }
 
 app.use("/api", router);
+
+// Phase 9 — Production Readiness. Express 5 auto-forwards both a
+// synchronous throw and a rejected async-handler promise to this
+// 4-argument middleware (the "error handler" signature — the extra `err`
+// first parameter is what Express uses to distinguish it from a normal
+// middleware). Without this, Express's own built-in default handler
+// takes over, which echoes the error's message/stack straight to the
+// client whenever NODE_ENV isn't exactly "production" — an information-
+// disclosure risk if that env var is ever unset or misconfigured for a
+// real deployment. Logs the real error server-side (via the same pino
+// logger every other log line already goes through) and returns a
+// generic, disclosure-free message to the caller. Mounted last, so it
+// only ever sees errors the routes above it didn't already handle
+// themselves.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
+  logger.error({ err, path: req.path, method: req.method }, "Unhandled request error");
+  if (res.headersSent) return;
+  res.status(500).json({ error: "Internal server error" });
+});
 
 export default app;
