@@ -35,6 +35,11 @@ export const scannerResultsTable = pgTable("scanner_results", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   index("scanner_results_user_id_idx").on(table.userId),
+  // Phase 9 — Production Readiness. Scanner.tsx's default view and several
+  // routes filter scanner_results by status ("active" vs. superseded/expired
+  // rows) alongside user_id; this composite covers that exact access pattern
+  // instead of falling back to a sequential scan filtered post-index-lookup.
+  index("scanner_results_user_id_status_idx").on(table.userId, table.status),
 ]);
 
 export const insertScannerResultSchema = createInsertSchema(scannerResultsTable).omit({ id: true, createdAt: true });

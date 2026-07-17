@@ -122,20 +122,23 @@ export async function ensureSeedTrades(userId: string): Promise<void> {
     .limit(1);
   if (existing[0]) return;
 
-  const seeds: { quote: StrategyQuote | null }[] = [
-    { quote: snapQuote("SPY", "ic") },
-    { quote: snapQuote("QQQ", "ic") },
-    { quote: snapQuote("NVDA", "cal") },
+  const quotes: (StrategyQuote | null)[] = [
+    snapQuote("SPY", "ic"),
+    snapQuote("QQQ", "ic"),
+    snapQuote("NVDA", "cal"),
   ];
 
-  for (const { quote } of seeds) {
-    if (!quote) continue;
-    await db.insert(tradesTable).values({
+  // Phase 9 — Production Readiness. Previously 3 sequential single-row
+  // INSERTs (3 round-trips); one real row's worth of output is unchanged,
+  // this is a pure round-trip-count reduction, not a behavior change.
+  const rows = quotes
+    .filter((quote): quote is StrategyQuote => quote !== null)
+    .map((quote) => ({
       userId,
       symbol: quote.symbol,
       strategy: quote.strategy,
-      status: "open",
-      executionMode: "manual",
+      status: "open" as const,
+      executionMode: "manual" as const,
       legs: quote.legs as unknown as typeof tradesTable.$inferInsert["legs"],
       expiration: quote.expiration,
       credit: quote.credit,
@@ -145,8 +148,10 @@ export async function ensureSeedTrades(userId: string): Promise<void> {
       ev: quote.ev,
       theta: quote.theta,
       ravishScore: quote.ravishScore,
-    });
-  }
+    }));
+
+  if (rows.length === 0) return;
+  await db.insert(tradesTable).values(rows);
 }
 
 function snapQuote(symbol: string, kind: "ic" | "cal"): StrategyQuote | null {

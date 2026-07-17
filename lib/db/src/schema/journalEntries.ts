@@ -33,6 +33,11 @@ export const journalEntriesTable = pgTable("journal_entries", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [
   index("journal_entries_user_id_idx").on(table.userId),
+  // Phase 9 — Production Readiness. tradeJournal.ts's linkedJournalEntriesFor()
+  // filters on trade_id for every trade shown on the Trade History/Performance
+  // pages; this column previously had no index of its own (only the composite
+  // covering user_id), so that lookup was a sequential scan once the table grew.
+  index("journal_entries_trade_id_idx").on(table.tradeId),
 ]);
 
 export const insertJournalEntrySchema = createInsertSchema(journalEntriesTable).omit({ id: true, createdAt: true, updatedAt: true });
