@@ -2367,6 +2367,234 @@ export const GetInstitutionalIntelligenceResponse = zod.object({
 
 
 /**
+ * @summary Read-only, deterministic AI Portfolio Analyst result: the executive briefing layer composing the Institutional Intelligence Engine, Portfolio Dashboard, Portfolio Event Risk, and Theta Income into an Executive Briefing, Portfolio Snapshot, Health/ Risk/Income/Greeks/Event/Learning Summaries, a Portfolio Timeline (Yesterday/Today/This Week), and Institutional Insights. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const GetPortfolioAnalystResponse = zod.object({
+  "paperTradingMode": zod.literal(true),
+  "deterministicAnalysis": zod.literal(true),
+  "executiveBriefing": zod.object({
+  "headline": zod.string(),
+  "bullets": zod.array(zod.string()),
+  "generatedAt": zod.string()
+}),
+  "snapshot": zod.object({
+  "healthScore": zod.number(),
+  "overallRiskRating": zod.object({
+  "code": zod.enum(['healthy', 'moderate_risk', 'elevated_risk', 'high_risk']),
+  "label": zod.string()
+}),
+  "buyingPower": zod.number(),
+  "openPositionsCount": zod.number(),
+  "monthlyTheta": zod.number(),
+  "dailyTheta": zod.number(),
+  "totalRiskDollars": zod.number(),
+  "totalRiskPct": zod.number(),
+  "generatedAt": zod.string()
+}),
+  "healthSummary": zod.object({
+  "overallHealthScore": zod.number(),
+  "overallRiskRating": zod.object({
+  "code": zod.enum(['healthy', 'moderate_risk', 'elevated_risk', 'high_risk']),
+  "label": zod.string()
+}),
+  "trend": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "trendDetail": zod.string(),
+  "strengths": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "detail": zod.string()
+})),
+  "weaknesses": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "detail": zod.string()
+})),
+  "drivers": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "detail": zod.string()
+})),
+  "summary": zod.string()
+}),
+  "riskSummary": zod.object({
+  "highestRisk": zod.string(),
+  "riskTrend": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "largestExposure": zod.string(),
+  "diversificationScore": zod.number().nullable(),
+  "worstStressScenario": zod.union([zod.object({
+  "label": zod.string(),
+  "portfolioValueImpact": zod.number(),
+  "riskScoreAfter": zod.number()
+}),zod.null()]),
+  "guidance": zod.array(zod.object({
+  "code": zod.enum(['healthy_portfolio', 'moderate_risk', 'elevated_risk', 'high_risk', 'elevated_concentration', 'elevated_event_risk', 'diversification_recommended', 'review_large_positions']),
+  "label": zod.string(),
+  "detail": zod.string()
+}))
+}),
+  "incomeSummary": zod.object({
+  "monthlyTheta": zod.number(),
+  "weeklyTheta": zod.number(),
+  "dailyTheta": zod.number(),
+  "annualizedTheta": zod.number(),
+  "incomeHealth": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "incomeHealthDetail": zod.string(),
+  "bySymbol": zod.array(zod.object({
+  "key": zod.string(),
+  "theta": zod.number()
+})),
+  "byStrategy": zod.array(zod.object({
+  "key": zod.string(),
+  "theta": zod.number()
+}))
+}),
+  "greeksSummary": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number(),
+  "largestContributor": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "delta": zod.number(),
+  "deltaSharePct": zod.number()
+}),zod.null()]),
+  "deltaTrend": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "deltaTrendDetail": zod.string(),
+  "educationalLinks": zod.array(zod.object({
+  "label": zod.string(),
+  "href": zod.string().nullable(),
+  "comingSoon": zod.boolean()
+}))
+}),
+  "eventSummary": zod.object({
+  "upcomingEvents": zod.object({
+  "totalPositions": zod.number(),
+  "positionsWithEvents": zod.number(),
+  "positionsWithoutEvents": zod.number(),
+  "highRiskCount": zod.number(),
+  "within1Day": zod.number(),
+  "within3Days": zod.number(),
+  "within7Days": zod.number(),
+  "within14Days": zod.number(),
+  "aggregateExposurePct": zod.number(),
+  "highestRiskPosition": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "riskLevel": zod.enum(['none', 'low', 'medium', 'high'])
+}),zod.null()])
+}),
+  "highestRiskEvent": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "riskLevel": zod.enum(['none', 'low', 'medium', 'high'])
+}),zod.null()]),
+  "safePositionsCount": zod.number(),
+  "atRiskPositionsCount": zod.number(),
+  "expirationClusters": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+}))
+}),
+  "learningSummary": zod.object({
+  "health": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable()
+}),
+  "risk": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable()
+}),
+  "income": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable()
+}),
+  "greeks": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable()
+}),
+  "event": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable()
+})
+}),
+  "timeline": zod.object({
+  "asOf": zod.string(),
+  "comparedTo": zod.string().nullable(),
+  "newIssues": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "category": zod.string(),
+  "status": zod.enum(['new', 'resolved', 'persistent'])
+})),
+  "resolvedIssues": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "category": zod.string(),
+  "status": zod.enum(['new', 'resolved', 'persistent'])
+})),
+  "persistentIssues": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "category": zod.string(),
+  "status": zod.enum(['new', 'resolved', 'persistent'])
+})),
+  "healthChange": zod.union([zod.object({
+  "label": zod.string(),
+  "direction": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "detail": zod.string()
+}),zod.null()]),
+  "incomeChange": zod.union([zod.object({
+  "label": zod.string(),
+  "direction": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "detail": zod.string()
+}),zod.null()]),
+  "thisWeek": zod.object({
+  "daysRecorded": zod.number(),
+  "healthScoreMin": zod.number().nullable(),
+  "healthScoreMax": zod.number().nullable(),
+  "trend": zod.enum(['improving', 'declining', 'stable', 'insufficient_history'])
+})
+}),
+  "institutionalInsights": zod.array(zod.object({
+  "text": zod.string(),
+  "category": zod.string()
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Searchable, filterable glossary of options/portfolio/institutional terms. Deterministic, version-controlled content — never LLM- generated. Optional ?q= free-text search and ?category= filter.
  */
 export const GetGlossaryResponseItem = zod.object({

@@ -820,6 +820,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalIntelligenceResult"
 
+  # ─── AI Portfolio Analyst (Phase 8, Sprint 3) ───────────────────────────────
+  # Executive portfolio briefing layer. PURE COMPOSITION over the
+  # Institutional Intelligence Engine, Portfolio Dashboard, Portfolio
+  # Event Risk overlay, and Theta Income — zero new pricing/risk/scoring
+  # calculations. Not an LLM, not a chatbot, not predictive AI, not
+  # financial advice, not trade recommendations — every sentence is a
+  # deterministic, disclosed template gated by an already-computed
+  # threshold. Never routes to a broker, never creates or modifies an
+  # order or position, never mutates local state beyond the same
+  # at-most-once-per-calendar-day intelligence snapshot row /intelligence
+  # itself already writes.
+  /portfolio-analyst:
+    get:
+      operationId: getPortfolioAnalyst
+      tags: [execution]
+      summary: >-
+        Read-only, deterministic AI Portfolio Analyst result: the
+        executive briefing layer composing the Institutional Intelligence
+        Engine, Portfolio Dashboard, Portfolio Event Risk, and Theta
+        Income into an Executive Briefing, Portfolio Snapshot, Health/
+        Risk/Income/Greeks/Event/Learning Summaries, a Portfolio Timeline
+        (Yesterday/Today/This Week), and Institutional Insights. Always
+        returns 200 — an empty portfolio honestly returns a
+        healthy-by-default result rather than fabricating observations.
+      responses:
+        "200":
+          description: AI Portfolio Analyst result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioAnalystResult"
+
   # ─── AI Teacher & Learning Centre (Phase 8, Sprint 2) ───────────────────────
   # Educational only. Read-only. Deterministic — never an LLM call, never a
   # trade recommendation. Learning Progress (view/complete) is the ONLY
@@ -10274,5 +10306,306 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/LearningMetricExplanation"
+        generatedAt:
+          type: string
+
+    # ─── AI Portfolio Analyst (Phase 8, Sprint 3) ──────────────────────────────
+    # Pure composition over the Institutional Intelligence Engine,
+    # Portfolio Dashboard, Portfolio Event Risk, and Theta Income — every
+    # schema below reuses an existing Dashboard*/Intelligence*/Theta*
+    # schema via $ref wherever the underlying shape genuinely matches.
+    # "Analyst" prefix avoids a real naming collision with the
+    # pre-existing PortfolioSnapshot schema (Position Sizing & Portfolio
+    # Impact, an unrelated, differently-shaped schema).
+    AnalystPortfolioSnapshot:
+      type: object
+      required:
+        [
+          healthScore,
+          overallRiskRating,
+          buyingPower,
+          openPositionsCount,
+          monthlyTheta,
+          dailyTheta,
+          totalRiskDollars,
+          totalRiskPct,
+          generatedAt,
+        ]
+      properties:
+        healthScore:
+          type: number
+        overallRiskRating:
+          $ref: "#/components/schemas/DashboardOverallRiskRating"
+        buyingPower:
+          type: number
+        openPositionsCount:
+          type: integer
+        monthlyTheta:
+          type: number
+        dailyTheta:
+          type: number
+        totalRiskDollars:
+          type: number
+        totalRiskPct:
+          type: number
+        generatedAt:
+          type: string
+
+    AnalystHealthSummary:
+      type: object
+      required: [overallHealthScore, overallRiskRating, trend, trendDetail, strengths, weaknesses, drivers, summary]
+      properties:
+        overallHealthScore:
+          type: number
+        overallRiskRating:
+          $ref: "#/components/schemas/DashboardOverallRiskRating"
+        trend:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        trendDetail:
+          type: string
+        strengths:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceHealthDriver"
+        weaknesses:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceHealthDriver"
+        drivers:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceHealthDriver"
+        summary:
+          type: string
+
+    AnalystRiskSummary:
+      type: object
+      required: [highestRisk, riskTrend, largestExposure, diversificationScore, worstStressScenario, guidance]
+      properties:
+        highestRisk:
+          type: string
+        riskTrend:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        largestExposure:
+          type: string
+        diversificationScore:
+          type: ["number", "null"]
+        worstStressScenario:
+          oneOf:
+            - $ref: "#/components/schemas/DashboardStressTestSummaryEntry"
+            - type: "null"
+        guidance:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardGuidanceAdvisory"
+
+    AnalystIncomeSummary:
+      type: object
+      required: [monthlyTheta, weeklyTheta, dailyTheta, annualizedTheta, incomeHealth, incomeHealthDetail, bySymbol, byStrategy]
+      properties:
+        monthlyTheta:
+          type: number
+        weeklyTheta:
+          type: number
+        dailyTheta:
+          type: number
+        annualizedTheta:
+          type: number
+        incomeHealth:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        incomeHealthDetail:
+          type: string
+        bySymbol:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThetaBreakdown"
+        byStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThetaBreakdown"
+
+    AnalystGreeksSummary:
+      type: object
+      required: [delta, gamma, theta, vega, largestContributor, deltaTrend, deltaTrendDetail, educationalLinks]
+      properties:
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+        largestContributor:
+          oneOf:
+            - $ref: "#/components/schemas/DashboardRiskContributor"
+            - type: "null"
+        deltaTrend:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        deltaTrendDetail:
+          type: string
+        educationalLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceLearningLink"
+
+    AnalystEventSummary:
+      type: object
+      required: [upcomingEvents, highestRiskEvent, safePositionsCount, atRiskPositionsCount, expirationClusters]
+      properties:
+        upcomingEvents:
+          $ref: "#/components/schemas/PortfolioEventRiskSummary"
+        highestRiskEvent:
+          oneOf:
+            - $ref: "#/components/schemas/HighestRiskPosition"
+            - type: "null"
+        safePositionsCount:
+          type: integer
+        atRiskPositionsCount:
+          type: integer
+        expirationClusters:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+
+    AnalystLearningCrossLink:
+      type: object
+      required: [category, lessonHref, lessonTitle, glossaryHref, glossaryTerm, strategyHref, strategyLabel]
+      properties:
+        category:
+          type: string
+        lessonHref:
+          type: ["string", "null"]
+        lessonTitle:
+          type: ["string", "null"]
+        glossaryHref:
+          type: ["string", "null"]
+        glossaryTerm:
+          type: ["string", "null"]
+        strategyHref:
+          type: ["string", "null"]
+        strategyLabel:
+          type: ["string", "null"]
+
+    AnalystLearningSummary:
+      type: object
+      required: [health, risk, income, greeks, event]
+      properties:
+        health:
+          $ref: "#/components/schemas/AnalystLearningCrossLink"
+        risk:
+          $ref: "#/components/schemas/AnalystLearningCrossLink"
+        income:
+          $ref: "#/components/schemas/AnalystLearningCrossLink"
+        greeks:
+          $ref: "#/components/schemas/AnalystLearningCrossLink"
+        event:
+          $ref: "#/components/schemas/AnalystLearningCrossLink"
+
+    AnalystWeeklyHealthSummary:
+      type: object
+      required: [daysRecorded, healthScoreMin, healthScoreMax, trend]
+      properties:
+        daysRecorded:
+          type: integer
+        healthScoreMin:
+          type: ["number", "null"]
+        healthScoreMax:
+          type: ["number", "null"]
+        trend:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+
+    AnalystTimelineSection:
+      type: object
+      required: [asOf, comparedTo, newIssues, resolvedIssues, persistentIssues, healthChange, incomeChange, thisWeek]
+      properties:
+        asOf:
+          type: string
+        comparedTo:
+          type: ["string", "null"]
+        newIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceTimelineEntry"
+        resolvedIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceTimelineEntry"
+        persistentIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceTimelineEntry"
+        healthChange:
+          oneOf:
+            - $ref: "#/components/schemas/IntelligenceTimelineChange"
+            - type: "null"
+        incomeChange:
+          oneOf:
+            - $ref: "#/components/schemas/IntelligenceTimelineChange"
+            - type: "null"
+        thisWeek:
+          $ref: "#/components/schemas/AnalystWeeklyHealthSummary"
+
+    AnalystInstitutionalInsight:
+      type: object
+      required: [text, category]
+      properties:
+        text:
+          type: string
+        category:
+          type: string
+
+    PortfolioAnalystResult:
+      type: object
+      required:
+        [
+          paperTradingMode,
+          deterministicAnalysis,
+          executiveBriefing,
+          snapshot,
+          healthSummary,
+          riskSummary,
+          incomeSummary,
+          greeksSummary,
+          eventSummary,
+          learningSummary,
+          timeline,
+          institutionalInsights,
+          generatedAt,
+        ]
+      properties:
+        paperTradingMode:
+          type: boolean
+          enum: [true]
+        deterministicAnalysis:
+          type: boolean
+          enum: [true]
+        executiveBriefing:
+          $ref: "#/components/schemas/IntelligenceDailySummary"
+        snapshot:
+          $ref: "#/components/schemas/AnalystPortfolioSnapshot"
+        healthSummary:
+          $ref: "#/components/schemas/AnalystHealthSummary"
+        riskSummary:
+          $ref: "#/components/schemas/AnalystRiskSummary"
+        incomeSummary:
+          $ref: "#/components/schemas/AnalystIncomeSummary"
+        greeksSummary:
+          $ref: "#/components/schemas/AnalystGreeksSummary"
+        eventSummary:
+          $ref: "#/components/schemas/AnalystEventSummary"
+        learningSummary:
+          $ref: "#/components/schemas/AnalystLearningSummary"
+        timeline:
+          $ref: "#/components/schemas/AnalystTimelineSection"
+        institutionalInsights:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalystInstitutionalInsight"
         generatedAt:
           type: string

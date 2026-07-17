@@ -5882,6 +5882,185 @@ export interface LearningPortfolioLesson {
   generatedAt: string;
 }
 
+export interface AnalystPortfolioSnapshot {
+  healthScore: number;
+  overallRiskRating: DashboardOverallRiskRating;
+  buyingPower: number;
+  openPositionsCount: number;
+  monthlyTheta: number;
+  dailyTheta: number;
+  totalRiskDollars: number;
+  totalRiskPct: number;
+  generatedAt: string;
+}
+
+export type AnalystHealthSummaryTrend = typeof AnalystHealthSummaryTrend[keyof typeof AnalystHealthSummaryTrend];
+
+
+export const AnalystHealthSummaryTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystHealthSummary {
+  overallHealthScore: number;
+  overallRiskRating: DashboardOverallRiskRating;
+  trend: AnalystHealthSummaryTrend;
+  trendDetail: string;
+  strengths: IntelligenceHealthDriver[];
+  weaknesses: IntelligenceHealthDriver[];
+  drivers: IntelligenceHealthDriver[];
+  summary: string;
+}
+
+export type AnalystRiskSummaryRiskTrend = typeof AnalystRiskSummaryRiskTrend[keyof typeof AnalystRiskSummaryRiskTrend];
+
+
+export const AnalystRiskSummaryRiskTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystRiskSummary {
+  highestRisk: string;
+  riskTrend: AnalystRiskSummaryRiskTrend;
+  largestExposure: string;
+  /** @nullable */
+  diversificationScore: number | null;
+  worstStressScenario: DashboardStressTestSummaryEntry | null;
+  guidance: DashboardGuidanceAdvisory[];
+}
+
+export type AnalystIncomeSummaryIncomeHealth = typeof AnalystIncomeSummaryIncomeHealth[keyof typeof AnalystIncomeSummaryIncomeHealth];
+
+
+export const AnalystIncomeSummaryIncomeHealth = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystIncomeSummary {
+  monthlyTheta: number;
+  weeklyTheta: number;
+  dailyTheta: number;
+  annualizedTheta: number;
+  incomeHealth: AnalystIncomeSummaryIncomeHealth;
+  incomeHealthDetail: string;
+  bySymbol: ThetaBreakdown[];
+  byStrategy: ThetaBreakdown[];
+}
+
+export type AnalystGreeksSummaryDeltaTrend = typeof AnalystGreeksSummaryDeltaTrend[keyof typeof AnalystGreeksSummaryDeltaTrend];
+
+
+export const AnalystGreeksSummaryDeltaTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystGreeksSummary {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+  largestContributor: DashboardRiskContributor | null;
+  deltaTrend: AnalystGreeksSummaryDeltaTrend;
+  deltaTrendDetail: string;
+  educationalLinks: IntelligenceLearningLink[];
+}
+
+export interface AnalystEventSummary {
+  upcomingEvents: PortfolioEventRiskSummary;
+  highestRiskEvent: HighestRiskPosition | null;
+  safePositionsCount: number;
+  atRiskPositionsCount: number;
+  expirationClusters: ConcentrationBucket[];
+}
+
+export interface AnalystLearningCrossLink {
+  category: string;
+  /** @nullable */
+  lessonHref: string | null;
+  /** @nullable */
+  lessonTitle: string | null;
+  /** @nullable */
+  glossaryHref: string | null;
+  /** @nullable */
+  glossaryTerm: string | null;
+  /** @nullable */
+  strategyHref: string | null;
+  /** @nullable */
+  strategyLabel: string | null;
+}
+
+export interface AnalystLearningSummary {
+  health: AnalystLearningCrossLink;
+  risk: AnalystLearningCrossLink;
+  income: AnalystLearningCrossLink;
+  greeks: AnalystLearningCrossLink;
+  event: AnalystLearningCrossLink;
+}
+
+export type AnalystWeeklyHealthSummaryTrend = typeof AnalystWeeklyHealthSummaryTrend[keyof typeof AnalystWeeklyHealthSummaryTrend];
+
+
+export const AnalystWeeklyHealthSummaryTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystWeeklyHealthSummary {
+  daysRecorded: number;
+  /** @nullable */
+  healthScoreMin: number | null;
+  /** @nullable */
+  healthScoreMax: number | null;
+  trend: AnalystWeeklyHealthSummaryTrend;
+}
+
+export interface AnalystTimelineSection {
+  asOf: string;
+  /** @nullable */
+  comparedTo: string | null;
+  newIssues: IntelligenceTimelineEntry[];
+  resolvedIssues: IntelligenceTimelineEntry[];
+  persistentIssues: IntelligenceTimelineEntry[];
+  healthChange: IntelligenceTimelineChange | null;
+  incomeChange: IntelligenceTimelineChange | null;
+  thisWeek: AnalystWeeklyHealthSummary;
+}
+
+export interface AnalystInstitutionalInsight {
+  text: string;
+  category: string;
+}
+
+export interface PortfolioAnalystResult {
+  paperTradingMode: true;
+  deterministicAnalysis: true;
+  executiveBriefing: IntelligenceDailySummary;
+  snapshot: AnalystPortfolioSnapshot;
+  healthSummary: AnalystHealthSummary;
+  riskSummary: AnalystRiskSummary;
+  incomeSummary: AnalystIncomeSummary;
+  greeksSummary: AnalystGreeksSummary;
+  eventSummary: AnalystEventSummary;
+  learningSummary: AnalystLearningSummary;
+  timeline: AnalystTimelineSection;
+  institutionalInsights: AnalystInstitutionalInsight[];
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

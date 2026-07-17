@@ -117,6 +117,7 @@ import type {
   PerformanceBreakdownBucket,
   PlatformNotification,
   PlatformNotificationUpdate,
+  PortfolioAnalystResult,
   PortfolioConcentrationResult,
   PortfolioDashboardResult,
   PortfolioEventRiskResult,
@@ -3222,6 +3223,83 @@ export function useGetInstitutionalIntelligence<TData = Awaited<ReturnType<typeo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetInstitutionalIntelligenceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioAnalystUrl = () => {
+
+
+
+
+  return `/api/portfolio-analyst`
+}
+
+/**
+ * @summary Read-only, deterministic AI Portfolio Analyst result: the executive briefing layer composing the Institutional Intelligence Engine, Portfolio Dashboard, Portfolio Event Risk, and Theta Income into an Executive Briefing, Portfolio Snapshot, Health/ Risk/Income/Greeks/Event/Learning Summaries, a Portfolio Timeline (Yesterday/Today/This Week), and Institutional Insights. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const getPortfolioAnalyst = async ( options?: RequestInit): Promise<PortfolioAnalystResult> => {
+
+  return customFetch<PortfolioAnalystResult>(getGetPortfolioAnalystUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioAnalystQueryKey = () => {
+    return [
+    `/api/portfolio-analyst`
+    ] as const;
+    }
+
+
+export const getGetPortfolioAnalystQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioAnalystQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioAnalyst>>> = ({ signal }) => getPortfolioAnalyst({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioAnalystQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioAnalyst>>>
+export type GetPortfolioAnalystQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only, deterministic AI Portfolio Analyst result: the executive briefing layer composing the Institutional Intelligence Engine, Portfolio Dashboard, Portfolio Event Risk, and Theta Income into an Executive Briefing, Portfolio Snapshot, Health/ Risk/Income/Greeks/Event/Learning Summaries, a Portfolio Timeline (Yesterday/Today/This Week), and Institutional Insights. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+
+export function useGetPortfolioAnalyst<TData = Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioAnalystQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

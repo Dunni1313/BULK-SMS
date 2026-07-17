@@ -375,9 +375,14 @@ Per the sprint's own framing, this engine is the **foundation** for:
   Engine), Portfolio Learning Mode, 5 deterministic Interactive
   Simulations, Learning Progress tracking, and the reunification of the
   Greeks quiz and Value Investing quiz into one shared progress system.
-- **AI Portfolio Analyst** — a deeper narrative layer over the Health
-  Engine's own aggregation. Not built by either sprint — remains a
-  future module.
+- ~~**AI Portfolio Analyst**~~ — **BUILT** (Phase 8, Sprint 3, "AI
+  Portfolio Analyst"). See `docs/AI-Portfolio-Analyst.md` for the full
+  detail: the executive portfolio briefing layer, composing this
+  engine's own six services plus the Portfolio Dashboard, Portfolio
+  Event Risk, and Theta Income into an Executive Daily Briefing,
+  Portfolio Snapshot, Health/Risk/Income/Performance/Greeks/Event/
+  Learning Summaries, a Portfolio Timeline (including a new "This Week"
+  7-day rollup), and deterministic Institutional Insights.
 - **AI Trade Journal** — surfacing Observation Engine output alongside
   `pages/Journal.tsx`'s own existing entries. Not built by either
   sprint — remains a future module.
@@ -405,6 +410,12 @@ rather than duplicate their logic.
   this engine's own `AI Teacher (coming soon)` placeholder into a real
   destination, and the full reuse chain back into this engine's
   Explanation Engine (§7/§9 above).
+- `docs/AI-Portfolio-Analyst.md` — the AI Portfolio Analyst sprint's own
+  full detail (Phase 8, Sprint 3): the executive portfolio briefing
+  layer this engine's own header comment named as a future consumer,
+  now built as a pure composition over all six services documented in
+  this file plus the Portfolio Dashboard, Portfolio Event Risk, and
+  Theta Income.
 - CLAUDE.md rule 1/2 — `execution.ts`/`autoExecution.ts`/`autoAdjustment.ts`
   are never modified without explicit, specific approval; this sprint
   touches none of them.

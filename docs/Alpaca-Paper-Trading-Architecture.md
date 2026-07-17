@@ -1174,6 +1174,81 @@ portfolio or trade mutation of any kind (Learning Progress is the sole,
 disclosed exception). No LLM call of any kind. The platform remains
 **Paper Trading only** throughout.
 
+### 4.18 AI Portfolio Analyst
+
+The **executive portfolio briefing layer** (Phase 8, Sprint 3) —
+`lib/intelligenceEngine.ts`'s own header comment already named it as a
+future consumer. **PURE COMPOSITION, zero new pricing/risk/scoring
+calculations.** `lib/portfolioAnalyst.ts`'s `buildPortfolioAnalyst(userId)`
+assembles the Institutional Intelligence Engine's own Executive Summary/
+Health/Timeline output (§4.16), `buildPortfolioDashboard()` (§4.14),
+`buildPortfolioEventRiskOverlay()` (§4.12), and the exact same
+`currentOpenTrades()` → `computeTradeGreeks()` → `computeThetaIncome()`
+composition already reused twice (`routes/portfolio.ts`'s own theta
+route and `intelligenceEngine.ts`'s own private helper) into 11 sections:
+Executive Daily Briefing, Portfolio Snapshot, Health Summary, Risk
+Summary, Income Summary, Performance Summary, Greeks Summary, Event
+Summary, Learning Summary, Portfolio Timeline, and Institutional
+Insights. **This is NOT an LLM, a chatbot, predictive AI, financial
+advice, or a trade-recommendation engine.** Full detail:
+`docs/AI-Portfolio-Analyst.md`.
+
+**A genuine, disclosed fix inside this sprint's own new code, not a
+change to any protected or pre-existing file:** `buildPortfolioAnalyst()`'s
+top-level assembly calls its 5 sub-builders **sequentially, not via
+`Promise.all`** — several independently resolve the same per-user
+settings row via `serverState.ts`'s own pre-existing, unmodified
+`getSettingsRow()` (a plain check-then-insert, not an upsert), and for a
+genuinely brand-new user firing them concurrently races two inserts
+against the same unique constraint (the same pre-existing race category
+first disclosed at Sprint 70, rediscovered by this sprint's own test
+suite). A sequential `await` inside this module's own assembly function
+avoids the race entirely; `getSettingsRow()` itself was not touched.
+
+**One new, minimal, read-only rollup:** `buildWeeklySummary()` — a plain
+`SELECT` + array min/max over the last 7 calendar days of the caller's
+own already-persisted `intelligence_snapshots` rows (no new table, no
+new column), honestly reporting `insufficient_history` when fewer than 2
+rows exist in the window.
+
+**Performance Summary's own disclosed engine boundary:** unlike this
+sprint's other 9 sections (all real Paper Trading data), the sprint's
+requested Return/Drawdown/Win Rate/Expectancy/Average Winner/Average
+Loser/Portfolio Growth fields map onto the pre-existing, entirely
+**SIMULATED** Performance Analytics engine (`lib/performanceAnalytics.ts`,
+§4.9) — fetched independently on the frontend via the pre-existing
+`useGetPerformanceAnalytics()` hook (mirroring `CommandCenter.tsx`'s own
+multi-engine composition pattern) and explicitly labeled "SIMULATED" in
+the UI, never blended with or presented as this account's own real trade
+history. Net Liquidation/Daily P/L are real (independently fetched via
+the pre-existing `useGetPortfolioSummary()` hook, §4.5's own route),
+since `routes/portfolio.ts`'s inline arithmetic was never extracted into
+a reusable function.
+
+One new read-only endpoint, `GET /portfolio-analyst`
+(`routes/portfolioAnalyst.ts`) — the only write it can ever trigger is
+the same, already-existing, at-most-once-per-calendar-day
+`intelligence_snapshots` insert §4.16 already documents. `openapi.yaml`
+gained 13 new `Analyst`-prefixed schemas (the `Analyst` prefix
+deliberately avoids colliding with the pre-existing, unrelated
+`PortfolioSnapshot` schema from §4.9 — the same collision-avoidance
+discipline first established at Phase 2 Sprint 28). One new frontend
+page, `pages/PortfolioAnalyst.tsx` (`/portfolio-analyst`), carrying
+**five** permanent indicator badges ("AI Portfolio Analyst",
+"Institutional Intelligence", "Deterministic Analysis", "Paper Trading",
+"Read Only").
+
+No `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/
+`autoAdjustment.ts`/`portfolioStressTest.ts`/`portfolioDashboard.ts`
+(the 7 files explicitly protected for this sprint) change, nor do
+`intelligenceEngine.ts`/`intelligenceObservations.ts`/
+`intelligenceHealth.ts`/`intelligenceSummary.ts`/
+`intelligenceTimeline.ts`/`intelligenceLearning.ts`/
+`portfolioEventRisk.ts`/`positionSizing.ts`/`serverState.ts`/
+`thetaIncome.ts`/`performanceAnalytics.ts`/`routes/portfolio.ts`. No
+broker write operations. No portfolio mutation of any kind. No LLM call
+of any kind. The platform remains **Paper Trading only** throughout.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -1276,6 +1351,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `pages/learn/LearningCentre.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode/Educational Only badges, the Overview tab's real path/strategy/glossary counts and links, running a labeled Simulation from the Simulations tab, a real Explain-Mode-derived explanation on the My Portfolio Explained tab, real lesson/glossary/strategy counts and quiz progress on the Progress tab, and a `?tab=` deep link opening the requested tab directly. |
 | `src/components/learn/ExplainButton.tsx` | Frontend smoke tests — the popover never fetches until opened, a real explanation renders with its related-lesson and related-glossary links, `tradeId` is correctly passed through for trade-scoped metrics, an honest error message on a failed fetch (never a fabricated explanation), and switching the metric selector re-fetches the newly-selected metric. |
 | `PortfolioDashboard.tsx` / `Portfolio.tsx` / `Trades.tsx` (unmodified assertions) | All pre-existing tests continue to pass unmodified with `<ExplainButton>` wired onto Portfolio Health/Buying Power/Net Greeks/Highest Event Risk/Highest Concentration/Stress Test Summary, Beta-Weighted Delta/Theta/Vega/Gamma, and a per-row trade-scoped Explain button respectively — confirming the button never triggers a network request until clicked. |
+| `lib/portfolioAnalyst.ts` | Unit tests against isolated, fresh test users — an empty/fresh portfolio, a healthy (balanced, multi-symbol) portfolio, a large portfolio (8 positions), high concentration, high Greeks exposure, high event risk, high theta income, timeline (against a manually-recorded real prior-day snapshot), learning integration (every strategy cross-link resolving to a real Strategy Academy entry), and persistence discipline (at-most-once-per-day, never mutates trades, deterministic) — plus byte-identical regression proofs against standalone `buildInstitutionalIntelligence()`/`buildPortfolioDashboard()` calls for every reused figure. |
+| `routes/portfolioAnalyst.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped result across all 11 sections, the never-a-broker-write/never-a-recommendation-field proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
+| `PortfolioAnalyst.tsx` | Frontend smoke tests — all 5 permanent indicator badges, loading and error states, the Executive Daily Briefing, the Portfolio Snapshot (including Net Liquidation/Daily P/L's independent real-vs-unavailable states from `useGetPortfolioSummary()`), the Health Summary's strengths/weaknesses, the Risk Summary (highest risk, largest exposure, worst stress scenario), the Income Summary's theta figures, the Performance Summary's explicit "SIMULATED" labeling and its own honest-unavailable state, the Greeks Summary's 4 current values and largest contributor, the Event Summary's safe/at-risk counts, the Learning Summary's per-section cross-links, both Portfolio Timeline states (no prior snapshot vs. a real prior-snapshot comparison with This Week data), the Institutional Insights list and its honest empty state, and the never-a-trade-recommendation proof. |
 
 ## 8. Cross-references
 
@@ -1349,6 +1427,13 @@ to everything else in this codebase. Specifically for this document's scope:
   Learning Progress tracking (the only new user-state mutation), and
   the reunification of the Greeks quiz and Value Investing quiz into
   one shared progress system.
+- `docs/AI-Portfolio-Analyst.md` — the AI Portfolio Analyst's own full
+  detail (§4.18 above): the executive portfolio briefing layer's
+  pure-composition architecture over the Institutional Intelligence
+  Engine/Portfolio Dashboard/Portfolio Event Risk/Theta Income, the
+  disclosed sequential-not-`Promise.all` `getSettingsRow()` race fix,
+  the new "This Week" 7-day rollup, and the disclosed SIMULATED-vs-real
+  engine boundary for the Performance Summary section.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution
