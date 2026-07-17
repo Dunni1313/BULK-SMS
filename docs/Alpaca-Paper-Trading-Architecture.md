@@ -1623,3 +1623,14 @@ to everything else in this codebase. Specifically for this document's scope:
 - `.agents/memory/auto-execution-engine.md` — the protected execution
   engine's own invariants, unaffected by and unrelated to this read-only
   work.
+- `docs/Phase-9-Production-Readiness-Report.md` (and its 5 sibling
+  Phase-9 reports) — a production-hardening pass over this platform:
+  a global frontend error boundary, a global backend error-handling
+  middleware, process-level crash handlers, a dependency-free security-
+  headers middleware, explicit database connection pool configuration,
+  3 new database indexes (`journal_entries.trade_id`,
+  `scanner_results(user_id, status)`, `trades(user_id, status)`), a
+  batched `ensureSeedTrades()` insert, and the removal of 27 confirmed-
+  unused frontend component files. Zero lines of `execution.ts`,
+  `optionsMath.ts`, `risk.ts`, `autoExecution.ts`, or `autoAdjustment.ts`
+  were touched — confirmed via `git diff --stat` before and after.
