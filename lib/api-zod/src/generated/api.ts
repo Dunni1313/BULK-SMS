@@ -2367,6 +2367,287 @@ export const GetInstitutionalIntelligenceResponse = zod.object({
 
 
 /**
+ * @summary Searchable, filterable glossary of options/portfolio/institutional terms. Deterministic, version-controlled content — never LLM- generated. Optional ?q= free-text search and ?category= filter.
+ */
+export const GetGlossaryResponseItem = zod.object({
+  "key": zod.string(),
+  "term": zod.string(),
+  "category": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional']),
+  "definition": zod.string(),
+  "relatedTermKeys": zod.array(zod.string()),
+  "relatedLessonKeys": zod.array(zod.string())
+})
+export const GetGlossaryResponse = zod.array(GetGlossaryResponseItem)
+
+
+/**
+ * @summary All 7 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking), each with its own topics.
+ */
+export const GetLearningPathsResponseItem = zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional']),
+  "topics": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.array(zod.string()),
+  "whyItMatters": zod.string(),
+  "externalHref": zod.string().nullable(),
+  "relatedGlossaryKeys": zod.array(zod.string()),
+  "estimatedMinutes": zod.number()
+}))
+})
+export const GetLearningPathsResponse = zod.array(GetLearningPathsResponseItem)
+
+
+/**
+ * @summary A single Learning Path by key.
+ */
+export const GetLearningPathByKeyParams = zod.object({
+  "pathKey": zod.coerce.string()
+})
+
+export const GetLearningPathByKeyResponse = zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional']),
+  "topics": zod.array(zod.object({
+  "key": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.array(zod.string()),
+  "whyItMatters": zod.string(),
+  "externalHref": zod.string().nullable(),
+  "relatedGlossaryKeys": zod.array(zod.string()),
+  "estimatedMinutes": zod.number()
+}))
+})
+
+
+/**
+ * @summary All 8 Strategy Academy entries. For iron_condor/iron_fly/ calendar_spread (strategies this platform's own scanner/execution engine actually builds) the paper example is a real, live worked example. For the other 5, the paper example is honestly disclosed as unavailable — never a fabricated live number for a strategy this engine doesn't trade.
+ */
+export const GetStrategyAcademyResponseItem = zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "builtByThisEngine": zod.boolean(),
+  "construction": zod.string(),
+  "idealMarket": zod.string(),
+  "maxProfit": zod.string(),
+  "maxLoss": zod.string(),
+  "greeksProfile": zod.string(),
+  "timeDecay": zod.string(),
+  "volatilityBehavior": zod.string(),
+  "assignmentRisk": zod.string(),
+  "commonMistakes": zod.array(zod.string()),
+  "institutionalPerspective": zod.string(),
+  "paperExample": zod.object({
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "symbol": zod.string().nullable(),
+  "detail": zod.string().nullable(),
+  "greeks": zod.union([zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),zod.null()])
+})
+})
+export const GetStrategyAcademyResponse = zod.array(GetStrategyAcademyResponseItem)
+
+
+/**
+ * @summary A single Strategy Academy entry by strategy key.
+ */
+export const GetStrategyAcademyEntryByKeyParams = zod.object({
+  "strategy": zod.coerce.string()
+})
+
+export const GetStrategyAcademyEntryByKeyResponse = zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "builtByThisEngine": zod.boolean(),
+  "construction": zod.string(),
+  "idealMarket": zod.string(),
+  "maxProfit": zod.string(),
+  "maxLoss": zod.string(),
+  "greeksProfile": zod.string(),
+  "timeDecay": zod.string(),
+  "volatilityBehavior": zod.string(),
+  "assignmentRisk": zod.string(),
+  "commonMistakes": zod.array(zod.string()),
+  "institutionalPerspective": zod.string(),
+  "paperExample": zod.object({
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "symbol": zod.string().nullable(),
+  "detail": zod.string().nullable(),
+  "greeks": zod.union([zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),zod.null()])
+})
+})
+
+
+/**
+ * @summary Portfolio Learning Mode: uses the calling user's real, current Paper Trading portfolio as an educational example, bundling Explain Mode explanations for Portfolio Health, Buying Power, Delta, Theta, Concentration, and Event Risk. Never recommends a trade.
+ */
+export const GetPortfolioLessonResponse = zod.object({
+  "items": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "currentValue": zod.string(),
+  "plainEnglish": zod.string(),
+  "sourceCalculation": zod.string(),
+  "whyItMatters": zod.string(),
+  "relatedLessonHref": zod.string().nullable(),
+  "relatedGlossaryKeys": zod.array(zod.string()),
+  "reusedObservation": zod.boolean()
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
+ * @summary Unified learning progress: lessons viewed/completed, learning path completion, and quiz progress for BOTH the Greeks quiz and the Value Investing quiz (reusing the same shared aggregation for each, never a duplicated calculation).
+ */
+export const GetLearningProgressResponse = zod.object({
+  "lessonsViewed": zod.number(),
+  "lessonsCompleted": zod.number(),
+  "glossaryTermsViewed": zod.number(),
+  "strategiesViewed": zod.number(),
+  "pathCompletion": zod.array(zod.object({
+  "pathKey": zod.string(),
+  "title": zod.string(),
+  "topicsTotal": zod.number(),
+  "topicsCompleted": zod.number(),
+  "percentComplete": zod.number()
+})),
+  "greeksQuiz": zod.object({
+  "attempts": zod.array(zod.object({
+  "id": zod.number().nullable(),
+  "topic": zod.string(),
+  "score": zod.number(),
+  "total": zod.number(),
+  "percent": zod.number(),
+  "createdAt": zod.string()
+})),
+  "bestByTopic": zod.array(zod.object({
+  "topic": zod.string(),
+  "bestPercent": zod.number(),
+  "attempts": zod.number()
+})),
+  "totalAttempts": zod.number(),
+  "averagePercent": zod.number(),
+  "streak": zod.number(),
+  "improvement": zod.number(),
+  "firstPercent": zod.number(),
+  "latestPercent": zod.number()
+}),
+  "valueQuiz": zod.object({
+  "attempts": zod.array(zod.object({
+  "id": zod.number().nullable(),
+  "topic": zod.string(),
+  "score": zod.number(),
+  "total": zod.number(),
+  "percent": zod.number(),
+  "createdAt": zod.string()
+})),
+  "bestByTopic": zod.array(zod.object({
+  "topic": zod.string(),
+  "bestPercent": zod.number(),
+  "attempts": zod.number()
+})),
+  "totalAttempts": zod.number(),
+  "averagePercent": zod.number(),
+  "streak": zod.number(),
+  "improvement": zod.number(),
+  "firstPercent": zod.number(),
+  "latestPercent": zod.number()
+}),
+  "recentHistory": zod.array(zod.object({
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy']),
+  "itemKey": zod.string(),
+  "viewedAt": zod.string(),
+  "completedAt": zod.string().nullable()
+})),
+  "completedLessonKeys": zod.array(zod.string()),
+  "completedGlossaryKeys": zod.array(zod.string()),
+  "completedStrategyKeys": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Record that the calling user viewed a lesson, glossary term, path, or strategy — the only mutation this sprint introduces.
+ */
+export const RecordLearningItemViewedBody = zod.object({
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy']),
+  "itemKey": zod.string()
+})
+
+export const RecordLearningItemViewedResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Record that the calling user completed a lesson, glossary term, path, or strategy.
+ */
+export const RecordLearningItemCompletedBody = zod.object({
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy']),
+  "itemKey": zod.string()
+})
+
+export const RecordLearningItemCompletedResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Run a deterministic Interactive Education simulation (delta, theta, expected_move, payoff, or concentration). Always labeled Educational Simulation / Not Market Data / No Trade Recommendation in the response itself. Reuses this platform's own real Black-Scholes pricing function (bs()) for delta/theta, and the standard textbook payoff/HHI formulas for payoff/concentration — never randomness, never an LLM.
+ */
+export const RunLearningSimulationBody = zod.object({
+  "type": zod.enum(['delta', 'theta', 'expected_move', 'payoff', 'concentration']),
+  "strike": zod.number().optional(),
+  "iv": zod.number().optional(),
+  "dte": zod.number().optional(),
+  "price": zod.number().optional(),
+  "strategy": zod.enum(['covered_call', 'cash_secured_put', 'iron_condor']).optional(),
+  "stockCostBasis": zod.number().optional(),
+  "callStrike": zod.number().optional(),
+  "callPremium": zod.number().optional(),
+  "putStrike": zod.number().optional(),
+  "putPremium": zod.number().optional(),
+  "longPutStrike": zod.number().optional(),
+  "longCallStrike": zod.number().optional(),
+  "netCredit": zod.number().optional(),
+  "weights": zod.array(zod.number()).optional()
+})
+
+export const RunLearningSimulationResponse = zod.object({
+  "type": zod.enum(['delta', 'theta', 'expected_move', 'payoff', 'concentration']),
+  "label": zod.string(),
+  "xLabel": zod.string(),
+  "yLabel": zod.string(),
+  "points": zod.array(zod.object({
+  "x": zod.number(),
+  "y": zod.number()
+})),
+  "summary": zod.string(),
+  "educationalSimulation": zod.literal(true),
+  "notMarketData": zod.literal(true),
+  "noTradeRecommendation": zod.literal(true)
+})
+
+
+/**
  * @summary Current full-auto engine state, guardrails, and today's stats
  */
 export const GetAutoExecutionStatusResponse = zod.object({

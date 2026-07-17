@@ -73,6 +73,10 @@ const DeltaMasterclass = lazy(() => import("./pages/learn/DeltaMasterclass"));
 const GreeksTutor = lazy(() => import("./pages/learn/GreeksTutor"));
 const TradeLessons = lazy(() => import("./pages/learn/TradeLessons"));
 const Quiz = lazy(() => import("./pages/learn/Quiz"));
+const LearningCentre = lazy(() => import("./pages/learn/LearningCentre"));
+const LearningPaths = lazy(() => import("./pages/learn/LearningPaths"));
+const StrategyAcademy = lazy(() => import("./pages/learn/StrategyAcademy"));
+const Glossary = lazy(() => import("./pages/learn/Glossary"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -142,6 +146,14 @@ function Router() {
           <Route path="/learn/greeks" component={GreeksTutor} />
           <Route path="/lessons" component={TradeLessons} />
           <Route path="/learn/quiz" component={Quiz} />
+          <Route path="/learn/paths/:pathKey/:topicKey" component={LearningPaths} />
+          <Route path="/learn/paths/:pathKey" component={LearningPaths} />
+          <Route path="/learn/paths" component={LearningPaths} />
+          <Route path="/learn/strategy-academy/:strategy" component={StrategyAcademy} />
+          <Route path="/learn/strategy-academy" component={StrategyAcademy} />
+          <Route path="/learn/glossary/:key" component={Glossary} />
+          <Route path="/learn/glossary" component={Glossary} />
+          <Route path="/learn" component={LearningCentre} />
           <Route path="/stock-analyst/value-investing-school" component={ValueInvestingSchool} />
           <Route component={NotFound} />
         </Switch>

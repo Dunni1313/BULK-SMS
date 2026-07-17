@@ -147,6 +147,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   ];
 
   const learnItems = [
+    { title: "AI Teacher & Learning Centre", href: "/learn", icon: Sparkles },
+    { title: "Learning Paths", href: "/learn/paths", icon: BookOpen },
+    { title: "Strategy Academy", href: "/learn/strategy-academy", icon: GraduationCap },
+    { title: "Glossary", href: "/learn/glossary", icon: Library },
     { title: "Delta Masterclass", href: "/learn/delta", icon: GraduationCap },
     { title: "Greeks Tutor", href: "/learn/greeks", icon: Library },
     { title: "Trading Quiz", href: "/learn/quiz", icon: BrainCircuit },

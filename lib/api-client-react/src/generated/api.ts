@@ -91,6 +91,14 @@ import type {
   JournalReviewInput,
   JournalReviewResult,
   LearnContent,
+  LearningGlossaryTerm,
+  LearningPath,
+  LearningPortfolioLesson,
+  LearningProgressAction,
+  LearningProgressSummary,
+  LearningSimulationInput,
+  LearningSimulationResult,
+  LearningStrategyAcademyEntry,
   ListDailyReportsParams,
   ListTradesParams,
   ManagementQualityAnalysis,
@@ -125,6 +133,8 @@ import type {
   QuizProgress,
   RavishScore,
   ReconciliationResult,
+  RecordLearningItemCompleted200,
+  RecordLearningItemViewed200,
   RestoreReportsRequest,
   RestoreReportsResult,
   RiskStatus,
@@ -3223,6 +3233,758 @@ export function useGetInstitutionalIntelligence<TData = Awaited<ReturnType<typeo
 
 
 
+
+export const getGetGlossaryUrl = () => {
+
+
+
+
+  return `/api/learning-centre/glossary`
+}
+
+/**
+ * @summary Searchable, filterable glossary of options/portfolio/institutional terms. Deterministic, version-controlled content — never LLM- generated. Optional ?q= free-text search and ?category= filter.
+ */
+export const getGlossary = async ( options?: RequestInit): Promise<LearningGlossaryTerm[]> => {
+
+  return customFetch<LearningGlossaryTerm[]>(getGetGlossaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGlossaryQueryKey = () => {
+    return [
+    `/api/learning-centre/glossary`
+    ] as const;
+    }
+
+
+export const getGetGlossaryQueryOptions = <TData = Awaited<ReturnType<typeof getGlossary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGlossary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGlossaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGlossary>>> = ({ signal }) => getGlossary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGlossary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGlossaryQueryResult = NonNullable<Awaited<ReturnType<typeof getGlossary>>>
+export type GetGlossaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Searchable, filterable glossary of options/portfolio/institutional terms. Deterministic, version-controlled content — never LLM- generated. Optional ?q= free-text search and ?category= filter.
+ */
+
+export function useGetGlossary<TData = Awaited<ReturnType<typeof getGlossary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGlossary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGlossaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLearningPathsUrl = () => {
+
+
+
+
+  return `/api/learning-centre/paths`
+}
+
+/**
+ * @summary All 7 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking), each with its own topics.
+ */
+export const getLearningPaths = async ( options?: RequestInit): Promise<LearningPath[]> => {
+
+  return customFetch<LearningPath[]>(getGetLearningPathsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLearningPathsQueryKey = () => {
+    return [
+    `/api/learning-centre/paths`
+    ] as const;
+    }
+
+
+export const getGetLearningPathsQueryOptions = <TData = Awaited<ReturnType<typeof getLearningPaths>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningPaths>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLearningPathsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLearningPaths>>> = ({ signal }) => getLearningPaths({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLearningPaths>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLearningPathsQueryResult = NonNullable<Awaited<ReturnType<typeof getLearningPaths>>>
+export type GetLearningPathsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 7 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking), each with its own topics.
+ */
+
+export function useGetLearningPaths<TData = Awaited<ReturnType<typeof getLearningPaths>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningPaths>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLearningPathsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLearningPathByKeyUrl = (pathKey: string,) => {
+
+
+
+
+  return `/api/learning-centre/paths/${pathKey}`
+}
+
+/**
+ * @summary A single Learning Path by key.
+ */
+export const getLearningPathByKey = async (pathKey: string, options?: RequestInit): Promise<LearningPath> => {
+
+  return customFetch<LearningPath>(getGetLearningPathByKeyUrl(pathKey),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLearningPathByKeyQueryKey = (pathKey: string,) => {
+    return [
+    `/api/learning-centre/paths/${pathKey}`
+    ] as const;
+    }
+
+
+export const getGetLearningPathByKeyQueryOptions = <TData = Awaited<ReturnType<typeof getLearningPathByKey>>, TError = ErrorType<void>>(pathKey: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningPathByKey>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLearningPathByKeyQueryKey(pathKey);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLearningPathByKey>>> = ({ signal }) => getLearningPathByKey(pathKey, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(pathKey), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLearningPathByKey>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLearningPathByKeyQueryResult = NonNullable<Awaited<ReturnType<typeof getLearningPathByKey>>>
+export type GetLearningPathByKeyQueryError = ErrorType<void>
+
+
+/**
+ * @summary A single Learning Path by key.
+ */
+
+export function useGetLearningPathByKey<TData = Awaited<ReturnType<typeof getLearningPathByKey>>, TError = ErrorType<void>>(
+ pathKey: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningPathByKey>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLearningPathByKeyQueryOptions(pathKey,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStrategyAcademyUrl = () => {
+
+
+
+
+  return `/api/learning-centre/strategy-academy`
+}
+
+/**
+ * @summary All 8 Strategy Academy entries. For iron_condor/iron_fly/ calendar_spread (strategies this platform's own scanner/execution engine actually builds) the paper example is a real, live worked example. For the other 5, the paper example is honestly disclosed as unavailable — never a fabricated live number for a strategy this engine doesn't trade.
+ */
+export const getStrategyAcademy = async ( options?: RequestInit): Promise<LearningStrategyAcademyEntry[]> => {
+
+  return customFetch<LearningStrategyAcademyEntry[]>(getGetStrategyAcademyUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyAcademyQueryKey = () => {
+    return [
+    `/api/learning-centre/strategy-academy`
+    ] as const;
+    }
+
+
+export const getGetStrategyAcademyQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyAcademy>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyAcademyQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyAcademy>>> = ({ signal }) => getStrategyAcademy({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyAcademyQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyAcademy>>>
+export type GetStrategyAcademyQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 8 Strategy Academy entries. For iron_condor/iron_fly/ calendar_spread (strategies this platform's own scanner/execution engine actually builds) the paper example is a real, live worked example. For the other 5, the paper example is honestly disclosed as unavailable — never a fabricated live number for a strategy this engine doesn't trade.
+ */
+
+export function useGetStrategyAcademy<TData = Awaited<ReturnType<typeof getStrategyAcademy>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyAcademyQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStrategyAcademyEntryByKeyUrl = (strategy: string,) => {
+
+
+
+
+  return `/api/learning-centre/strategy-academy/${strategy}`
+}
+
+/**
+ * @summary A single Strategy Academy entry by strategy key.
+ */
+export const getStrategyAcademyEntryByKey = async (strategy: string, options?: RequestInit): Promise<LearningStrategyAcademyEntry> => {
+
+  return customFetch<LearningStrategyAcademyEntry>(getGetStrategyAcademyEntryByKeyUrl(strategy),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyAcademyEntryByKeyQueryKey = (strategy: string,) => {
+    return [
+    `/api/learning-centre/strategy-academy/${strategy}`
+    ] as const;
+    }
+
+
+export const getGetStrategyAcademyEntryByKeyQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError = ErrorType<void>>(strategy: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyAcademyEntryByKeyQueryKey(strategy);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>> = ({ signal }) => getStrategyAcademyEntryByKey(strategy, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(strategy), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyAcademyEntryByKeyQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>>
+export type GetStrategyAcademyEntryByKeyQueryError = ErrorType<void>
+
+
+/**
+ * @summary A single Strategy Academy entry by strategy key.
+ */
+
+export function useGetStrategyAcademyEntryByKey<TData = Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError = ErrorType<void>>(
+ strategy: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyAcademyEntryByKeyQueryOptions(strategy,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioLessonUrl = () => {
+
+
+
+
+  return `/api/learning-centre/portfolio-lesson`
+}
+
+/**
+ * @summary Portfolio Learning Mode: uses the calling user's real, current Paper Trading portfolio as an educational example, bundling Explain Mode explanations for Portfolio Health, Buying Power, Delta, Theta, Concentration, and Event Risk. Never recommends a trade.
+ */
+export const getPortfolioLesson = async ( options?: RequestInit): Promise<LearningPortfolioLesson> => {
+
+  return customFetch<LearningPortfolioLesson>(getGetPortfolioLessonUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioLessonQueryKey = () => {
+    return [
+    `/api/learning-centre/portfolio-lesson`
+    ] as const;
+    }
+
+
+export const getGetPortfolioLessonQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioLesson>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioLesson>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioLessonQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioLesson>>> = ({ signal }) => getPortfolioLesson({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioLesson>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioLessonQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioLesson>>>
+export type GetPortfolioLessonQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio Learning Mode: uses the calling user's real, current Paper Trading portfolio as an educational example, bundling Explain Mode explanations for Portfolio Health, Buying Power, Delta, Theta, Concentration, and Event Risk. Never recommends a trade.
+ */
+
+export function useGetPortfolioLesson<TData = Awaited<ReturnType<typeof getPortfolioLesson>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioLesson>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioLessonQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLearningProgressUrl = () => {
+
+
+
+
+  return `/api/learning-centre/progress`
+}
+
+/**
+ * @summary Unified learning progress: lessons viewed/completed, learning path completion, and quiz progress for BOTH the Greeks quiz and the Value Investing quiz (reusing the same shared aggregation for each, never a duplicated calculation).
+ */
+export const getLearningProgress = async ( options?: RequestInit): Promise<LearningProgressSummary> => {
+
+  return customFetch<LearningProgressSummary>(getGetLearningProgressUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLearningProgressQueryKey = () => {
+    return [
+    `/api/learning-centre/progress`
+    ] as const;
+    }
+
+
+export const getGetLearningProgressQueryOptions = <TData = Awaited<ReturnType<typeof getLearningProgress>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningProgress>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLearningProgressQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLearningProgress>>> = ({ signal }) => getLearningProgress({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLearningProgress>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLearningProgressQueryResult = NonNullable<Awaited<ReturnType<typeof getLearningProgress>>>
+export type GetLearningProgressQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Unified learning progress: lessons viewed/completed, learning path completion, and quiz progress for BOTH the Greeks quiz and the Value Investing quiz (reusing the same shared aggregation for each, never a duplicated calculation).
+ */
+
+export function useGetLearningProgress<TData = Awaited<ReturnType<typeof getLearningProgress>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningProgress>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLearningProgressQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRecordLearningItemViewedUrl = () => {
+
+
+
+
+  return `/api/learning-centre/progress/view`
+}
+
+/**
+ * @summary Record that the calling user viewed a lesson, glossary term, path, or strategy — the only mutation this sprint introduces.
+ */
+export const recordLearningItemViewed = async (learningProgressAction: LearningProgressAction, options?: RequestInit): Promise<RecordLearningItemViewed200> => {
+
+  return customFetch<RecordLearningItemViewed200>(getRecordLearningItemViewedUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      learningProgressAction,)
+  }
+);}
+
+
+
+
+export const getRecordLearningItemViewedMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemViewed>>, TError,{data: BodyType<LearningProgressAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemViewed>>, TError,{data: BodyType<LearningProgressAction>}, TContext> => {
+
+const mutationKey = ['recordLearningItemViewed'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordLearningItemViewed>>, {data: BodyType<LearningProgressAction>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordLearningItemViewed(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordLearningItemViewedMutationResult = NonNullable<Awaited<ReturnType<typeof recordLearningItemViewed>>>
+    export type RecordLearningItemViewedMutationBody = BodyType<LearningProgressAction>
+    export type RecordLearningItemViewedMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record that the calling user viewed a lesson, glossary term, path, or strategy — the only mutation this sprint introduces.
+ */
+export const useRecordLearningItemViewed = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemViewed>>, TError,{data: BodyType<LearningProgressAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordLearningItemViewed>>,
+        TError,
+        {data: BodyType<LearningProgressAction>},
+        TContext
+      > => {
+      return useMutation(getRecordLearningItemViewedMutationOptions(options));
+    }
+
+export const getRecordLearningItemCompletedUrl = () => {
+
+
+
+
+  return `/api/learning-centre/progress/complete`
+}
+
+/**
+ * @summary Record that the calling user completed a lesson, glossary term, path, or strategy.
+ */
+export const recordLearningItemCompleted = async (learningProgressAction: LearningProgressAction, options?: RequestInit): Promise<RecordLearningItemCompleted200> => {
+
+  return customFetch<RecordLearningItemCompleted200>(getRecordLearningItemCompletedUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      learningProgressAction,)
+  }
+);}
+
+
+
+
+export const getRecordLearningItemCompletedMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemCompleted>>, TError,{data: BodyType<LearningProgressAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemCompleted>>, TError,{data: BodyType<LearningProgressAction>}, TContext> => {
+
+const mutationKey = ['recordLearningItemCompleted'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordLearningItemCompleted>>, {data: BodyType<LearningProgressAction>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordLearningItemCompleted(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordLearningItemCompletedMutationResult = NonNullable<Awaited<ReturnType<typeof recordLearningItemCompleted>>>
+    export type RecordLearningItemCompletedMutationBody = BodyType<LearningProgressAction>
+    export type RecordLearningItemCompletedMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record that the calling user completed a lesson, glossary term, path, or strategy.
+ */
+export const useRecordLearningItemCompleted = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemCompleted>>, TError,{data: BodyType<LearningProgressAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordLearningItemCompleted>>,
+        TError,
+        {data: BodyType<LearningProgressAction>},
+        TContext
+      > => {
+      return useMutation(getRecordLearningItemCompletedMutationOptions(options));
+    }
+
+export const getRunLearningSimulationUrl = () => {
+
+
+
+
+  return `/api/learning-centre/simulate`
+}
+
+/**
+ * @summary Run a deterministic Interactive Education simulation (delta, theta, expected_move, payoff, or concentration). Always labeled Educational Simulation / Not Market Data / No Trade Recommendation in the response itself. Reuses this platform's own real Black-Scholes pricing function (bs()) for delta/theta, and the standard textbook payoff/HHI formulas for payoff/concentration — never randomness, never an LLM.
+ */
+export const runLearningSimulation = async (learningSimulationInput: LearningSimulationInput, options?: RequestInit): Promise<LearningSimulationResult> => {
+
+  return customFetch<LearningSimulationResult>(getRunLearningSimulationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      learningSimulationInput,)
+  }
+);}
+
+
+
+
+export const getRunLearningSimulationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runLearningSimulation>>, TError,{data: BodyType<LearningSimulationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runLearningSimulation>>, TError,{data: BodyType<LearningSimulationInput>}, TContext> => {
+
+const mutationKey = ['runLearningSimulation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runLearningSimulation>>, {data: BodyType<LearningSimulationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runLearningSimulation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunLearningSimulationMutationResult = NonNullable<Awaited<ReturnType<typeof runLearningSimulation>>>
+    export type RunLearningSimulationMutationBody = BodyType<LearningSimulationInput>
+    export type RunLearningSimulationMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run a deterministic Interactive Education simulation (delta, theta, expected_move, payoff, or concentration). Always labeled Educational Simulation / Not Market Data / No Trade Recommendation in the response itself. Reuses this platform's own real Black-Scholes pricing function (bs()) for delta/theta, and the standard textbook payoff/HHI formulas for payoff/concentration — never randomness, never an LLM.
+ */
+export const useRunLearningSimulation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runLearningSimulation>>, TError,{data: BodyType<LearningSimulationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runLearningSimulation>>,
+        TError,
+        {data: BodyType<LearningSimulationInput>},
+        TContext
+      > => {
+      return useMutation(getRunLearningSimulationMutationOptions(options));
+    }
 
 export const getGetAutoExecutionStatusUrl = () => {
 

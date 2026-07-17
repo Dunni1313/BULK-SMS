@@ -44,6 +44,7 @@ import {
   platformNotificationsTable,
   optionsBacktestResultsTable,
   intelligenceSnapshotsTable,
+  learningProgressTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -101,6 +102,8 @@ afterAll(async () => {
     optionsBacktestResultsTable,
     // Institutional Intelligence Engine sprint — its own new table.
     intelligenceSnapshotsTable,
+    // AI Teacher & Learning Centre sprint — its own new table.
+    learningProgressTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -315,6 +318,17 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       greeksExposureScore: 100,
       thetaMonthly: 0,
       netDelta: 0,
+    }));
+  });
+
+  // AI Teacher & Learning Centre sprint — its own new table (one row per
+  // user per learning item; the only new user-state mutation this
+  // sprint introduces).
+  it("learning_progress: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(learningProgressTable, userA, userB, (userId) => ({
+      userId,
+      itemType: "lesson",
+      itemKey: "foundations-stocks",
     }));
   });
 });

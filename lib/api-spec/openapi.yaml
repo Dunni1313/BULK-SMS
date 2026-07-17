@@ -820,6 +820,217 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalIntelligenceResult"
 
+  # ─── AI Teacher & Learning Centre (Phase 8, Sprint 2) ───────────────────────
+  # Educational only. Read-only. Deterministic — never an LLM call, never a
+  # trade recommendation. Learning Progress (view/complete) is the ONLY
+  # mutation this sprint introduces.
+  /learning-centre/glossary:
+    get:
+      operationId: getGlossary
+      tags: [execution]
+      summary: >-
+        Searchable, filterable glossary of options/portfolio/institutional
+        terms. Deterministic, version-controlled content — never LLM-
+        generated. Optional ?q= free-text search and ?category= filter.
+      responses:
+        "200":
+          description: Glossary terms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LearningGlossaryTerm"
+
+  /learning-centre/paths:
+    get:
+      operationId: getLearningPaths
+      tags: [execution]
+      summary: All 7 structured Learning Paths (Foundations, Options Greeks,
+        Volatility, Options Strategies, Portfolio, Performance,
+        Institutional Thinking), each with its own topics.
+      responses:
+        "200":
+          description: All learning paths
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LearningPath"
+
+  /learning-centre/paths/{pathKey}:
+    get:
+      operationId: getLearningPathByKey
+      tags: [execution]
+      summary: A single Learning Path by key.
+      parameters:
+        - name: pathKey
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A single learning path
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningPath"
+        "404":
+          description: Unknown path key
+
+  /learning-centre/strategy-academy:
+    get:
+      operationId: getStrategyAcademy
+      tags: [execution]
+      summary: >-
+        All 8 Strategy Academy entries. For iron_condor/iron_fly/
+        calendar_spread (strategies this platform's own scanner/execution
+        engine actually builds) the paper example is a real, live worked
+        example. For the other 5, the paper example is honestly disclosed
+        as unavailable — never a fabricated live number for a strategy
+        this engine doesn't trade.
+      responses:
+        "200":
+          description: All strategy academy entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LearningStrategyAcademyEntry"
+
+  /learning-centre/strategy-academy/{strategy}:
+    get:
+      operationId: getStrategyAcademyEntryByKey
+      tags: [execution]
+      summary: A single Strategy Academy entry by strategy key.
+      parameters:
+        - name: strategy
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A single strategy academy entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningStrategyAcademyEntry"
+        "404":
+          description: Unknown strategy key
+
+  /learning-centre/portfolio-lesson:
+    get:
+      operationId: getPortfolioLesson
+      tags: [execution]
+      summary: >-
+        Portfolio Learning Mode: uses the calling user's real, current
+        Paper Trading portfolio as an educational example, bundling
+        Explain Mode explanations for Portfolio Health, Buying Power,
+        Delta, Theta, Concentration, and Event Risk. Never recommends a
+        trade.
+      responses:
+        "200":
+          description: Portfolio Learning Mode result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningPortfolioLesson"
+
+  /learning-centre/progress:
+    get:
+      operationId: getLearningProgress
+      tags: [execution]
+      summary: >-
+        Unified learning progress: lessons viewed/completed, learning
+        path completion, and quiz progress for BOTH the Greeks quiz and
+        the Value Investing quiz (reusing the same shared aggregation for
+        each, never a duplicated calculation).
+      responses:
+        "200":
+          description: Learning progress summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningProgressSummary"
+
+  /learning-centre/progress/view:
+    post:
+      operationId: recordLearningItemViewed
+      tags: [execution]
+      summary: Record that the calling user viewed a lesson, glossary term,
+        path, or strategy — the only mutation this sprint introduces.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LearningProgressAction"
+      responses:
+        "200":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+
+  /learning-centre/progress/complete:
+    post:
+      operationId: recordLearningItemCompleted
+      tags: [execution]
+      summary: Record that the calling user completed a lesson, glossary
+        term, path, or strategy.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LearningProgressAction"
+      responses:
+        "200":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+
+  /learning-centre/simulate:
+    post:
+      operationId: runLearningSimulation
+      tags: [execution]
+      summary: >-
+        Run a deterministic Interactive Education simulation (delta,
+        theta, expected_move, payoff, or concentration). Always labeled
+        Educational Simulation / Not Market Data / No Trade Recommendation
+        in the response itself. Reuses this platform's own real
+        Black-Scholes pricing function (bs()) for delta/theta, and the
+        standard textbook payoff/HHI formulas for payoff/concentration —
+        never randomness, never an LLM.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LearningSimulationInput"
+      responses:
+        "200":
+          description: Simulation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningSimulationResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -9661,5 +9872,407 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/IntelligenceObservation"
+        generatedAt:
+          type: string
+
+    # ─── AI Teacher & Learning Centre (Phase 8, Sprint 2) ──────────────────────
+    LearningGlossaryTerm:
+      type: object
+      required: [key, term, category, definition, relatedTermKeys, relatedLessonKeys]
+      properties:
+        key:
+          type: string
+        term:
+          type: string
+        category:
+          type: string
+          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional]
+        definition:
+          type: string
+        relatedTermKeys:
+          type: array
+          items:
+            type: string
+        relatedLessonKeys:
+          type: array
+          items:
+            type: string
+
+    LearningTopic:
+      type: object
+      required: [key, title, summary, body, whyItMatters, externalHref, relatedGlossaryKeys, estimatedMinutes]
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        body:
+          type: array
+          items:
+            type: string
+        whyItMatters:
+          type: string
+        externalHref:
+          type: ["string", "null"]
+        relatedGlossaryKeys:
+          type: array
+          items:
+            type: string
+        estimatedMinutes:
+          type: number
+
+    LearningPath:
+      type: object
+      required: [key, title, description, glossaryCategory, topics]
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        glossaryCategory:
+          type: string
+          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional]
+        topics:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningTopic"
+
+    LearningStrategyGreeks:
+      type: object
+      required: [delta, gamma, theta, vega]
+      properties:
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+
+    LearningStrategyPaperExample:
+      type: object
+      required: [available, unavailableReason, symbol, detail, greeks]
+      properties:
+        available:
+          type: boolean
+        unavailableReason:
+          type: ["string", "null"]
+        symbol:
+          type: ["string", "null"]
+        detail:
+          type: ["string", "null"]
+        greeks:
+          oneOf:
+            - $ref: "#/components/schemas/LearningStrategyGreeks"
+            - type: "null"
+
+    LearningStrategyAcademyEntry:
+      type: object
+      required:
+        [
+          key,
+          label,
+          builtByThisEngine,
+          construction,
+          idealMarket,
+          maxProfit,
+          maxLoss,
+          greeksProfile,
+          timeDecay,
+          volatilityBehavior,
+          assignmentRisk,
+          commonMistakes,
+          institutionalPerspective,
+          paperExample,
+        ]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        builtByThisEngine:
+          type: boolean
+        construction:
+          type: string
+        idealMarket:
+          type: string
+        maxProfit:
+          type: string
+        maxLoss:
+          type: string
+        greeksProfile:
+          type: string
+        timeDecay:
+          type: string
+        volatilityBehavior:
+          type: string
+        assignmentRisk:
+          type: string
+        commonMistakes:
+          type: array
+          items:
+            type: string
+        institutionalPerspective:
+          type: string
+        paperExample:
+          $ref: "#/components/schemas/LearningStrategyPaperExample"
+
+    LearningQuizProgressAttempt:
+      type: object
+      required: [id, topic, score, total, percent, createdAt]
+      properties:
+        id:
+          type: ["integer", "null"]
+        topic:
+          type: string
+        score:
+          type: number
+        total:
+          type: number
+        percent:
+          type: number
+        createdAt:
+          type: string
+
+    LearningQuizProgressTopicBest:
+      type: object
+      required: [topic, bestPercent, attempts]
+      properties:
+        topic:
+          type: string
+        bestPercent:
+          type: number
+        attempts:
+          type: number
+
+    LearningQuizProgressSummary:
+      type: object
+      required: [attempts, bestByTopic, totalAttempts, averagePercent, streak, improvement, firstPercent, latestPercent]
+      properties:
+        attempts:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningQuizProgressAttempt"
+        bestByTopic:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningQuizProgressTopicBest"
+        totalAttempts:
+          type: number
+        averagePercent:
+          type: number
+        streak:
+          type: number
+        improvement:
+          type: number
+        firstPercent:
+          type: number
+        latestPercent:
+          type: number
+
+    LearningPathCompletion:
+      type: object
+      required: [pathKey, title, topicsTotal, topicsCompleted, percentComplete]
+      properties:
+        pathKey:
+          type: string
+        title:
+          type: string
+        topicsTotal:
+          type: number
+        topicsCompleted:
+          type: number
+        percentComplete:
+          type: number
+
+    LearningHistoryEntry:
+      type: object
+      required: [itemType, itemKey, viewedAt, completedAt]
+      properties:
+        itemType:
+          type: string
+          enum: [lesson, glossary, path, strategy]
+        itemKey:
+          type: string
+        viewedAt:
+          type: string
+        completedAt:
+          type: ["string", "null"]
+
+    LearningProgressSummary:
+      type: object
+      required:
+        [
+          lessonsViewed,
+          lessonsCompleted,
+          glossaryTermsViewed,
+          strategiesViewed,
+          pathCompletion,
+          greeksQuiz,
+          valueQuiz,
+          recentHistory,
+          completedLessonKeys,
+          completedGlossaryKeys,
+          completedStrategyKeys,
+        ]
+      properties:
+        lessonsViewed:
+          type: number
+        lessonsCompleted:
+          type: number
+        glossaryTermsViewed:
+          type: number
+        strategiesViewed:
+          type: number
+        pathCompletion:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningPathCompletion"
+        greeksQuiz:
+          $ref: "#/components/schemas/LearningQuizProgressSummary"
+        valueQuiz:
+          $ref: "#/components/schemas/LearningQuizProgressSummary"
+        recentHistory:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningHistoryEntry"
+        completedLessonKeys:
+          type: array
+          items:
+            type: string
+        completedGlossaryKeys:
+          type: array
+          items:
+            type: string
+        completedStrategyKeys:
+          type: array
+          items:
+            type: string
+
+    LearningProgressAction:
+      type: object
+      required: [itemType, itemKey]
+      properties:
+        itemType:
+          type: string
+          enum: [lesson, glossary, path, strategy]
+        itemKey:
+          type: string
+
+    LearningSimulationInput:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [delta, theta, expected_move, payoff, concentration]
+        strike:
+          type: number
+        iv:
+          type: number
+        dte:
+          type: number
+        price:
+          type: number
+        strategy:
+          type: string
+          enum: [covered_call, cash_secured_put, iron_condor]
+        stockCostBasis:
+          type: number
+        callStrike:
+          type: number
+        callPremium:
+          type: number
+        putStrike:
+          type: number
+        putPremium:
+          type: number
+        longPutStrike:
+          type: number
+        longCallStrike:
+          type: number
+        netCredit:
+          type: number
+        weights:
+          type: array
+          items:
+            type: number
+
+    LearningSimulationPoint:
+      type: object
+      required: [x, y]
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+
+    LearningSimulationResult:
+      type: object
+      required: [type, label, xLabel, yLabel, points, summary, educationalSimulation, notMarketData, noTradeRecommendation]
+      properties:
+        type:
+          type: string
+          enum: [delta, theta, expected_move, payoff, concentration]
+        label:
+          type: string
+        xLabel:
+          type: string
+        yLabel:
+          type: string
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningSimulationPoint"
+        summary:
+          type: string
+        educationalSimulation:
+          type: boolean
+          enum: [true]
+        notMarketData:
+          type: boolean
+          enum: [true]
+        noTradeRecommendation:
+          type: boolean
+          enum: [true]
+
+    LearningMetricExplanation:
+      type: object
+      required: [code, label, currentValue, plainEnglish, sourceCalculation, whyItMatters, relatedLessonHref, relatedGlossaryKeys, reusedObservation]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        currentValue:
+          type: string
+        plainEnglish:
+          type: string
+        sourceCalculation:
+          type: string
+        whyItMatters:
+          type: string
+        relatedLessonHref:
+          type: ["string", "null"]
+        relatedGlossaryKeys:
+          type: array
+          items:
+            type: string
+        reusedObservation:
+          type: boolean
+
+    LearningPortfolioLesson:
+      type: object
+      required: [items, generatedAt]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningMetricExplanation"
         generatedAt:
           type: string

@@ -5626,6 +5626,262 @@ export interface InstitutionalIntelligenceResult {
   generatedAt: string;
 }
 
+export type LearningGlossaryTermCategory = typeof LearningGlossaryTermCategory[keyof typeof LearningGlossaryTermCategory];
+
+
+export const LearningGlossaryTermCategory = {
+  foundations: 'foundations',
+  greeks: 'greeks',
+  volatility: 'volatility',
+  strategies: 'strategies',
+  portfolio: 'portfolio',
+  performance: 'performance',
+  institutional: 'institutional',
+} as const;
+
+export interface LearningGlossaryTerm {
+  key: string;
+  term: string;
+  category: LearningGlossaryTermCategory;
+  definition: string;
+  relatedTermKeys: string[];
+  relatedLessonKeys: string[];
+}
+
+export interface LearningTopic {
+  key: string;
+  title: string;
+  summary: string;
+  body: string[];
+  whyItMatters: string;
+  /** @nullable */
+  externalHref: string | null;
+  relatedGlossaryKeys: string[];
+  estimatedMinutes: number;
+}
+
+export type LearningPathGlossaryCategory = typeof LearningPathGlossaryCategory[keyof typeof LearningPathGlossaryCategory];
+
+
+export const LearningPathGlossaryCategory = {
+  foundations: 'foundations',
+  greeks: 'greeks',
+  volatility: 'volatility',
+  strategies: 'strategies',
+  portfolio: 'portfolio',
+  performance: 'performance',
+  institutional: 'institutional',
+} as const;
+
+export interface LearningPath {
+  key: string;
+  title: string;
+  description: string;
+  glossaryCategory: LearningPathGlossaryCategory;
+  topics: LearningTopic[];
+}
+
+export interface LearningStrategyGreeks {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export interface LearningStrategyPaperExample {
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  /** @nullable */
+  symbol: string | null;
+  /** @nullable */
+  detail: string | null;
+  greeks: LearningStrategyGreeks | null;
+}
+
+export interface LearningStrategyAcademyEntry {
+  key: string;
+  label: string;
+  builtByThisEngine: boolean;
+  construction: string;
+  idealMarket: string;
+  maxProfit: string;
+  maxLoss: string;
+  greeksProfile: string;
+  timeDecay: string;
+  volatilityBehavior: string;
+  assignmentRisk: string;
+  commonMistakes: string[];
+  institutionalPerspective: string;
+  paperExample: LearningStrategyPaperExample;
+}
+
+export interface LearningQuizProgressAttempt {
+  /** @nullable */
+  id: number | null;
+  topic: string;
+  score: number;
+  total: number;
+  percent: number;
+  createdAt: string;
+}
+
+export interface LearningQuizProgressTopicBest {
+  topic: string;
+  bestPercent: number;
+  attempts: number;
+}
+
+export interface LearningQuizProgressSummary {
+  attempts: LearningQuizProgressAttempt[];
+  bestByTopic: LearningQuizProgressTopicBest[];
+  totalAttempts: number;
+  averagePercent: number;
+  streak: number;
+  improvement: number;
+  firstPercent: number;
+  latestPercent: number;
+}
+
+export interface LearningPathCompletion {
+  pathKey: string;
+  title: string;
+  topicsTotal: number;
+  topicsCompleted: number;
+  percentComplete: number;
+}
+
+export type LearningHistoryEntryItemType = typeof LearningHistoryEntryItemType[keyof typeof LearningHistoryEntryItemType];
+
+
+export const LearningHistoryEntryItemType = {
+  lesson: 'lesson',
+  glossary: 'glossary',
+  path: 'path',
+  strategy: 'strategy',
+} as const;
+
+export interface LearningHistoryEntry {
+  itemType: LearningHistoryEntryItemType;
+  itemKey: string;
+  viewedAt: string;
+  /** @nullable */
+  completedAt: string | null;
+}
+
+export interface LearningProgressSummary {
+  lessonsViewed: number;
+  lessonsCompleted: number;
+  glossaryTermsViewed: number;
+  strategiesViewed: number;
+  pathCompletion: LearningPathCompletion[];
+  greeksQuiz: LearningQuizProgressSummary;
+  valueQuiz: LearningQuizProgressSummary;
+  recentHistory: LearningHistoryEntry[];
+  completedLessonKeys: string[];
+  completedGlossaryKeys: string[];
+  completedStrategyKeys: string[];
+}
+
+export type LearningProgressActionItemType = typeof LearningProgressActionItemType[keyof typeof LearningProgressActionItemType];
+
+
+export const LearningProgressActionItemType = {
+  lesson: 'lesson',
+  glossary: 'glossary',
+  path: 'path',
+  strategy: 'strategy',
+} as const;
+
+export interface LearningProgressAction {
+  itemType: LearningProgressActionItemType;
+  itemKey: string;
+}
+
+export type LearningSimulationInputType = typeof LearningSimulationInputType[keyof typeof LearningSimulationInputType];
+
+
+export const LearningSimulationInputType = {
+  delta: 'delta',
+  theta: 'theta',
+  expected_move: 'expected_move',
+  payoff: 'payoff',
+  concentration: 'concentration',
+} as const;
+
+export type LearningSimulationInputStrategy = typeof LearningSimulationInputStrategy[keyof typeof LearningSimulationInputStrategy];
+
+
+export const LearningSimulationInputStrategy = {
+  covered_call: 'covered_call',
+  cash_secured_put: 'cash_secured_put',
+  iron_condor: 'iron_condor',
+} as const;
+
+export interface LearningSimulationInput {
+  type: LearningSimulationInputType;
+  strike?: number;
+  iv?: number;
+  dte?: number;
+  price?: number;
+  strategy?: LearningSimulationInputStrategy;
+  stockCostBasis?: number;
+  callStrike?: number;
+  callPremium?: number;
+  putStrike?: number;
+  putPremium?: number;
+  longPutStrike?: number;
+  longCallStrike?: number;
+  netCredit?: number;
+  weights?: number[];
+}
+
+export interface LearningSimulationPoint {
+  x: number;
+  y: number;
+}
+
+export type LearningSimulationResultType = typeof LearningSimulationResultType[keyof typeof LearningSimulationResultType];
+
+
+export const LearningSimulationResultType = {
+  delta: 'delta',
+  theta: 'theta',
+  expected_move: 'expected_move',
+  payoff: 'payoff',
+  concentration: 'concentration',
+} as const;
+
+export interface LearningSimulationResult {
+  type: LearningSimulationResultType;
+  label: string;
+  xLabel: string;
+  yLabel: string;
+  points: LearningSimulationPoint[];
+  summary: string;
+  educationalSimulation: true;
+  notMarketData: true;
+  noTradeRecommendation: true;
+}
+
+export interface LearningMetricExplanation {
+  code: string;
+  label: string;
+  currentValue: string;
+  plainEnglish: string;
+  sourceCalculation: string;
+  whyItMatters: string;
+  /** @nullable */
+  relatedLessonHref: string | null;
+  relatedGlossaryKeys: string[];
+  reusedObservation: boolean;
+}
+
+export interface LearningPortfolioLesson {
+  items: LearningMetricExplanation[];
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -5659,6 +5915,14 @@ export const ListTradesStatus = {
   closed: 'closed',
   pending: 'pending',
 } as const;
+
+export type RecordLearningItemViewed200 = {
+  success: boolean;
+};
+
+export type RecordLearningItemCompleted200 = {
+  success: boolean;
+};
 
 export type GetAutoAdjustmentLogParams = {
 decision?: GetAutoAdjustmentLogDecision;

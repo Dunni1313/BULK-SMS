@@ -40,6 +40,7 @@ import portfolioEventRiskRouter from "./portfolioEventRisk";
 import portfolioConcentrationRouter from "./portfolioConcentration";
 import portfolioDashboardRouter from "./portfolioDashboard";
 import intelligenceRouter from "./intelligence";
+import learningCentreRouter from "./learningCentre";
 
 const router: IRouter = Router();
 
@@ -84,5 +85,6 @@ router.use(portfolioEventRiskRouter);
 router.use(portfolioConcentrationRouter);
 router.use(portfolioDashboardRouter);
 router.use(intelligenceRouter);
+router.use(learningCentreRouter);
 
 export default router;

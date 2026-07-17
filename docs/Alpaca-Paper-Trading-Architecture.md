@@ -1116,6 +1116,64 @@ No `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/
 change. No broker write operations. No portfolio mutation. No LLM call
 of any kind.
 
+### 4.17 AI Teacher & Learning Centre
+
+A unified, **deterministic** educational layer (Phase 8, Sprint 2)
+consolidating this platform's existing educational functionality (Delta
+Masterclass, Greeks Tutor, Trading Quiz, Trade Lessons, Value Investing
+School — all reused unchanged) with new content: 7 structured Learning
+Paths (47 topics), an 8-entry Strategy Academy, a ~52-term Glossary,
+Contextual Explain Mode, Portfolio Learning Mode, 5 deterministic
+Interactive Simulations, and unified Learning Progress tracking. Full
+detail: `docs/AI-Teacher-Learning-Centre.md`.
+
+**Genuine reuse of the Institutional Intelligence Engine's own
+Explanation Engine** (§4.16 above) — `lib/metricExplainer.ts`'s
+`explainMetric()` calls `intelligenceObservations.ts`'s own
+`explainObservation()` whenever a real, currently-emitted Observation
+matches the metric being explained, falling back to a direct read of
+the same already-computed dashboard figures otherwise. **Genuine reuse
+of `execution.ts`'s own `canonicalQuote()` and `coach.ts`'s own
+`positionGreeks()`** — the Strategy Academy's live paper examples (for
+the 3 strategies this platform actually builds:
+`iron_condor`/`iron_fly`/`calendar_spread`) call the exact same
+functions the real Trade Ticket already uses; the other 5 requested
+strategies honestly disclose their paper example as unavailable, never
+fabricated. **Genuine reuse of `optionsMath.ts`'s own `bs()`** for the
+Interactive Simulations' Delta/Theta curves.
+
+**One new table, `learning_progress`** (migration `019`) — the only new
+persistent state, and the only new user-state mutation this sprint
+introduces: one upserted row per `(userId, itemType, itemKey)`, never a
+growing event log. `userId` is `ON DELETE RESTRICT`, matching every
+other business table's convention.
+
+**Institutional Intelligence Engine integration (§4.16 above,
+updated):** `lib/intelligenceLearning.ts`'s own `AI Teacher (coming
+soon)` placeholder is resolved to a real `/learn` link; every
+observation category now also links to a real, reused Learning Path
+topic and Glossary term where one matches, plus a `/learn?tab=portfolio`
+deep link into Portfolio Learning Mode — never a fabricated URL for any
+of the three.
+
+One new route file, `routes/learningCentre.ts` (12 routes; one,
+`GET /learning-centre/explain/:metric`, is deliberately kept **outside**
+the OpenAPI/orval contract for the same path+query-parameter Orval
+codegen collision reason first disclosed at Sprint 40). One new frontend
+hub, `pages/learn/LearningCentre.tsx` (`/learn`), plus
+`pages/learn/LearningPaths.tsx`, `pages/learn/StrategyAcademy.tsx`,
+`pages/learn/Glossary.tsx`, and a reusable
+`src/components/learn/ExplainButton.tsx` widget wired onto the Portfolio
+Dashboard, Portfolio (Greeks), and Trades pages.
+
+No `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/
+`autoAdjustment.ts`/`portfolioDashboard.ts`/`intelligenceObservations.ts`/
+`intelligenceHealth.ts`/`intelligenceSummary.ts`/`intelligenceTimeline.ts`/
+`intelligenceEngine.ts` change. No broker write operations. No
+portfolio or trade mutation of any kind (Learning Progress is the sole,
+disclosed exception). No LLM call of any kind. The platform remains
+**Paper Trading only** throughout.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -1201,7 +1259,23 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/intelligenceTimeline.ts` | Pure diffing tests (new/persistent/resolved classification, `comparedTo`, health/income/risk-rating change population) plus the registry-completeness proof (every one of the 15 known observation codes has a real `labelForCode()` entry) plus real, DB-backed `getPriorSnapshot()`/`recordSnapshotIfNeeded()` upsert tests against an isolated test user (a same-day repeat never inserts a second row; a just-recorded row is never treated as its own prior). |
 | `lib/intelligenceEngine.ts` | Unit tests against isolated, fresh test users — an empty/fresh portfolio (exactly `paper_trading_active` + `credentials_unavailable`, never a fabricated trend on the first call), a single position, a balanced/healthy portfolio, high concentration, high Greeks exposure, high event risk, many observations firing together with correct Portfolio/Income/Risk Insights bucketing, missing credentials, timeline/trend observations and health-driver-sort proofs against a manually-recorded real prior snapshot, learning-links deduplication and the always-present AI Teacher entry, at-most-once-per-day persistence, determinism, and a never-mutates-the-trades-table proof. |
 | `routes/intelligence.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped deterministic-analysis/Paper-Trading result, the always-present Paper Trading Active observation, a real 0-100 Health Score and rating code, the honestly-disclosed AI Teacher learning link, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, determinism across repeated calls, and a genuine Broker Disconnected scenario via mocked network (mirroring `routes/brokerHealth.route.test.ts`'s own established technique). |
-| `InstitutionalIntelligence.tsx` | Frontend smoke tests — all 4 permanent indicator badges, loading and error states, the Executive Summary, the Health Overview (score/rating/trend/drivers), the honest empty and populated Highest Priority states, per-observation severity/category/confidence/source-module rendering, the 3 Insights columns with their own honest empty states, both Timeline states (no prior snapshot vs. a real prior-snapshot comparison with new/resolved entries), real Learning Links plus the honestly-disclosed "coming soon" AI Teacher entry, and a never-a-trade-recommendation proof. |
+| `InstitutionalIntelligence.tsx` | Frontend smoke tests — all 4 permanent indicator badges, loading and error states, the Executive Summary, the Health Overview (score/rating/trend/drivers), the honest empty and populated Highest Priority states, per-observation severity/category/confidence/source-module rendering, the 3 Insights columns with their own honest empty states, both Timeline states (no prior snapshot vs. a real prior-snapshot comparison with new/resolved entries), real Learning Links, and a never-a-trade-recommendation proof. |
+| `lib/glossary.ts` | Pure unit tests — unique keys, no-dangling-cross-reference proof for `relatedTermKeys`, category coverage for all 7 requested categories, `getGlossaryTerm()`'s honest-null-for-unknown-key path, and `searchGlossary()`'s query/category filtering including a genuinely-empty-match proof. |
+| `lib/learningPaths.ts` | Pure unit tests — the exact 7-path/47-topic structure and ordering, globally-unique topic keys, every `relatedGlossaryKeys` cross-referenced against `lib/glossary.ts`'s own real keys, every `externalHref` a real, existing platform route (confirmed by direct inspection of `App.tsx`), and `getLearningPath()`/`getLearningTopic()`'s honest-null-for-unknown paths. |
+| `lib/strategyAcademy.ts` | Tests reusing the real, unmodified `execution.ts`/`coach.ts` functions — all 10 requested detail fields present and non-empty for all 8 strategies, `builtByThisEngine` correctly split (3 true / 5 false), the 3 live-example strategies' paper examples carry a real SPY symbol/detail/Greeks, the 5 unavailable strategies' paper examples never fabricate a symbol/detail/Greeks, and `getStrategyAcademyEntry()`'s honest-null-for-unknown-key path. |
+| `lib/interactiveSimulations.ts` | Pure unit tests reusing the real `bs()`/`computeExpectedMove()` — Delta's rising-curve-through-the-strike proof, Theta's magnitude-grows-near-expiration proof, Expected Move's widens-with-time proof, all 3 payoff diagrams' cap/max-profit/max-loss math (covered call, cash secured put, iron condor), Concentration's HHI scoring and weight-normalization, determinism, and every input-validation error path. |
+| `lib/quizProgress.ts` | Pure unit tests — `utcDayKey`'s time-of-day stability, `computeStreak`'s consecutive-day counting/lapse-detection/gap-handling, and `computeQuizProgress`'s best-by-topic/average/improvement/attempts-ordering derivation, with streak proven to come from the full history, not the capped attempts list. |
+| `lib/metricExplainer.ts` | Tests against isolated, fresh test users — all 13 requested metric codes resolve a real current value; the Portfolio-Greeks family reuses `coach.ts`'s own plain-English formatters; the portfolio-wide family reuses `buildInstitutionalIntelligence()`/`buildPortfolioDashboard()`; the trade-scoped family requires a `tradeId` (a 400, never a fabricated portfolio-wide substitute, when omitted) and 404s for a `tradeId` belonging to another user; and a structural proof `explainMetric()`'s own signature never accepts a client-supplied value. |
+| `lib/learningProgress.ts` | Tests against isolated, fresh test users — a brand-new user's honest all-zero state, `recordViewed`/`recordCompleted` upsert idempotency (never a duplicate row), independent lesson/glossary/strategy tracking, path-completion percentage rollup, recent-history newest-first ordering, and live (never duplicated) reuse of both quiz systems' own results tables. |
+| `routes/learningCentre.route.test.ts` | Live end-to-end HTTP tests against the real app — all 12 routes, every 400/404 error path (unknown glossary term/path/strategy, unknown metric, missing tradeId, non-integer tradeId, invalid itemType, unknown simulation type, missing payoff strategy), the labeled-simulation contract (`educationalSimulation`/`notMarketData`/`noTradeRecommendation` always true), and a full view→complete→progress round trip using a collision-free random item key. |
+| `routes/valueQuizProgress.route.test.ts` | Live end-to-end HTTP tests — the new `GET /stock-analyst/value-quiz/progress` route's response shape matches the pre-existing `GET /coach/quiz/progress` route's own shape exactly, and a real graded Value Investing quiz attempt is reflected in a subsequent progress read. |
+| `lib/intelligenceLearning.test.ts` / `lib/intelligenceEngine.test.ts` / `routes/intelligence.route.test.ts` (updated) | The AI Teacher entry now always resolves to a real `/learn` URL (never `comingSoon`), every category includes the new "Your Portfolio, Explained" deep link, categories with a matching Learning Path topic get a real, reused lesson link, and the 3 platform-status categories (with no matching topic) honestly omit one rather than fabricating it — a disclosed behavior change, not a regression; Observation/Health/Summary/Timeline logic itself is unchanged. |
+| `pages/learn/Glossary.tsx` | Frontend smoke tests — full-list rendering, free-text search filtering, the honest empty-match state, a deep-link's focused-term card plus its own view-recording, and the honest not-found message for an unknown term. |
+| `pages/learn/StrategyAcademy.tsx` | Frontend smoke tests — list rendering with the "Live Example" badge correctly scoped to only the 3 built-by-this-engine strategies, a live strategy's real paper example rendering, an unavailable strategy's honestly-disclosed unavailable message (never a fabricated detail), and the honest not-found message for an unknown strategy. |
+| `pages/learn/LearningPaths.tsx` | Frontend smoke tests — the path list with real completion progress, a path detail's topics collapsed by default, expanding a topic records it viewed and reveals its body plus a Mark Complete button, clicking Mark Complete calls the completion mutation, a deep link to a specific topic auto-opens it, and the honest not-found message for an unknown path. |
+| `pages/learn/LearningCentre.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode/Educational Only badges, the Overview tab's real path/strategy/glossary counts and links, running a labeled Simulation from the Simulations tab, a real Explain-Mode-derived explanation on the My Portfolio Explained tab, real lesson/glossary/strategy counts and quiz progress on the Progress tab, and a `?tab=` deep link opening the requested tab directly. |
+| `src/components/learn/ExplainButton.tsx` | Frontend smoke tests — the popover never fetches until opened, a real explanation renders with its related-lesson and related-glossary links, `tradeId` is correctly passed through for trade-scoped metrics, an honest error message on a failed fetch (never a fabricated explanation), and switching the metric selector re-fetches the newly-selected metric. |
+| `PortfolioDashboard.tsx` / `Portfolio.tsx` / `Trades.tsx` (unmodified assertions) | All pre-existing tests continue to pass unmodified with `<ExplainButton>` wired onto Portfolio Health/Buying Power/Net Greeks/Highest Event Risk/Highest Concentration/Stress Test Summary, Beta-Weighted Delta/Theta/Vega/Gamma, and a per-row trade-scoped Explain button respectively — confirming the button never triggers a network request until clicked. |
 
 ## 8. Cross-references
 
@@ -1266,6 +1340,15 @@ to everything else in this codebase. Specifically for this document's scope:
   confidence-banding discipline, the `intelligence_snapshots` table's
   history-keeping (not prediction) design, and the remaining AI roadmap
   this engine is the foundation for.
+- `docs/AI-Teacher-Learning-Centre.md` — the AI Teacher & Learning
+  Centre's own full detail (§4.17 above): the 7 structured Learning
+  Paths (47 topics), the 8-entry Strategy Academy, the ~52-term
+  Glossary, Contextual Explain Mode's genuine reuse of the Institutional
+  Intelligence Engine's own Explanation Engine, Portfolio Learning
+  Mode, the 5 deterministic Interactive Simulations, the unified
+  Learning Progress tracking (the only new user-state mutation), and
+  the reunification of the Greeks quiz and Value Investing quiz into
+  one shared progress system.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

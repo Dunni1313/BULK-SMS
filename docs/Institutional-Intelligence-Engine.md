@@ -275,9 +275,19 @@ differs from the prior day. All three fields, and `comparedTo`, stay
 catalog mapping each of the engine's 11 observation categories to the
 real, already-existing pages that cover that topic (Portfolio Dashboard,
 Stress Testing, Correlation & Concentration, Event Risk, Options
-Dashboard, Settings). **Every category's list ends with an honestly
-disclosed `{ label: "AI Teacher", href: null, comingSoon: true }`
-entry — never a fabricated URL** for a page that doesn't exist yet.
+Dashboard, Settings). **Updated by the AI Teacher & Learning Centre
+sprint (Phase 8, Sprint 2):** the `{ label: "AI Teacher", href: null,
+comingSoon: true }` placeholder this section originally documented is
+now resolved to a real `{ label: "AI Teacher & Learning Centre", href:
+"/learn", comingSoon: false }` entry — the Learning Centre now exists,
+so no category's link list is ever `comingSoon` anymore. Each category
+also now appends, when a real match exists (never fabricated): a
+`Lesson: <title>` link into the matching `lib/learningPaths.ts` topic
+(`/learn/paths/:pathKey/:topicKey`), a `Glossary: <term>` link into
+`lib/glossary.ts` (`/learn/glossary/:key`), and a `Your Portfolio,
+Explained` deep link (`/learn?tab=portfolio`) into the Learning Centre's
+own Portfolio Learning Mode. See `docs/AI-Teacher-Learning-Centre.md`
+§8 for the full reuse chain and cross-reference proof.
 `buildInstitutionalIntelligence()`'s own `dedupeLearningLinks()`
 collects every emitted observation's own links into one top-level,
 deduplicated `learningLinks[]` array (keyed by `href`, so two
@@ -329,7 +339,9 @@ dedicated frontend test asserting no such text ever appears.
 - `lib/intelligenceEngine.test.ts` — the full orchestrator against isolated, fresh test users covering: an empty/fresh portfolio, a single position, a balanced/healthy portfolio, high concentration, high Greeks exposure, high event risk, many observations together, missing credentials, timeline/trend observations against a manually-recorded real prior snapshot, health calculations, summary generation, learning links, and the at-most-once-per-day persistence/determinism/never-mutates-trades discipline.
 - `routes/intelligence.route.test.ts` — live end-to-end HTTP tests against the real app, including a Broker Disconnected scenario via mocked network (mirroring `routes/brokerHealth.route.test.ts`'s own established technique).
 - One new case in `lib/tenantIsolation.test.ts` (`intelligence_snapshots`, reusing the established `assertTenantIsolation` helper).
-- `pages/InstitutionalIntelligence.test.tsx` — frontend smoke tests covering all 4 permanent badges, loading/error states, Executive Summary, Health Overview, Highest Priority (empty and populated with multiple observations), per-observation severity/category/confidence/source-module rendering, the 3 Insights columns, both Timeline states (no prior snapshot, and a real prior-snapshot comparison), Learning Links (including the honest "coming soon" AI Teacher entry), and the never-a-recommendation proof.
+- `pages/InstitutionalIntelligence.test.tsx` — frontend smoke tests covering all 4 permanent badges, loading/error states, Executive Summary, Health Overview, Highest Priority (empty and populated with multiple observations), per-observation severity/category/confidence/source-module rendering, the 3 Insights columns, both Timeline states (no prior snapshot, and a real prior-snapshot comparison), Learning Links, and the never-a-recommendation proof.
+
+**Updated by the AI Teacher & Learning Centre sprint:** `lib/intelligenceLearning.test.ts` was updated (never regressing the Explanation Engine's own coverage) to prove no learning link is ever `comingSoon` anymore, the AI Teacher & Learning Centre entry always resolves to `/learn`, every category includes a `Your Portfolio, Explained` deep link, categories with a matching Learning Path topic get a real, reused lesson link, and the 3 platform-status categories (which have no matching topic) are honestly omitted rather than fabricated. `lib/intelligenceEngine.test.ts`'s own learning-links assertions were updated the same way.
 
 ---
 
@@ -353,19 +365,28 @@ dedicated frontend test asserting no such text ever appears.
 Per the sprint's own framing, this engine is the **foundation** for:
 
 - **AI Coach** — a conversational layer over the Observation/Explanation
-  Engines' own already-structured output.
-- **AI Teacher** — the still-`comingSoon`-only Learning Engine entry;
-  real educational content/pages have not been built.
+  Engines' own already-structured output. Not built by either sprint —
+  remains a future module.
+- ~~**AI Teacher**~~ / ~~**Institutional Mentor** / **Learning
+  Centre**~~ — **BUILT** (Phase 8, Sprint 2, "AI Teacher & Learning
+  Centre"). See `docs/AI-Teacher-Learning-Centre.md` for the full
+  detail: 7 structured Learning Paths, an 8-strategy Strategy Academy, a
+  ~52-term Glossary, Explain Mode (reusing this engine's own Explanation
+  Engine), Portfolio Learning Mode, 5 deterministic Interactive
+  Simulations, Learning Progress tracking, and the reunification of the
+  Greeks quiz and Value Investing quiz into one shared progress system.
 - **AI Portfolio Analyst** — a deeper narrative layer over the Health
-  Engine's own aggregation.
+  Engine's own aggregation. Not built by either sprint — remains a
+  future module.
 - **AI Trade Journal** — surfacing Observation Engine output alongside
-  `pages/Journal.tsx`'s own existing entries.
-- **Institutional Mentor** / **Learning Centre** — a dedicated
-  destination consuming the Learning Engine's catalog.
+  `pages/Journal.tsx`'s own existing entries. Not built by either
+  sprint — remains a future module.
 
-None of these were built this sprint — every future module is expected
-to consume the six services documented above rather than duplicate
-their logic.
+The Learning Engine's own catalog (§9 above) is now consumed by a real
+destination rather than pointing at a placeholder, exactly as this
+section originally anticipated — every future module listed above is
+still expected to consume the six services documented in this file
+rather than duplicate their logic.
 
 ---
 
@@ -379,6 +400,11 @@ their logic.
   own composition page; not to be confused with this engine, though both
   reuse `useGetPortfolioDashboard()`.
 - `docs/Operations-Handbook.md` §6.18 — day-to-day operational usage.
+- `docs/AI-Teacher-Learning-Centre.md` — the AI Teacher & Learning
+  Centre sprint's own full detail (Phase 8, Sprint 2): the resolution of
+  this engine's own `AI Teacher (coming soon)` placeholder into a real
+  destination, and the full reuse chain back into this engine's
+  Explanation Engine (§7/§9 above).
 - CLAUDE.md rule 1/2 — `execution.ts`/`autoExecution.ts`/`autoAdjustment.ts`
   are never modified without explicit, specific approval; this sprint
   touches none of them.

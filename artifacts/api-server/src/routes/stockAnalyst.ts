@@ -13,7 +13,7 @@ import {
   valueWatchlistTable,
   valueQuizResultsTable,
 } from "@workspace/db";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import {
   GetValueUniverseResponse,
   GetValueReportResponse,
@@ -60,6 +60,7 @@ import {
   gradeValueQuiz,
 } from "../lib/valueSchool.js";
 import { CoachError } from "../lib/coach.js";
+import { computeQuizProgress } from "../lib/quizProgress.js";
 import {
   narrateValueResearch,
   narrateValueResearchStream,
@@ -747,6 +748,35 @@ router.post("/value-quiz/grade", async (req, res): Promise<void> => {
     if (handleCoachError(err, res)) return;
     throw err;
   }
+});
+
+// GET /value-quiz/progress — AI Teacher & Learning Centre sprint: the Value
+// Investing quiz previously had no progress endpoint at all (unlike the
+// Greeks quiz's own GET /coach/quiz/progress) — this closes that gap by
+// reusing the exact same shared aggregation (lib/quizProgress.ts's
+// computeQuizProgress(), extracted from routes/coach.ts, zero duplicated
+// streak/improvement math) against value_quiz_results instead of
+// greeks_quiz_results.
+router.get("/value-quiz/progress", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const rows = await db
+    .select()
+    .from(valueQuizResultsTable)
+    .where(eq(valueQuizResultsTable.userId, userId))
+    .orderBy(desc(valueQuizResultsTable.createdAt))
+    .limit(50);
+  const history = await db
+    .select({
+      topic: valueQuizResultsTable.topic,
+      score: valueQuizResultsTable.score,
+      total: valueQuizResultsTable.total,
+      percent: valueQuizResultsTable.percent,
+      createdAt: valueQuizResultsTable.createdAt,
+    })
+    .from(valueQuizResultsTable)
+    .where(eq(valueQuizResultsTable.userId, userId))
+    .orderBy(asc(valueQuizResultsTable.createdAt));
+  res.json(computeQuizProgress(rows, history));
 });
 
 // ─── Full report for a symbol (param route LAST so it can't shadow the literal

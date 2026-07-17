@@ -481,12 +481,17 @@ describe("buildInstitutionalIntelligence", () => {
       expect(new Set(hrefs).size).toBe(hrefs.length);
     });
 
-    it("always includes the honestly-disclosed AI Teacher 'coming soon' entry, never a fabricated URL", async () => {
+    it("always includes the AI Teacher & Learning Centre entry, now resolved to a real URL (Phase 8 Sprint 2)", async () => {
       const result = await buildInstitutionalIntelligence(userId);
-      const aiTeacher = result.learningLinks.find((l) => l.label === "AI Teacher");
+      const aiTeacher = result.learningLinks.find((l) => l.label === "AI Teacher & Learning Centre");
       expect(aiTeacher).toBeDefined();
-      expect(aiTeacher!.comingSoon).toBe(true);
-      expect(aiTeacher!.href).toBeNull();
+      expect(aiTeacher!.comingSoon).toBe(false);
+      expect(aiTeacher!.href).toBe("/learn");
+    });
+
+    it("no learning link is ever comingSoon:true anymore — the AI Teacher module now exists", async () => {
+      const result = await buildInstitutionalIntelligence(userId);
+      expect(result.learningLinks.every((l) => !l.comingSoon)).toBe(true);
     });
 
     it("a brand-new user with no elevated risk still gets a real, non-empty learning list — never an honestly-empty list", async () => {
@@ -495,11 +500,11 @@ describe("buildInstitutionalIntelligence", () => {
         const result = await buildInstitutionalIntelligence(freshUser);
         // Paper Trading Active is always emitted (a structural platform
         // fact), so its own real Settings link — plus the always-appended
-        // AI Teacher "coming soon" entry — anchors a non-empty list even
-        // for a user with zero elevated observations.
+        // AI Teacher & Learning Centre entry — anchors a non-empty list
+        // even for a user with zero elevated observations.
         expect(result.learningLinks.length).toBeGreaterThan(0);
         expect(result.learningLinks.some((l) => l.label === "Settings")).toBe(true);
-        expect(result.learningLinks.some((l) => l.label === "AI Teacher")).toBe(true);
+        expect(result.learningLinks.some((l) => l.label === "AI Teacher & Learning Centre")).toBe(true);
       } finally {
         await cleanupUser(freshUser);
       }

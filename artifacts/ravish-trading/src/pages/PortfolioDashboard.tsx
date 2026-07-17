@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ExplainButton } from "@/components/learn/ExplainButton";
 import {
   BarChart,
   Bar,
@@ -156,7 +157,9 @@ export default function PortfolioDashboard() {
               <div className="flex items-center gap-4">
                 <HealthGauge score={result.healthScore} ratingCode={result.overallRiskRating.code} />
                 <div>
-                  <div className="text-xs text-muted-foreground">Portfolio Health Score</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    Portfolio Health Score <ExplainButton metrics={["portfolio_health"]} />
+                  </div>
                   <Badge className={ratingBadgeClass(result.overallRiskRating.code)} data-testid="badge-overall-risk-rating">
                     {result.overallRiskRating.label}
                   </Badge>
@@ -168,7 +171,9 @@ export default function PortfolioDashboard() {
                   <div className="font-mono text-lg" data-testid="text-portfolio-value">{fmtUsd(result.portfolioValue)}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground">Buying Power</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    Buying Power <ExplainButton metrics={["buying_power"]} />
+                  </div>
                   <div className="font-mono text-lg" data-testid="text-buying-power">{fmtUsd(result.buyingPower)}</div>
                 </div>
                 <div>
@@ -271,19 +276,27 @@ export default function PortfolioDashboard() {
             </CardHeader>
             <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
-                <div className="text-xs text-muted-foreground">Net Delta</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  Net Delta <ExplainButton metrics={["delta"]} />
+                </div>
                 <div className="font-mono" data-testid="text-net-delta">{result.netGreeks.delta}</div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">Net Gamma</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  Net Gamma <ExplainButton metrics={["gamma"]} />
+                </div>
                 <div className="font-mono" data-testid="text-net-gamma">{result.netGreeks.gamma}</div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">Net Theta</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  Net Theta <ExplainButton metrics={["theta"]} />
+                </div>
                 <div className="font-mono" data-testid="text-net-theta">{result.netGreeks.theta}</div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">Net Vega</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  Net Vega <ExplainButton metrics={["vega"]} />
+                </div>
                 <div className="font-mono" data-testid="text-net-vega">{result.netGreeks.vega}</div>
               </div>
               <div>
@@ -307,7 +320,9 @@ export default function PortfolioDashboard() {
                 )}
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">Highest Event Risk</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  Highest Event Risk <ExplainButton metrics={["event_risk"]} />
+                </div>
                 {result.highestEventRisk ? (
                   <div data-testid="text-highest-event-risk">
                     {result.highestEventRisk.symbol} ({result.highestEventRisk.riskLevel})
@@ -317,7 +332,9 @@ export default function PortfolioDashboard() {
                 )}
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">Highest Concentration</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  Highest Concentration <ExplainButton metrics={["concentration"]} />
+                </div>
                 {result.highestConcentration ? (
                   <div data-testid="text-highest-concentration">
                     {result.highestConcentration.bucket.label} ({fmtPct(result.highestConcentration.bucket.weightPct)})
@@ -442,7 +459,9 @@ export default function PortfolioDashboard() {
           {/* ─── Stress Test Summary ────────────────────────────────────── */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle>Stress Test Summary</CardTitle>
+              <CardTitle className="flex items-center gap-1.5">
+                Stress Test Summary <ExplainButton metrics={["stress_test"]} />
+              </CardTitle>
               <CardDescription>Portfolio value impact per default scenario, reused directly from the Portfolio Stress Test.</CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,0 +1,647 @@
+// AI Teacher & Learning Centre sprint — structured Learning Paths.
+// Deterministic, version-controlled content (a plain TypeScript
+// literal, never LLM-generated). Reuses, rather than duplicates,
+// existing dedicated pages where one already exists: the "delta" and
+// "portfolio-greeks" topics link out to the pre-existing Delta
+// Masterclass (/learn/delta) and Greeks Tutor (/learn/greeks) pages
+// instead of re-authoring that content here.
+//
+// Every topic's relatedGlossaryKeys must be real keys in
+// lib/glossary.ts — proven by a dedicated cross-reference test
+// (learningPaths.test.ts) so the two content modules never silently
+// drift apart.
+
+import type { GlossaryCategory } from "./glossary.js";
+
+export interface LearningTopic {
+  key: string;
+  title: string;
+  summary: string;
+  body: string[];
+  whyItMatters: string;
+  externalHref: string | null;
+  relatedGlossaryKeys: string[];
+  estimatedMinutes: number;
+}
+
+export interface LearningPath {
+  key: string;
+  title: string;
+  description: string;
+  glossaryCategory: GlossaryCategory;
+  topics: LearningTopic[];
+}
+
+function topic(t: Omit<LearningTopic, "externalHref"> & { externalHref?: string }): LearningTopic {
+  return { externalHref: t.externalHref ?? null, ...t };
+}
+
+const FOUNDATIONS_PATH: LearningPath = {
+  key: "foundations",
+  title: "Foundations",
+  description: "The vocabulary and mechanics every options trader needs before anything else makes sense.",
+  glossaryCategory: "foundations",
+  topics: [
+    topic({
+      key: "foundations-stocks",
+      title: "Stocks",
+      summary: "What owning a share actually represents.",
+      body: [
+        "A stock is a share of ownership in a company. Its price reflects the market's collective view of the company's current and future earning power.",
+        "Every option contract in this platform is written on 100 shares of some underlying stock — options have no independent existence; their value is entirely derived from the stock's own price, volatility, and time remaining.",
+      ],
+      whyItMatters: "Every Greek, every strategy, and every risk figure in this platform ultimately traces back to a stock's price and how it might move — options education starts here.",
+      relatedGlossaryKeys: ["stock", "underlying"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "foundations-options",
+      title: "Options",
+      summary: "A contract, not a stock — the right, not the obligation.",
+      body: [
+        "An option gives its buyer the right, but not the obligation, to buy (call) or sell (put) 100 shares at a fixed strike price on or before a fixed expiration date, in exchange for a premium paid to the seller.",
+        "That asymmetry — a right for the buyer, an obligation for the seller — is the foundation of every strategy this platform builds: selling options collects premium in exchange for taking on that obligation.",
+      ],
+      whyItMatters: "This platform is a premium-selling engine — understanding that sellers take on the obligation side of the contract is the single most important foundational idea.",
+      relatedGlossaryKeys: ["option", "call", "put", "premium"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "foundations-calls",
+      title: "Calls",
+      summary: "The right to buy.",
+      body: [
+        "A call option gives its buyer the right to buy 100 shares at the strike price. Call buyers profit when the stock rises above the strike plus the premium paid.",
+        "Call SELLERS collect the premium up front and profit when the stock stays below the strike — the position this platform's scanner and execution engine build when a short call leg is part of a structure.",
+      ],
+      whyItMatters: "Every iron condor and iron fly this platform builds has a short call spread as one of its two halves — understanding a call's own payoff is a prerequisite.",
+      relatedGlossaryKeys: ["call", "put", "assignment"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "foundations-puts",
+      title: "Puts",
+      summary: "The right to sell.",
+      body: [
+        "A put option gives its buyer the right to sell 100 shares at the strike price. Put buyers profit when the stock falls below the strike minus the premium paid.",
+        "Put SELLERS collect the premium up front and profit when the stock stays above the strike — the mirror image of a short call, and the other half of every iron condor this platform builds.",
+      ],
+      whyItMatters: "A Cash Secured Put strategy is built entirely from selling puts — understanding a put's own payoff is a prerequisite for the Strategy Academy's CSP entry.",
+      relatedGlossaryKeys: ["put", "call", "assignment"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "foundations-strike-price",
+      title: "Strike Price",
+      summary: "The fixed price the option is written against.",
+      body: [
+        "The strike price is the fixed price at which the underlying can be bought (call) or sold (put). Where it sits relative to the current stock price determines whether an option is in-, at-, or out-of-the-money.",
+        "This platform's scanner selects short strikes primarily by delta (commonly near 0.20), since delta approximates the probability that strike finishes in the money — see the Delta Masterclass for the full worked explanation.",
+      ],
+      whyItMatters: "Strike selection is the single biggest lever on a position's probability of profit, credit collected, and maximum loss — all three trade off against each other as the strike moves.",
+      relatedGlossaryKeys: ["strike-price", "in-the-money", "out-of-the-money", "at-the-money"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "foundations-premium",
+      title: "Premium",
+      summary: "The price of the option itself.",
+      body: [
+        "Premium is what the option costs — paid by the buyer to the seller. It's made up of intrinsic value (how far ITM the option already is) plus extrinsic/time value, which decays toward zero as expiration approaches.",
+        "Selling premium and collecting that time-value decay (theta) as it erodes is the structural income source behind every strategy in the Strategy Academy.",
+      ],
+      whyItMatters: "'Premium selling' is this whole platform's own name for its trading philosophy — understanding what premium actually is, and why it decays, explains the entire approach.",
+      relatedGlossaryKeys: ["premium", "theta", "premium-collected"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "foundations-expiration",
+      title: "Expiration",
+      summary: "The date the contract stops existing.",
+      body: [
+        "Every option has an expiration date, after which it either settles in-the-money (via automatic exercise/assignment for most US equity options) or expires worthless out-of-the-money.",
+        "Days-to-expiration (DTE) directly drives theta's decay rate, an option's remaining extrinsic value, and how far the expected move can realistically travel before settlement.",
+      ],
+      whyItMatters: "The DTE a position is entered at is one of the primary levers a premium seller controls — shorter DTE decays faster but leaves less room to be right; longer DTE decays slower but ties up capital longer.",
+      relatedGlossaryKeys: ["expiration", "assignment", "theta"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "foundations-assignment",
+      title: "Assignment",
+      summary: "What happens to the seller when the buyer exercises.",
+      body: [
+        "Assignment is what happens to the SELLER of an option when the buyer exercises their right: a short call's seller must deliver 100 shares at the strike; a short put's seller must buy 100 shares at the strike.",
+        "American-style equity options — every option this platform trades — can be assigned at any time before expiration, not only at expiration, and assignment risk rises sharply once a short strike moves in-the-money.",
+      ],
+      whyItMatters: "Every strategy in the Strategy Academy discloses its own assignment risk explicitly — understanding the mechanics here is what makes those disclosures meaningful rather than abstract.",
+      relatedGlossaryKeys: ["assignment", "exercise", "in-the-money"],
+      estimatedMinutes: 3,
+    }),
+  ],
+};
+
+const GREEKS_PATH: LearningPath = {
+  key: "greeks",
+  title: "Options Greeks",
+  description: "The five sensitivities that describe exactly how an option's price will react to the world changing around it.",
+  glossaryCategory: "greeks",
+  topics: [
+    topic({
+      key: "greeks-delta",
+      title: "Delta",
+      summary: "Directional exposure and approximate probability, in one number.",
+      body: [
+        "Delta measures how much an option's price moves per $1 move in the underlying, and doubles as a close approximation of the probability that option finishes in the money.",
+      ],
+      whyItMatters: "This platform's own scanner selects short strikes primarily by delta — the full worked explanation, with live numbers, lives in the dedicated Delta Masterclass.",
+      externalHref: "/learn/delta",
+      relatedGlossaryKeys: ["delta", "gamma", "probability-of-profit"],
+      estimatedMinutes: 8,
+    }),
+    topic({
+      key: "greeks-gamma",
+      title: "Gamma",
+      summary: "How fast delta itself changes.",
+      body: [
+        "Gamma measures the rate of change of delta as the underlying moves — largest for at-the-money options close to expiration.",
+        "Premium sellers are typically short gamma: as the underlying trends toward a short strike, delta turns against you and losses accelerate. Managing short gamma (sizing small, taking profits early) is central to surviving as a seller.",
+      ],
+      whyItMatters: "Gamma is the trade-off you accept for collecting theta — understanding it explains why a position that looked safe at entry can deteriorate quickly on a fast move.",
+      externalHref: "/learn/greeks",
+      relatedGlossaryKeys: ["gamma", "delta", "at-the-money"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "greeks-theta",
+      title: "Theta",
+      summary: "The seller's daily income from time decay.",
+      body: [
+        "Theta is the dollar amount an option's price erodes per calendar day, all else equal. For a buyer it's a cost; for a seller — this platform's own default posture — it's income.",
+        "Decay accelerates as expiration approaches and is fastest for at-the-money options, which is why premium sellers often prefer to enter with more time remaining and exit before the final, steepest decay window.",
+      ],
+      whyItMatters: "Positive position theta is the structural reason premium selling can be profitable even when the underlying goes nowhere — time itself pays you.",
+      externalHref: "/learn/greeks",
+      relatedGlossaryKeys: ["theta", "theta-income", "premium"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "greeks-vega",
+      title: "Vega",
+      summary: "Sensitivity to implied volatility.",
+      body: [
+        "Vega measures how much an option's price moves per 1-percentage-point change in implied volatility, and is largest for at-the-money, longer-dated options.",
+        "Premium sellers are usually short vega — they benefit when IV falls (especially the post-earnings IV crush), and a volatility spike is their main headwind.",
+      ],
+      whyItMatters: "Selling when IV rank is elevated (options are relatively 'expensive' for that stock right now) stacks the odds in a short-vega seller's favor.",
+      externalHref: "/learn/greeks",
+      relatedGlossaryKeys: ["vega", "implied-volatility", "iv-crush"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "greeks-rho",
+      title: "Rho",
+      summary: "The quiet fifth Greek.",
+      body: [
+        "Rho measures how much an option's price moves per 1-percentage-point change in interest rates. For the short-dated equity options this platform trades, rho's impact is usually small relative to delta, theta, gamma, and vega.",
+        "It matters more for longer-dated options (LEAPS) and in higher-rate environments, but for a typical 30-60 day premium-selling structure it's rarely the deciding factor in a trade's risk profile.",
+      ],
+      whyItMatters: "Knowing rho exists — and knowing when it genuinely doesn't matter much — is part of understanding the full Greeks picture rather than only the four most commonly discussed.",
+      relatedGlossaryKeys: ["rho", "delta", "theta"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "greeks-portfolio-greeks",
+      title: "Portfolio Greeks",
+      summary: "One position's Greeks tell you little; the portfolio's net Greeks tell you everything.",
+      body: [
+        "Portfolio Greeks are the sum of every open position's own Greeks — net delta, net theta, net gamma, net vega for the whole account, not any single trade in isolation.",
+        "This platform's own Portfolio Dashboard and Greeks pages compute and display these net figures directly from your real open positions, reused unchanged by this Learning Centre's own Portfolio Learning Mode.",
+      ],
+      whyItMatters: "A portfolio can look balanced position-by-position and still carry a large, unintended net directional or volatility bet once every position is summed — Portfolio Greeks is the number that actually matters.",
+      externalHref: "/portfolio",
+      relatedGlossaryKeys: ["portfolio-greeks", "delta", "theta", "gamma", "vega"],
+      estimatedMinutes: 4,
+    }),
+  ],
+};
+
+const VOLATILITY_PATH: LearningPath = {
+  key: "volatility",
+  title: "Volatility",
+  description: "The single biggest input to every option's price — and the entire reason premium selling can be a systematic edge.",
+  glossaryCategory: "volatility",
+  topics: [
+    topic({
+      key: "volatility-iv",
+      title: "Implied Volatility (IV)",
+      summary: "The market's forward-looking estimate of movement, priced into every option.",
+      body: [
+        "Implied volatility is backed out of an option's own market price — it represents the market's collective forward-looking estimate of how much the underlying will move before expiration.",
+        "Higher IV inflates premiums on both calls and puts equally; it tends to rise ahead of uncertain events (earnings, macro releases) and fall once the uncertainty resolves.",
+      ],
+      whyItMatters: "IV, not the stock price alone, is the primary driver of how much premium a seller can collect for a given strike and expiration.",
+      relatedGlossaryKeys: ["implied-volatility", "vega", "iv-rank"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "volatility-hv",
+      title: "Historical Volatility (HV)",
+      summary: "What the stock has actually done, as opposed to what the market expects.",
+      body: [
+        "Historical (realized) volatility measures how much a stock has actually moved in the past, computed from its own price history — distinct from IV's forward-looking, market-implied estimate.",
+        "Comparing IV to HV reveals whether options are currently pricing in more or less movement than the stock has recently delivered — a persistent gap in IV's favor (IV running above HV) is the structural edge behind systematic premium selling.",
+      ],
+      whyItMatters: "The volatility-risk-premium haircut this platform applies when computing Probability of Profit exists specifically because IV tends to systematically overstate realized (historical) volatility.",
+      relatedGlossaryKeys: ["historical-volatility", "implied-volatility", "expected-move"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "volatility-iv-rank",
+      title: "IV Rank",
+      summary: "Is IV high or low for THIS stock, right now?",
+      body: [
+        "IV Rank places a stock's current implied volatility on a 0-100 scale relative to its own 52-week IV range — not relative to other stocks, and not relative to some fixed threshold.",
+        "A high IV rank means options are relatively expensive for this particular stock right now, which is the classic setup premium sellers look for before selling — the same reason this platform's earnings-play logic requires an elevated IV rank before recommending a structure.",
+      ],
+      whyItMatters: "Two stocks can have identical raw IV numbers but very different IV ranks — rank, not raw IV, is the number that tells you whether NOW is a relatively rich or cheap time to sell premium on that specific name.",
+      relatedGlossaryKeys: ["iv-rank", "implied-volatility", "iv-crush"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "volatility-expected-move",
+      title: "Expected Move",
+      summary: "The market-implied range a stock is likely to trade within.",
+      body: [
+        "Expected move is computed from implied volatility and time remaining (IV × √(days/365)) — a one-standard-deviation range, meaning roughly a 68% chance the stock stays inside it by that date.",
+        "It is a probability-weighted range derived from real market pricing, never a directional prediction of where the stock will go.",
+      ],
+      whyItMatters: "Comparing a structure's own short strikes to the expected move is a quick sanity check on whether a position's breakevens sit comfortably outside the range the market itself expects, or uncomfortably close to it.",
+      relatedGlossaryKeys: ["expected-move", "implied-volatility", "historical-volatility"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "volatility-earnings",
+      title: "Earnings Volatility & IV Crush",
+      summary: "Why options get expensive before earnings — and cheap right after.",
+      body: [
+        "Ahead of a known event like earnings, implied volatility rises to price in genuine uncertainty about the result — this is earnings volatility, and it inflates every option's premium on that name.",
+        "Once the report is out and the uncertainty resolves, IV typically collapses sharply — the IV crush. This platform's own earnings-play logic identifies stocks with elevated IV rank inside a near-term earnings window and recommends a structure sized to harvest exactly that collapse.",
+      ],
+      whyItMatters: "IV crush is one of the most reliable, repeatable volatility patterns in options markets — understanding it is the foundation of any systematic earnings-premium-selling approach.",
+      relatedGlossaryKeys: ["earnings-volatility", "iv-crush", "iv-rank", "expected-move"],
+      estimatedMinutes: 5,
+    }),
+  ],
+};
+
+const STRATEGIES_PATH: LearningPath = {
+  key: "strategies",
+  title: "Options Strategies",
+  description: "How individual option legs combine into defined, repeatable structures — full detail lives in the Strategy Academy.",
+  glossaryCategory: "strategies",
+  topics: [
+    topic({
+      key: "strategies-covered-calls",
+      title: "Covered Calls",
+      summary: "Own the stock, sell the upside for income.",
+      body: ["Own 100 shares and sell a call against them for premium income, capping upside at the strike."],
+      whyItMatters: "The classic first income strategy most traders learn — see the Strategy Academy for the full construction, Greeks profile, and common mistakes.",
+      externalHref: "/learn/strategy-academy/covered_call",
+      relatedGlossaryKeys: ["covered-call", "call", "wheel"],
+      estimatedMinutes: 2,
+    }),
+    topic({
+      key: "strategies-csp",
+      title: "Cash Secured Puts",
+      summary: "Get paid to name your own buy price.",
+      body: ["Sell a put backed by cash to buy 100 shares at the strike; if assigned, you own the stock at a reduced effective cost basis."],
+      whyItMatters: "The natural counterpart to a covered call, and the entry point into the Wheel strategy.",
+      externalHref: "/learn/strategy-academy/cash_secured_put",
+      relatedGlossaryKeys: ["cash-secured-put", "put", "wheel"],
+      estimatedMinutes: 2,
+    }),
+    topic({
+      key: "strategies-wheel",
+      title: "The Wheel",
+      summary: "Cycle between selling puts and selling calls on the same stock.",
+      body: ["Sell CSPs until assigned shares, then sell covered calls on those shares until called away, then repeat — collecting premium at every stage."],
+      whyItMatters: "A complete, repeatable income cycle combining both of the two prior topics into one systematic process.",
+      externalHref: "/learn/strategy-academy/wheel",
+      relatedGlossaryKeys: ["wheel", "covered-call", "cash-secured-put"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "strategies-verticals",
+      title: "Vertical Spreads",
+      summary: "The building block underneath every iron condor.",
+      body: ["Buy and sell two options of the same type and expiration at different strikes, defining maximum profit and loss up front."],
+      whyItMatters: "An iron condor is literally a put vertical plus a call vertical — understanding one half explains the whole structure.",
+      externalHref: "/learn/strategy-academy/vertical_spread",
+      relatedGlossaryKeys: ["vertical-spread", "iron-condor"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "strategies-iron-condor",
+      title: "Iron Condors",
+      summary: "This platform's own flagship structure.",
+      body: ["A short put spread below the market plus a short call spread above it — defined risk, profits when the underlying stays inside the two short strikes."],
+      whyItMatters: "The strategy this platform's scanner and execution engine build and price most extensively — the Strategy Academy's iron condor entry includes a real, live worked example.",
+      externalHref: "/learn/strategy-academy/iron_condor",
+      relatedGlossaryKeys: ["iron-condor", "vertical-spread", "delta"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "strategies-iron-butterfly",
+      title: "Iron Butterflies",
+      summary: "Maximum credit, minimum margin for error.",
+      body: ["Like an iron condor, but both short strikes sit at-the-money — richer credit, narrower profit zone."],
+      whyItMatters: "The opposite end of the delta spectrum from a 20-delta iron condor — useful for seeing how strike selection trades credit against probability.",
+      externalHref: "/learn/strategy-academy/iron_fly",
+      relatedGlossaryKeys: ["iron-butterfly", "iron-condor", "at-the-money"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "strategies-calendar",
+      title: "Calendar Spreads",
+      summary: "Profit from time decay differential, not direction.",
+      body: ["Sell a near-dated option and buy a longer-dated option at the same strike, profiting as the front leg decays faster than the back leg."],
+      whyItMatters: "A genuinely different risk profile from a condor or fly — long vega instead of short, and built by this platform's own engine for real.",
+      externalHref: "/learn/strategy-academy/calendar_spread",
+      relatedGlossaryKeys: ["calendar-spread", "theta", "diagonal-spread"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "strategies-diagonal",
+      title: "Diagonal Spreads",
+      summary: "A calendar spread with a directional lean.",
+      body: ["Like a calendar spread, but the near- and far-dated legs use different strikes, adding a directional tilt to the time-decay edge."],
+      whyItMatters: "Shows how the same core mechanic (a calendar) can be adapted for a directional view without abandoning defined risk.",
+      externalHref: "/learn/strategy-academy/diagonal_spread",
+      relatedGlossaryKeys: ["diagonal-spread", "calendar-spread"],
+      estimatedMinutes: 3,
+    }),
+  ],
+};
+
+const PORTFOLIO_PATH: LearningPath = {
+  key: "portfolio",
+  title: "Portfolio",
+  description: "Managing risk across the WHOLE account, not just one trade at a time — reuses this platform's own Portfolio Dashboard and overlays.",
+  glossaryCategory: "portfolio",
+  topics: [
+    topic({
+      key: "portfolio-position-sizing",
+      title: "Position Sizing",
+      summary: "How much to risk on any single trade.",
+      body: ["Bound each trade's risk as a percentage of total account value so no single position — however attractive — can do outsized damage."],
+      whyItMatters: "This platform's own Position Sizing & Portfolio Impact Calculator computes real current-vs-hypothetical exposure before you enter a trade — reused directly.",
+      externalHref: "/position-sizing",
+      relatedGlossaryKeys: ["position-sizing", "concentration", "buying-power"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "portfolio-health",
+      title: "Portfolio Health",
+      summary: "One blended score summarizing 8 real risk factors.",
+      body: ["A deterministic 0-100 aggregation of Concentration, Diversification, Event Risk, Net Greeks, Directional Exposure, Position Sizing Quality, Position Count, and Expiration Distribution."],
+      whyItMatters: "This is the exact score the Portfolio Dashboard and the Institutional Intelligence Engine both already compute — reused here, never a second, competing score.",
+      externalHref: "/portfolio-dashboard",
+      relatedGlossaryKeys: ["portfolio-health", "concentration", "diversification"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "portfolio-buying-power",
+      title: "Buying Power",
+      summary: "The capital actually available for new trades.",
+      body: ["Selling defined-risk spreads ties up buying power equal to their maximum loss — the real, dynamic limit on how many new positions can be opened."],
+      whyItMatters: "Running buying power to zero (or accepting excessive leverage) is one of this platform's own explicitly monitored risk-warning categories.",
+      externalHref: "/portfolio-dashboard",
+      relatedGlossaryKeys: ["buying-power", "position-sizing", "max-loss"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "portfolio-concentration",
+      title: "Concentration",
+      summary: "How much risk sits in one place.",
+      body: ["Measured across symbol, sector, strategy, and expiration dimensions — high concentration means one adverse move can hit a large share of the account at once."],
+      whyItMatters: "This platform's own Correlation & Concentration Risk Overlay computes a real Herfindahl-Hirschman-Index concentration score from your actual open positions.",
+      externalHref: "/concentration-risk",
+      relatedGlossaryKeys: ["concentration", "diversification", "correlation"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "portfolio-diversification",
+      title: "Diversification",
+      summary: "The inverse of concentration.",
+      body: ["Spreading risk across enough distinct symbols, sectors, strategies, and expirations that no single event can materially damage the portfolio."],
+      whyItMatters: "The Portfolio Health score's own 'Diversification' factor is derived directly from the same sector-level concentration figure computed by the Correlation & Concentration Overlay.",
+      externalHref: "/concentration-risk",
+      relatedGlossaryKeys: ["diversification", "concentration"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "portfolio-correlation",
+      title: "Correlation",
+      summary: "Positions that move together aren't really diversified.",
+      body: ["Even different symbols can be highly correlated (e.g. several tech-sector iron condors) and provide little real diversification, since they tend to gain or lose together."],
+      whyItMatters: "This platform's own Concentration overlay's clustering view illustrates categorical correlation risk directly from real sector/strategy groupings.",
+      externalHref: "/concentration-risk",
+      relatedGlossaryKeys: ["correlation", "diversification", "concentration"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "portfolio-stress-testing",
+      title: "Stress Testing",
+      summary: "What-if scenarios over your REAL positions.",
+      body: ["Reprices every open position under a hypothetical price/IV/time shock to see how portfolio value and risk score would change — a simulation, never a forecast."],
+      whyItMatters: "This platform's own Portfolio Stress Test & Scenario Simulator runs these shocks against your actual open trades, not a hypothetical portfolio.",
+      externalHref: "/stress-test",
+      relatedGlossaryKeys: ["stress-testing", "event-risk"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "portfolio-event-risk",
+      title: "Event Risk",
+      summary: "Known upcoming events that could move a position suddenly.",
+      body: ["Earnings, economic releases, and dividend dates each carry the risk of an outsized move before you can react — this platform classifies each open position's own event-risk level."],
+      whyItMatters: "This platform's own Earnings & Event Risk Portfolio Overlay computes a real risk level per position from known, upcoming event dates.",
+      externalHref: "/event-risk",
+      relatedGlossaryKeys: ["event-risk", "earnings-volatility"],
+      estimatedMinutes: 4,
+    }),
+  ],
+};
+
+const PERFORMANCE_PATH: LearningPath = {
+  key: "performance",
+  title: "Performance",
+  description: "Measuring whether a strategy actually works — beyond any single trade's own win or loss.",
+  glossaryCategory: "performance",
+  topics: [
+    topic({
+      key: "performance-win-rate",
+      title: "Win Rate",
+      summary: "The percentage of trades that were profitable.",
+      body: ["A useful but incomplete metric on its own — a high win rate with rare, large losses can still be a net-losing strategy overall."],
+      whyItMatters: "This platform's Trade Performance page computes a real win rate from your own closed-trade history — always read alongside Expectancy, never alone.",
+      externalHref: "/trade-performance",
+      relatedGlossaryKeys: ["win-rate", "expectancy", "probability-of-profit"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "performance-drawdown",
+      title: "Drawdown",
+      summary: "How far below the peak the account has fallen.",
+      body: ["The decline from a portfolio's highest recorded value to a subsequent low, before a new high is made — a key measure of how much pain a strategy inflicts along the way."],
+      whyItMatters: "A strategy with an attractive average return can still be unsurvivable in practice if its drawdowns are large enough to force an exit at the worst time.",
+      relatedGlossaryKeys: ["drawdown", "win-rate", "expectancy"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "performance-theta-income",
+      title: "Theta Income",
+      summary: "Forward-looking projected time-decay income.",
+      body: ["Sums the theta of every open position into a daily/weekly/monthly projection — the practical, forward-looking figure this platform's own Theta Income Engine already computes."],
+      whyItMatters: "This platform's own Options Dashboard already displays this exact figure — reused directly, not recomputed here.",
+      externalHref: "/options-dashboard",
+      relatedGlossaryKeys: ["theta-income", "theta", "premium-collected"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "performance-premium-collected",
+      title: "Premium Collected",
+      summary: "Realized, backward-looking income from closed trades.",
+      body: ["The total credit actually received from selling options — distinct from Theta Income's own forward-looking projection over currently open positions."],
+      whyItMatters: "This platform's own Trade Performance page computes this real, realized figure from your actual closed-trade history.",
+      externalHref: "/trade-performance",
+      relatedGlossaryKeys: ["premium-collected", "premium", "theta-income"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "performance-return-on-capital",
+      title: "Return on Capital",
+      summary: "Profit relative to the capital actually at risk.",
+      body: ["Expresses profit as a percentage of max loss (the capital put at risk), letting trades of very different sizes be compared on equal footing."],
+      whyItMatters: "A $50 profit on $200 at risk (25% return on capital) is a very different result from a $50 profit on $2,000 at risk (2.5%) — raw dollars alone can mislead.",
+      relatedGlossaryKeys: ["return-on-capital", "max-loss", "max-profit"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "performance-expectancy",
+      title: "Expectancy",
+      summary: "The number that actually tells you if a strategy works.",
+      body: ["Expectancy = (win rate × average win) − (loss rate × average loss) — the average dollar result you'd expect per trade over a large sample.", "Positive expectancy is what makes a strategy sustainable over time, regardless of any single trade's own outcome."],
+      whyItMatters: "This is the single most important performance metric — a strategy with positive expectancy is worth continuing even after a string of individual losses.",
+      relatedGlossaryKeys: ["expectancy", "win-rate", "expected-value"],
+      estimatedMinutes: 4,
+    }),
+  ],
+};
+
+const INSTITUTIONAL_PATH: LearningPath = {
+  key: "institutional",
+  title: "Institutional Thinking",
+  description: "How professional risk managers actually think about a portfolio — process, not predictions.",
+  glossaryCategory: "institutional",
+  topics: [
+    topic({
+      key: "institutional-portfolio-construction",
+      title: "Portfolio Construction",
+      summary: "Deciding the whole portfolio, not one trade at a time.",
+      body: [
+        "Institutional risk managers build a portfolio deliberately, against an explicit risk budget, rather than accumulating positions one attractive-looking trade idea at a time with no view of the whole.",
+        "That means asking not just 'is this trade good?' but 'does adding this trade make the PORTFOLIO better?' — a subtly different, and more disciplined, question.",
+      ],
+      whyItMatters: "A portfolio of individually-good trades can still be poorly constructed if they're all correlated, all expire the same week, or all lean the same direction.",
+      relatedGlossaryKeys: ["portfolio-construction", "risk-contribution", "capital-allocation"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "institutional-risk-contribution",
+      title: "Risk Contribution",
+      summary: "A position's share of TOTAL portfolio risk, not just its own size.",
+      body: [
+        "Risk contribution asks how much of the portfolio's aggregate delta/theta/vega exposure and concentration a single position actually accounts for — which is not the same question as how much dollar capital it uses.",
+        "A small position in a volatile, highly-correlated symbol can contribute disproportionate risk relative to its dollar size.",
+      ],
+      whyItMatters: "This is the institutional lens behind this platform's own Concentration overlay's 'largest risk contributor' figure — the position responsible for the largest share of total delta exposure, not necessarily the largest position by dollar size.",
+      externalHref: "/concentration-risk",
+      relatedGlossaryKeys: ["risk-contribution", "concentration", "portfolio-construction"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "institutional-capital-allocation",
+      title: "Capital Allocation",
+      summary: "How much capital to deploy at all — before any single trade.",
+      body: [
+        "Capital allocation is deciding how much of total available capital to put to work at all, and how to divide it across opportunities — a decision made independently of any single trade's own attractiveness.",
+        "A trader can correctly identify a great trade and still make a mistake by allocating too much (or too little) capital to it relative to everything else in the portfolio.",
+      ],
+      whyItMatters: "Position Sizing answers 'how much for THIS trade'; Capital Allocation answers the broader question of how much total capital should be deployed versus held back at all.",
+      relatedGlossaryKeys: ["capital-allocation", "position-sizing", "buying-power"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "institutional-position-management",
+      title: "Position Management",
+      summary: "A trade is a process from entry to exit, not a single decision.",
+      body: [
+        "Institutional discipline treats an open position as something to be actively monitored, adjusted, rolled, or closed as conditions change — not a decision made once at entry and forgotten until expiration.",
+        "This platform's own Trade Adjustment & Roll/Convert Preview Simulator exists specifically to support this ongoing management discipline.",
+      ],
+      whyItMatters: "Most of the real risk in premium selling is managed AFTER entry, not at entry — position management is where that discipline actually happens.",
+      externalHref: "/adjustment-preview",
+      relatedGlossaryKeys: ["position-management", "risk-contribution", "decision-quality"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "institutional-decision-quality",
+      title: "Decision Quality",
+      summary: "Judge the process, not just the outcome.",
+      body: [
+        "A well-reasoned trade, sized correctly with a genuine edge, can still lose — a single bad outcome doesn't retroactively make the decision wrong. And a poorly-reasoned trade can still win by luck.",
+        "Institutional risk managers evaluate decisions by the soundness of the process and the information available at the time, not by outcomes alone — outcomes are noisy over any single trial.",
+      ],
+      whyItMatters: "This is the mental discipline that prevents overreacting to a single loss (abandoning a genuinely good process) or overreacting to a single win (doubling down on a genuinely bad one).",
+      relatedGlossaryKeys: ["decision-quality", "process-over-prediction", "position-management"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "institutional-process-over-prediction",
+      title: "Process over Prediction",
+      summary: "The core institutional mindset, stated plainly.",
+      body: [
+        "No one can reliably predict any single outcome — not the next earnings move, not next week's IV, not whether a specific short strike gets tested. What can be built is a repeatable, disciplined PROCESS: defined risk, sized positions, systematic entries and exits, real diversification.",
+        "A good process doesn't guarantee any single trade works — it compounds favorably across many trials, which is exactly what Expectancy measures.",
+      ],
+      whyItMatters: "This is why this platform is built around deterministic, always-explainable calculations (POP, EV, Ravish Score, Portfolio Health) rather than predictive signals — process, applied consistently, is the actual edge.",
+      relatedGlossaryKeys: ["process-over-prediction", "decision-quality", "expectancy"],
+      estimatedMinutes: 4,
+    }),
+  ],
+};
+
+export const LEARNING_PATHS: LearningPath[] = [
+  FOUNDATIONS_PATH,
+  GREEKS_PATH,
+  VOLATILITY_PATH,
+  STRATEGIES_PATH,
+  PORTFOLIO_PATH,
+  PERFORMANCE_PATH,
+  INSTITUTIONAL_PATH,
+];
+
+export function getLearningPath(key: string): LearningPath | null {
+  return LEARNING_PATHS.find((p) => p.key === key) ?? null;
+}
+
+export function getLearningTopic(pathKey: string, topicKey: string): LearningTopic | null {
+  const path = getLearningPath(pathKey);
+  if (!path) return null;
+  return path.topics.find((t) => t.key === topicKey) ?? null;
+}
+
+export function allLearningTopics(): { pathKey: string; topic: LearningTopic }[] {
+  return LEARNING_PATHS.flatMap((p) => p.topics.map((topic) => ({ pathKey: p.key, topic })));
+}

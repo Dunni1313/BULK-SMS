@@ -470,6 +470,50 @@ by design, since a genuine trend needs two real data points.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.16 and
 `docs/Institutional-Intelligence-Engine.md`.
 
+### 6.19 Using the AI Teacher & Learning Centre
+
+A new nav section (**AI Teacher & Learning Centre**, **Learning
+Paths**, **Strategy Academy**, **Glossary** — under the existing "Coach
+& Learn" group, alongside the pre-existing Delta Masterclass/Greeks
+Tutor/Trading Quiz/Trade Lessons/Value Investing School items, all
+unchanged) surfaces a unified, **deterministic** educational layer:
+`/learn` (the hub — Overview, Simulations, My Portfolio Explained,
+Progress tabs), `/learn/paths/:pathKey`/`:topicKey` (7 structured
+Learning Paths, 47 topics), `/learn/strategy-academy/:strategy` (8
+strategies, 3 with a real live worked example), and
+`/learn/glossary/:key` (~52 cross-linked terms). **This is not an LLM
+integration** — every piece of content is a plain, version-controlled
+TypeScript literal, never generated.
+
+A new **Explain** button appears next to major metrics on the Portfolio
+Dashboard, Portfolio (Greeks), and Trades pages — click it to see the
+metric's real current value, a plain-English explanation, its source
+calculation, why it matters, and links to a related lesson/glossary
+term. It genuinely reuses the Institutional Intelligence Engine's own
+Explanation Engine (§6.18) whenever a real observation is currently
+active for that metric.
+
+The Learning Centre's "My Portfolio, Explained" tab uses the operator's
+own real, current Paper Trading portfolio as an educational example
+(e.g. "Your portfolio Delta is +42, here's why it matters") — it never
+recommends a trade. The "Simulations" tab runs deterministic
+educational simulations (Delta, Theta, Expected Move, 3 payoff
+diagrams, Concentration) — always labeled "Educational Simulation / Not
+Market Data / No Trade Recommendation." The "Progress" tab shows
+lessons/glossary/strategies viewed and completed, per-path completion,
+and both quiz systems' (Greeks + Value Investing) streak/score history
+in one place — reused, never duplicated, from each quiz's own results
+table.
+
+**The only user-state mutation this feature introduces**: viewing or
+completing a lesson/glossary term/path/strategy writes one row to
+`learning_progress` (upserted, never a growing log). No broker write,
+no order execution, no portfolio mutation of any kind occurs anywhere
+in this feature.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.17 and
+`docs/AI-Teacher-Learning-Centre.md`.
+
 ---
 
 ## 7. Escalation
@@ -487,8 +531,9 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.16 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, the Correlation & Concentration Risk Overlay, the Portfolio Risk Dashboard & Health Score, the Institutional Command Center, and the Institutional Intelligence Engine), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, the Correlation & Concentration Risk page referenced in §6.15, the Portfolio Risk Dashboard referenced in §6.16, the Institutional Command Center referenced in §6.17, and the Institutional Intelligence Engine referenced in §6.18 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, the Correlation & Concentration Risk Overlay, the Portfolio Risk Dashboard & Health Score, the Institutional Command Center, the Institutional Intelligence Engine, and the AI Teacher & Learning Centre), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, the Correlation & Concentration Risk page referenced in §6.15, the Portfolio Risk Dashboard referenced in §6.16, the Institutional Command Center referenced in §6.17, the Institutional Intelligence Engine referenced in §6.18, and the AI Teacher & Learning Centre referenced in §6.19 above.
 - `docs/Institutional-Intelligence-Engine.md` — the Institutional Intelligence Engine's own full detail (§6.18 above): the 6-service architecture (Observation, Explanation, Health, Summary, Timeline, Learning Engines), the 11 deterministic observation rules, the confidence-banding discipline (never an AI-style probability), the `intelligence_snapshots` table's history-keeping design, and the remaining AI roadmap this engine is the foundation for.
+- `docs/AI-Teacher-Learning-Centre.md` — the AI Teacher & Learning Centre's own full detail (§6.19 above): the 7 structured Learning Paths, the 8-entry Strategy Academy, the ~52-term Glossary, Contextual Explain Mode's reuse of the Institutional Intelligence Engine's own Explanation Engine, Portfolio Learning Mode, the 5 deterministic Interactive Simulations, the unified Learning Progress tracking (the only new user-state mutation), and the reunification of the Greeks quiz and Value Investing quiz into one shared progress system.
 - `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview Simulator's own full detail (§6.12 above): the 3-computable/5-honestly-unavailable intent scope decision, the Close & Replace composition, the replace-semantics portfolio exposure model, the 9-category risk-warnings list, and the Improved/Worse/Neutral comparison design.
 - `docs/Portfolio-Stress-Testing.md` — the Portfolio Stress Test & Scenario Simulator's own full detail (§6.13 above): the shock-parameterized repricing engine, the portfolio-level aggregation model, the honestly-always-zero buying-power-impact disclosure, the risk-score formula, the risk-analysis fields, and the scenario-comparison design.
 - `docs/Portfolio-Event-Risk.md` — the Earnings & Event Risk Portfolio Overlay's own full detail (§6.14 above): the honest disclosure of the 2 requested-but-unsupported event categories (FDA decisions, product launches), the direct event-risk-engine reuse, the Risk Guidance label mapping, the confidence/source disclosure model, and the portfolio summary derivation.

@@ -95,12 +95,12 @@ describe("GET /intelligence (live, real Postgres, SIMULATED path)", () => {
     expect(body.timeline.comparedTo === null || typeof body.timeline.comparedTo === "string").toBe(true);
   });
 
-  it("always includes the honestly-disclosed AI Teacher 'coming soon' Learning Link, never a fabricated URL", async () => {
+  it("always includes the AI Teacher & Learning Centre Learning Link, resolved to a real URL (Phase 8 Sprint 2)", async () => {
     const body = await fetchIntelligence();
-    const aiTeacher = body.learningLinks.find((l) => l.label === "AI Teacher");
+    const aiTeacher = body.learningLinks.find((l) => l.label === "AI Teacher & Learning Centre");
     expect(aiTeacher).toBeDefined();
-    expect(aiTeacher!.comingSoon).toBe(true);
-    expect(aiTeacher!.href).toBeNull();
+    expect(aiTeacher!.comingSoon).toBe(false);
+    expect(aiTeacher!.href).toBe("/learn");
   });
 
   it("splits observations into portfolioInsights/incomeInsights/riskInsights, all real arrays", async () => {
