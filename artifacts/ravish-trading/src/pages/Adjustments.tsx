@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   useGetSettings,
   useUpdateSettings,
@@ -351,8 +351,17 @@ export default function Adjustments() {
                   {attention.map((a) => (
                     <tr
                       key={a.tradeId}
-                      className="border-b border-border/50 cursor-pointer hover:bg-secondary/50"
+                      className="border-b border-border/50 cursor-pointer hover:bg-secondary/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
                       onClick={() => setAdjustTradeId(a.tradeId)}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Review adjustment for ${a.symbol}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setAdjustTradeId(a.tradeId);
+                        }
+                      }}
                     >
                       <td className="py-2 pr-4">
                         <Badge variant="outline" className={severityStyle[a.severity] ?? ""}>
@@ -726,10 +735,12 @@ function Field({
   onChange: (v: number) => void;
   step?: string;
 }) {
+  const inputId = useId();
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-sm font-medium" htmlFor={inputId}>{label}</label>
       <Input
+        id={inputId}
         type="number"
         step={step}
         value={value}

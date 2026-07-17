@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   useGetSettings,
   useUpdateSettings,
@@ -366,10 +366,12 @@ function Field({
   onChange: (v: number) => void;
   step?: string;
 }) {
+  const inputId = useId();
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-sm font-medium" htmlFor={inputId}>{label}</label>
       <Input
+        id={inputId}
         type="number"
         step={step}
         value={value}

@@ -281,6 +281,7 @@ export default function PortfolioConstruction() {
                         e.stopPropagation();
                         handleDeletePortfolio(p.id, p.name);
                       }}
+                      aria-label={`Delete portfolio ${p.name}`}
                       data-testid={`delete-portfolio-${p.name}`}
                     >
                       <Trash2 className="w-3 h-3" />
@@ -383,6 +384,7 @@ export default function PortfolioConstruction() {
                               variant="ghost"
                               className="h-6 w-6 text-muted-foreground hover:text-rose-400"
                               onClick={() => handleDeleteHolding(h.id, h.symbol)}
+                              aria-label={`Remove holding ${h.symbol}`}
                               data-testid={`remove-holding-${h.symbol}`}
                             >
                               <Trash2 className="w-3 h-3" />

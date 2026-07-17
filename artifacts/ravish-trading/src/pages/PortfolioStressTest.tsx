@@ -197,8 +197,9 @@ export default function PortfolioStressTest() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Label (optional)</label>
+              <label className="text-xs text-muted-foreground mb-1 block" htmlFor="input-scenario-label">Label (optional)</label>
               <input
+                id="input-scenario-label"
                 type="text"
                 value={scenarioLabel}
                 onChange={(e) => setScenarioLabel(e.target.value)}
@@ -208,9 +209,9 @@ export default function PortfolioStressTest() {
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Underlying Price Change</label>
+              <label className="text-xs text-muted-foreground mb-1 block" id="label-price-shock">Underlying Price Change</label>
               <Select value={priceChoice} onValueChange={setPriceChoice}>
-                <SelectTrigger className="bg-background" data-testid="select-price-shock">
+                <SelectTrigger className="bg-background" aria-labelledby="label-price-shock" data-testid="select-price-shock">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -236,9 +237,9 @@ export default function PortfolioStressTest() {
               )}
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Implied Volatility Change</label>
+              <label className="text-xs text-muted-foreground mb-1 block" id="label-iv-shock">Implied Volatility Change</label>
               <Select value={ivChoice} onValueChange={setIvChoice}>
-                <SelectTrigger className="bg-background" data-testid="select-iv-shock">
+                <SelectTrigger className="bg-background" aria-labelledby="label-iv-shock" data-testid="select-iv-shock">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -264,9 +265,9 @@ export default function PortfolioStressTest() {
               )}
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Time Decay</label>
+              <label className="text-xs text-muted-foreground mb-1 block" id="label-time-decay">Time Decay</label>
               <Select value={timeChoice} onValueChange={setTimeChoice}>
-                <SelectTrigger className="bg-background" data-testid="select-time-decay">
+                <SelectTrigger className="bg-background" aria-labelledby="label-time-decay" data-testid="select-time-decay">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

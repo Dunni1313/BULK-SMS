@@ -190,9 +190,9 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Execution Mode</label>
+            <label className="text-sm font-medium" id="label-execution-mode">Execution Mode</label>
             <Select value={local.executionMode} onValueChange={(v: any) => setLocal({...local, executionMode: v})}>
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className="bg-background" aria-labelledby="label-execution-mode">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -206,19 +206,21 @@ export default function SettingsPage() {
 
           <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Max Risk Per Trade (%)</label>
-              <Input 
-                type="number" 
-                value={local.maxRiskPerTrade} 
+              <label className="text-sm font-medium" htmlFor="input-max-risk-per-trade">Max Risk Per Trade (%)</label>
+              <Input
+                id="input-max-risk-per-trade"
+                type="number"
+                value={local.maxRiskPerTrade}
                 onChange={e => setLocal({...local, maxRiskPerTrade: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Max Portfolio Risk (%)</label>
-              <Input 
-                type="number" 
-                value={local.maxPortfolioRisk} 
+              <label className="text-sm font-medium" htmlFor="input-max-portfolio-risk">Max Portfolio Risk (%)</label>
+              <Input
+                id="input-max-portfolio-risk"
+                type="number"
+                value={local.maxPortfolioRisk}
                 onChange={e => setLocal({...local, maxPortfolioRisk: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
@@ -227,19 +229,21 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Profit Target (%)</label>
-              <Input 
-                type="number" 
-                value={local.profitTarget50} 
+              <label className="text-sm font-medium" htmlFor="input-profit-target">Profit Target (%)</label>
+              <Input
+                id="input-profit-target"
+                type="number"
+                value={local.profitTarget50}
                 onChange={e => setLocal({...local, profitTarget50: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Stop Loss Multiplier (xCredit)</label>
-              <Input 
-                type="number" 
-                value={local.stopLossMultiplier} 
+              <label className="text-sm font-medium" htmlFor="input-stop-loss-multiplier">Stop Loss Multiplier (xCredit)</label>
+              <Input
+                id="input-stop-loss-multiplier"
+                type="number"
+                value={local.stopLossMultiplier}
                 onChange={e => setLocal({...local, stopLossMultiplier: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
@@ -248,20 +252,22 @@ export default function SettingsPage() {
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Default DTE</label>
-              <Input 
-                type="number" 
-                value={local.defaultDte} 
+              <label className="text-sm font-medium" htmlFor="input-default-dte">Default DTE</label>
+              <Input
+                id="input-default-dte"
+                type="number"
+                value={local.defaultDte}
                 onChange={e => setLocal({...local, defaultDte: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Short Delta Target</label>
-              <Input 
-                type="number" 
+              <label className="text-sm font-medium" htmlFor="input-short-delta">Short Delta Target</label>
+              <Input
+                id="input-short-delta"
+                type="number"
                 step="0.01"
-                value={local.shortDelta} 
+                value={local.shortDelta}
                 onChange={e => setLocal({...local, shortDelta: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
@@ -278,9 +284,9 @@ export default function SettingsPage() {
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Scanner Mode</label>
+              <label className="text-sm font-medium" id="label-scanner-mode">Scanner Mode</label>
               <Select value={local.scannerMode} onValueChange={(v: any) => setLocal({...local, scannerMode: v})}>
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-labelledby="label-scanner-mode">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -290,9 +296,9 @@ export default function SettingsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Data Provider</label>
+              <label className="text-sm font-medium" id="label-data-provider">Data Provider</label>
               <Select value={local.marketDataProvider} onValueChange={(v: any) => setLocal({...local, marketDataProvider: v})}>
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-labelledby="label-data-provider">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -340,8 +346,9 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">API Key</label>
+            <label className="text-sm font-medium" htmlFor="input-alpaca-api-key">API Key</label>
             <Input
+              id="input-alpaca-api-key"
               type="password"
               placeholder="PK..."
               value={local.alpacaApiKey}
@@ -482,12 +489,12 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Fundamentals Provider</label>
+            <label className="text-sm font-medium" id="label-fundamentals-provider">Fundamentals Provider</label>
             <Select
               value={local.fundamentalsProvider}
               onValueChange={(v: any) => setLocal({ ...local, fundamentalsProvider: v })}
             >
-              <SelectTrigger className="bg-background" data-testid="select-fundamentals-provider">
+              <SelectTrigger className="bg-background" aria-labelledby="label-fundamentals-provider" data-testid="select-fundamentals-provider">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -507,8 +514,9 @@ export default function SettingsPage() {
             </p>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Live Data Staleness Threshold (hours)</label>
+            <label className="text-sm font-medium" htmlFor="input-fundamentals-staleness-hours">Live Data Staleness Threshold (hours)</label>
             <Input
+              id="input-fundamentals-staleness-hours"
               type="number"
               min={1}
               value={local.fundamentalsStalenessHours}

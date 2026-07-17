@@ -110,8 +110,9 @@ export default function PositionSizing() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Symbol</label>
+              <label className="text-xs text-muted-foreground mb-1 block" htmlFor="input-sizing-symbol">Symbol</label>
               <Input
+                id="input-sizing-symbol"
                 value={symbol}
                 onChange={(e) => setSymbol(e.target.value.toUpperCase())}
                 placeholder="AAPL"
@@ -119,9 +120,9 @@ export default function PositionSizing() {
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Strategy</label>
+              <label className="text-xs text-muted-foreground mb-1 block" id="label-sizing-strategy">Strategy</label>
               <Select value={strategy} onValueChange={setStrategy}>
-                <SelectTrigger className="bg-background" data-testid="select-sizing-strategy">
+                <SelectTrigger className="bg-background" aria-labelledby="label-sizing-strategy" data-testid="select-sizing-strategy">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,8 +135,9 @@ export default function PositionSizing() {
               </Select>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Quantity</label>
+              <label className="text-xs text-muted-foreground mb-1 block" htmlFor="input-sizing-quantity">Quantity</label>
               <Input
+                id="input-sizing-quantity"
                 type="number"
                 min={1}
                 value={quantity}
@@ -144,8 +146,9 @@ export default function PositionSizing() {
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Custom Scenario Quantity (optional)</label>
+              <label className="text-xs text-muted-foreground mb-1 block" htmlFor="input-sizing-custom-quantity">Custom Scenario Quantity (optional)</label>
               <Input
+                id="input-sizing-custom-quantity"
                 type="number"
                 min={1}
                 value={customQuantity}

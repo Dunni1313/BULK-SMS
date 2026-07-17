@@ -1811,6 +1811,7 @@ export default function StockResearch() {
                             variant="ghost"
                             className="h-7 w-7 text-muted-foreground hover:text-rose-400"
                             onClick={() => handleRemoveWatchlist(w.id, w.symbol)}
+                            aria-label={`Remove ${w.symbol} from watchlist`}
                             data-testid={`remove-watchlist-${w.symbol}`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />

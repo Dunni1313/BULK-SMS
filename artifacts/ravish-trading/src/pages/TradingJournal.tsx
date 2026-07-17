@@ -376,6 +376,7 @@ export default function TradingJournal() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setEditingId(null)}
+                        aria-label="Cancel editing"
                         data-testid={`button-cancel-edit-${entry.id}`}
                       >
                         <X className="h-4 w-4" />
