@@ -908,6 +908,41 @@ paths:
         "404":
           description: Trade review not found
 
+  # ─── Institutional Mentor (Phase 8, Sprint 5) ───────────────────────────────
+  # PURE COMPOSITION over the Portfolio Dashboard, Correlation &
+  # Concentration overlay, Portfolio Stress Test, and the AI Trade
+  # Journal. Not an LLM, not a chatbot, not predictive AI, not financial
+  # advice, not portfolio optimisation, not trade recommendations, not
+  # execution logic. Never routes to a broker, never creates or modifies
+  # an order or position, never mutates the trades/journal/settings
+  # tables — every function is read-only, and this route triggers no
+  # database write of any kind (unlike AI Portfolio Analyst, it does not
+  # call buildInstitutionalIntelligence()).
+  /institutional-mentor:
+    get:
+      operationId: getInstitutionalMentor
+      tags: [execution]
+      summary: >-
+        Read-only, deterministic Institutional Mentor result: teaches the
+        user how a professional portfolio manager would evaluate their
+        own existing Paper Trading portfolio. Composes a 9-category
+        Portfolio Scorecard (Capital Allocation, Risk Management,
+        Diversification, Discipline, Income Generation, Position Sizing,
+        Greeks Management, Event Preparation, Portfolio Health), a
+        Professional Review, a Decision Review, and narrative Capital
+        Allocation/Risk/Income/Behaviour reviews, each cross-linked to
+        Learning Centre lessons, Strategy Academy pages, Glossary
+        entries, and Explain Mode. Always returns 200 — an empty
+        portfolio honestly returns a healthy-by-default result rather
+        than fabricating observations.
+      responses:
+        "200":
+          description: Institutional Mentor result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalMentorResult"
+
   # ─── AI Teacher & Learning Centre (Phase 8, Sprint 2) ───────────────────────
   # Educational only. Read-only. Deterministic — never an LLM call, never a
   # trade recommendation. Learning Progress (view/complete) is the ONLY
@@ -10942,5 +10977,335 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/JournalTimelineEvent"
+        generatedAt:
+          type: string
+
+    # ─── Institutional Mentor (Phase 8, Sprint 5) ──────────────────────────────
+    # "Mentor" prefix avoids any collision with the pre-existing Analyst-
+    # and Journal-prefixed schemas from the same Phase 8 sprint family.
+    MentorGrade:
+      type: string
+      enum: [Excellent, Good, Fair, Poor]
+
+    MentorScorecardEntry:
+      type: object
+      required: [category, label, score, grade, sourceModule, why]
+      properties:
+        category:
+          type: string
+          enum:
+            [
+              capital_allocation,
+              risk_management,
+              diversification,
+              discipline,
+              income_generation,
+              position_sizing,
+              greeks_management,
+              event_preparation,
+              portfolio_health,
+            ]
+        label:
+          type: string
+        score:
+          type: number
+        grade:
+          $ref: "#/components/schemas/MentorGrade"
+        sourceModule:
+          type: string
+        why:
+          type: string
+
+    MentorProfessionalObservation:
+      type: object
+      required: [text, category, sourceModule]
+      properties:
+        text:
+          type: string
+        category:
+          type: string
+        sourceModule:
+          type: string
+
+    MentorDecisionReviewItem:
+      type: object
+      required: [code, text, status, sourceModule, detail]
+      properties:
+        code:
+          type: string
+        text:
+          type: string
+        status:
+          type: string
+          enum: [followed, exceeded, improved, declined, neutral]
+        sourceModule:
+          type: string
+        detail:
+          type: string
+
+    MentorCapitalAllocationReview:
+      type: object
+      required:
+        [
+          capitalEfficiencyScore,
+          capitalEfficiencyGrade,
+          allocationByStrategy,
+          positionDistribution,
+          cashUtilizationPct,
+          buyingPower,
+          portfolioValue,
+          summary,
+        ]
+      properties:
+        capitalEfficiencyScore:
+          type: number
+        capitalEfficiencyGrade:
+          $ref: "#/components/schemas/MentorGrade"
+        allocationByStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        positionDistribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        cashUtilizationPct:
+          type: number
+        buyingPower:
+          type: number
+        portfolioValue:
+          type: number
+        summary:
+          type: string
+
+    MentorRiskReview:
+      type: object
+      required:
+        [
+          largestPortfolioRisk,
+          primaryContributor,
+          riskTrend,
+          riskTrendDetail,
+          worstStressScenario,
+          highestConcentration,
+          highestEventRisk,
+          guidance,
+          summary,
+        ]
+      properties:
+        largestPortfolioRisk:
+          type: string
+        primaryContributor:
+          type: string
+        riskTrend:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        riskTrendDetail:
+          type: string
+        worstStressScenario:
+          oneOf:
+            - type: object
+              required: [label, portfolioValueImpact, riskScoreAfter]
+              properties:
+                label:
+                  type: string
+                portfolioValueImpact:
+                  type: number
+                riskScoreAfter:
+                  type: number
+            - type: "null"
+        highestConcentration:
+          oneOf:
+            - type: object
+              required: [dimension, bucket]
+              properties:
+                dimension:
+                  type: string
+                bucket:
+                  $ref: "#/components/schemas/ConcentrationBucket"
+            - type: "null"
+        highestEventRisk:
+          oneOf:
+            - $ref: "#/components/schemas/HighestRiskPosition"
+            - type: "null"
+        guidance:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardGuidanceAdvisory"
+        summary:
+          type: string
+
+    MentorIncomeReview:
+      type: object
+      required:
+        [
+          monthlyTheta,
+          weeklyTheta,
+          dailyTheta,
+          annualizedTheta,
+          incomeTrend,
+          incomeTrendDetail,
+          incomeSourceCount,
+          bySymbol,
+          byStrategy,
+          summary,
+        ]
+      properties:
+        monthlyTheta:
+          type: number
+        weeklyTheta:
+          type: number
+        dailyTheta:
+          type: number
+        annualizedTheta:
+          type: number
+        incomeTrend:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        incomeTrendDetail:
+          type: string
+        incomeSourceCount:
+          type: integer
+        bySymbol:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThetaBreakdown"
+        byStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThetaBreakdown"
+        summary:
+          type: string
+
+    MentorBehaviourReview:
+      type: object
+      required:
+        [
+          disciplineScore,
+          decisionQualitySummary,
+          behaviorPatterns,
+          behaviorTrend,
+          strengths,
+          areasToImprove,
+          totalClosedTrades,
+          summary,
+        ]
+      properties:
+        disciplineScore:
+          type: number
+        decisionQualitySummary:
+          $ref: "#/components/schemas/JournalDecisionQualitySummary"
+        behaviorPatterns:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalBehaviorPattern"
+        behaviorTrend:
+          oneOf:
+            - $ref: "#/components/schemas/JournalBehaviorTrend"
+            - type: "null"
+        strengths:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalBehaviorPattern"
+        areasToImprove:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalBehaviorPattern"
+        totalClosedTrades:
+          type: integer
+        summary:
+          type: string
+
+    MentorLearningCrossLink:
+      type: object
+      required: [category, lessonHref, lessonTitle, glossaryHref, glossaryTerm, strategyHref, strategyLabel, explainModeHref]
+      properties:
+        category:
+          type: string
+        lessonHref:
+          type: ["string", "null"]
+        lessonTitle:
+          type: ["string", "null"]
+        glossaryHref:
+          type: ["string", "null"]
+        glossaryTerm:
+          type: ["string", "null"]
+        strategyHref:
+          type: ["string", "null"]
+        strategyLabel:
+          type: ["string", "null"]
+        explainModeHref:
+          type: ["string", "null"]
+
+    MentorLearningSummary:
+      type: object
+      required: [scorecard, capitalAllocation, risk, income, diversification, greeksManagement, eventPreparation, behaviour]
+      properties:
+        scorecard:
+          $ref: "#/components/schemas/MentorLearningCrossLink"
+        capitalAllocation:
+          $ref: "#/components/schemas/MentorLearningCrossLink"
+        risk:
+          $ref: "#/components/schemas/MentorLearningCrossLink"
+        income:
+          $ref: "#/components/schemas/MentorLearningCrossLink"
+        diversification:
+          $ref: "#/components/schemas/MentorLearningCrossLink"
+        greeksManagement:
+          $ref: "#/components/schemas/MentorLearningCrossLink"
+        eventPreparation:
+          $ref: "#/components/schemas/MentorLearningCrossLink"
+        behaviour:
+          $ref: "#/components/schemas/MentorLearningCrossLink"
+
+    InstitutionalMentorResult:
+      type: object
+      required:
+        [
+          paperTradingMode,
+          deterministicAnalysis,
+          educationalOnly,
+          scorecard,
+          professionalReview,
+          decisionReview,
+          capitalAllocationReview,
+          riskReview,
+          incomeReview,
+          behaviourReview,
+          learningSummary,
+          generatedAt,
+        ]
+      properties:
+        paperTradingMode:
+          type: boolean
+          enum: [true]
+        deterministicAnalysis:
+          type: boolean
+          enum: [true]
+        educationalOnly:
+          type: boolean
+          enum: [true]
+        scorecard:
+          type: array
+          items:
+            $ref: "#/components/schemas/MentorScorecardEntry"
+        professionalReview:
+          type: array
+          items:
+            $ref: "#/components/schemas/MentorProfessionalObservation"
+        decisionReview:
+          type: array
+          items:
+            $ref: "#/components/schemas/MentorDecisionReviewItem"
+        capitalAllocationReview:
+          $ref: "#/components/schemas/MentorCapitalAllocationReview"
+        riskReview:
+          $ref: "#/components/schemas/MentorRiskReview"
+        incomeReview:
+          $ref: "#/components/schemas/MentorIncomeReview"
+        behaviourReview:
+          $ref: "#/components/schemas/MentorBehaviourReview"
+        learningSummary:
+          $ref: "#/components/schemas/MentorLearningSummary"
         generatedAt:
           type: string

@@ -574,6 +574,38 @@ write.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.19 and
 `docs/AI-Trade-Journal.md`.
 
+### 6.22 Using the Institutional Mentor
+
+A new nav item, **Institutional Mentor** (`/institutional-mentor`), is
+the final intelligence layer: it teaches the user how a professional
+portfolio manager would evaluate their own existing Paper Trading
+portfolio, composing the Portfolio Dashboard, Correlation &
+Concentration overlay, Portfolio Stress Test, and the AI Trade Journal
+(§6.21) into a 9-category **Portfolio Scorecard** (Capital Allocation,
+Risk Management, Diversification, Discipline, Income Generation,
+Position Sizing, Greeks Management, Event Preparation, Portfolio
+Health — each score cites the real `sourceModule` it came from), a
+**Professional Review** (deterministic, institutional-PM-voice
+observations, e.g. "Risk remains moderate."), a **Decision Review**
+(e.g. "Position sizing followed plan."), and narrative **Capital
+Allocation / Risk / Income / Behaviour Reviews**. **This is not a
+chatbot, an AI trading signal engine, financial advice, portfolio
+optimisation, or execution logic.** The page always shows 5 permanent
+badges ("Institutional Mentor", "Professional Portfolio Review",
+"Deterministic Analysis", "Paper Trading", "Educational Only") and
+never generates a trade recommendation of any kind — only education.
+
+Every section ends with an **Institutional Lessons** cross-link — a
+real Learning Centre lesson, Strategy Academy page, Glossary entry, and
+an Explain Mode link (`/learn?tab=portfolio`) — reusing the exact same
+lesson/glossary catalog the AI Portfolio Analyst (§6.20) already uses.
+Unlike the AI Portfolio Analyst, this page never writes to
+`intelligence_snapshots` — it only reads the already-recorded daily
+snapshot history for its own real 7-day Diversification trend.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.20 and
+`docs/Institutional-Mentor.md`.
+
 ---
 
 ## 7. Escalation
@@ -591,11 +623,12 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.19 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, the Correlation & Concentration Risk Overlay, the Portfolio Risk Dashboard & Health Score, the Institutional Command Center, the Institutional Intelligence Engine, the AI Teacher & Learning Centre, the AI Portfolio Analyst, and the AI Trade Journal), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, the Correlation & Concentration Risk page referenced in §6.15, the Portfolio Risk Dashboard referenced in §6.16, the Institutional Command Center referenced in §6.17, the Institutional Intelligence Engine referenced in §6.18, the AI Teacher & Learning Centre referenced in §6.19, the AI Portfolio Analyst referenced in §6.20, and the AI Trade Journal referenced in §6.21 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, the Correlation & Concentration Risk Overlay, the Portfolio Risk Dashboard & Health Score, the Institutional Command Center, the Institutional Intelligence Engine, the AI Teacher & Learning Centre, the AI Portfolio Analyst, the AI Trade Journal, and the Institutional Mentor), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, the Correlation & Concentration Risk page referenced in §6.15, the Portfolio Risk Dashboard referenced in §6.16, the Institutional Command Center referenced in §6.17, the Institutional Intelligence Engine referenced in §6.18, the AI Teacher & Learning Centre referenced in §6.19, the AI Portfolio Analyst referenced in §6.20, the AI Trade Journal referenced in §6.21, and the Institutional Mentor referenced in §6.22 above.
 - `docs/Institutional-Intelligence-Engine.md` — the Institutional Intelligence Engine's own full detail (§6.18 above): the 6-service architecture (Observation, Explanation, Health, Summary, Timeline, Learning Engines), the 11 deterministic observation rules, the confidence-banding discipline (never an AI-style probability), the `intelligence_snapshots` table's history-keeping design, and the remaining AI roadmap this engine is the foundation for.
 - `docs/AI-Teacher-Learning-Centre.md` — the AI Teacher & Learning Centre's own full detail (§6.19 above): the 7 structured Learning Paths, the 8-entry Strategy Academy, the ~52-term Glossary, Contextual Explain Mode's reuse of the Institutional Intelligence Engine's own Explanation Engine, Portfolio Learning Mode, the 5 deterministic Interactive Simulations, the unified Learning Progress tracking (the only new user-state mutation), and the reunification of the Greeks quiz and Value Investing quiz into one shared progress system.
 - `docs/AI-Portfolio-Analyst.md` — the AI Portfolio Analyst's own full detail (§6.20 above): the executive portfolio briefing layer's pure-composition architecture over the Institutional Intelligence Engine/Portfolio Dashboard/Portfolio Event Risk/Theta Income, the sequential-not-`Promise.all` `getSettingsRow()` race fix, the new "This Week" 7-day rollup, and the disclosed SIMULATED-vs-real engine boundary for the Performance Summary section.
 - `docs/AI-Trade-Journal.md` — the AI Trade Journal's own full detail (§6.21 above): the deterministic Trade Review/Decision Quality/Behaviour Analysis architecture, the disclosed historical-date generalization of `computeTradeGreeks()` for Greeks at Entry/Exit, the genuine historical reconstruction of Event Risk at Entry via `getEventRiskForSymbol()`'s own existing `now` override, and the read-only reuse of the pre-existing, free-text Trading Journal's own linked entries.
+- `docs/Institutional-Mentor.md` — the Institutional Mentor's own full detail (§6.22 above): the 9-category Portfolio Scorecard architecture (each score cited to a real `sourceModule`), the Professional Review/Decision Review deterministic template techniques, the Capital Allocation/Risk/Income/Behaviour narrative reviews, the Institutional Lessons cross-link pattern (including the Explain Mode link), the disclosed Income Generation threshold-banding constants, and the confirmation that this module never writes to `intelligence_snapshots`.
 - `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview Simulator's own full detail (§6.12 above): the 3-computable/5-honestly-unavailable intent scope decision, the Close & Replace composition, the replace-semantics portfolio exposure model, the 9-category risk-warnings list, and the Improved/Worse/Neutral comparison design.
 - `docs/Portfolio-Stress-Testing.md` — the Portfolio Stress Test & Scenario Simulator's own full detail (§6.13 above): the shock-parameterized repricing engine, the portfolio-level aggregation model, the honestly-always-zero buying-power-impact disclosure, the risk-score formula, the risk-analysis fields, and the scenario-comparison design.
 - `docs/Portfolio-Event-Risk.md` — the Earnings & Event Risk Portfolio Overlay's own full detail (§6.14 above): the honest disclosure of the 2 requested-but-unsupported event categories (FDA decisions, product launches), the direct event-risk-engine reuse, the Risk Guidance label mapping, the confidence/source disclosure model, and the portfolio summary derivation.

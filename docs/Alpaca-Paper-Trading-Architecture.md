@@ -1335,6 +1335,82 @@ operations. No portfolio mutation of any kind. No new journal write of
 any kind. No LLM call of any kind. The platform remains **Paper Trading
 only** throughout.
 
+### 4.20 Institutional Mentor
+
+The **final intelligence layer** (Phase 8, Sprint 5): teaches the user
+how a professional portfolio manager would evaluate their own existing
+Paper Trading portfolio, using the exact same platform data every other
+engine already computes. **This is NOT a chatbot, NOT an AI trading
+signal engine, NOT financial advice, NOT portfolio optimisation, and
+NOT execution logic** — every score/observation/review sentence is
+deterministic and fully traceable. Full detail: `docs/Institutional-Mentor.md`.
+
+`lib/institutionalMentor.ts`'s `buildInstitutionalMentor(userId)`
+composes: a **Portfolio Scorecard** (9 categories — Capital Allocation,
+Risk Management, Diversification, Discipline, Income Generation,
+Position Sizing, Greeks Management, Event Preparation, Portfolio
+Health — each score a direct projection of an already-computed figure
+off `buildPortfolioDashboard()`/`buildPortfolioConcentrationOverlay()`/
+`buildPortfolioStressTest()`/`buildTradeJournal()`, cited by a real
+`sourceModule` string); a **Professional Review** (fixed-template
+institutional-PM-voice observations, e.g. "An institutional portfolio
+manager would note that Technology exposure represents 41% of total
+allocation.", gated by already-computed thresholds and a genuine 7-day
+Diversification trend); a **Decision Review** (e.g. "Position sizing
+followed plan.", "Risk allocation exceeded policy on the current
+portfolio.", each citing a real rule reference); and narrative
+**Capital Allocation / Risk / Income / Behaviour Reviews** — the last a
+direct pass-through of the AI Trade Journal's (§4.19) own already-
+computed `disciplineScore`/`decisionQualitySummary`/`behaviorPatterns`/
+`behaviorTrend`.
+
+**One small, disclosed, named threshold set — the sole genuinely new
+figure this sprint introduces:** `INCOME_POSITIVE_THETA_BASE_SCORE`/
+`INCOME_ZERO_THETA_BASE_SCORE`/`INCOME_NEGATIVE_THETA_BASE_SCORE`/
+`INCOME_TREND_ADJUSTMENT` band Income Generation's 0-100 score, since no
+existing 0-100 income score exists anywhere else in this codebase to
+project directly. **A genuine, real 7-day trend**, mirroring
+`portfolioAnalyst.ts`'s own `buildWeeklySummary()` precedent: a plain
+`SELECT` over `intelligence_snapshots`' own already-stored
+`diversificationScore` column, then `computeTrend()` between the oldest
+and newest recorded value — no new statistical model.
+
+One new read-only endpoint: `GET /institutional-mentor` (the full
+result). **Unlike the AI Portfolio Analyst, this route never triggers a
+database write of any kind** — it never calls
+`buildInstitutionalIntelligence()`, confirmed by a dedicated test that
+`intelligence_snapshots` gains zero rows across repeated calls.
+`openapi.yaml` gained 12 new `Mentor`-prefixed schemas (avoiding any
+collision with the pre-existing `Analyst`/`Journal`-prefixed schemas
+from the same Phase 8 sprint family) plus the path; existing
+`ThetaBreakdown`/`HighestRiskPosition`/`ConcentrationBucket`/
+`DashboardGuidanceAdvisory`/`JournalDecisionQualitySummary`/
+`JournalBehaviorPattern`/`JournalBehaviorTrend` schemas are all reused
+via `$ref` rather than redefined. One new frontend page,
+`pages/InstitutionalMentor.tsx` (`/institutional-mentor`), carrying
+**five** permanent indicator badges ("Institutional Mentor",
+"Professional Portfolio Review", "Deterministic Analysis", "Paper
+Trading", "Educational Only").
+
+**Institutional Lessons** mirrors `portfolioAnalyst.ts`'s own
+`crossLinkFor()` pattern exactly — reusing `intelligenceLearning.ts`'s
+own catalog, which already appends "Your Portfolio, Explained" (Explain
+Mode's own contextual portfolio-explanation view) and the AI Teacher
+entry point to every category — the literal "Related Learning Centre
+lesson, Strategy Academy page, Glossary terms, Explain Mode"
+requirement, never a fabricated URL.
+
+No `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/
+`autoAdjustment.ts`/`portfolioDashboard.ts`/`portfolioStressTest.ts`
+(the 7 files explicitly protected for this sprint) change, nor do
+`portfolioConcentration.ts`/`positionSizing.ts`/`thetaIncome.ts`/
+`serverState.ts`/`intelligenceTrend.ts`/`intelligenceLearning.ts`/
+`learningPaths.ts`/`glossary.ts`/`strategyAcademy.ts`/`tradeJournal.ts`/
+`lib/portfolioAnalyst.ts`. No broker write operations. No portfolio
+mutation of any kind. No write to `intelligence_snapshots`. No LLM call
+of any kind. No trade prediction or recommendation of any kind. The
+platform remains **Paper Trading only** throughout.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -1443,6 +1519,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/tradeJournal.ts` | Unit tests against isolated, fresh test users, using real `buildIronCondor()` quotes for internally-consistent P&L — no trade history, a single winning trade (winner-let-run tagging), a single losing trade beyond the stop-loss bound, a loss capped exactly at the stop-loss rule, small and large/oversized positions, diversified and concentrated trade histories (Behaviour Analysis pattern proofs, each naming the real dominant symbol/trade count), high Greeks (large multi-leg position), high event risk (real earnings-event fixture), large trade history (15 trades, real Discipline Score/Behaviour Trend), timeline generation (real, sorted, newest-first timestamps), learning integration (real completed-lesson timeline events plus the never-a-trade-recommendation proof), linked-journal-entry reuse (proving zero new journal writes), persistence discipline (never mutates trades, deterministic), and `buildSingleTradeReview()`'s own honest-null paths (an open/not-yet-closed trade, a nonexistent trade id, another user's own trade). |
 | `routes/tradeJournal.route.test.ts` | Live end-to-end HTTP tests against the real app — both routes' well-shaped responses, every Decision Quality tag carrying a real `ruleReference`, a real Discipline Score/decisionQualitySummary aggregate, a Journal Timeline sorted newest-first, the never-a-broker-write/trade-recommendation-field proof, 404 for a nonexistent trade id, 400 for a non-numeric trade id, GET-only/no-request-body behavior, and determinism across repeated calls. |
 | `TradeJournal.tsx` | Frontend smoke tests — all 5 permanent indicator badges, loading and error states, the Progress Dashboard's real Closed-Trades/Discipline-Score/rate figures, a real Strength with its supporting trade count and the honest empty-strengths message, a real Area to Improve referencing actual historical trade data and the honest empty-areas message, real Learning Recommendations and the honest empty-recommendations message, a Recent Trades review's full rendering (symbol/P&L/holding-period/decision-quality tags) including its linked journal entry, the honest empty-trades message, the Journal Timeline's real trade-opened/trade-closed entries, a real Behaviour Trend badge, and the never-a-trade-recommendation proof. |
+| `lib/institutionalMentor.ts` | Unit tests against isolated, fresh test users, using real `buildIronCondor()` quotes for both open and closed positions — empty portfolio, balanced/diversified portfolio (with real Behaviour Review data), high concentration, strong diversification, high Greeks, large theta income, high event risk (the real `AAPL`/45-day earnings fixture also used by `lib/portfolioEventRisk.test.ts`), and long trade history (12 closed trades) — plus byte-identical regression proofs for every Scorecard score against standalone `buildPortfolioDashboard()`/`buildPortfolioConcentrationOverlay()`/`buildTradeJournal()` calls, a never-writes-to-`intelligence_snapshots` proof, a never-mutates-trades proof, and determinism across repeated same-state calls. |
+| `routes/institutionalMentor.route.test.ts` | Live end-to-end HTTP tests against the real app — the well-shaped result (all 9 Scorecard categories with real score/grade/sourceModule/why, real Decision Review statuses, real Capital Allocation/Risk/Income/Behaviour Review figures, a real Institutional Lessons cross-link for every section), the never-a-broker-write/order-creation/trade-recommendation-field proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
+| `InstitutionalMentor.tsx` | Frontend smoke tests — all 5 permanent indicator badges, loading and error states, all 9 Portfolio Scorecard entries with their real score/grade, real Professional Review observations and the honest empty-review message, Decision Review items with their status badge and detail, the Capital Allocation Review's cash-utilisation/buying-power/allocation-breakdown figures, the Risk Review's largest-risk/contributor/worst-stress-scenario figures, the Income Review's real Theta Income projection figures, the Behaviour Review's real pass-through of the AI Trade Journal's own figures (including the honest empty-areas-to-improve message), a real Institutional Lessons cross-link including the Explain Mode link, and the never-a-trade-recommendation proof. |
 
 ## 8. Cross-references
 
@@ -1531,6 +1610,14 @@ to everything else in this codebase. Specifically for this document's scope:
   disclosed per-trade Maximum Drawdown data-availability gap, and the
   read-only reuse of the pre-existing Trading Journal's own linked
   entries.
+- `docs/Institutional-Mentor.md` — the Institutional Mentor's own full
+  detail (§4.20 above): the 9-category Portfolio Scorecard's source-
+  module traceability table, the Professional Review/Decision Review
+  deterministic template techniques, the Capital Allocation/Risk/Income/
+  Behaviour narrative reviews, the disclosed Income Generation
+  threshold-banding constants (the sole genuinely new figure this
+  sprint introduces), the real 7-day Diversification trend, and the
+  confirmation that this module never writes to `intelligence_snapshots`.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

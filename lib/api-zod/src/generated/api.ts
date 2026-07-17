@@ -2768,6 +2768,225 @@ export const GetTradeReviewResponse = zod.object({
 
 
 /**
+ * @summary Read-only, deterministic Institutional Mentor result: teaches the user how a professional portfolio manager would evaluate their own existing Paper Trading portfolio. Composes a 9-category Portfolio Scorecard (Capital Allocation, Risk Management, Diversification, Discipline, Income Generation, Position Sizing, Greeks Management, Event Preparation, Portfolio Health), a Professional Review, a Decision Review, and narrative Capital Allocation/Risk/Income/Behaviour reviews, each cross-linked to Learning Centre lessons, Strategy Academy pages, Glossary entries, and Explain Mode. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const GetInstitutionalMentorResponse = zod.object({
+  "paperTradingMode": zod.literal(true),
+  "deterministicAnalysis": zod.literal(true),
+  "educationalOnly": zod.literal(true),
+  "scorecard": zod.array(zod.object({
+  "category": zod.enum(['capital_allocation', 'risk_management', 'diversification', 'discipline', 'income_generation', 'position_sizing', 'greeks_management', 'event_preparation', 'portfolio_health']),
+  "label": zod.string(),
+  "score": zod.number(),
+  "grade": zod.enum(['Excellent', 'Good', 'Fair', 'Poor']),
+  "sourceModule": zod.string(),
+  "why": zod.string()
+})),
+  "professionalReview": zod.array(zod.object({
+  "text": zod.string(),
+  "category": zod.string(),
+  "sourceModule": zod.string()
+})),
+  "decisionReview": zod.array(zod.object({
+  "code": zod.string(),
+  "text": zod.string(),
+  "status": zod.enum(['followed', 'exceeded', 'improved', 'declined', 'neutral']),
+  "sourceModule": zod.string(),
+  "detail": zod.string()
+})),
+  "capitalAllocationReview": zod.object({
+  "capitalEfficiencyScore": zod.number(),
+  "capitalEfficiencyGrade": zod.enum(['Excellent', 'Good', 'Fair', 'Poor']),
+  "allocationByStrategy": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "positionDistribution": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})),
+  "cashUtilizationPct": zod.number(),
+  "buyingPower": zod.number(),
+  "portfolioValue": zod.number(),
+  "summary": zod.string()
+}),
+  "riskReview": zod.object({
+  "largestPortfolioRisk": zod.string(),
+  "primaryContributor": zod.string(),
+  "riskTrend": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "riskTrendDetail": zod.string(),
+  "worstStressScenario": zod.union([zod.object({
+  "label": zod.string(),
+  "portfolioValueImpact": zod.number(),
+  "riskScoreAfter": zod.number()
+}),zod.null()]),
+  "highestConcentration": zod.union([zod.object({
+  "dimension": zod.string(),
+  "bucket": zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "positionCount": zod.number(),
+  "weightPct": zod.number()
+})
+}),zod.null()]),
+  "highestEventRisk": zod.union([zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "riskLevel": zod.enum(['none', 'low', 'medium', 'high'])
+}),zod.null()]),
+  "guidance": zod.array(zod.object({
+  "code": zod.enum(['healthy_portfolio', 'moderate_risk', 'elevated_risk', 'high_risk', 'elevated_concentration', 'elevated_event_risk', 'diversification_recommended', 'review_large_positions']),
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "summary": zod.string()
+}),
+  "incomeReview": zod.object({
+  "monthlyTheta": zod.number(),
+  "weeklyTheta": zod.number(),
+  "dailyTheta": zod.number(),
+  "annualizedTheta": zod.number(),
+  "incomeTrend": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "incomeTrendDetail": zod.string(),
+  "incomeSourceCount": zod.number(),
+  "bySymbol": zod.array(zod.object({
+  "key": zod.string(),
+  "theta": zod.number()
+})),
+  "byStrategy": zod.array(zod.object({
+  "key": zod.string(),
+  "theta": zod.number()
+})),
+  "summary": zod.string()
+}),
+  "behaviourReview": zod.object({
+  "disciplineScore": zod.number(),
+  "decisionQualitySummary": zod.object({
+  "sizingRespectedRatePct": zod.number(),
+  "ruleBasedExitRatePct": zod.number(),
+  "averageDisciplineScore": zod.number()
+}),
+  "behaviorPatterns": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "severity": zod.enum(['positive', 'watch', 'elevated']),
+  "tradeCount": zod.number()
+})),
+  "behaviorTrend": zod.union([zod.object({
+  "direction": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "detail": zod.string(),
+  "asOfTradeId": zod.number(),
+  "asOfDate": zod.string()
+}),zod.null()]),
+  "strengths": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "severity": zod.enum(['positive', 'watch', 'elevated']),
+  "tradeCount": zod.number()
+})),
+  "areasToImprove": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "severity": zod.enum(['positive', 'watch', 'elevated']),
+  "tradeCount": zod.number()
+})),
+  "totalClosedTrades": zod.number(),
+  "summary": zod.string()
+}),
+  "learningSummary": zod.object({
+  "scorecard": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable(),
+  "explainModeHref": zod.string().nullable()
+}),
+  "capitalAllocation": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable(),
+  "explainModeHref": zod.string().nullable()
+}),
+  "risk": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable(),
+  "explainModeHref": zod.string().nullable()
+}),
+  "income": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable(),
+  "explainModeHref": zod.string().nullable()
+}),
+  "diversification": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable(),
+  "explainModeHref": zod.string().nullable()
+}),
+  "greeksManagement": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable(),
+  "explainModeHref": zod.string().nullable()
+}),
+  "eventPreparation": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable(),
+  "explainModeHref": zod.string().nullable()
+}),
+  "behaviour": zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable(),
+  "explainModeHref": zod.string().nullable()
+})
+}),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Searchable, filterable glossary of options/portfolio/institutional terms. Deterministic, version-controlled content — never LLM- generated. Optional ?q= free-text search and ?category= filter.
  */
 export const GetGlossaryResponseItem = zod.object({

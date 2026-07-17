@@ -6239,6 +6239,187 @@ export interface AITradeJournalResult {
   generatedAt: string;
 }
 
+export type MentorGrade = typeof MentorGrade[keyof typeof MentorGrade];
+
+
+export const MentorGrade = {
+  Excellent: 'Excellent',
+  Good: 'Good',
+  Fair: 'Fair',
+  Poor: 'Poor',
+} as const;
+
+export type MentorScorecardEntryCategory = typeof MentorScorecardEntryCategory[keyof typeof MentorScorecardEntryCategory];
+
+
+export const MentorScorecardEntryCategory = {
+  capital_allocation: 'capital_allocation',
+  risk_management: 'risk_management',
+  diversification: 'diversification',
+  discipline: 'discipline',
+  income_generation: 'income_generation',
+  position_sizing: 'position_sizing',
+  greeks_management: 'greeks_management',
+  event_preparation: 'event_preparation',
+  portfolio_health: 'portfolio_health',
+} as const;
+
+export interface MentorScorecardEntry {
+  category: MentorScorecardEntryCategory;
+  label: string;
+  score: number;
+  grade: MentorGrade;
+  sourceModule: string;
+  why: string;
+}
+
+export interface MentorProfessionalObservation {
+  text: string;
+  category: string;
+  sourceModule: string;
+}
+
+export type MentorDecisionReviewItemStatus = typeof MentorDecisionReviewItemStatus[keyof typeof MentorDecisionReviewItemStatus];
+
+
+export const MentorDecisionReviewItemStatus = {
+  followed: 'followed',
+  exceeded: 'exceeded',
+  improved: 'improved',
+  declined: 'declined',
+  neutral: 'neutral',
+} as const;
+
+export interface MentorDecisionReviewItem {
+  code: string;
+  text: string;
+  status: MentorDecisionReviewItemStatus;
+  sourceModule: string;
+  detail: string;
+}
+
+export interface MentorCapitalAllocationReview {
+  capitalEfficiencyScore: number;
+  capitalEfficiencyGrade: MentorGrade;
+  allocationByStrategy: ConcentrationBucket[];
+  positionDistribution: ConcentrationBucket[];
+  cashUtilizationPct: number;
+  buyingPower: number;
+  portfolioValue: number;
+  summary: string;
+}
+
+export type MentorRiskReviewRiskTrend = typeof MentorRiskReviewRiskTrend[keyof typeof MentorRiskReviewRiskTrend];
+
+
+export const MentorRiskReviewRiskTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export type MentorRiskReviewWorstStressScenario = {
+  label: string;
+  portfolioValueImpact: number;
+  riskScoreAfter: number;
+} | null;
+
+export type MentorRiskReviewHighestConcentration = {
+  dimension: string;
+  bucket: ConcentrationBucket;
+} | null;
+
+export interface MentorRiskReview {
+  largestPortfolioRisk: string;
+  primaryContributor: string;
+  riskTrend: MentorRiskReviewRiskTrend;
+  riskTrendDetail: string;
+  worstStressScenario: MentorRiskReviewWorstStressScenario;
+  highestConcentration: MentorRiskReviewHighestConcentration;
+  highestEventRisk: HighestRiskPosition | null;
+  guidance: DashboardGuidanceAdvisory[];
+  summary: string;
+}
+
+export type MentorIncomeReviewIncomeTrend = typeof MentorIncomeReviewIncomeTrend[keyof typeof MentorIncomeReviewIncomeTrend];
+
+
+export const MentorIncomeReviewIncomeTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface MentorIncomeReview {
+  monthlyTheta: number;
+  weeklyTheta: number;
+  dailyTheta: number;
+  annualizedTheta: number;
+  incomeTrend: MentorIncomeReviewIncomeTrend;
+  incomeTrendDetail: string;
+  incomeSourceCount: number;
+  bySymbol: ThetaBreakdown[];
+  byStrategy: ThetaBreakdown[];
+  summary: string;
+}
+
+export interface MentorBehaviourReview {
+  disciplineScore: number;
+  decisionQualitySummary: JournalDecisionQualitySummary;
+  behaviorPatterns: JournalBehaviorPattern[];
+  behaviorTrend: JournalBehaviorTrend | null;
+  strengths: JournalBehaviorPattern[];
+  areasToImprove: JournalBehaviorPattern[];
+  totalClosedTrades: number;
+  summary: string;
+}
+
+export interface MentorLearningCrossLink {
+  category: string;
+  /** @nullable */
+  lessonHref: string | null;
+  /** @nullable */
+  lessonTitle: string | null;
+  /** @nullable */
+  glossaryHref: string | null;
+  /** @nullable */
+  glossaryTerm: string | null;
+  /** @nullable */
+  strategyHref: string | null;
+  /** @nullable */
+  strategyLabel: string | null;
+  /** @nullable */
+  explainModeHref: string | null;
+}
+
+export interface MentorLearningSummary {
+  scorecard: MentorLearningCrossLink;
+  capitalAllocation: MentorLearningCrossLink;
+  risk: MentorLearningCrossLink;
+  income: MentorLearningCrossLink;
+  diversification: MentorLearningCrossLink;
+  greeksManagement: MentorLearningCrossLink;
+  eventPreparation: MentorLearningCrossLink;
+  behaviour: MentorLearningCrossLink;
+}
+
+export interface InstitutionalMentorResult {
+  paperTradingMode: true;
+  deterministicAnalysis: true;
+  educationalOnly: true;
+  scorecard: MentorScorecardEntry[];
+  professionalReview: MentorProfessionalObservation[];
+  decisionReview: MentorDecisionReviewItem[];
+  capitalAllocationReview: MentorCapitalAllocationReview;
+  riskReview: MentorRiskReview;
+  incomeReview: MentorIncomeReview;
+  behaviourReview: MentorBehaviourReview;
+  learningSummary: MentorLearningSummary;
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

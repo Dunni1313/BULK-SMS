@@ -43,6 +43,7 @@ import intelligenceRouter from "./intelligence";
 import learningCentreRouter from "./learningCentre";
 import portfolioAnalystRouter from "./portfolioAnalyst";
 import tradeJournalRouter from "./tradeJournal";
+import institutionalMentorRouter from "./institutionalMentor";
 
 const router: IRouter = Router();
 
@@ -90,5 +91,6 @@ router.use(intelligenceRouter);
 router.use(learningCentreRouter);
 router.use(portfolioAnalystRouter);
 router.use(tradeJournalRouter);
+router.use(institutionalMentorRouter);
 
 export default router;

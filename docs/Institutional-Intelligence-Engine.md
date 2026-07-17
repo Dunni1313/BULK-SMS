@@ -367,14 +367,19 @@ Per the sprint's own framing, this engine is the **foundation** for:
 - **AI Coach** — a conversational layer over the Observation/Explanation
   Engines' own already-structured output. Not built by either sprint —
   remains a future module.
-- ~~**AI Teacher**~~ / ~~**Institutional Mentor** / **Learning
-  Centre**~~ — **BUILT** (Phase 8, Sprint 2, "AI Teacher & Learning
-  Centre"). See `docs/AI-Teacher-Learning-Centre.md` for the full
-  detail: 7 structured Learning Paths, an 8-strategy Strategy Academy, a
-  ~52-term Glossary, Explain Mode (reusing this engine's own Explanation
-  Engine), Portfolio Learning Mode, 5 deterministic Interactive
-  Simulations, Learning Progress tracking, and the reunification of the
-  Greeks quiz and Value Investing quiz into one shared progress system.
+- ~~**AI Teacher**~~ / ~~**Learning Centre**~~ — **BUILT** (Phase 8,
+  Sprint 2, "AI Teacher & Learning Centre"). See
+  `docs/AI-Teacher-Learning-Centre.md` for the full detail: 7 structured
+  Learning Paths, an 8-strategy Strategy Academy, a ~52-term Glossary,
+  Explain Mode (reusing this engine's own Explanation Engine), Portfolio
+  Learning Mode, 5 deterministic Interactive Simulations, Learning
+  Progress tracking, and the reunification of the Greeks quiz and Value
+  Investing quiz into one shared progress system. **Correction, made
+  during the Institutional Mentor sprint's own documentation pass:** an
+  earlier revision of this bullet incorrectly bundled "Institutional
+  Mentor" into this same strikethrough as already resolved by Sprint 2 —
+  it was not; Sprint 2 built the Learning Centre only. Institutional
+  Mentor is its own distinct module, built separately below.
 - ~~**AI Portfolio Analyst**~~ — **BUILT** (Phase 8, Sprint 3, "AI
   Portfolio Analyst"). See `docs/AI-Portfolio-Analyst.md` for the full
   detail: the executive portfolio briefing layer, composing this
@@ -397,6 +402,18 @@ Per the sprint's own framing, this engine is the **foundation** for:
   `buildTimeline()` function, which solves a different problem), and
   reading the pre-existing, free-text `journal_entries` table read-only
   rather than replacing it.
+- ~~**Institutional Mentor**~~ — **BUILT** (Phase 8, Sprint 5,
+  "Institutional Mentor"). See `docs/Institutional-Mentor.md` for the
+  full detail: the final intelligence layer, teaching the user how a
+  professional portfolio manager would evaluate their own existing
+  Paper Trading portfolio — a 9-category Portfolio Scorecard (each score
+  traceable to a real `sourceModule`), a Professional Review, a Decision
+  Review, and narrative Capital Allocation/Risk/Income/Behaviour
+  reviews, each cross-linked to Institutional Lessons. Composes the
+  Portfolio Dashboard, Correlation & Concentration overlay, Portfolio
+  Stress Test, and the AI Trade Journal (Phase 8, Sprint 4) — never
+  writes to `intelligence_snapshots` itself (unlike AI Portfolio
+  Analyst).
 
 The Learning Engine's own catalog (§9 above) is now consumed by a real
 destination rather than pointing at a placeholder, exactly as this
@@ -427,6 +444,15 @@ rather than duplicate their logic.
   now built as a pure composition over all six services documented in
   this file plus the Portfolio Dashboard, Portfolio Event Risk, and
   Theta Income.
+- `docs/Institutional-Mentor.md` — the Institutional Mentor sprint's own
+  full detail (Phase 8, Sprint 5): the final intelligence layer,
+  composing the Portfolio Dashboard, Correlation & Concentration
+  overlay, Portfolio Stress Test, and the AI Trade Journal into a
+  9-category Portfolio Scorecard, a Professional Review, a Decision
+  Review, and narrative Capital Allocation/Risk/Income/Behaviour
+  reviews — reusing this engine's own Learning Engine catalog (§9
+  above) for its Institutional Lessons, and never writing to
+  `intelligence_snapshots` itself.
 - `docs/AI-Trade-Journal.md` — the AI Trade Journal sprint's own full
   detail (Phase 8, Sprint 4): the deterministic behavioural analysis
   and trade review system, reusing this engine's own Timeline Engine as

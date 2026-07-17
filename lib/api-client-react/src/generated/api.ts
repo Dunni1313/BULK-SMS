@@ -86,6 +86,7 @@ import type {
   HealthStatus,
   IndustryComparisonResult,
   InstitutionalIntelligenceResult,
+  InstitutionalMentorResult,
   JournalEntry,
   JournalEntryInput,
   JournalEntryUpdate,
@@ -3456,6 +3457,83 @@ export function useGetTradeReview<TData = Awaited<ReturnType<typeof getTradeRevi
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradeReviewQueryOptions(tradeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInstitutionalMentorUrl = () => {
+
+
+
+
+  return `/api/institutional-mentor`
+}
+
+/**
+ * @summary Read-only, deterministic Institutional Mentor result: teaches the user how a professional portfolio manager would evaluate their own existing Paper Trading portfolio. Composes a 9-category Portfolio Scorecard (Capital Allocation, Risk Management, Diversification, Discipline, Income Generation, Position Sizing, Greeks Management, Event Preparation, Portfolio Health), a Professional Review, a Decision Review, and narrative Capital Allocation/Risk/Income/Behaviour reviews, each cross-linked to Learning Centre lessons, Strategy Academy pages, Glossary entries, and Explain Mode. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const getInstitutionalMentor = async ( options?: RequestInit): Promise<InstitutionalMentorResult> => {
+
+  return customFetch<InstitutionalMentorResult>(getGetInstitutionalMentorUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalMentorQueryKey = () => {
+    return [
+    `/api/institutional-mentor`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalMentorQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalMentor>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalMentor>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalMentorQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalMentor>>> = ({ signal }) => getInstitutionalMentor({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalMentor>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalMentorQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalMentor>>>
+export type GetInstitutionalMentorQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only, deterministic Institutional Mentor result: teaches the user how a professional portfolio manager would evaluate their own existing Paper Trading portfolio. Composes a 9-category Portfolio Scorecard (Capital Allocation, Risk Management, Diversification, Discipline, Income Generation, Position Sizing, Greeks Management, Event Preparation, Portfolio Health), a Professional Review, a Decision Review, and narrative Capital Allocation/Risk/Income/Behaviour reviews, each cross-linked to Learning Centre lessons, Strategy Academy pages, Glossary entries, and Explain Mode. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+
+export function useGetInstitutionalMentor<TData = Awaited<ReturnType<typeof getInstitutionalMentor>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalMentor>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalMentorQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
