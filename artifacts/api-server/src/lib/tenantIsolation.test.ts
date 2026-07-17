@@ -43,6 +43,7 @@ import {
   tradingBacktestResultsTable,
   platformNotificationsTable,
   optionsBacktestResultsTable,
+  intelligenceSnapshotsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -98,6 +99,8 @@ afterAll(async () => {
     platformNotificationsTable,
     // Phase 4, Sprint 58 — Options Engine-Native Backtesting's own new table.
     optionsBacktestResultsTable,
+    // Institutional Intelligence Engine sprint — its own new table.
+    intelligenceSnapshotsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -291,6 +294,27 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       symbol: "AAPL",
       strategy: "iron_condor",
+    }));
+  });
+
+  // Institutional Intelligence Engine sprint — its own new table (one
+  // recorded snapshot per user per calendar day, powering the Timeline
+  // Engine's trend comparisons).
+  it("intelligence_snapshots: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(intelligenceSnapshotsTable, userA, userB, (userId) => ({
+      userId,
+      snapshotDate: "2020-01-01",
+      healthScore: 100,
+      overallRiskRatingCode: "healthy",
+      buyingPower: 0,
+      totalRiskPct: 0,
+      concentrationScore: 100,
+      diversificationScore: 100,
+      eventRiskScore: 100,
+      directionalExposureScore: 100,
+      greeksExposureScore: 100,
+      thetaMonthly: 0,
+      netDelta: 0,
     }));
   });
 });

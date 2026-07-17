@@ -84,6 +84,7 @@ import type {
   GradeValueQuizInput,
   HealthStatus,
   IndustryComparisonResult,
+  InstitutionalIntelligenceResult,
   JournalEntry,
   JournalEntryInput,
   JournalEntryUpdate,
@@ -3134,6 +3135,83 @@ export function useGetPortfolioDashboard<TData = Awaited<ReturnType<typeof getPo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetPortfolioDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInstitutionalIntelligenceUrl = () => {
+
+
+
+
+  return `/api/intelligence`
+}
+
+/**
+ * @summary Read-only, deterministic Institutional Intelligence result: composes the existing Portfolio Dashboard and theta-income calculations into an Executive Summary, Observations (with Explanations), a Health Overview, a Timeline of new/resolved/ persistent observations, and Learning Links. This is NOT an LLM integration, NOT a chatbot, and NOT a statistical prediction engine — every field is either a direct pass-through of an already-computed value or a deterministic, disclosed rule (a threshold comparison, a template lookup, a set diff). No trade recommendation or execution suggestion is ever generated. Never routes to a broker, never creates or modifies an order or position, never mutates local state beyond an at-most-once-per- calendar-day intelligence snapshot row. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const getInstitutionalIntelligence = async ( options?: RequestInit): Promise<InstitutionalIntelligenceResult> => {
+
+  return customFetch<InstitutionalIntelligenceResult>(getGetInstitutionalIntelligenceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalIntelligenceQueryKey = () => {
+    return [
+    `/api/intelligence`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalIntelligenceQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalIntelligenceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalIntelligence>>> = ({ signal }) => getInstitutionalIntelligence({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalIntelligenceQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalIntelligence>>>
+export type GetInstitutionalIntelligenceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only, deterministic Institutional Intelligence result: composes the existing Portfolio Dashboard and theta-income calculations into an Executive Summary, Observations (with Explanations), a Health Overview, a Timeline of new/resolved/ persistent observations, and Learning Links. This is NOT an LLM integration, NOT a chatbot, and NOT a statistical prediction engine — every field is either a direct pass-through of an already-computed value or a deterministic, disclosed rule (a threshold comparison, a template lookup, a set diff). No trade recommendation or execution suggestion is ever generated. Never routes to a broker, never creates or modifies an order or position, never mutates local state beyond an at-most-once-per- calendar-day intelligence snapshot row. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+
+export function useGetInstitutionalIntelligence<TData = Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalIntelligenceQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

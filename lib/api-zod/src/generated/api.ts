@@ -2202,6 +2202,171 @@ export const GetPortfolioDashboardResponse = zod.object({
 
 
 /**
+ * @summary Read-only, deterministic Institutional Intelligence result: composes the existing Portfolio Dashboard and theta-income calculations into an Executive Summary, Observations (with Explanations), a Health Overview, a Timeline of new/resolved/ persistent observations, and Learning Links. This is NOT an LLM integration, NOT a chatbot, and NOT a statistical prediction engine — every field is either a direct pass-through of an already-computed value or a deterministic, disclosed rule (a threshold comparison, a template lookup, a set diff). No trade recommendation or execution suggestion is ever generated. Never routes to a broker, never creates or modifies an order or position, never mutates local state beyond an at-most-once-per- calendar-day intelligence snapshot row. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const GetInstitutionalIntelligenceResponse = zod.object({
+  "paperTradingMode": zod.literal(true),
+  "deterministicAnalysis": zod.literal(true),
+  "executiveSummary": zod.object({
+  "headline": zod.string(),
+  "bullets": zod.array(zod.string()),
+  "generatedAt": zod.string()
+}),
+  "observations": zod.array(zod.object({
+  "code": zod.string(),
+  "category": zod.string(),
+  "severity": zod.enum(['info', 'positive', 'watch', 'elevated']),
+  "title": zod.string(),
+  "explanation": zod.string(),
+  "supportingMetrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "sourceModule": zod.string(),
+  "timestamp": zod.string(),
+  "confidence": zod.enum(['high', 'moderate']),
+  "confidenceReason": zod.string(),
+  "learningLinks": zod.array(zod.object({
+  "label": zod.string(),
+  "href": zod.string().nullable(),
+  "comingSoon": zod.boolean()
+}))
+})),
+  "highestPriority": zod.array(zod.object({
+  "code": zod.string(),
+  "category": zod.string(),
+  "severity": zod.enum(['info', 'positive', 'watch', 'elevated']),
+  "title": zod.string(),
+  "explanation": zod.string(),
+  "supportingMetrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "sourceModule": zod.string(),
+  "timestamp": zod.string(),
+  "confidence": zod.enum(['high', 'moderate']),
+  "confidenceReason": zod.string(),
+  "learningLinks": zod.array(zod.object({
+  "label": zod.string(),
+  "href": zod.string().nullable(),
+  "comingSoon": zod.boolean()
+}))
+})),
+  "health": zod.object({
+  "overallHealthScore": zod.number(),
+  "overallRiskRating": zod.object({
+  "code": zod.enum(['healthy', 'moderate_risk', 'elevated_risk', 'high_risk']),
+  "label": zod.string()
+}),
+  "healthTrend": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "healthTrendDetail": zod.string(),
+  "healthDrivers": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "score": zod.number(),
+  "detail": zod.string()
+})),
+  "brokerHealth": zod.object({
+  "credentialsConfigured": zod.boolean(),
+  "connected": zod.boolean().nullable(),
+  "label": zod.string()
+}),
+  "healthSummary": zod.string()
+}),
+  "timeline": zod.object({
+  "entries": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "category": zod.string(),
+  "status": zod.enum(['new', 'resolved', 'persistent'])
+})),
+  "healthChange": zod.union([zod.object({
+  "label": zod.string(),
+  "direction": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "detail": zod.string()
+}),zod.null()]),
+  "riskRatingChange": zod.union([zod.object({
+  "from": zod.string(),
+  "to": zod.string()
+}),zod.null()]),
+  "incomeChange": zod.union([zod.object({
+  "label": zod.string(),
+  "direction": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "detail": zod.string()
+}),zod.null()]),
+  "asOf": zod.string(),
+  "comparedTo": zod.string().nullable()
+}),
+  "learningLinks": zod.array(zod.object({
+  "label": zod.string(),
+  "href": zod.string().nullable(),
+  "comingSoon": zod.boolean()
+})),
+  "portfolioInsights": zod.array(zod.object({
+  "code": zod.string(),
+  "category": zod.string(),
+  "severity": zod.enum(['info', 'positive', 'watch', 'elevated']),
+  "title": zod.string(),
+  "explanation": zod.string(),
+  "supportingMetrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "sourceModule": zod.string(),
+  "timestamp": zod.string(),
+  "confidence": zod.enum(['high', 'moderate']),
+  "confidenceReason": zod.string(),
+  "learningLinks": zod.array(zod.object({
+  "label": zod.string(),
+  "href": zod.string().nullable(),
+  "comingSoon": zod.boolean()
+}))
+})),
+  "incomeInsights": zod.array(zod.object({
+  "code": zod.string(),
+  "category": zod.string(),
+  "severity": zod.enum(['info', 'positive', 'watch', 'elevated']),
+  "title": zod.string(),
+  "explanation": zod.string(),
+  "supportingMetrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "sourceModule": zod.string(),
+  "timestamp": zod.string(),
+  "confidence": zod.enum(['high', 'moderate']),
+  "confidenceReason": zod.string(),
+  "learningLinks": zod.array(zod.object({
+  "label": zod.string(),
+  "href": zod.string().nullable(),
+  "comingSoon": zod.boolean()
+}))
+})),
+  "riskInsights": zod.array(zod.object({
+  "code": zod.string(),
+  "category": zod.string(),
+  "severity": zod.enum(['info', 'positive', 'watch', 'elevated']),
+  "title": zod.string(),
+  "explanation": zod.string(),
+  "supportingMetrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "sourceModule": zod.string(),
+  "timestamp": zod.string(),
+  "confidence": zod.enum(['high', 'moderate']),
+  "confidenceReason": zod.string(),
+  "learningLinks": zod.array(zod.object({
+  "label": zod.string(),
+  "href": zod.string().nullable(),
+  "comingSoon": zod.boolean()
+}))
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Current full-auto engine state, guardrails, and today's stats
  */
 export const GetAutoExecutionStatusResponse = zod.object({

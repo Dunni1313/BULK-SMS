@@ -39,6 +39,7 @@ import portfolioStressTestRouter from "./portfolioStressTest";
 import portfolioEventRiskRouter from "./portfolioEventRisk";
 import portfolioConcentrationRouter from "./portfolioConcentration";
 import portfolioDashboardRouter from "./portfolioDashboard";
+import intelligenceRouter from "./intelligence";
 
 const router: IRouter = Router();
 
@@ -82,5 +83,6 @@ router.use(portfolioStressTestRouter);
 router.use(portfolioEventRiskRouter);
 router.use(portfolioConcentrationRouter);
 router.use(portfolioDashboardRouter);
+router.use(intelligenceRouter);
 
 export default router;

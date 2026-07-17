@@ -26,3 +26,4 @@ export * from "./tradingJournalEntries";
 export * from "./tradingBacktestResults";
 export * from "./platformNotifications";
 export * from "./optionsBacktestResults";
+export * from "./intelligenceSnapshots";

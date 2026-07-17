@@ -1042,6 +1042,80 @@ change. `pages/Dashboard.tsx`, `pages/Portfolio.tsx`,
 `pages/PortfolioAI.tsx`, `pages/TradePerformance.tsx`, `pages/Scanner.tsx`
 — all zero-line diff.
 
+### 4.16 Institutional Intelligence Engine
+
+A **deterministic** intelligence layer (Phase 8, Sprint 1 — "AI Coach
+Foundation") analysing the platform's own already-computed analytics and
+producing explainable, fully-traceable observations. **This is NOT an
+LLM integration, NOT a chatbot, and NOT a statistical prediction
+engine** — every observation is either a direct read of an
+already-computed figure or a disclosed, deterministic rule applied to
+those figures; no trade recommendation or execution suggestion is ever
+generated. Full detail: `docs/Institutional-Intelligence-Engine.md`.
+
+Six services, one orchestrator (`lib/intelligenceEngine.ts`'s
+`buildInstitutionalIntelligence(userId)`): the **Observation Engine**
+(`lib/intelligenceObservations.ts`, 11 deterministic rules — 4 trend-based
+pairs requiring a real prior snapshot, never fabricated when none
+exists, plus 7 point-in-time rules), the **Explanation Engine** (a
+stable "why did this happen" formatter adding zero new information), the
+**Health Engine** (`lib/intelligenceHealth.ts` — "aggregate by
+reference," reusing `dash.healthScore`/`dash.overallRiskRating`/
+`dash.healthFactors` directly, never a second, competing score), the
+**Summary Engine** (`lib/intelligenceSummary.ts` — fixed template
+sentences only, never natural-language generation), the **Timeline
+Engine** (`lib/intelligenceTimeline.ts` — new/resolved/persistent
+observation diffing against the prior day's own recorded snapshot), and
+the **Learning Engine** (`lib/intelligenceLearning.ts` — a fixed catalog
+mapping each observation category to a real existing page, always ending
+with an honestly-disclosed `AI Teacher (coming soon)` entry, never a
+fabricated URL). A shared `lib/intelligenceTrend.ts` module holds the one
+`computeTrend()` primitive all three trend-aware engines reuse.
+
+**Zero new pricing/risk/portfolio calculations.** Every figure comes
+from two already-existing, unmodified sources: `buildPortfolioDashboard()`
+(Portfolio Risk Dashboard sprint, §4.14) and the exact same
+`currentOpenTrades()` → `computeTradeGreeks()` → `computeThetaIncome()`
+composition `routes/portfolio.ts`'s own `GET /portfolio/theta` route
+already uses. Scanner/Options Dashboard reuse is deliberately scoped to
+Learning Links only, since direct inspection found `GET /scanner/top`
+has a real write side-effect (`scanAndPersist()`) this engine must never
+trigger.
+
+**One new table, `intelligence_snapshots`** (migration `018`) — the
+only new persistent state this sprint introduces, framed explicitly as
+history-keeping, not prediction: every persisted column is a snapshot of
+an already-computed value, never a forecast. A real DB-level unique
+index on `(userId, snapshotDate)` plus `.onConflictDoNothing()` enforces
+at most one row per user per calendar day — a deliberately *safer*
+pattern than the sequential-`await getSettingsRow()` race workaround the
+Portfolio Dashboard sprint needed, since this table has a genuine unique
+constraint to lean on. `userId` is `ON DELETE RESTRICT`, matching every
+other business table's convention.
+
+**Confidence is derived from source quality and completeness, never
+from an AI-style probability** — exactly two bands
+(`"high"`/`"moderate"`), each with an explicit `confidenceReason`, per
+the sprint's own explicit instruction.
+
+One new read-only endpoint, `GET /intelligence`
+(`routes/intelligence.ts`) — the only write it can ever trigger is the
+single, at-most-once-per-calendar-day snapshot insert above. One new
+frontend page, `pages/InstitutionalIntelligence.tsx`
+(`/institutional-intelligence`), carrying **four** permanent indicator
+badges ("Institutional Intelligence", "Deterministic Analysis", "Paper
+Trading", "Read Only" — every other page in this codebase carries only
+2), displaying the Executive Summary, Health Overview, Highest Priority,
+Latest Observations, Portfolio/Income/Risk Insights, the Intelligence
+Timeline, and Learning Links.
+
+No `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/
+`autoAdjustment.ts`/`portfolioDashboard.ts`/`portfolioStressTest.ts`/
+`portfolioEventRisk.ts`/`portfolioConcentration.ts`/`positionSizing.ts`/
+`thetaIncome.ts`/`serverState.ts`/`routes/portfolio.ts`/`routes/scanner.ts`
+change. No broker write operations. No portfolio mutation. No LLM call
+of any kind.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -1119,6 +1193,15 @@ to everything else in this codebase. Specifically for this document's scope:
 | `routes/portfolioDashboard.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped executive dashboard with all requested Executive Summary fields, exactly 8 Health Score factors each disclosing its own `sourceModule`, all 9 Risk Panel fields, exactly 7 dashboard widgets each with a real `linkHref`, visualisation data for every requested chart, informational-only guidance, honest credentials/broker-connection disclosure, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
 | `PortfolioDashboard.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Portfolio Dashboard" badges, loading and error states, the honest empty-portfolio state (healthy score, no fabricated highlights, honest empty allocation charts), the Executive Summary fields including the Health Score gauge and Overall Risk Rating badge, all 8 Health Score factors rendering by default, sorting factors by Score (Worst First), filtering factors by a minimum-score threshold (including the honest no-factors-match message), all 9 Risk Panel fields, exactly 7 dashboard widget links to their own existing detailed pages, the Portfolio Allocation and Concentration Snapshot charts, the Event Timeline Summary, the Stress Test Summary scenario list, and informational-only guidance rendering with a never-an-execution-action proof. |
 | `CommandCenter.tsx` | Frontend smoke tests — the always-visible Paper Trading Mode and "Read-Only Command Center" badges, loading and error states, the Executive Overview fields (Portfolio Value, Buying Power, Health Score, Overall Risk Rating, Broker/Paper Trading Status), Daily P/L reused from the pre-existing Options Income Engine summary, exactly 7 Portfolio Health widget links to their own existing detailed pages, the Options Income Engine section's Iron Condor/Calendar Spread counts and the honest "Not tracked in this engine" disclosure for Wheel Positions/Covered Calls/Cash Secured Puts, Net Delta/Gamma/Theta/Vega from the pre-existing Greeks engine plus the always-honest Beta-unavailable disclosure, the honest no-alerts message, elevated Risk Alerts reused from Concentration/Event Risk guidance plus the worst Stress Test scenario, all 4 Portfolio Allocation charts, the cached (never-auto-fetched) Broker section, and all 5 AI Insights each linking to their own source page with a never-an-execution-recommendation proof. |
+| `lib/intelligenceTrend.ts` | Pure unit tests — `insufficient_history` with no prior value, stable-within-threshold, improving/declining beyond a custom threshold, the honest zero-prior-value divide-by-zero fallback, and determinism. |
+| `lib/intelligenceLearning.ts` | Pure unit tests — every one of the 11 categories returns at least one real link plus the honestly-disclosed AI Teacher "coming soon" entry, and determinism. |
+| `lib/intelligenceObservations.ts` (Explanation Engine) | Pure unit tests for `explainObservation()` against a hand-built literal fixture — the "why"/contributing-metrics/source-module pass-through proofs, the first-real-link review-suggestion derivation, and the honest no-specific-page fallback when every link is "coming soon." |
+| `lib/intelligenceHealth.ts` | Tests against a real, isolated-user dashboard plus hand-built prior-snapshot fixtures — the byte-identical-to-the-dashboard's-own-score proof, the worst-first driver sort, the insufficient-history/improving/declining trend branches, the honest broker-disclosure pass-through, and both health-summary wording branches (healthy vs. naming the weakest driver). |
+| `lib/intelligenceSummary.ts` | Pure unit tests — every template branch (healthy/moderate/elevated/high-risk headlines, the diversification/theta/concentration/event-risk/buying-power bullet substitutions and their honest omission when no corresponding trend fired), and determinism. |
+| `lib/intelligenceTimeline.ts` | Pure diffing tests (new/persistent/resolved classification, `comparedTo`, health/income/risk-rating change population) plus the registry-completeness proof (every one of the 15 known observation codes has a real `labelForCode()` entry) plus real, DB-backed `getPriorSnapshot()`/`recordSnapshotIfNeeded()` upsert tests against an isolated test user (a same-day repeat never inserts a second row; a just-recorded row is never treated as its own prior). |
+| `lib/intelligenceEngine.ts` | Unit tests against isolated, fresh test users — an empty/fresh portfolio (exactly `paper_trading_active` + `credentials_unavailable`, never a fabricated trend on the first call), a single position, a balanced/healthy portfolio, high concentration, high Greeks exposure, high event risk, many observations firing together with correct Portfolio/Income/Risk Insights bucketing, missing credentials, timeline/trend observations and health-driver-sort proofs against a manually-recorded real prior snapshot, learning-links deduplication and the always-present AI Teacher entry, at-most-once-per-day persistence, determinism, and a never-mutates-the-trades-table proof. |
+| `routes/intelligence.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped deterministic-analysis/Paper-Trading result, the always-present Paper Trading Active observation, a real 0-100 Health Score and rating code, the honestly-disclosed AI Teacher learning link, the never-a-broker-write-surface proof, GET-only/no-request-body behavior, determinism across repeated calls, and a genuine Broker Disconnected scenario via mocked network (mirroring `routes/brokerHealth.route.test.ts`'s own established technique). |
+| `InstitutionalIntelligence.tsx` | Frontend smoke tests — all 4 permanent indicator badges, loading and error states, the Executive Summary, the Health Overview (score/rating/trend/drivers), the honest empty and populated Highest Priority states, per-observation severity/category/confidence/source-module rendering, the 3 Insights columns with their own honest empty states, both Timeline states (no prior snapshot vs. a real prior-snapshot comparison with new/resolved entries), real Learning Links plus the honestly-disclosed "coming soon" AI Teacher entry, and a never-a-trade-recommendation proof. |
 
 ## 8. Cross-references
 
@@ -1176,6 +1259,13 @@ to everything else in this codebase. Specifically for this document's scope:
   disclosure for Wheel Positions/Covered Calls/Cash Secured Puts, the
   one small additive `netBeta` backend extension, and the navigation
   changes that install it as the primary landing page.
+- `docs/Institutional-Intelligence-Engine.md` — the Institutional
+  Intelligence Engine's own full detail (§4.16 above): the 6-service
+  architecture (Observation, Explanation, Health, Summary, Timeline,
+  Learning Engines), the 11 deterministic observation rules and their
+  confidence-banding discipline, the `intelligence_snapshots` table's
+  history-keeping (not prediction) design, and the remaining AI roadmap
+  this engine is the foundation for.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

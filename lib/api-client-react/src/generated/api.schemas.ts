@@ -5480,6 +5480,152 @@ export interface PortfolioDashboardResult {
   generatedAt: string;
 }
 
+export interface IntelligenceObservationMetric {
+  label: string;
+  value: string;
+}
+
+export interface IntelligenceLearningLink {
+  label: string;
+  /** @nullable */
+  href: string | null;
+  comingSoon: boolean;
+}
+
+export type IntelligenceObservationSeverity = typeof IntelligenceObservationSeverity[keyof typeof IntelligenceObservationSeverity];
+
+
+export const IntelligenceObservationSeverity = {
+  info: 'info',
+  positive: 'positive',
+  watch: 'watch',
+  elevated: 'elevated',
+} as const;
+
+export type IntelligenceObservationConfidence = typeof IntelligenceObservationConfidence[keyof typeof IntelligenceObservationConfidence];
+
+
+export const IntelligenceObservationConfidence = {
+  high: 'high',
+  moderate: 'moderate',
+} as const;
+
+export interface IntelligenceObservation {
+  code: string;
+  category: string;
+  severity: IntelligenceObservationSeverity;
+  title: string;
+  explanation: string;
+  supportingMetrics: IntelligenceObservationMetric[];
+  sourceModule: string;
+  timestamp: string;
+  confidence: IntelligenceObservationConfidence;
+  confidenceReason: string;
+  learningLinks: IntelligenceLearningLink[];
+}
+
+export interface IntelligenceHealthDriver {
+  code: string;
+  label: string;
+  score: number;
+  detail: string;
+}
+
+export interface IntelligenceBrokerHealthSummary {
+  credentialsConfigured: boolean;
+  /** @nullable */
+  connected: boolean | null;
+  label: string;
+}
+
+export type IntelligenceHealthOverviewHealthTrend = typeof IntelligenceHealthOverviewHealthTrend[keyof typeof IntelligenceHealthOverviewHealthTrend];
+
+
+export const IntelligenceHealthOverviewHealthTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface IntelligenceHealthOverview {
+  overallHealthScore: number;
+  overallRiskRating: DashboardOverallRiskRating;
+  healthTrend: IntelligenceHealthOverviewHealthTrend;
+  healthTrendDetail: string;
+  healthDrivers: IntelligenceHealthDriver[];
+  brokerHealth: IntelligenceBrokerHealthSummary;
+  healthSummary: string;
+}
+
+export interface IntelligenceDailySummary {
+  headline: string;
+  bullets: string[];
+  generatedAt: string;
+}
+
+export type IntelligenceTimelineEntryStatus = typeof IntelligenceTimelineEntryStatus[keyof typeof IntelligenceTimelineEntryStatus];
+
+
+export const IntelligenceTimelineEntryStatus = {
+  new: 'new',
+  resolved: 'resolved',
+  persistent: 'persistent',
+} as const;
+
+export interface IntelligenceTimelineEntry {
+  code: string;
+  label: string;
+  category: string;
+  status: IntelligenceTimelineEntryStatus;
+}
+
+export type IntelligenceTimelineChangeDirection = typeof IntelligenceTimelineChangeDirection[keyof typeof IntelligenceTimelineChangeDirection];
+
+
+export const IntelligenceTimelineChangeDirection = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface IntelligenceTimelineChange {
+  label: string;
+  direction: IntelligenceTimelineChangeDirection;
+  detail: string;
+}
+
+export interface IntelligenceRiskRatingChange {
+  from: string;
+  to: string;
+}
+
+export interface IntelligenceTimeline {
+  entries: IntelligenceTimelineEntry[];
+  healthChange: IntelligenceTimelineChange | null;
+  riskRatingChange: IntelligenceRiskRatingChange | null;
+  incomeChange: IntelligenceTimelineChange | null;
+  asOf: string;
+  /** @nullable */
+  comparedTo: string | null;
+}
+
+export interface InstitutionalIntelligenceResult {
+  paperTradingMode: true;
+  deterministicAnalysis: true;
+  executiveSummary: IntelligenceDailySummary;
+  observations: IntelligenceObservation[];
+  highestPriority: IntelligenceObservation[];
+  health: IntelligenceHealthOverview;
+  timeline: IntelligenceTimeline;
+  learningLinks: IntelligenceLearningLink[];
+  portfolioInsights: IntelligenceObservation[];
+  incomeInsights: IntelligenceObservation[];
+  riskInsights: IntelligenceObservation[];
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

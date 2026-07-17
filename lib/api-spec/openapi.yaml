@@ -791,6 +791,35 @@ paths:
               schema:
                 $ref: "#/components/schemas/PortfolioDashboardResult"
 
+  # ─── Institutional Intelligence Engine (Phase 8, Sprint 1) ──────────────────
+  /intelligence:
+    get:
+      operationId: getInstitutionalIntelligence
+      tags: [execution]
+      summary: >-
+        Read-only, deterministic Institutional Intelligence result:
+        composes the existing Portfolio Dashboard and theta-income
+        calculations into an Executive Summary, Observations (with
+        Explanations), a Health Overview, a Timeline of new/resolved/
+        persistent observations, and Learning Links. This is NOT an LLM
+        integration, NOT a chatbot, and NOT a statistical prediction
+        engine — every field is either a direct pass-through of an
+        already-computed value or a deterministic, disclosed rule
+        (a threshold comparison, a template lookup, a set diff). No
+        trade recommendation or execution suggestion is ever generated.
+        Never routes to a broker, never creates or modifies an order or
+        position, never mutates local state beyond an at-most-once-per-
+        calendar-day intelligence snapshot row. Always returns 200 — an
+        empty portfolio honestly returns a healthy-by-default result
+        rather than fabricating observations.
+      responses:
+        "200":
+          description: Institutional Intelligence result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalIntelligenceResult"
+
   # ─── Full-Auto execution (Phase 6) ──────────────────────────────────────────
   /execution/auto/status:
     get:
@@ -9380,5 +9409,257 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DashboardGuidanceAdvisory"
+        generatedAt:
+          type: string
+
+    # ─── Institutional Intelligence Engine (Phase 8, Sprint 1) ────────────────
+    IntelligenceObservationMetric:
+      type: object
+      required: [label, value]
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+
+    IntelligenceLearningLink:
+      type: object
+      required: [label, href, comingSoon]
+      properties:
+        label:
+          type: string
+        href:
+          type: ["string", "null"]
+        comingSoon:
+          type: boolean
+
+    IntelligenceObservation:
+      type: object
+      required:
+        [
+          code,
+          category,
+          severity,
+          title,
+          explanation,
+          supportingMetrics,
+          sourceModule,
+          timestamp,
+          confidence,
+          confidenceReason,
+          learningLinks,
+        ]
+      properties:
+        code:
+          type: string
+        category:
+          type: string
+        severity:
+          type: string
+          enum: [info, positive, watch, elevated]
+        title:
+          type: string
+        explanation:
+          type: string
+        supportingMetrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceObservationMetric"
+        sourceModule:
+          type: string
+        timestamp:
+          type: string
+        confidence:
+          type: string
+          enum: [high, moderate]
+        confidenceReason:
+          type: string
+        learningLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceLearningLink"
+
+    IntelligenceHealthDriver:
+      type: object
+      required: [code, label, score, detail]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        score:
+          type: number
+        detail:
+          type: string
+
+    IntelligenceBrokerHealthSummary:
+      type: object
+      required: [credentialsConfigured, connected, label]
+      properties:
+        credentialsConfigured:
+          type: boolean
+        connected:
+          type: ["boolean", "null"]
+        label:
+          type: string
+
+    IntelligenceHealthOverview:
+      type: object
+      required:
+        [
+          overallHealthScore,
+          overallRiskRating,
+          healthTrend,
+          healthTrendDetail,
+          healthDrivers,
+          brokerHealth,
+          healthSummary,
+        ]
+      properties:
+        overallHealthScore:
+          type: number
+        overallRiskRating:
+          $ref: "#/components/schemas/DashboardOverallRiskRating"
+        healthTrend:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        healthTrendDetail:
+          type: string
+        healthDrivers:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceHealthDriver"
+        brokerHealth:
+          $ref: "#/components/schemas/IntelligenceBrokerHealthSummary"
+        healthSummary:
+          type: string
+
+    IntelligenceDailySummary:
+      type: object
+      required: [headline, bullets, generatedAt]
+      properties:
+        headline:
+          type: string
+        bullets:
+          type: array
+          items:
+            type: string
+        generatedAt:
+          type: string
+
+    IntelligenceTimelineEntry:
+      type: object
+      required: [code, label, category, status]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        category:
+          type: string
+        status:
+          type: string
+          enum: [new, resolved, persistent]
+
+    IntelligenceTimelineChange:
+      type: object
+      required: [label, direction, detail]
+      properties:
+        label:
+          type: string
+        direction:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        detail:
+          type: string
+
+    IntelligenceRiskRatingChange:
+      type: object
+      required: [from, to]
+      properties:
+        from:
+          type: string
+        to:
+          type: string
+
+    IntelligenceTimeline:
+      type: object
+      required: [entries, healthChange, riskRatingChange, incomeChange, asOf, comparedTo]
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceTimelineEntry"
+        healthChange:
+          oneOf:
+            - $ref: "#/components/schemas/IntelligenceTimelineChange"
+            - type: "null"
+        riskRatingChange:
+          oneOf:
+            - $ref: "#/components/schemas/IntelligenceRiskRatingChange"
+            - type: "null"
+        incomeChange:
+          oneOf:
+            - $ref: "#/components/schemas/IntelligenceTimelineChange"
+            - type: "null"
+        asOf:
+          type: string
+        comparedTo:
+          type: ["string", "null"]
+
+    InstitutionalIntelligenceResult:
+      type: object
+      required:
+        [
+          paperTradingMode,
+          deterministicAnalysis,
+          executiveSummary,
+          observations,
+          highestPriority,
+          health,
+          timeline,
+          learningLinks,
+          portfolioInsights,
+          incomeInsights,
+          riskInsights,
+          generatedAt,
+        ]
+      properties:
+        paperTradingMode:
+          type: boolean
+          enum: [true]
+        deterministicAnalysis:
+          type: boolean
+          enum: [true]
+        executiveSummary:
+          $ref: "#/components/schemas/IntelligenceDailySummary"
+        observations:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceObservation"
+        highestPriority:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceObservation"
+        health:
+          $ref: "#/components/schemas/IntelligenceHealthOverview"
+        timeline:
+          $ref: "#/components/schemas/IntelligenceTimeline"
+        learningLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceLearningLink"
+        portfolioInsights:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceObservation"
+        incomeInsights:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceObservation"
+        riskInsights:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntelligenceObservation"
         generatedAt:
           type: string
