@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   useListTradeAdjustments,
@@ -7,63 +7,31 @@ import {
 } from "@workspace/api-client-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { NotificationBell } from "./NotificationBell";
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarGroup, 
-  SidebarGroupContent, 
-  SidebarGroupLabel, 
-  SidebarMenu, 
-  SidebarMenuButton, 
+// Lazy-loaded, not statically imported: the Command Palette (cmdk, its own
+// several generated-hook imports, lib/workflows.ts, lib/quick-actions.ts,
+// lib/portfolio-export.ts) is only needed once a user actually opens it
+// (⌘K/Ctrl+K or the header button) — keeping it out of AppLayout's own
+// eagerly-loaded chunk, which every single page renders through, is what
+// keeps the main bundle chunk under Sprint 53's own 500 kB threshold.
+const CommandPalette = lazy(() =>
+  import("@/components/command/CommandPalette").then((m) => ({ default: m.CommandPalette })),
+);
+import { NAV_ITEMS, LEARN_NAV_ITEMS } from "@/lib/nav-items";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  LayoutDashboard, 
-  Search, 
-  LineChart, 
-  PieChart, 
-  List, 
-  FlaskConical, 
-  Trophy, 
-  BookOpen, 
-  MessageSquare, 
-  TrendingUp, 
-  Bot,
-  Settings,
-  GraduationCap,
-  BrainCircuit,
-  Library,
-  CalendarClock,
-  Wrench,
-  Building2,
-  Radar,
-  Briefcase,
-  Activity,
-  NotebookPen,
-  History,
-  LayoutGrid,
-  TestTube2,
-  Newspaper,
-  GitCompare,
-  Wallet,
-  Clock,
-  ChartColumn,
-  ClipboardCheck,
-  Scale,
-  GitCompareArrows,
-  Zap,
-  ShieldAlert,
-  Network,
-  Gauge,
-  BarChart3,
-  Sparkles,
-  FileBarChart,
-  BookMarked,
-  Landmark
-} from "lucide-react";
+import { Search, Bot } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
 // other than holding/doing nothing.
@@ -109,60 +77,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adjustments]);
 
-  const navItems = [
-    { title: "Command Center", href: "/", icon: LayoutDashboard },
-    { title: "Options Dashboard", href: "/options-dashboard", icon: BarChart3 },
-    { title: "Portfolio AI", href: "/portfolio-ai", icon: BrainCircuit },
-    { title: "Scanner", href: "/scanner", icon: Search },
-    { title: "Option Chain", href: "/options/SPY", icon: LineChart },
-    { title: "Portfolio", href: "/portfolio", icon: PieChart },
-    { title: "Trades", href: "/trades", icon: List },
-    { title: "Backtest", href: "/backtest", icon: FlaskConical },
-    { title: "Leaderboard", href: "/scoring", icon: Trophy },
-    { title: "Journal", href: "/journal", icon: BookOpen },
-    { title: "AI Assistant", href: "/assistant", icon: MessageSquare },
-    { title: "Performance", href: "/performance", icon: TrendingUp },
-    { title: "AutoPilot", href: "/autopilot", icon: Bot },
-    { title: "Event Calendar", href: "/events", icon: CalendarClock },
-    { title: "Adjustments", href: "/adjustments", icon: Wrench, badge: attentionCount },
-    { title: "Institutional Dashboard", href: "/institutional-dashboard", icon: LayoutGrid },
-    { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
-    { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
-    { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },
-    { title: "Institutional Mentor", href: "/institutional-mentor", icon: Landmark },
-    { title: "Daily Report", href: "/daily-report", icon: Newspaper },
-    { title: "Trading Research", href: "/trading-research", icon: Activity },
-    { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
-    { title: "Trading Backtest", href: "/trading-backtest", icon: History },
-    { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
-    { title: "Value Research", href: "/stock-analyst", icon: Building2 },
-    { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
-    { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },
-    { title: "Paper Portfolio", href: "/paper-portfolio", icon: Wallet },
-    { title: "Trade History", href: "/trade-history", icon: Clock },
-    { title: "Trade Performance", href: "/trade-performance", icon: ChartColumn },
-    { title: "Order Preview", href: "/order-preview", icon: ClipboardCheck },
-    { title: "Position Sizing", href: "/position-sizing", icon: Scale },
-    { title: "Adjustment Preview", href: "/adjustment-preview", icon: GitCompareArrows },
-    { title: "Stress Test", href: "/stress-test", icon: Zap },
-    { title: "Event Risk", href: "/event-risk", icon: ShieldAlert },
-    { title: "Concentration Risk", href: "/concentration-risk", icon: Network },
-    { title: "Portfolio Dashboard", href: "/portfolio-dashboard", icon: Gauge },
-    { title: "Broker Reconciliation", href: "/broker-reconciliation", icon: GitCompare },
-    { title: "Settings", href: "/settings", icon: Settings },
-  ];
+  // Phase 10 — the nav item list itself now lives in lib/nav-items.ts, the
+  // single, real navigation index the new Command Palette also reads from.
+  // Only the "Adjustments" item's own live attentionCount badge is
+  // computed here (AppLayout is the only place already polling
+  // useListTradeAdjustments for it) and merged in at render time.
+  const navItems = NAV_ITEMS;
+  const learnItems = LEARN_NAV_ITEMS;
 
-  const learnItems = [
-    { title: "AI Teacher & Learning Centre", href: "/learn", icon: Sparkles },
-    { title: "Learning Paths", href: "/learn/paths", icon: BookOpen },
-    { title: "Strategy Academy", href: "/learn/strategy-academy", icon: GraduationCap },
-    { title: "Glossary", href: "/learn/glossary", icon: Library },
-    { title: "Delta Masterclass", href: "/learn/delta", icon: GraduationCap },
-    { title: "Greeks Tutor", href: "/learn/greeks", icon: Library },
-    { title: "Trading Quiz", href: "/learn/quiz", icon: BrainCircuit },
-    { title: "Trade Lessons", href: "/lessons", icon: BookOpen },
-    { title: "Value Investing School", href: "/stock-analyst/value-investing-school", icon: GraduationCap },
-  ];
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <SidebarProvider>
@@ -179,12 +112,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <Link href={item.href} className="flex items-center gap-3 px-4 py-2 text-sm font-medium">
                           <item.icon className="h-4 w-4" />
                           <span>{item.title}</span>
-                          {"badge" in item && item.badge ? (
+                          {item.href === "/adjustments" && attentionCount > 0 ? (
                             <Badge
                               variant="outline"
                               className="ml-auto h-5 min-w-5 justify-center border-amber-500/40 bg-amber-500/15 px-1.5 text-xs text-amber-400"
                             >
-                              {item.badge}
+                              {attentionCount}
                             </Badge>
                           ) : null}
                         </Link>
@@ -243,7 +176,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarContent>
         </Sidebar>
         <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-          <div className="flex items-center justify-end border-b border-border px-4 py-2">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-2 text-xs text-muted-foreground"
+              onClick={() => setPaletteOpen(true)}
+              data-testid="button-open-command-palette"
+            >
+              <Search className="h-3.5 w-3.5" />
+              Search or jump to…
+              <kbd className="ml-2 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium">
+                {typeof navigator !== "undefined" && /Mac/i.test(navigator.platform ?? "") ? "⌘K" : "Ctrl+K"}
+              </kbd>
+            </Button>
             <NotificationBell />
           </div>
           <div className="flex-1 overflow-auto p-6">
@@ -251,6 +198,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      <Suspense fallback={null}>
+        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      </Suspense>
     </SidebarProvider>
   );
 }
