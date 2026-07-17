@@ -55,6 +55,10 @@ import type {
   CrossEngineDailyReport,
   DailyReport,
   DailyReportSummary,
+  DashboardWorkspace,
+  DashboardWorkspaceCreate,
+  DashboardWorkspaceDuplicate,
+  DashboardWorkspaceUpdate,
   DeleteReportResult,
   DeleteResult,
   EarningsIntelligenceAnalysis,
@@ -6529,6 +6533,515 @@ export const useUpdateNotification = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getUpdateNotificationMutationOptions(options));
+    }
+
+export const getListWorkspacesUrl = () => {
+
+
+
+
+  return `/api/workspaces`
+}
+
+/**
+ * @summary List the calling user's saved dashboard workspaces (lazily creates a "Default" one if none exist)
+ */
+export const listWorkspaces = async ( options?: RequestInit): Promise<DashboardWorkspace[]> => {
+
+  return customFetch<DashboardWorkspace[]>(getListWorkspacesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkspacesQueryKey = () => {
+    return [
+    `/api/workspaces`
+    ] as const;
+    }
+
+
+export const getListWorkspacesQueryOptions = <TData = Awaited<ReturnType<typeof listWorkspaces>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaces>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkspacesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkspaces>>> = ({ signal }) => listWorkspaces({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkspaces>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkspacesQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkspaces>>>
+export type ListWorkspacesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's saved dashboard workspaces (lazily creates a "Default" one if none exist)
+ */
+
+export function useListWorkspaces<TData = Awaited<ReturnType<typeof listWorkspaces>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaces>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkspacesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateWorkspaceUrl = () => {
+
+
+
+
+  return `/api/workspaces`
+}
+
+/**
+ * @summary Save the current or a supplied widget layout as a new named workspace
+ */
+export const createWorkspace = async (dashboardWorkspaceCreate: DashboardWorkspaceCreate, options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getCreateWorkspaceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dashboardWorkspaceCreate,)
+  }
+);}
+
+
+
+
+export const getCreateWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWorkspace>>, TError,{data: BodyType<DashboardWorkspaceCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createWorkspace>>, TError,{data: BodyType<DashboardWorkspaceCreate>}, TContext> => {
+
+const mutationKey = ['createWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createWorkspace>>, {data: BodyType<DashboardWorkspaceCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createWorkspace(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof createWorkspace>>>
+    export type CreateWorkspaceMutationBody = BodyType<DashboardWorkspaceCreate>
+    export type CreateWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Save the current or a supplied widget layout as a new named workspace
+ */
+export const useCreateWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWorkspace>>, TError,{data: BodyType<DashboardWorkspaceCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createWorkspace>>,
+        TError,
+        {data: BodyType<DashboardWorkspaceCreate>},
+        TContext
+      > => {
+      return useMutation(getCreateWorkspaceMutationOptions(options));
+    }
+
+export const getGetActiveWorkspaceUrl = () => {
+
+
+
+
+  return `/api/workspaces/active`
+}
+
+/**
+ * @summary Get the calling user's currently-active workspace (their Personal Dashboard layout)
+ */
+export const getActiveWorkspace = async ( options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getGetActiveWorkspaceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetActiveWorkspaceQueryKey = () => {
+    return [
+    `/api/workspaces/active`
+    ] as const;
+    }
+
+
+export const getGetActiveWorkspaceQueryOptions = <TData = Awaited<ReturnType<typeof getActiveWorkspace>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActiveWorkspace>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetActiveWorkspaceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveWorkspace>>> = ({ signal }) => getActiveWorkspace({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getActiveWorkspace>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetActiveWorkspaceQueryResult = NonNullable<Awaited<ReturnType<typeof getActiveWorkspace>>>
+export type GetActiveWorkspaceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the calling user's currently-active workspace (their Personal Dashboard layout)
+ */
+
+export function useGetActiveWorkspace<TData = Awaited<ReturnType<typeof getActiveWorkspace>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActiveWorkspace>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetActiveWorkspaceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateWorkspaceUrl = (id: number,) => {
+
+
+
+
+  return `/api/workspaces/${id}`
+}
+
+/**
+ * @summary Rename a workspace and/or save its widget layout (pin/hide/reorder/resize)
+ */
+export const updateWorkspace = async (id: number,
+    dashboardWorkspaceUpdate: DashboardWorkspaceUpdate, options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getUpdateWorkspaceUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dashboardWorkspaceUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceUpdate>}, TContext> => {
+
+const mutationKey = ['updateWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateWorkspace>>, {id: number;data: BodyType<DashboardWorkspaceUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateWorkspace(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof updateWorkspace>>>
+    export type UpdateWorkspaceMutationBody = BodyType<DashboardWorkspaceUpdate>
+    export type UpdateWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Rename a workspace and/or save its widget layout (pin/hide/reorder/resize)
+ */
+export const useUpdateWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateWorkspace>>,
+        TError,
+        {id: number;data: BodyType<DashboardWorkspaceUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateWorkspaceMutationOptions(options));
+    }
+
+export const getDeleteWorkspaceUrl = (id: number,) => {
+
+
+
+
+  return `/api/workspaces/${id}`
+}
+
+/**
+ * @summary Delete a workspace (never the user's only remaining one)
+ */
+export const deleteWorkspace = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteWorkspaceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspace>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspace>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteWorkspace>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteWorkspace(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteWorkspace>>>
+
+    export type DeleteWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a workspace (never the user's only remaining one)
+ */
+export const useDeleteWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspace>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteWorkspace>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteWorkspaceMutationOptions(options));
+    }
+
+export const getDuplicateWorkspaceUrl = (id: number,) => {
+
+
+
+
+  return `/api/workspaces/${id}/duplicate`
+}
+
+/**
+ * @summary Duplicate a workspace under a new name
+ */
+export const duplicateWorkspace = async (id: number,
+    dashboardWorkspaceDuplicate: DashboardWorkspaceDuplicate, options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getDuplicateWorkspaceUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dashboardWorkspaceDuplicate,)
+  }
+);}
+
+
+
+
+export const getDuplicateWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof duplicateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceDuplicate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof duplicateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceDuplicate>}, TContext> => {
+
+const mutationKey = ['duplicateWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof duplicateWorkspace>>, {id: number;data: BodyType<DashboardWorkspaceDuplicate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  duplicateWorkspace(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DuplicateWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof duplicateWorkspace>>>
+    export type DuplicateWorkspaceMutationBody = BodyType<DashboardWorkspaceDuplicate>
+    export type DuplicateWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Duplicate a workspace under a new name
+ */
+export const useDuplicateWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof duplicateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceDuplicate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof duplicateWorkspace>>,
+        TError,
+        {id: number;data: BodyType<DashboardWorkspaceDuplicate>},
+        TContext
+      > => {
+      return useMutation(getDuplicateWorkspaceMutationOptions(options));
+    }
+
+export const getActivateWorkspaceUrl = (id: number,) => {
+
+
+
+
+  return `/api/workspaces/${id}/activate`
+}
+
+/**
+ * @summary Switch to this workspace (deactivates every other one for this user)
+ */
+export const activateWorkspace = async (id: number, options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getActivateWorkspaceUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getActivateWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateWorkspace>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof activateWorkspace>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['activateWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateWorkspace>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  activateWorkspace(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivateWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof activateWorkspace>>>
+
+    export type ActivateWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Switch to this workspace (deactivates every other one for this user)
+ */
+export const useActivateWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateWorkspace>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof activateWorkspace>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getActivateWorkspaceMutationOptions(options));
     }
 
 export const getGetCrossEngineDailyReportUrl = () => {

@@ -1683,6 +1683,155 @@ paths:
         "404":
           description: Notification not found
 
+  # Phase 10 — Institutional Platform Polish & Control Center. Backs both
+  # the Workspace System (named, saved widget layouts) and the Personal
+  # Dashboard (pin/hide/reorder/resize widgets on the Institutional Home
+  # page) — a workspace IS the currently-active widget config. Zero
+  # trading, execution, pricing, portfolio, or risk calculations.
+  # Ownership-scoped like /notifications above.
+  /workspaces:
+    get:
+      operationId: listWorkspaces
+      tags: [workspaces]
+      summary: List the calling user's saved dashboard workspaces (lazily creates a "Default" one if none exist)
+      responses:
+        "200":
+          description: Workspaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DashboardWorkspace"
+    post:
+      operationId: createWorkspace
+      tags: [workspaces]
+      summary: Save the current or a supplied widget layout as a new named workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DashboardWorkspaceCreate"
+      responses:
+        "201":
+          description: Created workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardWorkspace"
+        "409":
+          description: A workspace with that name already exists
+
+  /workspaces/active:
+    get:
+      operationId: getActiveWorkspace
+      tags: [workspaces]
+      summary: Get the calling user's currently-active workspace (their Personal Dashboard layout)
+      responses:
+        "200":
+          description: Active workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardWorkspace"
+
+  /workspaces/{id}:
+    patch:
+      operationId: updateWorkspace
+      tags: [workspaces]
+      summary: Rename a workspace and/or save its widget layout (pin/hide/reorder/resize)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DashboardWorkspaceUpdate"
+      responses:
+        "200":
+          description: Updated workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardWorkspace"
+        "404":
+          description: Workspace not found
+        "409":
+          description: A workspace with that name already exists
+    delete:
+      operationId: deleteWorkspace
+      tags: [workspaces]
+      summary: Delete a workspace (never the user's only remaining one)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "400":
+          description: Cannot delete the only remaining workspace
+        "404":
+          description: Workspace not found
+
+  /workspaces/{id}/duplicate:
+    post:
+      operationId: duplicateWorkspace
+      tags: [workspaces]
+      summary: Duplicate a workspace under a new name
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DashboardWorkspaceDuplicate"
+      responses:
+        "201":
+          description: Duplicated workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardWorkspace"
+        "404":
+          description: Workspace not found
+        "409":
+          description: A workspace with that name already exists
+
+  /workspaces/{id}/activate:
+    post:
+      operationId: activateWorkspace
+      tags: [workspaces]
+      summary: Switch to this workspace (deactivates every other one for this user)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Activated workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardWorkspace"
+        "404":
+          description: Workspace not found
+
   # Cross-Engine Daily Report (Phase 5, Sprint 68). On-demand only: computed
   # when requested, never scheduled/emailed/pushed. Pure composition of
   # already-shipped Engine 1/2/3 outputs — zero new engine calculations.
@@ -6573,6 +6722,58 @@ components:
       required: [isRead]
       properties:
         isRead: { type: boolean }
+
+    # ─── Dashboard Workspaces (Phase 10) ────────────────────────────────────
+    WorkspaceWidgetConfigEntry:
+      type: object
+      required: [id, visible, size, order]
+      properties:
+        id: { type: string }
+        visible: { type: boolean }
+        size:
+          type: string
+          enum: [normal, compact]
+        order: { type: integer }
+
+    DashboardWorkspace:
+      type: object
+      required: [id, name, isDefault, isActive, widgetConfig, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        isDefault: { type: boolean }
+        isActive: { type: boolean }
+        widgetConfig:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceWidgetConfigEntry"
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    DashboardWorkspaceCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        widgetConfig:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceWidgetConfigEntry"
+
+    DashboardWorkspaceUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        widgetConfig:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceWidgetConfigEntry"
+
+    DashboardWorkspaceDuplicate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
 
     # ─── Cross-Engine Daily Report (Phase 5, Sprint 68) ────────────────────────
     ReportWatchlistCrossing:

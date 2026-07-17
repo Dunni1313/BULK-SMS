@@ -3312,6 +3312,57 @@ export interface PlatformNotificationUpdate {
   isRead: boolean;
 }
 
+export type WorkspaceWidgetConfigEntrySize = typeof WorkspaceWidgetConfigEntrySize[keyof typeof WorkspaceWidgetConfigEntrySize];
+
+
+export const WorkspaceWidgetConfigEntrySize = {
+  normal: 'normal',
+  compact: 'compact',
+} as const;
+
+export interface WorkspaceWidgetConfigEntry {
+  id: string;
+  visible: boolean;
+  size: WorkspaceWidgetConfigEntrySize;
+  order: number;
+}
+
+export interface DashboardWorkspace {
+  id: number;
+  name: string;
+  isDefault: boolean;
+  isActive: boolean;
+  widgetConfig: WorkspaceWidgetConfigEntry[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DashboardWorkspaceCreate {
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  name: string;
+  widgetConfig?: WorkspaceWidgetConfigEntry[];
+}
+
+export interface DashboardWorkspaceUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  name?: string;
+  widgetConfig?: WorkspaceWidgetConfigEntry[];
+}
+
+export interface DashboardWorkspaceDuplicate {
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  name: string;
+}
+
 export interface ReportWatchlistCrossing {
   symbol: string;
   /** @nullable */

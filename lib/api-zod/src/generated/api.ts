@@ -4128,6 +4128,147 @@ export const UpdateNotificationResponse = zod.object({
 
 
 /**
+ * @summary List the calling user's saved dashboard workspaces (lazily creates a "Default" one if none exist)
+ */
+export const ListWorkspacesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "isDefault": zod.boolean(),
+  "isActive": zod.boolean(),
+  "widgetConfig": zod.array(zod.object({
+  "id": zod.string(),
+  "visible": zod.boolean(),
+  "size": zod.enum(['normal', 'compact']),
+  "order": zod.number()
+})),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListWorkspacesResponse = zod.array(ListWorkspacesResponseItem)
+
+
+/**
+ * @summary Save the current or a supplied widget layout as a new named workspace
+ */
+export const createWorkspaceBodyNameMax = 60;
+
+
+
+export const CreateWorkspaceBody = zod.object({
+  "name": zod.string().min(1).max(createWorkspaceBodyNameMax),
+  "widgetConfig": zod.array(zod.object({
+  "id": zod.string(),
+  "visible": zod.boolean(),
+  "size": zod.enum(['normal', 'compact']),
+  "order": zod.number()
+})).optional()
+})
+
+
+/**
+ * @summary Get the calling user's currently-active workspace (their Personal Dashboard layout)
+ */
+export const GetActiveWorkspaceResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "isDefault": zod.boolean(),
+  "isActive": zod.boolean(),
+  "widgetConfig": zod.array(zod.object({
+  "id": zod.string(),
+  "visible": zod.boolean(),
+  "size": zod.enum(['normal', 'compact']),
+  "order": zod.number()
+})),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Rename a workspace and/or save its widget layout (pin/hide/reorder/resize)
+ */
+export const UpdateWorkspaceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateWorkspaceBodyNameMax = 60;
+
+
+
+export const UpdateWorkspaceBody = zod.object({
+  "name": zod.string().min(1).max(updateWorkspaceBodyNameMax).optional(),
+  "widgetConfig": zod.array(zod.object({
+  "id": zod.string(),
+  "visible": zod.boolean(),
+  "size": zod.enum(['normal', 'compact']),
+  "order": zod.number()
+})).optional()
+})
+
+export const UpdateWorkspaceResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "isDefault": zod.boolean(),
+  "isActive": zod.boolean(),
+  "widgetConfig": zod.array(zod.object({
+  "id": zod.string(),
+  "visible": zod.boolean(),
+  "size": zod.enum(['normal', 'compact']),
+  "order": zod.number()
+})),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a workspace (never the user's only remaining one)
+ */
+export const DeleteWorkspaceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Duplicate a workspace under a new name
+ */
+export const DuplicateWorkspaceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const duplicateWorkspaceBodyNameMax = 60;
+
+
+
+export const DuplicateWorkspaceBody = zod.object({
+  "name": zod.string().min(1).max(duplicateWorkspaceBodyNameMax)
+})
+
+
+/**
+ * @summary Switch to this workspace (deactivates every other one for this user)
+ */
+export const ActivateWorkspaceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ActivateWorkspaceResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "isDefault": zod.boolean(),
+  "isActive": zod.boolean(),
+  "widgetConfig": zod.array(zod.object({
+  "id": zod.string(),
+  "visible": zod.boolean(),
+  "size": zod.enum(['normal', 'compact']),
+  "order": zod.number()
+})),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
  * @summary On-demand deterministic cross-engine daily report (Engine 1 macro + watchlist target crossings, Engine 2 trading risk, Engine 3 options income portfolio health) for the calling user — no LLM call
  */
 export const GetCrossEngineDailyReportResponse = zod.object({
