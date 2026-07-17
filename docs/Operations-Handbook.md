@@ -608,6 +608,50 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.20 and
 
 ---
 
+### 6.23 Using Institutional Home, Workspaces, the Command Palette, and the Notification Centre
+
+**Phase 10 (Institutional Platform Polish & Control Center)** added a
+platform-organization layer on top of every feature above — it changes
+none of them.
+
+The application now opens on **Institutional Home** (`/`) — a
+13-widget Personal Dashboard (Portfolio Health, Market Status, Open
+Positions, Today's P/L, Theta Income, Buying Power, Risk, Upcoming
+Events, AI Briefing, Mentor Summary, Recent Activity, Notifications,
+Quick Actions), every widget reused from an already-existing page's
+own data. The pre-existing **Institutional Command Center** (§6.17)
+was not modified and remains fully available at `/command-center`.
+
+**Workspaces**, saved from the header's Workspace Switcher, are named
+snapshots of the Home page's own widget arrangement (which widgets are
+visible, in what order, at what size). "Edit Layout" mode exposes
+Move Up / Move Down (reorder) and Normal/Compact (resize) controls per
+widget; "Save Layout" persists the arrangement to the active workspace.
+A user can create, rename, duplicate, delete, or switch workspaces —
+deleting a user's only remaining workspace is refused (`400`), and an
+account always has exactly one active workspace at a time, enforced at
+the database level.
+
+The **Command Palette** (⌘K / Ctrl+K, or the header's "Search or jump
+to…" button) is this platform's Global Search — it searches pages,
+open positions, journal entries, lessons, strategies, glossary terms,
+and AI observations, and runs Quick Actions (Open Scanner, Run Stress
+Test, Review Portfolio, Open AI Mentor, Review Journal, Learning
+Centre, Strategy Academy, Export Portfolio — the last is a genuine,
+read-only CSV download of the user's own open positions, computed
+entirely client-side).
+
+The **Notification Centre** (`/notifications`) is a full read-only
+aggregation across 7 categories (Alerts, Health Changes, Risk,
+Learning, Journal, Upcoming Earnings, Expirations), distinct from and
+linked to the header's own `NotificationBell` popover. Every item is a
+factual statement about already-existing data — **this page never
+generates a recommendation.**
+
+Full detail: `docs/Institutional-Control-Center.md`.
+
+---
+
 ## 7. Escalation
 
 1. **First response:** consult this handbook's own §2–§6 for anything routine.
@@ -644,3 +688,5 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.20 and
 - `docs/Production-Readiness-Report.md` — current-state readiness assessment.
 - `.agents/memory/auto-execution-engine.md` / `trade-adjustment-engine.md` — the full engineering-level precedence rules for the kill switch, referenced but not duplicated in §6.1 above.
 - `.env.example` — the authoritative environment-variable inventory referenced in §5.
+- `docs/Institutional-Control-Center.md` — Phase 10 (Institutional Platform Polish & Control Center)'s own full detail, referenced in §6.23 above: Institutional Home's 13-widget Personal Dashboard, the Workspace System's own 7 routes and its active-workspace database guarantee, the Global Command Palette / Global Search dialog, the shared Quick Actions list, and the Notification Centre's 7-category read-only aggregation.
+- `docs/UI-Standards.md` — the codebase's own already-established frontend conventions (loading/error/empty states, badge-color semantics, spacing, typography), formalized as this phase's Consistency Review deliverable.

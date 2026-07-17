@@ -1634,3 +1634,22 @@ to everything else in this codebase. Specifically for this document's scope:
   unused frontend component files. Zero lines of `execution.ts`,
   `optionsMath.ts`, `risk.ts`, `autoExecution.ts`, or `autoAdjustment.ts`
   were touched — confirmed via `git diff --stat` before and after.
+- `docs/Institutional-Control-Center.md` — Phase 10 (Institutional
+  Platform Polish & Control Center)'s own full detail: the new
+  Institutional Home landing page (a genuine 13-widget Personal
+  Dashboard, deliberately built as a new `pages/Home.tsx` rather than a
+  rewrite of the pre-existing `Institutional Command Center` page,
+  which moved unmodified to `/command-center`), the Workspace System
+  (`dashboard_workspaces` table, 7 new `/workspaces*` routes, the
+  partial-unique-index active-workspace guarantee — deliberately the
+  same underlying mechanism as the Personal Dashboard, not a second
+  persistence system), the Global Command Palette / Global Search
+  (⌘K/Ctrl+K, built on the pre-existing, previously-unused
+  `cmdk`-based `command.tsx`, deliberately the one dialog serving both
+  roles), the shared Quick Actions list (including a genuine
+  client-side CSV portfolio export), and the new Notification Centre
+  page (a read-only, "no recommendations" aggregation of 7 categories,
+  distinct from and cross-linked with the pre-existing header
+  `NotificationBell`). Zero lines of `execution.ts`, `optionsMath.ts`,
+  `risk.ts`, `autoExecution.ts`, or `autoAdjustment.ts` were touched —
+  confirmed via `git diff --stat` before and after.
