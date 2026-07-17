@@ -543,6 +543,37 @@ Center already shows.
 Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.18 and
 `docs/AI-Portfolio-Analyst.md`.
 
+### 6.21 Using the AI Trade Journal
+
+A new nav item, **AI Trade Journal** (`/trade-journal-ai`), is a
+deterministic behavioural analysis and trade review system: every
+completed Paper Trading trade gets a Trade Review (strategy, holding
+period, P/L, Greeks at entry/exit, Event Risk at entry, position size,
+and Decision Quality tags — each tag naming the real rule it came from,
+e.g. "Position Sizing Respected" cites `settings.maxRiskPerTrade`).
+**This is not a chatbot, an AI trading signal engine, financial advice,
+or portfolio management.** The page always shows 5 permanent badges
+("AI Trade Journal", "Behaviour Analysis", "Deterministic Review",
+"Paper Trading", "Educational Only") and never generates a trade
+recommendation of any kind — only education.
+
+The page's Behaviour Analysis section (Strengths / Areas to Improve)
+surfaces repeatable patterns over the caller's own real closed-trade
+history (e.g. "Excessive Concentration," "Stable Position Sizing") —
+every pattern names the real trade count and ratio it's based on, and
+none appear until at least 3 closed trades exist. Learning
+Recommendations link each concerning pattern to a real Learning Centre
+lesson, Glossary term, or Strategy Academy page — never a trade
+recommendation. The Journal Timeline shows real trade-opened/
+trade-closed/learning-completed events with real timestamps — no
+fabricated event. Trade Reviews also surface the caller's own
+already-existing linked journal entry (from the pre-existing, free-text
+Trading Journal, §6.9) when one exists — read-only, never a duplicate
+write.
+
+Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.19 and
+`docs/AI-Trade-Journal.md`.
+
 ---
 
 ## 7. Escalation
@@ -560,10 +591,11 @@ Full detail: `docs/Alpaca-Paper-Trading-Architecture.md` §4.18 and
 ## 8. Cross-References
 
 - `docs/Broker-Health-API.md` — the Alpaca Paper Trading broker/account read-only verification API referenced in §6.5 above.
-- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, the Correlation & Concentration Risk Overlay, the Portfolio Risk Dashboard & Health Score, the Institutional Command Center, the Institutional Intelligence Engine, the AI Teacher & Learning Centre, and the AI Portfolio Analyst), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, the Correlation & Concentration Risk page referenced in §6.15, the Portfolio Risk Dashboard referenced in §6.16, the Institutional Command Center referenced in §6.17, the Institutional Intelligence Engine referenced in §6.18, the AI Teacher & Learning Centre referenced in §6.19, and the AI Portfolio Analyst referenced in §6.20 above.
+- `docs/Alpaca-Paper-Trading-Architecture.md` — the full Alpaca integration picture (order submission, Broker Health, Order Lifecycle & Reconciliation, the Paper Portfolio Dashboard, Trade History/Performance Analytics, the Order Preview & Risk Simulator, the Position Sizing & Portfolio Impact Calculator, the Trade Adjustment & Roll/Convert Preview Simulator, the Portfolio Stress Test & Scenario Simulator, the Earnings & Event Risk Portfolio Overlay, the Correlation & Concentration Risk Overlay, the Portfolio Risk Dashboard & Health Score, the Institutional Command Center, the Institutional Intelligence Engine, the AI Teacher & Learning Centre, the AI Portfolio Analyst, and the AI Trade Journal), including the reconciliation panel referenced in §6.6, the portfolio dashboard referenced in §6.8, the Trade History/Performance pages referenced in §6.9, the Order Preview page referenced in §6.10, the Position Sizing page referenced in §6.11, the Trade Adjustment Preview page referenced in §6.12, the Portfolio Stress Test page referenced in §6.13, the Portfolio Event Risk page referenced in §6.14, the Correlation & Concentration Risk page referenced in §6.15, the Portfolio Risk Dashboard referenced in §6.16, the Institutional Command Center referenced in §6.17, the Institutional Intelligence Engine referenced in §6.18, the AI Teacher & Learning Centre referenced in §6.19, the AI Portfolio Analyst referenced in §6.20, and the AI Trade Journal referenced in §6.21 above.
 - `docs/Institutional-Intelligence-Engine.md` — the Institutional Intelligence Engine's own full detail (§6.18 above): the 6-service architecture (Observation, Explanation, Health, Summary, Timeline, Learning Engines), the 11 deterministic observation rules, the confidence-banding discipline (never an AI-style probability), the `intelligence_snapshots` table's history-keeping design, and the remaining AI roadmap this engine is the foundation for.
 - `docs/AI-Teacher-Learning-Centre.md` — the AI Teacher & Learning Centre's own full detail (§6.19 above): the 7 structured Learning Paths, the 8-entry Strategy Academy, the ~52-term Glossary, Contextual Explain Mode's reuse of the Institutional Intelligence Engine's own Explanation Engine, Portfolio Learning Mode, the 5 deterministic Interactive Simulations, the unified Learning Progress tracking (the only new user-state mutation), and the reunification of the Greeks quiz and Value Investing quiz into one shared progress system.
 - `docs/AI-Portfolio-Analyst.md` — the AI Portfolio Analyst's own full detail (§6.20 above): the executive portfolio briefing layer's pure-composition architecture over the Institutional Intelligence Engine/Portfolio Dashboard/Portfolio Event Risk/Theta Income, the sequential-not-`Promise.all` `getSettingsRow()` race fix, the new "This Week" 7-day rollup, and the disclosed SIMULATED-vs-real engine boundary for the Performance Summary section.
+- `docs/AI-Trade-Journal.md` — the AI Trade Journal's own full detail (§6.21 above): the deterministic Trade Review/Decision Quality/Behaviour Analysis architecture, the disclosed historical-date generalization of `computeTradeGreeks()` for Greeks at Entry/Exit, the genuine historical reconstruction of Event Risk at Entry via `getEventRiskForSymbol()`'s own existing `now` override, and the read-only reuse of the pre-existing, free-text Trading Journal's own linked entries.
 - `docs/Trade-Adjustment.md` — the Trade Adjustment & Roll/Convert Preview Simulator's own full detail (§6.12 above): the 3-computable/5-honestly-unavailable intent scope decision, the Close & Replace composition, the replace-semantics portfolio exposure model, the 9-category risk-warnings list, and the Improved/Worse/Neutral comparison design.
 - `docs/Portfolio-Stress-Testing.md` — the Portfolio Stress Test & Scenario Simulator's own full detail (§6.13 above): the shock-parameterized repricing engine, the portfolio-level aggregation model, the honestly-always-zero buying-power-impact disclosure, the risk-score formula, the risk-analysis fields, and the scenario-comparison design.
 - `docs/Portfolio-Event-Risk.md` — the Earnings & Event Risk Portfolio Overlay's own full detail (§6.14 above): the honest disclosure of the 2 requested-but-unsupported event categories (FDA decisions, product launches), the direct event-risk-engine reuse, the Risk Guidance label mapping, the confidence/source disclosure model, and the portfolio summary derivation.

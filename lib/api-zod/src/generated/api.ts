@@ -2595,6 +2595,179 @@ export const GetPortfolioAnalystResponse = zod.object({
 
 
 /**
+ * @summary Read-only, deterministic AI Trade Journal result: analyses every completed Paper Trading trade into a Trade Review (strategy, holding period, P/L, Greeks at entry/exit, Event Risk at entry, position size, Decision Quality tags), cross-trade Behaviour Analysis patterns, a Discipline Score, Learning Recommendations (education only, never a trade recommendation), and a chronological Journal Timeline. Always returns 200 — a user with no closed trades honestly returns empty arrays and a zero Discipline Score rather than fabricating history.
+ */
+export const GetAITradeJournalResponse = zod.object({
+  "paperTradingMode": zod.literal(true),
+  "deterministicAnalysis": zod.literal(true),
+  "educationalOnly": zod.literal(true),
+  "totalClosedTrades": zod.number(),
+  "recentTrades": zod.array(zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "openDate": zod.string(),
+  "closeDate": zod.string().nullable(),
+  "holdingPeriodDays": zod.number(),
+  "credit": zod.number(),
+  "maxProfit": zod.number(),
+  "maxLoss": zod.number(),
+  "realizedPnl": zod.number().nullable(),
+  "realizedPnlPercent": zod.number().nullable(),
+  "positionSizeContracts": zod.number(),
+  "positionSizePctOfAccount": zod.number(),
+  "greeksAtEntry": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),
+  "greeksAtExit": zod.union([zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),zod.null()]),
+  "eventRiskAtEntry": zod.object({
+  "level": zod.enum(['none', 'low', 'medium', 'high']),
+  "events": zod.array(zod.object({
+  "type": zod.enum(['earnings', 'fomc', 'cpi', 'jobs', 'economic', 'news', 'dividend']),
+  "label": zod.string(),
+  "date": zod.string().describe('Event date (YYYY-MM-DD)'),
+  "daysAway": zod.number(),
+  "impact": zod.enum(['low', 'medium', 'high']),
+  "scope": zod.enum(['market', 'symbol']),
+  "symbol": zod.string().nullish()
+}))
+}),
+  "exitReason": zod.string().nullable(),
+  "decisionQuality": zod.array(zod.object({
+  "code": zod.enum(['sizing_respected', 'sizing_exceeded', 'exit_stop_loss_rule', 'exit_profit_target_rule', 'exit_manual', 'winner_let_run', 'winner_closed_early', 'loss_capped_appropriately', 'loss_ran_beyond_plan', 'held_through_earnings']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "severity": zod.enum(['positive', 'info', 'watch']),
+  "ruleReference": zod.string()
+})),
+  "linkedJournalEntry": zod.union([zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "content": zod.string()
+}),zod.null()])
+})),
+  "behaviorPatterns": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "severity": zod.enum(['positive', 'watch', 'elevated']),
+  "tradeCount": zod.number()
+})),
+  "behaviorTrend": zod.union([zod.object({
+  "direction": zod.enum(['improving', 'declining', 'stable', 'insufficient_history']),
+  "detail": zod.string(),
+  "asOfTradeId": zod.number(),
+  "asOfDate": zod.string()
+}),zod.null()]),
+  "disciplineScore": zod.number(),
+  "decisionQualitySummary": zod.object({
+  "sizingRespectedRatePct": zod.number(),
+  "ruleBasedExitRatePct": zod.number(),
+  "averageDisciplineScore": zod.number()
+}),
+  "strengths": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "severity": zod.enum(['positive', 'watch', 'elevated']),
+  "tradeCount": zod.number()
+})),
+  "areasToImprove": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "severity": zod.enum(['positive', 'watch', 'elevated']),
+  "tradeCount": zod.number()
+})),
+  "learningRecommendations": zod.array(zod.object({
+  "category": zod.string(),
+  "lessonHref": zod.string().nullable(),
+  "lessonTitle": zod.string().nullable(),
+  "glossaryHref": zod.string().nullable(),
+  "glossaryTerm": zod.string().nullable(),
+  "strategyHref": zod.string().nullable(),
+  "strategyLabel": zod.string().nullable()
+})),
+  "timeline": zod.array(zod.object({
+  "type": zod.enum(['trade_opened', 'trade_closed', 'learning_completed', 'behaviour_change']),
+  "label": zod.string(),
+  "timestamp": zod.string(),
+  "tradeId": zod.number().nullable()
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
+ * @summary A single closed trade's own Trade Review — the same object returned inside GET /trade-journal's own recentTrades array, resolvable directly by trade id. 404s for a trade that doesn't exist, isn't the caller's own, or isn't yet closed (a Trade Review only exists for a completed trade).
+ */
+export const GetTradeReviewParams = zod.object({
+  "tradeId": zod.coerce.number()
+})
+
+export const GetTradeReviewResponse = zod.object({
+  "tradeId": zod.number(),
+  "symbol": zod.string(),
+  "strategy": zod.string(),
+  "openDate": zod.string(),
+  "closeDate": zod.string().nullable(),
+  "holdingPeriodDays": zod.number(),
+  "credit": zod.number(),
+  "maxProfit": zod.number(),
+  "maxLoss": zod.number(),
+  "realizedPnl": zod.number().nullable(),
+  "realizedPnlPercent": zod.number().nullable(),
+  "positionSizeContracts": zod.number(),
+  "positionSizePctOfAccount": zod.number(),
+  "greeksAtEntry": zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),
+  "greeksAtExit": zod.union([zod.object({
+  "delta": zod.number(),
+  "gamma": zod.number(),
+  "theta": zod.number(),
+  "vega": zod.number()
+}),zod.null()]),
+  "eventRiskAtEntry": zod.object({
+  "level": zod.enum(['none', 'low', 'medium', 'high']),
+  "events": zod.array(zod.object({
+  "type": zod.enum(['earnings', 'fomc', 'cpi', 'jobs', 'economic', 'news', 'dividend']),
+  "label": zod.string(),
+  "date": zod.string().describe('Event date (YYYY-MM-DD)'),
+  "daysAway": zod.number(),
+  "impact": zod.enum(['low', 'medium', 'high']),
+  "scope": zod.enum(['market', 'symbol']),
+  "symbol": zod.string().nullish()
+}))
+}),
+  "exitReason": zod.string().nullable(),
+  "decisionQuality": zod.array(zod.object({
+  "code": zod.enum(['sizing_respected', 'sizing_exceeded', 'exit_stop_loss_rule', 'exit_profit_target_rule', 'exit_manual', 'winner_let_run', 'winner_closed_early', 'loss_capped_appropriately', 'loss_ran_beyond_plan', 'held_through_earnings']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "severity": zod.enum(['positive', 'info', 'watch']),
+  "ruleReference": zod.string()
+})),
+  "linkedJournalEntry": zod.union([zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "content": zod.string()
+}),zod.null()])
+})
+
+
+/**
  * @summary Searchable, filterable glossary of options/portfolio/institutional terms. Deterministic, version-controlled content — never LLM- generated. Optional ?q= free-text search and ?category= filter.
  */
 export const GetGlossaryResponseItem = zod.object({

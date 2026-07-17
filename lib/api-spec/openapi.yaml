@@ -852,6 +852,62 @@ paths:
               schema:
                 $ref: "#/components/schemas/PortfolioAnalystResult"
 
+  # ─── AI Trade Journal (Phase 8, Sprint 4) ───────────────────────────────────
+  # A deterministic behavioural analysis and trade review system. PURE
+  # COMPOSITION over already-existing modules — not a chatbot, not an AI
+  # trading signal engine, not financial advice, not portfolio
+  # management. Every score/pattern is deterministic and traceable to an
+  # existing calculation or a real, stored trade field. Never routes to a
+  # broker, never creates or modifies an order or position, never mutates
+  # the trades/journal/settings tables — every function is read-only.
+  /trade-journal:
+    get:
+      operationId: getAITradeJournal
+      tags: [execution]
+      summary: >-
+        Read-only, deterministic AI Trade Journal result: analyses every
+        completed Paper Trading trade into a Trade Review (strategy,
+        holding period, P/L, Greeks at entry/exit, Event Risk at entry,
+        position size, Decision Quality tags), cross-trade Behaviour
+        Analysis patterns, a Discipline Score, Learning Recommendations
+        (education only, never a trade recommendation), and a
+        chronological Journal Timeline. Always returns 200 — a user with
+        no closed trades honestly returns empty arrays and a zero
+        Discipline Score rather than fabricating history.
+      responses:
+        "200":
+          description: AI Trade Journal result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AITradeJournalResult"
+
+  /trade-journal/{tradeId}:
+    get:
+      operationId: getTradeReview
+      tags: [execution]
+      summary: >-
+        A single closed trade's own Trade Review — the same object
+        returned inside GET /trade-journal's own recentTrades array,
+        resolvable directly by trade id. 404s for a trade that doesn't
+        exist, isn't the caller's own, or isn't yet closed (a Trade
+        Review only exists for a completed trade).
+      parameters:
+        - name: tradeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trade Review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalTradeReview"
+        "404":
+          description: Trade review not found
+
   # ─── AI Teacher & Learning Centre (Phase 8, Sprint 2) ───────────────────────
   # Educational only. Read-only. Deterministic — never an LLM call, never a
   # trade recommendation. Learning Progress (view/complete) is the ONLY
@@ -10607,5 +10663,284 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AnalystInstitutionalInsight"
+        generatedAt:
+          type: string
+
+    # ─── AI Trade Journal (Phase 8, Sprint 4) ──────────────────────────────────
+    # "Journal" prefix avoids any collision with the pre-existing, unrelated
+    # JournalEntry/JournalEntryInput/JournalEntryUpdate schemas (the free-text,
+    # user-authored journal) and Engine 2's own Trading-prefixed journal schemas.
+    JournalGreeksSnapshot:
+      type: object
+      required: [delta, gamma, theta, vega]
+      properties:
+        delta:
+          type: number
+        gamma:
+          type: number
+        theta:
+          type: number
+        vega:
+          type: number
+
+    JournalEventRiskAtEntry:
+      type: object
+      required: [level, events]
+      properties:
+        level:
+          type: string
+          enum: [none, low, medium, high]
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/EventRiskEvent"
+
+    JournalDecisionQualityTag:
+      type: object
+      required: [code, label, detail, severity, ruleReference]
+      properties:
+        code:
+          type: string
+          enum:
+            [
+              sizing_respected,
+              sizing_exceeded,
+              exit_stop_loss_rule,
+              exit_profit_target_rule,
+              exit_manual,
+              winner_let_run,
+              winner_closed_early,
+              loss_capped_appropriately,
+              loss_ran_beyond_plan,
+              held_through_earnings,
+            ]
+        label:
+          type: string
+        detail:
+          type: string
+        severity:
+          type: string
+          enum: [positive, info, watch]
+        ruleReference:
+          type: string
+
+    JournalLinkedEntry:
+      type: object
+      required: [id, title, content]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+
+    JournalTradeReview:
+      type: object
+      required:
+        [
+          tradeId,
+          symbol,
+          strategy,
+          openDate,
+          closeDate,
+          holdingPeriodDays,
+          credit,
+          maxProfit,
+          maxLoss,
+          realizedPnl,
+          realizedPnlPercent,
+          positionSizeContracts,
+          positionSizePctOfAccount,
+          greeksAtEntry,
+          greeksAtExit,
+          eventRiskAtEntry,
+          exitReason,
+          decisionQuality,
+          linkedJournalEntry,
+        ]
+      properties:
+        tradeId:
+          type: integer
+        symbol:
+          type: string
+        strategy:
+          type: string
+        openDate:
+          type: string
+        closeDate:
+          type: ["string", "null"]
+        holdingPeriodDays:
+          type: number
+        credit:
+          type: number
+        maxProfit:
+          type: number
+        maxLoss:
+          type: number
+        realizedPnl:
+          type: ["number", "null"]
+        realizedPnlPercent:
+          type: ["number", "null"]
+        positionSizeContracts:
+          type: integer
+        positionSizePctOfAccount:
+          type: number
+        greeksAtEntry:
+          $ref: "#/components/schemas/JournalGreeksSnapshot"
+        greeksAtExit:
+          oneOf:
+            - $ref: "#/components/schemas/JournalGreeksSnapshot"
+            - type: "null"
+        eventRiskAtEntry:
+          $ref: "#/components/schemas/JournalEventRiskAtEntry"
+        exitReason:
+          type: ["string", "null"]
+        decisionQuality:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalDecisionQualityTag"
+        linkedJournalEntry:
+          oneOf:
+            - $ref: "#/components/schemas/JournalLinkedEntry"
+            - type: "null"
+
+    JournalBehaviorPattern:
+      type: object
+      required: [code, label, detail, severity, tradeCount]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+        detail:
+          type: string
+        severity:
+          type: string
+          enum: [positive, watch, elevated]
+        tradeCount:
+          type: integer
+
+    JournalBehaviorTrend:
+      type: object
+      required: [direction, detail, asOfTradeId, asOfDate]
+      properties:
+        direction:
+          type: string
+          enum: [improving, declining, stable, insufficient_history]
+        detail:
+          type: string
+        asOfTradeId:
+          type: integer
+        asOfDate:
+          type: string
+
+    JournalLearningCrossLink:
+      type: object
+      required: [category, lessonHref, lessonTitle, glossaryHref, glossaryTerm, strategyHref, strategyLabel]
+      properties:
+        category:
+          type: string
+        lessonHref:
+          type: ["string", "null"]
+        lessonTitle:
+          type: ["string", "null"]
+        glossaryHref:
+          type: ["string", "null"]
+        glossaryTerm:
+          type: ["string", "null"]
+        strategyHref:
+          type: ["string", "null"]
+        strategyLabel:
+          type: ["string", "null"]
+
+    JournalTimelineEvent:
+      type: object
+      required: [type, label, timestamp, tradeId]
+      properties:
+        type:
+          type: string
+          enum: [trade_opened, trade_closed, learning_completed, behaviour_change]
+        label:
+          type: string
+        timestamp:
+          type: string
+        tradeId:
+          type: ["integer", "null"]
+
+    JournalDecisionQualitySummary:
+      type: object
+      required: [sizingRespectedRatePct, ruleBasedExitRatePct, averageDisciplineScore]
+      properties:
+        sizingRespectedRatePct:
+          type: number
+        ruleBasedExitRatePct:
+          type: number
+        averageDisciplineScore:
+          type: number
+
+    AITradeJournalResult:
+      type: object
+      required:
+        [
+          paperTradingMode,
+          deterministicAnalysis,
+          educationalOnly,
+          totalClosedTrades,
+          recentTrades,
+          behaviorPatterns,
+          behaviorTrend,
+          disciplineScore,
+          decisionQualitySummary,
+          strengths,
+          areasToImprove,
+          learningRecommendations,
+          timeline,
+          generatedAt,
+        ]
+      properties:
+        paperTradingMode:
+          type: boolean
+          enum: [true]
+        deterministicAnalysis:
+          type: boolean
+          enum: [true]
+        educationalOnly:
+          type: boolean
+          enum: [true]
+        totalClosedTrades:
+          type: integer
+        recentTrades:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalTradeReview"
+        behaviorPatterns:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalBehaviorPattern"
+        behaviorTrend:
+          oneOf:
+            - $ref: "#/components/schemas/JournalBehaviorTrend"
+            - type: "null"
+        disciplineScore:
+          type: number
+        decisionQualitySummary:
+          $ref: "#/components/schemas/JournalDecisionQualitySummary"
+        strengths:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalBehaviorPattern"
+        areasToImprove:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalBehaviorPattern"
+        learningRecommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalLearningCrossLink"
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalTimelineEvent"
         generatedAt:
           type: string

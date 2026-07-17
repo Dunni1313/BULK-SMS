@@ -383,9 +383,20 @@ Per the sprint's own framing, this engine is the **foundation** for:
   Portfolio Snapshot, Health/Risk/Income/Performance/Greeks/Event/
   Learning Summaries, a Portfolio Timeline (including a new "This Week"
   7-day rollup), and deterministic Institutional Insights.
-- **AI Trade Journal** — surfacing Observation Engine output alongside
-  `pages/Journal.tsx`'s own existing entries. Not built by either
-  sprint — remains a future module.
+- ~~**AI Trade Journal**~~ — **BUILT** (Phase 8, Sprint 4, "AI Trade
+  Journal"). See `docs/AI-Trade-Journal.md` for the full detail: a
+  deterministic behavioural analysis and trade review system —
+  per-trade Trade Reviews (Greeks at Entry/Exit via a new, disclosed
+  historical-date generalization of `computeTradeGreeks()`, Event Risk
+  at Entry via a genuine historical reconstruction using
+  `getEventRiskForSymbol()`'s own existing `now` override, Decision
+  Quality tags each traceable to a real rule), cross-trade Behaviour
+  Analysis patterns, a Discipline Score, Learning Recommendations
+  (education only), and a Journal Timeline — reusing this engine's own
+  Timeline Engine as a structural pattern (not its actual
+  `buildTimeline()` function, which solves a different problem), and
+  reading the pre-existing, free-text `journal_entries` table read-only
+  rather than replacing it.
 
 The Learning Engine's own catalog (§9 above) is now consumed by a real
 destination rather than pointing at a placeholder, exactly as this
@@ -416,6 +427,12 @@ rather than duplicate their logic.
   now built as a pure composition over all six services documented in
   this file plus the Portfolio Dashboard, Portfolio Event Risk, and
   Theta Income.
+- `docs/AI-Trade-Journal.md` — the AI Trade Journal sprint's own full
+  detail (Phase 8, Sprint 4): the deterministic behavioural analysis
+  and trade review system, reusing this engine's own Timeline Engine as
+  a structural pattern (§8 of that document) for its Journal Timeline,
+  and the Learning Engine's own catalog (§9 above) for its Learning
+  Recommendations.
 - CLAUDE.md rule 1/2 — `execution.ts`/`autoExecution.ts`/`autoAdjustment.ts`
   are never modified without explicit, specific approval; this sprint
   touches none of them.

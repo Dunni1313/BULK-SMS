@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AITradeJournalResult,
   AdjustmentPreviewInput,
   AdjustmentSubmitInput,
   AdjustmentSubmitResult,
@@ -90,6 +91,7 @@ import type {
   JournalEntryUpdate,
   JournalReviewInput,
   JournalReviewResult,
+  JournalTradeReview,
   LearnContent,
   LearningGlossaryTerm,
   LearningPath,
@@ -3300,6 +3302,160 @@ export function useGetPortfolioAnalyst<TData = Awaited<ReturnType<typeof getPort
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetPortfolioAnalystQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAITradeJournalUrl = () => {
+
+
+
+
+  return `/api/trade-journal`
+}
+
+/**
+ * @summary Read-only, deterministic AI Trade Journal result: analyses every completed Paper Trading trade into a Trade Review (strategy, holding period, P/L, Greeks at entry/exit, Event Risk at entry, position size, Decision Quality tags), cross-trade Behaviour Analysis patterns, a Discipline Score, Learning Recommendations (education only, never a trade recommendation), and a chronological Journal Timeline. Always returns 200 — a user with no closed trades honestly returns empty arrays and a zero Discipline Score rather than fabricating history.
+ */
+export const getAITradeJournal = async ( options?: RequestInit): Promise<AITradeJournalResult> => {
+
+  return customFetch<AITradeJournalResult>(getGetAITradeJournalUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAITradeJournalQueryKey = () => {
+    return [
+    `/api/trade-journal`
+    ] as const;
+    }
+
+
+export const getGetAITradeJournalQueryOptions = <TData = Awaited<ReturnType<typeof getAITradeJournal>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAITradeJournal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAITradeJournalQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAITradeJournal>>> = ({ signal }) => getAITradeJournal({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAITradeJournal>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAITradeJournalQueryResult = NonNullable<Awaited<ReturnType<typeof getAITradeJournal>>>
+export type GetAITradeJournalQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only, deterministic AI Trade Journal result: analyses every completed Paper Trading trade into a Trade Review (strategy, holding period, P/L, Greeks at entry/exit, Event Risk at entry, position size, Decision Quality tags), cross-trade Behaviour Analysis patterns, a Discipline Score, Learning Recommendations (education only, never a trade recommendation), and a chronological Journal Timeline. Always returns 200 — a user with no closed trades honestly returns empty arrays and a zero Discipline Score rather than fabricating history.
+ */
+
+export function useGetAITradeJournal<TData = Awaited<ReturnType<typeof getAITradeJournal>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAITradeJournal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAITradeJournalQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradeReviewUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/trade-journal/${tradeId}`
+}
+
+/**
+ * @summary A single closed trade's own Trade Review — the same object returned inside GET /trade-journal's own recentTrades array, resolvable directly by trade id. 404s for a trade that doesn't exist, isn't the caller's own, or isn't yet closed (a Trade Review only exists for a completed trade).
+ */
+export const getTradeReview = async (tradeId: number, options?: RequestInit): Promise<JournalTradeReview> => {
+
+  return customFetch<JournalTradeReview>(getGetTradeReviewUrl(tradeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradeReviewQueryKey = (tradeId: number,) => {
+    return [
+    `/api/trade-journal/${tradeId}`
+    ] as const;
+    }
+
+
+export const getGetTradeReviewQueryOptions = <TData = Awaited<ReturnType<typeof getTradeReview>>, TError = ErrorType<void>>(tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradeReview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradeReviewQueryKey(tradeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradeReview>>> = ({ signal }) => getTradeReview(tradeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(tradeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradeReview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradeReviewQueryResult = NonNullable<Awaited<ReturnType<typeof getTradeReview>>>
+export type GetTradeReviewQueryError = ErrorType<void>
+
+
+/**
+ * @summary A single closed trade's own Trade Review — the same object returned inside GET /trade-journal's own recentTrades array, resolvable directly by trade id. 404s for a trade that doesn't exist, isn't the caller's own, or isn't yet closed (a Trade Review only exists for a completed trade).
+ */
+
+export function useGetTradeReview<TData = Awaited<ReturnType<typeof getTradeReview>>, TError = ErrorType<void>>(
+ tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradeReview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradeReviewQueryOptions(tradeId,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

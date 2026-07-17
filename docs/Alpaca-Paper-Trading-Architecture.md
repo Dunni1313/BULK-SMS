@@ -1249,6 +1249,92 @@ No `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/
 broker write operations. No portfolio mutation of any kind. No LLM call
 of any kind. The platform remains **Paper Trading only** throughout.
 
+### 4.19 AI Trade Journal
+
+A **deterministic behavioural analysis and trade review system**
+(Phase 8, Sprint 4) analysing every completed Paper Trading trade using
+this platform's own existing analytics. **This is NOT a chatbot, NOT an
+AI trading signal engine, NOT financial advice, and NOT portfolio
+management** — every score/pattern is deterministic and traceable to an
+existing calculation or a real, stored trade field, never a subjective
+AI judgement. Full detail: `docs/AI-Trade-Journal.md`.
+
+`lib/tradeJournal.ts`'s `buildTradeJournal(userId)` composes: a
+**Trade Review** per closed trade (strategy, holding period, P/L, Risk
+Taken/Reward Achieved, position size, and — the one genuinely new piece
+of derivation this sprint adds — Greeks at Entry/Exit and Event Risk at
+Entry, both computed at a real historical date rather than "now"); a
+**Decision Quality** score per trade (10 deterministic tags, each
+citing a real rule reference — `settings.maxRiskPerTrade`,
+`settings.profitTarget75`, `risk.ts`'s own `computeStopLoss()`, or the
+trade's own real `exitReason`); cross-trade **Behaviour Analysis** (8
+repeatable patterns — Over-Sizing, Stable Position Sizing, Consistent
+Discipline, Excessive Concentration, Strong Diversification, Frequent
+Early Exits, Holding Losing Trades Too Long, Repeated Earnings Exposure
+— each naming its own real trade count/ratio, none surfaced before at
+least 3 closed trades exist); a **Discipline Score** and a **Behaviour
+Trend** (reusing the shared `computeTrend()` primitive exactly as every
+other engine in this codebase already does); **Learning
+Recommendations** (education only — real Learning Centre lesson/
+Glossary term/Strategy Academy links, never a trade recommendation);
+and a **Journal Timeline** (real `trade_opened`/`trade_closed`/
+`learning_completed`/`behaviour_change` events, every one carrying a
+genuinely stored timestamp — never a fabricated event).
+
+**Three small, disclosed helpers, each a trivial generalization of an
+existing formula — never a new pricing/risk model:**
+`computeGreeksAsOf()` (the exact `bs()`/leg-sign/multiplier formula
+`serverState.ts`'s own `computeTradeGreeks()` already uses, generalized
+to accept a historical date since `getSnapshot(symbol, dateStr)` already
+supports one), `deriveLotQuantity()` (mirrors
+`portfolioEventRisk.ts`'s own private, unexported formula, reimplemented
+locally since that file is out of scope for modification this sprint),
+and `tradeHoldingPeriodDays()` (mirrors
+`tradeAnalytics.ts`'s own frontend formula, necessarily reimplemented
+backend-side since this codebase has no frontend/backend shared-logic
+layer). **Event Risk at Entry is a genuine historical reconstruction,
+not an approximation:** `getEventRiskForSymbol()` already accepts a
+`now` override (the exact function `execution.ts`/`autoExecution.ts`/
+`portfolioEventRisk.ts` already call for live gating) — passing
+`now = trade.openDate.getTime()` deterministically reproduces what the
+same gate would have reported at entry.
+
+**A genuine, disclosed data-availability gap, honestly handled:**
+per-trade "Maximum Drawdown" is not included — no intraday/daily P&L
+history is persisted per trade anywhere in this codebase, and
+fabricating a curve from only the two known points (entry, exit) would
+not be a real drawdown.
+
+Two new read-only endpoints: `GET /trade-journal` (the full result) and
+`GET /trade-journal/{tradeId}` (a single Trade Review, 404 for a trade
+that doesn't exist, isn't the caller's own, or isn't yet closed).
+Neither can ever trigger a write of any kind. `openapi.yaml` gained 10
+new `Journal`-prefixed schemas (avoiding any collision with the
+pre-existing, unrelated `JournalEntry` schemas) plus both paths;
+`JournalEventRiskAtEntry.events` directly `$ref`s the already-existing
+`EventRiskEvent` schema. One new frontend page,
+`pages/TradeJournal.tsx` (`/trade-journal-ai`), carrying **five**
+permanent indicator badges ("AI Trade Journal", "Behaviour Analysis",
+"Deterministic Review", "Paper Trading", "Educational Only").
+
+**Reuses, never duplicates, the pre-existing free-text Trading
+Journal** (`journal_entries`, §4.7) — every Trade Review surfaces that
+trade's own already-existing linked entry (the one `tradeClose.ts`'s
+own `closeTradePosition()` already auto-writes on every real close)
+read-only; this sprint performs zero new journal writes.
+
+No `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/
+`autoAdjustment.ts`/`portfolioDashboard.ts`/`portfolioStressTest.ts`
+(the 7 files explicitly protected for this sprint) change, nor do
+`portfolioEventRisk.ts`/`positionSizing.ts`/`thetaIncome.ts`/
+`serverState.ts`/`eventRisk.ts`/`intelligenceTrend.ts`/
+`intelligenceLearning.ts`/`learningPaths.ts`/`glossary.ts`/
+`strategyAcademy.ts`/`learningProgress.ts`/`routes/journal.ts`/
+`lib/tradeClose.ts`/`lib/portfolioAnalyst.ts`. No broker write
+operations. No portfolio mutation of any kind. No new journal write of
+any kind. No LLM call of any kind. The platform remains **Paper Trading
+only** throughout.
+
 ## 5. What remains deferred
 
 - **Real Alpaca Paper account credentials.** The single blocking item for
@@ -1354,6 +1440,9 @@ to everything else in this codebase. Specifically for this document's scope:
 | `lib/portfolioAnalyst.ts` | Unit tests against isolated, fresh test users — an empty/fresh portfolio, a healthy (balanced, multi-symbol) portfolio, a large portfolio (8 positions), high concentration, high Greeks exposure, high event risk, high theta income, timeline (against a manually-recorded real prior-day snapshot), learning integration (every strategy cross-link resolving to a real Strategy Academy entry), and persistence discipline (at-most-once-per-day, never mutates trades, deterministic) — plus byte-identical regression proofs against standalone `buildInstitutionalIntelligence()`/`buildPortfolioDashboard()` calls for every reused figure. |
 | `routes/portfolioAnalyst.route.test.ts` | Live end-to-end HTTP tests against the real app — a well-shaped result across all 11 sections, the never-a-broker-write/never-a-recommendation-field proof, GET-only/no-request-body behavior, and determinism across repeated calls. |
 | `PortfolioAnalyst.tsx` | Frontend smoke tests — all 5 permanent indicator badges, loading and error states, the Executive Daily Briefing, the Portfolio Snapshot (including Net Liquidation/Daily P/L's independent real-vs-unavailable states from `useGetPortfolioSummary()`), the Health Summary's strengths/weaknesses, the Risk Summary (highest risk, largest exposure, worst stress scenario), the Income Summary's theta figures, the Performance Summary's explicit "SIMULATED" labeling and its own honest-unavailable state, the Greeks Summary's 4 current values and largest contributor, the Event Summary's safe/at-risk counts, the Learning Summary's per-section cross-links, both Portfolio Timeline states (no prior snapshot vs. a real prior-snapshot comparison with This Week data), the Institutional Insights list and its honest empty state, and the never-a-trade-recommendation proof. |
+| `lib/tradeJournal.ts` | Unit tests against isolated, fresh test users, using real `buildIronCondor()` quotes for internally-consistent P&L — no trade history, a single winning trade (winner-let-run tagging), a single losing trade beyond the stop-loss bound, a loss capped exactly at the stop-loss rule, small and large/oversized positions, diversified and concentrated trade histories (Behaviour Analysis pattern proofs, each naming the real dominant symbol/trade count), high Greeks (large multi-leg position), high event risk (real earnings-event fixture), large trade history (15 trades, real Discipline Score/Behaviour Trend), timeline generation (real, sorted, newest-first timestamps), learning integration (real completed-lesson timeline events plus the never-a-trade-recommendation proof), linked-journal-entry reuse (proving zero new journal writes), persistence discipline (never mutates trades, deterministic), and `buildSingleTradeReview()`'s own honest-null paths (an open/not-yet-closed trade, a nonexistent trade id, another user's own trade). |
+| `routes/tradeJournal.route.test.ts` | Live end-to-end HTTP tests against the real app — both routes' well-shaped responses, every Decision Quality tag carrying a real `ruleReference`, a real Discipline Score/decisionQualitySummary aggregate, a Journal Timeline sorted newest-first, the never-a-broker-write/trade-recommendation-field proof, 404 for a nonexistent trade id, 400 for a non-numeric trade id, GET-only/no-request-body behavior, and determinism across repeated calls. |
+| `TradeJournal.tsx` | Frontend smoke tests — all 5 permanent indicator badges, loading and error states, the Progress Dashboard's real Closed-Trades/Discipline-Score/rate figures, a real Strength with its supporting trade count and the honest empty-strengths message, a real Area to Improve referencing actual historical trade data and the honest empty-areas message, real Learning Recommendations and the honest empty-recommendations message, a Recent Trades review's full rendering (symbol/P&L/holding-period/decision-quality tags) including its linked journal entry, the honest empty-trades message, the Journal Timeline's real trade-opened/trade-closed entries, a real Behaviour Trend badge, and the never-a-trade-recommendation proof. |
 
 ## 8. Cross-references
 
@@ -1434,6 +1523,14 @@ to everything else in this codebase. Specifically for this document's scope:
   disclosed sequential-not-`Promise.all` `getSettingsRow()` race fix,
   the new "This Week" 7-day rollup, and the disclosed SIMULATED-vs-real
   engine boundary for the Performance Summary section.
+- `docs/AI-Trade-Journal.md` — the AI Trade Journal's own full detail
+  (§4.19 above): the Trade Review/Decision Quality/Behaviour Analysis
+  architecture, the 3 disclosed trivial-generalization helpers
+  (`computeGreeksAsOf()`/`deriveLotQuantity()`/`tradeHoldingPeriodDays()`),
+  the genuine historical reconstruction of Event Risk at Entry, the
+  disclosed per-trade Maximum Drawdown data-availability gap, and the
+  read-only reuse of the pre-existing Trading Journal's own linked
+  entries.
 - `docs/Operations-Handbook.md` §6.5 — day-to-day operational usage of both
   the Broker Health check and this reconciliation panel.
 - `.agents/memory/auto-execution-engine.md` — the protected execution

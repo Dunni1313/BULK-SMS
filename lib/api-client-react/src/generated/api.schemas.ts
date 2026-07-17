@@ -6061,6 +6061,184 @@ export interface PortfolioAnalystResult {
   generatedAt: string;
 }
 
+export interface JournalGreeksSnapshot {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export type JournalEventRiskAtEntryLevel = typeof JournalEventRiskAtEntryLevel[keyof typeof JournalEventRiskAtEntryLevel];
+
+
+export const JournalEventRiskAtEntryLevel = {
+  none: 'none',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface JournalEventRiskAtEntry {
+  level: JournalEventRiskAtEntryLevel;
+  events: EventRiskEvent[];
+}
+
+export type JournalDecisionQualityTagCode = typeof JournalDecisionQualityTagCode[keyof typeof JournalDecisionQualityTagCode];
+
+
+export const JournalDecisionQualityTagCode = {
+  sizing_respected: 'sizing_respected',
+  sizing_exceeded: 'sizing_exceeded',
+  exit_stop_loss_rule: 'exit_stop_loss_rule',
+  exit_profit_target_rule: 'exit_profit_target_rule',
+  exit_manual: 'exit_manual',
+  winner_let_run: 'winner_let_run',
+  winner_closed_early: 'winner_closed_early',
+  loss_capped_appropriately: 'loss_capped_appropriately',
+  loss_ran_beyond_plan: 'loss_ran_beyond_plan',
+  held_through_earnings: 'held_through_earnings',
+} as const;
+
+export type JournalDecisionQualityTagSeverity = typeof JournalDecisionQualityTagSeverity[keyof typeof JournalDecisionQualityTagSeverity];
+
+
+export const JournalDecisionQualityTagSeverity = {
+  positive: 'positive',
+  info: 'info',
+  watch: 'watch',
+} as const;
+
+export interface JournalDecisionQualityTag {
+  code: JournalDecisionQualityTagCode;
+  label: string;
+  detail: string;
+  severity: JournalDecisionQualityTagSeverity;
+  ruleReference: string;
+}
+
+export interface JournalLinkedEntry {
+  id: number;
+  title: string;
+  content: string;
+}
+
+export interface JournalTradeReview {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  openDate: string;
+  /** @nullable */
+  closeDate: string | null;
+  holdingPeriodDays: number;
+  credit: number;
+  maxProfit: number;
+  maxLoss: number;
+  /** @nullable */
+  realizedPnl: number | null;
+  /** @nullable */
+  realizedPnlPercent: number | null;
+  positionSizeContracts: number;
+  positionSizePctOfAccount: number;
+  greeksAtEntry: JournalGreeksSnapshot;
+  greeksAtExit: JournalGreeksSnapshot | null;
+  eventRiskAtEntry: JournalEventRiskAtEntry;
+  /** @nullable */
+  exitReason: string | null;
+  decisionQuality: JournalDecisionQualityTag[];
+  linkedJournalEntry: JournalLinkedEntry | null;
+}
+
+export type JournalBehaviorPatternSeverity = typeof JournalBehaviorPatternSeverity[keyof typeof JournalBehaviorPatternSeverity];
+
+
+export const JournalBehaviorPatternSeverity = {
+  positive: 'positive',
+  watch: 'watch',
+  elevated: 'elevated',
+} as const;
+
+export interface JournalBehaviorPattern {
+  code: string;
+  label: string;
+  detail: string;
+  severity: JournalBehaviorPatternSeverity;
+  tradeCount: number;
+}
+
+export type JournalBehaviorTrendDirection = typeof JournalBehaviorTrendDirection[keyof typeof JournalBehaviorTrendDirection];
+
+
+export const JournalBehaviorTrendDirection = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface JournalBehaviorTrend {
+  direction: JournalBehaviorTrendDirection;
+  detail: string;
+  asOfTradeId: number;
+  asOfDate: string;
+}
+
+export interface JournalLearningCrossLink {
+  category: string;
+  /** @nullable */
+  lessonHref: string | null;
+  /** @nullable */
+  lessonTitle: string | null;
+  /** @nullable */
+  glossaryHref: string | null;
+  /** @nullable */
+  glossaryTerm: string | null;
+  /** @nullable */
+  strategyHref: string | null;
+  /** @nullable */
+  strategyLabel: string | null;
+}
+
+export type JournalTimelineEventType = typeof JournalTimelineEventType[keyof typeof JournalTimelineEventType];
+
+
+export const JournalTimelineEventType = {
+  trade_opened: 'trade_opened',
+  trade_closed: 'trade_closed',
+  learning_completed: 'learning_completed',
+  behaviour_change: 'behaviour_change',
+} as const;
+
+export interface JournalTimelineEvent {
+  type: JournalTimelineEventType;
+  label: string;
+  timestamp: string;
+  /** @nullable */
+  tradeId: number | null;
+}
+
+export interface JournalDecisionQualitySummary {
+  sizingRespectedRatePct: number;
+  ruleBasedExitRatePct: number;
+  averageDisciplineScore: number;
+}
+
+export interface AITradeJournalResult {
+  paperTradingMode: true;
+  deterministicAnalysis: true;
+  educationalOnly: true;
+  totalClosedTrades: number;
+  recentTrades: JournalTradeReview[];
+  behaviorPatterns: JournalBehaviorPattern[];
+  behaviorTrend: JournalBehaviorTrend | null;
+  disciplineScore: number;
+  decisionQualitySummary: JournalDecisionQualitySummary;
+  strengths: JournalBehaviorPattern[];
+  areasToImprove: JournalBehaviorPattern[];
+  learningRecommendations: JournalLearningCrossLink[];
+  timeline: JournalTimelineEvent[];
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;

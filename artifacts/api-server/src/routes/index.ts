@@ -42,6 +42,7 @@ import portfolioDashboardRouter from "./portfolioDashboard";
 import intelligenceRouter from "./intelligence";
 import learningCentreRouter from "./learningCentre";
 import portfolioAnalystRouter from "./portfolioAnalyst";
+import tradeJournalRouter from "./tradeJournal";
 
 const router: IRouter = Router();
 
@@ -88,5 +89,6 @@ router.use(portfolioDashboardRouter);
 router.use(intelligenceRouter);
 router.use(learningCentreRouter);
 router.use(portfolioAnalystRouter);
+router.use(tradeJournalRouter);
 
 export default router;

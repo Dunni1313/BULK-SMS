@@ -60,7 +60,8 @@ import {
   Gauge,
   BarChart3,
   Sparkles,
-  FileBarChart
+  FileBarChart,
+  BookMarked
 } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
@@ -126,6 +127,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { title: "Institutional Dashboard", href: "/institutional-dashboard", icon: LayoutGrid },
     { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
     { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
+    { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },
     { title: "Daily Report", href: "/daily-report", icon: Newspaper },
     { title: "Trading Research", href: "/trading-research", icon: Activity },
     { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
