@@ -44,6 +44,7 @@ import learningCentreRouter from "./learningCentre";
 import portfolioAnalystRouter from "./portfolioAnalyst";
 import tradeJournalRouter from "./tradeJournal";
 import institutionalMentorRouter from "./institutionalMentor";
+import dashboardWorkspacesRouter from "./dashboardWorkspaces";
 
 const router: IRouter = Router();
 
@@ -92,5 +93,6 @@ router.use(learningCentreRouter);
 router.use(portfolioAnalystRouter);
 router.use(tradeJournalRouter);
 router.use(institutionalMentorRouter);
+router.use(dashboardWorkspacesRouter);
 
 export default router;

@@ -45,6 +45,7 @@ import {
   optionsBacktestResultsTable,
   intelligenceSnapshotsTable,
   learningProgressTable,
+  dashboardWorkspacesTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -104,6 +105,8 @@ afterAll(async () => {
     intelligenceSnapshotsTable,
     // AI Teacher & Learning Centre sprint — its own new table.
     learningProgressTable,
+    // Phase 10 — Institutional Platform Polish & Control Center's own new table.
+    dashboardWorkspacesTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -329,6 +332,16 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       itemType: "lesson",
       itemKey: "foundations-stocks",
+    }));
+  });
+
+  // Phase 10 — Institutional Platform Polish & Control Center's own new
+  // table (Workspace System + Personal Dashboard's backing layout config).
+  it("dashboard_workspaces: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(dashboardWorkspacesTable, userA, userB, (userId) => ({
+      userId,
+      name: "Default",
+      widgetConfig: [],
     }));
   });
 });

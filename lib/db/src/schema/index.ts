@@ -28,3 +28,4 @@ export * from "./platformNotifications";
 export * from "./optionsBacktestResults";
 export * from "./intelligenceSnapshots";
 export * from "./learningProgress";
+export * from "./dashboardWorkspaces";
