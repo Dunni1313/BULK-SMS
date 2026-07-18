@@ -35,6 +35,8 @@ export const DEFAULT_WIDGET_IDS = [
   "recent-activity",
   "notifications",
   "quick-actions",
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  "watchlist-summary",
 ] as const;
 
 export function defaultWidgetConfig(): WidgetConfigEntry[] {

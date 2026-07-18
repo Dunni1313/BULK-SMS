@@ -26,6 +26,7 @@ import {
   journalEntriesTable,
   learningProgressTable,
   intelligenceSnapshotsTable,
+  valueWatchlistTable,
 } from "@workspace/db";
 import { buildInstitutionalMentor, INCOME_POSITIVE_THETA_BASE_SCORE, INCOME_ZERO_THETA_BASE_SCORE } from "./institutionalMentor.js";
 import { buildPortfolioDashboard } from "./portfolioDashboard.js";
@@ -46,6 +47,7 @@ async function cleanupUser(userId: string): Promise<void> {
   await db.delete(journalEntriesTable).where(eq(journalEntriesTable.userId, userId));
   await db.delete(learningProgressTable).where(eq(learningProgressTable.userId, userId));
   await db.delete(intelligenceSnapshotsTable).where(eq(intelligenceSnapshotsTable.userId, userId));
+  await db.delete(valueWatchlistTable).where(eq(valueWatchlistTable.userId, userId));
   await db.delete(settingsTable).where(eq(settingsTable.userId, userId));
   await db.delete(usersTable).where(eq(usersTable.id, userId));
 }
@@ -512,6 +514,79 @@ describe("buildInstitutionalMentor", () => {
   describe("Income Generation banding sanity (zero theta with open positions)", () => {
     it("bands correctly between positive/zero/negative theta constants", () => {
       expect(INCOME_POSITIVE_THETA_BASE_SCORE).toBeGreaterThan(INCOME_ZERO_THETA_BASE_SCORE);
+    });
+  });
+
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  // Proves the new watchlistReview section is a plain, honest,
+  // ownership-scoped read of the user's own value_watchlist rows — zero
+  // new scoring, never fabricated for an empty or another user's watchlist.
+  describe("watchlistReview (Phase 12)", () => {
+    let userId: string;
+    beforeAll(async () => {
+      userId = await createUser("watchlist-review");
+    });
+    afterAll(async () => {
+      await cleanupUser(userId);
+    });
+
+    it("honestly reports zero items for a user with no watchlist", async () => {
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.watchlistReview.itemCount).toBe(0);
+      expect(result.watchlistReview.items).toEqual([]);
+      expect(result.watchlistReview.summary).toMatch(/empty/i);
+    });
+
+    it("reflects real watchlist rows and correctly counts Buy vs. Trim/Avoid decisions", async () => {
+      await db.insert(valueWatchlistTable).values([
+        {
+          userId,
+          symbol: "WRPA",
+          category: "Researching",
+          marginOfSafetyTarget: 25,
+          reason: "",
+          currentDecision: "LONG-TERM BUY",
+        },
+        {
+          userId,
+          symbol: "WRPB",
+          category: "Researching",
+          marginOfSafetyTarget: 25,
+          reason: "",
+          currentDecision: "TRIM",
+        },
+        {
+          userId,
+          symbol: "WRPC",
+          category: "Researching",
+          marginOfSafetyTarget: 25,
+          reason: "",
+          currentDecision: "WATCHLIST",
+        },
+      ]);
+
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.watchlistReview.itemCount).toBe(3);
+      const symbols = result.watchlistReview.items.map((i) => i.symbol).sort();
+      expect(symbols).toEqual(["WRPA", "WRPB", "WRPC"]);
+      expect(result.watchlistReview.summary).toContain("3 compan");
+      expect(result.watchlistReview.summary).toMatch(/1 carr.*favourable/);
+      expect(result.watchlistReview.summary).toMatch(/1 carr.*Trim\/Avoid/);
+    });
+
+    it("never mixes in another user's watchlist rows", async () => {
+      const otherUserId = await createUser("watchlist-review-other");
+      await db.insert(valueWatchlistTable).values({
+        userId: otherUserId,
+        symbol: "OTHR",
+        category: "Researching",
+        marginOfSafetyTarget: 25,
+        reason: "",
+        currentDecision: "HOLD",
+      });
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.watchlistReview.items.some((i) => i.symbol === "OTHR")).toBe(false);
+      await cleanupUser(otherUserId);
     });
   });
 });

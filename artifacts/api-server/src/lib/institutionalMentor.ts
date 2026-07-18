@@ -53,7 +53,7 @@
 // itself calls none of those, so it triggers no write of its own at all.
 
 import { and, desc, eq, gte, lt } from "drizzle-orm";
-import { db, intelligenceSnapshotsTable, type IntelligenceSnapshotRow } from "@workspace/db";
+import { db, intelligenceSnapshotsTable, valueWatchlistTable, type IntelligenceSnapshotRow } from "@workspace/db";
 import {
   buildPortfolioDashboard,
   type PortfolioDashboardResult,
@@ -786,6 +786,69 @@ async function weeklyDiversificationTrend(userId: string, now: Date): Promise<Tr
   return computeTrend(rows[rows.length - 1].diversificationScore, rows[0].diversificationScore).direction;
 }
 
+// Phase 12 — Institutional Investing Engine Consolidation & Integration.
+// A single, plain, ownership-scoped read of the user's own Engine 1 Value
+// Watchlist (value_watchlist, Phase 2 Sprint 27) — a bounded, additive
+// integration point the repository audit identified as missing. This
+// introduces ZERO new scoring: currentDecision/marginOfSafetyTarget are
+// already-stored fields on the watchlist row itself, written when the
+// user added or last researched the symbol via Engine 1's own /value-watchlist
+// routes. The only genuinely new logic here is a plain count-and-bucket
+// summary sentence over those already-stored decision strings.
+export interface WatchlistReviewItem {
+  symbol: string;
+  category: string;
+  currentDecision: string;
+  marginOfSafetyTarget: number;
+  reason: string;
+  lastResearchedAt: string | null;
+}
+
+export interface WatchlistReview {
+  itemCount: number;
+  items: WatchlistReviewItem[];
+  summary: string;
+}
+
+const WATCHLIST_REVIEW_LIMIT = 10;
+const POSITIVE_DECISIONS = new Set(["LONG-TERM BUY", "BUY ONLY ON PULLBACK"]);
+const NEGATIVE_DECISIONS = new Set(["TRIM", "AVOID"]);
+
+async function buildWatchlistReview(userId: string): Promise<WatchlistReview> {
+  const rows = await db
+    .select()
+    .from(valueWatchlistTable)
+    .where(eq(valueWatchlistTable.userId, userId))
+    .orderBy(desc(valueWatchlistTable.createdAt))
+    .limit(WATCHLIST_REVIEW_LIMIT);
+
+  const items: WatchlistReviewItem[] = rows.map((r) => ({
+    symbol: r.symbol,
+    category: r.category,
+    currentDecision: r.currentDecision,
+    marginOfSafetyTarget: r.marginOfSafetyTarget,
+    reason: r.reason,
+    lastResearchedAt: r.lastResearchedAt ? r.lastResearchedAt.toISOString() : null,
+  }));
+
+  if (items.length === 0) {
+    return {
+      itemCount: 0,
+      items,
+      summary: "Your Institutional Investing watchlist is empty. Research a company on the Value Research page and add it to your watchlist to see it reviewed here.",
+    };
+  }
+
+  const positive = items.filter((i) => POSITIVE_DECISIONS.has(i.currentDecision)).length;
+  const negative = items.filter((i) => NEGATIVE_DECISIONS.has(i.currentDecision)).length;
+  const summary =
+    `You are tracking ${items.length} compan${items.length === 1 ? "y" : "ies"} on your long-term investing watchlist. ` +
+    `${positive} carr${positive === 1 ? "ies" : "y"} a favourable (Buy) decision from the deterministic value-investing engine, ` +
+    `${negative} carr${negative === 1 ? "ies" : "y"} a Trim/Avoid decision, and the remainder sit at Watchlist/Hold.`;
+
+  return { itemCount: items.length, items, summary };
+}
+
 // ─── Top-level assembly ──────────────────────────────────────────────────────
 
 export interface InstitutionalMentorResult {
@@ -800,6 +863,7 @@ export interface InstitutionalMentorResult {
   incomeReview: IncomeReview;
   behaviourReview: BehaviourReview;
   learningSummary: MentorLearningSummary;
+  watchlistReview: WatchlistReview;
   generatedAt: string;
 }
 
@@ -832,6 +896,7 @@ export async function buildInstitutionalMentor(userId: string, now: Date = new D
   const incomeReview = buildIncomeReview(theta, priorRow);
   const behaviourReview = buildBehaviourReview(journal);
   const learningSummary = buildLearningSummary();
+  const watchlistReview = await buildWatchlistReview(userId);
 
   return {
     paperTradingMode: true,
@@ -845,6 +910,7 @@ export async function buildInstitutionalMentor(userId: string, now: Date = new D
     incomeReview,
     behaviourReview,
     learningSummary,
+    watchlistReview,
     generatedAt: now.toISOString(),
   };
 }

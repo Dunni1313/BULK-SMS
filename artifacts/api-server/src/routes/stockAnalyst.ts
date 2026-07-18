@@ -12,6 +12,7 @@ import {
   stockAnalysisHistoryTable,
   valueWatchlistTable,
   valueQuizResultsTable,
+  investingResearchNotesTable,
 } from "@workspace/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import {
@@ -41,10 +42,18 @@ import {
   GetMacroContextResponse,
   NarrateInvestmentCommitteeBody,
   NarrateInvestmentCommitteeResponse,
+  GetResearchNotesResponse,
+  AddResearchNoteBody,
+  AddResearchNoteResponse,
+  UpdateResearchNoteBody,
+  UpdateResearchNoteResponse,
+  DeleteResearchNoteResponse,
+  GetInvestmentThesisResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider, resolveFundamentals } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
+import { buildInvestmentThesis } from "../lib/investmentThesisGenerator.js";
 import { buildMacroContext } from "../lib/investingMacro.js";
 import { todayStr } from "../lib/deterministic.js";
 import { computeWatchlistTargets } from "../lib/watchlistTargets.js";
@@ -712,6 +721,85 @@ router.delete("/value-watchlist/:id", async (req, res): Promise<void> => {
   res.json(DeleteValueWatchlistResponse.parse({ success: !!row }));
 });
 
+// ─── Research Notes (Phase 12) ─────────────────────────────────────────────────
+// Free-text, per-user, per-symbol notes. Deliberately NOT tied to a watchlist
+// row by foreign key — a note can exist for a symbol never added to (or since
+// removed from) the watchlist, matching journal_entries.trade_id's own loose,
+// unenforced-reference precedent. Never fabricated, never AI-generated: this is
+// the user's own durable, free-text record.
+function researchNoteItem(r: typeof investingResearchNotesTable.$inferSelect) {
+  return {
+    id: r.id,
+    symbol: r.symbol,
+    note: r.note,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+  };
+}
+
+router.get("/research-notes/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const symbol = req.params.symbol.toUpperCase();
+  const rows = await db
+    .select()
+    .from(investingResearchNotesTable)
+    .where(and(eq(investingResearchNotesTable.userId, userId), eq(investingResearchNotesTable.symbol, symbol)))
+    .orderBy(desc(investingResearchNotesTable.createdAt));
+  res.json(GetResearchNotesResponse.parse(rows.map(researchNoteItem)));
+});
+
+router.post("/research-notes", async (req, res): Promise<void> => {
+  const parsed = AddResearchNoteBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [row] = await db
+    .insert(investingResearchNotesTable)
+    .values({ userId, symbol: parsed.data.symbol.toUpperCase(), note: parsed.data.note })
+    .returning();
+  res.json(AddResearchNoteResponse.parse(researchNoteItem(row)));
+});
+
+router.patch("/research-notes/:id", async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "Invalid research note id" });
+    return;
+  }
+  const parsed = UpdateResearchNoteBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [row] = await db
+    .update(investingResearchNotesTable)
+    .set({ note: parsed.data.note, updatedAt: new Date() })
+    .where(and(eq(investingResearchNotesTable.id, id), eq(investingResearchNotesTable.userId, userId)))
+    .returning();
+  if (!row) {
+    res.status(404).json({ error: "Research note not found" });
+    return;
+  }
+  res.json(UpdateResearchNoteResponse.parse(researchNoteItem(row)));
+});
+
+router.delete("/research-notes/:id", async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "Invalid research note id" });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [row] = await db
+    .delete(investingResearchNotesTable)
+    .where(and(eq(investingResearchNotesTable.id, id), eq(investingResearchNotesTable.userId, userId)))
+    .returning({ id: investingResearchNotesTable.id });
+  res.json(DeleteResearchNoteResponse.parse({ success: !!row }));
+});
+
 // ─── Value Investing School ───────────────────────────────────────────────────
 router.get("/value-school", (_req, res): void => {
   res.json(GetValueLessonsResponse.parse(getValueLessons()));
@@ -790,6 +878,21 @@ router.get("/value/:symbol", async (req, res): Promise<void> => {
     return;
   }
   res.json(GetValueReportResponse.parse(report));
+});
+
+// Phase 12 — Investment Thesis Generator. Deterministic, template-based,
+// zero LLM calls: rebuilds the same ValueResearchReport /value/:symbol
+// itself builds (no new provider calls, no new scoring), then composes it
+// into a structured thesis via lib/investmentThesisGenerator.ts. 404 for an
+// unresolvable symbol, matching every other per-symbol route in this file.
+router.get("/investment-thesis/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(req.params.symbol, undefined, undefined, undefined, undefined, userId);
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  res.json(GetInvestmentThesisResponse.parse(buildInvestmentThesis(report)));
 });
 
 // Phase 2, Sprint 19 — full multi-year financial statements. Deliberately a

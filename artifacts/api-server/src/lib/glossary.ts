@@ -16,7 +16,8 @@ export type GlossaryCategory =
   | "strategies"
   | "portfolio"
   | "performance"
-  | "institutional";
+  | "institutional"
+  | "value-investing";
 
 export interface GlossaryTerm {
   key: string;
@@ -499,6 +500,152 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: ["probability-of-profit", "expectancy", "max-profit", "max-loss"],
     relatedLessonKeys: ["performance-expectancy"],
   },
+
+  // ─── Value Investing (Phase 12 — Institutional Investing Engine
+  // Consolidation & Integration). Every definition here describes an
+  // already-existing, already-tested Engine 1 concept
+  // (grahamValuation.ts/dcfValuation.ts/buffettValuation.ts/
+  // investmentQuality.ts/competitiveAdvantage.ts/tomNashEngine.ts/
+  // investmentCommittee.ts) — no new methodology is invented here, only
+  // its definition. relatedLessonKeys is intentionally empty for these:
+  // Value Investing School's own lessons (lib/valueSchool.ts) live in a
+  // separate id-space from lib/learningPaths.ts' topic keys. ─────────────
+  {
+    key: "margin-of-safety",
+    term: "Margin of Safety",
+    category: "value-investing",
+    definition: "The discount between a company's estimated fair (intrinsic) value and its current market price, expressed as a percentage. A larger margin of safety cushions an investor against errors in the valuation estimate or unforeseen bad news — Benjamin Graham's central risk-management idea.",
+    relatedTermKeys: ["intrinsic-value", "graham-number"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "intrinsic-value",
+    term: "Intrinsic Value",
+    category: "value-investing",
+    definition: "An estimate of what a business is actually worth, based on its underlying financials (earnings, assets, cash flow), independent of its current, possibly emotional, market price. Engine 1 computes several independent intrinsic-value estimates (Graham, DCF, Buffett, and a blended model) rather than a single number.",
+    relatedTermKeys: ["margin-of-safety", "discounted-cash-flow", "graham-number"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "economic-moat",
+    term: "Economic Moat",
+    category: "value-investing",
+    definition: "A durable competitive advantage that protects a company's profits from competitors over time — brand strength, network effects, switching costs, economies of scale, or regulatory protection. Rated Wide, Medium, Narrow, or None.",
+    relatedTermKeys: ["competitive-advantage-dimensions", "capital-allocation-value"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "competitive-advantage-dimensions",
+    term: "Competitive Advantage (11 Dimensions)",
+    category: "value-investing",
+    definition: "A broader, 11-dimension scoring framework beyond the classic economic moat — brand strength, network effects, switching costs, economies of scale, intangible assets, regulatory advantages, distribution, recurring revenue, cost advantages, competitive durability, and customer concentration risk.",
+    relatedTermKeys: ["economic-moat"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "return-on-invested-capital",
+    term: "Return on Invested Capital (ROIC)",
+    category: "value-investing",
+    definition: "How much operating profit a company generates for every dollar of capital (debt + equity) invested in the business. A consistently high ROIC, well above the company's cost of capital, is a hallmark of a durable competitive advantage.",
+    relatedTermKeys: ["return-on-equity", "capital-allocation-value"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "return-on-equity",
+    term: "Return on Equity (ROE)",
+    category: "value-investing",
+    definition: "Net income divided by shareholders' equity — how efficiently a company turns shareholders' own capital into profit. Unlike ROIC, ROE can be inflated by leverage (debt), so it is best read alongside debt levels and ROIC.",
+    relatedTermKeys: ["return-on-invested-capital"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "owner-earnings",
+    term: "Owner Earnings",
+    category: "value-investing",
+    definition: "Warren Buffett's preferred measure of a business's true cash-generating power, approximated here as free cash flow per share — the cash left over after the business reinvests what it needs to maintain its competitive position, available to be paid out to owners.",
+    relatedTermKeys: ["free-cash-flow", "discounted-cash-flow"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "graham-number",
+    term: "Graham Number",
+    category: "value-investing",
+    definition: "Benjamin Graham's conservative fair-value formula: the square root of (22.5 × trailing EPS × book value per share). Deliberately uses only trailing (already-reported) earnings, never a forward estimate, to avoid overpaying based on optimistic projections.",
+    relatedTermKeys: ["margin-of-safety", "intrinsic-value"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "discounted-cash-flow",
+    term: "Discounted Cash Flow (DCF)",
+    category: "value-investing",
+    definition: "A valuation method that projects a company's future free cash flows and discounts them back to a present value using a required rate of return, plus a terminal value for cash flows beyond the projection window. A historical, deterministic calculation applied to already-reported financials — not a prediction of a future stock price.",
+    relatedTermKeys: ["free-cash-flow", "owner-earnings", "intrinsic-value"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "free-cash-flow",
+    term: "Free Cash Flow (FCF)",
+    category: "value-investing",
+    definition: "Cash generated by operations minus capital expenditures — the cash a business actually has left over after keeping its operations running and its productive assets maintained, before any decision about dividends, buybacks, or debt paydown.",
+    relatedTermKeys: ["owner-earnings", "discounted-cash-flow"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "book-value",
+    term: "Book Value",
+    category: "value-investing",
+    definition: "A company's total assets minus its total liabilities, as reported on its balance sheet — a conservative, accounting-based measure of net worth used directly in the Graham Number formula.",
+    relatedTermKeys: ["graham-number"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "price-earnings-ratio",
+    term: "Price/Earnings (P/E) Ratio",
+    category: "value-investing",
+    definition: "Share price divided by earnings per share — the most common valuation shorthand, showing how many years of current earnings an investor is paying for. Best interpreted relative to a company's own trailing history and its industry peers, not in isolation.",
+    relatedTermKeys: ["ev-ebitda"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "ev-ebitda",
+    term: "EV/EBITDA",
+    category: "value-investing",
+    definition: "Enterprise Value divided by earnings before interest, taxes, depreciation, and amortization — a capital-structure-neutral valuation multiple that, unlike the P/E ratio, is unaffected by differences in debt levels or tax rates between companies.",
+    relatedTermKeys: ["price-earnings-ratio"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "circle-of-competence",
+    term: "Circle of Competence",
+    category: "value-investing",
+    definition: "Charlie Munger and Warren Buffett's discipline of only investing in businesses whose economics you can genuinely understand — how the business makes money, why it will likely keep making money, and what could destroy it. The boundary of the circle matters more than its size.",
+    relatedTermKeys: ["business-quality-score"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "business-quality-score",
+    term: "Business Quality Score",
+    category: "value-investing",
+    definition: "A 12-metric, 0-100 composite covering growth, margins, returns on capital, debt, cash position, and share dilution/buybacks — a structural read of how good the underlying business is, independent of whether its stock is currently cheap or expensive.",
+    relatedTermKeys: ["capital-allocation-value", "return-on-invested-capital"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "capital-allocation-value",
+    term: "Capital Allocation",
+    category: "value-investing",
+    definition: "How well a company's management deploys the cash it generates — reinvesting in the business, paying down debt, buying back shares, or paying dividends. Good capital allocation compounds shareholder value over time; poor allocation (e.g. diluting shareholders or overpaying for acquisitions) destroys it.",
+    relatedTermKeys: ["business-quality-score", "return-on-invested-capital"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "conviction-score",
+    term: "Conviction Score",
+    category: "value-investing",
+    definition: "A single 0-100 score blending Business Quality, Growth, Capital Allocation, Financial Strength, and Valuation into one composite read (the Tom Nash Conviction Engine), paired with a Buy/Hold/Wait classification — a summary of already-computed analysis, never a new prediction.",
+    relatedTermKeys: ["business-quality-score", "margin-of-safety"],
+    relatedLessonKeys: [],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {
@@ -520,5 +667,5 @@ export function getGlossaryTerm(key: string): GlossaryTerm | null {
 }
 
 export function glossaryCategories(): GlossaryCategory[] {
-  return ["foundations", "greeks", "volatility", "strategies", "portfolio", "performance", "institutional"];
+  return ["foundations", "greeks", "volatility", "strategies", "portfolio", "performance", "institutional", "value-investing"];
 }

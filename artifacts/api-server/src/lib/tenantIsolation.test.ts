@@ -47,6 +47,7 @@ import {
   learningProgressTable,
   dashboardWorkspacesTable,
   brokerReconciliationReportsTable,
+  investingResearchNotesTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -110,6 +111,8 @@ afterAll(async () => {
     dashboardWorkspacesTable,
     // Phase 11 — Live Market Operations & Production Validation's own new table.
     brokerReconciliationReportsTable,
+    // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+    investingResearchNotesTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -207,6 +210,15 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
     await assertTenantIsolation(valueWatchlistTable, userA, userB, (userId) => ({
       userId,
       symbol: "AAPL",
+    }));
+  });
+
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  it("investing_research_notes: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(investingResearchNotesTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "AAPL",
+      note: "test note",
     }));
   });
 
