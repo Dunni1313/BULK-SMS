@@ -33,6 +33,8 @@ import {
   getGetLearningPathsQueryKey,
   useGetInstitutionalIntelligence,
   getGetInstitutionalIntelligenceQueryKey,
+  useGetValueWatchlist,
+  getGetValueWatchlistQueryKey,
 } from "@workspace/api-client-react";
 import {
   CommandDialog,
@@ -49,7 +51,7 @@ import { QUICK_ACTIONS } from "@/lib/quick-actions";
 import { downloadPortfolioCsv } from "@/lib/portfolio-export";
 import { WORKFLOWS, type Workflow } from "@/lib/workflows";
 import { useToast } from "@/hooks/use-toast";
-import { Compass, Zap, Briefcase, BookOpen, Library, GraduationCap, Map, Sparkles, ListChecks } from "lucide-react";
+import { Compass, Zap, Briefcase, BookOpen, Library, GraduationCap, Map, Sparkles, ListChecks, Building2 } from "lucide-react";
 
 export interface CommandPaletteProps {
   open: boolean;
@@ -81,6 +83,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   });
   const { data: intelligence } = useGetInstitutionalIntelligence({
     query: { queryKey: getGetInstitutionalIntelligenceQueryKey(), enabled: open },
+  });
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  const { data: watchlist } = useGetValueWatchlist(undefined, {
+    query: { queryKey: getGetValueWatchlistQueryKey(), enabled: open },
   });
 
   function go(href: string) {
@@ -209,6 +215,27 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   <Briefcase className="h-4 w-4" />
                   <span>
                     {t.symbol} — {t.strategy.replace(/_/g, " ")}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {watchlist && watchlist.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Watchlist">
+              {watchlist.slice(0, 25).map((w) => (
+                <CommandItem
+                  key={w.id}
+                  value={`watchlist ${w.symbol} ${w.category}`}
+                  onSelect={() => go(`/stock-analyst?symbol=${w.symbol}`)}
+                  data-testid={`command-item-watchlist-${w.symbol}`}
+                >
+                  <Building2 className="h-4 w-4" />
+                  <span>
+                    {w.symbol} — {w.currentDecision}
                   </span>
                 </CommandItem>
               ))}

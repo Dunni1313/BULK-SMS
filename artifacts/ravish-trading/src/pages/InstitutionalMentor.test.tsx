@@ -137,6 +137,12 @@ function resultFixture(over: Record<string, unknown> = {}) {
       eventPreparation: learningLink({ category: "event_risk" }),
       behaviour: learningLink({ category: "behaviour", lessonHref: "/learn/paths/institutional/institutional-decision-quality", lessonTitle: "Decision Quality" }),
     },
+    // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+    watchlistReview: {
+      itemCount: 0,
+      items: [],
+      summary: "Your Institutional Investing watchlist is empty. Research a company on the Value Research page and add it to your watchlist to see it reviewed here.",
+    },
     generatedAt: "2026-07-17T12:00:00.000Z",
     ...over,
   };
@@ -263,5 +269,37 @@ describe("InstitutionalMentor page", () => {
     renderWithClient(<InstitutionalMentor />);
     expect(screen.queryByText(/place order|submit order|execute trade|buy now|sell now/i)).not.toBeInTheDocument();
     mockState.data = undefined;
+  });
+
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  describe("Watchlist Review", () => {
+    it("shows the honest empty-watchlist message and a link to research", () => {
+      mockState.data = resultFixture();
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-watchlist-review");
+      expect(within(card).getByText(/watchlist is empty/i)).toBeInTheDocument();
+      expect(within(card).getByTestId("link-watchlist-review-research")).toBeInTheDocument();
+      mockState.data = undefined;
+    });
+
+    it("lists real watchlist rows and their decisions when present", () => {
+      mockState.data = resultFixture({
+        watchlistReview: {
+          itemCount: 2,
+          items: [
+            { symbol: "AAPL", category: "Researching", currentDecision: "LONG-TERM BUY", marginOfSafetyTarget: 25, reason: "", lastResearchedAt: null },
+            { symbol: "TSLA", category: "Researching", currentDecision: "TRIM", marginOfSafetyTarget: 25, reason: "", lastResearchedAt: null },
+          ],
+          summary: "You are tracking 2 companies on your long-term investing watchlist. 1 carries a favourable (Buy) decision from the deterministic value-investing engine, 1 carries a Trim/Avoid decision, and the remainder sit at Watchlist/Hold.",
+        },
+      });
+      renderWithClient(<InstitutionalMentor />);
+      const list = screen.getByTestId("list-watchlist-review-items");
+      expect(within(list).getByText("AAPL")).toBeInTheDocument();
+      expect(within(list).getByText("LONG-TERM BUY")).toBeInTheDocument();
+      expect(within(list).getByText("TSLA")).toBeInTheDocument();
+      expect(within(list).getByText("TRIM")).toBeInTheDocument();
+      mockState.data = undefined;
+    });
   });
 });

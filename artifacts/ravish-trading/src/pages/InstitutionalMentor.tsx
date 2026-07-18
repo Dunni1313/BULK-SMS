@@ -17,6 +17,7 @@
 // anything.
 
 import { useGetInstitutionalMentor } from "@workspace/api-client-react";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -339,6 +340,39 @@ export default function InstitutionalMentor() {
               </CardContent>
             </Card>
           </div>
+
+          {/* ─── Watchlist Review (Phase 12) — a plain, ownership-scoped
+              read of the user's own Engine 1 Value Watchlist; zero new
+              scoring, since currentDecision/marginOfSafetyTarget are
+              already-stored fields on the watchlist row itself. ───────── */}
+          <Card className="bg-card border-border" data-testid="card-watchlist-review">
+            <CardHeader>
+              <CardTitle>Long-Term Investing Watchlist Review</CardTitle>
+              <CardDescription>Reuses the Institutional Investing Engine's own Value Watchlist directly — no new scoring.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm" data-testid="text-watchlist-review-summary">{result.watchlistReview.summary}</p>
+              {result.watchlistReview.itemCount === 0 ? (
+                <Link href="/stock-analyst" className="text-xs font-medium text-primary hover:underline" data-testid="link-watchlist-review-research">
+                  Research a company →
+                </Link>
+              ) : (
+                <div className="space-y-1.5" data-testid="list-watchlist-review-items">
+                  {result.watchlistReview.items.map((w) => (
+                    <div key={w.symbol} className="flex items-center justify-between text-sm">
+                      <span className="font-medium">{w.symbol}</span>
+                      <Badge variant="outline" className="text-[10px]">
+                        {w.currentDecision}
+                      </Badge>
+                    </div>
+                  ))}
+                  <Link href="/stock-analyst" className="text-xs font-medium text-primary hover:underline">
+                    Open Value Research →
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* ─── Institutional Lessons ───────────────────────────────────── */}
           <Card className="bg-card border-border" data-testid="card-institutional-lessons">

@@ -13,6 +13,7 @@ const mockState = vi.hoisted(() => ({
   strategies: undefined as unknown,
   learningPaths: undefined as unknown,
   intelligence: undefined as unknown,
+  watchlist: undefined as unknown,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -27,6 +28,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetStrategyAcademy: () => ({ data: mockState.strategies }),
     useGetLearningPaths: () => ({ data: mockState.learningPaths }),
     useGetInstitutionalIntelligence: () => ({ data: mockState.intelligence }),
+    useGetValueWatchlist: () => ({ data: mockState.watchlist }),
   };
 });
 
@@ -43,6 +45,7 @@ beforeEach(() => {
   mockState.strategies = [];
   mockState.learningPaths = [];
   mockState.intelligence = undefined;
+  mockState.watchlist = [];
   window.history.pushState(null, "", "/");
   vi.clearAllMocks();
 });
@@ -83,6 +86,17 @@ describe("CommandPalette", () => {
     expect(screen.getByTestId("command-item-position-42")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("command-item-position-42"));
     expect(window.location.pathname).toBe("/ticket/adjust/42");
+  });
+
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  it("shows a watchlist entry once fetched, and selecting it navigates to Value Research pre-filled with the symbol", () => {
+    mockState.watchlist = [{ id: 5, symbol: "AAPL", category: "Researching", currentDecision: "LONG-TERM BUY" }];
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    expect(screen.getByTestId("command-item-watchlist-AAPL")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("command-item-watchlist-AAPL"));
+    expect(window.location.pathname + window.location.search).toBe("/stock-analyst?symbol=AAPL");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it("Export Portfolio downloads a CSV of open positions and never navigates", () => {

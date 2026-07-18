@@ -45,6 +45,7 @@ import {
   getGetCrossEngineDailyReportQueryKey,
   useGetInstitutionalMentor,
   useGetPortfolioEventRisk,
+  useGetValueWatchlist,
   useListJournalEntries,
   useListNotifications,
   getListNotificationsQueryKey,
@@ -104,6 +105,7 @@ const WIDGET_TITLES: Record<string, string> = {
   "ai-briefing": "AI Portfolio Briefing",
   "mentor-summary": "Institutional Mentor Summary",
   "recent-activity": "Recent Activity",
+  "watchlist-summary": "Institutional Investing Watchlist",
   notifications: "Notifications",
   "quick-actions": "Quick Actions",
 };
@@ -385,6 +387,40 @@ function QuickActionsWidget({ openTrades }: { openTrades: Trade[] | undefined })
   );
 }
 
+// Phase 12 — Institutional Investing Engine Consolidation & Integration.
+// Reuses the exact same GET /value-watchlist hook Engine 1's own
+// StockResearch.tsx Watchlist tab already uses — zero new calculation.
+function WatchlistSummaryWidget() {
+  const { data, isLoading } = useGetValueWatchlist();
+  if (isLoading) return <Skeleton className="h-16 w-full" />;
+  if (!data || data.length === 0) {
+    return (
+      <div className="space-y-1" data-testid="widget-content-watchlist-summary">
+        <p className="text-sm text-muted-foreground">No names on your Institutional Investing watchlist yet.</p>
+        <Link href="/stock-analyst" className="text-xs font-medium text-primary hover:underline">
+          Research a company →
+        </Link>
+      </div>
+    );
+  }
+  const top = data.slice(0, 3);
+  return (
+    <div className="space-y-1.5" data-testid="widget-content-watchlist-summary">
+      {top.map((w) => (
+        <div key={w.id} className="flex items-center justify-between text-sm">
+          <span className="font-medium">{w.symbol}</span>
+          <Badge variant="outline" className="text-[10px]">
+            {w.currentDecision}
+          </Badge>
+        </div>
+      ))}
+      <Link href="/stock-analyst" className="text-xs font-medium text-primary hover:underline">
+        View all {data.length} →
+      </Link>
+    </div>
+  );
+}
+
 function renderWidgetContent(
   id: string,
   ctx: {
@@ -415,6 +451,8 @@ function renderWidgetContent(
       return <MentorSummaryWidget />;
     case "recent-activity":
       return <RecentActivityWidget />;
+    case "watchlist-summary":
+      return <WatchlistSummaryWidget />;
     case "notifications":
       return <NotificationsWidget />;
     case "quick-actions":
@@ -606,7 +644,21 @@ export default function Home() {
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
-    if (activeWorkspace) setLayout(activeWorkspace.widgetConfig as WidgetConfigEntry[]);
+    if (!activeWorkspace) return;
+    const stored = activeWorkspace.widgetConfig as WidgetConfigEntry[];
+    // Phase 12 — a workspace saved before "watchlist-summary" existed
+    // simply never had that id persisted. Reconcile by appending just this
+    // one new widget id (visible by default) when missing, so it becomes
+    // discoverable without requiring every existing workspace row to be
+    // migrated. Deliberately scoped to this one id only, not a general
+    // reconciliation of every possible future widget — narrower, and
+    // never changes behavior for any widget id that isn't this one.
+    if (stored.some((w) => w.id === "watchlist-summary")) {
+      setLayout(stored);
+      return;
+    }
+    const maxOrder = stored.reduce((m, w) => Math.max(m, w.order), -1);
+    setLayout([...stored, { id: "watchlist-summary", visible: true, size: "normal" as const, order: maxOrder + 1 }]);
   }, [activeWorkspace]);
 
   const { data: report } = useGetCrossEngineDailyReport({

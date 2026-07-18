@@ -20,6 +20,7 @@ const mockState = vi.hoisted(() => ({
   journalEntries: undefined as unknown,
   closedTrades: undefined as unknown,
   notifications: undefined as unknown,
+  watchlist: undefined as unknown,
   updateWorkspaceMutate: vi.fn(),
   activateWorkspaceMutate: vi.fn(),
   createWorkspaceMutate: vi.fn(),
@@ -49,6 +50,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetPortfolioEventRisk: () => ({ data: mockState.eventRisk, isLoading: false }),
     useListJournalEntries: () => ({ data: mockState.journalEntries }),
     useListNotifications: () => ({ data: mockState.notifications }),
+    useGetValueWatchlist: () => ({ data: mockState.watchlist, isLoading: false }),
   };
 });
 
@@ -86,6 +88,7 @@ beforeEach(() => {
   mockState.journalEntries = undefined;
   mockState.closedTrades = undefined;
   mockState.notifications = undefined;
+  mockState.watchlist = undefined;
   mockState.updateWorkspaceMutate = vi.fn();
   mockState.activateWorkspaceMutate = vi.fn();
   mockState.createWorkspaceMutate = vi.fn();
@@ -167,5 +170,40 @@ describe("Home (Institutional Home / Personal Dashboard)", () => {
     renderWithClient(<Home />);
     expect(screen.getByText("Everything looks stable today.")).toBeInTheDocument();
     expect(screen.getByText(/Open full daily report/)).toBeInTheDocument();
+  });
+
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  describe("watchlist-summary widget", () => {
+    it("is auto-reconciled into a workspace saved before this widget existed", () => {
+      // makeWorkspace()'s own fixture (4 widgets) predates "watchlist-summary".
+      mockState.activeWorkspace = makeWorkspace();
+      mockState.watchlist = [];
+      renderWithClient(<Home />);
+      expect(screen.getByTestId("widget-watchlist-summary")).toBeInTheDocument();
+    });
+
+    it("shows the honest empty state with no watchlist rows", () => {
+      mockState.activeWorkspace = makeWorkspace({
+        widgetConfig: [{ id: "watchlist-summary", visible: true, size: "normal", order: 0 }],
+      });
+      mockState.watchlist = [];
+      renderWithClient(<Home />);
+      expect(screen.getByText("No names on your Institutional Investing watchlist yet.")).toBeInTheDocument();
+    });
+
+    it("shows up to 3 real watchlist rows with their decisions, reusing GET /value-watchlist directly", () => {
+      mockState.activeWorkspace = makeWorkspace({
+        widgetConfig: [{ id: "watchlist-summary", visible: true, size: "normal", order: 0 }],
+      });
+      mockState.watchlist = [
+        { id: 1, symbol: "AAPL", currentDecision: "LONG-TERM BUY" },
+        { id: 2, symbol: "MSFT", currentDecision: "WATCHLIST" },
+      ];
+      renderWithClient(<Home />);
+      const widget = screen.getByTestId("widget-content-watchlist-summary");
+      expect(within(widget).getByText("AAPL")).toBeInTheDocument();
+      expect(within(widget).getByText("LONG-TERM BUY")).toBeInTheDocument();
+      expect(within(widget).getByText("View all 2 →")).toBeInTheDocument();
+    });
   });
 });
