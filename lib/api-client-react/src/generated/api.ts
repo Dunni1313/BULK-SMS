@@ -107,7 +107,9 @@ import type {
   LearningSimulationResult,
   LearningStrategyAcademyEntry,
   ListDailyReportsParams,
+  ListReconciliationReports200,
   ListTradesParams,
+  LiveMarketValidationReport,
   ManagementQualityAnalysis,
   MarketBriefingResponse,
   MarketDataHealth,
@@ -140,6 +142,8 @@ import type {
   QuizInput,
   QuizProgress,
   RavishScore,
+  ReconciliationReportDetail,
+  ReconciliationReportSummary,
   ReconciliationResult,
   RecordLearningItemCompleted200,
   RecordLearningItemViewed200,
@@ -346,6 +350,84 @@ export function useGetMonitoringStatus<TData = Awaited<ReturnType<typeof getMoni
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMonitoringStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMarketDataValidationUrl = () => {
+
+
+
+
+  return `/api/ops/market-data-validation`
+}
+
+/**
+ * Consolidates the Options Engine's provider selection, Engine 1's per-provider fundamentals status, Engine 2's market data provider, and the US market clock/calendar into one report — staleness and missing-data are flagged in the context of whether the market is actually open right now. Requires the "admin" role.
+ * @summary Administrator-only cross-provider live market data validation report
+ */
+export const getMarketDataValidation = async ( options?: RequestInit): Promise<LiveMarketValidationReport> => {
+
+  return customFetch<LiveMarketValidationReport>(getGetMarketDataValidationUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMarketDataValidationQueryKey = () => {
+    return [
+    `/api/ops/market-data-validation`
+    ] as const;
+    }
+
+
+export const getGetMarketDataValidationQueryOptions = <TData = Awaited<ReturnType<typeof getMarketDataValidation>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketDataValidation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMarketDataValidationQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMarketDataValidation>>> = ({ signal }) => getMarketDataValidation({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMarketDataValidation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMarketDataValidationQueryResult = NonNullable<Awaited<ReturnType<typeof getMarketDataValidation>>>
+export type GetMarketDataValidationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Administrator-only cross-provider live market data validation report
+ */
+
+export function useGetMarketDataValidation<TData = Awaited<ReturnType<typeof getMarketDataValidation>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketDataValidation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMarketDataValidationQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -1205,6 +1287,230 @@ export function useGetBrokerReconciliation<TData = Awaited<ReturnType<typeof get
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetBrokerReconciliationQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListReconciliationReportsUrl = () => {
+
+
+
+
+  return `/api/broker/reconciliation/reports`
+}
+
+/**
+ * @summary List the calling user's own persisted reconciliation report history, newest first
+ */
+export const listReconciliationReports = async ( options?: RequestInit): Promise<ListReconciliationReports200> => {
+
+  return customFetch<ListReconciliationReports200>(getListReconciliationReportsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReconciliationReportsQueryKey = () => {
+    return [
+    `/api/broker/reconciliation/reports`
+    ] as const;
+    }
+
+
+export const getListReconciliationReportsQueryOptions = <TData = Awaited<ReturnType<typeof listReconciliationReports>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReconciliationReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReconciliationReportsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReconciliationReports>>> = ({ signal }) => listReconciliationReports({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReconciliationReports>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListReconciliationReportsQueryResult = NonNullable<Awaited<ReturnType<typeof listReconciliationReports>>>
+export type ListReconciliationReportsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's own persisted reconciliation report history, newest first
+ */
+
+export function useListReconciliationReports<TData = Awaited<ReturnType<typeof listReconciliationReports>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReconciliationReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListReconciliationReportsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateReconciliationReportUrl = () => {
+
+
+
+
+  return `/api/broker/reconciliation/reports`
+}
+
+/**
+ * @summary Run a fresh reconciliation and persist a snapshot of it — explicit trigger only, never on a schedule
+ */
+export const createReconciliationReport = async ( options?: RequestInit): Promise<ReconciliationReportSummary> => {
+
+  return customFetch<ReconciliationReportSummary>(getCreateReconciliationReportUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateReconciliationReportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReconciliationReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createReconciliationReport>>, TError,void, TContext> => {
+
+const mutationKey = ['createReconciliationReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReconciliationReport>>, void> = () => {
+
+
+          return  createReconciliationReport(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateReconciliationReportMutationResult = NonNullable<Awaited<ReturnType<typeof createReconciliationReport>>>
+
+    export type CreateReconciliationReportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run a fresh reconciliation and persist a snapshot of it — explicit trigger only, never on a schedule
+ */
+export const useCreateReconciliationReport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReconciliationReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createReconciliationReport>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCreateReconciliationReportMutationOptions(options));
+    }
+
+export const getGetReconciliationReportUrl = (id: number,) => {
+
+
+
+
+  return `/api/broker/reconciliation/reports/${id}`
+}
+
+/**
+ * @summary Get one persisted reconciliation report's full detail, by id
+ */
+export const getReconciliationReport = async (id: number, options?: RequestInit): Promise<ReconciliationReportDetail> => {
+
+  return customFetch<ReconciliationReportDetail>(getGetReconciliationReportUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReconciliationReportQueryKey = (id: number,) => {
+    return [
+    `/api/broker/reconciliation/reports/${id}`
+    ] as const;
+    }
+
+
+export const getGetReconciliationReportQueryOptions = <TData = Awaited<ReturnType<typeof getReconciliationReport>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReconciliationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReconciliationReportQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReconciliationReport>>> = ({ signal }) => getReconciliationReport(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReconciliationReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReconciliationReportQueryResult = NonNullable<Awaited<ReturnType<typeof getReconciliationReport>>>
+export type GetReconciliationReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get one persisted reconciliation report's full detail, by id
+ */
+
+export function useGetReconciliationReport<TData = Awaited<ReturnType<typeof getReconciliationReport>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReconciliationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReconciliationReportQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -87,6 +87,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/MonitoringStatus"
 
+  /ops/market-data-validation:
+    get:
+      operationId: getMarketDataValidation
+      tags: [ops]
+      summary: Administrator-only cross-provider live market data validation report
+      description: >-
+        Consolidates the Options Engine's provider selection, Engine 1's
+        per-provider fundamentals status, Engine 2's market data provider,
+        and the US market clock/calendar into one report — staleness and
+        missing-data are flagged in the context of whether the market is
+        actually open right now. Requires the "admin" role.
+      responses:
+        "200":
+          description: Live market data validation report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveMarketValidationReport"
+        "401":
+          description: Not authenticated
+        "403":
+          description: Authenticated but not an administrator
+
   # ─── Scanner ───────────────────────────────────────────────────────────────
   /scanner/results:
     get:
@@ -289,6 +312,57 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ReconciliationResult"
+
+  /broker/reconciliation/reports:
+    get:
+      operationId: listReconciliationReports
+      tags: [broker]
+      summary: List the calling user's own persisted reconciliation report history, newest first
+      responses:
+        "200":
+          description: Reconciliation report history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reports]
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ReconciliationReportSummary"
+    post:
+      operationId: createReconciliationReport
+      tags: [broker]
+      summary: Run a fresh reconciliation and persist a snapshot of it — explicit trigger only, never on a schedule
+      responses:
+        "201":
+          description: The newly-persisted reconciliation report summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReconciliationReportSummary"
+
+  /broker/reconciliation/reports/{id}:
+    get:
+      operationId: getReconciliationReport
+      tags: [broker]
+      summary: Get one persisted reconciliation report's full detail, by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reconciliation report detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReconciliationReportDetail"
+        "404":
+          description: No such report, or it does not belong to the calling user
 
   # ─── Options Chain ─────────────────────────────────────────────────────────
   /options/chain/{symbol}:
@@ -4435,6 +4509,65 @@ components:
         severity: { type: string, enum: [warning, critical] }
         message: { type: string }
 
+    MarketDataSourceStatus:
+      type: object
+      required: [engine, source, connected, keyPresent, lastSuccessAt, staleMinutes, stale, missingData, message]
+      properties:
+        engine: { type: string, enum: [options, investing, trading] }
+        source: { type: string }
+        connected: { type: boolean }
+        keyPresent: { type: ["boolean", "null"] }
+        lastSuccessAt: { type: ["string", "null"] }
+        staleMinutes: { type: ["number", "null"] }
+        stale: { type: boolean }
+        missingData: { type: boolean }
+        message: { type: string }
+
+    MarketClockStatus:
+      type: object
+      required: [source, isOpen, currentTimeEt, nextOpen, nextClose, reason]
+      properties:
+        source: { type: string, enum: [alpaca, static_approximation] }
+        isOpen: { type: boolean }
+        currentTimeEt: { type: string }
+        nextOpen: { type: ["string", "null"] }
+        nextClose: { type: ["string", "null"] }
+        reason: { type: string }
+
+    LiveMarketValidationReport:
+      type: object
+      required:
+        [
+          generatedAt,
+          marketClock,
+          optionsEngine,
+          investingEngine,
+          tradingEngine,
+          conflictingProviderDetection,
+          overallStale,
+          overallMissingData,
+        ]
+      properties:
+        generatedAt: { type: string }
+        marketClock:
+          $ref: "#/components/schemas/MarketClockStatus"
+        optionsEngine:
+          $ref: "#/components/schemas/MarketDataSourceStatus"
+        investingEngine:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarketDataSourceStatus"
+        tradingEngine:
+          $ref: "#/components/schemas/MarketDataSourceStatus"
+        conflictingProviderDetection:
+          type: object
+          required: [applicable, reason]
+          properties:
+            applicable: { type: boolean, enum: [false] }
+            reason: { type: string }
+        overallStale: { type: boolean }
+        overallMissingData: { type: boolean }
+
     MonitoringStatus:
       type: object
       required: [status, timestamp, database, jobs, requestMetrics, auditSignals, alerts]
@@ -7438,6 +7571,50 @@ components:
         fullyReconciled:
           type: boolean
           description: True only when available and zero issues were found across every order and position entry.
+
+    ReconciliationReportSummary:
+      type: object
+      required:
+        [
+          id,
+          generatedAt,
+          available,
+          unavailableReason,
+          localOrdersConsidered,
+          brokerOrdersConsidered,
+          issueCount,
+          fullyReconciled,
+          createdAt,
+        ]
+      properties:
+        id:
+          type: integer
+        generatedAt:
+          type: string
+        available:
+          type: boolean
+        unavailableReason:
+          type: ["string", "null"]
+        localOrdersConsidered:
+          type: integer
+        brokerOrdersConsidered:
+          type: integer
+        issueCount:
+          type: integer
+        fullyReconciled:
+          type: boolean
+        createdAt:
+          type: string
+          description: When this snapshot was persisted (distinct from generatedAt, the moment the comparison itself ran).
+
+    ReconciliationReportDetail:
+      allOf:
+        - $ref: "#/components/schemas/ReconciliationReportSummary"
+        - type: object
+          required: [detail]
+          properties:
+            detail:
+              $ref: "#/components/schemas/ReconciliationResult"
 
     # ─── Performance ───────────────────────────────────────────────────────────
     PerformanceAnalytics:

@@ -61,6 +61,62 @@ export const GetMonitoringStatusResponse = zod.object({
 
 
 /**
+ * Consolidates the Options Engine's provider selection, Engine 1's per-provider fundamentals status, Engine 2's market data provider, and the US market clock/calendar into one report — staleness and missing-data are flagged in the context of whether the market is actually open right now. Requires the "admin" role.
+ * @summary Administrator-only cross-provider live market data validation report
+ */
+export const GetMarketDataValidationResponse = zod.object({
+  "generatedAt": zod.string(),
+  "marketClock": zod.object({
+  "source": zod.enum(['alpaca', 'static_approximation']),
+  "isOpen": zod.boolean(),
+  "currentTimeEt": zod.string(),
+  "nextOpen": zod.string().nullable(),
+  "nextClose": zod.string().nullable(),
+  "reason": zod.string()
+}),
+  "optionsEngine": zod.object({
+  "engine": zod.enum(['options', 'investing', 'trading']),
+  "source": zod.string(),
+  "connected": zod.boolean(),
+  "keyPresent": zod.boolean().nullable(),
+  "lastSuccessAt": zod.string().nullable(),
+  "staleMinutes": zod.number().nullable(),
+  "stale": zod.boolean(),
+  "missingData": zod.boolean(),
+  "message": zod.string()
+}),
+  "investingEngine": zod.array(zod.object({
+  "engine": zod.enum(['options', 'investing', 'trading']),
+  "source": zod.string(),
+  "connected": zod.boolean(),
+  "keyPresent": zod.boolean().nullable(),
+  "lastSuccessAt": zod.string().nullable(),
+  "staleMinutes": zod.number().nullable(),
+  "stale": zod.boolean(),
+  "missingData": zod.boolean(),
+  "message": zod.string()
+})),
+  "tradingEngine": zod.object({
+  "engine": zod.enum(['options', 'investing', 'trading']),
+  "source": zod.string(),
+  "connected": zod.boolean(),
+  "keyPresent": zod.boolean().nullable(),
+  "lastSuccessAt": zod.string().nullable(),
+  "staleMinutes": zod.number().nullable(),
+  "stale": zod.boolean(),
+  "missingData": zod.boolean(),
+  "message": zod.string()
+}),
+  "conflictingProviderDetection": zod.object({
+  "applicable": zod.literal(false),
+  "reason": zod.string()
+}),
+  "overallStale": zod.boolean(),
+  "overallMissingData": zod.boolean()
+})
+
+
+/**
  * @summary Get latest scanner results
  */
 export const getScannerResultsQueryLimitDefault = 20;
@@ -452,6 +508,76 @@ export const GetBrokerReconciliationResponse = zod.object({
   "issueCount": zod.number(),
   "fullyReconciled": zod.boolean().describe('True only when available and zero issues were found across every order and position entry.')
 })
+
+
+/**
+ * @summary List the calling user's own persisted reconciliation report history, newest first
+ */
+export const ListReconciliationReportsResponse = zod.object({
+  "reports": zod.array(zod.object({
+  "id": zod.number(),
+  "generatedAt": zod.string(),
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "localOrdersConsidered": zod.number(),
+  "brokerOrdersConsidered": zod.number(),
+  "issueCount": zod.number(),
+  "fullyReconciled": zod.boolean(),
+  "createdAt": zod.string().describe('When this snapshot was persisted (distinct from generatedAt, the moment the comparison itself ran).')
+}))
+})
+
+
+/**
+ * @summary Get one persisted reconciliation report's full detail, by id
+ */
+export const GetReconciliationReportParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetReconciliationReportResponse = zod.object({
+  "id": zod.number(),
+  "generatedAt": zod.string(),
+  "available": zod.boolean(),
+  "unavailableReason": zod.string().nullable(),
+  "localOrdersConsidered": zod.number(),
+  "brokerOrdersConsidered": zod.number(),
+  "issueCount": zod.number(),
+  "fullyReconciled": zod.boolean(),
+  "createdAt": zod.string().describe('When this snapshot was persisted (distinct from generatedAt, the moment the comparison itself ran).')
+}).and(zod.object({
+  "detail": zod.object({
+  "available": zod.boolean().describe('False when credentials are missing or Alpaca could not be reached\/authenticated — never a fabricated reconciled result in that case.'),
+  "unavailableReason": zod.string().nullable(),
+  "generatedAt": zod.string().describe('When this reconciliation was computed — the manual, on-demand \"last reconciliation time.\"'),
+  "localOrdersConsidered": zod.number().describe('Count of local, trackable (non-mock, non-closed) trade records compared.'),
+  "brokerOrdersConsidered": zod.number(),
+  "orders": zod.array(zod.object({
+  "tradeId": zod.number().nullable(),
+  "alpacaOrderId": zod.string().nullable(),
+  "localSymbol": zod.string().nullable(),
+  "brokerSymbol": zod.string().nullable(),
+  "localStatus": zod.union([zod.enum(['pending', 'open', 'closed', 'unknown']).describe('The local trades table\'s own coarse status vocabulary, normalized for comparison against NormalizedOrderStatus.'),zod.null()]),
+  "brokerStatus": zod.union([zod.enum(['new', 'accepted', 'pending', 'partially_filled', 'filled', 'cancelled', 'rejected', 'expired', 'unknown']).describe('This platform\'s own normalized order-lifecycle bucket, mapped from Alpaca\'s larger raw status vocabulary — see lib\/providers\/alpacaOrderLifecycle.ts.'),zod.null()]),
+  "brokerRawStatus": zod.string().nullable(),
+  "localQuantity": zod.number().nullable(),
+  "brokerQuantity": zod.number().nullable(),
+  "filledQuantity": zod.number().nullable(),
+  "averageFillPrice": zod.number().nullable(),
+  "issues": zod.array(zod.enum(['missing_at_broker', 'missing_locally', 'status_mismatch', 'quantity_mismatch', 'symbol_mismatch']))
+})),
+  "positions": zod.array(zod.object({
+  "occSymbol": zod.string(),
+  "tradeId": zod.number().nullable(),
+  "localQuantity": zod.number().nullable(),
+  "brokerQuantity": zod.number().nullable(),
+  "mismatch": zod.boolean(),
+  "detail": zod.string()
+})),
+  "issueCount": zod.number(),
+  "fullyReconciled": zod.boolean().describe('True only when available and zero issues were found across every order and position entry.')
+})
+}))
 
 
 /**

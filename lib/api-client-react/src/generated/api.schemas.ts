@@ -1422,6 +1422,65 @@ export interface MonitoringAlert {
   message: string;
 }
 
+export type MarketDataSourceStatusEngine = typeof MarketDataSourceStatusEngine[keyof typeof MarketDataSourceStatusEngine];
+
+
+export const MarketDataSourceStatusEngine = {
+  options: 'options',
+  investing: 'investing',
+  trading: 'trading',
+} as const;
+
+export interface MarketDataSourceStatus {
+  engine: MarketDataSourceStatusEngine;
+  source: string;
+  connected: boolean;
+  /** @nullable */
+  keyPresent: boolean | null;
+  /** @nullable */
+  lastSuccessAt: string | null;
+  /** @nullable */
+  staleMinutes: number | null;
+  stale: boolean;
+  missingData: boolean;
+  message: string;
+}
+
+export type MarketClockStatusSource = typeof MarketClockStatusSource[keyof typeof MarketClockStatusSource];
+
+
+export const MarketClockStatusSource = {
+  alpaca: 'alpaca',
+  static_approximation: 'static_approximation',
+} as const;
+
+export interface MarketClockStatus {
+  source: MarketClockStatusSource;
+  isOpen: boolean;
+  currentTimeEt: string;
+  /** @nullable */
+  nextOpen: string | null;
+  /** @nullable */
+  nextClose: string | null;
+  reason: string;
+}
+
+export type LiveMarketValidationReportConflictingProviderDetection = {
+  applicable: false;
+  reason: string;
+};
+
+export interface LiveMarketValidationReport {
+  generatedAt: string;
+  marketClock: MarketClockStatus;
+  optionsEngine: MarketDataSourceStatus;
+  investingEngine: MarketDataSourceStatus[];
+  tradingEngine: MarketDataSourceStatus;
+  conflictingProviderDetection: LiveMarketValidationReportConflictingProviderDetection;
+  overallStale: boolean;
+  overallMissingData: boolean;
+}
+
 export type MonitoringStatusStatus = typeof MonitoringStatusStatus[keyof typeof MonitoringStatusStatus];
 
 
@@ -4034,6 +4093,24 @@ export interface ReconciliationResult {
   fullyReconciled: boolean;
 }
 
+export interface ReconciliationReportSummary {
+  id: number;
+  generatedAt: string;
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  localOrdersConsidered: number;
+  brokerOrdersConsidered: number;
+  issueCount: number;
+  fullyReconciled: boolean;
+  /** When this snapshot was persisted (distinct from generatedAt, the moment the comparison itself ran). */
+  createdAt: string;
+}
+
+export type ReconciliationReportDetail = ReconciliationReportSummary & {
+  detail: ReconciliationResult;
+};
+
 export interface TickerStat {
   symbol: string;
   totalTrades: number;
@@ -6488,6 +6565,10 @@ export const GetScannerResultsStrategy = {
 
 export type GetUpcomingEventsParams = {
 horizonDays?: number;
+};
+
+export type ListReconciliationReports200 = {
+  reports: ReconciliationReportSummary[];
 };
 
 export type ListTradesParams = {
