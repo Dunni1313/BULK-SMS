@@ -23,6 +23,8 @@ import {
   checkAlpacaBrokerHealth,
   getLastSuccessfulBrokerCheck,
   getLastBrokerCheckConnected,
+  getAlpacaMarketClock,
+  getAlpacaMarketCalendar,
 } from "./alpacaBroker.js";
 
 function jsonResponse(status: number, data: unknown): Response {
@@ -518,5 +520,71 @@ describe("getAlpacaPosition (single position by symbol)", () => {
     const result = await getAlpacaPosition("AAPL", null);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.reason).toBe("network_error");
+  });
+});
+
+// Phase 11 — Live Market Operations & Production Validation.
+describe("getAlpacaMarketClock", () => {
+  it("is honestly unavailable with no credentials configured", async () => {
+    const result = await getAlpacaMarketClock(null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("no_credentials");
+  });
+
+  it("maps a real Alpaca /v2/clock response, camelCasing the raw fields", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse(200, {
+        timestamp: "2026-07-17T12:00:00-04:00",
+        is_open: true,
+        next_open: "2026-07-18T09:30:00-04:00",
+        next_close: "2026-07-17T16:00:00-04:00",
+      }),
+    );
+
+    const result = await getAlpacaMarketClock(null);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.isOpen).toBe(true);
+      expect(result.data.nextOpen).toBe("2026-07-18T09:30:00-04:00");
+      expect(result.data.nextClose).toBe("2026-07-17T16:00:00-04:00");
+    }
+  });
+
+  it("reports an unauthorized failure honestly, never fabricating a clock", async () => {
+    process.env.ALPACA_API_KEY = "bad";
+    process.env.ALPACA_API_SECRET = "bad";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(401, { message: "unauthorized" }));
+
+    const result = await getAlpacaMarketClock(null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("unauthorized");
+  });
+});
+
+describe("getAlpacaMarketCalendar", () => {
+  it("is honestly unavailable with no credentials configured", async () => {
+    const result = await getAlpacaMarketCalendar("2026-07-01", "2026-07-31", null);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("no_credentials");
+  });
+
+  it("returns the raw list of trading days for a real Alpaca /v2/calendar response", async () => {
+    process.env.ALPACA_API_KEY = "k";
+    process.env.ALPACA_API_SECRET = "s";
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse(200, [
+        { date: "2026-07-01", open: "09:30", close: "16:00" },
+        { date: "2026-07-02", open: "09:30", close: "16:00" },
+      ]),
+    );
+
+    const result = await getAlpacaMarketCalendar("2026-07-01", "2026-07-02", null);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0]).toEqual({ date: "2026-07-01", open: "09:30", close: "16:00" });
+    }
   });
 });

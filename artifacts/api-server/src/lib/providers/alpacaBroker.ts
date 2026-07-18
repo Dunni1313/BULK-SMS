@@ -382,3 +382,67 @@ export async function checkAlpacaBrokerHealth(settingsApiKey?: string | null): P
     checkedAt,
   };
 }
+
+// ─── Market clock & calendar (Phase 11 — Live Market Operations &
+// Production Validation) ───────────────────────────────────────────────
+//
+// GET /v2/clock and GET /v2/calendar are part of the same Alpaca Trading
+// API family as /v2/account/positions/orders above (same base URL, same
+// credentials) — added here rather than a separate module so every Alpaca
+// Trading API call in this codebase shares one client. lib/marketCalendar.ts
+// is the module that actually consumes these, falling back to a static
+// approximation when no credentials are configured; this file never
+// fabricates a clock/calendar value itself.
+
+export interface AlpacaMarketClock {
+  timestamp: string;
+  isOpen: boolean;
+  nextOpen: string;
+  nextClose: string;
+}
+
+export interface AlpacaCalendarDay {
+  date: string; // YYYY-MM-DD
+  open: string; // HH:MM, exchange-local
+  close: string; // HH:MM, exchange-local
+}
+
+interface RawAlpacaClock {
+  timestamp: string;
+  is_open: boolean;
+  next_open: string;
+  next_close: string;
+}
+
+export async function getAlpacaMarketClock(settingsApiKey?: string | null): Promise<BrokerResult<AlpacaMarketClock>> {
+  const creds = readAlpacaCreds(settingsApiKey);
+  if (!creds) return { ok: false, reason: "no_credentials", message: "No Alpaca API key/secret configured" };
+
+  const result = await alpacaGet<RawAlpacaClock>("/v2/clock", creds);
+  if (!result.ok) return result;
+
+  const raw = result.data;
+  return {
+    ok: true,
+    data: { timestamp: raw.timestamp, isOpen: raw.is_open, nextOpen: raw.next_open, nextClose: raw.next_close },
+  };
+}
+
+// start/end are YYYY-MM-DD (exchange-local calendar dates, no time
+// component) — matches Alpaca's own documented query parameter shape.
+export async function getAlpacaMarketCalendar(
+  start: string,
+  end: string,
+  settingsApiKey?: string | null,
+): Promise<BrokerResult<AlpacaCalendarDay[]>> {
+  const creds = readAlpacaCreds(settingsApiKey);
+  if (!creds) return { ok: false, reason: "no_credentials", message: "No Alpaca API key/secret configured" };
+
+  const result = await alpacaGet<AlpacaCalendarDay[]>(
+    `/v2/calendar?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+    creds,
+  );
+  if (!result.ok) return result;
+
+  return { ok: true, data: result.data };
+}
