@@ -1653,3 +1653,23 @@ to everything else in this codebase. Specifically for this document's scope:
   `NotificationBell`). Zero lines of `execution.ts`, `optionsMath.ts`,
   `risk.ts`, `autoExecution.ts`, or `autoAdjustment.ts` were touched —
   confirmed via `git diff --stat` before and after.
+- `docs/Live-Market-Validation.md` — Phase 11 (Live Market Operations &
+  Production Validation)'s own additions to `lib/providers/alpacaBroker.ts`:
+  `getAlpacaMarketClock()`/`getAlpacaMarketCalendar()` (the same Alpaca
+  Trading API family as the existing account/positions/orders calls,
+  added to the same file rather than a new one), consumed by a new
+  `lib/marketCalendar.ts` (a US market clock with a static, formula-
+  derived holiday-calendar fallback for when no Alpaca credentials are
+  configured) and a new cross-provider validation report,
+  `lib/liveMarketValidation.ts`, consolidating the Options Engine's,
+  Engine 1's, and Engine 2's own already-existing provider-status
+  systems — zero of which were rebuilt.
+- `docs/Broker-Reconciliation.md` — Phase 11's own persisted
+  reconciliation-report history (`broker_reconciliation_reports`,
+  `POST`/`GET /broker/reconciliation/reports`), built entirely on top
+  of this document's own §4 reconciliation comparison logic, which
+  remains completely unmodified.
+- `docs/Operations-Runbook.md` — Phase 11's own background-job audit,
+  the new Operations Dashboard (`/operations`, administrator-only via
+  the first role-based route gate in this codebase's history), and its
+  security review.

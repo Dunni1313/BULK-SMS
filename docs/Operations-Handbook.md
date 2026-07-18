@@ -652,6 +652,16 @@ Full detail: `docs/Institutional-Control-Center.md`.
 
 ---
 
+### 6.24 Using the Operations Dashboard (administrators only)
+
+**Phase 11 (Live Market Operations & Production Validation)** added `/operations` — an administrator-only page (`role = 'admin'`, gated server-side via `requireAdmin` and client-side for UX) showing API health, broker health, background-job scheduler health ("Queue Status" — honestly labeled, since this platform has no real message queue, only scheduler ticks), active alerts, live market data validation ("Data Freshness" — one consolidated read across the Options Engine, Engine 1, and Engine 2's own already-existing provider-status systems, plus a new US market clock/calendar), and recent broker reconciliation history with a "Run Reconciliation Now" button.
+
+There is no self-service way to become an administrator — see `docs/Operations-Runbook.md` §2 for the manual database action required.
+
+Full detail: `docs/Operations-Runbook.md`, `docs/Live-Market-Validation.md`, `docs/Broker-Reconciliation.md`.
+
+---
+
 ## 7. Escalation
 
 1. **First response:** consult this handbook's own §2–§6 for anything routine.
@@ -690,3 +700,7 @@ Full detail: `docs/Institutional-Control-Center.md`.
 - `.env.example` — the authoritative environment-variable inventory referenced in §5.
 - `docs/Institutional-Control-Center.md` — Phase 10 (Institutional Platform Polish & Control Center)'s own full detail, referenced in §6.23 above: Institutional Home's 13-widget Personal Dashboard, the Workspace System's own 7 routes and its active-workspace database guarantee, the Global Command Palette / Global Search dialog, the shared Quick Actions list, and the Notification Centre's 7-category read-only aggregation.
 - `docs/UI-Standards.md` — the codebase's own already-established frontend conventions (loading/error/empty states, badge-color semantics, spacing, typography), formalized as this phase's Consistency Review deliverable.
+- `docs/Operations-Runbook.md` — Phase 11 (Live Market Operations & Production Validation)'s own SRE/on-call reference, referenced in §6.24 above: the background-job audit (only 5 real scheduled processes exist platform-wide), administrator promotion, the Operations Dashboard, and the security review.
+- `docs/Live-Market-Validation.md` — the cross-provider live market data validation report and the new US market calendar/clock, referenced in §6.24 above.
+- `docs/Broker-Reconciliation.md` — the persisted reconciliation-reports history built on top of the existing, unmodified live reconciliation comparison, referenced in §6.24 above.
+- `docs/Production-GoLive-Checklist.md` — the current, consolidated go/no-go checklist incorporating this phase's own findings.
