@@ -31,6 +31,7 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 const Home = lazy(() => import("./pages/Home"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
+const OperationsDashboard = lazy(() => import("./pages/OperationsDashboard"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Scanner = lazy(() => import("./pages/Scanner"));
 const OptionChain = lazy(() => import("./pages/OptionChain"));
@@ -120,6 +121,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
           <Route path="/notifications" component={NotificationCentre} />
+          <Route path="/operations" component={OperationsDashboard} />
           <Route path="/options-dashboard" component={Dashboard} />
           <Route path="/scanner" component={Scanner} />
           <Route path="/options/:symbol" component={OptionChain} />

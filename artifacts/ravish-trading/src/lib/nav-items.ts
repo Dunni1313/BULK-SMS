@@ -53,6 +53,7 @@ import {
   Landmark,
   Home,
   Bell,
+  Server,
 } from "lucide-react";
 
 export interface NavItem {
@@ -68,6 +69,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Institutional Home", href: "/", icon: Home },
   { title: "Command Center", href: "/command-center", icon: LayoutDashboard },
   { title: "Notifications", href: "/notifications", icon: Bell },
+  { title: "Operations Dashboard", href: "/operations", icon: Server },
   { title: "Options Dashboard", href: "/options-dashboard", icon: BarChart3 },
   { title: "Portfolio AI", href: "/portfolio-ai", icon: BrainCircuit },
   { title: "Scanner", href: "/scanner", icon: Search },
