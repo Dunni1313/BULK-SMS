@@ -17,4 +17,5 @@ export const LearningPathGlossaryCategory = {
   portfolio: 'portfolio',
   performance: 'performance',
   institutional: 'institutional',
+  'value-investing': 'value-investing',
 } as const;

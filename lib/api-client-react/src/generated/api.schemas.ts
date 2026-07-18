@@ -1105,6 +1105,49 @@ export interface ValueWatchlistUpdate {
   currentDecision?: string;
 }
 
+export interface ResearchNoteItem {
+  id: number;
+  symbol: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResearchNoteCreate {
+  symbol: string;
+  note: string;
+}
+
+export interface ResearchNoteUpdate {
+  note: string;
+}
+
+export interface InvestmentThesisSection {
+  heading: string;
+  paragraphs: string[];
+}
+
+export type InvestmentThesisDataSource = typeof InvestmentThesisDataSource[keyof typeof InvestmentThesisDataSource];
+
+
+export const InvestmentThesisDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export interface InvestmentThesis {
+  symbol: string;
+  name: string;
+  asOf: string;
+  dataSource: InvestmentThesisDataSource;
+  generatedAt: string;
+  overview: string;
+  sections: InvestmentThesisSection[];
+  supportingPoints: string[];
+  riskFactors: string[];
+  disclaimer: string;
+}
+
 export interface ConstructionPortfolioSummary {
   id: number;
   name: string;
@@ -5765,6 +5808,7 @@ export const LearningGlossaryTermCategory = {
   portfolio: 'portfolio',
   performance: 'performance',
   institutional: 'institutional',
+  'value-investing': 'value-investing',
 } as const;
 
 export interface LearningGlossaryTerm {
@@ -5799,6 +5843,7 @@ export const LearningPathGlossaryCategory = {
   portfolio: 'portfolio',
   performance: 'performance',
   institutional: 'institutional',
+  'value-investing': 'value-investing',
 } as const;
 
 export interface LearningPath {
@@ -6533,6 +6578,22 @@ export interface MentorLearningSummary {
   behaviour: MentorLearningCrossLink;
 }
 
+export interface MentorWatchlistReviewItem {
+  symbol: string;
+  category: string;
+  currentDecision: string;
+  marginOfSafetyTarget: number;
+  reason: string;
+  /** @nullable */
+  lastResearchedAt: string | null;
+}
+
+export interface MentorWatchlistReview {
+  itemCount: number;
+  items: MentorWatchlistReviewItem[];
+  summary: string;
+}
+
 export interface InstitutionalMentorResult {
   paperTradingMode: true;
   deterministicAnalysis: true;
@@ -6545,6 +6606,7 @@ export interface InstitutionalMentorResult {
   incomeReview: MentorIncomeReview;
   behaviourReview: MentorBehaviourReview;
   learningSummary: MentorLearningSummary;
+  watchlistReview: MentorWatchlistReview;
   generatedAt: string;
 }
 

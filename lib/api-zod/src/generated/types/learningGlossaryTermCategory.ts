@@ -17,4 +17,5 @@ export const LearningGlossaryTermCategory = {
   portfolio: 'portfolio',
   performance: 'performance',
   institutional: 'institutional',
+  'value-investing': 'value-investing',
 } as const;

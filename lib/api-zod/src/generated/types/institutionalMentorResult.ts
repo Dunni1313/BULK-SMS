@@ -13,6 +13,7 @@ import type { MentorLearningSummary } from './mentorLearningSummary';
 import type { MentorProfessionalObservation } from './mentorProfessionalObservation';
 import type { MentorRiskReview } from './mentorRiskReview';
 import type { MentorScorecardEntry } from './mentorScorecardEntry';
+import type { MentorWatchlistReview } from './mentorWatchlistReview';
 
 export interface InstitutionalMentorResult {
   paperTradingMode: true;
@@ -26,5 +27,6 @@ export interface InstitutionalMentorResult {
   incomeReview: MentorIncomeReview;
   behaviourReview: MentorBehaviourReview;
   learningSummary: MentorLearningSummary;
+  watchlistReview: MentorWatchlistReview;
   generatedAt: string;
 }

@@ -2367,6 +2367,111 @@ paths:
               schema:
                 $ref: "#/components/schemas/DeleteResult"
 
+  /stock-analyst/research-notes/{symbol}:
+    get:
+      operationId: getResearchNotes
+      tags: [value]
+      summary: List the calling user's research notes for a symbol
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Research notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResearchNoteItem"
+
+  /stock-analyst/research-notes:
+    post:
+      operationId: addResearchNote
+      tags: [value]
+      summary: Add a research note for a symbol (free text, never AI-generated)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchNoteCreate"
+      responses:
+        "200":
+          description: Created note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchNoteItem"
+
+  /stock-analyst/research-notes/{id}:
+    patch:
+      operationId: updateResearchNote
+      tags: [value]
+      summary: Update a research note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchNoteUpdate"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchNoteItem"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteResearchNote
+      tags: [value]
+      summary: Delete a research note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /stock-analyst/investment-thesis/{symbol}:
+    get:
+      operationId: getInvestmentThesis
+      tags: [value]
+      summary: Deterministic, template-based Investment Thesis for a symbol (no LLM, no price prediction)
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Investment thesis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestmentThesis"
+        "404":
+          description: Unknown symbol
+
   /stock-analyst/value-school:
     get:
       operationId: getValueLessons
@@ -4160,6 +4265,65 @@ components:
         marginOfSafetyTarget: { type: number }
         reason: { type: string }
         currentDecision: { type: string }
+
+    # ─── Research Notes (Phase 12) — free-text, per-user, per-symbol notes.
+    # Never AI-generated, never tied to a watchlist row by foreign key. ────
+    ResearchNoteItem:
+      type: object
+      required: [id, symbol, note, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        note: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ResearchNoteCreate:
+      type: object
+      required: [symbol, note]
+      properties:
+        symbol: { type: string }
+        note: { type: string }
+
+    ResearchNoteUpdate:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string }
+
+    # ─── Investment Thesis Generator (Phase 12) — deterministic, template-
+    # based composition over an already-built ValueResearchReport. No LLM,
+    # no new scoring, no price prediction. ──────────────────────────────────
+    InvestmentThesisSection:
+      type: object
+      required: [heading, paragraphs]
+      properties:
+        heading: { type: string }
+        paragraphs:
+          type: array
+          items: { type: string }
+
+    InvestmentThesis:
+      type: object
+      required: [symbol, name, asOf, dataSource, generatedAt, overview, sections, supportingPoints, riskFactors, disclaimer]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        asOf: { type: string }
+        dataSource: { type: string, enum: [SIMULATED, LIVE] }
+        generatedAt: { type: string }
+        overview: { type: string }
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvestmentThesisSection"
+        supportingPoints:
+          type: array
+          items: { type: string }
+        riskFactors:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
 
     # ─── Portfolio Construction (Phase 2, Sprint 28; advisory/education only,
     # never places an order) ───────────────────────────────────────────────
@@ -10387,7 +10551,7 @@ components:
           type: string
         category:
           type: string
-          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional]
+          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing]
         definition:
           type: string
         relatedTermKeys:
@@ -10436,7 +10600,7 @@ components:
           type: string
         glossaryCategory:
           type: string
-          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional]
+          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing]
         topics:
           type: array
           items:
@@ -11636,6 +11800,32 @@ components:
         behaviour:
           $ref: "#/components/schemas/MentorLearningCrossLink"
 
+    # Phase 12 — a plain, ownership-scoped read of the user's own Engine 1
+    # Value Watchlist (value_watchlist), reviewed by the Institutional
+    # Mentor. Introduces no new scoring — currentDecision/marginOfSafetyTarget
+    # are already-stored fields on the watchlist row itself.
+    MentorWatchlistReviewItem:
+      type: object
+      required: [symbol, category, currentDecision, marginOfSafetyTarget, reason, lastResearchedAt]
+      properties:
+        symbol: { type: string }
+        category: { type: string }
+        currentDecision: { type: string }
+        marginOfSafetyTarget: { type: number }
+        reason: { type: string }
+        lastResearchedAt: { type: ["string", "null"] }
+
+    MentorWatchlistReview:
+      type: object
+      required: [itemCount, items, summary]
+      properties:
+        itemCount: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MentorWatchlistReviewItem"
+        summary: { type: string }
+
     InstitutionalMentorResult:
       type: object
       required:
@@ -11651,6 +11841,7 @@ components:
           incomeReview,
           behaviourReview,
           learningSummary,
+          watchlistReview,
           generatedAt,
         ]
       properties:
@@ -11685,5 +11876,7 @@ components:
           $ref: "#/components/schemas/MentorBehaviourReview"
         learningSummary:
           $ref: "#/components/schemas/MentorLearningSummary"
+        watchlistReview:
+          $ref: "#/components/schemas/MentorWatchlistReview"
         generatedAt:
           type: string

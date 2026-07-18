@@ -91,6 +91,7 @@ import type {
   IndustryComparisonResult,
   InstitutionalIntelligenceResult,
   InstitutionalMentorResult,
+  InvestmentThesis,
   JournalEntry,
   JournalEntryInput,
   JournalEntryUpdate,
@@ -147,6 +148,9 @@ import type {
   ReconciliationResult,
   RecordLearningItemCompleted200,
   RecordLearningItemViewed200,
+  ResearchNoteCreate,
+  ResearchNoteItem,
+  ResearchNoteUpdate,
   RestoreReportsRequest,
   RestoreReportsResult,
   RiskStatus,
@@ -9163,6 +9167,373 @@ export const useDeleteValueWatchlist = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getDeleteValueWatchlistMutationOptions(options));
     }
+
+export const getGetResearchNotesUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/research-notes/${symbol}`
+}
+
+/**
+ * @summary List the calling user's research notes for a symbol
+ */
+export const getResearchNotes = async (symbol: string, options?: RequestInit): Promise<ResearchNoteItem[]> => {
+
+  return customFetch<ResearchNoteItem[]>(getGetResearchNotesUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetResearchNotesQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/research-notes/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetResearchNotesQueryOptions = <TData = Awaited<ReturnType<typeof getResearchNotes>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getResearchNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetResearchNotesQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getResearchNotes>>> = ({ signal }) => getResearchNotes(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getResearchNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetResearchNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getResearchNotes>>>
+export type GetResearchNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's research notes for a symbol
+ */
+
+export function useGetResearchNotes<TData = Awaited<ReturnType<typeof getResearchNotes>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getResearchNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetResearchNotesQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddResearchNoteUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/research-notes`
+}
+
+/**
+ * @summary Add a research note for a symbol (free text, never AI-generated)
+ */
+export const addResearchNote = async (researchNoteCreate: ResearchNoteCreate, options?: RequestInit): Promise<ResearchNoteItem> => {
+
+  return customFetch<ResearchNoteItem>(getAddResearchNoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      researchNoteCreate,)
+  }
+);}
+
+
+
+
+export const getAddResearchNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addResearchNote>>, TError,{data: BodyType<ResearchNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addResearchNote>>, TError,{data: BodyType<ResearchNoteCreate>}, TContext> => {
+
+const mutationKey = ['addResearchNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addResearchNote>>, {data: BodyType<ResearchNoteCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addResearchNote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddResearchNoteMutationResult = NonNullable<Awaited<ReturnType<typeof addResearchNote>>>
+    export type AddResearchNoteMutationBody = BodyType<ResearchNoteCreate>
+    export type AddResearchNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add a research note for a symbol (free text, never AI-generated)
+ */
+export const useAddResearchNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addResearchNote>>, TError,{data: BodyType<ResearchNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addResearchNote>>,
+        TError,
+        {data: BodyType<ResearchNoteCreate>},
+        TContext
+      > => {
+      return useMutation(getAddResearchNoteMutationOptions(options));
+    }
+
+export const getUpdateResearchNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/stock-analyst/research-notes/${id}`
+}
+
+/**
+ * @summary Update a research note
+ */
+export const updateResearchNote = async (id: number,
+    researchNoteUpdate: ResearchNoteUpdate, options?: RequestInit): Promise<ResearchNoteItem> => {
+
+  return customFetch<ResearchNoteItem>(getUpdateResearchNoteUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      researchNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateResearchNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateResearchNote>>, TError,{id: number;data: BodyType<ResearchNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateResearchNote>>, TError,{id: number;data: BodyType<ResearchNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updateResearchNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateResearchNote>>, {id: number;data: BodyType<ResearchNoteUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateResearchNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateResearchNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateResearchNote>>>
+    export type UpdateResearchNoteMutationBody = BodyType<ResearchNoteUpdate>
+    export type UpdateResearchNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a research note
+ */
+export const useUpdateResearchNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateResearchNote>>, TError,{id: number;data: BodyType<ResearchNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateResearchNote>>,
+        TError,
+        {id: number;data: BodyType<ResearchNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateResearchNoteMutationOptions(options));
+    }
+
+export const getDeleteResearchNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/stock-analyst/research-notes/${id}`
+}
+
+/**
+ * @summary Delete a research note
+ */
+export const deleteResearchNote = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteResearchNoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteResearchNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteResearchNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteResearchNote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteResearchNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteResearchNote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteResearchNote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteResearchNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteResearchNote>>>
+
+    export type DeleteResearchNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a research note
+ */
+export const useDeleteResearchNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteResearchNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteResearchNote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteResearchNoteMutationOptions(options));
+    }
+
+export const getGetInvestmentThesisUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/investment-thesis/${symbol}`
+}
+
+/**
+ * @summary Deterministic, template-based Investment Thesis for a symbol (no LLM, no price prediction)
+ */
+export const getInvestmentThesis = async (symbol: string, options?: RequestInit): Promise<InvestmentThesis> => {
+
+  return customFetch<InvestmentThesis>(getGetInvestmentThesisUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestmentThesisQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/investment-thesis/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetInvestmentThesisQueryOptions = <TData = Awaited<ReturnType<typeof getInvestmentThesis>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentThesis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestmentThesisQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestmentThesis>>> = ({ signal }) => getInvestmentThesis(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestmentThesis>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestmentThesisQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestmentThesis>>>
+export type GetInvestmentThesisQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic, template-based Investment Thesis for a symbol (no LLM, no price prediction)
+ */
+
+export function useGetInvestmentThesis<TData = Awaited<ReturnType<typeof getInvestmentThesis>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentThesis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestmentThesisQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetValueLessonsUrl = () => {
 

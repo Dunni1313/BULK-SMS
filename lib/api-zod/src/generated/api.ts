@@ -3108,6 +3108,18 @@ export const GetInstitutionalMentorResponse = zod.object({
   "explainModeHref": zod.string().nullable()
 })
 }),
+  "watchlistReview": zod.object({
+  "itemCount": zod.number(),
+  "items": zod.array(zod.object({
+  "symbol": zod.string(),
+  "category": zod.string(),
+  "currentDecision": zod.string(),
+  "marginOfSafetyTarget": zod.number(),
+  "reason": zod.string(),
+  "lastResearchedAt": zod.string().nullable()
+})),
+  "summary": zod.string()
+}),
   "generatedAt": zod.string()
 })
 
@@ -3118,7 +3130,7 @@ export const GetInstitutionalMentorResponse = zod.object({
 export const GetGlossaryResponseItem = zod.object({
   "key": zod.string(),
   "term": zod.string(),
-  "category": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional']),
+  "category": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing']),
   "definition": zod.string(),
   "relatedTermKeys": zod.array(zod.string()),
   "relatedLessonKeys": zod.array(zod.string())
@@ -3133,7 +3145,7 @@ export const GetLearningPathsResponseItem = zod.object({
   "key": zod.string(),
   "title": zod.string(),
   "description": zod.string(),
-  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional']),
+  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing']),
   "topics": zod.array(zod.object({
   "key": zod.string(),
   "title": zod.string(),
@@ -3159,7 +3171,7 @@ export const GetLearningPathByKeyResponse = zod.object({
   "key": zod.string(),
   "title": zod.string(),
   "description": zod.string(),
-  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional']),
+  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing']),
   "topics": zod.array(zod.object({
   "key": zod.string(),
   "title": zod.string(),
@@ -5520,6 +5532,96 @@ export const DeleteValueWatchlistParams = zod.object({
 
 export const DeleteValueWatchlistResponse = zod.object({
   "success": zod.boolean()
+})
+
+
+/**
+ * @summary List the calling user's research notes for a symbol
+ */
+export const GetResearchNotesParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetResearchNotesResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetResearchNotesResponse = zod.array(GetResearchNotesResponseItem)
+
+
+/**
+ * @summary Add a research note for a symbol (free text, never AI-generated)
+ */
+export const AddResearchNoteBody = zod.object({
+  "symbol": zod.string(),
+  "note": zod.string()
+})
+
+export const AddResearchNoteResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a research note
+ */
+export const UpdateResearchNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateResearchNoteBody = zod.object({
+  "note": zod.string()
+})
+
+export const UpdateResearchNoteResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a research note
+ */
+export const DeleteResearchNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteResearchNoteResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Deterministic, template-based Investment Thesis for a symbol (no LLM, no price prediction)
+ */
+export const GetInvestmentThesisParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetInvestmentThesisResponse = zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "asOf": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "generatedAt": zod.string(),
+  "overview": zod.string(),
+  "sections": zod.array(zod.object({
+  "heading": zod.string(),
+  "paragraphs": zod.array(zod.string())
+})),
+  "supportingPoints": zod.array(zod.string()),
+  "riskFactors": zod.array(zod.string()),
+  "disclaimer": zod.string()
 })
 
 
