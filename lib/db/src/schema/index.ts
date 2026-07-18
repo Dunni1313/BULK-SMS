@@ -28,5 +28,6 @@ export * from "./platformNotifications";
 export * from "./optionsBacktestResults";
 export * from "./intelligenceSnapshots";
 export * from "./learningProgress";
+export * from "./investingResearchNotes";
 export * from "./dashboardWorkspaces";
 export * from "./brokerReconciliationReports";
