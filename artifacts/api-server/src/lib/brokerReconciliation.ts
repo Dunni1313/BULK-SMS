@@ -22,8 +22,8 @@
 //     this session, since no real credentials exist (see §9 of
 //     docs/Broker-Health-API.md for the same standing disclosure).
 
-import { db, tradesTable } from "@workspace/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { db, tradesTable, brokerReconciliationReportsTable } from "@workspace/db";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import {
   getAlpacaAllOrders,
   getAlpacaPositions,
@@ -291,4 +291,82 @@ export async function buildReconciliation(
     issueCount,
     fullyReconciled: issueCount === 0,
   };
+}
+
+// ─── Reconciliation reports (Phase 11 — Live Market Operations &
+// Production Validation) ───────────────────────────────────────────────
+//
+// Persists a snapshot of a buildReconciliation() run so drift is visible
+// over time, not only in the current live comparison. Explicit-trigger
+// only — nothing calls this on a schedule; every write here traces back
+// to a real POST /broker/reconciliation/reports from a user.
+
+export interface ReconciliationReportSummary {
+  id: number;
+  generatedAt: string;
+  available: boolean;
+  unavailableReason: string | null;
+  localOrdersConsidered: number;
+  brokerOrdersConsidered: number;
+  issueCount: number;
+  fullyReconciled: boolean;
+  createdAt: string;
+}
+
+export interface ReconciliationReportDetail extends ReconciliationReportSummary {
+  detail: ReconciliationResult;
+}
+
+function toSummary(row: typeof brokerReconciliationReportsTable.$inferSelect): ReconciliationReportSummary {
+  return {
+    id: row.id,
+    generatedAt: row.generatedAt.toISOString(),
+    available: row.available,
+    unavailableReason: row.unavailableReason,
+    localOrdersConsidered: row.localOrdersConsidered,
+    brokerOrdersConsidered: row.brokerOrdersConsidered,
+    issueCount: row.issueCount,
+    fullyReconciled: row.fullyReconciled,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export async function saveReconciliationReport(
+  userId: string,
+  result: ReconciliationResult,
+): Promise<ReconciliationReportSummary> {
+  const [row] = await db
+    .insert(brokerReconciliationReportsTable)
+    .values({
+      userId,
+      generatedAt: new Date(result.generatedAt),
+      available: result.available,
+      unavailableReason: result.unavailableReason,
+      localOrdersConsidered: result.localOrdersConsidered,
+      brokerOrdersConsidered: result.brokerOrdersConsidered,
+      issueCount: result.issueCount,
+      fullyReconciled: result.fullyReconciled,
+      detailJson: result,
+    })
+    .returning();
+  return toSummary(row);
+}
+
+export async function listReconciliationReports(userId: string, limit = 20): Promise<ReconciliationReportSummary[]> {
+  const rows = await db
+    .select()
+    .from(brokerReconciliationReportsTable)
+    .where(eq(brokerReconciliationReportsTable.userId, userId))
+    .orderBy(desc(brokerReconciliationReportsTable.createdAt))
+    .limit(limit);
+  return rows.map(toSummary);
+}
+
+export async function getReconciliationReport(userId: string, id: number): Promise<ReconciliationReportDetail | null> {
+  const [row] = await db
+    .select()
+    .from(brokerReconciliationReportsTable)
+    .where(and(eq(brokerReconciliationReportsTable.id, id), eq(brokerReconciliationReportsTable.userId, userId)));
+  if (!row) return null;
+  return { ...toSummary(row), detail: row.detailJson as ReconciliationResult };
 }

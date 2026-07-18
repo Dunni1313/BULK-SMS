@@ -20,6 +20,8 @@
 
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
 import type { Server } from "node:http";
+import { db, brokerReconciliationReportsTable } from "@workspace/db";
+import { inArray } from "drizzle-orm";
 
 function jsonResponse(status: number, data: unknown): Response {
   return { ok: status >= 200 && status < 300, status, json: async () => data } as unknown as Response;
@@ -319,6 +321,69 @@ describe("Broker orders + reconciliation (live routes)", () => {
       const body = (await res.json()) as { available: boolean; unavailableReason: string | null };
       expect(body.available).toBe(false);
       expect(body.unavailableReason).toMatch(/could not reach alpaca/i);
+    });
+  });
+
+  // Phase 11 — Live Market Operations & Production Validation. Reads the
+  // legacy-owner account's own real trades table like GET /broker/
+  // reconciliation above, so assertions stay shape-only for the same
+  // reason; every persisted-report row this describe block itself creates
+  // is deleted in its own afterAll, leaving no residue for any sibling
+  // test file sharing the same account.
+  describe("Reconciliation reports", () => {
+    const createdIds: number[] = [];
+
+    afterAll(async () => {
+      if (createdIds.length > 0) {
+        await db.delete(brokerReconciliationReportsTable).where(inArray(brokerReconciliationReportsTable.id, createdIds));
+      }
+    });
+
+    it("POST persists a fresh reconciliation snapshot and returns its summary", async () => {
+      process.env.ALPACA_API_KEY = "k";
+      process.env.ALPACA_API_SECRET = "s";
+      vi.spyOn(globalThis, "fetch").mockImplementation(async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const url = String(input);
+        if (url.startsWith(baseUrl)) return realFetch(input, init);
+        if (url.includes("/v2/orders?status=all")) return jsonResponse(200, []);
+        if (url.includes("/v2/positions")) return jsonResponse(200, []);
+        throw new Error(`unexpected fetch url in test: ${url}`);
+      });
+
+      const res = await fetch(`${baseUrl}/api/broker/reconciliation/reports`, { method: "POST" });
+      expect(res.status).toBe(201);
+      const body = (await res.json()) as { id: number; available: boolean; fullyReconciled: boolean; createdAt: string };
+      expect(body.available).toBe(true);
+      expect(typeof body.id).toBe("number");
+      expect(typeof body.createdAt).toBe("string");
+      createdIds.push(body.id);
+    });
+
+    it("GET (list) includes the just-created report", async () => {
+      const res = await fetch(`${baseUrl}/api/broker/reconciliation/reports`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { reports: { id: number }[] };
+      expect(body.reports.some((r) => createdIds.includes(r.id))).toBe(true);
+    });
+
+    it("GET by id returns the full detail, including the nested ReconciliationResult", async () => {
+      const id = createdIds[0];
+      const res = await fetch(`${baseUrl}/api/broker/reconciliation/reports/${id}`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { id: number; detail: { orders: unknown[]; positions: unknown[] } };
+      expect(body.id).toBe(id);
+      expect(Array.isArray(body.detail.orders)).toBe(true);
+      expect(Array.isArray(body.detail.positions)).toBe(true);
+    });
+
+    it("404s for a nonexistent report id", async () => {
+      const res = await fetch(`${baseUrl}/api/broker/reconciliation/reports/999999999`);
+      expect(res.status).toBe(404);
+    });
+
+    it("400s for a non-numeric report id", async () => {
+      const res = await fetch(`${baseUrl}/api/broker/reconciliation/reports/not-a-number`);
+      expect(res.status).toBe(400);
     });
   });
 });

@@ -46,6 +46,7 @@ import {
   intelligenceSnapshotsTable,
   learningProgressTable,
   dashboardWorkspacesTable,
+  brokerReconciliationReportsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -107,6 +108,8 @@ afterAll(async () => {
     learningProgressTable,
     // Phase 10 — Institutional Platform Polish & Control Center's own new table.
     dashboardWorkspacesTable,
+    // Phase 11 — Live Market Operations & Production Validation's own new table.
+    brokerReconciliationReportsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -342,6 +345,21 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       name: "Default",
       widgetConfig: [],
+    }));
+  });
+
+  // Phase 11 — Live Market Operations & Production Validation's own new table.
+  it("broker_reconciliation_reports: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(brokerReconciliationReportsTable, userA, userB, (userId) => ({
+      userId,
+      generatedAt: new Date(),
+      available: true,
+      unavailableReason: null,
+      localOrdersConsidered: 0,
+      brokerOrdersConsidered: 0,
+      issueCount: 0,
+      fullyReconciled: true,
+      detailJson: {},
     }));
   });
 });

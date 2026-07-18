@@ -4,9 +4,16 @@ import {
   GetBrokerOrderResponse,
   GetBrokerReconciliationResponse,
   GetBrokerPositionsResponse,
+  ListReconciliationReportsResponse,
+  GetReconciliationReportResponse,
 } from "@workspace/api-zod";
 import { getAlpacaAllOrders, getAlpacaOrder, getAlpacaPositions, type BrokerFailureReason } from "../lib/providers/alpacaBroker.js";
-import { buildReconciliation } from "../lib/brokerReconciliation.js";
+import {
+  buildReconciliation,
+  saveReconciliationReport,
+  listReconciliationReports,
+  getReconciliationReport,
+} from "../lib/brokerReconciliation.js";
 import { getSettingsRow } from "../lib/serverState.js";
 import { getScopedUserId } from "../lib/tenantScope.js";
 
@@ -129,6 +136,49 @@ router.get("/broker/reconciliation", async (req, res): Promise<void> => {
   const settings = await getSettingsRow(userId);
   const result = await buildReconciliation(userId, settings.alpacaApiKey);
   res.json(GetBrokerReconciliationResponse.parse(result));
+});
+
+// ─── Reconciliation reports (Phase 11 — Live Market Operations &
+// Production Validation) ───────────────────────────────────────────────
+// "Add reconciliation reports. Detect drift between broker and local
+// state." Persists a snapshot of buildReconciliation() only when a user
+// explicitly triggers this POST route — never on a schedule.
+
+router.get("/broker/reconciliation/reports", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const reports = await listReconciliationReports(userId);
+  res.json(ListReconciliationReportsResponse.parse({ reports }));
+});
+
+router.post("/broker/reconciliation/reports", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const settings = await getSettingsRow(userId);
+  const result = await buildReconciliation(userId, settings.alpacaApiKey);
+  const summary = await saveReconciliationReport(userId, result);
+  // Orval deduplicated the standalone ReconciliationReportSummary schema
+  // into ListReconciliationReportsResponse's own array-item shape (no
+  // top-level export exists for it, since createReconciliationReport's
+  // response is structurally identical) — this response is already a
+  // correctly-typed TypeScript object from lib/brokerReconciliation.ts's
+  // own ReconciliationReportSummary interface, so it's returned directly
+  // rather than fighting the generator for a runtime-validation schema
+  // that has no standalone name.
+  res.status(201).json(summary);
+});
+
+router.get("/broker/reconciliation/reports/:id", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "Invalid report id" });
+    return;
+  }
+  const report = await getReconciliationReport(userId, id);
+  if (!report) {
+    res.status(404).json({ error: "Reconciliation report not found" });
+    return;
+  }
+  res.json(GetReconciliationReportResponse.parse(report));
 });
 
 export default router;
