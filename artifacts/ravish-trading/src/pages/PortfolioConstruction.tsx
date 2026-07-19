@@ -51,7 +51,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, Trash2, Star, Save, Pencil, Gavel } from "lucide-react";
+import { Briefcase, Plus, Trash2, Star, Save, Pencil, Gavel, Building2 } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -608,6 +608,17 @@ export default function PortfolioConstruction() {
                             </td>
                             <td className="py-2 text-right">
                               <div className="flex items-center justify-end gap-1">
+                                <Link href={`/stock-analyst?symbol=${h.symbol}`}>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-6 w-6 text-muted-foreground hover:text-indigo-400"
+                                    aria-label={`Open Value Research for ${h.symbol}`}
+                                    data-testid={`value-research-link-${h.symbol}`}
+                                  >
+                                    <Building2 className="w-3 h-3" />
+                                  </Button>
+                                </Link>
                                 <Link href={`/decision-engine?symbol=${h.symbol}&portfolioId=${selectedId}`}>
                                   <Button
                                     size="icon"

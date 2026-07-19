@@ -259,6 +259,21 @@ describe("PortfolioConstruction page", () => {
     expect(screen.getByText(/AAPL: \+2.5 shares/)).toBeInTheDocument();
   });
 
+  it("Holdings tab links each holding to both its Value Research report and the Decision Engine", async () => {
+    selectPortfolio();
+    mockState.intelligence = intelligenceFixture();
+    renderWithClient(<PortfolioConstruction />);
+    await userEvent.click(screen.getByTestId("portfolio-Core Value"));
+    await userEvent.click(screen.getByTestId("tab-holdings"));
+    await screen.findByTestId("holding-AAPL");
+
+    const valueResearchLink = screen.getByTestId("value-research-link-AAPL").closest("a");
+    expect(valueResearchLink).toHaveAttribute("href", "/stock-analyst?symbol=AAPL");
+
+    const decisionLink = screen.getByTestId("decision-link-AAPL").closest("a");
+    expect(decisionLink).toHaveAttribute("href", expect.stringContaining("/decision-engine?symbol=AAPL"));
+  });
+
   it("updates a holding's cost basis via the Holdings tab input", async () => {
     selectPortfolio();
     mockState.intelligence = intelligenceFixture();

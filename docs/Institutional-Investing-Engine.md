@@ -61,6 +61,31 @@ A new "Long-Term Investing Watchlist Review" section — a plain, ownership-scop
 - No LLM calls in any Phase 12 code path (`investmentThesisGenerator.ts` is pure string templating).
 - Every figure in the Investment Thesis and the Mentor's Watchlist Review traces back to an already-computed, already-tested value.
 
+## 4. Phase 12 completion pass — integration, standardisation and completeness audit
+
+A second, later pass over this phase (**"Phase 12 is now an integration, standardisation and completion phase"**) re-audited every capability §1–§2 above against the platform's own fuller reuse list (Business Quality, Financial Ratios, Competitive Advantage, Management Quality, Capital Allocation, Graham/Buffett/DCF, Industry Comparison, Tom Nash, Investment Committee, Portfolio Construction, Value Watchlist, Stock Research, provider architecture, monitoring, caching, existing APIs) and against 6 named integration targets (Institutional Home, Command Palette, Operations Dashboard, Portfolio Manager, Learning Centre, Institutional Mentor), to confirm nothing had drifted or been left half-integrated since §1–§2 shipped and since Phases 13–16 (Portfolio Manager, Decision Engine, Opportunity Discovery, Monitoring & Alerts) were built on top of this engine.
+
+**Audit mapping (capability → file(s) → tests → UI → complete?):**
+
+| Capability | File(s) | Tests | UI | Complete? |
+|---|---|---|---|---|
+| Investment Thesis Generator | `lib/investmentThesisGenerator.ts`, `routes/stockAnalyst.ts` (`/investment-thesis/:symbol`) | `investmentThesisGenerator.test.ts`, `researchNotesAndThesis.route.test.ts` | `StockResearch.tsx` "Investment Thesis" card | Yes |
+| Research Notes | `investing_research_notes` table, `routes/stockAnalyst.ts` (`/research-notes*`) | `researchNotesAndThesis.route.test.ts` | `StockResearch.tsx` "Research Notes" panel | Yes |
+| Watchlist history/change-tracking | `stock_analysis_history` (reused, Phase 1) | Covered by existing history tests | `StockResearch.tsx` Watchlist tab | Yes |
+| Institutional Home widget | `Home.tsx` (`watchlist-summary`) | `Home.test.tsx` | Institutional Home | Yes |
+| Command Palette | `CommandPalette.tsx` (`Watchlist` group + `ALL_NAV_ITEMS` "Navigate" group, which already surfaces Value Research/Decision Engine/Opportunity Discovery/Portfolio Construction/Institutional Monitoring automatically) | `CommandPalette.test.tsx` | ⌘K palette | Yes |
+| Institutional Mentor | `InstitutionalMentor.tsx` ("Long-Term Investing Watchlist Review") | `InstitutionalMentor.test.tsx` | Institutional Mentor page | Yes |
+| Learning Centre | `lib/glossary.ts` (`value-investing` category, since grown to 29 terms across Phases 12–16) | `glossary.test.ts` | Learning Centre → Glossary | Yes |
+| Permanent labels / branding | `StockResearch.tsx`, plus each Phase 13–16 module's own correctly-scoped labels (`Institutional Portfolio Manager`, `Institutional Decision Engine`, `Institutional Opportunity Discovery`, `Institutional Monitoring`) | Respective page tests | Respective page headers | Yes — each module deliberately carries its own name, not a generic reused "Institutional Investing Engine" label, since Portfolio Manager/Decision Engine/Opportunity Discovery/Monitoring are their own named sub-systems, not restatements of Engine 1's core report |
+| Operations Dashboard integration | `OperationsDashboard.tsx` → `GET /ops/market-data-validation`'s own `investingEngine` array | `OperationsDashboard.test.tsx`, `ops.route.test.ts` | Operations Dashboard "Live Market Data Validation" card | Yes — already surfaces Engine 1's own fundamentals-provider connectivity/staleness per provider; no gap found |
+| Historical trend UI | `analyzeFinancialRatios()`'s `trends[]` (Revenue/EPS/FCF, 6-year) | `financialRatios.test.ts` | `StockResearch.tsx` `RatioTrendChart` (3 charts) | Yes — assessed, already sufficient; no changes made |
+| Valuation dashboard | `lib/marginOfSafety.ts` (consolidated) + Graham/DCF/Buffett cards | `marginOfSafety.test.ts`, `grahamValuation.test.ts`, `dcfValuation.test.ts`, `buffettValuation.test.ts` | `StockResearch.tsx` (Consolidated Margin of Safety card + 3 individual model cards) | Yes — assessed, already sufficient; no changes made |
+| **Portfolio Manager integration** | `PortfolioConstruction.tsx` holdings table | — (new) | Holdings table row actions | **No — genuine gap found and closed this pass** |
+
+**The one genuine gap found: Portfolio Manager → Value Research.** `PortfolioConstruction.tsx`'s holdings table already linked each holding to the Institutional Decision Engine (`/decision-engine?symbol=...&portfolioId=...`), but had no way to jump to that same holding's full Value Research report (Business Quality, Moat, all 4 valuation models, Investment Committee, Tom Nash, Research Notes). Fixed by adding a second icon-button per holding row (`Building2` icon, matching the Value Research nav item's own icon), linking to `/stock-analyst?symbol={symbol}` — reusing `StockResearch.tsx`'s own pre-existing `?symbol=` auto-run behavior, zero new backend route or logic. New test: `PortfolioConstruction.test.tsx` — "Holdings tab links each holding to both its Value Research report and the Decision Engine."
+
+**No second Investing Engine was built, no existing module was renamed or rewritten.** Every row in the table above that already existed was verified in place, unmodified, with its own test suite still passing — this pass added exactly one small, additive UI link.
+
 ## Cross-references
 
 - `docs/Financial-Metrics-Reference.md` — every financial metric Engine 1 computes, what it means, why it matters.
