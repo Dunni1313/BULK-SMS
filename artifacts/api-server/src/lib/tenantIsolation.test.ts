@@ -55,6 +55,7 @@ import {
   investingSavedScreensTable,
   investingMonitoringStatesTable,
   investingAlertNotesTable,
+  investingOptimisationReviewsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -327,6 +328,26 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
       note: "Test note",
+    }));
+  });
+
+  // Phase 18 — Institutional Portfolio Optimisation Engine's own new table,
+  // reusing the same shared helper and portfolio-scoping pattern as
+  // investing_portfolio_notes above.
+  it("investing_optimisation_reviews: a userId-scoped query never crosses accounts", async () => {
+    const [portfolioA] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userA, name: "Tenant A Optimisation Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    const [portfolioB] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userB, name: "Tenant B Optimisation Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    await assertTenantIsolation(investingOptimisationReviewsTable, userA, userB, (userId) => ({
+      userId,
+      portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
+      action: "trim",
+      note: "Test review",
     }));
   });
 
