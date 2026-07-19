@@ -60,6 +60,7 @@ const InstitutionalMentor = lazy(() => import("./pages/InstitutionalMentor"));
 const CrossEngineDailyReport = lazy(() => import("./pages/CrossEngineDailyReport"));
 const StockScanner = lazy(() => import("./pages/StockScanner"));
 const PortfolioConstruction = lazy(() => import("./pages/PortfolioConstruction"));
+const InstitutionalWorkspace = lazy(() => import("./pages/InstitutionalWorkspace"));
 const DecisionEngine = lazy(() => import("./pages/DecisionEngine"));
 const OpportunityDiscovery = lazy(() => import("./pages/OpportunityDiscovery"));
 const MonitoringDashboard = lazy(() => import("./pages/MonitoringDashboard"));
@@ -157,6 +158,7 @@ function Router() {
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />
           <Route path="/stock-analyst" component={StockResearch} />
+          <Route path="/workspace" component={InstitutionalWorkspace} />
           <Route path="/broker-reconciliation" component={PaperTradingReconciliation} />
           <Route path="/paper-portfolio" component={PaperPortfolio} />
           <Route path="/trade-history" component={TradeHistory} />
