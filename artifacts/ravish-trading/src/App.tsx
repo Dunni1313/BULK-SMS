@@ -63,6 +63,7 @@ const PortfolioConstruction = lazy(() => import("./pages/PortfolioConstruction")
 const InstitutionalWorkspace = lazy(() => import("./pages/InstitutionalWorkspace"));
 const PortfolioOptimisation = lazy(() => import("./pages/PortfolioOptimisation"));
 const InvestmentCommitteeWorkbench = lazy(() => import("./pages/InvestmentCommitteeWorkbench"));
+const ResearchTerminal = lazy(() => import("./pages/ResearchTerminal"));
 const DecisionEngine = lazy(() => import("./pages/DecisionEngine"));
 const OpportunityDiscovery = lazy(() => import("./pages/OpportunityDiscovery"));
 const MonitoringDashboard = lazy(() => import("./pages/MonitoringDashboard"));
@@ -161,6 +162,7 @@ function Router() {
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />
           <Route path="/stock-analyst/portfolio-optimisation" component={PortfolioOptimisation} />
           <Route path="/stock-analyst/investment-committee" component={InvestmentCommitteeWorkbench} />
+          <Route path="/research-terminal" component={ResearchTerminal} />
           <Route path="/stock-analyst" component={StockResearch} />
           <Route path="/workspace" component={InstitutionalWorkspace} />
           <Route path="/broker-reconciliation" component={PaperTradingReconciliation} />
