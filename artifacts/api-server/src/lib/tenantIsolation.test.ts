@@ -53,6 +53,8 @@ import {
   investingDecisionSnapshotsTable,
   investingDecisionNotesTable,
   investingSavedScreensTable,
+  investingMonitoringStatesTable,
+  investingAlertNotesTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -129,6 +131,9 @@ afterAll(async () => {
     investingDecisionNotesTable,
     // Phase 15 — Institutional Opportunity Discovery Engine's own new table.
     investingSavedScreensTable,
+    // Phase 16 — Institutional Monitoring & Alerts Engine's own new tables.
+    investingMonitoringStatesTable,
+    investingAlertNotesTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -458,6 +463,25 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       issueCount: 0,
       fullyReconciled: true,
       detailJson: {},
+    }));
+  });
+
+  // Phase 16 — Institutional Monitoring & Alerts Engine's own two new
+  // tables, reusing the same shared helper.
+  it("investing_monitoring_states: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(investingMonitoringStatesTable, userA, userB, (userId) => ({
+      userId,
+      entityType: "symbol",
+      entityKey: "AAPL",
+      stateJson: { symbol: "AAPL" },
+    }));
+  });
+
+  it("investing_alert_notes: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(investingAlertNotesTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "AAPL",
+      note: "Watching this one closely.",
     }));
   });
 });

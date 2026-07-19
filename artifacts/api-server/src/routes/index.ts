@@ -47,6 +47,7 @@ import institutionalMentorRouter from "./institutionalMentor";
 import dashboardWorkspacesRouter from "./dashboardWorkspaces";
 import opsRouter from "./ops";
 import opportunityDiscoveryRouter from "./opportunityDiscovery";
+import monitoringEngineRouter from "./monitoringEngine";
 
 const router: IRouter = Router();
 
@@ -98,5 +99,6 @@ router.use(institutionalMentorRouter);
 router.use(dashboardWorkspacesRouter);
 router.use(opsRouter);
 router.use(opportunityDiscoveryRouter);
+router.use(monitoringEngineRouter);
 
 export default router;
