@@ -48,6 +48,8 @@ import {
   dashboardWorkspacesTable,
   brokerReconciliationReportsTable,
   investingResearchNotesTable,
+  investingPortfolioSnapshotsTable,
+  investingPortfolioNotesTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -113,6 +115,11 @@ afterAll(async () => {
     brokerReconciliationReportsTable,
     // Phase 12 — Institutional Investing Engine Consolidation & Integration.
     investingResearchNotesTable,
+    // Phase 13 — Institutional Portfolio Manager's own new tables (both have
+    // their own FK to investing_portfolios as ON DELETE CASCADE, so this is
+    // defensive/consistent with the rest of this loop, not strictly required).
+    investingPortfolioSnapshotsTable,
+    investingPortfolioNotesTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -267,6 +274,45 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
       overallScore: 72,
       analysisJson: { overall: { score: 72, label: "Strong", detail: "test" } },
+    }));
+  });
+
+  // Phase 13 — Institutional Portfolio Manager's own new tables, reusing the
+  // same shared helper.
+  it("investing_portfolio_snapshots: a userId-scoped query never crosses accounts", async () => {
+    const [portfolioA] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userA, name: "Tenant A Intelligence Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    const [portfolioB] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userB, name: "Tenant B Intelligence Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    await assertTenantIsolation(investingPortfolioSnapshotsTable, userA, userB, (userId) => ({
+      userId,
+      portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
+      qualityScore: 65,
+      riskScore: 70,
+      diversificationScore: 80,
+      totalMarketValue: 1000,
+      holdingsCount: 1,
+      analysisJson: { summary: "test" },
+    }));
+  });
+
+  it("investing_portfolio_notes: a userId-scoped query never crosses accounts", async () => {
+    const [portfolioA] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userA, name: "Tenant A Notes Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    const [portfolioB] = await db
+      .insert(investingPortfoliosTable)
+      .values({ userId: userB, name: "Tenant B Notes Portfolio" })
+      .returning({ id: investingPortfoliosTable.id });
+    await assertTenantIsolation(investingPortfolioNotesTable, userA, userB, (userId) => ({
+      userId,
+      portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
+      note: "Test note",
     }));
   });
 

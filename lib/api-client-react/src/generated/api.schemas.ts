@@ -1174,6 +1174,8 @@ export interface ConstructionHolding {
   targetWeightPct: number;
   /** @nullable */
   shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -1184,6 +1186,8 @@ export interface ConstructionHoldingCreate {
   targetWeightPct?: number;
   /** @nullable */
   shares?: number | null;
+  /** @nullable */
+  avgCostBasis?: number | null;
   notes?: string;
 }
 
@@ -1191,6 +1195,8 @@ export interface ConstructionHoldingUpdate {
   targetWeightPct?: number;
   /** @nullable */
   shares?: number | null;
+  /** @nullable */
+  avgCostBasis?: number | null;
   notes?: string;
 }
 
@@ -1210,6 +1216,8 @@ export interface ConstructionPortfolioHoldingAllocation {
   targetWeightPct: number;
   /** @nullable */
   shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
   notes: string;
   /** @nullable */
   currentPrice: number | null;
@@ -1220,6 +1228,14 @@ export interface ConstructionPortfolioHoldingAllocation {
   /** @nullable */
   driftPct: number | null;
   rebalanceAction: ConstructionPortfolioHoldingAllocationRebalanceAction;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  industry: string | null;
+  /** @nullable */
+  beta: number | null;
+  /** @nullable */
+  marketCap: number | null;
 }
 
 export interface ConstructionPortfolioAllocationResult {
@@ -1320,6 +1336,188 @@ export interface ConstructionRiskSnapshot {
   overallScore: number | null;
   analysis: ConstructionPortfolioRiskAnalysis;
   createdAt: string;
+}
+
+export interface ConstructionScoreCard {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+}
+
+export interface ConstructionAllocationSlice {
+  label: string;
+  weightPct: number;
+}
+
+export interface ConstructionUnavailableDimension {
+  available: false;
+  reason: string;
+}
+
+export interface ConstructionHoldingIntelligence {
+  symbol: string;
+  /** @nullable */
+  weightPct: number | null;
+  /** @nullable */
+  qualityScore: number | null;
+  /** @nullable */
+  capitalAllocationScore: number | null;
+  /** @nullable */
+  growthScore: number | null;
+  /** @nullable */
+  valuationRating: string | null;
+  /** @nullable */
+  committeeVerdict: string | null;
+  /** @nullable */
+  marketCapBand: string | null;
+  /** @nullable */
+  shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  costBasisValue: number | null;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  unrealizedPnl: number | null;
+  /** @nullable */
+  unrealizedPnlPct: number | null;
+  /** @nullable */
+  dividendYield: number | null;
+  /** @nullable */
+  dividendPerShare: number | null;
+  /** @nullable */
+  estAnnualDividendIncome: number | null;
+  /** @nullable */
+  suggestedShareDelta: number | null;
+}
+
+export type ConstructionPortfolioIntelligenceWeightedMetrics = {
+  /** @nullable */
+  roic: number | null;
+  /** @nullable */
+  roe: number | null;
+  /** @nullable */
+  grossMargin: number | null;
+  /** @nullable */
+  operatingMargin: number | null;
+  /** @nullable */
+  fcfYield: number | null;
+  /** @nullable */
+  dividendYield: number | null;
+  /** @nullable */
+  debtToEquity: number | null;
+};
+
+export type ConstructionPortfolioIntelligenceAllocation = {
+  bySector: ConstructionAllocationSlice[];
+  byIndustry: ConstructionAllocationSlice[];
+  byMarketCapBand: ConstructionAllocationSlice[];
+  byCountry: ConstructionUnavailableDimension;
+  byCurrency: ConstructionUnavailableDimension;
+  growthValueMix: ConstructionAllocationSlice[];
+  qualityMix: ConstructionAllocationSlice[];
+  /** @nullable */
+  largestPositionPct: number | null;
+  /** @nullable */
+  top10ExposurePct: number | null;
+  /** @nullable */
+  cashAllocationPct: number | null;
+  cashAllocationNote: string;
+};
+
+export type ConstructionPortfolioIntelligenceRiskOverall = {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+};
+
+export type ConstructionPortfolioIntelligenceRisk = {
+  overall: ConstructionPortfolioIntelligenceRiskOverall;
+  concentration: ConstructionConcentrationRisk;
+  sectorExposure: ConstructionSectorExposureRisk;
+  cyclicality: ConstructionBetaEstimateRisk;
+  cashRisk: ConstructionScoreCard;
+  dividendDependence: ConstructionScoreCard;
+  leverageExposure: ConstructionScoreCard;
+  qualityDrift: ConstructionScoreCard;
+  portfolioStability: ConstructionScoreCard;
+};
+
+export type ConstructionPortfolioIntelligenceIncome = {
+  /** @nullable */
+  portfolioDividendYield: number | null;
+  /** @nullable */
+  estAnnualDividendIncome: number | null;
+};
+
+export type ConstructionPortfolioIntelligencePerformance = {
+  /** @nullable */
+  totalCostBasisValue: number | null;
+  /** @nullable */
+  totalMarketValue: number | null;
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+  /** @nullable */
+  totalUnrealizedPnlPct: number | null;
+  holdingsWithoutCostBasis: string[];
+};
+
+export interface ConstructionPortfolioIntelligence {
+  qualityScore: ConstructionScoreCard;
+  capitalAllocationScore: ConstructionScoreCard;
+  diversificationScore: ConstructionScoreCard;
+  weightedMetrics: ConstructionPortfolioIntelligenceWeightedMetrics;
+  allocation: ConstructionPortfolioIntelligenceAllocation;
+  risk: ConstructionPortfolioIntelligenceRisk;
+  income: ConstructionPortfolioIntelligenceIncome;
+  performance: ConstructionPortfolioIntelligencePerformance;
+  holdings: ConstructionHoldingIntelligence[];
+  unresolvedSymbols: string[];
+  summary: string;
+}
+
+export interface ConstructionWatchlistComparison {
+  inBoth: string[];
+  onlyInWatchlist: string[];
+  onlyInPortfolio: string[];
+  summary: string;
+}
+
+export interface ConstructionPortfolioSnapshot {
+  id: number;
+  portfolioId: number;
+  /** @nullable */
+  qualityScore: number | null;
+  /** @nullable */
+  riskScore: number | null;
+  /** @nullable */
+  diversificationScore: number | null;
+  /** @nullable */
+  totalMarketValue: number | null;
+  holdingsCount: number;
+  analysis: ConstructionPortfolioIntelligence;
+  createdAt: string;
+}
+
+export interface ConstructionPortfolioNote {
+  id: number;
+  portfolioId: number;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConstructionPortfolioNoteCreate {
+  note: string;
+}
+
+export interface ConstructionPortfolioNoteUpdate {
+  note: string;
 }
 
 export type ValueLessonLevel = typeof ValueLessonLevel[keyof typeof ValueLessonLevel];
@@ -6594,6 +6792,12 @@ export interface MentorWatchlistReview {
   summary: string;
 }
 
+export interface MentorPortfolioReview {
+  portfolioCount: number;
+  totalHoldingsCount: number;
+  summary: string;
+}
+
 export interface InstitutionalMentorResult {
   paperTradingMode: true;
   deterministicAnalysis: true;
@@ -6607,6 +6811,7 @@ export interface InstitutionalMentorResult {
   behaviourReview: MentorBehaviourReview;
   learningSummary: MentorLearningSummary;
   watchlistReview: MentorWatchlistReview;
+  portfolioReview: MentorPortfolioReview;
   generatedAt: string;
 }
 

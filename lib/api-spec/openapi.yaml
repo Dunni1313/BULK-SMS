@@ -2896,6 +2896,192 @@ paths:
         "404":
           description: Portfolio not found
 
+  /portfolio-construction/portfolios/{id}/intelligence:
+    get:
+      operationId: getPortfolioIntelligence
+      tags: [portfolio-construction]
+      summary: Compute the full Institutional Portfolio Manager analysis (quality, capital allocation, allocation breakdowns, extended risk, performance, income) on demand
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Portfolio intelligence analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionPortfolioIntelligence"
+        "404":
+          description: Portfolio not found
+
+  /portfolio-construction/portfolios/{id}/watchlist-comparison:
+    get:
+      operationId: getPortfolioWatchlistComparison
+      tags: [portfolio-construction]
+      summary: Compare this portfolio's holdings against the caller's Value Watchlist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Watchlist vs. portfolio comparison
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionWatchlistComparison"
+        "404":
+          description: Portfolio not found
+
+  /portfolio-construction/portfolios/{id}/snapshots:
+    get:
+      operationId: getPortfolioSnapshots
+      tags: [portfolio-construction]
+      summary: List previously saved composite (quality/risk/diversification) snapshots for a portfolio, newest first
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Snapshot history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConstructionPortfolioSnapshot"
+        "404":
+          description: Portfolio not found
+    post:
+      operationId: savePortfolioSnapshot
+      tags: [portfolio-construction]
+      summary: Compute the portfolio intelligence analysis fresh and save it as a composite snapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Saved snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionPortfolioSnapshot"
+        "404":
+          description: Portfolio not found
+
+  /portfolio-construction/portfolios/{id}/notes:
+    get:
+      operationId: getPortfolioNotes
+      tags: [portfolio-construction]
+      summary: List free-text notes for a portfolio, newest first
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConstructionPortfolioNote"
+        "404":
+          description: Portfolio not found
+    post:
+      operationId: addPortfolioNote
+      tags: [portfolio-construction]
+      summary: Add a free-text note to a portfolio
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConstructionPortfolioNoteCreate"
+      responses:
+        "200":
+          description: Created note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionPortfolioNote"
+        "404":
+          description: Portfolio not found
+
+  /portfolio-construction/portfolios/{id}/notes/{noteId}:
+    patch:
+      operationId: updatePortfolioNote
+      tags: [portfolio-construction]
+      summary: Update a portfolio note's text
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConstructionPortfolioNoteUpdate"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstructionPortfolioNote"
+        "404":
+          description: Not found
+    delete:
+      operationId: deletePortfolioNote
+      tags: [portfolio-construction]
+      summary: Delete a portfolio note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
   # ─── Trading Journal (Engine 2) ─────────────────────────────────────────────
   /trading/journal:
     get:
@@ -4353,13 +4539,14 @@ components:
 
     ConstructionHolding:
       type: object
-      required: [id, portfolioId, symbol, targetWeightPct, shares, notes, createdAt, updatedAt]
+      required: [id, portfolioId, symbol, targetWeightPct, shares, avgCostBasis, notes, createdAt, updatedAt]
       properties:
         id: { type: integer }
         portfolioId: { type: integer }
         symbol: { type: string }
         targetWeightPct: { type: number }
         shares: { type: ["number", "null"] }
+        avgCostBasis: { type: ["number", "null"] }
         notes: { type: string }
         createdAt: { type: string }
         updatedAt: { type: string }
@@ -4371,6 +4558,7 @@ components:
         symbol: { type: string }
         targetWeightPct: { type: number }
         shares: { type: ["number", "null"] }
+        avgCostBasis: { type: ["number", "null"] }
         notes: { type: string }
 
     ConstructionHoldingUpdate:
@@ -4378,16 +4566,18 @@ components:
       properties:
         targetWeightPct: { type: number }
         shares: { type: ["number", "null"] }
+        avgCostBasis: { type: ["number", "null"] }
         notes: { type: string }
 
     ConstructionPortfolioHoldingAllocation:
       type: object
-      required: [id, symbol, targetWeightPct, shares, notes, currentPrice, marketValue, actualWeightPct, driftPct, rebalanceAction]
+      required: [id, symbol, targetWeightPct, shares, avgCostBasis, notes, currentPrice, marketValue, actualWeightPct, driftPct, rebalanceAction, sector, industry, beta, marketCap]
       properties:
         id: { type: integer }
         symbol: { type: string }
         targetWeightPct: { type: number }
         shares: { type: ["number", "null"] }
+        avgCostBasis: { type: ["number", "null"] }
         notes: { type: string }
         currentPrice: { type: ["number", "null"] }
         marketValue: { type: ["number", "null"] }
@@ -4396,6 +4586,10 @@ components:
         rebalanceAction:
           type: string
           enum: [buy, sell, hold, unknown]
+        sector: { type: ["string", "null"] }
+        industry: { type: ["string", "null"] }
+        beta: { type: ["number", "null"] }
+        marketCap: { type: ["number", "null"] }
 
     ConstructionPortfolioAllocationResult:
       type: object
@@ -4515,6 +4709,211 @@ components:
         analysis:
           $ref: "#/components/schemas/ConstructionPortfolioRiskAnalysis"
         createdAt: { type: string }
+
+    # ─── Institutional Portfolio Manager (Phase 13; on-demand composition over
+    # every already-shipped Institutional Investing Engine module — advisory/
+    # education only, never places an order) ─────────────────────────────────
+    ConstructionScoreCard:
+      type: object
+      required: [score, label, detail]
+      properties:
+        score: { type: ["number", "null"] }
+        label: { type: string }
+        detail: { type: string }
+
+    ConstructionAllocationSlice:
+      type: object
+      required: [label, weightPct]
+      properties:
+        label: { type: string }
+        weightPct: { type: number }
+
+    ConstructionUnavailableDimension:
+      type: object
+      required: [available, reason]
+      properties:
+        available: { type: boolean, enum: [false] }
+        reason: { type: string }
+
+    ConstructionHoldingIntelligence:
+      type: object
+      required:
+        [
+          symbol, weightPct, qualityScore, capitalAllocationScore, growthScore, valuationRating,
+          committeeVerdict, marketCapBand, shares, avgCostBasis, currentPrice, costBasisValue,
+          marketValue, unrealizedPnl, unrealizedPnlPct, dividendYield, dividendPerShare,
+          estAnnualDividendIncome, suggestedShareDelta,
+        ]
+      properties:
+        symbol: { type: string }
+        weightPct: { type: ["number", "null"] }
+        qualityScore: { type: ["number", "null"] }
+        capitalAllocationScore: { type: ["number", "null"] }
+        growthScore: { type: ["number", "null"] }
+        valuationRating: { type: ["string", "null"] }
+        committeeVerdict: { type: ["string", "null"] }
+        marketCapBand: { type: ["string", "null"] }
+        shares: { type: ["number", "null"] }
+        avgCostBasis: { type: ["number", "null"] }
+        currentPrice: { type: ["number", "null"] }
+        costBasisValue: { type: ["number", "null"] }
+        marketValue: { type: ["number", "null"] }
+        unrealizedPnl: { type: ["number", "null"] }
+        unrealizedPnlPct: { type: ["number", "null"] }
+        dividendYield: { type: ["number", "null"] }
+        dividendPerShare: { type: ["number", "null"] }
+        estAnnualDividendIncome: { type: ["number", "null"] }
+        suggestedShareDelta: { type: ["number", "null"] }
+
+    ConstructionPortfolioIntelligence:
+      type: object
+      required:
+        [
+          qualityScore, capitalAllocationScore, diversificationScore, weightedMetrics, allocation,
+          risk, income, performance, holdings, unresolvedSymbols, summary,
+        ]
+      properties:
+        qualityScore: { $ref: "#/components/schemas/ConstructionScoreCard" }
+        capitalAllocationScore: { $ref: "#/components/schemas/ConstructionScoreCard" }
+        diversificationScore: { $ref: "#/components/schemas/ConstructionScoreCard" }
+        weightedMetrics:
+          type: object
+          required: [roic, roe, grossMargin, operatingMargin, fcfYield, dividendYield, debtToEquity]
+          properties:
+            roic: { type: ["number", "null"] }
+            roe: { type: ["number", "null"] }
+            grossMargin: { type: ["number", "null"] }
+            operatingMargin: { type: ["number", "null"] }
+            fcfYield: { type: ["number", "null"] }
+            dividendYield: { type: ["number", "null"] }
+            debtToEquity: { type: ["number", "null"] }
+        allocation:
+          type: object
+          required:
+            [
+              bySector, byIndustry, byMarketCapBand, byCountry, byCurrency, growthValueMix,
+              qualityMix, largestPositionPct, top10ExposurePct, cashAllocationPct, cashAllocationNote,
+            ]
+          properties:
+            bySector:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            byIndustry:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            byMarketCapBand:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            byCountry: { $ref: "#/components/schemas/ConstructionUnavailableDimension" }
+            byCurrency: { $ref: "#/components/schemas/ConstructionUnavailableDimension" }
+            growthValueMix:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            qualityMix:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            largestPositionPct: { type: ["number", "null"] }
+            top10ExposurePct: { type: ["number", "null"] }
+            cashAllocationPct: { type: ["number", "null"] }
+            cashAllocationNote: { type: string }
+        risk:
+          type: object
+          required:
+            [
+              overall, concentration, sectorExposure, cyclicality, cashRisk, dividendDependence,
+              leverageExposure, qualityDrift, portfolioStability,
+            ]
+          properties:
+            overall:
+              type: object
+              required: [score, label, detail]
+              properties:
+                score: { type: ["number", "null"] }
+                label: { type: string }
+                detail: { type: string }
+            concentration: { $ref: "#/components/schemas/ConstructionConcentrationRisk" }
+            sectorExposure: { $ref: "#/components/schemas/ConstructionSectorExposureRisk" }
+            cyclicality: { $ref: "#/components/schemas/ConstructionBetaEstimateRisk" }
+            cashRisk: { $ref: "#/components/schemas/ConstructionScoreCard" }
+            dividendDependence: { $ref: "#/components/schemas/ConstructionScoreCard" }
+            leverageExposure: { $ref: "#/components/schemas/ConstructionScoreCard" }
+            qualityDrift: { $ref: "#/components/schemas/ConstructionScoreCard" }
+            portfolioStability: { $ref: "#/components/schemas/ConstructionScoreCard" }
+        income:
+          type: object
+          required: [portfolioDividendYield, estAnnualDividendIncome]
+          properties:
+            portfolioDividendYield: { type: ["number", "null"] }
+            estAnnualDividendIncome: { type: ["number", "null"] }
+        performance:
+          type: object
+          required: [totalCostBasisValue, totalMarketValue, totalUnrealizedPnl, totalUnrealizedPnlPct, holdingsWithoutCostBasis]
+          properties:
+            totalCostBasisValue: { type: ["number", "null"] }
+            totalMarketValue: { type: ["number", "null"] }
+            totalUnrealizedPnl: { type: ["number", "null"] }
+            totalUnrealizedPnlPct: { type: ["number", "null"] }
+            holdingsWithoutCostBasis:
+              type: array
+              items: { type: string }
+        holdings:
+          type: array
+          items: { $ref: "#/components/schemas/ConstructionHoldingIntelligence" }
+        unresolvedSymbols:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+
+    ConstructionWatchlistComparison:
+      type: object
+      required: [inBoth, onlyInWatchlist, onlyInPortfolio, summary]
+      properties:
+        inBoth:
+          type: array
+          items: { type: string }
+        onlyInWatchlist:
+          type: array
+          items: { type: string }
+        onlyInPortfolio:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+
+    ConstructionPortfolioSnapshot:
+      type: object
+      required: [id, portfolioId, qualityScore, riskScore, diversificationScore, totalMarketValue, holdingsCount, analysis, createdAt]
+      properties:
+        id: { type: integer }
+        portfolioId: { type: integer }
+        qualityScore: { type: ["number", "null"] }
+        riskScore: { type: ["number", "null"] }
+        diversificationScore: { type: ["number", "null"] }
+        totalMarketValue: { type: ["number", "null"] }
+        holdingsCount: { type: integer }
+        analysis: { $ref: "#/components/schemas/ConstructionPortfolioIntelligence" }
+        createdAt: { type: string }
+
+    ConstructionPortfolioNote:
+      type: object
+      required: [id, portfolioId, note, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        portfolioId: { type: integer }
+        note: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ConstructionPortfolioNoteCreate:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string }
+
+    ConstructionPortfolioNoteUpdate:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string }
 
     ValueLesson:
       type: object
@@ -11826,6 +12225,19 @@ components:
             $ref: "#/components/schemas/MentorWatchlistReviewItem"
         summary: { type: string }
 
+    # Phase 13 — a plain, ownership-scoped read of the user's own Engine 1
+    # target-allocation portfolios (investing_portfolios/investing_holdings),
+    # reviewed by the Institutional Mentor. Introduces no new scoring —
+    # portfolio/holding counts only, never lib/portfolioIntelligence.ts's own
+    # on-demand analyzer composition.
+    MentorPortfolioReview:
+      type: object
+      required: [portfolioCount, totalHoldingsCount, summary]
+      properties:
+        portfolioCount: { type: integer }
+        totalHoldingsCount: { type: integer }
+        summary: { type: string }
+
     InstitutionalMentorResult:
       type: object
       required:
@@ -11842,6 +12254,7 @@ components:
           behaviourReview,
           learningSummary,
           watchlistReview,
+          portfolioReview,
           generatedAt,
         ]
       properties:
@@ -11878,5 +12291,7 @@ components:
           $ref: "#/components/schemas/MentorLearningSummary"
         watchlistReview:
           $ref: "#/components/schemas/MentorWatchlistReview"
+        portfolioReview:
+          $ref: "#/components/schemas/MentorPortfolioReview"
         generatedAt:
           type: string

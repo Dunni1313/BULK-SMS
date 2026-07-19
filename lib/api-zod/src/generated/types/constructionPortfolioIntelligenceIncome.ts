@@ -6,11 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ConstructionHoldingUpdate {
-  targetWeightPct?: number;
+export type ConstructionPortfolioIntelligenceIncome = {
   /** @nullable */
-  shares?: number | null;
+  portfolioDividendYield: number | null;
   /** @nullable */
-  avgCostBasis?: number | null;
-  notes?: string;
-}
+  estAnnualDividendIncome: number | null;
+};

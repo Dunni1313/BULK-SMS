@@ -3120,6 +3120,11 @@ export const GetInstitutionalMentorResponse = zod.object({
 })),
   "summary": zod.string()
 }),
+  "portfolioReview": zod.object({
+  "portfolioCount": zod.number(),
+  "totalHoldingsCount": zod.number(),
+  "summary": zod.string()
+}),
   "generatedAt": zod.string()
 })
 
@@ -6229,12 +6234,17 @@ export const GetPortfolioResponse = zod.object({
   "symbol": zod.string(),
   "targetWeightPct": zod.number(),
   "shares": zod.number().nullable(),
+  "avgCostBasis": zod.number().nullable(),
   "notes": zod.string(),
   "currentPrice": zod.number().nullable(),
   "marketValue": zod.number().nullable(),
   "actualWeightPct": zod.number().nullable(),
   "driftPct": zod.number().nullable(),
-  "rebalanceAction": zod.enum(['buy', 'sell', 'hold', 'unknown'])
+  "rebalanceAction": zod.enum(['buy', 'sell', 'hold', 'unknown']),
+  "sector": zod.string().nullable(),
+  "industry": zod.string().nullable(),
+  "beta": zod.number().nullable(),
+  "marketCap": zod.number().nullable()
 })),
   "totalMarketValue": zod.number().nullable(),
   "totalTargetWeightPct": zod.number(),
@@ -6290,6 +6300,7 @@ export const AddHoldingBody = zod.object({
   "symbol": zod.string(),
   "targetWeightPct": zod.number().optional(),
   "shares": zod.number().nullish(),
+  "avgCostBasis": zod.number().nullish(),
   "notes": zod.string().optional()
 })
 
@@ -6299,6 +6310,7 @@ export const AddHoldingResponse = zod.object({
   "symbol": zod.string(),
   "targetWeightPct": zod.number(),
   "shares": zod.number().nullable(),
+  "avgCostBasis": zod.number().nullable(),
   "notes": zod.string(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -6316,6 +6328,7 @@ export const UpdateHoldingParams = zod.object({
 export const UpdateHoldingBody = zod.object({
   "targetWeightPct": zod.number().optional(),
   "shares": zod.number().nullish(),
+  "avgCostBasis": zod.number().nullish(),
   "notes": zod.string().optional()
 })
 
@@ -6325,6 +6338,7 @@ export const UpdateHoldingResponse = zod.object({
   "symbol": zod.string(),
   "targetWeightPct": zod.number(),
   "shares": zod.number().nullable(),
+  "avgCostBasis": zod.number().nullable(),
   "notes": zod.string(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -6516,6 +6530,605 @@ export const SaveRiskSnapshotResponse = zod.object({
   "unresolvedSymbols": zod.array(zod.string())
 }),
   "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Compute the full Institutional Portfolio Manager analysis (quality, capital allocation, allocation breakdowns, extended risk, performance, income) on demand
+ */
+export const GetPortfolioIntelligenceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPortfolioIntelligenceResponse = zod.object({
+  "qualityScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "capitalAllocationScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "diversificationScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "weightedMetrics": zod.object({
+  "roic": zod.number().nullable(),
+  "roe": zod.number().nullable(),
+  "grossMargin": zod.number().nullable(),
+  "operatingMargin": zod.number().nullable(),
+  "fcfYield": zod.number().nullable(),
+  "dividendYield": zod.number().nullable(),
+  "debtToEquity": zod.number().nullable()
+}),
+  "allocation": zod.object({
+  "bySector": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byIndustry": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byMarketCapBand": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byCountry": zod.object({
+  "available": zod.literal(false),
+  "reason": zod.string()
+}),
+  "byCurrency": zod.object({
+  "available": zod.literal(false),
+  "reason": zod.string()
+}),
+  "growthValueMix": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "qualityMix": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "largestPositionPct": zod.number().nullable(),
+  "top10ExposurePct": zod.number().nullable(),
+  "cashAllocationPct": zod.number().nullable(),
+  "cashAllocationNote": zod.string()
+}),
+  "risk": zod.object({
+  "overall": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "concentration": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSymbol": zod.string().nullable(),
+  "largestSymbolWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean()
+}),
+  "sectorExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSector": zod.string().nullable(),
+  "largestSectorWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "breakdown": zod.array(zod.object({
+  "sector": zod.string(),
+  "marketValue": zod.number(),
+  "weightPct": zod.number()
+})),
+  "unclassifiedWeightPct": zod.number().nullable()
+}),
+  "cyclicality": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "portfolioBeta": zod.number().nullable(),
+  "coveragePct": zod.number().nullable()
+}),
+  "cashRisk": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "dividendDependence": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "leverageExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "qualityDrift": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "portfolioStability": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+})
+}),
+  "income": zod.object({
+  "portfolioDividendYield": zod.number().nullable(),
+  "estAnnualDividendIncome": zod.number().nullable()
+}),
+  "performance": zod.object({
+  "totalCostBasisValue": zod.number().nullable(),
+  "totalMarketValue": zod.number().nullable(),
+  "totalUnrealizedPnl": zod.number().nullable(),
+  "totalUnrealizedPnlPct": zod.number().nullable(),
+  "holdingsWithoutCostBasis": zod.array(zod.string())
+}),
+  "holdings": zod.array(zod.object({
+  "symbol": zod.string(),
+  "weightPct": zod.number().nullable(),
+  "qualityScore": zod.number().nullable(),
+  "capitalAllocationScore": zod.number().nullable(),
+  "growthScore": zod.number().nullable(),
+  "valuationRating": zod.string().nullable(),
+  "committeeVerdict": zod.string().nullable(),
+  "marketCapBand": zod.string().nullable(),
+  "shares": zod.number().nullable(),
+  "avgCostBasis": zod.number().nullable(),
+  "currentPrice": zod.number().nullable(),
+  "costBasisValue": zod.number().nullable(),
+  "marketValue": zod.number().nullable(),
+  "unrealizedPnl": zod.number().nullable(),
+  "unrealizedPnlPct": zod.number().nullable(),
+  "dividendYield": zod.number().nullable(),
+  "dividendPerShare": zod.number().nullable(),
+  "estAnnualDividendIncome": zod.number().nullable(),
+  "suggestedShareDelta": zod.number().nullable()
+})),
+  "unresolvedSymbols": zod.array(zod.string()),
+  "summary": zod.string()
+})
+
+
+/**
+ * @summary Compare this portfolio's holdings against the caller's Value Watchlist
+ */
+export const GetPortfolioWatchlistComparisonParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPortfolioWatchlistComparisonResponse = zod.object({
+  "inBoth": zod.array(zod.string()),
+  "onlyInWatchlist": zod.array(zod.string()),
+  "onlyInPortfolio": zod.array(zod.string()),
+  "summary": zod.string()
+})
+
+
+/**
+ * @summary List previously saved composite (quality/risk/diversification) snapshots for a portfolio, newest first
+ */
+export const GetPortfolioSnapshotsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPortfolioSnapshotsResponseItem = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "qualityScore": zod.number().nullable(),
+  "riskScore": zod.number().nullable(),
+  "diversificationScore": zod.number().nullable(),
+  "totalMarketValue": zod.number().nullable(),
+  "holdingsCount": zod.number(),
+  "analysis": zod.object({
+  "qualityScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "capitalAllocationScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "diversificationScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "weightedMetrics": zod.object({
+  "roic": zod.number().nullable(),
+  "roe": zod.number().nullable(),
+  "grossMargin": zod.number().nullable(),
+  "operatingMargin": zod.number().nullable(),
+  "fcfYield": zod.number().nullable(),
+  "dividendYield": zod.number().nullable(),
+  "debtToEquity": zod.number().nullable()
+}),
+  "allocation": zod.object({
+  "bySector": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byIndustry": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byMarketCapBand": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byCountry": zod.object({
+  "available": zod.literal(false),
+  "reason": zod.string()
+}),
+  "byCurrency": zod.object({
+  "available": zod.literal(false),
+  "reason": zod.string()
+}),
+  "growthValueMix": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "qualityMix": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "largestPositionPct": zod.number().nullable(),
+  "top10ExposurePct": zod.number().nullable(),
+  "cashAllocationPct": zod.number().nullable(),
+  "cashAllocationNote": zod.string()
+}),
+  "risk": zod.object({
+  "overall": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "concentration": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSymbol": zod.string().nullable(),
+  "largestSymbolWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean()
+}),
+  "sectorExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSector": zod.string().nullable(),
+  "largestSectorWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "breakdown": zod.array(zod.object({
+  "sector": zod.string(),
+  "marketValue": zod.number(),
+  "weightPct": zod.number()
+})),
+  "unclassifiedWeightPct": zod.number().nullable()
+}),
+  "cyclicality": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "portfolioBeta": zod.number().nullable(),
+  "coveragePct": zod.number().nullable()
+}),
+  "cashRisk": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "dividendDependence": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "leverageExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "qualityDrift": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "portfolioStability": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+})
+}),
+  "income": zod.object({
+  "portfolioDividendYield": zod.number().nullable(),
+  "estAnnualDividendIncome": zod.number().nullable()
+}),
+  "performance": zod.object({
+  "totalCostBasisValue": zod.number().nullable(),
+  "totalMarketValue": zod.number().nullable(),
+  "totalUnrealizedPnl": zod.number().nullable(),
+  "totalUnrealizedPnlPct": zod.number().nullable(),
+  "holdingsWithoutCostBasis": zod.array(zod.string())
+}),
+  "holdings": zod.array(zod.object({
+  "symbol": zod.string(),
+  "weightPct": zod.number().nullable(),
+  "qualityScore": zod.number().nullable(),
+  "capitalAllocationScore": zod.number().nullable(),
+  "growthScore": zod.number().nullable(),
+  "valuationRating": zod.string().nullable(),
+  "committeeVerdict": zod.string().nullable(),
+  "marketCapBand": zod.string().nullable(),
+  "shares": zod.number().nullable(),
+  "avgCostBasis": zod.number().nullable(),
+  "currentPrice": zod.number().nullable(),
+  "costBasisValue": zod.number().nullable(),
+  "marketValue": zod.number().nullable(),
+  "unrealizedPnl": zod.number().nullable(),
+  "unrealizedPnlPct": zod.number().nullable(),
+  "dividendYield": zod.number().nullable(),
+  "dividendPerShare": zod.number().nullable(),
+  "estAnnualDividendIncome": zod.number().nullable(),
+  "suggestedShareDelta": zod.number().nullable()
+})),
+  "unresolvedSymbols": zod.array(zod.string()),
+  "summary": zod.string()
+}),
+  "createdAt": zod.string()
+})
+export const GetPortfolioSnapshotsResponse = zod.array(GetPortfolioSnapshotsResponseItem)
+
+
+/**
+ * @summary Compute the portfolio intelligence analysis fresh and save it as a composite snapshot
+ */
+export const SavePortfolioSnapshotParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SavePortfolioSnapshotResponse = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "qualityScore": zod.number().nullable(),
+  "riskScore": zod.number().nullable(),
+  "diversificationScore": zod.number().nullable(),
+  "totalMarketValue": zod.number().nullable(),
+  "holdingsCount": zod.number(),
+  "analysis": zod.object({
+  "qualityScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "capitalAllocationScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "diversificationScore": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "weightedMetrics": zod.object({
+  "roic": zod.number().nullable(),
+  "roe": zod.number().nullable(),
+  "grossMargin": zod.number().nullable(),
+  "operatingMargin": zod.number().nullable(),
+  "fcfYield": zod.number().nullable(),
+  "dividendYield": zod.number().nullable(),
+  "debtToEquity": zod.number().nullable()
+}),
+  "allocation": zod.object({
+  "bySector": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byIndustry": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byMarketCapBand": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byCountry": zod.object({
+  "available": zod.literal(false),
+  "reason": zod.string()
+}),
+  "byCurrency": zod.object({
+  "available": zod.literal(false),
+  "reason": zod.string()
+}),
+  "growthValueMix": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "qualityMix": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "largestPositionPct": zod.number().nullable(),
+  "top10ExposurePct": zod.number().nullable(),
+  "cashAllocationPct": zod.number().nullable(),
+  "cashAllocationNote": zod.string()
+}),
+  "risk": zod.object({
+  "overall": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "concentration": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSymbol": zod.string().nullable(),
+  "largestSymbolWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean()
+}),
+  "sectorExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSector": zod.string().nullable(),
+  "largestSectorWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean(),
+  "breakdown": zod.array(zod.object({
+  "sector": zod.string(),
+  "marketValue": zod.number(),
+  "weightPct": zod.number()
+})),
+  "unclassifiedWeightPct": zod.number().nullable()
+}),
+  "cyclicality": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "portfolioBeta": zod.number().nullable(),
+  "coveragePct": zod.number().nullable()
+}),
+  "cashRisk": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "dividendDependence": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "leverageExposure": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "qualityDrift": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+}),
+  "portfolioStability": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string()
+})
+}),
+  "income": zod.object({
+  "portfolioDividendYield": zod.number().nullable(),
+  "estAnnualDividendIncome": zod.number().nullable()
+}),
+  "performance": zod.object({
+  "totalCostBasisValue": zod.number().nullable(),
+  "totalMarketValue": zod.number().nullable(),
+  "totalUnrealizedPnl": zod.number().nullable(),
+  "totalUnrealizedPnlPct": zod.number().nullable(),
+  "holdingsWithoutCostBasis": zod.array(zod.string())
+}),
+  "holdings": zod.array(zod.object({
+  "symbol": zod.string(),
+  "weightPct": zod.number().nullable(),
+  "qualityScore": zod.number().nullable(),
+  "capitalAllocationScore": zod.number().nullable(),
+  "growthScore": zod.number().nullable(),
+  "valuationRating": zod.string().nullable(),
+  "committeeVerdict": zod.string().nullable(),
+  "marketCapBand": zod.string().nullable(),
+  "shares": zod.number().nullable(),
+  "avgCostBasis": zod.number().nullable(),
+  "currentPrice": zod.number().nullable(),
+  "costBasisValue": zod.number().nullable(),
+  "marketValue": zod.number().nullable(),
+  "unrealizedPnl": zod.number().nullable(),
+  "unrealizedPnlPct": zod.number().nullable(),
+  "dividendYield": zod.number().nullable(),
+  "dividendPerShare": zod.number().nullable(),
+  "estAnnualDividendIncome": zod.number().nullable(),
+  "suggestedShareDelta": zod.number().nullable()
+})),
+  "unresolvedSymbols": zod.array(zod.string()),
+  "summary": zod.string()
+}),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List free-text notes for a portfolio, newest first
+ */
+export const GetPortfolioNotesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPortfolioNotesResponseItem = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetPortfolioNotesResponse = zod.array(GetPortfolioNotesResponseItem)
+
+
+/**
+ * @summary Add a free-text note to a portfolio
+ */
+export const AddPortfolioNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AddPortfolioNoteBody = zod.object({
+  "note": zod.string()
+})
+
+export const AddPortfolioNoteResponse = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a portfolio note's text
+ */
+export const UpdatePortfolioNoteParams = zod.object({
+  "id": zod.coerce.number(),
+  "noteId": zod.coerce.number()
+})
+
+export const UpdatePortfolioNoteBody = zod.object({
+  "note": zod.string()
+})
+
+export const UpdatePortfolioNoteResponse = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a portfolio note
+ */
+export const DeletePortfolioNoteParams = zod.object({
+  "id": zod.coerce.number(),
+  "noteId": zod.coerce.number()
+})
+
+export const DeletePortfolioNoteResponse = zod.object({
+  "success": zod.boolean()
 })
 
 

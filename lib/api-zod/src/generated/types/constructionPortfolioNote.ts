@@ -6,16 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ConstructionHolding {
+export interface ConstructionPortfolioNote {
   id: number;
   portfolioId: number;
-  symbol: string;
-  targetWeightPct: number;
-  /** @nullable */
-  shares: number | null;
-  /** @nullable */
-  avgCostBasis: number | null;
-  notes: string;
+  note: string;
   createdAt: string;
   updatedAt: string;
 }
