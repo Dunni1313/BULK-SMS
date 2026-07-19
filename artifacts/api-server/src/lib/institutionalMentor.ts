@@ -53,7 +53,14 @@
 // itself calls none of those, so it triggers no write of its own at all.
 
 import { and, desc, eq, gte, lt } from "drizzle-orm";
-import { db, intelligenceSnapshotsTable, valueWatchlistTable, type IntelligenceSnapshotRow } from "@workspace/db";
+import {
+  db,
+  intelligenceSnapshotsTable,
+  valueWatchlistTable,
+  investingPortfoliosTable,
+  investingHoldingsTable,
+  type IntelligenceSnapshotRow,
+} from "@workspace/db";
 import {
   buildPortfolioDashboard,
   type PortfolioDashboardResult,
@@ -849,6 +856,49 @@ async function buildWatchlistReview(userId: string): Promise<WatchlistReview> {
   return { itemCount: items.length, items, summary };
 }
 
+// Phase 13 — Institutional Portfolio Manager. A single, plain,
+// ownership-scoped read of the user's own Engine 1 target-allocation
+// portfolios (investing_portfolios/investing_holdings, Phase 2 Sprint 28) —
+// the same "bounded, additive integration point, zero new scoring" pattern
+// buildWatchlistReview() above already established. Introduces no new
+// analyzer composition — portfolio/holding counts are already-stored,
+// already-cheap counts, not a call into lib/portfolioIntelligence.ts (which
+// stays on-demand behind its own route, per that module's own established
+// on-demand-vs-eager discipline).
+export interface PortfolioReview {
+  portfolioCount: number;
+  totalHoldingsCount: number;
+  summary: string;
+}
+
+async function buildPortfolioReview(userId: string): Promise<PortfolioReview> {
+  const portfolios = await db
+    .select({ id: investingPortfoliosTable.id, name: investingPortfoliosTable.name })
+    .from(investingPortfoliosTable)
+    .where(eq(investingPortfoliosTable.userId, userId));
+
+  if (portfolios.length === 0) {
+    return {
+      portfolioCount: 0,
+      totalHoldingsCount: 0,
+      summary: "You have no target-allocation portfolios yet. Build one on the Institutional Portfolio Manager page to see it reviewed here.",
+    };
+  }
+
+  const holdingRows = await db
+    .select({ id: investingHoldingsTable.id })
+    .from(investingHoldingsTable)
+    .where(eq(investingHoldingsTable.userId, userId));
+
+  return {
+    portfolioCount: portfolios.length,
+    totalHoldingsCount: holdingRows.length,
+    summary:
+      `You are tracking ${portfolios.length} target-allocation portfolio${portfolios.length === 1 ? "" : "s"} ` +
+      `with ${holdingRows.length} total holding${holdingRows.length === 1 ? "" : "s"} on the Institutional Portfolio Manager.`,
+  };
+}
+
 // ─── Top-level assembly ──────────────────────────────────────────────────────
 
 export interface InstitutionalMentorResult {
@@ -864,6 +914,7 @@ export interface InstitutionalMentorResult {
   behaviourReview: BehaviourReview;
   learningSummary: MentorLearningSummary;
   watchlistReview: WatchlistReview;
+  portfolioReview: PortfolioReview;
   generatedAt: string;
 }
 
@@ -897,6 +948,7 @@ export async function buildInstitutionalMentor(userId: string, now: Date = new D
   const behaviourReview = buildBehaviourReview(journal);
   const learningSummary = buildLearningSummary();
   const watchlistReview = await buildWatchlistReview(userId);
+  const portfolioReview = await buildPortfolioReview(userId);
 
   return {
     paperTradingMode: true,
@@ -911,6 +963,7 @@ export async function buildInstitutionalMentor(userId: string, now: Date = new D
     behaviourReview,
     learningSummary,
     watchlistReview,
+    portfolioReview,
     generatedAt: now.toISOString(),
   };
 }

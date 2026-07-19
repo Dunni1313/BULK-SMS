@@ -35,6 +35,8 @@ import {
   getGetInstitutionalIntelligenceQueryKey,
   useGetValueWatchlist,
   getGetValueWatchlistQueryKey,
+  useGetPortfolios,
+  getGetPortfoliosQueryKey,
 } from "@workspace/api-client-react";
 import {
   CommandDialog,
@@ -87,6 +89,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   // Phase 12 — Institutional Investing Engine Consolidation & Integration.
   const { data: watchlist } = useGetValueWatchlist(undefined, {
     query: { queryKey: getGetValueWatchlistQueryKey(), enabled: open },
+  });
+  // Phase 13 — Institutional Portfolio Manager.
+  const { data: portfolios } = useGetPortfolios({
+    query: { queryKey: getGetPortfoliosQueryKey(), enabled: open },
   });
 
   function go(href: string) {
@@ -236,6 +242,27 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   <Building2 className="h-4 w-4" />
                   <span>
                     {w.symbol} — {w.currentDecision}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {portfolios && portfolios.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Portfolios">
+              {portfolios.slice(0, 25).map((p) => (
+                <CommandItem
+                  key={p.id}
+                  value={`portfolio ${p.name}`}
+                  onSelect={() => go(`/stock-analyst/portfolio-construction?portfolioId=${p.id}`)}
+                  data-testid={`command-item-portfolio-${p.id}`}
+                >
+                  <Briefcase className="h-4 w-4" />
+                  <span>
+                    {p.name} — {p.holdingsCount} holding{p.holdingsCount === 1 ? "" : "s"}
                   </span>
                 </CommandItem>
               ))}

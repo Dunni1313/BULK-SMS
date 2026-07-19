@@ -21,6 +21,7 @@ const mockState = vi.hoisted(() => ({
   closedTrades: undefined as unknown,
   notifications: undefined as unknown,
   watchlist: undefined as unknown,
+  portfolios: undefined as unknown,
   updateWorkspaceMutate: vi.fn(),
   activateWorkspaceMutate: vi.fn(),
   createWorkspaceMutate: vi.fn(),
@@ -51,6 +52,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useListJournalEntries: () => ({ data: mockState.journalEntries }),
     useListNotifications: () => ({ data: mockState.notifications }),
     useGetValueWatchlist: () => ({ data: mockState.watchlist, isLoading: false }),
+    useGetPortfolios: () => ({ data: mockState.portfolios, isLoading: false }),
   };
 });
 
@@ -89,6 +91,7 @@ beforeEach(() => {
   mockState.closedTrades = undefined;
   mockState.notifications = undefined;
   mockState.watchlist = undefined;
+  mockState.portfolios = undefined;
   mockState.updateWorkspaceMutate = vi.fn();
   mockState.activateWorkspaceMutate = vi.fn();
   mockState.createWorkspaceMutate = vi.fn();
@@ -204,6 +207,41 @@ describe("Home (Institutional Home / Personal Dashboard)", () => {
       expect(within(widget).getByText("AAPL")).toBeInTheDocument();
       expect(within(widget).getByText("LONG-TERM BUY")).toBeInTheDocument();
       expect(within(widget).getByText("View all 2 →")).toBeInTheDocument();
+    });
+  });
+
+  // Phase 13 — Institutional Portfolio Manager.
+  describe("portfolio-summary widget", () => {
+    it("is auto-reconciled into a workspace saved before this widget existed", () => {
+      // makeWorkspace()'s own fixture predates "portfolio-summary".
+      mockState.activeWorkspace = makeWorkspace();
+      mockState.portfolios = [];
+      renderWithClient(<Home />);
+      expect(screen.getByTestId("widget-portfolio-summary")).toBeInTheDocument();
+    });
+
+    it("shows the honest empty state with no portfolios yet", () => {
+      mockState.activeWorkspace = makeWorkspace({
+        widgetConfig: [{ id: "portfolio-summary", visible: true, size: "normal", order: 0 }],
+      });
+      mockState.portfolios = [];
+      renderWithClient(<Home />);
+      expect(screen.getByText("No target-allocation portfolios yet.")).toBeInTheDocument();
+    });
+
+    it("shows real portfolios with holding counts, reusing GET /portfolio-construction/portfolios directly", () => {
+      mockState.activeWorkspace = makeWorkspace({
+        widgetConfig: [{ id: "portfolio-summary", visible: true, size: "normal", order: 0 }],
+      });
+      mockState.portfolios = [
+        { id: 1, name: "Core Value", description: "", holdingsCount: 3 },
+        { id: 2, name: "Dividend Growth", description: "", holdingsCount: 2 },
+      ];
+      renderWithClient(<Home />);
+      const widget = screen.getByTestId("widget-content-portfolio-summary");
+      expect(within(widget).getByText("Core Value")).toBeInTheDocument();
+      expect(within(widget).getByText("2 portfolios · 5 holdings")).toBeInTheDocument();
+      expect(within(widget).getByText("Open Portfolio Manager →")).toBeInTheDocument();
     });
   });
 });

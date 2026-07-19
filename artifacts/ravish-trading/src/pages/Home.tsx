@@ -46,6 +46,7 @@ import {
   useGetInstitutionalMentor,
   useGetPortfolioEventRisk,
   useGetValueWatchlist,
+  useGetPortfolios,
   useListJournalEntries,
   useListNotifications,
   getListNotificationsQueryKey,
@@ -108,6 +109,7 @@ const WIDGET_TITLES: Record<string, string> = {
   "watchlist-summary": "Institutional Investing Watchlist",
   notifications: "Notifications",
   "quick-actions": "Quick Actions",
+  "portfolio-summary": "Institutional Portfolio Manager",
 };
 
 function fmtUsd(n: number | null | undefined): string {
@@ -421,6 +423,44 @@ function WatchlistSummaryWidget() {
   );
 }
 
+// Phase 13 — Institutional Portfolio Manager. Reuses the existing
+// GET /portfolio-construction/portfolios list — the same one-request cost
+// PortfolioConstruction.tsx's own sidebar already pays, zero new provider
+// calls or analyzer composition just to show a count on the home page.
+function PortfolioSummaryWidget() {
+  const { data, isLoading } = useGetPortfolios();
+  if (isLoading) return <Skeleton className="h-16 w-full" />;
+  if (!data || data.length === 0) {
+    return (
+      <div className="space-y-1" data-testid="widget-content-portfolio-summary">
+        <p className="text-sm text-muted-foreground">No target-allocation portfolios yet.</p>
+        <Link href="/stock-analyst/portfolio-construction" className="text-xs font-medium text-primary hover:underline">
+          Build a portfolio →
+        </Link>
+      </div>
+    );
+  }
+  const totalHoldings = data.reduce((s, p) => s + p.holdingsCount, 0);
+  return (
+    <div className="space-y-1.5" data-testid="widget-content-portfolio-summary">
+      <p className="text-sm">
+        {data.length} portfolio{data.length === 1 ? "" : "s"} · {totalHoldings} holding{totalHoldings === 1 ? "" : "s"}
+      </p>
+      {data.slice(0, 3).map((p) => (
+        <div key={p.id} className="flex items-center justify-between text-sm">
+          <span className="font-medium truncate">{p.name}</span>
+          <Badge variant="outline" className="text-[10px]">
+            {p.holdingsCount} holding{p.holdingsCount === 1 ? "" : "s"}
+          </Badge>
+        </div>
+      ))}
+      <Link href="/stock-analyst/portfolio-construction" className="text-xs font-medium text-primary hover:underline">
+        Open Portfolio Manager →
+      </Link>
+    </div>
+  );
+}
+
 function renderWidgetContent(
   id: string,
   ctx: {
@@ -453,6 +493,8 @@ function renderWidgetContent(
       return <RecentActivityWidget />;
     case "watchlist-summary":
       return <WatchlistSummaryWidget />;
+    case "portfolio-summary":
+      return <PortfolioSummaryWidget />;
     case "notifications":
       return <NotificationsWidget />;
     case "quick-actions":
@@ -650,15 +692,23 @@ export default function Home() {
     // simply never had that id persisted. Reconcile by appending just this
     // one new widget id (visible by default) when missing, so it becomes
     // discoverable without requiring every existing workspace row to be
-    // migrated. Deliberately scoped to this one id only, not a general
-    // reconciliation of every possible future widget — narrower, and
-    // never changes behavior for any widget id that isn't this one.
-    if (stored.some((w) => w.id === "watchlist-summary")) {
+    // migrated. Phase 13 extends this same reconciliation to also cover the
+    // new "portfolio-summary" widget — deliberately scoped to just these two
+    // ids, not a general reconciliation of every possible future widget —
+    // narrower, and never changes behavior for any widget id that isn't
+    // one of these two.
+    const missing = (["watchlist-summary", "portfolio-summary"] as const).filter(
+      (id) => !stored.some((w) => w.id === id),
+    );
+    if (missing.length === 0) {
       setLayout(stored);
       return;
     }
     const maxOrder = stored.reduce((m, w) => Math.max(m, w.order), -1);
-    setLayout([...stored, { id: "watchlist-summary", visible: true, size: "normal" as const, order: maxOrder + 1 }]);
+    setLayout([
+      ...stored,
+      ...missing.map((id, i) => ({ id, visible: true, size: "normal" as const, order: maxOrder + 1 + i })),
+    ]);
   }, [activeWorkspace]);
 
   const { data: report } = useGetCrossEngineDailyReport({

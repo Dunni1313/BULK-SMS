@@ -143,6 +143,12 @@ function resultFixture(over: Record<string, unknown> = {}) {
       items: [],
       summary: "Your Institutional Investing watchlist is empty. Research a company on the Value Research page and add it to your watchlist to see it reviewed here.",
     },
+    // Phase 13 — Institutional Portfolio Manager.
+    portfolioReview: {
+      portfolioCount: 0,
+      totalHoldingsCount: 0,
+      summary: "You have no target-allocation portfolios yet. Build one on the Institutional Portfolio Manager page to see it reviewed here.",
+    },
     generatedAt: "2026-07-17T12:00:00.000Z",
     ...over,
   };
@@ -299,6 +305,33 @@ describe("InstitutionalMentor page", () => {
       expect(within(list).getByText("LONG-TERM BUY")).toBeInTheDocument();
       expect(within(list).getByText("TSLA")).toBeInTheDocument();
       expect(within(list).getByText("TRIM")).toBeInTheDocument();
+      mockState.data = undefined;
+    });
+  });
+
+  // Phase 13 — Institutional Portfolio Manager.
+  describe("Portfolio Review", () => {
+    it("shows the honest empty-portfolios message and a link to build one", () => {
+      mockState.data = resultFixture();
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-portfolio-review");
+      expect(within(card).getByText(/no target-allocation portfolios yet/i)).toBeInTheDocument();
+      expect(within(card).getByTestId("link-portfolio-review-build")).toBeInTheDocument();
+      mockState.data = undefined;
+    });
+
+    it("shows real portfolio/holding counts when present", () => {
+      mockState.data = resultFixture({
+        portfolioReview: {
+          portfolioCount: 1,
+          totalHoldingsCount: 2,
+          summary: "You are tracking 1 target-allocation portfolio with 2 total holdings on the Institutional Portfolio Manager.",
+        },
+      });
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-portfolio-review");
+      expect(within(card).getByText(/1 target-allocation portfolio with 2 total holdings/)).toBeInTheDocument();
+      expect(within(card).getByTestId("link-portfolio-review-open")).toBeInTheDocument();
       mockState.data = undefined;
     });
   });

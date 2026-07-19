@@ -646,6 +646,38 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: ["business-quality-score", "margin-of-safety"],
     relatedLessonKeys: [],
   },
+  {
+    key: "portfolio-diversification-score",
+    term: "Portfolio Diversification Score",
+    category: "portfolio",
+    definition: "A 0-100 composite measuring how spread out a portfolio's holdings are, based on position concentration (the Herfindahl-Hirschman Index) and the number of distinct sectors represented — a portfolio-level measure, distinct from any single company's own Business Quality Score.",
+    relatedTermKeys: ["business-quality-score"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "portfolio-cash-allocation",
+    term: "Cash Allocation (Portfolio)",
+    category: "portfolio",
+    definition: "The share of a target-allocation portfolio's own stated target weights left unassigned to any holding (100% minus the sum of target weights) — an honest measure of how fully a portfolio's own plan is invested, never a claim about an actual brokerage cash balance, which this platform does not observe.",
+    relatedTermKeys: [],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "growth-value-mix",
+    term: "Growth vs. Value Mix",
+    category: "portfolio",
+    definition: "A portfolio-level breakdown classifying each holding as Growth, Value, or Blend, reusing that holding's own already-computed Tom Nash Growth pillar score and blended valuation rating — never a new judgment, just a portfolio-wide view of two signals already computed per company.",
+    relatedTermKeys: ["conviction-score", "margin-of-safety"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "rebalancing-assistant",
+    term: "Rebalancing Assistant",
+    category: "portfolio",
+    definition: "A suggested share count to buy or sell so a holding's actual weight moves back toward its own stated target weight — derived directly from a portfolio's own already-computed drift and current price, never a trade recommendation and never submitted, scheduled, or previewed as an order.",
+    relatedTermKeys: [],
+    relatedLessonKeys: [],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {

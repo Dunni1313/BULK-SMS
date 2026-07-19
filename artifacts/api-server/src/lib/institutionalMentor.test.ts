@@ -27,6 +27,8 @@ import {
   learningProgressTable,
   intelligenceSnapshotsTable,
   valueWatchlistTable,
+  investingPortfoliosTable,
+  investingHoldingsTable,
 } from "@workspace/db";
 import { buildInstitutionalMentor, INCOME_POSITIVE_THETA_BASE_SCORE, INCOME_ZERO_THETA_BASE_SCORE } from "./institutionalMentor.js";
 import { buildPortfolioDashboard } from "./portfolioDashboard.js";
@@ -48,6 +50,8 @@ async function cleanupUser(userId: string): Promise<void> {
   await db.delete(learningProgressTable).where(eq(learningProgressTable.userId, userId));
   await db.delete(intelligenceSnapshotsTable).where(eq(intelligenceSnapshotsTable.userId, userId));
   await db.delete(valueWatchlistTable).where(eq(valueWatchlistTable.userId, userId));
+  await db.delete(investingHoldingsTable).where(eq(investingHoldingsTable.userId, userId));
+  await db.delete(investingPortfoliosTable).where(eq(investingPortfoliosTable.userId, userId));
   await db.delete(settingsTable).where(eq(settingsTable.userId, userId));
   await db.delete(usersTable).where(eq(usersTable.id, userId));
 }
@@ -586,6 +590,53 @@ describe("buildInstitutionalMentor", () => {
       });
       const result = await buildInstitutionalMentor(userId);
       expect(result.watchlistReview.items.some((i) => i.symbol === "OTHR")).toBe(false);
+      await cleanupUser(otherUserId);
+    });
+  });
+
+  // Phase 13 — Institutional Portfolio Manager.
+  // Proves the new portfolioReview section is a plain, honest,
+  // ownership-scoped read of the user's own investing_portfolios/
+  // investing_holdings rows — zero new scoring, never fabricated for a
+  // user with no portfolios or another user's portfolios.
+  describe("portfolioReview (Phase 13)", () => {
+    let userId: string;
+    beforeAll(async () => {
+      userId = await createUser("portfolio-review");
+    });
+    afterAll(async () => {
+      await cleanupUser(userId);
+    });
+
+    it("honestly reports zero portfolios/holdings for a user with none", async () => {
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.portfolioReview.portfolioCount).toBe(0);
+      expect(result.portfolioReview.totalHoldingsCount).toBe(0);
+      expect(result.portfolioReview.summary).toMatch(/no target-allocation portfolios yet/i);
+    });
+
+    it("reflects real portfolio/holding counts", async () => {
+      const [portfolio] = await db
+        .insert(investingPortfoliosTable)
+        .values({ userId, name: "Core Value" })
+        .returning({ id: investingPortfoliosTable.id });
+      await db.insert(investingHoldingsTable).values([
+        { userId, portfolioId: portfolio.id, symbol: "PRPA", targetWeightPct: 50 },
+        { userId, portfolioId: portfolio.id, symbol: "PRPB", targetWeightPct: 50 },
+      ]);
+
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.portfolioReview.portfolioCount).toBe(1);
+      expect(result.portfolioReview.totalHoldingsCount).toBe(2);
+      expect(result.portfolioReview.summary).toContain("1 target-allocation portfolio");
+      expect(result.portfolioReview.summary).toContain("2 total holdings");
+    });
+
+    it("never mixes in another user's portfolios", async () => {
+      const otherUserId = await createUser("portfolio-review-other");
+      await db.insert(investingPortfoliosTable).values({ userId: otherUserId, name: "Other Portfolio" });
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.portfolioReview.portfolioCount).toBe(1);
       await cleanupUser(otherUserId);
     });
   });

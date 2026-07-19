@@ -14,6 +14,7 @@ const mockState = vi.hoisted(() => ({
   learningPaths: undefined as unknown,
   intelligence: undefined as unknown,
   watchlist: undefined as unknown,
+  portfolios: undefined as unknown,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -29,6 +30,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetLearningPaths: () => ({ data: mockState.learningPaths }),
     useGetInstitutionalIntelligence: () => ({ data: mockState.intelligence }),
     useGetValueWatchlist: () => ({ data: mockState.watchlist }),
+    useGetPortfolios: () => ({ data: mockState.portfolios }),
   };
 });
 
@@ -46,6 +48,7 @@ beforeEach(() => {
   mockState.learningPaths = [];
   mockState.intelligence = undefined;
   mockState.watchlist = [];
+  mockState.portfolios = [];
   window.history.pushState(null, "", "/");
   vi.clearAllMocks();
 });
@@ -96,6 +99,19 @@ describe("CommandPalette", () => {
     expect(screen.getByTestId("command-item-watchlist-AAPL")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("command-item-watchlist-AAPL"));
     expect(window.location.pathname + window.location.search).toBe("/stock-analyst?symbol=AAPL");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  // Phase 13 — Institutional Portfolio Manager.
+  it("shows a portfolio entry once fetched, and selecting it deep-links to the Portfolio Manager pre-selected", () => {
+    mockState.portfolios = [{ id: 7, name: "Core Value", description: "", holdingsCount: 3 }];
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    expect(screen.getByTestId("command-item-portfolio-7")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("command-item-portfolio-7"));
+    expect(window.location.pathname + window.location.search).toBe(
+      "/stock-analyst/portfolio-construction?portfolioId=7",
+    );
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 

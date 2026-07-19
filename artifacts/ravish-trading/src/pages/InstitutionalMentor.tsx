@@ -374,6 +374,29 @@ export default function InstitutionalMentor() {
             </CardContent>
           </Card>
 
+          {/* ─── Portfolio Review (Phase 13) — a plain, ownership-scoped
+              read of the user's own Engine 1 target-allocation portfolios;
+              zero new scoring, since portfolio/holding counts are already
+              cheap, already-stored counts. ────────────────────────────── */}
+          <Card className="bg-card border-border" data-testid="card-portfolio-review">
+            <CardHeader>
+              <CardTitle>Institutional Portfolio Manager Review</CardTitle>
+              <CardDescription>Reuses the Institutional Portfolio Manager's own portfolios directly — no new scoring.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm" data-testid="text-portfolio-review-summary">{result.portfolioReview.summary}</p>
+              {result.portfolioReview.portfolioCount === 0 ? (
+                <Link href="/stock-analyst/portfolio-construction" className="text-xs font-medium text-primary hover:underline" data-testid="link-portfolio-review-build">
+                  Build a portfolio →
+                </Link>
+              ) : (
+                <Link href="/stock-analyst/portfolio-construction" className="text-xs font-medium text-primary hover:underline" data-testid="link-portfolio-review-open">
+                  Open Portfolio Manager →
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+
           {/* ─── Institutional Lessons ───────────────────────────────────── */}
           <Card className="bg-card border-border" data-testid="card-institutional-lessons">
             <CardHeader>
