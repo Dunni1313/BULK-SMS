@@ -22,6 +22,8 @@ const mockState = vi.hoisted(() => ({
   // Phase 12 — Institutional Investing Engine Consolidation & Integration.
   investmentThesis: { data: undefined, isLoading: false, isError: false } as HookResult & { isError?: boolean },
   researchNotes: { data: [] as unknown[], isLoading: false } as HookResult,
+  // Phase 14 — Institutional Investment Decision Engine.
+  institutionalDecision: { data: undefined, isLoading: false, isError: false } as HookResult & { isError?: boolean },
 }));
 
 const addResearchNoteMock = vi.hoisted(() => vi.fn());
@@ -43,10 +45,11 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetResearchNotes: () => mockState.researchNotes,
     useAddResearchNote: () => ({ mutate: addResearchNoteMock, isPending: false }),
     useDeleteResearchNote: () => ({ mutate: deleteResearchNoteMock, isPending: false }),
+    useGetInstitutionalDecision: () => mockState.institutionalDecision,
   };
 });
 
-import StockResearch, { ReportView, InvestmentThesisCard, ResearchNotesCard } from "./StockResearch";
+import StockResearch, { ReportView, InvestmentThesisCard, DecisionSummaryCard, ResearchNotesCard } from "./StockResearch";
 
 describe("ReportView", () => {
   it("renders the valuation block when fair value is available", () => {
@@ -210,6 +213,7 @@ describe("StockResearch page (mocked hooks)", () => {
     mockState.settings = { data: { fundamentalsConnected: false } };
     mockState.investmentThesis = { data: undefined, isLoading: false, isError: false };
     mockState.researchNotes = { data: [], isLoading: false };
+    mockState.institutionalDecision = { data: undefined, isLoading: false, isError: false };
     addResearchNoteMock.mockReset();
     deleteResearchNoteMock.mockReset();
   });
@@ -471,6 +475,44 @@ describe("InvestmentThesisCard", () => {
     renderWithClient(<InvestmentThesisCard symbol="ZZZZ" />);
     await userEvent.click(screen.getByTestId("generate-thesis"));
     expect(await screen.findByText("Unable to generate a thesis for this symbol.")).toBeInTheDocument();
+  });
+});
+
+describe("DecisionSummaryCard", () => {
+  beforeEach(() => {
+    mockState.institutionalDecision = { data: undefined, isLoading: false, isError: false };
+  });
+
+  it("shows a Get Decision button before it has been requested — never fetches eagerly", () => {
+    renderWithClient(<DecisionSummaryCard symbol="AAPL" />);
+    expect(screen.getByTestId("get-decision")).toBeInTheDocument();
+    expect(screen.queryByTestId("decision-summary-content")).not.toBeInTheDocument();
+  });
+
+  it("renders the recommendation, confidence, and summary once computed", async () => {
+    mockState.institutionalDecision = {
+      data: {
+        symbol: "AAPL",
+        recommendation: "Buy",
+        confidence: 82,
+        summary: "AAPL: Buy (confidence 82/100). Investment Committee votes Buy.",
+      },
+      isLoading: false,
+      isError: false,
+    };
+    renderWithClient(<DecisionSummaryCard symbol="AAPL" />);
+    await userEvent.click(screen.getByTestId("get-decision"));
+    expect(await screen.findByTestId("decision-summary-content")).toBeInTheDocument();
+    expect(screen.getByText("Buy")).toBeInTheDocument();
+    expect(screen.getByText("Confidence 82/100")).toBeInTheDocument();
+    expect(screen.getByText(/Investment Committee votes Buy/)).toBeInTheDocument();
+  });
+
+  it("shows an honest unavailable message rather than a fabricated decision on error", async () => {
+    mockState.institutionalDecision = { data: undefined, isLoading: false, isError: true };
+    renderWithClient(<DecisionSummaryCard symbol="ZZZZ" />);
+    await userEvent.click(screen.getByTestId("get-decision"));
+    expect(await screen.findByText("Unable to compute a decision for this symbol.")).toBeInTheDocument();
   });
 });
 

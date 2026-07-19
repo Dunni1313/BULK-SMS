@@ -12,7 +12,7 @@
 // substance, only relocated into their own tabs.
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useSearch } from "wouter";
+import { useSearch, Link } from "wouter";
 import {
   useGetPortfolios,
   useCreatePortfolio,
@@ -51,7 +51,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, Trash2, Star, Save, Pencil } from "lucide-react";
+import { Briefcase, Plus, Trash2, Star, Save, Pencil, Gavel } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -607,16 +607,29 @@ export default function PortfolioConstruction() {
                               </Badge>
                             </td>
                             <td className="py-2 text-right">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-6 w-6 text-muted-foreground hover:text-rose-400"
-                                onClick={() => handleDeleteHolding(h.id, h.symbol)}
-                                aria-label={`Remove holding ${h.symbol}`}
-                                data-testid={`remove-holding-${h.symbol}`}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
+                              <div className="flex items-center justify-end gap-1">
+                                <Link href={`/decision-engine?symbol=${h.symbol}&portfolioId=${selectedId}`}>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-6 w-6 text-muted-foreground hover:text-indigo-400"
+                                    aria-label={`Get decision for ${h.symbol}`}
+                                    data-testid={`decision-link-${h.symbol}`}
+                                  >
+                                    <Gavel className="w-3 h-3" />
+                                  </Button>
+                                </Link>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-6 w-6 text-muted-foreground hover:text-rose-400"
+                                  onClick={() => handleDeleteHolding(h.id, h.symbol)}
+                                  aria-label={`Remove holding ${h.symbol}`}
+                                  data-testid={`remove-holding-${h.symbol}`}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         ))}

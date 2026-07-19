@@ -29,6 +29,8 @@ import {
   valueWatchlistTable,
   investingPortfoliosTable,
   investingHoldingsTable,
+  investingDecisionSnapshotsTable,
+  investingDecisionNotesTable,
 } from "@workspace/db";
 import { buildInstitutionalMentor, INCOME_POSITIVE_THETA_BASE_SCORE, INCOME_ZERO_THETA_BASE_SCORE } from "./institutionalMentor.js";
 import { buildPortfolioDashboard } from "./portfolioDashboard.js";
@@ -52,6 +54,8 @@ async function cleanupUser(userId: string): Promise<void> {
   await db.delete(valueWatchlistTable).where(eq(valueWatchlistTable.userId, userId));
   await db.delete(investingHoldingsTable).where(eq(investingHoldingsTable.userId, userId));
   await db.delete(investingPortfoliosTable).where(eq(investingPortfoliosTable.userId, userId));
+  await db.delete(investingDecisionSnapshotsTable).where(eq(investingDecisionSnapshotsTable.userId, userId));
+  await db.delete(investingDecisionNotesTable).where(eq(investingDecisionNotesTable.userId, userId));
   await db.delete(settingsTable).where(eq(settingsTable.userId, userId));
   await db.delete(usersTable).where(eq(usersTable.id, userId));
 }
@@ -637,6 +641,58 @@ describe("buildInstitutionalMentor", () => {
       await db.insert(investingPortfoliosTable).values({ userId: otherUserId, name: "Other Portfolio" });
       const result = await buildInstitutionalMentor(userId);
       expect(result.portfolioReview.portfolioCount).toBe(1);
+      await cleanupUser(otherUserId);
+    });
+  });
+
+  // Phase 14 — Institutional Investment Decision Engine.
+  // Proves the new decisionEngineReview section is a plain, honest,
+  // ownership-scoped read of the user's own investing_decision_snapshots/
+  // investing_decision_notes rows — zero new scoring, never fabricated for
+  // a user with none or another user's rows.
+  describe("decisionEngineReview (Phase 14)", () => {
+    let userId: string;
+    beforeAll(async () => {
+      userId = await createUser("decision-engine-review");
+    });
+    afterAll(async () => {
+      await cleanupUser(userId);
+    });
+
+    it("honestly reports zero snapshots/notes for a user with none", async () => {
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.decisionEngineReview.snapshotCount).toBe(0);
+      expect(result.decisionEngineReview.noteCount).toBe(0);
+      expect(result.decisionEngineReview.distinctSymbolCount).toBe(0);
+      expect(result.decisionEngineReview.summary).toMatch(/no saved Decision Engine snapshots or notes yet/i);
+    });
+
+    it("reflects real snapshot/note counts across distinct symbols", async () => {
+      await db.insert(investingDecisionSnapshotsTable).values([
+        { userId, symbol: "DERA", recommendation: "Buy", confidence: 80, analysisJson: { summary: "test" } },
+        { userId, symbol: "DERB", recommendation: "Hold", confidence: 60, analysisJson: { summary: "test" } },
+      ]);
+      await db.insert(investingDecisionNotesTable).values([{ userId, symbol: "DERA", note: "Watching earnings." }]);
+
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.decisionEngineReview.snapshotCount).toBe(2);
+      expect(result.decisionEngineReview.noteCount).toBe(1);
+      expect(result.decisionEngineReview.distinctSymbolCount).toBe(2);
+      expect(result.decisionEngineReview.summary).toContain("2 saved decision snapshots");
+      expect(result.decisionEngineReview.summary).toContain("1 decision note");
+    });
+
+    it("never mixes in another user's snapshots/notes", async () => {
+      const otherUserId = await createUser("decision-engine-review-other");
+      await db.insert(investingDecisionSnapshotsTable).values({
+        userId: otherUserId,
+        symbol: "OTHR",
+        recommendation: "Hold",
+        confidence: 50,
+        analysisJson: { summary: "other" },
+      });
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.decisionEngineReview.snapshotCount).toBe(2);
       await cleanupUser(otherUserId);
     });
   });

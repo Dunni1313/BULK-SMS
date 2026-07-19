@@ -397,6 +397,29 @@ export default function InstitutionalMentor() {
             </CardContent>
           </Card>
 
+          {/* ─── Decision Engine Review (Phase 14) — a plain, ownership-
+              scoped count of the user's own saved Decision Engine snapshots
+              and notes; zero new scoring, never a call into
+              lib/decisionEngine.ts's own on-demand per-symbol composition. */}
+          <Card className="bg-card border-border" data-testid="card-decision-engine-review">
+            <CardHeader>
+              <CardTitle>Institutional Decision Engine Review</CardTitle>
+              <CardDescription>Reuses the Institutional Decision Engine's own saved snapshots and notes directly — no new scoring.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm" data-testid="text-decision-engine-review-summary">{result.decisionEngineReview.summary}</p>
+              {result.decisionEngineReview.snapshotCount === 0 && result.decisionEngineReview.noteCount === 0 ? (
+                <Link href="/decision-engine" className="text-xs font-medium text-primary hover:underline" data-testid="link-decision-engine-review-analyze">
+                  Analyze a symbol →
+                </Link>
+              ) : (
+                <Link href="/decision-engine" className="text-xs font-medium text-primary hover:underline" data-testid="link-decision-engine-review-open">
+                  Open Decision Engine →
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+
           {/* ─── Institutional Lessons ───────────────────────────────────── */}
           <Card className="bg-card border-border" data-testid="card-institutional-lessons">
             <CardHeader>

@@ -678,6 +678,38 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: [],
     relatedLessonKeys: [],
   },
+  {
+    key: "institutional-decision-engine",
+    term: "Institutional Decision Engine",
+    category: "value-investing",
+    definition: "A deterministic synthesis layer that combines already-computed Business Quality, Competitive Advantage, Management Quality, Capital Allocation, Financial Strength, Valuation, Margin of Safety, the Investment Committee's verdict, and Tom Nash's conviction score into one Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation — never a new valuation model, never a price prediction.",
+    relatedTermKeys: ["conviction-score", "margin-of-safety"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "investment-checklist",
+    term: "Investment Checklist",
+    category: "value-investing",
+    definition: "A 15-item Pass/Warning/Fail (or honestly Unavailable) breakdown of a decision — Business Quality, Moat, Management, Capital Allocation, Revenue Growth, Margins, Cash Flow, Debt, ROIC, ROE, Valuation, Margin of Safety, Risk, Portfolio Fit, and Diversification — each item's status derived directly from an already-computed score or rating, never a new judgment.",
+    relatedTermKeys: ["institutional-decision-engine"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "supporting-contradicting-evidence",
+    term: "Supporting / Contradicting Evidence",
+    category: "value-investing",
+    definition: "Two lists surfacing the bullish and bearish facts behind a decision — moat strength, quality scores, committee votes, margin of safety, and balance-sheet flags — each restating an already-computed figure honestly on whichever side it supports, so a user can see the actual tension in the analysis rather than a single, papered-over verdict.",
+    relatedTermKeys: ["institutional-decision-engine"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "decision-confidence-score",
+    term: "Decision Confidence",
+    category: "value-investing",
+    definition: "A 0-100 score reused directly from the Investment Committee's own confidence (the average of the actual votes it cast), reported alongside the Institutional Decision Engine's recommendation — never a separately-fabricated probability of the recommendation being correct.",
+    relatedTermKeys: ["institutional-decision-engine", "conviction-score"],
+    relatedLessonKeys: [],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {

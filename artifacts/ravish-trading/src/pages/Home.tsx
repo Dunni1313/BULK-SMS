@@ -26,7 +26,7 @@
 // Trading Research).
 
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   useGetActiveWorkspace,
   useListWorkspaces,
@@ -110,6 +110,7 @@ const WIDGET_TITLES: Record<string, string> = {
   notifications: "Notifications",
   "quick-actions": "Quick Actions",
   "portfolio-summary": "Institutional Portfolio Manager",
+  "decision-engine": "Institutional Decision Engine",
 };
 
 function fmtUsd(n: number | null | undefined): string {
@@ -461,6 +462,46 @@ function PortfolioSummaryWidget() {
   );
 }
 
+// Phase 14 — Institutional Investment Decision Engine. A pure navigation
+// widget, deliberately zero new data fetch: the Decision Engine composes
+// buildValueResearchReport() + optional Management Quality/Portfolio
+// Intelligence per symbol, real non-trivial work, so it stays on-demand
+// behind its own page rather than eagerly evaluated for every watchlist/
+// portfolio symbol just to populate a home-page summary.
+function DecisionEngineWidget() {
+  const [, setLocation] = useLocation();
+  const [symbol, setSymbol] = useState("");
+  return (
+    <div className="space-y-2" data-testid="widget-content-decision-engine">
+      <p className="text-sm text-muted-foreground">
+        Deterministic Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation, checklist, and evidence for any symbol.
+      </p>
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const s = symbol.trim().toUpperCase();
+          if (s) setLocation(`/decision-engine?symbol=${encodeURIComponent(s)}`);
+        }}
+      >
+        <Input
+          value={symbol}
+          onChange={(e) => setSymbol(e.target.value)}
+          placeholder="e.g. AAPL"
+          className="h-8 text-sm"
+          data-testid="input-decision-engine-symbol"
+        />
+        <Button type="submit" size="sm" disabled={!symbol.trim()} data-testid="button-decision-engine-go">
+          Go
+        </Button>
+      </form>
+      <Link href="/decision-engine" className="text-xs font-medium text-primary hover:underline">
+        Open Decision Engine →
+      </Link>
+    </div>
+  );
+}
+
 function renderWidgetContent(
   id: string,
   ctx: {
@@ -495,6 +536,8 @@ function renderWidgetContent(
       return <WatchlistSummaryWidget />;
     case "portfolio-summary":
       return <PortfolioSummaryWidget />;
+    case "decision-engine":
+      return <DecisionEngineWidget />;
     case "notifications":
       return <NotificationsWidget />;
     case "quick-actions":
@@ -693,11 +736,11 @@ export default function Home() {
     // one new widget id (visible by default) when missing, so it becomes
     // discoverable without requiring every existing workspace row to be
     // migrated. Phase 13 extends this same reconciliation to also cover the
-    // new "portfolio-summary" widget — deliberately scoped to just these two
-    // ids, not a general reconciliation of every possible future widget —
-    // narrower, and never changes behavior for any widget id that isn't
-    // one of these two.
-    const missing = (["watchlist-summary", "portfolio-summary"] as const).filter(
+    // new "portfolio-summary" widget, and Phase 14 the new "decision-engine"
+    // widget — deliberately scoped to just these three ids, not a general
+    // reconciliation of every possible future widget — narrower, and never
+    // changes behavior for any widget id that isn't one of these three.
+    const missing = (["watchlist-summary", "portfolio-summary", "decision-engine"] as const).filter(
       (id) => !stored.some((w) => w.id === id),
     );
     if (missing.length === 0) {

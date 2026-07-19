@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useSearch } from "wouter";
+import { useSearch, Link } from "wouter";
 import {
   useGetValueUniverse,
   useGetValueHistory,
@@ -16,6 +16,7 @@ import {
   useGetResearchNotes,
   useAddResearchNote,
   useDeleteResearchNote,
+  useGetInstitutionalDecision,
   getValueUniverse,
   getGetValueUniverseQueryKey,
   getGetValueWatchlistQueryKey,
@@ -27,6 +28,7 @@ import {
   getGetEarningsIntelligenceQueryKey,
   getGetInvestmentThesisQueryKey,
   getGetResearchNotesQueryKey,
+  getGetInstitutionalDecisionQueryKey,
   ValueResearchReport,
   ValueResearchInputLevel,
 } from "@workspace/api-client-react";
@@ -73,6 +75,7 @@ import {
   Sparkles,
   ScrollText,
   NotebookPen,
+  Gavel,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -310,6 +313,62 @@ export function InvestmentThesisCard({ symbol }: { symbol: string }) {
               </div>
             )}
             <p className="text-[11px] text-muted-foreground/70 italic">{thesis.disclaimer}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function decisionBadgeClass(rec: string): string {
+  if (rec === "Buy" || rec === "Accumulate") return "border-emerald-500/40 text-emerald-400";
+  if (rec === "Hold") return "border-border text-muted-foreground";
+  if (rec === "Reduce") return "border-amber-500/40 text-amber-400";
+  return "border-rose-500/40 text-rose-400"; // Sell, Avoid
+}
+
+// Phase 14 — Institutional Investment Decision Engine. Button-gated (never
+// eager), mirroring the Investment Thesis card's own on-demand discipline
+// above — the full checklist/evidence experience lives on its own page.
+export function DecisionSummaryCard({ symbol }: { symbol: string }) {
+  const [requested, setRequested] = useState(false);
+  const { data: decision, isLoading, isError } = useGetInstitutionalDecision(symbol, {
+    query: { queryKey: getGetInstitutionalDecisionQueryKey(symbol), enabled: requested },
+  });
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Gavel className="w-4 h-4 text-indigo-400" /> Institutional Decision Engine
+          <Badge variant="outline" className="ml-auto text-[10px] border-border">
+            Deterministic
+          </Badge>
+        </CardTitle>
+        <CardDescription className="text-[11px]">
+          A synthesized Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation from the Business Quality, Valuation,
+          Margin of Safety, Investment Committee, and Tom Nash signals already computed above.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!requested ? (
+          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setRequested(true)} data-testid="get-decision">
+            Get Decision
+          </Button>
+        ) : isLoading ? (
+          <Skeleton className="h-16 w-full" />
+        ) : isError || !decision ? (
+          <p className="text-sm text-muted-foreground">Unable to compute a decision for this symbol.</p>
+        ) : (
+          <div className="space-y-2" data-testid="decision-summary-content">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className={decisionBadgeClass(decision.recommendation)}>{decision.recommendation}</Badge>
+              <span className="text-xs text-muted-foreground">Confidence {decision.confidence}/100</span>
+            </div>
+            <p className="text-sm text-foreground/90">{decision.summary}</p>
+            <Link href={`/decision-engine?symbol=${decision.symbol}`} className="text-xs font-medium text-primary hover:underline">
+              Open full Decision Engine →
+            </Link>
           </div>
         )}
       </CardContent>
@@ -1919,6 +1978,7 @@ export default function StockResearch() {
                     refreshing={refreshing}
                   />
                   <InvestmentThesisCard symbol={report.symbol} />
+                  <DecisionSummaryCard symbol={report.symbol} />
                   <ResearchNotesCard symbol={report.symbol} />
                 </div>
               )}

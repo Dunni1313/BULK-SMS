@@ -149,6 +149,13 @@ function resultFixture(over: Record<string, unknown> = {}) {
       totalHoldingsCount: 0,
       summary: "You have no target-allocation portfolios yet. Build one on the Institutional Portfolio Manager page to see it reviewed here.",
     },
+    // Phase 14 — Institutional Investment Decision Engine.
+    decisionEngineReview: {
+      snapshotCount: 0,
+      noteCount: 0,
+      distinctSymbolCount: 0,
+      summary: "You have no saved Decision Engine snapshots or notes yet. Analyze a symbol on the Institutional Decision Engine page to see it reviewed here.",
+    },
     generatedAt: "2026-07-17T12:00:00.000Z",
     ...over,
   };
@@ -332,6 +339,34 @@ describe("InstitutionalMentor page", () => {
       const card = screen.getByTestId("card-portfolio-review");
       expect(within(card).getByText(/1 target-allocation portfolio with 2 total holdings/)).toBeInTheDocument();
       expect(within(card).getByTestId("link-portfolio-review-open")).toBeInTheDocument();
+      mockState.data = undefined;
+    });
+  });
+
+  // Phase 14 — Institutional Investment Decision Engine.
+  describe("Decision Engine Review", () => {
+    it("shows the honest empty-snapshots message and a link to analyze a symbol", () => {
+      mockState.data = resultFixture();
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-decision-engine-review");
+      expect(within(card).getByText(/no saved Decision Engine snapshots or notes yet/i)).toBeInTheDocument();
+      expect(within(card).getByTestId("link-decision-engine-review-analyze")).toBeInTheDocument();
+      mockState.data = undefined;
+    });
+
+    it("shows real snapshot/note counts when present", () => {
+      mockState.data = resultFixture({
+        decisionEngineReview: {
+          snapshotCount: 2,
+          noteCount: 1,
+          distinctSymbolCount: 2,
+          summary: "You have 2 saved decision snapshots and 1 decision note across 2 symbols on the Institutional Decision Engine.",
+        },
+      });
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-decision-engine-review");
+      expect(within(card).getByText(/2 saved decision snapshots and 1 decision note/)).toBeInTheDocument();
+      expect(within(card).getByTestId("link-decision-engine-review-open")).toBeInTheDocument();
       mockState.data = undefined;
     });
   });

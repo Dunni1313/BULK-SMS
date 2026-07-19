@@ -59,6 +59,8 @@ import {
   valueWatchlistTable,
   investingPortfoliosTable,
   investingHoldingsTable,
+  investingDecisionSnapshotsTable,
+  investingDecisionNotesTable,
   type IntelligenceSnapshotRow,
 } from "@workspace/db";
 import {
@@ -899,6 +901,54 @@ async function buildPortfolioReview(userId: string): Promise<PortfolioReview> {
   };
 }
 
+// Phase 14 — Institutional Investment Decision Engine review section. Same
+// bounded, additive integration pattern as buildPortfolioReview() above: a
+// plain, ownership-scoped count of the user's own saved decision snapshots
+// and notes (investing_decision_snapshots/investing_decision_notes) —
+// zero new scoring, zero call into lib/decisionEngine.ts's own per-symbol
+// composition (that stays on-demand behind its own route). Deliberately
+// named DecisionEngineReview, not "DecisionReview" — that name is already
+// taken by the Options Engine's own pre-existing decision-journal review
+// above, an unrelated concept.
+export interface DecisionEngineReview {
+  snapshotCount: number;
+  noteCount: number;
+  distinctSymbolCount: number;
+  summary: string;
+}
+
+async function buildDecisionEngineReview(userId: string): Promise<DecisionEngineReview> {
+  const snapshotRows = await db
+    .select({ symbol: investingDecisionSnapshotsTable.symbol })
+    .from(investingDecisionSnapshotsTable)
+    .where(eq(investingDecisionSnapshotsTable.userId, userId));
+  const noteRows = await db
+    .select({ symbol: investingDecisionNotesTable.symbol })
+    .from(investingDecisionNotesTable)
+    .where(eq(investingDecisionNotesTable.userId, userId));
+
+  const distinctSymbols = new Set([...snapshotRows.map((r) => r.symbol), ...noteRows.map((r) => r.symbol)]);
+
+  if (snapshotRows.length === 0 && noteRows.length === 0) {
+    return {
+      snapshotCount: 0,
+      noteCount: 0,
+      distinctSymbolCount: 0,
+      summary: "You have no saved Decision Engine snapshots or notes yet. Analyze a symbol on the Institutional Decision Engine page to see it reviewed here.",
+    };
+  }
+
+  return {
+    snapshotCount: snapshotRows.length,
+    noteCount: noteRows.length,
+    distinctSymbolCount: distinctSymbols.size,
+    summary:
+      `You have ${snapshotRows.length} saved decision snapshot${snapshotRows.length === 1 ? "" : "s"} and ` +
+      `${noteRows.length} decision note${noteRows.length === 1 ? "" : "s"} across ${distinctSymbols.size} symbol${distinctSymbols.size === 1 ? "" : "s"} ` +
+      `on the Institutional Decision Engine.`,
+  };
+}
+
 // ─── Top-level assembly ──────────────────────────────────────────────────────
 
 export interface InstitutionalMentorResult {
@@ -915,6 +965,7 @@ export interface InstitutionalMentorResult {
   learningSummary: MentorLearningSummary;
   watchlistReview: WatchlistReview;
   portfolioReview: PortfolioReview;
+  decisionEngineReview: DecisionEngineReview;
   generatedAt: string;
 }
 
@@ -949,6 +1000,7 @@ export async function buildInstitutionalMentor(userId: string, now: Date = new D
   const learningSummary = buildLearningSummary();
   const watchlistReview = await buildWatchlistReview(userId);
   const portfolioReview = await buildPortfolioReview(userId);
+  const decisionEngineReview = await buildDecisionEngineReview(userId);
 
   return {
     paperTradingMode: true,
@@ -964,6 +1016,7 @@ export async function buildInstitutionalMentor(userId: string, now: Date = new D
     learningSummary,
     watchlistReview,
     portfolioReview,
+    decisionEngineReview,
     generatedAt: now.toISOString(),
   };
 }
