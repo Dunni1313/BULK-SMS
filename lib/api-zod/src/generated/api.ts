@@ -3131,6 +3131,10 @@ export const GetInstitutionalMentorResponse = zod.object({
   "distinctSymbolCount": zod.number(),
   "summary": zod.string()
 }),
+  "opportunityDiscoveryReview": zod.object({
+  "savedScreenCount": zod.number(),
+  "summary": zod.string()
+}),
   "generatedAt": zod.string()
 })
 
@@ -5896,6 +5900,319 @@ export const DeleteDecisionNoteParams = zod.object({
 })
 
 export const DeleteDecisionNoteResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Run a deterministic opportunity scan across the union of the Investing Engine's own known-symbol universes, apply the screener filters, rank by the Decision Engine's own synthesis score, and bucket into the 10 named opportunity categories — pure orchestration, zero new scoring.
+ */
+export const ScanOpportunitiesBody = zod.object({
+  "symbols": zod.array(zod.string()).optional(),
+  "filters": zod.object({
+  "country": zod.string().optional().describe('Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds \"country\" to the response\'s unavailableFilters.'),
+  "sector": zod.string().optional(),
+  "industry": zod.string().optional(),
+  "minMarketCap": zod.number().optional(),
+  "maxMarketCap": zod.number().optional(),
+  "minRevenueGrowth": zod.number().optional(),
+  "minRoic": zod.number().optional(),
+  "minRoe": zod.number().optional(),
+  "maxDebtToEquity": zod.number().optional(),
+  "minFcfMargin": zod.number().optional(),
+  "minDividendYield": zod.number().optional(),
+  "valuationRatings": zod.array(zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable'])).optional(),
+  "minMarginOfSafety": zod.number().optional(),
+  "minBusinessQualityScore": zod.number().optional(),
+  "investmentCommitteeVerdicts": zod.array(zod.enum(['Buy', 'Hold', 'Wait'])).optional(),
+  "decisionRecommendations": zod.array(zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid'])).optional(),
+  "minTomNashScore": zod.number().optional()
+}).optional(),
+  "forceRefresh": zod.boolean().optional(),
+  "watchlistAware": zod.boolean().optional().describe('When true, resolves the calling user\'s own Watchlist symbols to populate the Watchlist Candidates bucket.'),
+  "portfolioId": zod.number().optional().describe('When supplied (and owned by the calling user), resolves that portfolio\'s own held symbols to populate the Portfolio Upgrade Candidates bucket.')
+})
+
+export const ScanOpportunitiesResponse = zod.object({
+  "universeSize": zod.number(),
+  "unresolvedSymbols": zod.array(zod.string()),
+  "scannedAt": zod.string(),
+  "unavailableFilters": zod.array(zod.string()),
+  "totalBeforeFilter": zod.number(),
+  "rows": zod.array(zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "kind": zod.string(),
+  "price": zod.number(),
+  "sector": zod.string().nullable(),
+  "industry": zod.string().nullable(),
+  "businessQualityScore": zod.number(),
+  "businessQualityRating": zod.string(),
+  "investmentQualityScore": zod.number().nullable(),
+  "moatRating": zod.enum(['Wide', 'Medium', 'Narrow', 'None']),
+  "moatScore": zod.number(),
+  "competitiveAdvantageScore": zod.number().nullable(),
+  "financialStrengthRating": zod.enum(['Strong', 'Acceptable', 'Weak', 'Risky']),
+  "financialStrengthScore": zod.number(),
+  "valuationRating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable']),
+  "marginOfSafety": zod.number().nullable(),
+  "marketCap": zod.number().nullable(),
+  "revenueGrowth5y": zod.number(),
+  "roic": zod.number(),
+  "roe": zod.number(),
+  "debtToEquity": zod.number(),
+  "fcfMargin": zod.number(),
+  "dividendYield": zod.number(),
+  "investmentCommitteeVerdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "investmentCommitteeConfidence": zod.number(),
+  "tomNashConvictionScore": zod.number(),
+  "tomNashVerdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "decisionRecommendation": zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid']),
+  "rankScore": zod.number(),
+  "rankExplanation": zod.string(),
+  "dataSource": zod.string(),
+  "fetchedAt": zod.string(),
+  "simulated": zod.boolean()
+})),
+  "buckets": zod.array(zod.object({
+  "category": zod.enum(['top-opportunities', 'undervalued', 'high-quality', 'wide-moat', 'dividend', 'growth', 'deep-value', 'turnaround', 'watchlist-candidates', 'portfolio-upgrade-candidates']),
+  "label": zod.string(),
+  "rule": zod.string(),
+  "rows": zod.array(zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "kind": zod.string(),
+  "price": zod.number(),
+  "sector": zod.string().nullable(),
+  "industry": zod.string().nullable(),
+  "businessQualityScore": zod.number(),
+  "businessQualityRating": zod.string(),
+  "investmentQualityScore": zod.number().nullable(),
+  "moatRating": zod.enum(['Wide', 'Medium', 'Narrow', 'None']),
+  "moatScore": zod.number(),
+  "competitiveAdvantageScore": zod.number().nullable(),
+  "financialStrengthRating": zod.enum(['Strong', 'Acceptable', 'Weak', 'Risky']),
+  "financialStrengthScore": zod.number(),
+  "valuationRating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable']),
+  "marginOfSafety": zod.number().nullable(),
+  "marketCap": zod.number().nullable(),
+  "revenueGrowth5y": zod.number(),
+  "roic": zod.number(),
+  "roe": zod.number(),
+  "debtToEquity": zod.number(),
+  "fcfMargin": zod.number(),
+  "dividendYield": zod.number(),
+  "investmentCommitteeVerdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "investmentCommitteeConfidence": zod.number(),
+  "tomNashConvictionScore": zod.number(),
+  "tomNashVerdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "decisionRecommendation": zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid']),
+  "rankScore": zod.number(),
+  "rankExplanation": zod.string(),
+  "dataSource": zod.string(),
+  "fetchedAt": zod.string(),
+  "simulated": zod.boolean()
+}))
+}))
+})
+
+
+/**
+ * @summary Compare a small, user-selected set of symbols side by side (?symbols=A,B,C) — highlights which symbol has the best already-computed value per dimension, no new scoring.
+ */
+export const CompareOpportunitiesRouteQueryParams = zod.object({
+  "symbols": zod.coerce.string()
+})
+
+export const CompareOpportunitiesRouteResponse = zod.object({
+  "rows": zod.array(zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "kind": zod.string(),
+  "price": zod.number(),
+  "sector": zod.string().nullable(),
+  "industry": zod.string().nullable(),
+  "businessQualityScore": zod.number(),
+  "businessQualityRating": zod.string(),
+  "investmentQualityScore": zod.number().nullable(),
+  "moatRating": zod.enum(['Wide', 'Medium', 'Narrow', 'None']),
+  "moatScore": zod.number(),
+  "competitiveAdvantageScore": zod.number().nullable(),
+  "financialStrengthRating": zod.enum(['Strong', 'Acceptable', 'Weak', 'Risky']),
+  "financialStrengthScore": zod.number(),
+  "valuationRating": zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable']),
+  "marginOfSafety": zod.number().nullable(),
+  "marketCap": zod.number().nullable(),
+  "revenueGrowth5y": zod.number(),
+  "roic": zod.number(),
+  "roe": zod.number(),
+  "debtToEquity": zod.number(),
+  "fcfMargin": zod.number(),
+  "dividendYield": zod.number(),
+  "investmentCommitteeVerdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "investmentCommitteeConfidence": zod.number(),
+  "tomNashConvictionScore": zod.number(),
+  "tomNashVerdict": zod.enum(['Buy', 'Hold', 'Wait']),
+  "decisionRecommendation": zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid']),
+  "rankScore": zod.number(),
+  "rankExplanation": zod.string(),
+  "dataSource": zod.string(),
+  "fetchedAt": zod.string(),
+  "simulated": zod.boolean()
+})),
+  "bestBy": zod.record(zod.string(), zod.string())
+})
+
+
+/**
+ * @summary List the calling user's saved Screener filter sets, newest first
+ */
+export const GetSavedScreensResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "filters": zod.object({
+  "country": zod.string().optional().describe('Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds \"country\" to the response\'s unavailableFilters.'),
+  "sector": zod.string().optional(),
+  "industry": zod.string().optional(),
+  "minMarketCap": zod.number().optional(),
+  "maxMarketCap": zod.number().optional(),
+  "minRevenueGrowth": zod.number().optional(),
+  "minRoic": zod.number().optional(),
+  "minRoe": zod.number().optional(),
+  "maxDebtToEquity": zod.number().optional(),
+  "minFcfMargin": zod.number().optional(),
+  "minDividendYield": zod.number().optional(),
+  "valuationRatings": zod.array(zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable'])).optional(),
+  "minMarginOfSafety": zod.number().optional(),
+  "minBusinessQualityScore": zod.number().optional(),
+  "investmentCommitteeVerdicts": zod.array(zod.enum(['Buy', 'Hold', 'Wait'])).optional(),
+  "decisionRecommendations": zod.array(zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid'])).optional(),
+  "minTomNashScore": zod.number().optional()
+}),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetSavedScreensResponse = zod.array(GetSavedScreensResponseItem)
+
+
+/**
+ * @summary Save a named Screener filter set (criteria only — never persists scan results)
+ */
+export const CreateSavedScreenBody = zod.object({
+  "name": zod.string(),
+  "filters": zod.object({
+  "country": zod.string().optional().describe('Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds \"country\" to the response\'s unavailableFilters.'),
+  "sector": zod.string().optional(),
+  "industry": zod.string().optional(),
+  "minMarketCap": zod.number().optional(),
+  "maxMarketCap": zod.number().optional(),
+  "minRevenueGrowth": zod.number().optional(),
+  "minRoic": zod.number().optional(),
+  "minRoe": zod.number().optional(),
+  "maxDebtToEquity": zod.number().optional(),
+  "minFcfMargin": zod.number().optional(),
+  "minDividendYield": zod.number().optional(),
+  "valuationRatings": zod.array(zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable'])).optional(),
+  "minMarginOfSafety": zod.number().optional(),
+  "minBusinessQualityScore": zod.number().optional(),
+  "investmentCommitteeVerdicts": zod.array(zod.enum(['Buy', 'Hold', 'Wait'])).optional(),
+  "decisionRecommendations": zod.array(zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid'])).optional(),
+  "minTomNashScore": zod.number().optional()
+})
+})
+
+export const CreateSavedScreenResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "filters": zod.object({
+  "country": zod.string().optional().describe('Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds \"country\" to the response\'s unavailableFilters.'),
+  "sector": zod.string().optional(),
+  "industry": zod.string().optional(),
+  "minMarketCap": zod.number().optional(),
+  "maxMarketCap": zod.number().optional(),
+  "minRevenueGrowth": zod.number().optional(),
+  "minRoic": zod.number().optional(),
+  "minRoe": zod.number().optional(),
+  "maxDebtToEquity": zod.number().optional(),
+  "minFcfMargin": zod.number().optional(),
+  "minDividendYield": zod.number().optional(),
+  "valuationRatings": zod.array(zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable'])).optional(),
+  "minMarginOfSafety": zod.number().optional(),
+  "minBusinessQualityScore": zod.number().optional(),
+  "investmentCommitteeVerdicts": zod.array(zod.enum(['Buy', 'Hold', 'Wait'])).optional(),
+  "decisionRecommendations": zod.array(zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid'])).optional(),
+  "minTomNashScore": zod.number().optional()
+}),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a saved screen's name and/or filters
+ */
+export const UpdateSavedScreenParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateSavedScreenBody = zod.object({
+  "name": zod.string().optional(),
+  "filters": zod.object({
+  "country": zod.string().optional().describe('Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds \"country\" to the response\'s unavailableFilters.'),
+  "sector": zod.string().optional(),
+  "industry": zod.string().optional(),
+  "minMarketCap": zod.number().optional(),
+  "maxMarketCap": zod.number().optional(),
+  "minRevenueGrowth": zod.number().optional(),
+  "minRoic": zod.number().optional(),
+  "minRoe": zod.number().optional(),
+  "maxDebtToEquity": zod.number().optional(),
+  "minFcfMargin": zod.number().optional(),
+  "minDividendYield": zod.number().optional(),
+  "valuationRatings": zod.array(zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable'])).optional(),
+  "minMarginOfSafety": zod.number().optional(),
+  "minBusinessQualityScore": zod.number().optional(),
+  "investmentCommitteeVerdicts": zod.array(zod.enum(['Buy', 'Hold', 'Wait'])).optional(),
+  "decisionRecommendations": zod.array(zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid'])).optional(),
+  "minTomNashScore": zod.number().optional()
+}).optional()
+})
+
+export const UpdateSavedScreenResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "filters": zod.object({
+  "country": zod.string().optional().describe('Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds \"country\" to the response\'s unavailableFilters.'),
+  "sector": zod.string().optional(),
+  "industry": zod.string().optional(),
+  "minMarketCap": zod.number().optional(),
+  "maxMarketCap": zod.number().optional(),
+  "minRevenueGrowth": zod.number().optional(),
+  "minRoic": zod.number().optional(),
+  "minRoe": zod.number().optional(),
+  "maxDebtToEquity": zod.number().optional(),
+  "minFcfMargin": zod.number().optional(),
+  "minDividendYield": zod.number().optional(),
+  "valuationRatings": zod.array(zod.enum(['Cheap', 'Fair', 'Expensive', 'Very Expensive', 'Unavailable'])).optional(),
+  "minMarginOfSafety": zod.number().optional(),
+  "minBusinessQualityScore": zod.number().optional(),
+  "investmentCommitteeVerdicts": zod.array(zod.enum(['Buy', 'Hold', 'Wait'])).optional(),
+  "decisionRecommendations": zod.array(zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid'])).optional(),
+  "minTomNashScore": zod.number().optional()
+}),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a saved screen
+ */
+export const DeleteSavedScreenParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteSavedScreenResponse = zod.object({
   "success": zod.boolean()
 })
 

@@ -11,6 +11,7 @@ import type { MentorDecisionEngineReview } from './mentorDecisionEngineReview';
 import type { MentorDecisionReviewItem } from './mentorDecisionReviewItem';
 import type { MentorIncomeReview } from './mentorIncomeReview';
 import type { MentorLearningSummary } from './mentorLearningSummary';
+import type { MentorOpportunityDiscoveryReview } from './mentorOpportunityDiscoveryReview';
 import type { MentorPortfolioReview } from './mentorPortfolioReview';
 import type { MentorProfessionalObservation } from './mentorProfessionalObservation';
 import type { MentorRiskReview } from './mentorRiskReview';
@@ -32,5 +33,6 @@ export interface InstitutionalMentorResult {
   watchlistReview: MentorWatchlistReview;
   portfolioReview: MentorPortfolioReview;
   decisionEngineReview: MentorDecisionEngineReview;
+  opportunityDiscoveryReview: MentorOpportunityDiscoveryReview;
   generatedAt: string;
 }

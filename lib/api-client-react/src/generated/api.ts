@@ -41,6 +41,7 @@ import type {
   BrokerPositionsResult,
   ClearReportsResult,
   CoachLesson,
+  CompareOpportunitiesRouteParams,
   CompareReportsRequest,
   CompareReportsResponse,
   ConstructionHolding,
@@ -129,6 +130,12 @@ import type {
   NarrateCrossEngineDailyReportResult,
   NarrateInvestmentCommitteeInput,
   NarrateInvestmentCommitteeResult,
+  OpportunityComparisonResult,
+  OpportunitySavedScreen,
+  OpportunitySavedScreenCreate,
+  OpportunitySavedScreenUpdate,
+  OpportunityScanRequest,
+  OpportunityScanResult,
   OptionChain,
   OptionsBacktestResult,
   OptionsRunBacktestInput,
@@ -9982,6 +9989,451 @@ export const useDeleteDecisionNote = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteDecisionNoteMutationOptions(options));
+    }
+
+export const getScanOpportunitiesUrl = () => {
+
+
+
+
+  return `/api/opportunity-discovery/scan`
+}
+
+/**
+ * @summary Run a deterministic opportunity scan across the union of the Investing Engine's own known-symbol universes, apply the screener filters, rank by the Decision Engine's own synthesis score, and bucket into the 10 named opportunity categories — pure orchestration, zero new scoring.
+ */
+export const scanOpportunities = async (opportunityScanRequest?: OpportunityScanRequest, options?: RequestInit): Promise<OpportunityScanResult> => {
+
+  return customFetch<OpportunityScanResult>(getScanOpportunitiesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      opportunityScanRequest,)
+  }
+);}
+
+
+
+
+export const getScanOpportunitiesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof scanOpportunities>>, TError,{data?: BodyType<OpportunityScanRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof scanOpportunities>>, TError,{data?: BodyType<OpportunityScanRequest>}, TContext> => {
+
+const mutationKey = ['scanOpportunities'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof scanOpportunities>>, {data?: BodyType<OpportunityScanRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  scanOpportunities(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ScanOpportunitiesMutationResult = NonNullable<Awaited<ReturnType<typeof scanOpportunities>>>
+    export type ScanOpportunitiesMutationBody = BodyType<OpportunityScanRequest> | undefined
+    export type ScanOpportunitiesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run a deterministic opportunity scan across the union of the Investing Engine's own known-symbol universes, apply the screener filters, rank by the Decision Engine's own synthesis score, and bucket into the 10 named opportunity categories — pure orchestration, zero new scoring.
+ */
+export const useScanOpportunities = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof scanOpportunities>>, TError,{data?: BodyType<OpportunityScanRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof scanOpportunities>>,
+        TError,
+        {data?: BodyType<OpportunityScanRequest>},
+        TContext
+      > => {
+      return useMutation(getScanOpportunitiesMutationOptions(options));
+    }
+
+export const getCompareOpportunitiesRouteUrl = (params: CompareOpportunitiesRouteParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/opportunity-discovery/compare?${stringifiedParams}` : `/api/opportunity-discovery/compare`
+}
+
+/**
+ * @summary Compare a small, user-selected set of symbols side by side (?symbols=A,B,C) — highlights which symbol has the best already-computed value per dimension, no new scoring.
+ */
+export const compareOpportunitiesRoute = async (params: CompareOpportunitiesRouteParams, options?: RequestInit): Promise<OpportunityComparisonResult> => {
+
+  return customFetch<OpportunityComparisonResult>(getCompareOpportunitiesRouteUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCompareOpportunitiesRouteQueryKey = (params?: CompareOpportunitiesRouteParams,) => {
+    return [
+    `/api/opportunity-discovery/compare`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getCompareOpportunitiesRouteQueryOptions = <TData = Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError = ErrorType<unknown>>(params: CompareOpportunitiesRouteParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCompareOpportunitiesRouteQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof compareOpportunitiesRoute>>> = ({ signal }) => compareOpportunitiesRoute(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type CompareOpportunitiesRouteQueryResult = NonNullable<Awaited<ReturnType<typeof compareOpportunitiesRoute>>>
+export type CompareOpportunitiesRouteQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compare a small, user-selected set of symbols side by side (?symbols=A,B,C) — highlights which symbol has the best already-computed value per dimension, no new scoring.
+ */
+
+export function useCompareOpportunitiesRoute<TData = Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError = ErrorType<unknown>>(
+ params: CompareOpportunitiesRouteParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getCompareOpportunitiesRouteQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSavedScreensUrl = () => {
+
+
+
+
+  return `/api/opportunity-discovery/saved-screens`
+}
+
+/**
+ * @summary List the calling user's saved Screener filter sets, newest first
+ */
+export const getSavedScreens = async ( options?: RequestInit): Promise<OpportunitySavedScreen[]> => {
+
+  return customFetch<OpportunitySavedScreen[]>(getGetSavedScreensUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSavedScreensQueryKey = () => {
+    return [
+    `/api/opportunity-discovery/saved-screens`
+    ] as const;
+    }
+
+
+export const getGetSavedScreensQueryOptions = <TData = Awaited<ReturnType<typeof getSavedScreens>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedScreens>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSavedScreensQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSavedScreens>>> = ({ signal }) => getSavedScreens({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSavedScreens>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSavedScreensQueryResult = NonNullable<Awaited<ReturnType<typeof getSavedScreens>>>
+export type GetSavedScreensQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's saved Screener filter sets, newest first
+ */
+
+export function useGetSavedScreens<TData = Awaited<ReturnType<typeof getSavedScreens>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedScreens>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSavedScreensQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateSavedScreenUrl = () => {
+
+
+
+
+  return `/api/opportunity-discovery/saved-screens`
+}
+
+/**
+ * @summary Save a named Screener filter set (criteria only — never persists scan results)
+ */
+export const createSavedScreen = async (opportunitySavedScreenCreate: OpportunitySavedScreenCreate, options?: RequestInit): Promise<OpportunitySavedScreen> => {
+
+  return customFetch<OpportunitySavedScreen>(getCreateSavedScreenUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      opportunitySavedScreenCreate,)
+  }
+);}
+
+
+
+
+export const getCreateSavedScreenMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSavedScreen>>, TError,{data: BodyType<OpportunitySavedScreenCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSavedScreen>>, TError,{data: BodyType<OpportunitySavedScreenCreate>}, TContext> => {
+
+const mutationKey = ['createSavedScreen'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSavedScreen>>, {data: BodyType<OpportunitySavedScreenCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSavedScreen(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSavedScreenMutationResult = NonNullable<Awaited<ReturnType<typeof createSavedScreen>>>
+    export type CreateSavedScreenMutationBody = BodyType<OpportunitySavedScreenCreate>
+    export type CreateSavedScreenMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save a named Screener filter set (criteria only — never persists scan results)
+ */
+export const useCreateSavedScreen = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSavedScreen>>, TError,{data: BodyType<OpportunitySavedScreenCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createSavedScreen>>,
+        TError,
+        {data: BodyType<OpportunitySavedScreenCreate>},
+        TContext
+      > => {
+      return useMutation(getCreateSavedScreenMutationOptions(options));
+    }
+
+export const getUpdateSavedScreenUrl = (id: number,) => {
+
+
+
+
+  return `/api/opportunity-discovery/saved-screens/${id}`
+}
+
+/**
+ * @summary Update a saved screen's name and/or filters
+ */
+export const updateSavedScreen = async (id: number,
+    opportunitySavedScreenUpdate: OpportunitySavedScreenUpdate, options?: RequestInit): Promise<OpportunitySavedScreen> => {
+
+  return customFetch<OpportunitySavedScreen>(getUpdateSavedScreenUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      opportunitySavedScreenUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateSavedScreenMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSavedScreen>>, TError,{id: number;data: BodyType<OpportunitySavedScreenUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSavedScreen>>, TError,{id: number;data: BodyType<OpportunitySavedScreenUpdate>}, TContext> => {
+
+const mutationKey = ['updateSavedScreen'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSavedScreen>>, {id: number;data: BodyType<OpportunitySavedScreenUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateSavedScreen(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSavedScreenMutationResult = NonNullable<Awaited<ReturnType<typeof updateSavedScreen>>>
+    export type UpdateSavedScreenMutationBody = BodyType<OpportunitySavedScreenUpdate>
+    export type UpdateSavedScreenMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a saved screen's name and/or filters
+ */
+export const useUpdateSavedScreen = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSavedScreen>>, TError,{id: number;data: BodyType<OpportunitySavedScreenUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateSavedScreen>>,
+        TError,
+        {id: number;data: BodyType<OpportunitySavedScreenUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateSavedScreenMutationOptions(options));
+    }
+
+export const getDeleteSavedScreenUrl = (id: number,) => {
+
+
+
+
+  return `/api/opportunity-discovery/saved-screens/${id}`
+}
+
+/**
+ * @summary Delete a saved screen
+ */
+export const deleteSavedScreen = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteSavedScreenUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteSavedScreenMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSavedScreen>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSavedScreen>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteSavedScreen'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSavedScreen>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteSavedScreen(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteSavedScreenMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSavedScreen>>>
+
+    export type DeleteSavedScreenMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a saved screen
+ */
+export const useDeleteSavedScreen = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSavedScreen>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSavedScreen>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteSavedScreenMutationOptions(options));
     }
 
 export const getGetInvestmentThesisUrl = (symbol: string,) => {

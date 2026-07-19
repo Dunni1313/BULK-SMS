@@ -2601,6 +2601,119 @@ paths:
               schema:
                 $ref: "#/components/schemas/DeleteResult"
 
+  /opportunity-discovery/scan:
+    post:
+      operationId: scanOpportunities
+      tags: [value]
+      summary: Run a deterministic opportunity scan across the union of the Investing Engine's own known-symbol universes, apply the screener filters, rank by the Decision Engine's own synthesis score, and bucket into the 10 named opportunity categories — pure orchestration, zero new scoring.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpportunityScanRequest"
+      responses:
+        "200":
+          description: Scan result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpportunityScanResult"
+
+  /opportunity-discovery/compare:
+    get:
+      operationId: compareOpportunitiesRoute
+      tags: [value]
+      summary: Compare a small, user-selected set of symbols side by side (?symbols=A,B,C) — highlights which symbol has the best already-computed value per dimension, no new scoring.
+      parameters:
+        - name: symbols
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Comparison result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpportunityComparisonResult"
+
+  /opportunity-discovery/saved-screens:
+    get:
+      operationId: getSavedScreens
+      tags: [value]
+      summary: List the calling user's saved Screener filter sets, newest first
+      responses:
+        "200":
+          description: Saved screens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpportunitySavedScreen"
+    post:
+      operationId: createSavedScreen
+      tags: [value]
+      summary: Save a named Screener filter set (criteria only — never persists scan results)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpportunitySavedScreenCreate"
+      responses:
+        "200":
+          description: Created saved screen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpportunitySavedScreen"
+
+  /opportunity-discovery/saved-screens/{id}:
+    patch:
+      operationId: updateSavedScreen
+      tags: [value]
+      summary: Update a saved screen's name and/or filters
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpportunitySavedScreenUpdate"
+      responses:
+        "200":
+          description: Updated saved screen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpportunitySavedScreen"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteSavedScreen
+      tags: [value]
+      summary: Delete a saved screen
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
   /stock-analyst/investment-thesis/{symbol}:
     get:
       operationId: getInvestmentThesis
@@ -5196,6 +5309,199 @@ components:
       required: [note]
       properties:
         note: { type: string }
+
+    # Phase 15 — Institutional Opportunity Discovery Engine. Every field below
+    # is either a direct reuse of an already-computed ValueResearchReport field
+    # or the Decision Engine's own already-computed synthesis
+    # score/recommendation (lib/decisionEngine.ts, Phase 14) — this module adds
+    # no new valuation model, quality score, or financial ratio.
+    OpportunityRow:
+      type: object
+      required:
+        - symbol
+        - name
+        - kind
+        - price
+        - sector
+        - industry
+        - businessQualityScore
+        - businessQualityRating
+        - investmentQualityScore
+        - moatRating
+        - moatScore
+        - competitiveAdvantageScore
+        - financialStrengthRating
+        - financialStrengthScore
+        - valuationRating
+        - marginOfSafety
+        - marketCap
+        - revenueGrowth5y
+        - roic
+        - roe
+        - debtToEquity
+        - fcfMargin
+        - dividendYield
+        - investmentCommitteeVerdict
+        - investmentCommitteeConfidence
+        - tomNashConvictionScore
+        - tomNashVerdict
+        - decisionRecommendation
+        - rankScore
+        - rankExplanation
+        - dataSource
+        - fetchedAt
+        - simulated
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        kind: { type: string }
+        price: { type: number }
+        sector: { type: ["string", "null"] }
+        industry: { type: ["string", "null"] }
+        businessQualityScore: { type: number }
+        businessQualityRating: { type: string }
+        investmentQualityScore: { type: ["number", "null"] }
+        moatRating: { type: string, enum: [Wide, Medium, Narrow, None] }
+        moatScore: { type: number }
+        competitiveAdvantageScore: { type: ["number", "null"] }
+        financialStrengthRating: { type: string, enum: [Strong, Acceptable, Weak, Risky] }
+        financialStrengthScore: { type: number }
+        valuationRating: { type: string, enum: [Cheap, Fair, Expensive, "Very Expensive", Unavailable] }
+        marginOfSafety: { type: ["number", "null"] }
+        marketCap: { type: ["number", "null"] }
+        revenueGrowth5y: { type: number }
+        roic: { type: number }
+        roe: { type: number }
+        debtToEquity: { type: number }
+        fcfMargin: { type: number }
+        dividendYield: { type: number }
+        investmentCommitteeVerdict: { type: string, enum: [Buy, Hold, Wait] }
+        investmentCommitteeConfidence: { type: number }
+        tomNashConvictionScore: { type: number }
+        tomNashVerdict: { type: string, enum: [Buy, Hold, Wait] }
+        decisionRecommendation: { type: string, enum: [Buy, Accumulate, Hold, Reduce, Sell, Avoid] }
+        rankScore: { type: number }
+        rankExplanation: { type: string }
+        dataSource: { type: string }
+        fetchedAt: { type: string }
+        simulated: { type: boolean }
+
+    OpportunityBucket:
+      type: object
+      required: [category, label, rule, rows]
+      properties:
+        category:
+          type: string
+          enum:
+            [
+              top-opportunities,
+              undervalued,
+              high-quality,
+              wide-moat,
+              dividend,
+              growth,
+              deep-value,
+              turnaround,
+              watchlist-candidates,
+              portfolio-upgrade-candidates,
+            ]
+        label: { type: string }
+        rule: { type: string }
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/OpportunityRow" }
+
+    OpportunityScreenerFilters:
+      type: object
+      properties:
+        country: { type: string, description: "Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds \"country\" to the response's unavailableFilters." }
+        sector: { type: string }
+        industry: { type: string }
+        minMarketCap: { type: number }
+        maxMarketCap: { type: number }
+        minRevenueGrowth: { type: number }
+        minRoic: { type: number }
+        minRoe: { type: number }
+        maxDebtToEquity: { type: number }
+        minFcfMargin: { type: number }
+        minDividendYield: { type: number }
+        valuationRatings:
+          type: array
+          items: { type: string, enum: [Cheap, Fair, Expensive, "Very Expensive", Unavailable] }
+        minMarginOfSafety: { type: number }
+        minBusinessQualityScore: { type: number }
+        investmentCommitteeVerdicts:
+          type: array
+          items: { type: string, enum: [Buy, Hold, Wait] }
+        decisionRecommendations:
+          type: array
+          items: { type: string, enum: [Buy, Accumulate, Hold, Reduce, Sell, Avoid] }
+        minTomNashScore: { type: number }
+
+    OpportunityScanRequest:
+      type: object
+      properties:
+        symbols:
+          type: array
+          items: { type: string }
+        filters: { $ref: "#/components/schemas/OpportunityScreenerFilters" }
+        forceRefresh: { type: boolean }
+        watchlistAware: { type: boolean, description: "When true, resolves the calling user's own Watchlist symbols to populate the Watchlist Candidates bucket." }
+        portfolioId: { type: integer, description: "When supplied (and owned by the calling user), resolves that portfolio's own held symbols to populate the Portfolio Upgrade Candidates bucket." }
+
+    OpportunityScanResult:
+      type: object
+      required: [universeSize, unresolvedSymbols, scannedAt, unavailableFilters, totalBeforeFilter, rows, buckets]
+      properties:
+        universeSize: { type: integer }
+        unresolvedSymbols:
+          type: array
+          items: { type: string }
+        scannedAt: { type: string }
+        unavailableFilters:
+          type: array
+          items: { type: string }
+        totalBeforeFilter: { type: integer }
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/OpportunityRow" }
+        buckets:
+          type: array
+          items: { $ref: "#/components/schemas/OpportunityBucket" }
+
+    OpportunityComparisonResult:
+      type: object
+      required: [rows, bestBy]
+      properties:
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/OpportunityRow" }
+        bestBy:
+          type: object
+          additionalProperties: { type: string }
+
+    OpportunitySavedScreen:
+      type: object
+      required: [id, name, filters, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        filters: { $ref: "#/components/schemas/OpportunityScreenerFilters" }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    OpportunitySavedScreenCreate:
+      type: object
+      required: [name, filters]
+      properties:
+        name: { type: string }
+        filters: { $ref: "#/components/schemas/OpportunityScreenerFilters" }
+
+    OpportunitySavedScreenUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        filters: { $ref: "#/components/schemas/OpportunityScreenerFilters" }
 
     ValueLesson:
       type: object
@@ -12533,6 +12839,17 @@ components:
         distinctSymbolCount: { type: integer }
         summary: { type: string }
 
+    # Phase 15 — a plain, ownership-scoped count of the user's own saved
+    # Screener filter sets, reviewed by the Institutional Mentor. Introduces
+    # no new scanning/ranking — never a call into lib/opportunityDiscovery.ts's
+    # own scan orchestration, which stays on-demand behind its own page.
+    MentorOpportunityDiscoveryReview:
+      type: object
+      required: [savedScreenCount, summary]
+      properties:
+        savedScreenCount: { type: integer }
+        summary: { type: string }
+
     InstitutionalMentorResult:
       type: object
       required:
@@ -12551,6 +12868,7 @@ components:
           watchlistReview,
           portfolioReview,
           decisionEngineReview,
+          opportunityDiscoveryReview,
           generatedAt,
         ]
       properties:
@@ -12591,5 +12909,7 @@ components:
           $ref: "#/components/schemas/MentorPortfolioReview"
         decisionEngineReview:
           $ref: "#/components/schemas/MentorDecisionEngineReview"
+        opportunityDiscoveryReview:
+          $ref: "#/components/schemas/MentorOpportunityDiscoveryReview"
         generatedAt:
           type: string

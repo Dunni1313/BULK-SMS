@@ -1625,6 +1625,230 @@ export interface DecisionNoteUpdate {
   note: string;
 }
 
+export type OpportunityRowMoatRating = typeof OpportunityRowMoatRating[keyof typeof OpportunityRowMoatRating];
+
+
+export const OpportunityRowMoatRating = {
+  Wide: 'Wide',
+  Medium: 'Medium',
+  Narrow: 'Narrow',
+  None: 'None',
+} as const;
+
+export type OpportunityRowFinancialStrengthRating = typeof OpportunityRowFinancialStrengthRating[keyof typeof OpportunityRowFinancialStrengthRating];
+
+
+export const OpportunityRowFinancialStrengthRating = {
+  Strong: 'Strong',
+  Acceptable: 'Acceptable',
+  Weak: 'Weak',
+  Risky: 'Risky',
+} as const;
+
+export type OpportunityRowValuationRating = typeof OpportunityRowValuationRating[keyof typeof OpportunityRowValuationRating];
+
+
+export const OpportunityRowValuationRating = {
+  Cheap: 'Cheap',
+  Fair: 'Fair',
+  Expensive: 'Expensive',
+  Very_Expensive: 'Very Expensive',
+  Unavailable: 'Unavailable',
+} as const;
+
+export type OpportunityRowInvestmentCommitteeVerdict = typeof OpportunityRowInvestmentCommitteeVerdict[keyof typeof OpportunityRowInvestmentCommitteeVerdict];
+
+
+export const OpportunityRowInvestmentCommitteeVerdict = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export type OpportunityRowTomNashVerdict = typeof OpportunityRowTomNashVerdict[keyof typeof OpportunityRowTomNashVerdict];
+
+
+export const OpportunityRowTomNashVerdict = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export type OpportunityRowDecisionRecommendation = typeof OpportunityRowDecisionRecommendation[keyof typeof OpportunityRowDecisionRecommendation];
+
+
+export const OpportunityRowDecisionRecommendation = {
+  Buy: 'Buy',
+  Accumulate: 'Accumulate',
+  Hold: 'Hold',
+  Reduce: 'Reduce',
+  Sell: 'Sell',
+  Avoid: 'Avoid',
+} as const;
+
+export interface OpportunityRow {
+  symbol: string;
+  name: string;
+  kind: string;
+  price: number;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  industry: string | null;
+  businessQualityScore: number;
+  businessQualityRating: string;
+  /** @nullable */
+  investmentQualityScore: number | null;
+  moatRating: OpportunityRowMoatRating;
+  moatScore: number;
+  /** @nullable */
+  competitiveAdvantageScore: number | null;
+  financialStrengthRating: OpportunityRowFinancialStrengthRating;
+  financialStrengthScore: number;
+  valuationRating: OpportunityRowValuationRating;
+  /** @nullable */
+  marginOfSafety: number | null;
+  /** @nullable */
+  marketCap: number | null;
+  revenueGrowth5y: number;
+  roic: number;
+  roe: number;
+  debtToEquity: number;
+  fcfMargin: number;
+  dividendYield: number;
+  investmentCommitteeVerdict: OpportunityRowInvestmentCommitteeVerdict;
+  investmentCommitteeConfidence: number;
+  tomNashConvictionScore: number;
+  tomNashVerdict: OpportunityRowTomNashVerdict;
+  decisionRecommendation: OpportunityRowDecisionRecommendation;
+  rankScore: number;
+  rankExplanation: string;
+  dataSource: string;
+  fetchedAt: string;
+  simulated: boolean;
+}
+
+export type OpportunityBucketCategory = typeof OpportunityBucketCategory[keyof typeof OpportunityBucketCategory];
+
+
+export const OpportunityBucketCategory = {
+  'top-opportunities': 'top-opportunities',
+  undervalued: 'undervalued',
+  'high-quality': 'high-quality',
+  'wide-moat': 'wide-moat',
+  dividend: 'dividend',
+  growth: 'growth',
+  'deep-value': 'deep-value',
+  turnaround: 'turnaround',
+  'watchlist-candidates': 'watchlist-candidates',
+  'portfolio-upgrade-candidates': 'portfolio-upgrade-candidates',
+} as const;
+
+export interface OpportunityBucket {
+  category: OpportunityBucketCategory;
+  label: string;
+  rule: string;
+  rows: OpportunityRow[];
+}
+
+export type OpportunityScreenerFiltersValuationRatingsItem = typeof OpportunityScreenerFiltersValuationRatingsItem[keyof typeof OpportunityScreenerFiltersValuationRatingsItem];
+
+
+export const OpportunityScreenerFiltersValuationRatingsItem = {
+  Cheap: 'Cheap',
+  Fair: 'Fair',
+  Expensive: 'Expensive',
+  Very_Expensive: 'Very Expensive',
+  Unavailable: 'Unavailable',
+} as const;
+
+export type OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem = typeof OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem[keyof typeof OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem];
+
+
+export const OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export type OpportunityScreenerFiltersDecisionRecommendationsItem = typeof OpportunityScreenerFiltersDecisionRecommendationsItem[keyof typeof OpportunityScreenerFiltersDecisionRecommendationsItem];
+
+
+export const OpportunityScreenerFiltersDecisionRecommendationsItem = {
+  Buy: 'Buy',
+  Accumulate: 'Accumulate',
+  Hold: 'Hold',
+  Reduce: 'Reduce',
+  Sell: 'Sell',
+  Avoid: 'Avoid',
+} as const;
+
+export interface OpportunityScreenerFilters {
+  /** Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds "country" to the response's unavailableFilters. */
+  country?: string;
+  sector?: string;
+  industry?: string;
+  minMarketCap?: number;
+  maxMarketCap?: number;
+  minRevenueGrowth?: number;
+  minRoic?: number;
+  minRoe?: number;
+  maxDebtToEquity?: number;
+  minFcfMargin?: number;
+  minDividendYield?: number;
+  valuationRatings?: OpportunityScreenerFiltersValuationRatingsItem[];
+  minMarginOfSafety?: number;
+  minBusinessQualityScore?: number;
+  investmentCommitteeVerdicts?: OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem[];
+  decisionRecommendations?: OpportunityScreenerFiltersDecisionRecommendationsItem[];
+  minTomNashScore?: number;
+}
+
+export interface OpportunityScanRequest {
+  symbols?: string[];
+  filters?: OpportunityScreenerFilters;
+  forceRefresh?: boolean;
+  /** When true, resolves the calling user's own Watchlist symbols to populate the Watchlist Candidates bucket. */
+  watchlistAware?: boolean;
+  /** When supplied (and owned by the calling user), resolves that portfolio's own held symbols to populate the Portfolio Upgrade Candidates bucket. */
+  portfolioId?: number;
+}
+
+export interface OpportunityScanResult {
+  universeSize: number;
+  unresolvedSymbols: string[];
+  scannedAt: string;
+  unavailableFilters: string[];
+  totalBeforeFilter: number;
+  rows: OpportunityRow[];
+  buckets: OpportunityBucket[];
+}
+
+export type OpportunityComparisonResultBestBy = {[key: string]: string};
+
+export interface OpportunityComparisonResult {
+  rows: OpportunityRow[];
+  bestBy: OpportunityComparisonResultBestBy;
+}
+
+export interface OpportunitySavedScreen {
+  id: number;
+  name: string;
+  filters: OpportunityScreenerFilters;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OpportunitySavedScreenCreate {
+  name: string;
+  filters: OpportunityScreenerFilters;
+}
+
+export interface OpportunitySavedScreenUpdate {
+  name?: string;
+  filters?: OpportunityScreenerFilters;
+}
+
 export type ValueLessonLevel = typeof ValueLessonLevel[keyof typeof ValueLessonLevel];
 
 
@@ -6910,6 +7134,11 @@ export interface MentorDecisionEngineReview {
   summary: string;
 }
 
+export interface MentorOpportunityDiscoveryReview {
+  savedScreenCount: number;
+  summary: string;
+}
+
 export interface InstitutionalMentorResult {
   paperTradingMode: true;
   deterministicAnalysis: true;
@@ -6925,6 +7154,7 @@ export interface InstitutionalMentorResult {
   watchlistReview: MentorWatchlistReview;
   portfolioReview: MentorPortfolioReview;
   decisionEngineReview: MentorDecisionEngineReview;
+  opportunityDiscoveryReview: MentorOpportunityDiscoveryReview;
   generatedAt: string;
 }
 
@@ -7071,4 +7301,8 @@ export const GetValueWatchlistCheckTargets = {
   true: 'true',
   false: 'false',
 } as const;
+
+export type CompareOpportunitiesRouteParams = {
+symbols: string;
+};
 
