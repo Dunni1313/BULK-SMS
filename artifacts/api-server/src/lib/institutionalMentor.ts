@@ -61,6 +61,7 @@ import {
   investingHoldingsTable,
   investingDecisionSnapshotsTable,
   investingDecisionNotesTable,
+  investingSavedScreensTable,
   type IntelligenceSnapshotRow,
 } from "@workspace/db";
 import {
@@ -949,6 +950,36 @@ async function buildDecisionEngineReview(userId: string): Promise<DecisionEngine
   };
 }
 
+// Phase 15 — Institutional Opportunity Discovery Engine review section. Same
+// bounded, additive integration pattern as buildDecisionEngineReview() above:
+// a plain, ownership-scoped count of the user's own saved Screener filter
+// sets (investing_saved_screens) — zero new scanning/ranking, zero call into
+// lib/opportunityDiscovery.ts's own scan orchestration (that stays on-demand
+// behind its own page, since a scan is real, non-trivial work).
+export interface OpportunityDiscoveryReview {
+  savedScreenCount: number;
+  summary: string;
+}
+
+async function buildOpportunityDiscoveryReview(userId: string): Promise<OpportunityDiscoveryReview> {
+  const rows = await db
+    .select({ id: investingSavedScreensTable.id })
+    .from(investingSavedScreensTable)
+    .where(eq(investingSavedScreensTable.userId, userId));
+
+  if (rows.length === 0) {
+    return {
+      savedScreenCount: 0,
+      summary: "You have no saved Screener filter sets yet. Save one on the Institutional Opportunity Discovery page to see it reviewed here.",
+    };
+  }
+
+  return {
+    savedScreenCount: rows.length,
+    summary: `You have ${rows.length} saved screen${rows.length === 1 ? "" : "s"} on the Institutional Opportunity Discovery Engine.`,
+  };
+}
+
 // ─── Top-level assembly ──────────────────────────────────────────────────────
 
 export interface InstitutionalMentorResult {
@@ -966,6 +997,7 @@ export interface InstitutionalMentorResult {
   watchlistReview: WatchlistReview;
   portfolioReview: PortfolioReview;
   decisionEngineReview: DecisionEngineReview;
+  opportunityDiscoveryReview: OpportunityDiscoveryReview;
   generatedAt: string;
 }
 
@@ -1001,6 +1033,7 @@ export async function buildInstitutionalMentor(userId: string, now: Date = new D
   const watchlistReview = await buildWatchlistReview(userId);
   const portfolioReview = await buildPortfolioReview(userId);
   const decisionEngineReview = await buildDecisionEngineReview(userId);
+  const opportunityDiscoveryReview = await buildOpportunityDiscoveryReview(userId);
 
   return {
     paperTradingMode: true,
@@ -1017,6 +1050,7 @@ export async function buildInstitutionalMentor(userId: string, now: Date = new D
     watchlistReview,
     portfolioReview,
     decisionEngineReview,
+    opportunityDiscoveryReview,
     generatedAt: now.toISOString(),
   };
 }

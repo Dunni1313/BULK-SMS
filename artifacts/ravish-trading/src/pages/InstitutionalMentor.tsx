@@ -420,6 +420,29 @@ export default function InstitutionalMentor() {
             </CardContent>
           </Card>
 
+          {/* ─── Opportunity Discovery Review (Phase 15) — a plain,
+              ownership-scoped count of the user's own saved Screener filter
+              sets; zero new scanning/ranking, never a call into
+              lib/opportunityDiscovery.ts's own on-demand scan orchestration. */}
+          <Card className="bg-card border-border" data-testid="card-opportunity-discovery-review">
+            <CardHeader>
+              <CardTitle>Institutional Opportunity Discovery Review</CardTitle>
+              <CardDescription>Reuses the Opportunity Discovery Engine's own saved screens directly — no new scanning.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm" data-testid="text-opportunity-discovery-review-summary">{result.opportunityDiscoveryReview.summary}</p>
+              {result.opportunityDiscoveryReview.savedScreenCount === 0 ? (
+                <Link href="/opportunity-discovery" className="text-xs font-medium text-primary hover:underline" data-testid="link-opportunity-discovery-review-scan">
+                  Run a scan →
+                </Link>
+              ) : (
+                <Link href="/opportunity-discovery" className="text-xs font-medium text-primary hover:underline" data-testid="link-opportunity-discovery-review-open">
+                  Open Opportunity Discovery →
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+
           {/* ─── Institutional Lessons ───────────────────────────────────── */}
           <Card className="bg-card border-border" data-testid="card-institutional-lessons">
             <CardHeader>

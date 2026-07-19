@@ -111,6 +111,7 @@ const WIDGET_TITLES: Record<string, string> = {
   "quick-actions": "Quick Actions",
   "portfolio-summary": "Institutional Portfolio Manager",
   "decision-engine": "Institutional Decision Engine",
+  "opportunity-discovery": "Institutional Opportunity Discovery",
 };
 
 function fmtUsd(n: number | null | undefined): string {
@@ -502,6 +503,24 @@ function DecisionEngineWidget() {
   );
 }
 
+// Phase 15 — deliberately zero new data fetch, the same "navigation aid
+// only" discipline the Decision Engine widget above already establishes: a
+// full opportunity scan is real, non-trivial work (up to ~70 report builds)
+// and stays on-demand behind its own page.
+function OpportunityDiscoveryWidget() {
+  return (
+    <div className="space-y-2" data-testid="widget-content-opportunity-discovery">
+      <p className="text-sm text-muted-foreground">
+        Scan the known-symbol universe and rank opportunities by Business Quality, Valuation, Margin of Safety,
+        the Investment Committee, and Tom Nash — deterministic, no new scoring.
+      </p>
+      <Link href="/opportunity-discovery" className="text-xs font-medium text-primary hover:underline">
+        Open Opportunity Discovery →
+      </Link>
+    </div>
+  );
+}
+
 function renderWidgetContent(
   id: string,
   ctx: {
@@ -538,6 +557,8 @@ function renderWidgetContent(
       return <PortfolioSummaryWidget />;
     case "decision-engine":
       return <DecisionEngineWidget />;
+    case "opportunity-discovery":
+      return <OpportunityDiscoveryWidget />;
     case "notifications":
       return <NotificationsWidget />;
     case "quick-actions":
@@ -736,11 +757,12 @@ export default function Home() {
     // one new widget id (visible by default) when missing, so it becomes
     // discoverable without requiring every existing workspace row to be
     // migrated. Phase 13 extends this same reconciliation to also cover the
-    // new "portfolio-summary" widget, and Phase 14 the new "decision-engine"
-    // widget — deliberately scoped to just these three ids, not a general
+    // new "portfolio-summary" widget, Phase 14 the new "decision-engine"
+    // widget, and Phase 15 the new "opportunity-discovery" widget —
+    // deliberately scoped to just these four ids, not a general
     // reconciliation of every possible future widget — narrower, and never
-    // changes behavior for any widget id that isn't one of these three.
-    const missing = (["watchlist-summary", "portfolio-summary", "decision-engine"] as const).filter(
+    // changes behavior for any widget id that isn't one of these four.
+    const missing = (["watchlist-summary", "portfolio-summary", "decision-engine", "opportunity-discovery"] as const).filter(
       (id) => !stored.some((w) => w.id === id),
     );
     if (missing.length === 0) {

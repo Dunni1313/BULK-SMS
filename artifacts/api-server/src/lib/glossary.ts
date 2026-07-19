@@ -710,6 +710,38 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: ["institutional-decision-engine", "conviction-score"],
     relatedLessonKeys: [],
   },
+  {
+    key: "opportunity-discovery-engine",
+    term: "Institutional Opportunity Discovery",
+    category: "value-investing",
+    definition: "A deterministic scanner that ranks a symbol universe using already-computed Business Quality, Valuation, Margin of Safety, the Investment Committee's verdict, Tom Nash's conviction score, and the Institutional Decision Engine's own synthesis score — never a new scoring model, never a price prediction, and never a fabricated result for data that genuinely doesn't exist (e.g. a company's country).",
+    relatedTermKeys: ["institutional-decision-engine", "screener"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "screener",
+    term: "Screener",
+    category: "value-investing",
+    definition: "A set of filter criteria (sector, market cap, ROIC, revenue growth, margin of safety, and more) applied to already-computed opportunity data — every filter reads an existing field, and a filter with no backing data anywhere in the codebase (Country) is honestly reported unavailable rather than silently ignored or approximated.",
+    relatedTermKeys: ["opportunity-discovery-engine"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "opportunity-ranking",
+    term: "Opportunity Ranking",
+    category: "value-investing",
+    definition: "The order opportunities are sorted in — by the Institutional Decision Engine's own already-computed synthesis score, descending — with a deterministic explanation quoting the real numbers behind that score, never an invented ranking formula.",
+    relatedTermKeys: ["opportunity-discovery-engine", "institutional-decision-engine"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "opportunity-buckets",
+    term: "Opportunity Buckets",
+    category: "value-investing",
+    definition: "Ten named categories (Top Opportunities, Undervalued, High Quality, Wide Moat, Dividend, Growth, Deep Value, Turnaround Candidates, Watchlist Candidates, Portfolio Upgrade Candidates) — each a disclosed, deterministic threshold or set rule over already-computed fields, never a new score.",
+    relatedTermKeys: ["opportunity-discovery-engine"],
+    relatedLessonKeys: [],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {

@@ -156,6 +156,11 @@ function resultFixture(over: Record<string, unknown> = {}) {
       distinctSymbolCount: 0,
       summary: "You have no saved Decision Engine snapshots or notes yet. Analyze a symbol on the Institutional Decision Engine page to see it reviewed here.",
     },
+    // Phase 15 — Institutional Opportunity Discovery Engine.
+    opportunityDiscoveryReview: {
+      savedScreenCount: 0,
+      summary: "You have no saved Screener filter sets yet. Save one on the Institutional Opportunity Discovery page to see it reviewed here.",
+    },
     generatedAt: "2026-07-17T12:00:00.000Z",
     ...over,
   };
@@ -367,6 +372,32 @@ describe("InstitutionalMentor page", () => {
       const card = screen.getByTestId("card-decision-engine-review");
       expect(within(card).getByText(/2 saved decision snapshots and 1 decision note/)).toBeInTheDocument();
       expect(within(card).getByTestId("link-decision-engine-review-open")).toBeInTheDocument();
+      mockState.data = undefined;
+    });
+  });
+
+  // Phase 15 — Institutional Opportunity Discovery Engine.
+  describe("Opportunity Discovery Review", () => {
+    it("shows the honest empty-screens message and a link to run a scan", () => {
+      mockState.data = resultFixture();
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-opportunity-discovery-review");
+      expect(within(card).getByText(/no saved Screener filter sets yet/i)).toBeInTheDocument();
+      expect(within(card).getByTestId("link-opportunity-discovery-review-scan")).toBeInTheDocument();
+      mockState.data = undefined;
+    });
+
+    it("shows a real saved-screen count when present", () => {
+      mockState.data = resultFixture({
+        opportunityDiscoveryReview: {
+          savedScreenCount: 2,
+          summary: "You have 2 saved screens on the Institutional Opportunity Discovery Engine.",
+        },
+      });
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-opportunity-discovery-review");
+      expect(within(card).getByText(/2 saved screens/)).toBeInTheDocument();
+      expect(within(card).getByTestId("link-opportunity-discovery-review-open")).toBeInTheDocument();
       mockState.data = undefined;
     });
   });

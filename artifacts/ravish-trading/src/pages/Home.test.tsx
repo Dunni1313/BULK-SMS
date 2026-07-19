@@ -244,4 +244,23 @@ describe("Home (Institutional Home / Personal Dashboard)", () => {
       expect(within(widget).getByText("Open Portfolio Manager →")).toBeInTheDocument();
     });
   });
+
+  // Phase 15 — Institutional Opportunity Discovery Engine. Zero new data
+  // fetch — a pure navigation-aid widget, same discipline as decision-engine.
+  describe("opportunity-discovery widget", () => {
+    it("is auto-reconciled into a workspace saved before this widget existed", () => {
+      mockState.activeWorkspace = makeWorkspace();
+      renderWithClient(<Home />);
+      expect(screen.getByTestId("widget-opportunity-discovery")).toBeInTheDocument();
+    });
+
+    it("links out to the full Opportunity Discovery page without fetching any scan data itself", () => {
+      mockState.activeWorkspace = makeWorkspace({
+        widgetConfig: [{ id: "opportunity-discovery", visible: true, size: "normal", order: 0 }],
+      });
+      renderWithClient(<Home />);
+      const widget = screen.getByTestId("widget-content-opportunity-discovery");
+      expect(within(widget).getByText("Open Opportunity Discovery →")).toBeInTheDocument();
+    });
+  });
 });

@@ -31,6 +31,7 @@ import {
   investingHoldingsTable,
   investingDecisionSnapshotsTable,
   investingDecisionNotesTable,
+  investingSavedScreensTable,
 } from "@workspace/db";
 import { buildInstitutionalMentor, INCOME_POSITIVE_THETA_BASE_SCORE, INCOME_ZERO_THETA_BASE_SCORE } from "./institutionalMentor.js";
 import { buildPortfolioDashboard } from "./portfolioDashboard.js";
@@ -56,6 +57,7 @@ async function cleanupUser(userId: string): Promise<void> {
   await db.delete(investingPortfoliosTable).where(eq(investingPortfoliosTable.userId, userId));
   await db.delete(investingDecisionSnapshotsTable).where(eq(investingDecisionSnapshotsTable.userId, userId));
   await db.delete(investingDecisionNotesTable).where(eq(investingDecisionNotesTable.userId, userId));
+  await db.delete(investingSavedScreensTable).where(eq(investingSavedScreensTable.userId, userId));
   await db.delete(settingsTable).where(eq(settingsTable.userId, userId));
   await db.delete(usersTable).where(eq(usersTable.id, userId));
 }
@@ -693,6 +695,45 @@ describe("buildInstitutionalMentor", () => {
       });
       const result = await buildInstitutionalMentor(userId);
       expect(result.decisionEngineReview.snapshotCount).toBe(2);
+      await cleanupUser(otherUserId);
+    });
+  });
+
+  // Phase 15 — Institutional Opportunity Discovery Engine.
+  // Proves the new opportunityDiscoveryReview section is a plain, honest,
+  // ownership-scoped read of the user's own investing_saved_screens rows —
+  // zero new scanning/ranking, never fabricated for a user with none or
+  // another user's rows.
+  describe("opportunityDiscoveryReview (Phase 15)", () => {
+    let userId: string;
+    beforeAll(async () => {
+      userId = await createUser("opportunity-discovery-review");
+    });
+    afterAll(async () => {
+      await cleanupUser(userId);
+    });
+
+    it("honestly reports zero saved screens for a user with none", async () => {
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.opportunityDiscoveryReview.savedScreenCount).toBe(0);
+      expect(result.opportunityDiscoveryReview.summary).toMatch(/no saved Screener filter sets yet/i);
+    });
+
+    it("reflects a real saved-screen count", async () => {
+      await db.insert(investingSavedScreensTable).values([
+        { userId, name: "High ROIC Tech", filtersJson: { sector: "Technology", minRoic: 0.15 } },
+        { userId, name: "Deep Value", filtersJson: { minMarginOfSafety: 0.3 } },
+      ]);
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.opportunityDiscoveryReview.savedScreenCount).toBe(2);
+      expect(result.opportunityDiscoveryReview.summary).toContain("2 saved screens");
+    });
+
+    it("never mixes in another user's saved screens", async () => {
+      const otherUserId = await createUser("opportunity-discovery-review-other");
+      await db.insert(investingSavedScreensTable).values({ userId: otherUserId, name: "Other Screen", filtersJson: {} });
+      const result = await buildInstitutionalMentor(userId);
+      expect(result.opportunityDiscoveryReview.savedScreenCount).toBe(2);
       await cleanupUser(otherUserId);
     });
   });
