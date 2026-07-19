@@ -2451,6 +2451,156 @@ paths:
               schema:
                 $ref: "#/components/schemas/DeleteResult"
 
+  # ─── Institutional Investment Decision Engine (Phase 14) ──────────────────
+  /stock-analyst/decision/{symbol}:
+    get:
+      operationId: getInstitutionalDecision
+      tags: [value]
+      summary: Deterministic Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation, checklist, and evidence for a symbol — pure composition over already-computed Business Quality/Competitive Advantage/Management Quality/Capital Allocation/Financial Strength/Valuation/Margin of Safety/Investment Committee/Tom Nash outputs. Optional ?portfolioId= supplies Portfolio Fit/Risk/Diversification context (undocumented query param — combining it with the path param in the formal spec triggers Orval's known duplicate-GetXParams-export collision, first disclosed at Sprint 40 for /trading/structure/:symbol's own ?interval=/?lookback=; the override is fully functional server-side, just outside the typed contract).
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Institutional decision analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalDecisionAnalysis"
+        "404":
+          description: Unknown symbol
+
+  /stock-analyst/decision/{symbol}/snapshots:
+    get:
+      operationId: getDecisionSnapshots
+      tags: [value]
+      summary: List the calling user's saved decision snapshots for a symbol, newest first
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Decision snapshots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DecisionSnapshot"
+    post:
+      operationId: saveDecisionSnapshot
+      tags: [value]
+      summary: Save the current decision analysis for a symbol as a point-in-time snapshot (explicit save only, never automatic)
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Saved snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionSnapshot"
+        "404":
+          description: Unknown symbol
+
+  /stock-analyst/decision/{symbol}/notes:
+    get:
+      operationId: getDecisionNotes
+      tags: [value]
+      summary: List the calling user's decision notes for a symbol
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Decision notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DecisionNote"
+    post:
+      operationId: addDecisionNote
+      tags: [value]
+      summary: Add a decision note for a symbol (free text, never AI-generated)
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionNoteCreate"
+      responses:
+        "200":
+          description: Created note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionNote"
+
+  /stock-analyst/decision/notes/{id}:
+    patch:
+      operationId: updateDecisionNote
+      tags: [value]
+      summary: Update a decision note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionNoteUpdate"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionNote"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteDecisionNote
+      tags: [value]
+      summary: Delete a decision note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
   /stock-analyst/investment-thesis/{symbol}:
     get:
       operationId: getInvestmentThesis
@@ -4910,6 +5060,138 @@ components:
         note: { type: string }
 
     ConstructionPortfolioNoteUpdate:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string }
+
+    # ─── Institutional Investment Decision Engine (Phase 14) — pure
+    # composition over already-computed ValueResearchReport/Management
+    # Quality/Portfolio Intelligence outputs. Zero new scoring, zero LLM. ────
+    DecisionChecklistItem:
+      type: object
+      required: [id, label, status, explanation]
+      properties:
+        id: { type: string }
+        label: { type: string }
+        status: { type: string, enum: [pass, warning, fail, unavailable] }
+        explanation: { type: string }
+
+    DecisionEvidenceItem:
+      type: object
+      required: [label, detail]
+      properties:
+        label: { type: string }
+        detail: { type: string }
+
+    DecisionManagementQuality:
+      type: object
+      required: [available, score]
+      properties:
+        available: { type: boolean }
+        score: { type: ["number", "null"] }
+        reason: { type: string }
+
+    DecisionPortfolioFit:
+      type: object
+      required: [available]
+      properties:
+        available: { type: boolean }
+        reason: { type: string }
+        portfolioId: { type: integer }
+        alreadyHeld: { type: boolean }
+        currentWeightPct: { type: ["number", "null"] }
+        sectorExposurePct: { type: ["number", "null"] }
+
+    InstitutionalDecisionAnalysis:
+      type: object
+      required:
+        - symbol
+        - asOf
+        - kind
+        - price
+        - recommendation
+        - confidence
+        - summary
+        - explanation
+        - drivers
+        - risks
+        - supportingEvidence
+        - contradictingEvidence
+        - checklist
+        - strengths
+        - weaknesses
+        - catalysts
+        - thingsToMonitor
+        - whyBuy
+        - whyWait
+        - whySell
+        - managementQuality
+        - portfolioFit
+        - riskChecklistItem
+        - diversificationChecklistItem
+        - disclaimer
+      properties:
+        symbol: { type: string }
+        asOf: { type: string }
+        kind: { type: string }
+        price: { type: number }
+        recommendation: { type: string, enum: [Buy, Accumulate, Hold, Reduce, Sell, Avoid] }
+        confidence: { type: number }
+        summary: { type: string }
+        explanation: { type: string }
+        drivers: { type: array, items: { type: string } }
+        risks: { type: array, items: { type: string } }
+        supportingEvidence:
+          type: array
+          items: { $ref: "#/components/schemas/DecisionEvidenceItem" }
+        contradictingEvidence:
+          type: array
+          items: { $ref: "#/components/schemas/DecisionEvidenceItem" }
+        checklist:
+          type: array
+          items: { $ref: "#/components/schemas/DecisionChecklistItem" }
+        strengths: { type: array, items: { type: string } }
+        weaknesses: { type: array, items: { type: string } }
+        catalysts: { type: array, items: { type: string } }
+        thingsToMonitor: { type: array, items: { type: string } }
+        whyBuy: { type: array, items: { type: string } }
+        whyWait: { type: array, items: { type: string } }
+        whySell: { type: array, items: { type: string } }
+        managementQuality: { $ref: "#/components/schemas/DecisionManagementQuality" }
+        portfolioFit: { $ref: "#/components/schemas/DecisionPortfolioFit" }
+        riskChecklistItem: { $ref: "#/components/schemas/DecisionChecklistItem" }
+        diversificationChecklistItem: { $ref: "#/components/schemas/DecisionChecklistItem" }
+        disclaimer: { type: string }
+
+    DecisionSnapshot:
+      type: object
+      required: [id, symbol, recommendation, confidence, analysis, createdAt]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        recommendation: { type: string }
+        confidence: { type: number }
+        analysis: { $ref: "#/components/schemas/InstitutionalDecisionAnalysis" }
+        createdAt: { type: string }
+
+    DecisionNote:
+      type: object
+      required: [id, symbol, note, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        note: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    DecisionNoteCreate:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string }
+
+    DecisionNoteUpdate:
       type: object
       required: [note]
       properties:
@@ -12238,6 +12520,19 @@ components:
         totalHoldingsCount: { type: integer }
         summary: { type: string }
 
+    # Phase 14 — a plain, ownership-scoped count of the user's own saved
+    # Decision Engine snapshots/notes, reviewed by the Institutional Mentor.
+    # Introduces no new scoring — never a call into lib/decisionEngine.ts's
+    # own per-symbol composition, which stays on-demand behind its own route.
+    MentorDecisionEngineReview:
+      type: object
+      required: [snapshotCount, noteCount, distinctSymbolCount, summary]
+      properties:
+        snapshotCount: { type: integer }
+        noteCount: { type: integer }
+        distinctSymbolCount: { type: integer }
+        summary: { type: string }
+
     InstitutionalMentorResult:
       type: object
       required:
@@ -12255,6 +12550,7 @@ components:
           learningSummary,
           watchlistReview,
           portfolioReview,
+          decisionEngineReview,
           generatedAt,
         ]
       properties:
@@ -12293,5 +12589,7 @@ components:
           $ref: "#/components/schemas/MentorWatchlistReview"
         portfolioReview:
           $ref: "#/components/schemas/MentorPortfolioReview"
+        decisionEngineReview:
+          $ref: "#/components/schemas/MentorDecisionEngineReview"
         generatedAt:
           type: string

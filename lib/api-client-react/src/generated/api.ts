@@ -65,6 +65,10 @@ import type {
   DashboardWorkspaceCreate,
   DashboardWorkspaceDuplicate,
   DashboardWorkspaceUpdate,
+  DecisionNote,
+  DecisionNoteCreate,
+  DecisionNoteUpdate,
+  DecisionSnapshot,
   DeleteReportResult,
   DeleteResult,
   EarningsIntelligenceAnalysis,
@@ -95,6 +99,7 @@ import type {
   GradeValueQuizInput,
   HealthStatus,
   IndustryComparisonResult,
+  InstitutionalDecisionAnalysis,
   InstitutionalIntelligenceResult,
   InstitutionalMentorResult,
   InvestmentThesis,
@@ -9462,6 +9467,521 @@ export const useDeleteResearchNote = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteResearchNoteMutationOptions(options));
+    }
+
+export const getGetInstitutionalDecisionUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}`
+}
+
+/**
+ * @summary Deterministic Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation, checklist, and evidence for a symbol — pure composition over already-computed Business Quality/Competitive Advantage/Management Quality/Capital Allocation/Financial Strength/Valuation/Margin of Safety/Investment Committee/Tom Nash outputs. Optional ?portfolioId= supplies Portfolio Fit/Risk/Diversification context (undocumented query param — combining it with the path param in the formal spec triggers Orval's known duplicate-GetXParams-export collision, first disclosed at Sprint 40 for /trading/structure/:symbol's own ?interval=/?lookback=; the override is fully functional server-side, just outside the typed contract).
+ */
+export const getInstitutionalDecision = async (symbol: string, options?: RequestInit): Promise<InstitutionalDecisionAnalysis> => {
+
+  return customFetch<InstitutionalDecisionAnalysis>(getGetInstitutionalDecisionUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalDecisionQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/decision/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalDecisionQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalDecision>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalDecision>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalDecisionQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalDecision>>> = ({ signal }) => getInstitutionalDecision(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalDecision>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalDecisionQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalDecision>>>
+export type GetInstitutionalDecisionQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation, checklist, and evidence for a symbol — pure composition over already-computed Business Quality/Competitive Advantage/Management Quality/Capital Allocation/Financial Strength/Valuation/Margin of Safety/Investment Committee/Tom Nash outputs. Optional ?portfolioId= supplies Portfolio Fit/Risk/Diversification context (undocumented query param — combining it with the path param in the formal spec triggers Orval's known duplicate-GetXParams-export collision, first disclosed at Sprint 40 for /trading/structure/:symbol's own ?interval=/?lookback=; the override is fully functional server-side, just outside the typed contract).
+ */
+
+export function useGetInstitutionalDecision<TData = Awaited<ReturnType<typeof getInstitutionalDecision>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalDecision>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalDecisionQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDecisionSnapshotsUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}/snapshots`
+}
+
+/**
+ * @summary List the calling user's saved decision snapshots for a symbol, newest first
+ */
+export const getDecisionSnapshots = async (symbol: string, options?: RequestInit): Promise<DecisionSnapshot[]> => {
+
+  return customFetch<DecisionSnapshot[]>(getGetDecisionSnapshotsUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionSnapshotsQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/decision/${symbol}/snapshots`
+    ] as const;
+    }
+
+
+export const getGetDecisionSnapshotsQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionSnapshots>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionSnapshotsQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionSnapshots>>> = ({ signal }) => getDecisionSnapshots(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionSnapshots>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionSnapshotsQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionSnapshots>>>
+export type GetDecisionSnapshotsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's saved decision snapshots for a symbol, newest first
+ */
+
+export function useGetDecisionSnapshots<TData = Awaited<ReturnType<typeof getDecisionSnapshots>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionSnapshotsQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveDecisionSnapshotUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}/snapshots`
+}
+
+/**
+ * @summary Save the current decision analysis for a symbol as a point-in-time snapshot (explicit save only, never automatic)
+ */
+export const saveDecisionSnapshot = async (symbol: string, options?: RequestInit): Promise<DecisionSnapshot> => {
+
+  return customFetch<DecisionSnapshot>(getSaveDecisionSnapshotUrl(symbol),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSaveDecisionSnapshotMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDecisionSnapshot>>, TError,{symbol: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveDecisionSnapshot>>, TError,{symbol: string}, TContext> => {
+
+const mutationKey = ['saveDecisionSnapshot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveDecisionSnapshot>>, {symbol: string}> = (props) => {
+          const {symbol} = props ?? {};
+
+          return  saveDecisionSnapshot(symbol,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveDecisionSnapshotMutationResult = NonNullable<Awaited<ReturnType<typeof saveDecisionSnapshot>>>
+
+    export type SaveDecisionSnapshotMutationError = ErrorType<void>
+
+    /**
+ * @summary Save the current decision analysis for a symbol as a point-in-time snapshot (explicit save only, never automatic)
+ */
+export const useSaveDecisionSnapshot = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDecisionSnapshot>>, TError,{symbol: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveDecisionSnapshot>>,
+        TError,
+        {symbol: string},
+        TContext
+      > => {
+      return useMutation(getSaveDecisionSnapshotMutationOptions(options));
+    }
+
+export const getGetDecisionNotesUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}/notes`
+}
+
+/**
+ * @summary List the calling user's decision notes for a symbol
+ */
+export const getDecisionNotes = async (symbol: string, options?: RequestInit): Promise<DecisionNote[]> => {
+
+  return customFetch<DecisionNote[]>(getGetDecisionNotesUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionNotesQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/decision/${symbol}/notes`
+    ] as const;
+    }
+
+
+export const getGetDecisionNotesQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionNotes>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionNotesQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionNotes>>> = ({ signal }) => getDecisionNotes(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionNotes>>>
+export type GetDecisionNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's decision notes for a symbol
+ */
+
+export function useGetDecisionNotes<TData = Awaited<ReturnType<typeof getDecisionNotes>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionNotesQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddDecisionNoteUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}/notes`
+}
+
+/**
+ * @summary Add a decision note for a symbol (free text, never AI-generated)
+ */
+export const addDecisionNote = async (symbol: string,
+    decisionNoteCreate: DecisionNoteCreate, options?: RequestInit): Promise<DecisionNote> => {
+
+  return customFetch<DecisionNote>(getAddDecisionNoteUrl(symbol),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      decisionNoteCreate,)
+  }
+);}
+
+
+
+
+export const getAddDecisionNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addDecisionNote>>, TError,{symbol: string;data: BodyType<DecisionNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addDecisionNote>>, TError,{symbol: string;data: BodyType<DecisionNoteCreate>}, TContext> => {
+
+const mutationKey = ['addDecisionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addDecisionNote>>, {symbol: string;data: BodyType<DecisionNoteCreate>}> = (props) => {
+          const {symbol,data} = props ?? {};
+
+          return  addDecisionNote(symbol,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddDecisionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof addDecisionNote>>>
+    export type AddDecisionNoteMutationBody = BodyType<DecisionNoteCreate>
+    export type AddDecisionNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add a decision note for a symbol (free text, never AI-generated)
+ */
+export const useAddDecisionNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addDecisionNote>>, TError,{symbol: string;data: BodyType<DecisionNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addDecisionNote>>,
+        TError,
+        {symbol: string;data: BodyType<DecisionNoteCreate>},
+        TContext
+      > => {
+      return useMutation(getAddDecisionNoteMutationOptions(options));
+    }
+
+export const getUpdateDecisionNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/notes/${id}`
+}
+
+/**
+ * @summary Update a decision note
+ */
+export const updateDecisionNote = async (id: number,
+    decisionNoteUpdate: DecisionNoteUpdate, options?: RequestInit): Promise<DecisionNote> => {
+
+  return customFetch<DecisionNote>(getUpdateDecisionNoteUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      decisionNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateDecisionNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDecisionNote>>, TError,{id: number;data: BodyType<DecisionNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateDecisionNote>>, TError,{id: number;data: BodyType<DecisionNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updateDecisionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDecisionNote>>, {id: number;data: BodyType<DecisionNoteUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateDecisionNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateDecisionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateDecisionNote>>>
+    export type UpdateDecisionNoteMutationBody = BodyType<DecisionNoteUpdate>
+    export type UpdateDecisionNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a decision note
+ */
+export const useUpdateDecisionNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDecisionNote>>, TError,{id: number;data: BodyType<DecisionNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateDecisionNote>>,
+        TError,
+        {id: number;data: BodyType<DecisionNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateDecisionNoteMutationOptions(options));
+    }
+
+export const getDeleteDecisionNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/notes/${id}`
+}
+
+/**
+ * @summary Delete a decision note
+ */
+export const deleteDecisionNote = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteDecisionNoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteDecisionNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDecisionNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteDecisionNote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteDecisionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDecisionNote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteDecisionNote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteDecisionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDecisionNote>>>
+
+    export type DeleteDecisionNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a decision note
+ */
+export const useDeleteDecisionNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDecisionNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteDecisionNote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteDecisionNoteMutationOptions(options));
     }
 
 export const getGetInvestmentThesisUrl = (symbol: string,) => {

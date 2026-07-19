@@ -3125,6 +3125,12 @@ export const GetInstitutionalMentorResponse = zod.object({
   "totalHoldingsCount": zod.number(),
   "summary": zod.string()
 }),
+  "decisionEngineReview": zod.object({
+  "snapshotCount": zod.number(),
+  "noteCount": zod.number(),
+  "distinctSymbolCount": zod.number(),
+  "summary": zod.string()
+}),
   "generatedAt": zod.string()
 })
 
@@ -5602,6 +5608,294 @@ export const DeleteResearchNoteParams = zod.object({
 })
 
 export const DeleteResearchNoteResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Deterministic Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation, checklist, and evidence for a symbol — pure composition over already-computed Business Quality/Competitive Advantage/Management Quality/Capital Allocation/Financial Strength/Valuation/Margin of Safety/Investment Committee/Tom Nash outputs. Optional ?portfolioId= supplies Portfolio Fit/Risk/Diversification context (undocumented query param — combining it with the path param in the formal spec triggers Orval's known duplicate-GetXParams-export collision, first disclosed at Sprint 40 for /trading/structure/:symbol's own ?interval=/?lookback=; the override is fully functional server-side, just outside the typed contract).
+ */
+export const GetInstitutionalDecisionParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetInstitutionalDecisionResponse = zod.object({
+  "symbol": zod.string(),
+  "asOf": zod.string(),
+  "kind": zod.string(),
+  "price": zod.number(),
+  "recommendation": zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid']),
+  "confidence": zod.number(),
+  "summary": zod.string(),
+  "explanation": zod.string(),
+  "drivers": zod.array(zod.string()),
+  "risks": zod.array(zod.string()),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "contradictingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+})),
+  "strengths": zod.array(zod.string()),
+  "weaknesses": zod.array(zod.string()),
+  "catalysts": zod.array(zod.string()),
+  "thingsToMonitor": zod.array(zod.string()),
+  "whyBuy": zod.array(zod.string()),
+  "whyWait": zod.array(zod.string()),
+  "whySell": zod.array(zod.string()),
+  "managementQuality": zod.object({
+  "available": zod.boolean(),
+  "score": zod.number().nullable(),
+  "reason": zod.string().optional()
+}),
+  "portfolioFit": zod.object({
+  "available": zod.boolean(),
+  "reason": zod.string().optional(),
+  "portfolioId": zod.number().optional(),
+  "alreadyHeld": zod.boolean().optional(),
+  "currentWeightPct": zod.number().nullish(),
+  "sectorExposurePct": zod.number().nullish()
+}),
+  "riskChecklistItem": zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+}),
+  "diversificationChecklistItem": zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+}),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary List the calling user's saved decision snapshots for a symbol, newest first
+ */
+export const GetDecisionSnapshotsParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetDecisionSnapshotsResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "recommendation": zod.string(),
+  "confidence": zod.number(),
+  "analysis": zod.object({
+  "symbol": zod.string(),
+  "asOf": zod.string(),
+  "kind": zod.string(),
+  "price": zod.number(),
+  "recommendation": zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid']),
+  "confidence": zod.number(),
+  "summary": zod.string(),
+  "explanation": zod.string(),
+  "drivers": zod.array(zod.string()),
+  "risks": zod.array(zod.string()),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "contradictingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+})),
+  "strengths": zod.array(zod.string()),
+  "weaknesses": zod.array(zod.string()),
+  "catalysts": zod.array(zod.string()),
+  "thingsToMonitor": zod.array(zod.string()),
+  "whyBuy": zod.array(zod.string()),
+  "whyWait": zod.array(zod.string()),
+  "whySell": zod.array(zod.string()),
+  "managementQuality": zod.object({
+  "available": zod.boolean(),
+  "score": zod.number().nullable(),
+  "reason": zod.string().optional()
+}),
+  "portfolioFit": zod.object({
+  "available": zod.boolean(),
+  "reason": zod.string().optional(),
+  "portfolioId": zod.number().optional(),
+  "alreadyHeld": zod.boolean().optional(),
+  "currentWeightPct": zod.number().nullish(),
+  "sectorExposurePct": zod.number().nullish()
+}),
+  "riskChecklistItem": zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+}),
+  "diversificationChecklistItem": zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+}),
+  "disclaimer": zod.string()
+}),
+  "createdAt": zod.string()
+})
+export const GetDecisionSnapshotsResponse = zod.array(GetDecisionSnapshotsResponseItem)
+
+
+/**
+ * @summary Save the current decision analysis for a symbol as a point-in-time snapshot (explicit save only, never automatic)
+ */
+export const SaveDecisionSnapshotParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const SaveDecisionSnapshotResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "recommendation": zod.string(),
+  "confidence": zod.number(),
+  "analysis": zod.object({
+  "symbol": zod.string(),
+  "asOf": zod.string(),
+  "kind": zod.string(),
+  "price": zod.number(),
+  "recommendation": zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid']),
+  "confidence": zod.number(),
+  "summary": zod.string(),
+  "explanation": zod.string(),
+  "drivers": zod.array(zod.string()),
+  "risks": zod.array(zod.string()),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "contradictingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+})),
+  "strengths": zod.array(zod.string()),
+  "weaknesses": zod.array(zod.string()),
+  "catalysts": zod.array(zod.string()),
+  "thingsToMonitor": zod.array(zod.string()),
+  "whyBuy": zod.array(zod.string()),
+  "whyWait": zod.array(zod.string()),
+  "whySell": zod.array(zod.string()),
+  "managementQuality": zod.object({
+  "available": zod.boolean(),
+  "score": zod.number().nullable(),
+  "reason": zod.string().optional()
+}),
+  "portfolioFit": zod.object({
+  "available": zod.boolean(),
+  "reason": zod.string().optional(),
+  "portfolioId": zod.number().optional(),
+  "alreadyHeld": zod.boolean().optional(),
+  "currentWeightPct": zod.number().nullish(),
+  "sectorExposurePct": zod.number().nullish()
+}),
+  "riskChecklistItem": zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+}),
+  "diversificationChecklistItem": zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+}),
+  "disclaimer": zod.string()
+}),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List the calling user's decision notes for a symbol
+ */
+export const GetDecisionNotesParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetDecisionNotesResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetDecisionNotesResponse = zod.array(GetDecisionNotesResponseItem)
+
+
+/**
+ * @summary Add a decision note for a symbol (free text, never AI-generated)
+ */
+export const AddDecisionNoteParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const AddDecisionNoteBody = zod.object({
+  "note": zod.string()
+})
+
+export const AddDecisionNoteResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a decision note
+ */
+export const UpdateDecisionNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateDecisionNoteBody = zod.object({
+  "note": zod.string()
+})
+
+export const UpdateDecisionNoteResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a decision note
+ */
+export const DeleteDecisionNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteDecisionNoteResponse = zod.object({
   "success": zod.boolean()
 })
 

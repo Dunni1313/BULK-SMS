@@ -50,6 +50,8 @@ import {
   investingResearchNotesTable,
   investingPortfolioSnapshotsTable,
   investingPortfolioNotesTable,
+  investingDecisionSnapshotsTable,
+  investingDecisionNotesTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -120,6 +122,10 @@ afterAll(async () => {
     // defensive/consistent with the rest of this loop, not strictly required).
     investingPortfolioSnapshotsTable,
     investingPortfolioNotesTable,
+    // Phase 14 — Institutional Investment Decision Engine's own new tables,
+    // both per-symbol (no FK to a portfolio), unlike Phase 13's own two.
+    investingDecisionSnapshotsTable,
+    investingDecisionNotesTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -313,6 +319,27 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       portfolioId: userId === userA ? portfolioA.id : portfolioB.id,
       note: "Test note",
+    }));
+  });
+
+  // Phase 14 — Institutional Investment Decision Engine's own new tables,
+  // reusing the same shared helper. Both are per-symbol (no FK to a
+  // portfolio, unlike Phase 13's own two tables above).
+  it("investing_decision_snapshots: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(investingDecisionSnapshotsTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "DECTST",
+      recommendation: "Hold",
+      confidence: 60,
+      analysisJson: { summary: "test" },
+    }));
+  });
+
+  it("investing_decision_notes: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(investingDecisionNotesTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "DECTST",
+      note: "Test decision note",
     }));
   });
 

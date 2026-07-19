@@ -13,6 +13,10 @@ import {
   valueWatchlistTable,
   valueQuizResultsTable,
   investingResearchNotesTable,
+  investingDecisionSnapshotsTable,
+  investingDecisionNotesTable,
+  investingPortfoliosTable,
+  investingHoldingsTable,
 } from "@workspace/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import {
@@ -49,9 +53,18 @@ import {
   UpdateResearchNoteResponse,
   DeleteResearchNoteResponse,
   GetInvestmentThesisResponse,
+  GetInstitutionalDecisionResponse,
+  GetDecisionSnapshotsResponse,
+  SaveDecisionSnapshotResponse,
+  GetDecisionNotesResponse,
+  AddDecisionNoteBody,
+  AddDecisionNoteResponse,
+  UpdateDecisionNoteBody,
+  UpdateDecisionNoteResponse,
+  DeleteDecisionNoteResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
-import { getFundamentalsProvider, resolveFundamentals } from "../lib/fundamentals.js";
+import { getFundamentalsProvider, resolveFundamentals, type FundamentalsProvider } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
 import { buildInvestmentThesis } from "../lib/investmentThesisGenerator.js";
 import { buildMacroContext } from "../lib/investingMacro.js";
@@ -60,6 +73,13 @@ import { computeWatchlistTargets } from "../lib/watchlistTargets.js";
 import { buildIndustryComparison } from "../lib/industryComparison.js";
 import { buildFilingAnalysis } from "../lib/filingAnalysis.js";
 import { buildManagementQualityAnalysis } from "../lib/managementAnalysis.js";
+import {
+  buildInstitutionalDecision,
+  type DecisionPortfolioContext,
+  type ManagementQualityResult,
+} from "../lib/decisionEngine.js";
+import { buildPortfolioIntelligence } from "../lib/portfolioIntelligence.js";
+import { type PortfolioHoldingInput } from "../lib/portfolioConstruction.js";
 import { buildEarningsIntelligence } from "../lib/earningsAnalysis.js";
 import { EdgarDocumentProvider, DOCUMENT_TYPES, type DocumentType } from "../lib/documentProviders.js";
 import { analyzeInvestmentSuitability } from "../lib/valueInvesting.js";
@@ -893,6 +913,203 @@ router.get("/investment-thesis/:symbol", async (req, res): Promise<void> => {
     return;
   }
   res.json(GetInvestmentThesisResponse.parse(buildInvestmentThesis(report)));
+});
+
+// Phase 14 — Institutional Investment Decision Engine. Pure composition over
+// the same ValueResearchReport /value/:symbol itself builds (no duplicate
+// scoring), plus an optional Management Quality reuse (honestly unavailable
+// when Document Intelligence/EDGAR can't resolve a filing — never blocks the
+// rest of the decision) and an optional portfolio context resolved from the
+// caller's own portfolio via the already-shipped buildPortfolioIntelligence()
+// (Phase 13) when ?portfolioId= is supplied.
+async function resolveDecisionManagementQuality(
+  symbol: string,
+  provider: FundamentalsProvider,
+  userId: string,
+): Promise<ManagementQualityResult> {
+  try {
+    const mgmt = await buildManagementQualityAnalysis(symbol, edgarDocumentProvider, provider, "10-K", undefined, userId);
+    if (!mgmt) return { available: false, score: null, reason: "Unknown symbol." };
+    if (mgmt.score == null) return { available: false, score: null, reason: mgmt.confidenceExplanation || "Management Quality could not be scored for this symbol." };
+    return { available: true, score: mgmt.score };
+  } catch {
+    return { available: false, score: null, reason: "Management Quality analysis is currently unavailable (Document Intelligence could not resolve a filing)." };
+  }
+}
+
+async function resolveDecisionPortfolioContext(
+  report: ValueResearchReport,
+  portfolioId: number,
+  userId: string,
+): Promise<DecisionPortfolioContext | null> {
+  const [portfolio] = await db
+    .select({ id: investingPortfoliosTable.id })
+    .from(investingPortfoliosTable)
+    .where(and(eq(investingPortfoliosTable.id, portfolioId), eq(investingPortfoliosTable.userId, userId)));
+  if (!portfolio) return null;
+
+  const holdingRows = await db
+    .select()
+    .from(investingHoldingsTable)
+    .where(and(eq(investingHoldingsTable.portfolioId, portfolioId), eq(investingHoldingsTable.userId, userId)));
+  const holdingInputs: PortfolioHoldingInput[] = holdingRows.map((r) => ({
+    id: r.id,
+    symbol: r.symbol,
+    targetWeightPct: r.targetWeightPct,
+    shares: r.shares,
+    avgCostBasis: r.avgCostBasis,
+    notes: r.notes,
+  }));
+
+  const provider = await getFundamentalsProvider(userId);
+  const intelligence = await buildPortfolioIntelligence(holdingInputs, provider);
+  const held = intelligence.holdings.find((h) => h.symbol === report.symbol.toUpperCase());
+  const sectorSlice = report.sector ? intelligence.allocation.bySector.find((s) => s.label === report.sector) : undefined;
+
+  return {
+    portfolioId,
+    alreadyHeld: !!held,
+    currentWeightPct: held?.weightPct ?? null,
+    sectorExposurePct: sectorSlice?.weightPct ?? null,
+    diversificationScore: intelligence.diversificationScore.score,
+    portfolioRiskScore: intelligence.risk.overall.score,
+  };
+}
+
+router.get("/decision/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(req.params.symbol, undefined, undefined, undefined, undefined, userId);
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  const provider = await getFundamentalsProvider(userId);
+  const managementQuality = await resolveDecisionManagementQuality(report.symbol, provider, userId);
+
+  const portfolioIdRaw = req.query.portfolioId;
+  const portfolioId = typeof portfolioIdRaw === "string" && Number.isInteger(Number(portfolioIdRaw)) ? Number(portfolioIdRaw) : null;
+  const portfolioContext = portfolioId != null ? await resolveDecisionPortfolioContext(report, portfolioId, userId) : null;
+
+  const decision = buildInstitutionalDecision(report, managementQuality, portfolioContext);
+  res.json(GetInstitutionalDecisionResponse.parse(decision));
+});
+
+function decisionSnapshotItem(r: typeof investingDecisionSnapshotsTable.$inferSelect) {
+  return {
+    id: r.id,
+    symbol: r.symbol,
+    recommendation: r.recommendation,
+    confidence: r.confidence,
+    analysis: r.analysisJson,
+    createdAt: r.createdAt.toISOString(),
+  };
+}
+
+router.get("/decision/:symbol/snapshots", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const symbol = req.params.symbol.toUpperCase();
+  const rows = await db
+    .select()
+    .from(investingDecisionSnapshotsTable)
+    .where(and(eq(investingDecisionSnapshotsTable.userId, userId), eq(investingDecisionSnapshotsTable.symbol, symbol)))
+    .orderBy(desc(investingDecisionSnapshotsTable.createdAt));
+  res.json(GetDecisionSnapshotsResponse.parse(rows.map(decisionSnapshotItem)));
+});
+
+router.post("/decision/:symbol/snapshots", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(req.params.symbol, undefined, undefined, undefined, undefined, userId);
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  const provider = await getFundamentalsProvider(userId);
+  const managementQuality = await resolveDecisionManagementQuality(report.symbol, provider, userId);
+  const decision = buildInstitutionalDecision(report, managementQuality, null);
+  const [row] = await db
+    .insert(investingDecisionSnapshotsTable)
+    .values({
+      userId,
+      symbol: report.symbol,
+      recommendation: decision.recommendation,
+      confidence: decision.confidence,
+      analysisJson: decision,
+    })
+    .returning();
+  res.json(SaveDecisionSnapshotResponse.parse(decisionSnapshotItem(row)));
+});
+
+function decisionNoteItem(r: typeof investingDecisionNotesTable.$inferSelect) {
+  return {
+    id: r.id,
+    symbol: r.symbol,
+    note: r.note,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+  };
+}
+
+router.get("/decision/:symbol/notes", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const symbol = req.params.symbol.toUpperCase();
+  const rows = await db
+    .select()
+    .from(investingDecisionNotesTable)
+    .where(and(eq(investingDecisionNotesTable.userId, userId), eq(investingDecisionNotesTable.symbol, symbol)))
+    .orderBy(desc(investingDecisionNotesTable.createdAt));
+  res.json(GetDecisionNotesResponse.parse(rows.map(decisionNoteItem)));
+});
+
+router.post("/decision/:symbol/notes", async (req, res): Promise<void> => {
+  const parsed = AddDecisionNoteBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [row] = await db
+    .insert(investingDecisionNotesTable)
+    .values({ userId, symbol: req.params.symbol.toUpperCase(), note: parsed.data.note })
+    .returning();
+  res.json(AddDecisionNoteResponse.parse(decisionNoteItem(row)));
+});
+
+router.patch("/decision/notes/:id", async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "Invalid decision note id" });
+    return;
+  }
+  const parsed = UpdateDecisionNoteBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [row] = await db
+    .update(investingDecisionNotesTable)
+    .set({ note: parsed.data.note, updatedAt: new Date() })
+    .where(and(eq(investingDecisionNotesTable.id, id), eq(investingDecisionNotesTable.userId, userId)))
+    .returning();
+  if (!row) {
+    res.status(404).json({ error: "Decision note not found" });
+    return;
+  }
+  res.json(UpdateDecisionNoteResponse.parse(decisionNoteItem(row)));
+});
+
+router.delete("/decision/notes/:id", async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "Invalid decision note id" });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [row] = await db
+    .delete(investingDecisionNotesTable)
+    .where(and(eq(investingDecisionNotesTable.id, id), eq(investingDecisionNotesTable.userId, userId)))
+    .returning({ id: investingDecisionNotesTable.id });
+  res.json(DeleteDecisionNoteResponse.parse({ success: !!row }));
 });
 
 // Phase 2, Sprint 19 — full multi-year financial statements. Deliberately a

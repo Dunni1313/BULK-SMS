@@ -1520,6 +1520,111 @@ export interface ConstructionPortfolioNoteUpdate {
   note: string;
 }
 
+export type DecisionChecklistItemStatus = typeof DecisionChecklistItemStatus[keyof typeof DecisionChecklistItemStatus];
+
+
+export const DecisionChecklistItemStatus = {
+  pass: 'pass',
+  warning: 'warning',
+  fail: 'fail',
+  unavailable: 'unavailable',
+} as const;
+
+export interface DecisionChecklistItem {
+  id: string;
+  label: string;
+  status: DecisionChecklistItemStatus;
+  explanation: string;
+}
+
+export interface DecisionEvidenceItem {
+  label: string;
+  detail: string;
+}
+
+export interface DecisionManagementQuality {
+  available: boolean;
+  /** @nullable */
+  score: number | null;
+  reason?: string;
+}
+
+export interface DecisionPortfolioFit {
+  available: boolean;
+  reason?: string;
+  portfolioId?: number;
+  alreadyHeld?: boolean;
+  /** @nullable */
+  currentWeightPct?: number | null;
+  /** @nullable */
+  sectorExposurePct?: number | null;
+}
+
+export type InstitutionalDecisionAnalysisRecommendation = typeof InstitutionalDecisionAnalysisRecommendation[keyof typeof InstitutionalDecisionAnalysisRecommendation];
+
+
+export const InstitutionalDecisionAnalysisRecommendation = {
+  Buy: 'Buy',
+  Accumulate: 'Accumulate',
+  Hold: 'Hold',
+  Reduce: 'Reduce',
+  Sell: 'Sell',
+  Avoid: 'Avoid',
+} as const;
+
+export interface InstitutionalDecisionAnalysis {
+  symbol: string;
+  asOf: string;
+  kind: string;
+  price: number;
+  recommendation: InstitutionalDecisionAnalysisRecommendation;
+  confidence: number;
+  summary: string;
+  explanation: string;
+  drivers: string[];
+  risks: string[];
+  supportingEvidence: DecisionEvidenceItem[];
+  contradictingEvidence: DecisionEvidenceItem[];
+  checklist: DecisionChecklistItem[];
+  strengths: string[];
+  weaknesses: string[];
+  catalysts: string[];
+  thingsToMonitor: string[];
+  whyBuy: string[];
+  whyWait: string[];
+  whySell: string[];
+  managementQuality: DecisionManagementQuality;
+  portfolioFit: DecisionPortfolioFit;
+  riskChecklistItem: DecisionChecklistItem;
+  diversificationChecklistItem: DecisionChecklistItem;
+  disclaimer: string;
+}
+
+export interface DecisionSnapshot {
+  id: number;
+  symbol: string;
+  recommendation: string;
+  confidence: number;
+  analysis: InstitutionalDecisionAnalysis;
+  createdAt: string;
+}
+
+export interface DecisionNote {
+  id: number;
+  symbol: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DecisionNoteCreate {
+  note: string;
+}
+
+export interface DecisionNoteUpdate {
+  note: string;
+}
+
 export type ValueLessonLevel = typeof ValueLessonLevel[keyof typeof ValueLessonLevel];
 
 
@@ -6798,6 +6903,13 @@ export interface MentorPortfolioReview {
   summary: string;
 }
 
+export interface MentorDecisionEngineReview {
+  snapshotCount: number;
+  noteCount: number;
+  distinctSymbolCount: number;
+  summary: string;
+}
+
 export interface InstitutionalMentorResult {
   paperTradingMode: true;
   deterministicAnalysis: true;
@@ -6812,6 +6924,7 @@ export interface InstitutionalMentorResult {
   learningSummary: MentorLearningSummary;
   watchlistReview: MentorWatchlistReview;
   portfolioReview: MentorPortfolioReview;
+  decisionEngineReview: MentorDecisionEngineReview;
   generatedAt: string;
 }
 
