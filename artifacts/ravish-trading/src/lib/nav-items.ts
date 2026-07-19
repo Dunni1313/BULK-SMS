@@ -58,6 +58,7 @@ import {
   Telescope,
   BellRing,
   LayoutPanelLeft,
+  Users,
 } from "lucide-react";
 
 export interface NavItem {
@@ -94,6 +95,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },
   { title: "Institutional Mentor", href: "/institutional-mentor", icon: Landmark },
   { title: "Decision Engine", href: "/decision-engine", icon: Gavel },
+  { title: "Investment Committee", href: "/stock-analyst/investment-committee", icon: Users },
   { title: "Opportunity Discovery", href: "/opportunity-discovery", icon: Telescope },
   { title: "Institutional Monitoring", href: "/monitoring-dashboard", icon: BellRing },
   { title: "Daily Report", href: "/daily-report", icon: Newspaper },
