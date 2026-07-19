@@ -1,4 +1,4 @@
-import { pgTable, serial, uuid, text, boolean, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, serial, uuid, text, boolean, jsonb, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -14,6 +14,16 @@ import { usersTable } from "./users";
 // dedupKey + the partial unique index (only enforced while isRead=false)
 // prevent alert spam: at most one unread notification can exist per
 // (userId, dedupKey) at a time.
+//
+// Phase 16 — Institutional Monitoring & Alerts Engine. Five additive
+// columns (severity/previousValue/currentValue/evidence/recommendedAction)
+// so every alert — old and new alert types alike — can honestly carry the
+// full Reason/Evidence/Previous/Current/Severity/Recommended-Action shape
+// this phase requires. `severity` defaults to "info" (a safe, honest
+// default for the two pre-existing alert types, which are re-populated
+// with a real severity going forward — never retroactively rewritten for
+// old rows). The other four stay nullable: a value is supplied only when
+// it's a genuine, non-fabricated fact about that specific alert.
 export const platformNotificationsTable = pgTable(
   "platform_notifications",
   {
@@ -29,6 +39,11 @@ export const platformNotificationsTable = pgTable(
     relatedSymbol: text("related_symbol"),
     dedupKey: text("dedup_key").notNull(),
     isRead: boolean("is_read").notNull().default(false),
+    severity: text("severity").notNull().default("info"), // "info" | "warning" | "critical"
+    previousValue: text("previous_value"),
+    currentValue: text("current_value"),
+    evidence: jsonb("evidence"), // string[] — quotes real, already-computed facts, never fabricated
+    recommendedAction: text("recommended_action"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
