@@ -56,6 +56,7 @@ import {
   Server,
   Gavel,
   Telescope,
+  BellRing,
 } from "lucide-react";
 
 export interface NavItem {
@@ -93,6 +94,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Institutional Mentor", href: "/institutional-mentor", icon: Landmark },
   { title: "Decision Engine", href: "/decision-engine", icon: Gavel },
   { title: "Opportunity Discovery", href: "/opportunity-discovery", icon: Telescope },
+  { title: "Institutional Monitoring", href: "/monitoring-dashboard", icon: BellRing },
   { title: "Daily Report", href: "/daily-report", icon: Newspaper },
   { title: "Trading Research", href: "/trading-research", icon: Activity },
   { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
