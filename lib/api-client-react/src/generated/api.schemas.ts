@@ -1148,6 +1148,44 @@ export interface InvestmentThesis {
   disclaimer: string;
 }
 
+export interface InvestmentMemoSection {
+  heading: string;
+  paragraphs: string[];
+}
+
+export type InvestmentMemoDataSource = typeof InvestmentMemoDataSource[keyof typeof InvestmentMemoDataSource];
+
+
+export const InvestmentMemoDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type InvestmentMemoRecommendation = typeof InvestmentMemoRecommendation[keyof typeof InvestmentMemoRecommendation];
+
+
+export const InvestmentMemoRecommendation = {
+  Buy: 'Buy',
+  Accumulate: 'Accumulate',
+  Hold: 'Hold',
+  Reduce: 'Reduce',
+  Sell: 'Sell',
+  Avoid: 'Avoid',
+} as const;
+
+export interface InvestmentMemo {
+  symbol: string;
+  name: string;
+  asOf: string;
+  dataSource: InvestmentMemoDataSource;
+  generatedAt: string;
+  recommendation: InvestmentMemoRecommendation;
+  confidence: number;
+  overview: string;
+  sections: InvestmentMemoSection[];
+  disclaimer: string;
+}
+
 export interface ConstructionPortfolioSummary {
   id: number;
   name: string;

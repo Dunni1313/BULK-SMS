@@ -6025,6 +6025,102 @@ export const DeleteDecisionNoteResponse = zod.object({
 
 
 /**
+ * @summary List the calling user's most recent saved decision snapshots across all symbols (newest first, capped at 20) — powers the Investment Committee Workbench's Committee Dashboard / Active Reviews. Reuses the same investing_decision_snapshots table as GET /decision/{symbol}/snapshots, symbol filter removed.
+ */
+export const GetRecentDecisionSnapshotsResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "recommendation": zod.string(),
+  "confidence": zod.number(),
+  "analysis": zod.object({
+  "symbol": zod.string(),
+  "asOf": zod.string(),
+  "kind": zod.string(),
+  "price": zod.number(),
+  "recommendation": zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid']),
+  "confidence": zod.number(),
+  "summary": zod.string(),
+  "explanation": zod.string(),
+  "drivers": zod.array(zod.string()),
+  "risks": zod.array(zod.string()),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "contradictingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string()
+})),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+})),
+  "strengths": zod.array(zod.string()),
+  "weaknesses": zod.array(zod.string()),
+  "catalysts": zod.array(zod.string()),
+  "thingsToMonitor": zod.array(zod.string()),
+  "whyBuy": zod.array(zod.string()),
+  "whyWait": zod.array(zod.string()),
+  "whySell": zod.array(zod.string()),
+  "managementQuality": zod.object({
+  "available": zod.boolean(),
+  "score": zod.number().nullable(),
+  "reason": zod.string().optional()
+}),
+  "portfolioFit": zod.object({
+  "available": zod.boolean(),
+  "reason": zod.string().optional(),
+  "portfolioId": zod.number().optional(),
+  "alreadyHeld": zod.boolean().optional(),
+  "currentWeightPct": zod.number().nullish(),
+  "sectorExposurePct": zod.number().nullish()
+}),
+  "riskChecklistItem": zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+}),
+  "diversificationChecklistItem": zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "status": zod.enum(['pass', 'warning', 'fail', 'unavailable']),
+  "explanation": zod.string()
+}),
+  "disclaimer": zod.string()
+}),
+  "createdAt": zod.string()
+})
+export const GetRecentDecisionSnapshotsResponse = zod.array(GetRecentDecisionSnapshotsResponseItem)
+
+
+/**
+ * @summary Deterministic Investment Memo for a symbol — assembled entirely from already-computed Business Quality/Competitive Advantage/Financial Strength/Valuation/Margin of Safety/Decision Engine/Investment Committee outputs plus the user's own Research Notes and Monitoring alerts. No LLM, no new scoring, no price prediction. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Impact context.
+ */
+export const GetInvestmentMemoParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetInvestmentMemoResponse = zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "asOf": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "generatedAt": zod.string(),
+  "recommendation": zod.enum(['Buy', 'Accumulate', 'Hold', 'Reduce', 'Sell', 'Avoid']),
+  "confidence": zod.number(),
+  "overview": zod.string(),
+  "sections": zod.array(zod.object({
+  "heading": zod.string(),
+  "paragraphs": zod.array(zod.string())
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
  * @summary Run a deterministic opportunity scan across the union of the Investing Engine's own known-symbol universes, apply the screener filters, rank by the Decision Engine's own synthesis score, and bucket into the 10 named opportunity categories — pure orchestration, zero new scoring.
  */
 export const ScanOpportunitiesBody = zod.object({

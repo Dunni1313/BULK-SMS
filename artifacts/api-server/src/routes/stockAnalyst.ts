@@ -17,6 +17,7 @@ import {
   investingDecisionNotesTable,
   investingPortfoliosTable,
   investingHoldingsTable,
+  platformNotificationsTable,
 } from "@workspace/db";
 import { and, asc, desc, eq } from "drizzle-orm";
 import {
@@ -63,11 +64,15 @@ import {
   UpdateDecisionNoteBody,
   UpdateDecisionNoteResponse,
   DeleteDecisionNoteResponse,
+  GetInvestmentMemoResponse,
+  GetRecentDecisionSnapshotsResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider, resolveFundamentals, type FundamentalsProvider } from "../lib/fundamentals.js";
 import { buildValueResearchReport, type ValueResearchReport } from "../lib/valueReport.js";
 import { buildInvestmentThesis } from "../lib/investmentThesisGenerator.js";
+import { buildInvestmentMemo } from "../lib/investmentMemo.js";
+import { formatNotification } from "./notifications.js";
 import { buildMacroContext } from "../lib/investingMacro.js";
 import { todayStr } from "../lib/deterministic.js";
 import { computeWatchlistTargets } from "../lib/watchlistTargets.js";
@@ -1129,6 +1134,72 @@ router.delete("/decision/notes/:id", async (req, res): Promise<void> => {
     .where(and(eq(investingDecisionNotesTable.id, id), eq(investingDecisionNotesTable.userId, userId)))
     .returning({ id: investingDecisionNotesTable.id });
   res.json(DeleteDecisionNoteResponse.parse({ success: !!row }));
+});
+
+// Phase 19 — Institutional Investment Committee Workbench. Cross-symbol
+// decision-snapshot history for the calling user, powering the Workbench's
+// Committee Dashboard / Active Reviews. Reuses investing_decision_snapshots
+// (Phase 14) and its own decisionSnapshotItem formatter unmodified — the
+// only change from GET /decision/:symbol/snapshots is removing the symbol
+// filter and capping the result. Zero new persistence.
+router.get("/decision/snapshots/recent", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const rows = await db
+    .select()
+    .from(investingDecisionSnapshotsTable)
+    .where(eq(investingDecisionSnapshotsTable.userId, userId))
+    .orderBy(desc(investingDecisionSnapshotsTable.createdAt))
+    .limit(20);
+  res.json(GetRecentDecisionSnapshotsResponse.parse(rows.map(decisionSnapshotItem)));
+});
+
+// Phase 19 — Institutional Investment Committee Workbench. A deterministic
+// Investment Memo assembled entirely from already-computed outputs: the
+// same ValueResearchReport /value/:symbol builds, the same
+// InstitutionalDecisionAnalysis /decision/:symbol builds (reusing the exact
+// same resolveDecisionManagementQuality/resolveDecisionPortfolioContext
+// helpers), the user's own Research Notes (same query as
+// GET /research-notes/:symbol), and the user's own Monitoring alerts for
+// this symbol (same platform_notifications table GET /notifications reads,
+// filtered here by relatedSymbol, formatted via that route's own exported
+// formatNotification — zero duplicated field mapping). No new scoring, no
+// new persistence, no LLM call.
+router.get("/investment-memo/:symbol", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(req.params.symbol, undefined, undefined, undefined, undefined, userId);
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  const provider = await getFundamentalsProvider(userId);
+  const managementQuality = await resolveDecisionManagementQuality(report.symbol, provider, userId);
+
+  const portfolioIdRaw = req.query.portfolioId;
+  const portfolioId = typeof portfolioIdRaw === "string" && Number.isInteger(Number(portfolioIdRaw)) ? Number(portfolioIdRaw) : null;
+  const portfolioContext = portfolioId != null ? await resolveDecisionPortfolioContext(report, portfolioId, userId) : null;
+
+  const decision = buildInstitutionalDecision(report, managementQuality, portfolioContext);
+
+  const [noteRows, alertRows] = await Promise.all([
+    db
+      .select()
+      .from(investingResearchNotesTable)
+      .where(and(eq(investingResearchNotesTable.userId, userId), eq(investingResearchNotesTable.symbol, report.symbol)))
+      .orderBy(desc(investingResearchNotesTable.createdAt)),
+    db
+      .select()
+      .from(platformNotificationsTable)
+      .where(and(eq(platformNotificationsTable.userId, userId), eq(platformNotificationsTable.relatedSymbol, report.symbol)))
+      .orderBy(desc(platformNotificationsTable.createdAt)),
+  ]);
+
+  const memo = buildInvestmentMemo(
+    report,
+    decision,
+    noteRows.map((n) => ({ note: n.note, createdAt: n.createdAt.toISOString() })),
+    alertRows.map(formatNotification),
+  );
+  res.json(GetInvestmentMemoResponse.parse(memo));
 });
 
 // Phase 2, Sprint 19 — full multi-year financial statements. Deliberately a

@@ -104,6 +104,7 @@ import type {
   InstitutionalDecisionAnalysis,
   InstitutionalIntelligenceResult,
   InstitutionalMentorResult,
+  InvestmentMemo,
   InvestmentThesis,
   JournalEntry,
   JournalEntryInput,
@@ -10441,6 +10442,160 @@ export const useDeleteDecisionNote = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getDeleteDecisionNoteMutationOptions(options));
     }
+
+export const getGetRecentDecisionSnapshotsUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/decision/snapshots/recent`
+}
+
+/**
+ * @summary List the calling user's most recent saved decision snapshots across all symbols (newest first, capped at 20) — powers the Investment Committee Workbench's Committee Dashboard / Active Reviews. Reuses the same investing_decision_snapshots table as GET /decision/{symbol}/snapshots, symbol filter removed.
+ */
+export const getRecentDecisionSnapshots = async ( options?: RequestInit): Promise<DecisionSnapshot[]> => {
+
+  return customFetch<DecisionSnapshot[]>(getGetRecentDecisionSnapshotsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRecentDecisionSnapshotsQueryKey = () => {
+    return [
+    `/api/stock-analyst/decision/snapshots/recent`
+    ] as const;
+    }
+
+
+export const getGetRecentDecisionSnapshotsQueryOptions = <TData = Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRecentDecisionSnapshotsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>> = ({ signal }) => getRecentDecisionSnapshots({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRecentDecisionSnapshotsQueryResult = NonNullable<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>>
+export type GetRecentDecisionSnapshotsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's most recent saved decision snapshots across all symbols (newest first, capped at 20) — powers the Investment Committee Workbench's Committee Dashboard / Active Reviews. Reuses the same investing_decision_snapshots table as GET /decision/{symbol}/snapshots, symbol filter removed.
+ */
+
+export function useGetRecentDecisionSnapshots<TData = Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRecentDecisionSnapshotsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestmentMemoUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/investment-memo/${symbol}`
+}
+
+/**
+ * @summary Deterministic Investment Memo for a symbol — assembled entirely from already-computed Business Quality/Competitive Advantage/Financial Strength/Valuation/Margin of Safety/Decision Engine/Investment Committee outputs plus the user's own Research Notes and Monitoring alerts. No LLM, no new scoring, no price prediction. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Impact context.
+ */
+export const getInvestmentMemo = async (symbol: string, options?: RequestInit): Promise<InvestmentMemo> => {
+
+  return customFetch<InvestmentMemo>(getGetInvestmentMemoUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestmentMemoQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/investment-memo/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetInvestmentMemoQueryOptions = <TData = Awaited<ReturnType<typeof getInvestmentMemo>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentMemo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestmentMemoQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestmentMemo>>> = ({ signal }) => getInvestmentMemo(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestmentMemo>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestmentMemoQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestmentMemo>>>
+export type GetInvestmentMemoQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Investment Memo for a symbol — assembled entirely from already-computed Business Quality/Competitive Advantage/Financial Strength/Valuation/Margin of Safety/Decision Engine/Investment Committee outputs plus the user's own Research Notes and Monitoring alerts. No LLM, no new scoring, no price prediction. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Impact context.
+ */
+
+export function useGetInvestmentMemo<TData = Awaited<ReturnType<typeof getInvestmentMemo>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentMemo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestmentMemoQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getScanOpportunitiesUrl = () => {
 

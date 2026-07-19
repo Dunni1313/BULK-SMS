@@ -2727,6 +2727,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/DeleteResult"
 
+  # ─── Institutional Investment Committee Workbench (Phase 19) ─────────────
+  /stock-analyst/decision/snapshots/recent:
+    get:
+      operationId: getRecentDecisionSnapshots
+      tags: [value]
+      summary: List the calling user's most recent saved decision snapshots across all symbols (newest first, capped at 20) — powers the Investment Committee Workbench's Committee Dashboard / Active Reviews. Reuses the same investing_decision_snapshots table as GET /decision/{symbol}/snapshots, symbol filter removed.
+      responses:
+        "200":
+          description: Recent decision snapshots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DecisionSnapshot"
+
+  /stock-analyst/investment-memo/{symbol}:
+    get:
+      operationId: getInvestmentMemo
+      tags: [value]
+      summary: Deterministic Investment Memo for a symbol — assembled entirely from already-computed Business Quality/Competitive Advantage/Financial Strength/Valuation/Margin of Safety/Decision Engine/Investment Committee outputs plus the user's own Research Notes and Monitoring alerts. No LLM, no new scoring, no price prediction. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Impact context.
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Investment memo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestmentMemo"
+        "404":
+          description: Unknown symbol
+
   /opportunity-discovery/scan:
     post:
       operationId: scanOpportunities
@@ -4967,6 +5004,34 @@ components:
         riskFactors:
           type: array
           items: { type: string }
+        disclaimer: { type: string }
+
+    # ─── Institutional Investment Committee Workbench (Phase 19) ─────────────
+    InvestmentMemoSection:
+      type: object
+      required: [heading, paragraphs]
+      properties:
+        heading: { type: string }
+        paragraphs:
+          type: array
+          items: { type: string }
+
+    InvestmentMemo:
+      type: object
+      required: [symbol, name, asOf, dataSource, generatedAt, recommendation, confidence, overview, sections, disclaimer]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        asOf: { type: string }
+        dataSource: { type: string, enum: [SIMULATED, LIVE] }
+        generatedAt: { type: string }
+        recommendation: { type: string, enum: [Buy, Accumulate, Hold, Reduce, Sell, Avoid] }
+        confidence: { type: number }
+        overview: { type: string }
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvestmentMemoSection"
         disclaimer: { type: string }
 
     # ─── Portfolio Construction (Phase 2, Sprint 28; advisory/education only,
