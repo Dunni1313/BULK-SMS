@@ -75,6 +75,7 @@ import {
   Landmark,
   Users2,
 } from "lucide-react";
+import { CoachDrawer } from "@/components/coach/CoachDrawer";
 
 const RESEARCH_TABS = [
   { id: "overview", label: "Company Overview" },
@@ -502,16 +503,19 @@ function WorkspaceMainResearchArea({
             </p>
           )}
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 text-xs"
-          disabled={alreadyWatched || addToWatchlist.isPending}
-          onClick={() => addToWatchlist.mutate({ data: { symbol: report.symbol } })}
-          data-testid="workspace-add-to-watchlist"
-        >
-          <Star className="w-3.5 h-3.5 mr-1.5" /> {alreadyWatched ? "On Watchlist" : "Add to Watchlist"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <CoachDrawer symbol={report.symbol} coach="investment" />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs"
+            disabled={alreadyWatched || addToWatchlist.isPending}
+            onClick={() => addToWatchlist.mutate({ data: { symbol: report.symbol } })}
+            data-testid="workspace-add-to-watchlist"
+          >
+            <Star className="w-3.5 h-3.5 mr-1.5" /> {alreadyWatched ? "On Watchlist" : "Add to Watchlist"}
+          </Button>
+        </div>
       </div>
       <ReportView report={report} commentary={FIXED_COMMENTARY} isStreaming={false} />
       <div className="mt-4 space-y-4" id="workspace-section-decision-engine">

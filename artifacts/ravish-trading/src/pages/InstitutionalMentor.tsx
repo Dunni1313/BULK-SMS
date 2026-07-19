@@ -21,6 +21,7 @@ import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GraduationCap } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
   if (n === null || n === undefined) return "—";
@@ -101,6 +102,13 @@ export default function InstitutionalMentor() {
           advice, portfolio optimisation, or a trade recommendation engine — every statement below references
           an existing, already-computed calculation.
         </p>
+        <Link
+          href="/institutional-ai-coach"
+          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-2"
+          data-testid="link-mentor-institutional-ai-coach"
+        >
+          <GraduationCap className="w-3.5 h-3.5" /> Ask the Institutional AI Coach about a specific symbol →
+        </Link>
       </div>
 
       {isLoading && (

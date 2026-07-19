@@ -84,6 +84,7 @@ import {
   X,
   ScrollText,
 } from "lucide-react";
+import { CoachDrawer } from "@/components/coach/CoachDrawer";
 
 type Mode = "single" | "compare" | "split";
 
@@ -297,6 +298,7 @@ function SymbolPanel({
           {report.name} <span className="text-muted-foreground font-normal">({report.symbol})</span>
         </span>
         <div className="flex items-center gap-2">
+          <CoachDrawer symbol={report.symbol} coach="investment" portfolioId={portfolioId} />
           <Link href={`/workspace?symbol=${report.symbol}`} className="text-xs text-primary hover:underline" data-testid={`open-workspace-${symbol}`}>
             Open Workspace →
           </Link>

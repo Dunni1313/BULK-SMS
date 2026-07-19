@@ -55,6 +55,18 @@ vi.mock("./StockResearch", () => ({
   ResearchNotesCard: ({ symbol }: { symbol: string }) => <div data-testid="research-notes-card-stub">Notes for {symbol}</div>,
 }));
 
+// Phase 21 — the Institutional AI Coach's CoachDrawer is now embedded next to
+// the Investment Memo card's title; mocked independently so this file's own
+// global useQuery mock (above, always returning mockState.decision) never
+// has to also account for the Coach's own query key.
+vi.mock("@/hooks/use-coach-explanation", async () => {
+  const actual = await vi.importActual<typeof import("@/hooks/use-coach-explanation")>("@/hooks/use-coach-explanation");
+  return {
+    ...actual,
+    useCoachExplanation: () => ({ data: undefined, isLoading: false, isError: false }),
+  };
+});
+
 import InvestmentCommitteeWorkbench from "./InvestmentCommitteeWorkbench";
 
 function fixtureDecision(overrides: Record<string, unknown> = {}) {

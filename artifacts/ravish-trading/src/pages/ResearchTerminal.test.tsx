@@ -45,6 +45,18 @@ vi.mock("@workspace/api-client-react", async () => {
   };
 });
 
+// Phase 21 — the Institutional AI Coach's CoachDrawer is now embedded in this
+// page's own SymbolPanel; mocked independently so this file's own
+// key-dispatched useQuery mock (memo vs. decision, above) never has to also
+// account for the Coach's own query key.
+vi.mock("@/hooks/use-coach-explanation", async () => {
+  const actual = await vi.importActual<typeof import("@/hooks/use-coach-explanation")>("@/hooks/use-coach-explanation");
+  return {
+    ...actual,
+    useCoachExplanation: () => ({ data: undefined, isLoading: false, isError: false }),
+  };
+});
+
 vi.mock("./StockResearch", () => ({
   ReportView: ({ report }: { report: { symbol: string } }) => <div data-testid="report-view-stub">Report for {report.symbol}</div>,
   DecisionSummaryCard: ({ symbol }: { symbol: string }) => <div data-testid="decision-summary-stub">Decision summary for {symbol}</div>,

@@ -106,6 +106,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
   { title: "Institutional Workspace", href: "/workspace", icon: LayoutPanelLeft },
   { title: "Research Terminal", href: "/research-terminal", icon: Terminal },
+  { title: "Institutional AI Coach", href: "/institutional-ai-coach", icon: GraduationCap },
   { title: "Value Research", href: "/stock-analyst", icon: Building2 },
   { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
   { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },

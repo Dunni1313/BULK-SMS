@@ -36,7 +36,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, Star, Save, ArrowRightLeft, Scale, ListChecks, Bell } from "lucide-react";
+import { TrendingUp, Star, Save, ArrowRightLeft, Scale, ListChecks, Bell, GraduationCap } from "lucide-react";
+import { CoachDrawer } from "@/components/coach/CoachDrawer";
 
 function actionBadgeClass(action: string): string {
   if (action === "exit") return "border-rose-500/40 text-rose-400";
@@ -147,6 +148,16 @@ function CandidateCard({
           >
             Open in Terminal →
           </Link>
+          <CoachDrawer
+            symbol={candidate.symbol}
+            coach="portfolio"
+            portfolioId={portfolioId}
+            trigger={
+              <button type="button" className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline" data-testid={`ask-coach-${candidate.symbol}`}>
+                <GraduationCap className="w-3 h-3" /> Ask the Coach
+              </button>
+            }
+          />
         </div>
       </div>
       <p className="text-xs text-muted-foreground mt-1">{candidate.reason}</p>

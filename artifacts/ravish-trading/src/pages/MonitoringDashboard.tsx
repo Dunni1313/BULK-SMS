@@ -44,6 +44,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Bell, RefreshCw, StickyNote, Trash2 } from "lucide-react";
+import { CoachDrawer } from "@/components/coach/CoachDrawer";
 
 function severityBadgeClass(severity: string): string {
   switch (severity) {
@@ -235,6 +236,15 @@ function AlertCard({
               >
                 Open in Terminal →
               </Link>
+              <CoachDrawer
+                symbol={alert.relatedSymbol}
+                coach="monitoring"
+                trigger={
+                  <span className="text-xs text-primary hover:underline cursor-pointer" data-testid={`ask-coach-${alert.id}`}>
+                    Ask the AI Coach →
+                  </span>
+                }
+              />
             </>
           )}
         </div>

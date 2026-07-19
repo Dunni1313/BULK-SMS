@@ -46,6 +46,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Search, Save, ScrollText, Clock, ShieldAlert, Briefcase, NotebookPen } from "lucide-react";
+import { CoachDrawer } from "@/components/coach/CoachDrawer";
 import { ResearchNotesCard } from "./StockResearch";
 
 function recommendationBadgeClass(rec: string): string {
@@ -304,6 +305,7 @@ export default function InvestmentCommitteeWorkbench() {
                   <CardTitle className="text-sm flex items-center gap-2">
                     <ScrollText className="w-4 h-4 text-indigo-400" /> Investment Memo
                     <Badge variant="outline" className="ml-auto text-[10px] border-border">Deterministic</Badge>
+                    {symbol && <CoachDrawer symbol={symbol} coach="committee" portfolioId={portfolioId} />}
                   </CardTitle>
                   <CardDescription>{memo.overview}</CardDescription>
                 </CardHeader>

@@ -37,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Gavel, Search, Save, Trash2, Pencil } from "lucide-react";
+import { CoachDrawer } from "@/components/coach/CoachDrawer";
 
 function recommendationBadgeClass(rec: string): string {
   if (rec === "Buy" || rec === "Accumulate") return "border-emerald-500/40 text-emerald-400";
@@ -277,9 +278,12 @@ export default function DecisionEngine() {
                       {decision.recommendation}
                     </Badge>
                   </CardTitle>
-                  <Badge variant="outline" className="font-mono" data-testid="decision-confidence">
-                    Confidence {decision.confidence}/100
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="font-mono" data-testid="decision-confidence">
+                      Confidence {decision.confidence}/100
+                    </Badge>
+                    <CoachDrawer symbol={decision.symbol} coach="decision" portfolioId={portfolioId} />
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
                   <Link

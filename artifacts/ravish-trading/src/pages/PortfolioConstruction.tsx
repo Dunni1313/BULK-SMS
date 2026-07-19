@@ -51,7 +51,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, Trash2, Star, Save, Pencil, Gavel, Building2, Users, Terminal } from "lucide-react";
+import { Briefcase, Plus, Trash2, Star, Save, Pencil, Gavel, Building2, Users, Terminal, GraduationCap } from "lucide-react";
+import { CoachDrawer } from "@/components/coach/CoachDrawer";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -663,6 +664,22 @@ export default function PortfolioConstruction() {
                                     <Terminal className="w-3 h-3" />
                                   </Button>
                                 </Link>
+                                <CoachDrawer
+                                  symbol={h.symbol}
+                                  coach="portfolio"
+                                  portfolioId={selectedId}
+                                  trigger={
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-6 w-6 text-muted-foreground hover:text-indigo-400"
+                                      aria-label={`Ask the AI Coach about ${h.symbol}`}
+                                      data-testid={`ask-coach-link-${h.symbol}`}
+                                    >
+                                      <GraduationCap className="w-3 h-3" />
+                                    </Button>
+                                  }
+                                />
                                 <Button
                                   size="icon"
                                   variant="ghost"
