@@ -396,9 +396,14 @@ export default function InstitutionalMentor() {
                   Build a portfolio →
                 </Link>
               ) : (
-                <Link href="/stock-analyst/portfolio-construction" className="text-xs font-medium text-primary hover:underline" data-testid="link-portfolio-review-open">
-                  Open Portfolio Manager →
-                </Link>
+                <div className="flex flex-wrap gap-3">
+                  <Link href="/stock-analyst/portfolio-construction" className="text-xs font-medium text-primary hover:underline" data-testid="link-portfolio-review-open">
+                    Open Portfolio Manager →
+                  </Link>
+                  <Link href="/stock-analyst/portfolio-optimisation" className="text-xs font-medium text-primary hover:underline" data-testid="link-portfolio-review-optimise">
+                    Review Portfolio Optimisation →
+                  </Link>
+                </div>
               )}
             </CardContent>
           </Card>

@@ -454,7 +454,18 @@ export default function PortfolioConstruction() {
 
         <Card className="bg-card border-border lg:col-span-3">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">{detail ? detail.name : "Select a portfolio"}</CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm">{detail ? detail.name : "Select a portfolio"}</CardTitle>
+              {detail && (
+                <Link
+                  href={`/stock-analyst/portfolio-optimisation?portfolioId=${detail.id}`}
+                  className="text-xs font-medium text-primary hover:underline shrink-0"
+                  data-testid="open-portfolio-optimisation-link"
+                >
+                  Open Portfolio Optimisation →
+                </Link>
+              )}
+            </div>
             {detail?.description && <CardDescription className="text-[11px]">{detail.description}</CardDescription>}
           </CardHeader>
           <CardContent>

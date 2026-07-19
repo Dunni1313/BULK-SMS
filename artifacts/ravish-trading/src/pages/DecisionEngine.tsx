@@ -11,7 +11,7 @@
 // engines, never recomputed here.
 
 import { useMemo, useRef, useState, useEffect } from "react";
-import { useSearch } from "wouter";
+import { useSearch, Link } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useGetPortfolios,
@@ -282,7 +282,12 @@ export default function DecisionEngine() {
                   </Badge>
                 </div>
                 {portfolioId && analyzedPortfolioName && (
-                  <p className="text-xs text-muted-foreground">Evaluated against portfolio: {analyzedPortfolioName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Evaluated against portfolio: {analyzedPortfolioName} —{" "}
+                    <Link href={`/stock-analyst/portfolio-optimisation?portfolioId=${portfolioId}`} className="text-primary hover:underline" data-testid="link-portfolio-optimisation">
+                      Review Portfolio Optimisation →
+                    </Link>
+                  </p>
                 )}
               </CardHeader>
               <CardContent className="space-y-3">

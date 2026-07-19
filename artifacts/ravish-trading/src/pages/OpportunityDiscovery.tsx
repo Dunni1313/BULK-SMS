@@ -264,6 +264,15 @@ export default function OpportunityDiscovery() {
                 </option>
               ))}
             </select>
+            {portfolioId && (
+              <Link
+                href={`/stock-analyst/portfolio-optimisation?portfolioId=${portfolioId}`}
+                className="text-xs text-primary hover:underline self-center"
+                data-testid="link-portfolio-optimisation"
+              >
+                Review Portfolio Optimisation →
+              </Link>
+            )}
           </div>
           <div className="flex gap-2">
             <Button data-testid="button-run-scan" onClick={runScan} disabled={scan.isPending}>

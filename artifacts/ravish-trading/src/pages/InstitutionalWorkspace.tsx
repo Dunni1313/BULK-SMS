@@ -330,14 +330,22 @@ function WorkspaceLeftSidebar({ symbol, onSelectSymbol }: { symbol: string; onSe
         ) : (
           <div className="space-y-1">
             {portfolios.map((p) => (
-              <Link
-                key={p.id}
-                href="/stock-analyst/portfolio-construction"
-                className="block px-2 py-1 rounded text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
-                data-testid={`workspace-portfolio-item-${p.id}`}
-              >
-                {p.name} <span className="text-[10px]">({p.holdingsCount} holdings)</span>
-              </Link>
+              <div key={p.id} className="flex items-center gap-1">
+                <Link
+                  href="/stock-analyst/portfolio-construction"
+                  className="flex-1 block px-2 py-1 rounded text-xs text-muted-foreground hover:bg-accent hover:text-foreground truncate"
+                  data-testid={`workspace-portfolio-item-${p.id}`}
+                >
+                  {p.name} <span className="text-[10px]">({p.holdingsCount} holdings)</span>
+                </Link>
+                <Link
+                  href={`/stock-analyst/portfolio-optimisation?portfolioId=${p.id}`}
+                  className="text-[10px] text-primary hover:underline shrink-0 pr-1"
+                  data-testid={`workspace-portfolio-optimise-${p.id}`}
+                >
+                  Optimise
+                </Link>
+              </div>
             ))}
           </div>
         )}
