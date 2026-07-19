@@ -66,6 +66,7 @@ import {
   DeleteDecisionNoteResponse,
   GetInvestmentMemoResponse,
   GetRecentDecisionSnapshotsResponse,
+  GetCoachExplanationResponse,
 } from "@workspace/api-zod";
 import { INVESTING_UNIVERSE } from "../lib/investingUniverse.js";
 import { getFundamentalsProvider, resolveFundamentals, type FundamentalsProvider } from "../lib/fundamentals.js";
@@ -86,6 +87,7 @@ import {
 } from "../lib/decisionEngine.js";
 import { buildPortfolioIntelligence } from "../lib/portfolioIntelligence.js";
 import { type PortfolioHoldingInput } from "../lib/portfolioConstruction.js";
+import { explainCoach, COACH_TYPES, type CoachType } from "../lib/investingCoach.js";
 import { buildEarningsIntelligence } from "../lib/earningsAnalysis.js";
 import { EdgarDocumentProvider, DOCUMENT_TYPES, type DocumentType } from "../lib/documentProviders.js";
 import { analyzeInvestmentSuitability } from "../lib/valueInvesting.js";
@@ -1200,6 +1202,51 @@ router.get("/investment-memo/:symbol", async (req, res): Promise<void> => {
     alertRows.map(formatNotification),
   );
   res.json(GetInvestmentMemoResponse.parse(memo));
+});
+
+// Phase 21 — Institutional AI Coach & Education Platform. Pure orchestration:
+// reuses the exact same buildValueResearchReport/buildInstitutionalDecision/
+// resolveDecisionManagementQuality/resolveDecisionPortfolioContext helpers the
+// /decision/:symbol and /investment-memo/:symbol routes already call above,
+// plus this symbol's own Monitoring alerts (same platform_notifications query
+// as /investment-memo/:symbol). No new scoring, no new persistence, no LLM
+// call — see lib/investingCoach.ts's own header comment for the full reuse
+// map. 400 for an unrecognized coach type, 404 for an unresolvable symbol.
+router.get("/coach/:coach/:symbol", async (req, res): Promise<void> => {
+  const coach = req.params.coach as CoachType;
+  if (!COACH_TYPES.includes(coach)) {
+    res.status(400).json({ error: `Unknown coach type: ${req.params.coach}. Valid coaches: ${COACH_TYPES.join(", ")}` });
+    return;
+  }
+
+  const userId = await getScopedUserId(req);
+  const report = await buildValueResearchReport(req.params.symbol, undefined, undefined, undefined, undefined, userId);
+  if (!report) {
+    res.status(404).json({ error: `Unknown symbol: ${req.params.symbol}` });
+    return;
+  }
+  const provider = await getFundamentalsProvider(userId);
+  const managementQuality = await resolveDecisionManagementQuality(report.symbol, provider, userId);
+
+  const portfolioIdRaw = req.query.portfolioId;
+  const portfolioId = typeof portfolioIdRaw === "string" && Number.isInteger(Number(portfolioIdRaw)) ? Number(portfolioIdRaw) : null;
+  const portfolioContext = portfolioId != null ? await resolveDecisionPortfolioContext(report, portfolioId, userId) : null;
+
+  const decision = buildInstitutionalDecision(report, managementQuality, portfolioContext);
+
+  const alertRows = await db
+    .select()
+    .from(platformNotificationsTable)
+    .where(and(eq(platformNotificationsTable.userId, userId), eq(platformNotificationsTable.relatedSymbol, report.symbol)))
+    .orderBy(desc(platformNotificationsTable.createdAt));
+
+  const explanation = explainCoach(coach, {
+    report,
+    decision,
+    portfolioContext,
+    alerts: alertRows.map(formatNotification),
+  });
+  res.json(GetCoachExplanationResponse.parse(explanation));
 });
 
 // Phase 2, Sprint 19 — full multi-year financial statements. Deliberately a

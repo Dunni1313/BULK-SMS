@@ -3296,6 +3296,7 @@ export const GetLearningProgressResponse = zod.object({
   "lessonsCompleted": zod.number(),
   "glossaryTermsViewed": zod.number(),
   "strategiesViewed": zod.number(),
+  "coachesViewed": zod.number(),
   "pathCompletion": zod.array(zod.object({
   "pathKey": zod.string(),
   "title": zod.string(),
@@ -3346,14 +3347,15 @@ export const GetLearningProgressResponse = zod.object({
   "latestPercent": zod.number()
 }),
   "recentHistory": zod.array(zod.object({
-  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy']),
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
   "itemKey": zod.string(),
   "viewedAt": zod.string(),
   "completedAt": zod.string().nullable()
 })),
   "completedLessonKeys": zod.array(zod.string()),
   "completedGlossaryKeys": zod.array(zod.string()),
-  "completedStrategyKeys": zod.array(zod.string())
+  "completedStrategyKeys": zod.array(zod.string()),
+  "completedCoachKeys": zod.array(zod.string())
 })
 
 
@@ -3361,7 +3363,7 @@ export const GetLearningProgressResponse = zod.object({
  * @summary Record that the calling user viewed a lesson, glossary term, path, or strategy — the only mutation this sprint introduces.
  */
 export const RecordLearningItemViewedBody = zod.object({
-  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy']),
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
   "itemKey": zod.string()
 })
 
@@ -3374,7 +3376,7 @@ export const RecordLearningItemViewedResponse = zod.object({
  * @summary Record that the calling user completed a lesson, glossary term, path, or strategy.
  */
 export const RecordLearningItemCompletedBody = zod.object({
-  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy']),
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
   "itemKey": zod.string()
 })
 
@@ -8165,6 +8167,41 @@ export const AddOptimisationReviewResponse = zod.object({
   "note": zod.string(),
   "evidence": zod.record(zod.string(), zod.unknown()).optional().describe('A snapshot of the evidence shown when this review was saved'),
   "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Deterministic Institutional AI Coach explanation for a symbol — one of 8 coaches (investment, portfolio, decision, valuation, risk, research, monitoring, committee), each explaining an already-computed engine output (Decision Engine, the 4 valuation models + Consolidated Margin of Safety, Business/Investment Quality + Competitive Advantage, Monitoring alerts, the Investment Committee). No LLM, no new scoring, never a new recommendation — pure orchestration and static educational copy over lib/investingCoach.ts. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Coach context.
+ */
+export const GetCoachExplanationParams = zod.object({
+  "coach": zod.enum(['investment', 'portfolio', 'decision', 'valuation', 'risk', 'research', 'monitoring', 'committee']),
+  "symbol": zod.coerce.string()
+})
+
+export const GetCoachExplanationResponse = zod.object({
+  "coach": zod.enum(['investment', 'portfolio', 'decision', 'valuation', 'risk', 'research', 'monitoring', 'committee']),
+  "coachLabel": zod.string(),
+  "symbol": zod.string(),
+  "headline": zod.string(),
+  "whyThisExists": zod.string(),
+  "metricsUsed": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "risksReducingConfidence": zod.array(zod.string()),
+  "strengthsIncreasingConfidence": zod.array(zod.string()),
+  "howToInterpret": zod.array(zod.string()),
+  "commonMistakes": zod.array(zod.string()),
+  "institutionalPerspective": zod.string(),
+  "relatedGlossaryKeys": zod.array(zod.string()),
+  "calculationSources": zod.array(zod.string()),
+  "disclaimer": zod.string()
 })
 
 

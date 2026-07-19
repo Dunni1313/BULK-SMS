@@ -1043,9 +1043,10 @@ paths:
     get:
       operationId: getLearningPaths
       tags: [execution]
-      summary: All 7 structured Learning Paths (Foundations, Options Greeks,
+      summary: All 8 structured Learning Paths (Foundations, Options Greeks,
         Volatility, Options Strategies, Portfolio, Performance,
-        Institutional Thinking), each with its own topics.
+        Institutional Thinking, Institutional Investing Engine), each with
+        its own topics.
       responses:
         "200":
           description: All learning paths
@@ -3577,6 +3578,36 @@ paths:
         "404":
           description: Portfolio not found
 
+  # ─── Institutional AI Coach (Phase 21) ──────────────────────────────────────
+  /stock-analyst/coach/{coach}/{symbol}:
+    get:
+      operationId: getCoachExplanation
+      tags: [value]
+      summary: Deterministic Institutional AI Coach explanation for a symbol — one of 8 coaches (investment, portfolio, decision, valuation, risk, research, monitoring, committee), each explaining an already-computed engine output (Decision Engine, the 4 valuation models + Consolidated Margin of Safety, Business/Investment Quality + Competitive Advantage, Monitoring alerts, the Investment Committee). No LLM, no new scoring, never a new recommendation — pure orchestration and static educational copy over lib/investingCoach.ts. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Coach context.
+      parameters:
+        - name: coach
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [investment, portfolio, decision, valuation, risk, research, monitoring, committee]
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoachExplanation"
+        "400":
+          description: Unknown coach type
+        "404":
+          description: Unknown symbol
+
   # ─── Trading Journal (Engine 2) ─────────────────────────────────────────────
   /trading/journal:
     get:
@@ -5032,6 +5063,70 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/InvestmentMemoSection"
+        disclaimer: { type: string }
+
+    # ─── Institutional AI Coach (Phase 21) — pure educational orchestration
+    # layer over already-computed engines; no new scoring, no new
+    # recommendation. See lib/investingCoach.ts's own header comment. ────────
+    CoachEvidenceItem:
+      type: object
+      required: [label, detail, source]
+      properties:
+        label: { type: string }
+        detail: { type: string }
+        source: { type: string }
+
+    CoachExplanation:
+      type: object
+      required:
+        - coach
+        - coachLabel
+        - symbol
+        - headline
+        - whyThisExists
+        - metricsUsed
+        - supportingEvidence
+        - risksReducingConfidence
+        - strengthsIncreasingConfidence
+        - howToInterpret
+        - commonMistakes
+        - institutionalPerspective
+        - relatedGlossaryKeys
+        - calculationSources
+        - disclaimer
+      properties:
+        coach:
+          type: string
+          enum: [investment, portfolio, decision, valuation, risk, research, monitoring, committee]
+        coachLabel: { type: string }
+        symbol: { type: string }
+        headline: { type: string }
+        whyThisExists: { type: string }
+        metricsUsed:
+          type: array
+          items: { $ref: "#/components/schemas/CoachEvidenceItem" }
+        supportingEvidence:
+          type: array
+          items: { $ref: "#/components/schemas/CoachEvidenceItem" }
+        risksReducingConfidence:
+          type: array
+          items: { type: string }
+        strengthsIncreasingConfidence:
+          type: array
+          items: { type: string }
+        howToInterpret:
+          type: array
+          items: { type: string }
+        commonMistakes:
+          type: array
+          items: { type: string }
+        institutionalPerspective: { type: string }
+        relatedGlossaryKeys:
+          type: array
+          items: { type: string }
+        calculationSources:
+          type: array
+          items: { type: string }
         disclaimer: { type: string }
 
     # ─── Portfolio Construction (Phase 2, Sprint 28; advisory/education only,
@@ -12231,7 +12326,7 @@ components:
       properties:
         itemType:
           type: string
-          enum: [lesson, glossary, path, strategy]
+          enum: [lesson, glossary, path, strategy, coach]
         itemKey:
           type: string
         viewedAt:
@@ -12247,6 +12342,7 @@ components:
           lessonsCompleted,
           glossaryTermsViewed,
           strategiesViewed,
+          coachesViewed,
           pathCompletion,
           greeksQuiz,
           valueQuiz,
@@ -12254,6 +12350,7 @@ components:
           completedLessonKeys,
           completedGlossaryKeys,
           completedStrategyKeys,
+          completedCoachKeys,
         ]
       properties:
         lessonsViewed:
@@ -12263,6 +12360,8 @@ components:
         glossaryTermsViewed:
           type: number
         strategiesViewed:
+          type: number
+        coachesViewed:
           type: number
         pathCompletion:
           type: array
@@ -12288,6 +12387,10 @@ components:
           type: array
           items:
             type: string
+        completedCoachKeys:
+          type: array
+          items:
+            type: string
 
     LearningProgressAction:
       type: object
@@ -12295,7 +12398,7 @@ components:
       properties:
         itemType:
           type: string
-          enum: [lesson, glossary, path, strategy]
+          enum: [lesson, glossary, path, strategy, coach]
         itemKey:
           type: string
 

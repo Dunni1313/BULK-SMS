@@ -40,6 +40,7 @@ import type {
   BrokerOrdersResult,
   BrokerPositionsResult,
   ClearReportsResult,
+  CoachExplanation,
   CoachLesson,
   CompareOpportunitiesRouteParams,
   CompareReportsRequest,
@@ -13430,6 +13431,88 @@ export const useAddOptimisationReview = <TError = ErrorType<void>,
       > => {
       return useMutation(getAddOptimisationReviewMutationOptions(options));
     }
+
+export const getGetCoachExplanationUrl = (coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/coach/${coach}/${symbol}`
+}
+
+/**
+ * @summary Deterministic Institutional AI Coach explanation for a symbol — one of 8 coaches (investment, portfolio, decision, valuation, risk, research, monitoring, committee), each explaining an already-computed engine output (Decision Engine, the 4 valuation models + Consolidated Margin of Safety, Business/Investment Quality + Competitive Advantage, Monitoring alerts, the Investment Committee). No LLM, no new scoring, never a new recommendation — pure orchestration and static educational copy over lib/investingCoach.ts. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Coach context.
+ */
+export const getCoachExplanation = async (coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string, options?: RequestInit): Promise<CoachExplanation> => {
+
+  return customFetch<CoachExplanation>(getGetCoachExplanationUrl(coach,symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCoachExplanationQueryKey = (coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string,) => {
+    return [
+    `/api/stock-analyst/coach/${coach}/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetCoachExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getCoachExplanation>>, TError = ErrorType<void>>(coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCoachExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCoachExplanationQueryKey(coach,symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCoachExplanation>>> = ({ signal }) => getCoachExplanation(coach,symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(coach && symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCoachExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCoachExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getCoachExplanation>>>
+export type GetCoachExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Institutional AI Coach explanation for a symbol — one of 8 coaches (investment, portfolio, decision, valuation, risk, research, monitoring, committee), each explaining an already-computed engine output (Decision Engine, the 4 valuation models + Consolidated Margin of Safety, Business/Investment Quality + Competitive Advantage, Monitoring alerts, the Investment Committee). No LLM, no new scoring, never a new recommendation — pure orchestration and static educational copy over lib/investingCoach.ts. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Coach context.
+ */
+
+export function useGetCoachExplanation<TData = Awaited<ReturnType<typeof getCoachExplanation>>, TError = ErrorType<void>>(
+ coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCoachExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCoachExplanationQueryOptions(coach,symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getListTradingJournalEntriesUrl = () => {
 

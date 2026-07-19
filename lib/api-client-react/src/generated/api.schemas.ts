@@ -1186,6 +1186,44 @@ export interface InvestmentMemo {
   disclaimer: string;
 }
 
+export interface CoachEvidenceItem {
+  label: string;
+  detail: string;
+  source: string;
+}
+
+export type CoachExplanationCoach = typeof CoachExplanationCoach[keyof typeof CoachExplanationCoach];
+
+
+export const CoachExplanationCoach = {
+  investment: 'investment',
+  portfolio: 'portfolio',
+  decision: 'decision',
+  valuation: 'valuation',
+  risk: 'risk',
+  research: 'research',
+  monitoring: 'monitoring',
+  committee: 'committee',
+} as const;
+
+export interface CoachExplanation {
+  coach: CoachExplanationCoach;
+  coachLabel: string;
+  symbol: string;
+  headline: string;
+  whyThisExists: string;
+  metricsUsed: CoachEvidenceItem[];
+  supportingEvidence: CoachEvidenceItem[];
+  risksReducingConfidence: string[];
+  strengthsIncreasingConfidence: string[];
+  howToInterpret: string[];
+  commonMistakes: string[];
+  institutionalPerspective: string;
+  relatedGlossaryKeys: string[];
+  calculationSources: string[];
+  disclaimer: string;
+}
+
 export interface ConstructionPortfolioSummary {
   id: number;
   name: string;
@@ -6701,6 +6739,7 @@ export const LearningHistoryEntryItemType = {
   glossary: 'glossary',
   path: 'path',
   strategy: 'strategy',
+  coach: 'coach',
 } as const;
 
 export interface LearningHistoryEntry {
@@ -6716,6 +6755,7 @@ export interface LearningProgressSummary {
   lessonsCompleted: number;
   glossaryTermsViewed: number;
   strategiesViewed: number;
+  coachesViewed: number;
   pathCompletion: LearningPathCompletion[];
   greeksQuiz: LearningQuizProgressSummary;
   valueQuiz: LearningQuizProgressSummary;
@@ -6723,6 +6763,7 @@ export interface LearningProgressSummary {
   completedLessonKeys: string[];
   completedGlossaryKeys: string[];
   completedStrategyKeys: string[];
+  completedCoachKeys: string[];
 }
 
 export type LearningProgressActionItemType = typeof LearningProgressActionItemType[keyof typeof LearningProgressActionItemType];
@@ -6733,6 +6774,7 @@ export const LearningProgressActionItemType = {
   glossary: 'glossary',
   path: 'path',
   strategy: 'strategy',
+  coach: 'coach',
 } as const;
 
 export interface LearningProgressAction {
