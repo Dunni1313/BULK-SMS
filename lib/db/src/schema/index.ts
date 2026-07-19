@@ -31,5 +31,7 @@ export * from "./learningProgress";
 export * from "./investingResearchNotes";
 export * from "./investingPortfolioSnapshots";
 export * from "./investingPortfolioNotes";
+export * from "./investingDecisionSnapshots";
+export * from "./investingDecisionNotes";
 export * from "./dashboardWorkspaces";
 export * from "./brokerReconciliationReports";
