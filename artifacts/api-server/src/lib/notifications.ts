@@ -37,8 +37,35 @@ import { getMarketDataProvider } from "./tradingMarketData.js";
 import { getSettingsRow } from "./serverState.js";
 import { logger } from "./logger.js";
 import { recordJobRun } from "./systemHealth.js";
+// Phase 16 — Institutional Monitoring & Alerts Engine's own two automatic,
+// bounded-scope evaluators (symbol-level + portfolio-level change
+// detection). evaluateOpportunityMonitoringAlerts() is deliberately NOT
+// imported here — it stays on-demand only, called directly from
+// routes/monitoringEngine.ts's own explicit check endpoint, never from the
+// automatic background tick (see that function's own header comment).
+import { evaluateSymbolMonitoringAlerts, evaluatePortfolioMonitoringAlerts } from "./monitoringEngine.js";
 
-export type AlertType = "watchlist_target_crossed" | "risk_cap_breached";
+// Phase 16 — Institutional Monitoring & Alerts Engine extends this union
+// with 10 new types (lib/monitoringEngine.ts), all pure reuse of already-
+// shipped engines — see that file's own header comment for the full
+// reuse map. The 2 original types are untouched.
+export type AlertType =
+  | "watchlist_target_crossed"
+  | "risk_cap_breached"
+  | "decision_change"
+  | "valuation_change"
+  | "quality_change"
+  | "committee_change"
+  | "tomnash_change"
+  | "financial_deterioration"
+  | "dividend_change"
+  | "earnings_alert"
+  | "portfolio_drift"
+  | "sector_concentration_breach"
+  | "position_sizing_breach"
+  | "opportunity_match";
+
+export type AlertSeverity = "info" | "warning" | "critical";
 
 export interface AlertCandidate {
   type: AlertType;
@@ -47,6 +74,17 @@ export interface AlertCandidate {
   dataSource: "SIMULATED" | "LIVE";
   relatedSymbol: string | null;
   dedupKey: string;
+  // Phase 16 — Reason/Evidence/Previous/Current/Recommended-Action, in
+  // addition to the title/message every alert already carried. Optional so
+  // every pre-Phase-16 AlertCandidate literal (there are none left after
+  // this sprint's own enrichment, but the type stays structurally
+  // permissive) still type-checks; every candidate this codebase actually
+  // produces now supplies a real severity.
+  severity?: AlertSeverity;
+  previousValue?: string | null;
+  currentValue?: string | null;
+  evidence?: string[];
+  recommendedAction?: string;
 }
 
 function fmtUsd(n: number | null): string {
@@ -73,6 +111,11 @@ export async function evaluateWatchlistAlerts(userId: string): Promise<AlertCand
         dataSource: provider.dataSource,
         relatedSymbol: row.symbol,
         dedupKey: `watchlist:${row.id}:price`,
+        severity: "info",
+        previousValue: fmtUsd(row.desiredBuyPrice),
+        currentValue: fmtUsd(check.currentPrice),
+        evidence: [`Desired buy price: ${fmtUsd(row.desiredBuyPrice)}`, `Current price: ${fmtUsd(check.currentPrice)}`],
+        recommendedAction: `Review ${row.symbol} on the Value Research or Institutional Decision Engine page.`,
       });
     }
     if (check.marginOfSafetyTargetCrossed === true) {
@@ -83,6 +126,11 @@ export async function evaluateWatchlistAlerts(userId: string): Promise<AlertCand
         dataSource: provider.dataSource,
         relatedSymbol: row.symbol,
         dedupKey: `watchlist:${row.id}:mos`,
+        severity: "info",
+        previousValue: `${row.marginOfSafetyTarget}% target`,
+        currentValue: fmtUsd(check.currentPrice),
+        evidence: [`Margin-of-safety target: ${row.marginOfSafetyTarget}%`, `Current price: ${fmtUsd(check.currentPrice)}`],
+        recommendedAction: `Review ${row.symbol} on the Value Research or Institutional Decision Engine page.`,
       });
     }
   }
@@ -122,6 +170,11 @@ export async function evaluateRiskAlerts(userId: string): Promise<AlertCandidate
       dataSource,
       relatedSymbol: analysis.positionSizing.largestPositionSymbol ?? null,
       dedupKey: `risk:position-sizing`,
+      severity: "warning",
+      previousValue: null,
+      currentValue: null,
+      evidence: [analysis.positionSizing.detail],
+      recommendedAction: "Review your open positions on the Trading Research page's Risk panel.",
     });
   }
   if (analysis.portfolioBudget.capBreached) {
@@ -132,26 +185,25 @@ export async function evaluateRiskAlerts(userId: string): Promise<AlertCandidate
       dataSource,
       relatedSymbol: null,
       dedupKey: `risk:portfolio-budget`,
+      severity: "warning",
+      previousValue: null,
+      currentValue: null,
+      evidence: [analysis.portfolioBudget.detail],
+      recommendedAction: "Review your open positions on the Trading Research page's Risk panel.",
     });
   }
   return candidates;
 }
 
-// Persists alert candidates for one user, honoring the alertsEnabled
-// settings toggle and the active-dedup-key uniqueness (a candidate is
-// skipped, never duplicated, if an unread notification with the same
-// dedupKey already exists for this user — see
+// Persists alert candidates for one user, honoring the active-dedup-key
+// uniqueness (a candidate is skipped, never duplicated, if an unread
+// notification with the same dedupKey already exists for this user — see
 // manual-migrations/014_platform_notifications.sql for the full dedup
-// design rationale).
-export async function evaluateAndPersistAlertsForUser(userId: string): Promise<PlatformNotificationRow[]> {
-  const settings = await getSettingsRow(userId);
-  if (!settings.alertsEnabled) return [];
-
-  const [watchlistCandidates, riskCandidates] = await Promise.all([
-    evaluateWatchlistAlerts(userId).catch(() => [] as AlertCandidate[]),
-    evaluateRiskAlerts(userId).catch(() => [] as AlertCandidate[]),
-  ]);
-  const candidates = [...watchlistCandidates, ...riskCandidates];
+// design rationale). Extracted (Phase 16) so both the automatic, bounded
+// evaluators below and routes/monitoringEngine.ts's own on-demand full-check
+// endpoint (which additionally includes Opportunity Alerts) share the exact
+// same persistence/dedup logic rather than a second, duplicated copy of it.
+export async function persistAlertCandidates(userId: string, candidates: AlertCandidate[]): Promise<PlatformNotificationRow[]> {
   if (candidates.length === 0) return [];
 
   const existingUnread = await db
@@ -174,6 +226,11 @@ export async function evaluateAndPersistAlertsForUser(userId: string): Promise<P
           dataSource: c.dataSource,
           relatedSymbol: c.relatedSymbol,
           dedupKey: c.dedupKey,
+          severity: c.severity ?? "info",
+          previousValue: c.previousValue ?? null,
+          currentValue: c.currentValue ?? null,
+          evidence: c.evidence ?? null,
+          recommendedAction: c.recommendedAction ?? null,
         })
         .returning();
       created.push(row);
@@ -186,6 +243,26 @@ export async function evaluateAndPersistAlertsForUser(userId: string): Promise<P
     }
   }
   return created;
+}
+
+// Honors the alertsEnabled settings toggle; runs only the automatic,
+// bounded-scope evaluators (Watchlist/Risk/Symbol/Portfolio) — never
+// Opportunity Alerts, which stay on-demand only (see
+// evaluateOpportunityMonitoringAlerts()'s own header comment in
+// lib/monitoringEngine.ts).
+export async function evaluateAndPersistAlertsForUser(userId: string): Promise<PlatformNotificationRow[]> {
+  const settings = await getSettingsRow(userId);
+  if (!settings.alertsEnabled) return [];
+
+  const provider = await getFundamentalsProvider(userId);
+  const [watchlistCandidates, riskCandidates, symbolCandidates, portfolioCandidates] = await Promise.all([
+    evaluateWatchlistAlerts(userId).catch(() => [] as AlertCandidate[]),
+    evaluateRiskAlerts(userId).catch(() => [] as AlertCandidate[]),
+    evaluateSymbolMonitoringAlerts(userId, provider).catch(() => [] as AlertCandidate[]),
+    evaluatePortfolioMonitoringAlerts(userId, provider).catch(() => [] as AlertCandidate[]),
+  ]);
+  const candidates = [...watchlistCandidates, ...riskCandidates, ...symbolCandidates, ...portfolioCandidates];
+  return persistAlertCandidates(userId, candidates);
 }
 
 // Phase 1 Sprint 8's own "armed users" query shape (autoExecution.ts's

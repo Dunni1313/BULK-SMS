@@ -34,6 +34,11 @@ function formatNotification(n: typeof platformNotificationsTable.$inferSelect) {
     dataSource: n.dataSource,
     relatedSymbol: n.relatedSymbol,
     isRead: n.isRead,
+    severity: n.severity,
+    previousValue: n.previousValue,
+    currentValue: n.currentValue,
+    evidence: (n.evidence as string[] | null) ?? [],
+    recommendedAction: n.recommendedAction,
     createdAt: n.createdAt.toISOString(),
   };
 }
