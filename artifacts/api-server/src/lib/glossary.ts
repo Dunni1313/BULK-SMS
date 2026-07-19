@@ -335,6 +335,15 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedLessonKeys: ["portfolio-diversification"],
   },
   {
+    key: "portfolio-optimisation",
+    term: "Portfolio Optimisation (Upgrade / Trim / Exit Candidates)",
+    category: "portfolio",
+    definition:
+      "A deterministic review of an existing portfolio's own holdings, classifying each into Exit (the Decision Engine already recommends Sell/Avoid), Trim (a Reduce recommendation, or a position/sector above its concentration cap), Upgrade (a mediocre Hold with a real, meaningfully-better same-sector alternative available), or Core (no change suggested) — reusing the Decision Engine's own recommendation and Opportunity Discovery's own ranked universe, never a new score.",
+    relatedTermKeys: ["concentration", "diversification", "position-sizing", "capital-allocation"],
+    relatedLessonKeys: [],
+  },
+  {
     key: "correlation",
     term: "Correlation",
     category: "portfolio",
