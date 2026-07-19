@@ -60,6 +60,7 @@ import {
   LayoutPanelLeft,
   Users,
   Terminal,
+  FileBarChart2,
 } from "lucide-react";
 
 export interface NavItem {
@@ -107,6 +108,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Institutional Workspace", href: "/workspace", icon: LayoutPanelLeft },
   { title: "Research Terminal", href: "/research-terminal", icon: Terminal },
   { title: "Institutional AI Coach", href: "/institutional-ai-coach", icon: GraduationCap },
+  { title: "Institutional Reporting Centre", href: "/reporting-centre", icon: FileBarChart2 },
   { title: "Value Research", href: "/stock-analyst", icon: Building2 },
   { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
   { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },
