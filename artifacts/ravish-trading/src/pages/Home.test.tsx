@@ -242,6 +242,8 @@ describe("Home (Institutional Home / Personal Dashboard)", () => {
       expect(within(widget).getByText("Core Value")).toBeInTheDocument();
       expect(within(widget).getByText("2 portfolios · 5 holdings")).toBeInTheDocument();
       expect(within(widget).getByText("Open Portfolio Manager →")).toBeInTheDocument();
+      // Phase 16 — Institutional Monitoring & Alerts Engine cross-link.
+      expect(within(widget).getByTestId("link-portfolio-manager-monitoring")).toBeInTheDocument();
     });
   });
 
@@ -261,6 +263,8 @@ describe("Home (Institutional Home / Personal Dashboard)", () => {
       renderWithClient(<Home />);
       const widget = screen.getByTestId("widget-content-opportunity-discovery");
       expect(within(widget).getByText("Open Opportunity Discovery →")).toBeInTheDocument();
+      // Phase 16 — Institutional Monitoring & Alerts Engine cross-link.
+      expect(within(widget).getByTestId("link-opportunity-discovery-monitoring")).toBeInTheDocument();
     });
   });
 });

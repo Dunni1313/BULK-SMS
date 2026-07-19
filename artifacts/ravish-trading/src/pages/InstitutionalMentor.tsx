@@ -16,7 +16,7 @@
 // already-computed threshold. Never submits, closes, or modifies
 // anything.
 
-import { useGetInstitutionalMentor } from "@workspace/api-client-react";
+import { useGetInstitutionalMentor, useListNotifications, getListNotificationsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +66,12 @@ const SCORECARD_LABELS: Record<string, string> = {
 
 export default function InstitutionalMentor() {
   const { data: result, isLoading, isError } = useGetInstitutionalMentor();
+  // Phase 16 — a pure client-side composition, the same "reuse an already-
+  // fetched engine's own output, zero new backend logic" discipline
+  // NotificationCentre.tsx already established: institutionalMentor.ts
+  // itself was not touched, this card only reads the already-existing
+  // GET /notifications.
+  const { data: monitoringAlerts } = useListNotifications({ query: { queryKey: getListNotificationsQueryKey() } });
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -440,6 +446,33 @@ export default function InstitutionalMentor() {
                   Open Opportunity Discovery →
                 </Link>
               )}
+            </CardContent>
+          </Card>
+
+          {/* ─── Monitoring Alerts Review ────────────────────────────────── */}
+          <Card className="bg-card border-border" data-testid="card-monitoring-alerts-review">
+            <CardHeader>
+              <CardTitle>Monitoring Alerts Review</CardTitle>
+              <CardDescription>Reuses the Institutional Monitoring Engine's own alerts directly — no new detection logic.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {(() => {
+                const unread = (monitoringAlerts ?? []).filter((n) => !n.isRead);
+                const critical = unread.filter((n) => n.severity === "critical").length;
+                const warning = unread.filter((n) => n.severity === "warning").length;
+                return unread.length === 0 ? (
+                  <p className="text-sm" data-testid="text-monitoring-alerts-review-summary">
+                    No active alerts across your watchlist, portfolios, or saved opportunity screens.
+                  </p>
+                ) : (
+                  <p className="text-sm" data-testid="text-monitoring-alerts-review-summary">
+                    {unread.length} active alert{unread.length === 1 ? "" : "s"} ({critical} critical, {warning} warning).
+                  </p>
+                );
+              })()}
+              <Link href="/monitoring-dashboard" className="text-xs font-medium text-primary hover:underline" data-testid="link-monitoring-alerts-review-open">
+                Open Institutional Monitoring →
+              </Link>
             </CardContent>
           </Card>
 

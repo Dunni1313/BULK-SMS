@@ -10,6 +10,7 @@ const mockState = vi.hoisted(() => ({
   data: undefined as unknown,
   isLoading: false,
   isError: false,
+  notifications: undefined as unknown[] | undefined,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -23,6 +24,7 @@ vi.mock("@workspace/api-client-react", async () => {
       isLoading: mockState.isLoading,
       isError: mockState.isError,
     }),
+    useListNotifications: () => ({ data: mockState.notifications }),
   };
 });
 
@@ -399,6 +401,37 @@ describe("InstitutionalMentor page", () => {
       expect(within(card).getByText(/2 saved screens/)).toBeInTheDocument();
       expect(within(card).getByTestId("link-opportunity-discovery-review-open")).toBeInTheDocument();
       mockState.data = undefined;
+    });
+  });
+
+  // Phase 16 — Institutional Monitoring & Alerts Engine. A pure client-side
+  // composition reusing GET /notifications directly — no change to
+  // institutionalMentor.ts itself.
+  describe("Monitoring Alerts Review", () => {
+    it("shows an honest empty message when there are no active alerts", () => {
+      mockState.data = resultFixture();
+      mockState.notifications = [];
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-monitoring-alerts-review");
+      expect(within(card).getByText(/No active alerts/)).toBeInTheDocument();
+      expect(within(card).getByTestId("link-monitoring-alerts-review-open")).toBeInTheDocument();
+      mockState.data = undefined;
+      mockState.notifications = undefined;
+    });
+
+    it("counts only unread alerts, broken down by critical/warning severity", () => {
+      mockState.data = resultFixture();
+      mockState.notifications = [
+        { id: 1, isRead: false, severity: "critical" },
+        { id: 2, isRead: false, severity: "warning" },
+        { id: 3, isRead: false, severity: "info" },
+        { id: 4, isRead: true, severity: "critical" },
+      ];
+      renderWithClient(<InstitutionalMentor />);
+      const card = screen.getByTestId("card-monitoring-alerts-review");
+      expect(within(card).getByTestId("text-monitoring-alerts-review-summary")).toHaveTextContent("3 active alerts (1 critical, 1 warning)");
+      mockState.data = undefined;
+      mockState.notifications = undefined;
     });
   });
 });

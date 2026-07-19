@@ -742,6 +742,39 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: ["opportunity-discovery-engine"],
     relatedLessonKeys: [],
   },
+  // ─── Institutional Monitoring & Alerts Engine ──────────────────────
+  {
+    key: "monitoring-alert",
+    term: "Monitoring Alert",
+    category: "value-investing",
+    definition: "A change detected by continuously diffing already-computed engine output (Decision Engine recommendation, valuation, Business Quality, Investment Committee verdict, Tom Nash verdict, financial strength, dividends, portfolio drift, concentration caps, and saved-screen matches) against the last time it was checked — never a new scoring model. Every alert states its reason, evidence, previous value, current value, severity, and a recommended action.",
+    relatedTermKeys: ["institutional-decision-engine", "opportunity-discovery-engine"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "alert-severity",
+    term: "Alert Severity",
+    category: "value-investing",
+    definition: "A three-level classification (info/warning/critical) attached to every Monitoring Alert — a deterministic rule per alert type (e.g. a downgrade to a Sell/Avoid recommendation or a dividend cut to zero is critical; a hard-cap risk breach is a warning), never a subjective judgment.",
+    relatedTermKeys: ["monitoring-alert"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "portfolio-drift-alert",
+    term: "Portfolio Drift Alert",
+    category: "value-investing",
+    definition: "A Monitoring Alert fired when a portfolio's own quality score or diversification score has moved by 10 or more points since the last check — reusing the Institutional Portfolio Manager's own quality-drift scorecard and applying the identical drift-labeling pattern to diversification, never a new formula.",
+    relatedTermKeys: ["monitoring-alert"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "watchlist-and-opportunity-triggers",
+    term: "Watchlist & Opportunity Triggers",
+    category: "value-investing",
+    definition: "Two Monitoring Alert sources: a watchlist price or margin-of-safety target being crossed (Watchlist Trigger), and a new symbol appearing in a saved opportunity screen's top-ranked results (Opportunity Match) — the latter is deliberately on-demand only, never part of the automatic 5-minute check, since a full opportunity scan is real, non-trivial work.",
+    relatedTermKeys: ["monitoring-alert", "opportunity-discovery-engine"],
+    relatedLessonKeys: [],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {

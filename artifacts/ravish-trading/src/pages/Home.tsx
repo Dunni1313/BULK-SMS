@@ -350,6 +350,10 @@ function NotificationsWidget() {
       <Link href="/notifications" className="text-xs font-medium text-primary hover:underline">
         View all →
       </Link>
+      {" · "}
+      <Link href="/monitoring-dashboard" className="text-xs font-medium text-primary hover:underline" data-testid="link-monitoring-dashboard">
+        Open Institutional Monitoring →
+      </Link>
     </div>
   );
 }
@@ -459,6 +463,13 @@ function PortfolioSummaryWidget() {
       <Link href="/stock-analyst/portfolio-construction" className="text-xs font-medium text-primary hover:underline">
         Open Portfolio Manager →
       </Link>
+      <p className="text-xs text-muted-foreground">
+        Quality/diversification drift and concentration breaches are tracked in{" "}
+        <Link href="/monitoring-dashboard" className="text-primary hover:underline" data-testid="link-portfolio-manager-monitoring">
+          Institutional Monitoring
+        </Link>
+        .
+      </p>
     </div>
   );
 }
@@ -499,6 +510,13 @@ function DecisionEngineWidget() {
       <Link href="/decision-engine" className="text-xs font-medium text-primary hover:underline">
         Open Decision Engine →
       </Link>
+      <p className="text-xs text-muted-foreground">
+        Recommendation changes on your watchlist/portfolio symbols are tracked in{" "}
+        <Link href="/monitoring-dashboard" className="text-primary hover:underline" data-testid="link-decision-engine-monitoring">
+          Institutional Monitoring
+        </Link>
+        .
+      </p>
     </div>
   );
 }
@@ -517,6 +535,13 @@ function OpportunityDiscoveryWidget() {
       <Link href="/opportunity-discovery" className="text-xs font-medium text-primary hover:underline">
         Open Opportunity Discovery →
       </Link>
+      <p className="text-xs text-muted-foreground">
+        New matches on a saved screen surface as opportunity alerts in{" "}
+        <Link href="/monitoring-dashboard" className="text-primary hover:underline" data-testid="link-opportunity-discovery-monitoring">
+          Institutional Monitoring
+        </Link>
+        .
+      </p>
     </div>
   );
 }
