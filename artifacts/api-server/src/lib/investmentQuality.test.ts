@@ -20,6 +20,7 @@ function fixture(overrides: Partial<Fundamentals> = {}): Fundamentals {
     sector: null,
     industry: null,
     beta: null,
+    marketCap: null,
     insiderOwnershipPct: null,
     sharesOutstandingChange5y: null,
     netInsiderActivity: null,

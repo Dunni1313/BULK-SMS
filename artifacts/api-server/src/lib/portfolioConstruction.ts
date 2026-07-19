@@ -44,6 +44,12 @@ export interface PortfolioHoldingInput {
   targetWeightPct: number;
   shares: number | null;
   notes: string;
+  // Phase 13 — Institutional Portfolio Manager. Optional so every
+  // pre-existing 4-field call site (including this module's own Sprint 28
+  // unit tests) keeps compiling and behaving identically. Read only by
+  // lib/portfolioIntelligence.ts's Performance Analytics — never touched by
+  // computePortfolioAllocation()/buildPortfolioAllocation() themselves.
+  avgCostBasis?: number | null;
 }
 
 // Phase 2, Sprint 29 — sector/beta per symbol, sourced from the exact same
@@ -56,6 +62,13 @@ export interface PortfolioHoldingInput {
 export interface SymbolMeta {
   sector: string | null;
   beta: number | null;
+  // Phase 13 — Institutional Portfolio Manager. Sourced from the exact same
+  // Fundamentals resolution buildPortfolioAllocation() already performs (the
+  // same reuse precedent as sector/beta itself) — zero new provider calls.
+  // Optional so every pre-existing 2-field meta object literal (including
+  // Sprint 29's own unit tests) keeps compiling and behaving identically.
+  industry?: string | null;
+  marketCap?: number | null;
 }
 
 export interface PortfolioHoldingAllocation {
@@ -63,6 +76,7 @@ export interface PortfolioHoldingAllocation {
   symbol: string;
   targetWeightPct: number;
   shares: number | null;
+  avgCostBasis: number | null;
   notes: string;
   currentPrice: number | null;
   marketValue: number | null;
@@ -71,6 +85,10 @@ export interface PortfolioHoldingAllocation {
   rebalanceAction: RebalanceAction;
   sector: string | null;
   beta: number | null;
+  // Phase 13 — Institutional Portfolio Manager. Same honest-null-when-
+  // unresolvable discipline as every other field here.
+  industry: string | null;
+  marketCap: number | null;
 }
 
 export interface PortfolioAllocationResult {
@@ -91,14 +109,22 @@ export function computePortfolioAllocation(
     const currentPrice = prices.get(h.symbol) ?? null;
     const marketValue = h.shares != null && currentPrice != null ? h.shares * currentPrice : null;
     const m = meta.get(h.symbol);
-    return { h, currentPrice, marketValue, sector: m?.sector ?? null, beta: m?.beta ?? null };
+    return {
+      h,
+      currentPrice,
+      marketValue,
+      sector: m?.sector ?? null,
+      beta: m?.beta ?? null,
+      industry: m?.industry ?? null,
+      marketCap: m?.marketCap ?? null,
+    };
   });
 
   const totalMarketValue = withPrice.some((w) => w.marketValue != null)
     ? round(withPrice.reduce((a, w) => a + (w.marketValue ?? 0), 0))
     : null;
 
-  const resultHoldings: PortfolioHoldingAllocation[] = withPrice.map(({ h, currentPrice, marketValue, sector, beta }) => {
+  const resultHoldings: PortfolioHoldingAllocation[] = withPrice.map(({ h, currentPrice, marketValue, sector, beta, industry, marketCap }) => {
     const actualWeightPct =
       marketValue != null && totalMarketValue != null && totalMarketValue > 0
         ? round((marketValue / totalMarketValue) * 100)
@@ -117,6 +143,7 @@ export function computePortfolioAllocation(
       symbol: h.symbol,
       targetWeightPct: h.targetWeightPct,
       shares: h.shares,
+      avgCostBasis: h.avgCostBasis ?? null,
       notes: h.notes,
       currentPrice,
       marketValue,
@@ -125,6 +152,8 @@ export function computePortfolioAllocation(
       rebalanceAction,
       sector,
       beta,
+      industry,
+      marketCap,
     };
   });
 
@@ -169,7 +198,12 @@ export async function buildPortfolioAllocation(
     distinctSymbols.map(async (symbol) => {
       const f = await resolveFundamentals(provider, symbol).catch(() => null);
       prices.set(symbol, f?.price ?? null);
-      meta.set(symbol, { sector: f?.sector ?? null, beta: f?.beta ?? null });
+      meta.set(symbol, {
+        sector: f?.sector ?? null,
+        beta: f?.beta ?? null,
+        industry: f?.industry ?? null,
+        marketCap: f?.marketCap ?? null,
+      });
     }),
   );
   return computePortfolioAllocation(holdings, prices, meta);

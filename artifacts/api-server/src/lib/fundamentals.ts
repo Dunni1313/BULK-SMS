@@ -101,6 +101,15 @@ export interface Fundamentals {
   // 0.5-2.0 range.
   beta: number | null;
 
+  // Phase 13 — Institutional Portfolio Manager. Market capitalization in
+  // dollars, for portfolio-level Market Cap Allocation. LIVE providers
+  // already fetch this (FMP's /profile mktCap, Alpha Vantage's OVERVIEW
+  // MarketCapitalization) purely for deriveQualitative()'s own internal
+  // sizeScore computation — this field simply exposes that already-fetched
+  // value publicly, zero new provider calls. SIMULATED gets a deterministic
+  // seeded value spanning small-cap to mega-cap.
+  marketCap: number | null;
+
   // Per-share fundamentals.
   epsTtm: number | null; // null => not meaningfully profitable on a trailing basis
   epsFwd: number | null;
@@ -301,6 +310,7 @@ interface AssembleInput {
   sector: string | null;
   industry: string | null;
   beta: number | null;
+  marketCap: number | null;
   epsTtm: number | null;
   epsFwd: number | null;
   fcfPerShare: number;
@@ -358,6 +368,7 @@ function assembleFundamentals(a: AssembleInput): Fundamentals {
     sector: a.sector,
     industry: a.industry,
     beta: a.beta,
+    marketCap: a.marketCap,
     epsTtm: a.epsTtm,
     epsFwd: a.epsFwd,
     fcfPerShare: a.fcfPerShare,
@@ -655,6 +666,16 @@ function simulatedBeta(symbol: string): number {
   return round(0.5 + rng() * 1.5, 2);
 }
 
+// Phase 13 — deterministic SIMULATED market cap, seeded by symbol only
+// (stable across calls). Log-uniform across roughly $500M to ~$2T so a
+// portfolio of simulated symbols spans small-cap through mega-cap, the same
+// spread Market Cap Allocation needs to be meaningful.
+function simulatedMarketCap(symbol: string): number {
+  const rng = makeRng(`${symbol}|marketCap`);
+  const exponent = 8.7 + rng() * 3.6;
+  return Math.round(10 ** exponent);
+}
+
 // The provider seam. A live provider implements the same async interface and is
 // selected via Settings; the simulated provider is the safe default.
 export interface FundamentalsProvider {
@@ -708,6 +729,7 @@ export class SimulatedFundamentalsProvider implements FundamentalsProvider {
       sector: sectorProfile.sector,
       industry: sectorProfile.industry,
       beta: simulatedBeta(sym),
+      marketCap: simulatedMarketCap(sym),
       insiderOwnershipPct: capitalAllocation.insiderOwnershipPct,
       sharesOutstandingChange5y: capitalAllocation.sharesOutstandingChange5y,
       netInsiderActivity: capitalAllocation.netInsiderActivity,
@@ -1089,6 +1111,10 @@ export class FmpFundamentalsProvider implements FundamentalsProvider {
       // (already fetched above for sector/industry), simply not captured
       // until now. Honest null when the provider omits it.
       beta: num(profile?.beta),
+      // Phase 13 — reuses the exact profile.mktCap value already fetched
+      // above and passed to deriveQualitative() for its internal sizeScore;
+      // zero new provider calls.
+      marketCap: num(profile?.mktCap),
       // Phase 2, Sprint 24 — best-effort, never blocks the main fetch. Insider
       // OWNERSHIP PERCENTAGE is honestly left null for FMP: unlike shares-
       // outstanding trend and insider transaction direction, it isn't reliably
@@ -1409,6 +1435,10 @@ export class AlphaVantageFundamentalsProvider implements FundamentalsProvider {
       // response (already fetched above for sector/industry), simply not
       // captured until now. Honest null when the provider omits it.
       beta: num(overview.Beta),
+      // Phase 13 — reuses the exact overview.MarketCapitalization value
+      // already fetched above and passed to deriveQualitative() for its
+      // internal sizeScore; zero new provider calls.
+      marketCap: num(overview.MarketCapitalization),
       // Phase 2, Sprint 24 — honestly null for Alpha Vantage this sprint: no
       // insider-ownership/buyback-trend fetch was implemented against AV's
       // API, an explicit scope reduction disclosed in the sprint report

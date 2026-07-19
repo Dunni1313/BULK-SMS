@@ -29,5 +29,7 @@ export * from "./optionsBacktestResults";
 export * from "./intelligenceSnapshots";
 export * from "./learningProgress";
 export * from "./investingResearchNotes";
+export * from "./investingPortfolioSnapshots";
+export * from "./investingPortfolioNotes";
 export * from "./dashboardWorkspaces";
 export * from "./brokerReconciliationReports";

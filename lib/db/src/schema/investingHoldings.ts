@@ -34,6 +34,11 @@ export const investingHoldingsTable = pgTable("investing_holdings", {
   symbol: text("symbol").notNull(),
   targetWeightPct: real("target_weight_pct").notNull().default(0),
   shares: real("shares"),
+  // Phase 13 — Institutional Portfolio Manager. Honestly nullable, exactly
+  // like `shares`: a holding may have no entered cost basis, in which case
+  // Performance Analytics reports that holding's P&L as unavailable rather
+  // than fabricating a 0 or approximating it from the current price.
+  avgCostBasis: real("avg_cost_basis"),
   notes: text("notes").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })

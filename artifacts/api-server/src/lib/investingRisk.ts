@@ -38,14 +38,20 @@ function round(x: number, dp = 2): number {
 
 // Banded scorer, same convention as portfolioHealth.ts's band(): returns the
 // score of the first band whose ceiling the value is at or below.
-function band(value: number, bands: [ceiling: number, score: number][], fallback: number): number {
+//
+// Phase 13 — exported (behavior-preserving, this module's own callers are
+// unaffected) so lib/portfolioIntelligence.ts's own extended risk dimensions
+// (Leverage Exposure, Dividend Dependence, Cash Risk) reuse the exact same
+// banding convention and 5-tier gradeLabel() vocabulary instead of a second,
+// subtly different classifier.
+export function band(value: number, bands: [ceiling: number, score: number][], fallback: number): number {
   for (const [ceiling, score] of bands) {
     if (value <= ceiling) return score;
   }
   return fallback;
 }
 
-function gradeLabel(score: number): string {
+export function gradeLabel(score: number): string {
   if (score >= 80) return "Excellent";
   if (score >= 65) return "Strong";
   if (score >= 50) return "Moderate";
