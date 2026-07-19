@@ -948,7 +948,13 @@ router.get("/investment-thesis/:symbol", async (req, res): Promise<void> => {
 // rest of the decision) and an optional portfolio context resolved from the
 // caller's own portfolio via the already-shipped buildPortfolioIntelligence()
 // (Phase 13) when ?portfolioId= is supplied.
-async function resolveDecisionManagementQuality(
+// Exported (Phase 22 — Institutional Reporting & Client Presentation Engine)
+// so routes/institutionalReporting.ts can reuse this exact composition
+// instead of duplicating it — the same "extract on the second real
+// consumer" precedent this codebase has followed since
+// classifyMarginOfSafety()/historyConsistencyScore()/formatNotification().
+// Zero behavior change: these two functions are otherwise untouched.
+export async function resolveDecisionManagementQuality(
   symbol: string,
   provider: FundamentalsProvider,
   userId: string,
@@ -963,7 +969,7 @@ async function resolveDecisionManagementQuality(
   }
 }
 
-async function resolveDecisionPortfolioContext(
+export async function resolveDecisionPortfolioContext(
   report: ValueResearchReport,
   portfolioId: number,
   userId: string,

@@ -71,6 +71,7 @@ import type {
   DecisionNoteCreate,
   DecisionNoteUpdate,
   DecisionSnapshot,
+  DeleteInstitutionalReport200,
   DeleteReportResult,
   DeleteResult,
   EarningsIntelligenceAnalysis,
@@ -105,6 +106,8 @@ import type {
   InstitutionalDecisionAnalysis,
   InstitutionalIntelligenceResult,
   InstitutionalMentorResult,
+  InstitutionalReport,
+  InstitutionalReportListItem,
   InvestmentMemo,
   InvestmentThesis,
   JournalEntry,
@@ -175,12 +178,15 @@ import type {
   ReconciliationResult,
   RecordLearningItemCompleted200,
   RecordLearningItemViewed200,
+  ReportTypeMeta,
   ResearchNoteCreate,
   ResearchNoteItem,
   ResearchNoteUpdate,
   RestoreReportsRequest,
   RestoreReportsResult,
   RiskStatus,
+  SaveInstitutionalReportInput,
+  SavedInstitutionalReport,
   ScannerResult,
   ScannerRunInput,
   ScannerRunResponse,
@@ -3973,7 +3979,7 @@ export const getGetLearningPathsUrl = () => {
 }
 
 /**
- * @summary All 7 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking), each with its own topics.
+ * @summary All 8 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking, Institutional Investing Engine), each with its own topics.
  */
 export const getLearningPaths = async ( options?: RequestInit): Promise<LearningPath[]> => {
 
@@ -4020,7 +4026,7 @@ export type GetLearningPathsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary All 7 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking), each with its own topics.
+ * @summary All 8 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking, Institutional Investing Engine), each with its own topics.
  */
 
 export function useGetLearningPaths<TData = Awaited<ReturnType<typeof getLearningPaths>>, TError = ErrorType<unknown>>(
@@ -15076,4 +15082,1069 @@ export function useListOptionsBacktestResults<TData = Awaited<ReturnType<typeof 
 
 
 
+
+export const getGetReportTypesUrl = () => {
+
+
+
+
+  return `/api/reporting/types`
+}
+
+/**
+ * @summary The 9 available Institutional Report types, their labels, descriptions, and whether each requires a symbol/portfolio
+ */
+export const getReportTypes = async ( options?: RequestInit): Promise<ReportTypeMeta[]> => {
+
+  return customFetch<ReportTypeMeta[]>(getGetReportTypesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReportTypesQueryKey = () => {
+    return [
+    `/api/reporting/types`
+    ] as const;
+    }
+
+
+export const getGetReportTypesQueryOptions = <TData = Awaited<ReturnType<typeof getReportTypes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReportTypes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReportTypesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReportTypes>>> = ({ signal }) => getReportTypes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReportTypes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReportTypesQueryResult = NonNullable<Awaited<ReturnType<typeof getReportTypes>>>
+export type GetReportTypesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The 9 available Institutional Report types, their labels, descriptions, and whether each requires a symbol/portfolio
+ */
+
+export function useGetReportTypes<TData = Awaited<ReturnType<typeof getReportTypes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReportTypes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReportTypesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestmentCommitteeReportUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/reporting/investment-committee/${symbol}`
+}
+
+/**
+ * @summary Investment Committee Report — the Investment Committee's consolidated verdict, the Decision Engine's synthesis, evidence, and portfolio impact for a single security. Pure composition, zero new analysis. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies portfolio context.
+ */
+export const getInvestmentCommitteeReport = async (symbol: string, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetInvestmentCommitteeReportUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestmentCommitteeReportQueryKey = (symbol: string,) => {
+    return [
+    `/api/reporting/investment-committee/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetInvestmentCommitteeReportQueryOptions = <TData = Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestmentCommitteeReportQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>> = ({ signal }) => getInvestmentCommitteeReport(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestmentCommitteeReportQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>>
+export type GetInvestmentCommitteeReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Investment Committee Report — the Investment Committee's consolidated verdict, the Decision Engine's synthesis, evidence, and portfolio impact for a single security. Pure composition, zero new analysis. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies portfolio context.
+ */
+
+export function useGetInvestmentCommitteeReport<TData = Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestmentCommitteeReportQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCompanyResearchReportUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/reporting/company-research/${symbol}`
+}
+
+/**
+ * @summary Single Company Research Report — the full institutional research picture for one security (Business Quality, Financial Strength, Valuation, Margin of Safety, Decision Engine, Investment Committee, Portfolio Impact, Evidence, Monitoring, Research Notes, the full Investment Memo, and optionally AI Coach explanations). Optional ?portfolioId=/?includeCoach= (undocumented query params, same Orval-collision precedent).
+ */
+export const getCompanyResearchReport = async (symbol: string, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetCompanyResearchReportUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompanyResearchReportQueryKey = (symbol: string,) => {
+    return [
+    `/api/reporting/company-research/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetCompanyResearchReportQueryOptions = <TData = Awaited<ReturnType<typeof getCompanyResearchReport>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompanyResearchReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompanyResearchReportQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompanyResearchReport>>> = ({ signal }) => getCompanyResearchReport(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompanyResearchReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompanyResearchReportQueryResult = NonNullable<Awaited<ReturnType<typeof getCompanyResearchReport>>>
+export type GetCompanyResearchReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Single Company Research Report — the full institutional research picture for one security (Business Quality, Financial Strength, Valuation, Margin of Safety, Decision Engine, Investment Committee, Portfolio Impact, Evidence, Monitoring, Research Notes, the full Investment Memo, and optionally AI Coach explanations). Optional ?portfolioId=/?includeCoach= (undocumented query params, same Orval-collision precedent).
+ */
+
+export function useGetCompanyResearchReport<TData = Awaited<ReturnType<typeof getCompanyResearchReport>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompanyResearchReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompanyResearchReportQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioReviewReportUrl = (portfolioId: number,) => {
+
+
+
+
+  return `/api/reporting/portfolio-review/${portfolioId}`
+}
+
+/**
+ * @summary Portfolio Review Report — Portfolio Optimisation's own health, diversification, position-quality ranking, and upgrade/trim/exit candidates for a selected portfolio. Pure composition, zero new analysis.
+ */
+export const getPortfolioReviewReport = async (portfolioId: number, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioReviewReportUrl(portfolioId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioReviewReportQueryKey = (portfolioId: number,) => {
+    return [
+    `/api/reporting/portfolio-review/${portfolioId}`
+    ] as const;
+    }
+
+
+export const getGetPortfolioReviewReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError = ErrorType<void>>(portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioReviewReportQueryKey(portfolioId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioReviewReport>>> = ({ signal }) => getPortfolioReviewReport(portfolioId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(portfolioId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioReviewReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioReviewReport>>>
+export type GetPortfolioReviewReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Portfolio Review Report — Portfolio Optimisation's own health, diversification, position-quality ranking, and upgrade/trim/exit candidates for a selected portfolio. Pure composition, zero new analysis.
+ */
+
+export function useGetPortfolioReviewReport<TData = Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError = ErrorType<void>>(
+ portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioReviewReportQueryOptions(portfolioId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioHealthReportUrl = (portfolioId: number,) => {
+
+
+
+
+  return `/api/reporting/portfolio-health/${portfolioId}`
+}
+
+/**
+ * @summary Portfolio Health Report — Portfolio Intelligence's own quality/capital-allocation/diversification scores, allocation mix, risk, income, and performance for a selected portfolio. Pure composition, zero new analysis.
+ */
+export const getPortfolioHealthReport = async (portfolioId: number, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioHealthReportUrl(portfolioId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioHealthReportQueryKey = (portfolioId: number,) => {
+    return [
+    `/api/reporting/portfolio-health/${portfolioId}`
+    ] as const;
+    }
+
+
+export const getGetPortfolioHealthReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError = ErrorType<void>>(portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioHealthReportQueryKey(portfolioId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioHealthReport>>> = ({ signal }) => getPortfolioHealthReport(portfolioId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(portfolioId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioHealthReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioHealthReport>>>
+export type GetPortfolioHealthReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Portfolio Health Report — Portfolio Intelligence's own quality/capital-allocation/diversification scores, allocation mix, risk, income, and performance for a selected portfolio. Pure composition, zero new analysis.
+ */
+
+export function useGetPortfolioHealthReport<TData = Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError = ErrorType<void>>(
+ portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioHealthReportQueryOptions(portfolioId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchlistReportUrl = () => {
+
+
+
+
+  return `/api/reporting/watchlist`
+}
+
+/**
+ * @summary Watchlist Report — every Watchlist item's own price/margin-of-safety target status, reused directly from computeWatchlistTargets().
+ */
+export const getWatchlistReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetWatchlistReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistReportQueryKey = () => {
+    return [
+    `/api/reporting/watchlist`
+    ] as const;
+    }
+
+
+export const getGetWatchlistReportQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistReport>>> = ({ signal }) => getWatchlistReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistReportQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistReport>>>
+export type GetWatchlistReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Watchlist Report — every Watchlist item's own price/margin-of-safety target status, reused directly from computeWatchlistTargets().
+ */
+
+export function useGetWatchlistReport<TData = Awaited<ReturnType<typeof getWatchlistReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOpportunityDiscoveryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/opportunity-discovery`
+}
+
+/**
+ * @summary Opportunity Discovery Report — the Opportunity Discovery scan's own buckets, reused directly.
+ */
+export const getOpportunityDiscoveryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetOpportunityDiscoveryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOpportunityDiscoveryReportQueryKey = () => {
+    return [
+    `/api/reporting/opportunity-discovery`
+    ] as const;
+    }
+
+
+export const getGetOpportunityDiscoveryReportQueryOptions = <TData = Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOpportunityDiscoveryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>> = ({ signal }) => getOpportunityDiscoveryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOpportunityDiscoveryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>>
+export type GetOpportunityDiscoveryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Opportunity Discovery Report — the Opportunity Discovery scan's own buckets, reused directly.
+ */
+
+export function useGetOpportunityDiscoveryReport<TData = Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOpportunityDiscoveryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMonitoringSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/monitoring-summary`
+}
+
+/**
+ * @summary Monitoring Summary Report — the user's own recorded monitoring alerts across every symbol.
+ */
+export const getMonitoringSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetMonitoringSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMonitoringSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/monitoring-summary`
+    ] as const;
+    }
+
+
+export const getGetMonitoringSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMonitoringSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMonitoringSummaryReport>>> = ({ signal }) => getMonitoringSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMonitoringSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getMonitoringSummaryReport>>>
+export type GetMonitoringSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Monitoring Summary Report — the user's own recorded monitoring alerts across every symbol.
+ */
+
+export function useGetMonitoringSummaryReport<TData = Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMonitoringSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAiCoachLearningSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/ai-coach-summary`
+}
+
+/**
+ * @summary AI Coach Learning Summary — the Learning Centre's own progress tracker (lessons, glossary, strategies, coach explanations viewed, path completion, quiz performance).
+ */
+export const getAiCoachLearningSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetAiCoachLearningSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAiCoachLearningSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/ai-coach-summary`
+    ] as const;
+    }
+
+
+export const getGetAiCoachLearningSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAiCoachLearningSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>> = ({ signal }) => getAiCoachLearningSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAiCoachLearningSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>>
+export type GetAiCoachLearningSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary AI Coach Learning Summary — the Learning Centre's own progress tracker (lessons, glossary, strategies, coach explanations viewed, path completion, quiz performance).
+ */
+
+export function useGetAiCoachLearningSummaryReport<TData = Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAiCoachLearningSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetExecutiveSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/executive-summary`
+}
+
+/**
+ * @summary Executive Summary — the Cross-Engine Daily Report's own one-pager, reused directly.
+ */
+export const getExecutiveSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetExecutiveSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutiveSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/executive-summary`
+    ] as const;
+    }
+
+
+export const getGetExecutiveSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutiveSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutiveSummaryReport>>> = ({ signal }) => getExecutiveSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutiveSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutiveSummaryReport>>>
+export type GetExecutiveSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Executive Summary — the Cross-Engine Daily Report's own one-pager, reused directly.
+ */
+
+export function useGetExecutiveSummaryReport<TData = Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutiveSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveInstitutionalReportUrl = () => {
+
+
+
+
+  return `/api/reporting/reports`
+}
+
+/**
+ * @summary Regenerate the given report type server-side and persist it to the calling user's own history (never trusts a client-supplied report body)
+ */
+export const saveInstitutionalReport = async (saveInstitutionalReportInput: SaveInstitutionalReportInput, options?: RequestInit): Promise<SavedInstitutionalReport> => {
+
+  return customFetch<SavedInstitutionalReport>(getSaveInstitutionalReportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      saveInstitutionalReportInput,)
+  }
+);}
+
+
+
+
+export const getSaveInstitutionalReportMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveInstitutionalReport>>, TError,{data: BodyType<SaveInstitutionalReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveInstitutionalReport>>, TError,{data: BodyType<SaveInstitutionalReportInput>}, TContext> => {
+
+const mutationKey = ['saveInstitutionalReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveInstitutionalReport>>, {data: BodyType<SaveInstitutionalReportInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveInstitutionalReport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveInstitutionalReportMutationResult = NonNullable<Awaited<ReturnType<typeof saveInstitutionalReport>>>
+    export type SaveInstitutionalReportMutationBody = BodyType<SaveInstitutionalReportInput>
+    export type SaveInstitutionalReportMutationError = ErrorType<void>
+
+    /**
+ * @summary Regenerate the given report type server-side and persist it to the calling user's own history (never trusts a client-supplied report body)
+ */
+export const useSaveInstitutionalReport = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveInstitutionalReport>>, TError,{data: BodyType<SaveInstitutionalReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveInstitutionalReport>>,
+        TError,
+        {data: BodyType<SaveInstitutionalReportInput>},
+        TContext
+      > => {
+      return useMutation(getSaveInstitutionalReportMutationOptions(options));
+    }
+
+export const getListInstitutionalReportsUrl = () => {
+
+
+
+
+  return `/api/reporting/reports`
+}
+
+/**
+ * @summary List the calling user's own persisted Institutional Reports, newest first
+ */
+export const listInstitutionalReports = async ( options?: RequestInit): Promise<InstitutionalReportListItem[]> => {
+
+  return customFetch<InstitutionalReportListItem[]>(getListInstitutionalReportsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInstitutionalReportsQueryKey = () => {
+    return [
+    `/api/reporting/reports`
+    ] as const;
+    }
+
+
+export const getListInstitutionalReportsQueryOptions = <TData = Awaited<ReturnType<typeof listInstitutionalReports>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInstitutionalReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInstitutionalReportsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInstitutionalReports>>> = ({ signal }) => listInstitutionalReports({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInstitutionalReports>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListInstitutionalReportsQueryResult = NonNullable<Awaited<ReturnType<typeof listInstitutionalReports>>>
+export type ListInstitutionalReportsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's own persisted Institutional Reports, newest first
+ */
+
+export function useListInstitutionalReports<TData = Awaited<ReturnType<typeof listInstitutionalReports>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInstitutionalReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListInstitutionalReportsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSavedInstitutionalReportUrl = (id: number,) => {
+
+
+
+
+  return `/api/reporting/reports/${id}`
+}
+
+/**
+ * @summary Fetch one persisted Institutional Report by id (ownership-scoped)
+ */
+export const getSavedInstitutionalReport = async (id: number, options?: RequestInit): Promise<SavedInstitutionalReport> => {
+
+  return customFetch<SavedInstitutionalReport>(getGetSavedInstitutionalReportUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSavedInstitutionalReportQueryKey = (id: number,) => {
+    return [
+    `/api/reporting/reports/${id}`
+    ] as const;
+    }
+
+
+export const getGetSavedInstitutionalReportQueryOptions = <TData = Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSavedInstitutionalReportQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSavedInstitutionalReport>>> = ({ signal }) => getSavedInstitutionalReport(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSavedInstitutionalReportQueryResult = NonNullable<Awaited<ReturnType<typeof getSavedInstitutionalReport>>>
+export type GetSavedInstitutionalReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Fetch one persisted Institutional Report by id (ownership-scoped)
+ */
+
+export function useGetSavedInstitutionalReport<TData = Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSavedInstitutionalReportQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDeleteInstitutionalReportUrl = (id: number,) => {
+
+
+
+
+  return `/api/reporting/reports/${id}`
+}
+
+/**
+ * @summary Delete one persisted Institutional Report by id (ownership-scoped)
+ */
+export const deleteInstitutionalReport = async (id: number, options?: RequestInit): Promise<DeleteInstitutionalReport200> => {
+
+  return customFetch<DeleteInstitutionalReport200>(getDeleteInstitutionalReportUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteInstitutionalReportMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInstitutionalReport>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteInstitutionalReport>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteInstitutionalReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteInstitutionalReport>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteInstitutionalReport(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteInstitutionalReportMutationResult = NonNullable<Awaited<ReturnType<typeof deleteInstitutionalReport>>>
+
+    export type DeleteInstitutionalReportMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete one persisted Institutional Report by id (ownership-scoped)
+ */
+export const useDeleteInstitutionalReport = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInstitutionalReport>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteInstitutionalReport>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteInstitutionalReportMutationOptions(options));
+    }
 

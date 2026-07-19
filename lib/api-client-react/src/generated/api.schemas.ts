@@ -7442,6 +7442,98 @@ export interface InstitutionalMentorResult {
   generatedAt: string;
 }
 
+export type ReportTypeMetaReportType = typeof ReportTypeMetaReportType[keyof typeof ReportTypeMetaReportType];
+
+
+export const ReportTypeMetaReportType = {
+  'investment-committee': 'investment-committee',
+  'company-research': 'company-research',
+  'portfolio-review': 'portfolio-review',
+  'portfolio-health': 'portfolio-health',
+  watchlist: 'watchlist',
+  'opportunity-discovery': 'opportunity-discovery',
+  'monitoring-summary': 'monitoring-summary',
+  'ai-coach-summary': 'ai-coach-summary',
+  'executive-summary': 'executive-summary',
+} as const;
+
+export interface ReportTypeMeta {
+  reportType: ReportTypeMetaReportType;
+  label: string;
+  description: string;
+  requiresSymbol: boolean;
+  requiresPortfolio: boolean;
+}
+
+export type InstitutionalReportReportType = typeof InstitutionalReportReportType[keyof typeof InstitutionalReportReportType];
+
+
+export const InstitutionalReportReportType = {
+  'investment-committee': 'investment-committee',
+  'company-research': 'company-research',
+  'portfolio-review': 'portfolio-review',
+  'portfolio-health': 'portfolio-health',
+  watchlist: 'watchlist',
+  'opportunity-discovery': 'opportunity-discovery',
+  'monitoring-summary': 'monitoring-summary',
+  'ai-coach-summary': 'ai-coach-summary',
+  'executive-summary': 'executive-summary',
+} as const;
+
+export interface InstitutionalReport {
+  reportType: InstitutionalReportReportType;
+  title: string;
+  subtitle: string;
+  symbol: string | null;
+  portfolioId: number | null;
+  generatedAt: string;
+  dataSource: string;
+  sections: ValueReportSection[];
+  disclaimer: string;
+}
+
+export type SaveInstitutionalReportInputReportType = typeof SaveInstitutionalReportInputReportType[keyof typeof SaveInstitutionalReportInputReportType];
+
+
+export const SaveInstitutionalReportInputReportType = {
+  'investment-committee': 'investment-committee',
+  'company-research': 'company-research',
+  'portfolio-review': 'portfolio-review',
+  'portfolio-health': 'portfolio-health',
+  watchlist: 'watchlist',
+  'opportunity-discovery': 'opportunity-discovery',
+  'monitoring-summary': 'monitoring-summary',
+  'ai-coach-summary': 'ai-coach-summary',
+  'executive-summary': 'executive-summary',
+} as const;
+
+export interface SaveInstitutionalReportInput {
+  reportType: SaveInstitutionalReportInputReportType;
+  symbol?: string;
+  portfolioId?: number;
+}
+
+export interface SavedInstitutionalReport {
+  id: number;
+  reportType: string;
+  title: string;
+  symbol: string | null;
+  portfolioId: number | null;
+  dataSource: string;
+  createdAt: string;
+  report: InstitutionalReport;
+}
+
+export interface InstitutionalReportListItem {
+  id: number;
+  reportType: string;
+  title: string;
+  symbol: string | null;
+  portfolioId: number | null;
+  dataSource: string;
+  createdAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -7593,5 +7685,9 @@ export const GetValueWatchlistCheckTargets = {
 
 export type CompareOpportunitiesRouteParams = {
 symbols: string;
+};
+
+export type DeleteInstitutionalReport200 = {
+  success: boolean;
 };
 

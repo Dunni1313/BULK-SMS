@@ -48,6 +48,7 @@ import dashboardWorkspacesRouter from "./dashboardWorkspaces";
 import opsRouter from "./ops";
 import opportunityDiscoveryRouter from "./opportunityDiscovery";
 import monitoringEngineRouter from "./monitoringEngine";
+import institutionalReportingRouter from "./institutionalReporting";
 
 const router: IRouter = Router();
 
@@ -100,5 +101,6 @@ router.use(dashboardWorkspacesRouter);
 router.use(opsRouter);
 router.use(opportunityDiscoveryRouter);
 router.use(monitoringEngineRouter);
+router.use(institutionalReportingRouter);
 
 export default router;

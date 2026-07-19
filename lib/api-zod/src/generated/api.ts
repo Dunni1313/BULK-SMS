@@ -3154,7 +3154,7 @@ export const GetGlossaryResponse = zod.array(GetGlossaryResponseItem)
 
 
 /**
- * @summary All 7 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking), each with its own topics.
+ * @summary All 8 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking, Institutional Investing Engine), each with its own topics.
  */
 export const GetLearningPathsResponseItem = zod.object({
   "key": zod.string(),
@@ -8838,5 +8838,320 @@ export const ListOptionsBacktestResultsResponseItem = zod.object({
   "summary": zod.string()
 })
 export const ListOptionsBacktestResultsResponse = zod.array(ListOptionsBacktestResultsResponseItem)
+
+
+/**
+ * @summary The 9 available Institutional Report types, their labels, descriptions, and whether each requires a symbol/portfolio
+ */
+export const GetReportTypesResponseItem = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "label": zod.string(),
+  "description": zod.string(),
+  "requiresSymbol": zod.boolean(),
+  "requiresPortfolio": zod.boolean()
+})
+export const GetReportTypesResponse = zod.array(GetReportTypesResponseItem)
+
+
+/**
+ * @summary Investment Committee Report — the Investment Committee's consolidated verdict, the Decision Engine's synthesis, evidence, and portfolio impact for a single security. Pure composition, zero new analysis. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies portfolio context.
+ */
+export const GetInvestmentCommitteeReportParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetInvestmentCommitteeReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Single Company Research Report — the full institutional research picture for one security (Business Quality, Financial Strength, Valuation, Margin of Safety, Decision Engine, Investment Committee, Portfolio Impact, Evidence, Monitoring, Research Notes, the full Investment Memo, and optionally AI Coach explanations). Optional ?portfolioId=/?includeCoach= (undocumented query params, same Orval-collision precedent).
+ */
+export const GetCompanyResearchReportParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetCompanyResearchReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Portfolio Review Report — Portfolio Optimisation's own health, diversification, position-quality ranking, and upgrade/trim/exit candidates for a selected portfolio. Pure composition, zero new analysis.
+ */
+export const GetPortfolioReviewReportParams = zod.object({
+  "portfolioId": zod.coerce.number()
+})
+
+export const GetPortfolioReviewReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Portfolio Health Report — Portfolio Intelligence's own quality/capital-allocation/diversification scores, allocation mix, risk, income, and performance for a selected portfolio. Pure composition, zero new analysis.
+ */
+export const GetPortfolioHealthReportParams = zod.object({
+  "portfolioId": zod.coerce.number()
+})
+
+export const GetPortfolioHealthReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Watchlist Report — every Watchlist item's own price/margin-of-safety target status, reused directly from computeWatchlistTargets().
+ */
+export const GetWatchlistReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Opportunity Discovery Report — the Opportunity Discovery scan's own buckets, reused directly.
+ */
+export const GetOpportunityDiscoveryReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Monitoring Summary Report — the user's own recorded monitoring alerts across every symbol.
+ */
+export const GetMonitoringSummaryReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary AI Coach Learning Summary — the Learning Centre's own progress tracker (lessons, glossary, strategies, coach explanations viewed, path completion, quiz performance).
+ */
+export const GetAiCoachLearningSummaryReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Executive Summary — the Cross-Engine Daily Report's own one-pager, reused directly.
+ */
+export const GetExecutiveSummaryReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Regenerate the given report type server-side and persist it to the calling user's own history (never trusts a client-supplied report body)
+ */
+export const SaveInstitutionalReportBody = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "symbol": zod.string().optional(),
+  "portfolioId": zod.number().optional()
+})
+
+export const SaveInstitutionalReportResponse = zod.object({
+  "id": zod.number(),
+  "reportType": zod.string(),
+  "title": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "dataSource": zod.string(),
+  "createdAt": zod.string(),
+  "report": zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+})
+
+
+/**
+ * @summary List the calling user's own persisted Institutional Reports, newest first
+ */
+export const ListInstitutionalReportsResponseItem = zod.object({
+  "id": zod.number(),
+  "reportType": zod.string(),
+  "title": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "dataSource": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListInstitutionalReportsResponse = zod.array(ListInstitutionalReportsResponseItem)
+
+
+/**
+ * @summary Fetch one persisted Institutional Report by id (ownership-scoped)
+ */
+export const GetSavedInstitutionalReportParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetSavedInstitutionalReportResponse = zod.object({
+  "id": zod.number(),
+  "reportType": zod.string(),
+  "title": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "dataSource": zod.string(),
+  "createdAt": zod.string(),
+  "report": zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+})
+
+
+/**
+ * @summary Delete one persisted Institutional Report by id (ownership-scoped)
+ */
+export const DeleteInstitutionalReportParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteInstitutionalReportResponse = zod.object({
+  "success": zod.boolean()
+})
 
 

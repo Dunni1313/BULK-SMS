@@ -39,3 +39,4 @@ export * from "./investingAlertNotes";
 export * from "./investingOptimisationReviews";
 export * from "./dashboardWorkspaces";
 export * from "./brokerReconciliationReports";
+export * from "./institutionalReports";

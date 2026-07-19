@@ -4049,6 +4049,249 @@ paths:
                 items:
                   $ref: "#/components/schemas/OptionsBacktestResult"
 
+  # ─── Institutional Reporting & Client Presentation Engine (Phase 22) —
+  # pure composition layer over already-computed engines (ValueResearchReport,
+  # InstitutionalDecisionAnalysis, InvestmentMemo, CoachExplanation,
+  # PortfolioIntelligenceAnalysis, PortfolioOptimisationAnalysis,
+  # OpportunityScanResult, platform_notifications, WatchlistTargetCheck,
+  # CrossEngineDailyReport, LearningProgressSummary). No new valuation model,
+  # scoring system, or investment recommendation — see
+  # lib/institutionalReporting.ts's own header comment. ──────────────────────
+  /reporting/types:
+    get:
+      operationId: getReportTypes
+      tags: [reporting]
+      summary: The 9 available Institutional Report types, their labels, descriptions, and whether each requires a symbol/portfolio
+      responses:
+        "200":
+          description: Report type metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportTypeMeta"
+
+  /reporting/investment-committee/{symbol}:
+    get:
+      operationId: getInvestmentCommitteeReport
+      tags: [reporting]
+      summary: Investment Committee Report — the Investment Committee's consolidated verdict, the Decision Engine's synthesis, evidence, and portfolio impact for a single security. Pure composition, zero new analysis. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies portfolio context.
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Investment Committee Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+        "404":
+          description: Unknown symbol
+
+  /reporting/company-research/{symbol}:
+    get:
+      operationId: getCompanyResearchReport
+      tags: [reporting]
+      summary: Single Company Research Report — the full institutional research picture for one security (Business Quality, Financial Strength, Valuation, Margin of Safety, Decision Engine, Investment Committee, Portfolio Impact, Evidence, Monitoring, Research Notes, the full Investment Memo, and optionally AI Coach explanations). Optional ?portfolioId=/?includeCoach= (undocumented query params, same Orval-collision precedent).
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Single Company Research Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+        "404":
+          description: Unknown symbol
+
+  /reporting/portfolio-review/{portfolioId}:
+    get:
+      operationId: getPortfolioReviewReport
+      tags: [reporting]
+      summary: Portfolio Review Report — Portfolio Optimisation's own health, diversification, position-quality ranking, and upgrade/trim/exit candidates for a selected portfolio. Pure composition, zero new analysis.
+      parameters:
+        - name: portfolioId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Portfolio Review Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+        "404":
+          description: Portfolio not found
+
+  /reporting/portfolio-health/{portfolioId}:
+    get:
+      operationId: getPortfolioHealthReport
+      tags: [reporting]
+      summary: Portfolio Health Report — Portfolio Intelligence's own quality/capital-allocation/diversification scores, allocation mix, risk, income, and performance for a selected portfolio. Pure composition, zero new analysis.
+      parameters:
+        - name: portfolioId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Portfolio Health Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+        "404":
+          description: Portfolio not found
+
+  /reporting/watchlist:
+    get:
+      operationId: getWatchlistReport
+      tags: [reporting]
+      summary: Watchlist Report — every Watchlist item's own price/margin-of-safety target status, reused directly from computeWatchlistTargets().
+      responses:
+        "200":
+          description: Watchlist Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/opportunity-discovery:
+    get:
+      operationId: getOpportunityDiscoveryReport
+      tags: [reporting]
+      summary: Opportunity Discovery Report — the Opportunity Discovery scan's own buckets, reused directly.
+      responses:
+        "200":
+          description: Opportunity Discovery Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/monitoring-summary:
+    get:
+      operationId: getMonitoringSummaryReport
+      tags: [reporting]
+      summary: Monitoring Summary Report — the user's own recorded monitoring alerts across every symbol.
+      responses:
+        "200":
+          description: Monitoring Summary Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/ai-coach-summary:
+    get:
+      operationId: getAiCoachLearningSummaryReport
+      tags: [reporting]
+      summary: AI Coach Learning Summary — the Learning Centre's own progress tracker (lessons, glossary, strategies, coach explanations viewed, path completion, quiz performance).
+      responses:
+        "200":
+          description: AI Coach Learning Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/executive-summary:
+    get:
+      operationId: getExecutiveSummaryReport
+      tags: [reporting]
+      summary: Executive Summary — the Cross-Engine Daily Report's own one-pager, reused directly.
+      responses:
+        "200":
+          description: Executive Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/reports:
+    post:
+      operationId: saveInstitutionalReport
+      tags: [reporting]
+      summary: Regenerate the given report type server-side and persist it to the calling user's own history (never trusts a client-supplied report body)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveInstitutionalReportInput"
+      responses:
+        "200":
+          description: Saved report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedInstitutionalReport"
+        "404":
+          description: Could not generate this report
+    get:
+      operationId: listInstitutionalReports
+      tags: [reporting]
+      summary: List the calling user's own persisted Institutional Reports, newest first
+      responses:
+        "200":
+          description: Report list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InstitutionalReportListItem"
+
+  /reporting/reports/{id}:
+    get:
+      operationId: getSavedInstitutionalReport
+      tags: [reporting]
+      summary: Fetch one persisted Institutional Report by id (ownership-scoped)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Saved report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedInstitutionalReport"
+        "404":
+          description: Report not found
+    delete:
+      operationId: deleteInstitutionalReport
+      tags: [reporting]
+      summary: Delete one persisted Institutional Report by id (ownership-scoped)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+        "404":
+          description: Report not found
+
 components:
   schemas:
     # ─── Value Investing (Buffett-style; all SIMULATED, advisory only) ────────────
@@ -13499,3 +13742,73 @@ components:
           $ref: "#/components/schemas/MentorOpportunityDiscoveryReview"
         generatedAt:
           type: string
+
+    # ─── Institutional Reporting & Client Presentation Engine (Phase 22) —
+    # pure composition layer over already-computed engines; no new valuation
+    # model, scoring system, or investment recommendation. See
+    # lib/institutionalReporting.ts's own header comment. ────────────────────
+    ReportTypeMeta:
+      type: object
+      required: [reportType, label, description, requiresSymbol, requiresPortfolio]
+      properties:
+        reportType:
+          type: string
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary]
+        label: { type: string }
+        description: { type: string }
+        requiresSymbol: { type: boolean }
+        requiresPortfolio: { type: boolean }
+
+    InstitutionalReport:
+      type: object
+      required: [reportType, title, subtitle, symbol, portfolioId, generatedAt, dataSource, sections, disclaimer]
+      properties:
+        reportType:
+          type: string
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary]
+        title: { type: string }
+        subtitle: { type: string }
+        symbol: { type: string, nullable: true }
+        portfolioId: { type: integer, nullable: true }
+        generatedAt: { type: string }
+        dataSource: { type: string }
+        sections:
+          type: array
+          items: { $ref: "#/components/schemas/ValueReportSection" }
+        disclaimer: { type: string }
+
+    SaveInstitutionalReportInput:
+      type: object
+      required: [reportType]
+      properties:
+        reportType:
+          type: string
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary]
+        symbol: { type: string }
+        portfolioId: { type: integer }
+
+    SavedInstitutionalReport:
+      type: object
+      required: [id, reportType, title, symbol, portfolioId, dataSource, createdAt, report]
+      properties:
+        id: { type: integer }
+        reportType: { type: string }
+        title: { type: string }
+        symbol: { type: string, nullable: true }
+        portfolioId: { type: integer, nullable: true }
+        dataSource: { type: string }
+        createdAt: { type: string }
+        report:
+          $ref: "#/components/schemas/InstitutionalReport"
+
+    InstitutionalReportListItem:
+      type: object
+      required: [id, reportType, title, symbol, portfolioId, dataSource, createdAt]
+      properties:
+        id: { type: integer }
+        reportType: { type: string }
+        title: { type: string }
+        symbol: { type: string, nullable: true }
+        portfolioId: { type: integer, nullable: true }
+        dataSource: { type: string }
+        createdAt: { type: string }
