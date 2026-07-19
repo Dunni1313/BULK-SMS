@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { PlatformNotificationDataSource } from './platformNotificationDataSource';
+import type { PlatformNotificationSeverity } from './platformNotificationSeverity';
 import type { PlatformNotificationType } from './platformNotificationType';
 
 export interface PlatformNotification {
@@ -17,5 +18,13 @@ export interface PlatformNotification {
   /** @nullable */
   relatedSymbol: string | null;
   isRead: boolean;
+  severity: PlatformNotificationSeverity;
+  /** @nullable */
+  previousValue: string | null;
+  /** @nullable */
+  currentValue: string | null;
+  evidence: string[];
+  /** @nullable */
+  recommendedAction: string | null;
   createdAt: string;
 }

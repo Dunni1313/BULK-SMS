@@ -4230,12 +4230,17 @@ export const GetFundamentalsProviderStatusResponse = zod.object({
  */
 export const ListNotificationsResponseItem = zod.object({
   "id": zod.number(),
-  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached']),
+  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached', 'decision_change', 'valuation_change', 'quality_change', 'committee_change', 'tomnash_change', 'financial_deterioration', 'dividend_change', 'earnings_alert', 'portfolio_drift', 'sector_concentration_breach', 'position_sizing_breach', 'opportunity_match']),
   "title": zod.string(),
   "message": zod.string(),
   "dataSource": zod.enum(['SIMULATED', 'LIVE']),
   "relatedSymbol": zod.string().nullable(),
   "isRead": zod.boolean(),
+  "severity": zod.enum(['info', 'warning', 'critical']),
+  "previousValue": zod.string().nullable(),
+  "currentValue": zod.string().nullable(),
+  "evidence": zod.array(zod.string()),
+  "recommendedAction": zod.string().nullable(),
   "createdAt": zod.string()
 })
 export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
@@ -4246,12 +4251,17 @@ export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem
  */
 export const CheckNotificationsResponseItem = zod.object({
   "id": zod.number(),
-  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached']),
+  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached', 'decision_change', 'valuation_change', 'quality_change', 'committee_change', 'tomnash_change', 'financial_deterioration', 'dividend_change', 'earnings_alert', 'portfolio_drift', 'sector_concentration_breach', 'position_sizing_breach', 'opportunity_match']),
   "title": zod.string(),
   "message": zod.string(),
   "dataSource": zod.enum(['SIMULATED', 'LIVE']),
   "relatedSymbol": zod.string().nullable(),
   "isRead": zod.boolean(),
+  "severity": zod.enum(['info', 'warning', 'critical']),
+  "previousValue": zod.string().nullable(),
+  "currentValue": zod.string().nullable(),
+  "evidence": zod.array(zod.string()),
+  "recommendedAction": zod.string().nullable(),
   "createdAt": zod.string()
 })
 export const CheckNotificationsResponse = zod.array(CheckNotificationsResponseItem)
@@ -4270,13 +4280,110 @@ export const UpdateNotificationBody = zod.object({
 
 export const UpdateNotificationResponse = zod.object({
   "id": zod.number(),
-  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached']),
+  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached', 'decision_change', 'valuation_change', 'quality_change', 'committee_change', 'tomnash_change', 'financial_deterioration', 'dividend_change', 'earnings_alert', 'portfolio_drift', 'sector_concentration_breach', 'position_sizing_breach', 'opportunity_match']),
   "title": zod.string(),
   "message": zod.string(),
   "dataSource": zod.enum(['SIMULATED', 'LIVE']),
   "relatedSymbol": zod.string().nullable(),
   "isRead": zod.boolean(),
+  "severity": zod.enum(['info', 'warning', 'critical']),
+  "previousValue": zod.string().nullable(),
+  "currentValue": zod.string().nullable(),
+  "evidence": zod.array(zod.string()),
+  "recommendedAction": zod.string().nullable(),
   "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Evaluate every monitoring alert category on demand — watchlist targets, risk caps, symbol-level signal changes, portfolio drift/ concentration, and Opportunity Alerts (saved-screen matches) — and persist any newly-triggered alerts (never fabricated; a no-op honestly returns an empty array when nothing is newly triggered or alerts are disabled)
+ */
+export const FullMonitoringCheckResponseItem = zod.object({
+  "id": zod.number(),
+  "type": zod.enum(['watchlist_target_crossed', 'risk_cap_breached', 'decision_change', 'valuation_change', 'quality_change', 'committee_change', 'tomnash_change', 'financial_deterioration', 'dividend_change', 'earnings_alert', 'portfolio_drift', 'sector_concentration_breach', 'position_sizing_breach', 'opportunity_match']),
+  "title": zod.string(),
+  "message": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "relatedSymbol": zod.string().nullable(),
+  "isRead": zod.boolean(),
+  "severity": zod.enum(['info', 'warning', 'critical']),
+  "previousValue": zod.string().nullable(),
+  "currentValue": zod.string().nullable(),
+  "evidence": zod.array(zod.string()),
+  "recommendedAction": zod.string().nullable(),
+  "createdAt": zod.string()
+})
+export const FullMonitoringCheckResponse = zod.array(FullMonitoringCheckResponseItem)
+
+
+/**
+ * @summary List the calling user's alert notes, newest first (optionally filtered by ?notificationId= or ?symbol=)
+ */
+export const GetAlertNotesQueryParams = zod.object({
+  "notificationId": zod.coerce.number().optional(),
+  "symbol": zod.coerce.string().optional()
+})
+
+export const GetAlertNotesResponseItem = zod.object({
+  "id": zod.number(),
+  "notificationId": zod.number().nullable(),
+  "symbol": zod.string().nullable(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetAlertNotesResponse = zod.array(GetAlertNotesResponseItem)
+
+
+/**
+ * @summary Add a note on an alert (free text, never AI-generated)
+ */
+export const AddAlertNoteBody = zod.object({
+  "notificationId": zod.number().nullish(),
+  "symbol": zod.string().nullish(),
+  "note": zod.string()
+})
+
+export const AddAlertNoteResponse = zod.object({
+  "id": zod.number(),
+  "notificationId": zod.number().nullable(),
+  "symbol": zod.string().nullable(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update an alert note
+ */
+export const UpdateAlertNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAlertNoteBody = zod.object({
+  "note": zod.string()
+})
+
+export const UpdateAlertNoteResponse = zod.object({
+  "id": zod.number(),
+  "notificationId": zod.number().nullable(),
+  "symbol": zod.string().nullable(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete an alert note
+ */
+export const DeleteAlertNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteAlertNoteResponse = zod.object({
+  "success": zod.boolean()
 })
 
 

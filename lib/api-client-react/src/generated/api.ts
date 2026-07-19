@@ -88,6 +88,7 @@ import type {
   FundamentalsProviderStatusResponse,
   GeneratedQuiz,
   GeneratedValueQuiz,
+  GetAlertNotesParams,
   GetAutoAdjustmentLogParams,
   GetEquityCurveParams,
   GetPerformanceAnalyticsParams,
@@ -126,6 +127,9 @@ import type {
   ManagementQualityAnalysis,
   MarketBriefingResponse,
   MarketDataHealth,
+  MonitoringAlertNote,
+  MonitoringAlertNoteCreate,
+  MonitoringAlertNoteUpdate,
   MonitoringStatus,
   NarrateCrossEngineDailyReportResult,
   NarrateInvestmentCommitteeInput,
@@ -6861,6 +6865,373 @@ export const useUpdateNotification = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getUpdateNotificationMutationOptions(options));
+    }
+
+export const getFullMonitoringCheckUrl = () => {
+
+
+
+
+  return `/api/monitoring-engine/check`
+}
+
+/**
+ * @summary Evaluate every monitoring alert category on demand — watchlist targets, risk caps, symbol-level signal changes, portfolio drift/ concentration, and Opportunity Alerts (saved-screen matches) — and persist any newly-triggered alerts (never fabricated; a no-op honestly returns an empty array when nothing is newly triggered or alerts are disabled)
+ */
+export const fullMonitoringCheck = async ( options?: RequestInit): Promise<PlatformNotification[]> => {
+
+  return customFetch<PlatformNotification[]>(getFullMonitoringCheckUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getFullMonitoringCheckMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fullMonitoringCheck>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof fullMonitoringCheck>>, TError,void, TContext> => {
+
+const mutationKey = ['fullMonitoringCheck'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof fullMonitoringCheck>>, void> = () => {
+
+
+          return  fullMonitoringCheck(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FullMonitoringCheckMutationResult = NonNullable<Awaited<ReturnType<typeof fullMonitoringCheck>>>
+
+    export type FullMonitoringCheckMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Evaluate every monitoring alert category on demand — watchlist targets, risk caps, symbol-level signal changes, portfolio drift/ concentration, and Opportunity Alerts (saved-screen matches) — and persist any newly-triggered alerts (never fabricated; a no-op honestly returns an empty array when nothing is newly triggered or alerts are disabled)
+ */
+export const useFullMonitoringCheck = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fullMonitoringCheck>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof fullMonitoringCheck>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getFullMonitoringCheckMutationOptions(options));
+    }
+
+export const getGetAlertNotesUrl = (params?: GetAlertNotesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/monitoring-engine/alert-notes?${stringifiedParams}` : `/api/monitoring-engine/alert-notes`
+}
+
+/**
+ * @summary List the calling user's alert notes, newest first (optionally filtered by ?notificationId= or ?symbol=)
+ */
+export const getAlertNotes = async (params?: GetAlertNotesParams, options?: RequestInit): Promise<MonitoringAlertNote[]> => {
+
+  return customFetch<MonitoringAlertNote[]>(getGetAlertNotesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAlertNotesQueryKey = (params?: GetAlertNotesParams,) => {
+    return [
+    `/api/monitoring-engine/alert-notes`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAlertNotesQueryOptions = <TData = Awaited<ReturnType<typeof getAlertNotes>>, TError = ErrorType<unknown>>(params?: GetAlertNotesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAlertNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAlertNotesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAlertNotes>>> = ({ signal }) => getAlertNotes(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAlertNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAlertNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getAlertNotes>>>
+export type GetAlertNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's alert notes, newest first (optionally filtered by ?notificationId= or ?symbol=)
+ */
+
+export function useGetAlertNotes<TData = Awaited<ReturnType<typeof getAlertNotes>>, TError = ErrorType<unknown>>(
+ params?: GetAlertNotesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAlertNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAlertNotesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddAlertNoteUrl = () => {
+
+
+
+
+  return `/api/monitoring-engine/alert-notes`
+}
+
+/**
+ * @summary Add a note on an alert (free text, never AI-generated)
+ */
+export const addAlertNote = async (monitoringAlertNoteCreate: MonitoringAlertNoteCreate, options?: RequestInit): Promise<MonitoringAlertNote> => {
+
+  return customFetch<MonitoringAlertNote>(getAddAlertNoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      monitoringAlertNoteCreate,)
+  }
+);}
+
+
+
+
+export const getAddAlertNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAlertNote>>, TError,{data: BodyType<MonitoringAlertNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addAlertNote>>, TError,{data: BodyType<MonitoringAlertNoteCreate>}, TContext> => {
+
+const mutationKey = ['addAlertNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addAlertNote>>, {data: BodyType<MonitoringAlertNoteCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addAlertNote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddAlertNoteMutationResult = NonNullable<Awaited<ReturnType<typeof addAlertNote>>>
+    export type AddAlertNoteMutationBody = BodyType<MonitoringAlertNoteCreate>
+    export type AddAlertNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add a note on an alert (free text, never AI-generated)
+ */
+export const useAddAlertNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAlertNote>>, TError,{data: BodyType<MonitoringAlertNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addAlertNote>>,
+        TError,
+        {data: BodyType<MonitoringAlertNoteCreate>},
+        TContext
+      > => {
+      return useMutation(getAddAlertNoteMutationOptions(options));
+    }
+
+export const getUpdateAlertNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/monitoring-engine/alert-notes/${id}`
+}
+
+/**
+ * @summary Update an alert note
+ */
+export const updateAlertNote = async (id: number,
+    monitoringAlertNoteUpdate: MonitoringAlertNoteUpdate, options?: RequestInit): Promise<MonitoringAlertNote> => {
+
+  return customFetch<MonitoringAlertNote>(getUpdateAlertNoteUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      monitoringAlertNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateAlertNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAlertNote>>, TError,{id: number;data: BodyType<MonitoringAlertNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAlertNote>>, TError,{id: number;data: BodyType<MonitoringAlertNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updateAlertNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAlertNote>>, {id: number;data: BodyType<MonitoringAlertNoteUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAlertNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAlertNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateAlertNote>>>
+    export type UpdateAlertNoteMutationBody = BodyType<MonitoringAlertNoteUpdate>
+    export type UpdateAlertNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update an alert note
+ */
+export const useUpdateAlertNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAlertNote>>, TError,{id: number;data: BodyType<MonitoringAlertNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAlertNote>>,
+        TError,
+        {id: number;data: BodyType<MonitoringAlertNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateAlertNoteMutationOptions(options));
+    }
+
+export const getDeleteAlertNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/monitoring-engine/alert-notes/${id}`
+}
+
+/**
+ * @summary Delete an alert note
+ */
+export const deleteAlertNote = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteAlertNoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAlertNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAlertNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAlertNote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAlertNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAlertNote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAlertNote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAlertNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAlertNote>>>
+
+    export type DeleteAlertNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an alert note
+ */
+export const useDeleteAlertNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAlertNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAlertNote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAlertNoteMutationOptions(options));
     }
 
 export const getListWorkspacesUrl = () => {

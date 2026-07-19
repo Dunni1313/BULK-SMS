@@ -3915,6 +3915,18 @@ export type PlatformNotificationType = typeof PlatformNotificationType[keyof typ
 export const PlatformNotificationType = {
   watchlist_target_crossed: 'watchlist_target_crossed',
   risk_cap_breached: 'risk_cap_breached',
+  decision_change: 'decision_change',
+  valuation_change: 'valuation_change',
+  quality_change: 'quality_change',
+  committee_change: 'committee_change',
+  tomnash_change: 'tomnash_change',
+  financial_deterioration: 'financial_deterioration',
+  dividend_change: 'dividend_change',
+  earnings_alert: 'earnings_alert',
+  portfolio_drift: 'portfolio_drift',
+  sector_concentration_breach: 'sector_concentration_breach',
+  position_sizing_breach: 'position_sizing_breach',
+  opportunity_match: 'opportunity_match',
 } as const;
 
 export type PlatformNotificationDataSource = typeof PlatformNotificationDataSource[keyof typeof PlatformNotificationDataSource];
@@ -3923,6 +3935,15 @@ export type PlatformNotificationDataSource = typeof PlatformNotificationDataSour
 export const PlatformNotificationDataSource = {
   SIMULATED: 'SIMULATED',
   LIVE: 'LIVE',
+} as const;
+
+export type PlatformNotificationSeverity = typeof PlatformNotificationSeverity[keyof typeof PlatformNotificationSeverity];
+
+
+export const PlatformNotificationSeverity = {
+  info: 'info',
+  warning: 'warning',
+  critical: 'critical',
 } as const;
 
 export interface PlatformNotification {
@@ -3934,11 +3955,42 @@ export interface PlatformNotification {
   /** @nullable */
   relatedSymbol: string | null;
   isRead: boolean;
+  severity: PlatformNotificationSeverity;
+  /** @nullable */
+  previousValue: string | null;
+  /** @nullable */
+  currentValue: string | null;
+  evidence: string[];
+  /** @nullable */
+  recommendedAction: string | null;
   createdAt: string;
 }
 
 export interface PlatformNotificationUpdate {
   isRead: boolean;
+}
+
+export interface MonitoringAlertNote {
+  id: number;
+  /** @nullable */
+  notificationId: number | null;
+  /** @nullable */
+  symbol: string | null;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MonitoringAlertNoteCreate {
+  /** @nullable */
+  notificationId?: number | null;
+  /** @nullable */
+  symbol?: string | null;
+  note: string;
+}
+
+export interface MonitoringAlertNoteUpdate {
+  note: string;
 }
 
 export type WorkspaceWidgetConfigEntrySize = typeof WorkspaceWidgetConfigEntrySize[keyof typeof WorkspaceWidgetConfigEntrySize];
@@ -7218,6 +7270,11 @@ export const GetAutoAdjustmentLogDecision = {
   rejected: 'rejected',
   blocked: 'blocked',
 } as const;
+
+export type GetAlertNotesParams = {
+notificationId?: number;
+symbol?: string;
+};
 
 export type GetPerformanceAnalyticsParams = {
 period?: GetPerformanceAnalyticsPeriod;

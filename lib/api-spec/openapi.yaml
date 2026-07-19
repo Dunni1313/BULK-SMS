@@ -1757,6 +1757,119 @@ paths:
         "404":
           description: Notification not found
 
+  # Phase 16 — Institutional Monitoring & Alerts Engine. A broader on-demand
+  # check than /notifications/check: also runs Opportunity Alerts (a full
+  # scan against every saved screen), deliberately excluded from the
+  # automatic background tick per lib/monitoringEngine.ts's own disclosed
+  # cost-control discipline.
+  /monitoring-engine/check:
+    post:
+      operationId: fullMonitoringCheck
+      tags: [notifications]
+      summary: >-
+        Evaluate every monitoring alert category on demand — watchlist
+        targets, risk caps, symbol-level signal changes, portfolio drift/
+        concentration, and Opportunity Alerts (saved-screen matches) — and
+        persist any newly-triggered alerts (never fabricated; a no-op
+        honestly returns an empty array when nothing is newly triggered or
+        alerts are disabled)
+      responses:
+        "200":
+          description: Newly created notifications (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlatformNotification"
+
+  /monitoring-engine/alert-notes:
+    get:
+      operationId: getAlertNotes
+      tags: [notifications]
+      summary: List the calling user's alert notes, newest first (optionally filtered by ?notificationId= or ?symbol=)
+      parameters:
+        - name: notificationId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: symbol
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Alert notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonitoringAlertNote"
+    post:
+      operationId: addAlertNote
+      tags: [notifications]
+      summary: Add a note on an alert (free text, never AI-generated)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonitoringAlertNoteCreate"
+      responses:
+        "200":
+          description: Created note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringAlertNote"
+
+  /monitoring-engine/alert-notes/{id}:
+    patch:
+      operationId: updateAlertNote
+      tags: [notifications]
+      summary: Update an alert note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonitoringAlertNoteUpdate"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringAlertNote"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteAlertNote
+      tags: [notifications]
+      summary: Delete an alert note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
   # Phase 10 — Institutional Platform Polish & Control Center. Backs both
   # the Workspace System (named, saved widget layouts) and the Personal
   # Dashboard (pin/hide/reorder/resize widgets on the Institutional Home
@@ -7986,12 +8099,28 @@ components:
     # ─── Notifications (Platform, Phase 4 Sprint 56) ────────────────────────────
     PlatformNotification:
       type: object
-      required: [id, type, title, message, dataSource, relatedSymbol, isRead, createdAt]
+      required: [id, type, title, message, dataSource, relatedSymbol, isRead, severity, previousValue, currentValue, evidence, recommendedAction, createdAt]
       properties:
         id: { type: integer }
         type:
           type: string
-          enum: [watchlist_target_crossed, risk_cap_breached]
+          enum:
+            [
+              watchlist_target_crossed,
+              risk_cap_breached,
+              decision_change,
+              valuation_change,
+              quality_change,
+              committee_change,
+              tomnash_change,
+              financial_deterioration,
+              dividend_change,
+              earnings_alert,
+              portfolio_drift,
+              sector_concentration_breach,
+              position_sizing_breach,
+              opportunity_match,
+            ]
         title: { type: string }
         message: { type: string }
         dataSource:
@@ -7999,6 +8128,13 @@ components:
           enum: [SIMULATED, LIVE]
         relatedSymbol: { type: ["string", "null"] }
         isRead: { type: boolean }
+        severity:
+          type: string
+          enum: [info, warning, critical]
+        previousValue: { type: ["string", "null"] }
+        currentValue: { type: ["string", "null"] }
+        evidence: { type: array, items: { type: string } }
+        recommendedAction: { type: ["string", "null"] }
         createdAt: { type: string }
 
     PlatformNotificationUpdate:
@@ -8006,6 +8142,32 @@ components:
       required: [isRead]
       properties:
         isRead: { type: boolean }
+
+    # Phase 16 — Institutional Monitoring & Alerts Engine.
+    MonitoringAlertNote:
+      type: object
+      required: [id, notificationId, symbol, note, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        notificationId: { type: ["integer", "null"] }
+        symbol: { type: ["string", "null"] }
+        note: { type: string }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    MonitoringAlertNoteCreate:
+      type: object
+      required: [note]
+      properties:
+        notificationId: { type: ["integer", "null"] }
+        symbol: { type: ["string", "null"] }
+        note: { type: string }
+
+    MonitoringAlertNoteUpdate:
+      type: object
+      required: [note]
+      properties:
+        note: { type: string }
 
     # ─── Dashboard Workspaces (Phase 10) ────────────────────────────────────
     WorkspaceWidgetConfigEntry:
