@@ -331,6 +331,13 @@ function WorkspaceLeftSidebar({ symbol, onSelectSymbol }: { symbol: string; onSe
         >
           Open Investment Committee →
         </Link>
+        <Link
+          href={symbol ? `/research-terminal?symbol=${symbol}` : "/research-terminal"}
+          className="text-xs text-primary hover:underline block mt-1"
+          data-testid="workspace-research-terminal-link"
+        >
+          Open Research Terminal →
+        </Link>
       </SidebarSection>
 
       <SidebarSection title="Portfolio" icon={<Briefcase className="w-3 h-3" />}>

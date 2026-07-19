@@ -353,6 +353,15 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedLessonKeys: [],
   },
   {
+    key: "research-terminal",
+    term: "Institutional Research Terminal",
+    category: "portfolio",
+    definition:
+      "A professional, multi-panel research workspace unifying every existing Engine 1 capability into one screen: Company Search, an Analyse mode (Overview, Financial Statements, Decision Engine, Investment Committee, Investment Memo, Portfolio Impact, Monitoring, Evidence, and Research Notes tabs), a Compare mode (side-by-side valuation across any number of symbols, reusing Opportunity Discovery's own comparison engine), and a Split-screen mode (two full research panels side by side). Named layouts (which symbols are open, which mode, which tab) can be saved for later. Every figure shown is a direct reuse of an already-computed engine — no new valuation model, no new score.",
+    relatedTermKeys: ["investment-committee-workbench", "portfolio-optimisation"],
+    relatedLessonKeys: [],
+  },
+  {
     key: "correlation",
     term: "Correlation",
     category: "portfolio",

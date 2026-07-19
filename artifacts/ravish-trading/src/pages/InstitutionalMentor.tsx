@@ -406,6 +406,9 @@ export default function InstitutionalMentor() {
                   <Link href="/stock-analyst/investment-committee" className="text-xs font-medium text-primary hover:underline" data-testid="link-portfolio-review-committee">
                     Open Investment Committee →
                   </Link>
+                  <Link href="/research-terminal" className="text-xs font-medium text-primary hover:underline" data-testid="link-portfolio-review-terminal">
+                    Open Research Terminal →
+                  </Link>
                 </div>
               )}
             </CardContent>

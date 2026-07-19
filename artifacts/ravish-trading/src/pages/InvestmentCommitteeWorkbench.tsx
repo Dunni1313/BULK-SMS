@@ -274,6 +274,13 @@ export default function InvestmentCommitteeWorkbench() {
                 {portfolioId && analyzedPortfolioName && (
                   <span className="text-xs text-muted-foreground">vs. {analyzedPortfolioName}</span>
                 )}
+                <Link
+                  href={`/research-terminal?symbol=${decision.symbol}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`}
+                  className="text-xs text-primary hover:underline"
+                  data-testid="link-research-terminal"
+                >
+                  Open Research Terminal →
+                </Link>
               </div>
               <Button size="sm" onClick={handleRecordDecision} className="gap-1.5" data-testid="button-record-decision">
                 <Save className="w-4 h-4" /> Record Committee Decision

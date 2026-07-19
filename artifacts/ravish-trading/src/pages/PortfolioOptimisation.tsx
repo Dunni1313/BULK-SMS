@@ -140,6 +140,13 @@ function CandidateCard({
           >
             Review in Committee →
           </Link>
+          <Link
+            href={`/research-terminal?symbol=${candidate.symbol}&portfolioId=${portfolioId}`}
+            className="text-[11px] text-primary hover:underline"
+            data-testid={`open-terminal-${candidate.symbol}`}
+          >
+            Open in Terminal →
+          </Link>
         </div>
       </div>
       <p className="text-xs text-muted-foreground mt-1">{candidate.reason}</p>

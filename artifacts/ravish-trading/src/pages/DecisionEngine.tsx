@@ -281,13 +281,20 @@ export default function DecisionEngine() {
                     Confidence {decision.confidence}/100
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground flex flex-wrap gap-x-3">
                   <Link
                     href={`/stock-analyst/investment-committee?symbol=${decision.symbol}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`}
                     className="text-primary hover:underline"
                     data-testid="link-investment-committee"
                   >
                     Open Investment Committee Workbench →
+                  </Link>
+                  <Link
+                    href={`/research-terminal?symbol=${decision.symbol}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`}
+                    className="text-primary hover:underline"
+                    data-testid="link-research-terminal"
+                  >
+                    Open Research Terminal →
                   </Link>
                 </p>
                 {portfolioId && analyzedPortfolioName && (

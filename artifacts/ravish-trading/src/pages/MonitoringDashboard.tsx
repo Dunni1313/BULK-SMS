@@ -220,13 +220,22 @@ function AlertCard({
             Notes
           </Button>
           {alert.relatedSymbol && (
-            <Link
-              href={`/stock-analyst/investment-committee?symbol=${alert.relatedSymbol}`}
-              className="text-xs text-primary hover:underline"
-              data-testid={`link-committee-${alert.id}`}
-            >
-              Review in Committee →
-            </Link>
+            <>
+              <Link
+                href={`/stock-analyst/investment-committee?symbol=${alert.relatedSymbol}`}
+                className="text-xs text-primary hover:underline"
+                data-testid={`link-committee-${alert.id}`}
+              >
+                Review in Committee →
+              </Link>
+              <Link
+                href={`/research-terminal?symbol=${alert.relatedSymbol}`}
+                className="text-xs text-primary hover:underline"
+                data-testid={`link-terminal-${alert.id}`}
+              >
+                Open in Terminal →
+              </Link>
+            </>
           )}
         </div>
       </CardContent>
