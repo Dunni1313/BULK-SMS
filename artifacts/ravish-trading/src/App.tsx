@@ -61,6 +61,7 @@ const CrossEngineDailyReport = lazy(() => import("./pages/CrossEngineDailyReport
 const StockScanner = lazy(() => import("./pages/StockScanner"));
 const PortfolioConstruction = lazy(() => import("./pages/PortfolioConstruction"));
 const DecisionEngine = lazy(() => import("./pages/DecisionEngine"));
+const OpportunityDiscovery = lazy(() => import("./pages/OpportunityDiscovery"));
 const ValueInvestingSchool = lazy(() => import("./pages/ValueInvestingSchool"));
 const PaperTradingReconciliation = lazy(() => import("./pages/PaperTradingReconciliation"));
 const PaperPortfolio = lazy(() => import("./pages/PaperPortfolio"));
@@ -145,6 +146,7 @@ function Router() {
           <Route path="/trade-journal-ai" component={AITradeJournal} />
           <Route path="/institutional-mentor" component={InstitutionalMentor} />
           <Route path="/decision-engine" component={DecisionEngine} />
+          <Route path="/opportunity-discovery" component={OpportunityDiscovery} />
           <Route path="/daily-report" component={CrossEngineDailyReport} />
           <Route path="/trading-research" component={TradingResearch} />
           <Route path="/trading-journal" component={TradingJournal} />

@@ -55,6 +55,7 @@ import {
   Bell,
   Server,
   Gavel,
+  Telescope,
 } from "lucide-react";
 
 export interface NavItem {
@@ -91,6 +92,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },
   { title: "Institutional Mentor", href: "/institutional-mentor", icon: Landmark },
   { title: "Decision Engine", href: "/decision-engine", icon: Gavel },
+  { title: "Opportunity Discovery", href: "/opportunity-discovery", icon: Telescope },
   { title: "Daily Report", href: "/daily-report", icon: Newspaper },
   { title: "Trading Research", href: "/trading-research", icon: Activity },
   { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
