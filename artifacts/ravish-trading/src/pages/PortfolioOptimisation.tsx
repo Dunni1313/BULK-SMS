@@ -133,6 +133,13 @@ function CandidateCard({
           <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setExpanded((v) => !v)} data-testid={`toggle-evidence-${candidate.symbol}`}>
             {expanded ? "Hide Evidence" : "Show Evidence"}
           </Button>
+          <Link
+            href={`/stock-analyst/investment-committee?symbol=${candidate.symbol}&portfolioId=${portfolioId}`}
+            className="text-[11px] text-primary hover:underline"
+            data-testid={`review-in-committee-${candidate.symbol}`}
+          >
+            Review in Committee →
+          </Link>
         </div>
       </div>
       <p className="text-xs text-muted-foreground mt-1">{candidate.reason}</p>

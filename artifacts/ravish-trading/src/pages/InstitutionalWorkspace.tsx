@@ -73,6 +73,7 @@ import {
   Bell,
   GitCompare,
   Landmark,
+  Users2,
 } from "lucide-react";
 
 const RESEARCH_TABS = [
@@ -320,6 +321,16 @@ function WorkspaceLeftSidebar({ symbol, onSelectSymbol }: { symbol: string; onSe
             ))}
           </div>
         )}
+      </SidebarSection>
+
+      <SidebarSection title="Investment Committee" icon={<Users2 className="w-3 h-3" />}>
+        <Link
+          href={symbol ? `/stock-analyst/investment-committee?symbol=${symbol}` : "/stock-analyst/investment-committee"}
+          className="text-xs text-primary hover:underline block"
+          data-testid="workspace-investment-committee-link"
+        >
+          Open Investment Committee →
+        </Link>
       </SidebarSection>
 
       <SidebarSection title="Portfolio" icon={<Briefcase className="w-3 h-3" />}>

@@ -344,6 +344,15 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedLessonKeys: [],
   },
   {
+    key: "investment-committee-workbench",
+    term: "Investment Committee Workbench",
+    category: "portfolio",
+    definition:
+      "A single, sequential review workflow — select a company, review its research/valuation/Decision Engine/Portfolio Optimisation/Monitoring outputs, generate a deterministic Investment Memo, and record a Committee decision — all reused from already-computed engines. The Investment Memo assembles 14 sections (Business Summary through Conclusion) entirely from existing outputs; a recorded Committee decision is the same Decision Engine snapshot already used for Decision Timeline / Meeting History elsewhere in the platform. Never a new valuation model, never a new score.",
+    relatedTermKeys: ["portfolio-optimisation"],
+    relatedLessonKeys: [],
+  },
+  {
     key: "correlation",
     term: "Correlation",
     category: "portfolio",

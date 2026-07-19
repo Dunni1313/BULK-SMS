@@ -51,7 +51,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Plus, Trash2, Star, Save, Pencil, Gavel, Building2 } from "lucide-react";
+import { Briefcase, Plus, Trash2, Star, Save, Pencil, Gavel, Building2, Users } from "lucide-react";
 
 const fmtUsd = (n: number) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -639,6 +639,17 @@ export default function PortfolioConstruction() {
                                     data-testid={`decision-link-${h.symbol}`}
                                   >
                                     <Gavel className="w-3 h-3" />
+                                  </Button>
+                                </Link>
+                                <Link href={`/stock-analyst/investment-committee?symbol=${h.symbol}&portfolioId=${selectedId}`}>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-6 w-6 text-muted-foreground hover:text-indigo-400"
+                                    aria-label={`Review ${h.symbol} in the Investment Committee`}
+                                    data-testid={`committee-link-${h.symbol}`}
+                                  >
+                                    <Users className="w-3 h-3" />
                                   </Button>
                                 </Link>
                                 <Button

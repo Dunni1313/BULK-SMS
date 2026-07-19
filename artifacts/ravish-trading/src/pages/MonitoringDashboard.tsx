@@ -21,6 +21,7 @@
 // Educational, Deterministic, Evidence Based.
 
 import { useMemo, useState } from "react";
+import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListNotifications,
@@ -218,6 +219,15 @@ function AlertCard({
             <StickyNote className="h-4 w-4 mr-1" />
             Notes
           </Button>
+          {alert.relatedSymbol && (
+            <Link
+              href={`/stock-analyst/investment-committee?symbol=${alert.relatedSymbol}`}
+              className="text-xs text-primary hover:underline"
+              data-testid={`link-committee-${alert.id}`}
+            >
+              Review in Committee →
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>

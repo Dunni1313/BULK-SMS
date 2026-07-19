@@ -273,6 +273,13 @@ export default function OpportunityDiscovery() {
                 Review Portfolio Optimisation →
               </Link>
             )}
+            <Link
+              href="/stock-analyst/investment-committee"
+              className="text-xs text-primary hover:underline self-center"
+              data-testid="link-investment-committee"
+            >
+              Open Investment Committee →
+            </Link>
           </div>
           <div className="flex gap-2">
             <Button data-testid="button-run-scan" onClick={runScan} disabled={scan.isPending}>
