@@ -46,6 +46,7 @@ import {
   GetMacroContextResponse,
   NarrateInvestmentCommitteeBody,
   NarrateInvestmentCommitteeResponse,
+  GetAllResearchNotesResponse,
   GetResearchNotesResponse,
   AddResearchNoteBody,
   AddResearchNoteResponse,
@@ -756,6 +757,24 @@ function researchNoteItem(r: typeof investingResearchNotesTable.$inferSelect) {
     updatedAt: r.updatedAt.toISOString(),
   };
 }
+
+// Phase 17 — Institutional Workspace. The only genuine backend gap this
+// phase found: no way to list a user's own research notes across every
+// symbol (only a per-symbol lookup existed). Needed for the Workspace's
+// left-sidebar "Notes" section — reuses the exact same researchNoteItem()
+// formatter and table, zero new business logic, just a missing filter-free
+// read. Declared before the parameterized /research-notes/:symbol route in
+// this file for readability only — Express matches these as distinct paths
+// regardless of declaration order (different segment counts).
+router.get("/research-notes", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const rows = await db
+    .select()
+    .from(investingResearchNotesTable)
+    .where(eq(investingResearchNotesTable.userId, userId))
+    .orderBy(desc(investingResearchNotesTable.createdAt));
+  res.json(GetAllResearchNotesResponse.parse(rows.map(researchNoteItem)));
+});
 
 router.get("/research-notes/:symbol", async (req, res): Promise<void> => {
   const userId = await getScopedUserId(req);

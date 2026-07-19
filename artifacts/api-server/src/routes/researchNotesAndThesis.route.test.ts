@@ -120,6 +120,36 @@ describe("Research Notes + Investment Thesis routes (live, SIMULATED path)", () 
     });
   });
 
+  // Phase 17 — Institutional Workspace. The one genuine backend gap that
+  // phase's audit found: no way to list a user's own research notes across
+  // every symbol (only a per-symbol lookup existed before). Reuses the
+  // exact same table/formatter as the CRUD above — zero new business logic.
+  describe("GET /stock-analyst/research-notes (list all, across symbols)", () => {
+    it("includes notes for two different symbols, newest first, and never a note belonging to a different symbol filter", async () => {
+      const symbolA = "RNPD";
+      const symbolB = "RNPE";
+
+      await fetch(`${baseUrl}/api/stock-analyst/research-notes`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ symbol: symbolA, note: "Note for symbol A." }),
+      });
+      const createdB = await fetch(`${baseUrl}/api/stock-analyst/research-notes`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ symbol: symbolB, note: "Note for symbol B." }),
+      });
+      const bItem = (await createdB.json()) as ResearchNoteItem;
+
+      const res = await fetch(`${baseUrl}/api/stock-analyst/research-notes`);
+      expect(res.status).toBe(200);
+      const all = (await res.json()) as ResearchNoteItem[];
+      expect(all[0].id).toBe(bItem.id);
+      expect(all.some((n) => n.symbol === symbolA)).toBe(true);
+      expect(all.some((n) => n.symbol === symbolB)).toBe(true);
+    });
+  });
+
   describe("GET /stock-analyst/investment-thesis/:symbol", () => {
     it("resolves a well-shaped, deterministic thesis for a known symbol", async () => {
       const res = await fetch(`${baseUrl}/api/stock-analyst/investment-thesis/AAPL`);

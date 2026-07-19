@@ -2502,6 +2502,19 @@ paths:
                   $ref: "#/components/schemas/ResearchNoteItem"
 
   /stock-analyst/research-notes:
+    get:
+      operationId: getAllResearchNotes
+      tags: [value]
+      summary: List all of the calling user's research notes, across every symbol, newest first
+      responses:
+        "200":
+          description: Research notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResearchNoteItem"
     post:
       operationId: addResearchNote
       tags: [value]

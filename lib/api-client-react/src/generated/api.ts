@@ -9634,6 +9634,83 @@ export function useGetResearchNotes<TData = Awaited<ReturnType<typeof getResearc
 
 
 
+export const getGetAllResearchNotesUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/research-notes`
+}
+
+/**
+ * @summary List all of the calling user's research notes, across every symbol, newest first
+ */
+export const getAllResearchNotes = async ( options?: RequestInit): Promise<ResearchNoteItem[]> => {
+
+  return customFetch<ResearchNoteItem[]>(getGetAllResearchNotesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAllResearchNotesQueryKey = () => {
+    return [
+    `/api/stock-analyst/research-notes`
+    ] as const;
+    }
+
+
+export const getGetAllResearchNotesQueryOptions = <TData = Awaited<ReturnType<typeof getAllResearchNotes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllResearchNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAllResearchNotesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllResearchNotes>>> = ({ signal }) => getAllResearchNotes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllResearchNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAllResearchNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getAllResearchNotes>>>
+export type GetAllResearchNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all of the calling user's research notes, across every symbol, newest first
+ */
+
+export function useGetAllResearchNotes<TData = Awaited<ReturnType<typeof getAllResearchNotes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllResearchNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAllResearchNotesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getAddResearchNoteUrl = () => {
 
 

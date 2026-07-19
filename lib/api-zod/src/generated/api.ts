@@ -5675,6 +5675,19 @@ export const GetResearchNotesResponse = zod.array(GetResearchNotesResponseItem)
 
 
 /**
+ * @summary List all of the calling user's research notes, across every symbol, newest first
+ */
+export const GetAllResearchNotesResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const GetAllResearchNotesResponse = zod.array(GetAllResearchNotesResponseItem)
+
+
+/**
  * @summary Add a research note for a symbol (free text, never AI-generated)
  */
 export const AddResearchNoteBody = zod.object({
