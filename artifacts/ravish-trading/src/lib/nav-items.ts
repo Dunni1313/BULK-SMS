@@ -105,6 +105,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Value Research", href: "/stock-analyst", icon: Building2 },
   { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
   { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },
+  { title: "Portfolio Optimisation", href: "/stock-analyst/portfolio-optimisation", icon: Scale },
   { title: "Paper Portfolio", href: "/paper-portfolio", icon: Wallet },
   { title: "Trade History", href: "/trade-history", icon: Clock },
   { title: "Trade Performance", href: "/trade-performance", icon: ChartColumn },
