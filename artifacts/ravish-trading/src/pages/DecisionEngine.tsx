@@ -294,6 +294,13 @@ export default function DecisionEngine() {
                     Open Investment Committee Workbench →
                   </Link>
                   <Link
+                    href={`/reporting-centre?reportType=investment-committee&symbol=${decision.symbol}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`}
+                    className="text-primary hover:underline"
+                    data-testid="link-generate-report"
+                  >
+                    Generate Report →
+                  </Link>
+                  <Link
                     href={`/research-terminal?symbol=${decision.symbol}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`}
                     className="text-primary hover:underline"
                     data-testid="link-research-terminal"

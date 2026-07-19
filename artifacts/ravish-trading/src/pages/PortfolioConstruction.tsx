@@ -466,6 +466,15 @@ export default function PortfolioConstruction() {
                   Open Portfolio Optimisation →
                 </Link>
               )}
+              {detail && (
+                <Link
+                  href={`/reporting-centre?reportType=portfolio-health&portfolioId=${detail.id}`}
+                  className="text-xs font-medium text-primary hover:underline shrink-0"
+                  data-testid="link-generate-report"
+                >
+                  Generate Report →
+                </Link>
+              )}
             </div>
             {detail?.description && <CardDescription className="text-[11px]">{detail.description}</CardDescription>}
           </CardHeader>

@@ -314,6 +314,11 @@ export default function PortfolioOptimisation() {
                 Open in Portfolio Manager →
               </Link>
             )}
+            {selectedId != null && (
+              <Link href={`/reporting-centre?reportType=portfolio-review&portfolioId=${selectedId}`} className="text-xs text-primary hover:underline" data-testid="link-generate-report">
+                Generate Report →
+              </Link>
+            )}
           </div>
         </CardContent>
       </Card>

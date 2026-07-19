@@ -88,6 +88,9 @@ export default function InstitutionalAICoach() {
             Evidence Based
           </Badge>
         </div>
+        <Link href="/reporting-centre?reportType=ai-coach-summary" className="text-xs text-primary hover:underline" data-testid="link-generate-report">
+          Generate Report →
+        </Link>
       </div>
 
       <Card className="bg-card border-border">

@@ -505,6 +505,13 @@ function WorkspaceMainResearchArea({
         </div>
         <div className="flex items-center gap-2">
           <CoachDrawer symbol={report.symbol} coach="investment" />
+          <Link
+            href={`/reporting-centre?reportType=company-research&symbol=${report.symbol}`}
+            className="text-xs text-primary hover:underline"
+            data-testid="link-generate-report"
+          >
+            Generate Report →
+          </Link>
           <Button
             size="sm"
             variant="outline"

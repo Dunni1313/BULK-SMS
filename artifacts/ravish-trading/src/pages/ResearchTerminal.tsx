@@ -302,6 +302,13 @@ function SymbolPanel({
           <Link href={`/workspace?symbol=${report.symbol}`} className="text-xs text-primary hover:underline" data-testid={`open-workspace-${symbol}`}>
             Open Workspace →
           </Link>
+          <Link
+            href={`/reporting-centre?reportType=company-research&symbol=${report.symbol}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`}
+            className="text-xs text-primary hover:underline"
+            data-testid={`link-generate-report-${symbol}`}
+          >
+            Generate Report →
+          </Link>
           {onClose && (
             <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onClose} aria-label={`Close ${symbol}`} data-testid={`close-panel-${symbol}`}>
               <X className="w-3.5 h-3.5" />

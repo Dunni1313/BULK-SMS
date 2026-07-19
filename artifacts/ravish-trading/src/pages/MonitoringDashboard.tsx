@@ -311,6 +311,9 @@ export default function MonitoringDashboard() {
           existing engines — never a new scoring model. Every alert states its reason, evidence, previous value,
           current value, severity, and a recommended action.
         </p>
+        <Link href="/reporting-centre?reportType=monitoring-summary" className="text-xs text-primary hover:underline" data-testid="link-generate-report">
+          Generate Report →
+        </Link>
       </div>
 
       <Card className="bg-card border-border">

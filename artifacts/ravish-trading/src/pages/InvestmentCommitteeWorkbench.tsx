@@ -308,6 +308,15 @@ export default function InvestmentCommitteeWorkbench() {
                     {symbol && <CoachDrawer symbol={symbol} coach="committee" portfolioId={portfolioId} />}
                   </CardTitle>
                   <CardDescription>{memo.overview}</CardDescription>
+                  {symbol && (
+                    <Link
+                      href={`/reporting-centre?reportType=investment-committee&symbol=${symbol}${portfolioId ? `&portfolioId=${portfolioId}` : ""}`}
+                      className="text-xs text-primary hover:underline"
+                      data-testid="link-generate-report"
+                    >
+                      Generate Report →
+                    </Link>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-4" data-testid="memo-content">
                   {memo.sections.map((s) => (
