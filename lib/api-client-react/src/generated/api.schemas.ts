@@ -1520,6 +1520,158 @@ export interface ConstructionPortfolioNoteUpdate {
   note: string;
 }
 
+export interface OptimisationEvidenceMetric {
+  label: string;
+  value: string;
+}
+
+export interface OptimisationEvidence {
+  metrics: OptimisationEvidenceMetric[];
+  decisionEngineRecommendation: string;
+  investmentCommitteeRecommendation: string;
+  rankExplanation: string;
+  portfolioImpact: string;
+  riskImpact: string;
+  diversificationImpact: string;
+}
+
+export type OptimisationPositionRowAction = typeof OptimisationPositionRowAction[keyof typeof OptimisationPositionRowAction];
+
+
+export const OptimisationPositionRowAction = {
+  exit: 'exit',
+  trim: 'trim',
+  upgrade: 'upgrade',
+  core: 'core',
+} as const;
+
+export interface OptimisationPositionRow {
+  symbol: string;
+  name: string;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  weightPct: number | null;
+  /** @nullable */
+  qualityScore: number | null;
+  valuationRating: string;
+  investmentCommitteeVerdict: string;
+  decisionRecommendation: string;
+  rankScore: number;
+  action: OptimisationPositionRowAction;
+  actionReason: string;
+}
+
+export type OptimisationCandidateAction = typeof OptimisationCandidateAction[keyof typeof OptimisationCandidateAction];
+
+
+export const OptimisationCandidateAction = {
+  exit: 'exit',
+  trim: 'trim',
+  upgrade: 'upgrade',
+  core: 'core',
+} as const;
+
+export interface OptimisationCandidate {
+  symbol: string;
+  name: string;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  weightPct: number | null;
+  action: OptimisationCandidateAction;
+  reason: string;
+  evidence: OptimisationEvidence;
+}
+
+export interface OptimisationReplacementOpportunity {
+  /** @nullable */
+  forSymbol: string | null;
+  symbol: string;
+  name: string;
+  /** @nullable */
+  sector: string | null;
+  evidence: OptimisationEvidence;
+}
+
+export interface OptimisationCapitalAllocationSuggestion {
+  action: string;
+  detail: string;
+}
+
+export type PortfolioOptimisationAnalysisHealth = {
+  /** @nullable */
+  qualityScore: number | null;
+  qualityLabel: string;
+  /** @nullable */
+  capitalAllocationScore: number | null;
+  /** @nullable */
+  diversificationScore: number | null;
+  diversificationLabel: string;
+  /** @nullable */
+  overallRiskScore: number | null;
+  overallRiskLabel: string;
+  summary: string;
+};
+
+export type PortfolioOptimisationAnalysisDiversification = {
+  bySector: ConstructionAllocationSlice[];
+  byIndustry: ConstructionAllocationSlice[];
+  growthValueMix: ConstructionAllocationSlice[];
+  qualityMix: ConstructionAllocationSlice[];
+  /** @nullable */
+  largestPositionPct: number | null;
+  /** @nullable */
+  top10ExposurePct: number | null;
+};
+
+export interface PortfolioOptimisationAnalysis {
+  portfolioId: number;
+  health: PortfolioOptimisationAnalysisHealth;
+  concentration: ConstructionConcentrationRisk;
+  diversification: PortfolioOptimisationAnalysisDiversification;
+  positionQualityRanking: OptimisationPositionRow[];
+  upgradeCandidates: OptimisationCandidate[];
+  trimCandidates: OptimisationCandidate[];
+  exitCandidates: OptimisationCandidate[];
+  capitalAllocationSuggestions: OptimisationCapitalAllocationSuggestion[];
+  replacementOpportunities: OptimisationReplacementOpportunity[];
+  cashDeploymentSuggestions: OptimisationReplacementOpportunity[];
+  summary: string;
+  disclaimer: string;
+}
+
+/**
+ * A snapshot of the evidence shown when this review was saved
+ */
+export type OptimisationReviewEvidence = { [key: string]: unknown };
+
+export interface OptimisationReview {
+  id: number;
+  portfolioId: number;
+  /** @nullable */
+  symbol: string | null;
+  action: string;
+  note: string;
+  /** A snapshot of the evidence shown when this review was saved */
+  evidence?: OptimisationReviewEvidence;
+  createdAt: string;
+}
+
+/**
+ * A snapshot of the evidence shown when this review was saved
+ */
+export type OptimisationReviewCreateEvidence = { [key: string]: unknown };
+
+export interface OptimisationReviewCreate {
+  /** @nullable */
+  symbol?: string | null;
+  action: string;
+  note: string;
+  /** A snapshot of the evidence shown when this review was saved */
+  evidence?: OptimisationReviewCreateEvidence;
+}
+
 export type DecisionChecklistItemStatus = typeof DecisionChecklistItemStatus[keyof typeof DecisionChecklistItemStatus];
 
 

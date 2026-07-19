@@ -14,6 +14,7 @@ import {
   investingRiskSnapshotsTable,
   investingPortfolioSnapshotsTable,
   investingPortfolioNotesTable,
+  investingOptimisationReviewsTable,
   valueWatchlistTable,
 } from "@workspace/db";
 import { and, count, desc, eq } from "drizzle-orm";
@@ -43,11 +44,19 @@ import {
   UpdatePortfolioNoteBody,
   UpdatePortfolioNoteResponse,
   DeletePortfolioNoteResponse,
+  GetPortfolioOptimisationResponse,
+  GetOptimisationReviewsResponse,
+  AddOptimisationReviewBody,
+  AddOptimisationReviewResponse,
 } from "@workspace/api-zod";
 import { getFundamentalsProvider } from "../lib/fundamentals.js";
+import { resolveFundamentals } from "../lib/fundamentals.js";
+import { buildValueResearchReport } from "../lib/valueReport.js";
 import { buildPortfolioAllocation, type PortfolioHoldingInput } from "../lib/portfolioConstruction.js";
 import { computePortfolioRiskFromAllocation, type PortfolioRiskAnalysis } from "../lib/investingRisk.js";
 import { buildPortfolioIntelligence, compareWatchlistToPortfolio, type PreviousPortfolioSnapshot } from "../lib/portfolioIntelligence.js";
+import { scanOpportunities, buildOpportunityRow, type OpportunityRow } from "../lib/opportunityDiscovery.js";
+import { buildPortfolioOptimisation } from "../lib/portfolioOptimisation.js";
 import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
@@ -483,6 +492,117 @@ router.get("/portfolio-construction/portfolios/:id/intelligence", async (req, re
   const previousSnapshot = await resolvePreviousSnapshot(portfolioId, userId);
   const intelligence = await buildPortfolioIntelligence(resolved.holdingInputs, provider, previousSnapshot);
   res.json(GetPortfolioIntelligenceResponse.parse(intelligence));
+});
+
+// Phase 18 — Institutional Portfolio Optimisation Engine. Pure composition:
+// buildPortfolioIntelligence() (unmodified) supplies Portfolio Health/
+// Concentration/Diversification; buildOpportunityRow() (Phase 15, unmodified)
+// supplies each held symbol's own Decision Engine recommendation/Investment
+// Committee verdict/rankScore, resolved once per distinct held symbol;
+// scanOpportunities() (Phase 15, unmodified) supplies the wider universe used
+// for Replacement Opportunities/Cash Deployment. buildPortfolioOptimisation()
+// itself is pure and does no I/O — see lib/portfolioOptimisation.ts.
+router.get("/portfolio-construction/portfolios/:id/optimisation", async (req, res): Promise<void> => {
+  const portfolioId = Number(req.params.id);
+  if (!Number.isInteger(portfolioId)) {
+    res.status(400).json({ error: "Invalid portfolio id" });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const resolved = await resolveOwnedHoldings(portfolioId, userId);
+  if (!resolved) {
+    res.status(404).json({ error: "Portfolio not found" });
+    return;
+  }
+  const provider = await getFundamentalsProvider(userId);
+  const [intelligence, universeScan] = await Promise.all([
+    buildPortfolioIntelligence(resolved.holdingInputs, provider),
+    scanOpportunities(provider, undefined, userId),
+  ]);
+
+  const distinctHeldSymbols = [...new Set(resolved.holdingInputs.map((h) => h.symbol.toUpperCase()))];
+  const heldRowSettled = await Promise.all(
+    distinctHeldSymbols.map(async (symbol): Promise<OpportunityRow | null> => {
+      const f = await resolveFundamentals(provider, symbol).catch(() => null);
+      if (!f) return null;
+      const report = await buildValueResearchReport(symbol, f.asOf, provider, f, undefined, userId).catch(() => null);
+      if (!report) return null;
+      return buildOpportunityRow(f, report);
+    }),
+  );
+  const heldRows = heldRowSettled.filter((r): r is OpportunityRow => r !== null);
+
+  const optimisation = buildPortfolioOptimisation(portfolioId, intelligence, heldRows, universeScan.rows);
+  res.json(GetPortfolioOptimisationResponse.parse(optimisation));
+});
+
+function optimisationReviewItem(r: typeof investingOptimisationReviewsTable.$inferSelect) {
+  return {
+    id: r.id,
+    portfolioId: r.portfolioId,
+    symbol: r.symbol,
+    action: r.action,
+    note: r.note,
+    evidence: r.evidenceJson ?? undefined,
+    createdAt: r.createdAt.toISOString(),
+  };
+}
+
+router.get("/portfolio-construction/portfolios/:id/optimisation/reviews", async (req, res): Promise<void> => {
+  const portfolioId = Number(req.params.id);
+  if (!Number.isInteger(portfolioId)) {
+    res.status(400).json({ error: "Invalid portfolio id" });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [portfolio] = await db
+    .select({ id: investingPortfoliosTable.id })
+    .from(investingPortfoliosTable)
+    .where(and(eq(investingPortfoliosTable.id, portfolioId), eq(investingPortfoliosTable.userId, userId)));
+  if (!portfolio) {
+    res.status(404).json({ error: "Portfolio not found" });
+    return;
+  }
+  const rows = await db
+    .select()
+    .from(investingOptimisationReviewsTable)
+    .where(and(eq(investingOptimisationReviewsTable.portfolioId, portfolioId), eq(investingOptimisationReviewsTable.userId, userId)))
+    .orderBy(desc(investingOptimisationReviewsTable.createdAt));
+  res.json(GetOptimisationReviewsResponse.parse(rows.map(optimisationReviewItem)));
+});
+
+router.post("/portfolio-construction/portfolios/:id/optimisation/reviews", async (req, res): Promise<void> => {
+  const portfolioId = Number(req.params.id);
+  if (!Number.isInteger(portfolioId)) {
+    res.status(400).json({ error: "Invalid portfolio id" });
+    return;
+  }
+  const parsed = AddOptimisationReviewBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  const [portfolio] = await db
+    .select({ id: investingPortfoliosTable.id })
+    .from(investingPortfoliosTable)
+    .where(and(eq(investingPortfoliosTable.id, portfolioId), eq(investingPortfoliosTable.userId, userId)));
+  if (!portfolio) {
+    res.status(404).json({ error: "Portfolio not found" });
+    return;
+  }
+  const [row] = await db
+    .insert(investingOptimisationReviewsTable)
+    .values({
+      userId,
+      portfolioId,
+      symbol: parsed.data.symbol ?? null,
+      action: parsed.data.action,
+      note: parsed.data.note,
+      evidenceJson: parsed.data.evidence ?? null,
+    })
+    .returning();
+  res.json(AddOptimisationReviewResponse.parse(optimisationReviewItem(row)));
 });
 
 router.get("/portfolio-construction/portfolios/:id/watchlist-comparison", async (req, res): Promise<void> => {

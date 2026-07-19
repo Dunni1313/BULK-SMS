@@ -140,6 +140,8 @@ import type {
   OpportunitySavedScreenUpdate,
   OpportunityScanRequest,
   OpportunityScanResult,
+  OptimisationReview,
+  OptimisationReviewCreate,
   OptionChain,
   OptionsBacktestResult,
   OptionsRunBacktestInput,
@@ -155,6 +157,7 @@ import type {
   PortfolioEventRiskResult,
   PortfolioGreeks,
   PortfolioHealth,
+  PortfolioOptimisationAnalysis,
   PortfolioStressTestInput,
   PortfolioStressTestResult,
   PortfolioSummary,
@@ -13045,6 +13048,232 @@ export const useDeletePortfolioNote = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeletePortfolioNoteMutationOptions(options));
+    }
+
+export const getGetPortfolioOptimisationUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/optimisation`
+}
+
+/**
+ * @summary Compute Portfolio Optimisation (health, concentration, diversification, position quality ranking, upgrade/trim/exit candidates, capital allocation suggestions, replacement opportunities, cash deployment suggestions) on demand, reusing Portfolio Intelligence, the Decision Engine, and Opportunity Discovery
+ */
+export const getPortfolioOptimisation = async (id: number, options?: RequestInit): Promise<PortfolioOptimisationAnalysis> => {
+
+  return customFetch<PortfolioOptimisationAnalysis>(getGetPortfolioOptimisationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioOptimisationQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/optimisation`
+    ] as const;
+    }
+
+
+export const getGetPortfolioOptimisationQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioOptimisationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioOptimisation>>> = ({ signal }) => getPortfolioOptimisation(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioOptimisationQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioOptimisation>>>
+export type GetPortfolioOptimisationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Compute Portfolio Optimisation (health, concentration, diversification, position quality ranking, upgrade/trim/exit candidates, capital allocation suggestions, replacement opportunities, cash deployment suggestions) on demand, reusing Portfolio Intelligence, the Decision Engine, and Opportunity Discovery
+ */
+
+export function useGetPortfolioOptimisation<TData = Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioOptimisationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptimisationReviewsUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/optimisation/reviews`
+}
+
+/**
+ * @summary List saved optimisation reviews for a portfolio, newest first
+ */
+export const getOptimisationReviews = async (id: number, options?: RequestInit): Promise<OptimisationReview[]> => {
+
+  return customFetch<OptimisationReview[]>(getGetOptimisationReviewsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptimisationReviewsQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/optimisation/reviews`
+    ] as const;
+    }
+
+
+export const getGetOptimisationReviewsQueryOptions = <TData = Awaited<ReturnType<typeof getOptimisationReviews>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptimisationReviews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptimisationReviewsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptimisationReviews>>> = ({ signal }) => getOptimisationReviews(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptimisationReviews>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptimisationReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof getOptimisationReviews>>>
+export type GetOptimisationReviewsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List saved optimisation reviews for a portfolio, newest first
+ */
+
+export function useGetOptimisationReviews<TData = Awaited<ReturnType<typeof getOptimisationReviews>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptimisationReviews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptimisationReviewsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddOptimisationReviewUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/optimisation/reviews`
+}
+
+/**
+ * @summary Save an optimisation review (upgrade/trim/exit/replace/note) for a symbol within a portfolio, with its evidence snapshot
+ */
+export const addOptimisationReview = async (id: number,
+    optimisationReviewCreate: OptimisationReviewCreate, options?: RequestInit): Promise<OptimisationReview> => {
+
+  return customFetch<OptimisationReview>(getAddOptimisationReviewUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optimisationReviewCreate,)
+  }
+);}
+
+
+
+
+export const getAddOptimisationReviewMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addOptimisationReview>>, TError,{id: number;data: BodyType<OptimisationReviewCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addOptimisationReview>>, TError,{id: number;data: BodyType<OptimisationReviewCreate>}, TContext> => {
+
+const mutationKey = ['addOptimisationReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addOptimisationReview>>, {id: number;data: BodyType<OptimisationReviewCreate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addOptimisationReview(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddOptimisationReviewMutationResult = NonNullable<Awaited<ReturnType<typeof addOptimisationReview>>>
+    export type AddOptimisationReviewMutationBody = BodyType<OptimisationReviewCreate>
+    export type AddOptimisationReviewMutationError = ErrorType<void>
+
+    /**
+ * @summary Save an optimisation review (upgrade/trim/exit/replace/note) for a symbol within a portfolio, with its evidence snapshot
+ */
+export const useAddOptimisationReview = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addOptimisationReview>>, TError,{id: number;data: BodyType<OptimisationReviewCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addOptimisationReview>>,
+        TError,
+        {id: number;data: BodyType<OptimisationReviewCreate>},
+        TContext
+      > => {
+      return useMutation(getAddOptimisationReviewMutationOptions(options));
     }
 
 export const getListTradingJournalEntriesUrl = () => {

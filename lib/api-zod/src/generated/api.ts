@@ -7864,6 +7864,215 @@ export const DeletePortfolioNoteResponse = zod.object({
 
 
 /**
+ * @summary Compute Portfolio Optimisation (health, concentration, diversification, position quality ranking, upgrade/trim/exit candidates, capital allocation suggestions, replacement opportunities, cash deployment suggestions) on demand, reusing Portfolio Intelligence, the Decision Engine, and Opportunity Discovery
+ */
+export const GetPortfolioOptimisationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetPortfolioOptimisationResponse = zod.object({
+  "portfolioId": zod.number(),
+  "health": zod.object({
+  "qualityScore": zod.number().nullable(),
+  "qualityLabel": zod.string(),
+  "capitalAllocationScore": zod.number().nullable(),
+  "diversificationScore": zod.number().nullable(),
+  "diversificationLabel": zod.string(),
+  "overallRiskScore": zod.number().nullable(),
+  "overallRiskLabel": zod.string(),
+  "summary": zod.string()
+}),
+  "concentration": zod.object({
+  "score": zod.number().nullable(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "largestSymbol": zod.string().nullable(),
+  "largestSymbolWeightPct": zod.number().nullable(),
+  "capBreached": zod.boolean()
+}),
+  "diversification": zod.object({
+  "bySector": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "byIndustry": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "growthValueMix": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "qualityMix": zod.array(zod.object({
+  "label": zod.string(),
+  "weightPct": zod.number()
+})),
+  "largestPositionPct": zod.number().nullable(),
+  "top10ExposurePct": zod.number().nullable()
+}),
+  "positionQualityRanking": zod.array(zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "sector": zod.string().nullable(),
+  "weightPct": zod.number().nullable(),
+  "qualityScore": zod.number().nullable(),
+  "valuationRating": zod.string(),
+  "investmentCommitteeVerdict": zod.string(),
+  "decisionRecommendation": zod.string(),
+  "rankScore": zod.number(),
+  "action": zod.enum(['exit', 'trim', 'upgrade', 'core']),
+  "actionReason": zod.string()
+})),
+  "upgradeCandidates": zod.array(zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "sector": zod.string().nullable(),
+  "weightPct": zod.number().nullable(),
+  "action": zod.enum(['exit', 'trim', 'upgrade', 'core']),
+  "reason": zod.string(),
+  "evidence": zod.object({
+  "metrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "decisionEngineRecommendation": zod.string(),
+  "investmentCommitteeRecommendation": zod.string(),
+  "rankExplanation": zod.string(),
+  "portfolioImpact": zod.string(),
+  "riskImpact": zod.string(),
+  "diversificationImpact": zod.string()
+})
+})),
+  "trimCandidates": zod.array(zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "sector": zod.string().nullable(),
+  "weightPct": zod.number().nullable(),
+  "action": zod.enum(['exit', 'trim', 'upgrade', 'core']),
+  "reason": zod.string(),
+  "evidence": zod.object({
+  "metrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "decisionEngineRecommendation": zod.string(),
+  "investmentCommitteeRecommendation": zod.string(),
+  "rankExplanation": zod.string(),
+  "portfolioImpact": zod.string(),
+  "riskImpact": zod.string(),
+  "diversificationImpact": zod.string()
+})
+})),
+  "exitCandidates": zod.array(zod.object({
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "sector": zod.string().nullable(),
+  "weightPct": zod.number().nullable(),
+  "action": zod.enum(['exit', 'trim', 'upgrade', 'core']),
+  "reason": zod.string(),
+  "evidence": zod.object({
+  "metrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "decisionEngineRecommendation": zod.string(),
+  "investmentCommitteeRecommendation": zod.string(),
+  "rankExplanation": zod.string(),
+  "portfolioImpact": zod.string(),
+  "riskImpact": zod.string(),
+  "diversificationImpact": zod.string()
+})
+})),
+  "capitalAllocationSuggestions": zod.array(zod.object({
+  "action": zod.string(),
+  "detail": zod.string()
+})),
+  "replacementOpportunities": zod.array(zod.object({
+  "forSymbol": zod.string().nullable(),
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "sector": zod.string().nullable(),
+  "evidence": zod.object({
+  "metrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "decisionEngineRecommendation": zod.string(),
+  "investmentCommitteeRecommendation": zod.string(),
+  "rankExplanation": zod.string(),
+  "portfolioImpact": zod.string(),
+  "riskImpact": zod.string(),
+  "diversificationImpact": zod.string()
+})
+})),
+  "cashDeploymentSuggestions": zod.array(zod.object({
+  "forSymbol": zod.string().nullable(),
+  "symbol": zod.string(),
+  "name": zod.string(),
+  "sector": zod.string().nullable(),
+  "evidence": zod.object({
+  "metrics": zod.array(zod.object({
+  "label": zod.string(),
+  "value": zod.string()
+})),
+  "decisionEngineRecommendation": zod.string(),
+  "investmentCommitteeRecommendation": zod.string(),
+  "rankExplanation": zod.string(),
+  "portfolioImpact": zod.string(),
+  "riskImpact": zod.string(),
+  "diversificationImpact": zod.string()
+})
+})),
+  "summary": zod.string(),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary List saved optimisation reviews for a portfolio, newest first
+ */
+export const GetOptimisationReviewsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetOptimisationReviewsResponseItem = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "symbol": zod.string().nullable(),
+  "action": zod.string(),
+  "note": zod.string(),
+  "evidence": zod.record(zod.string(), zod.unknown()).optional().describe('A snapshot of the evidence shown when this review was saved'),
+  "createdAt": zod.string()
+})
+export const GetOptimisationReviewsResponse = zod.array(GetOptimisationReviewsResponseItem)
+
+
+/**
+ * @summary Save an optimisation review (upgrade/trim/exit/replace/note) for a symbol within a portfolio, with its evidence snapshot
+ */
+export const AddOptimisationReviewParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AddOptimisationReviewBody = zod.object({
+  "symbol": zod.string().nullish(),
+  "action": zod.string(),
+  "note": zod.string(),
+  "evidence": zod.record(zod.string(), zod.unknown()).optional().describe('A snapshot of the evidence shown when this review was saved')
+})
+
+export const AddOptimisationReviewResponse = zod.object({
+  "id": zod.number(),
+  "portfolioId": zod.number(),
+  "symbol": zod.string().nullable(),
+  "action": zod.string(),
+  "note": zod.string(),
+  "evidence": zod.record(zod.string(), zod.unknown()).optional().describe('A snapshot of the evidence shown when this review was saved'),
+  "createdAt": zod.string()
+})
+
+
+/**
  * @summary List trading journal entries, newest first
  */
 export const ListTradingJournalEntriesResponseItem = zod.object({

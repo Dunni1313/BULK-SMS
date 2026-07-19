@@ -3471,6 +3471,75 @@ paths:
               schema:
                 $ref: "#/components/schemas/DeleteResult"
 
+  /portfolio-construction/portfolios/{id}/optimisation:
+    get:
+      operationId: getPortfolioOptimisation
+      tags: [portfolio-construction]
+      summary: Compute Portfolio Optimisation (health, concentration, diversification, position quality ranking, upgrade/trim/exit candidates, capital allocation suggestions, replacement opportunities, cash deployment suggestions) on demand, reusing Portfolio Intelligence, the Decision Engine, and Opportunity Discovery
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Portfolio optimisation analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioOptimisationAnalysis"
+        "404":
+          description: Portfolio not found
+
+  /portfolio-construction/portfolios/{id}/optimisation/reviews:
+    get:
+      operationId: getOptimisationReviews
+      tags: [portfolio-construction]
+      summary: List saved optimisation reviews for a portfolio, newest first
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Saved reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptimisationReview"
+        "404":
+          description: Portfolio not found
+    post:
+      operationId: addOptimisationReview
+      tags: [portfolio-construction]
+      summary: Save an optimisation review (upgrade/trim/exit/replace/note) for a symbol within a portfolio, with its evidence snapshot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptimisationReviewCreate"
+      responses:
+        "200":
+          description: Saved review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptimisationReview"
+        "404":
+          description: Portfolio not found
+
   # ─── Trading Journal (Engine 2) ─────────────────────────────────────────────
   /trading/journal:
     get:
@@ -5303,6 +5372,180 @@ components:
       required: [note]
       properties:
         note: { type: string }
+
+    # ─── Institutional Portfolio Optimisation Engine (Phase 18) — pure
+    # composition over already-computed Portfolio Intelligence/Decision
+    # Engine/Opportunity Discovery outputs. Zero new scoring, zero LLM,
+    # never a price prediction or return forecast. ─────────────────────────
+    OptimisationEvidenceMetric:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string }
+        value: { type: string }
+
+    OptimisationEvidence:
+      type: object
+      required:
+        [
+          metrics, decisionEngineRecommendation, investmentCommitteeRecommendation, rankExplanation,
+          portfolioImpact, riskImpact, diversificationImpact,
+        ]
+      properties:
+        metrics:
+          type: array
+          items: { $ref: "#/components/schemas/OptimisationEvidenceMetric" }
+        decisionEngineRecommendation: { type: string }
+        investmentCommitteeRecommendation: { type: string }
+        rankExplanation: { type: string }
+        portfolioImpact: { type: string }
+        riskImpact: { type: string }
+        diversificationImpact: { type: string }
+
+    OptimisationPositionRow:
+      type: object
+      required:
+        [
+          symbol, name, sector, weightPct, qualityScore, valuationRating, investmentCommitteeVerdict,
+          decisionRecommendation, rankScore, action, actionReason,
+        ]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        sector: { type: ["string", "null"] }
+        weightPct: { type: ["number", "null"] }
+        qualityScore: { type: ["number", "null"] }
+        valuationRating: { type: string }
+        investmentCommitteeVerdict: { type: string }
+        decisionRecommendation: { type: string }
+        rankScore: { type: number }
+        action: { type: string, enum: [exit, trim, upgrade, core] }
+        actionReason: { type: string }
+
+    OptimisationCandidate:
+      type: object
+      required: [symbol, name, sector, weightPct, action, reason, evidence]
+      properties:
+        symbol: { type: string }
+        name: { type: string }
+        sector: { type: ["string", "null"] }
+        weightPct: { type: ["number", "null"] }
+        action: { type: string, enum: [exit, trim, upgrade, core] }
+        reason: { type: string }
+        evidence: { $ref: "#/components/schemas/OptimisationEvidence" }
+
+    OptimisationReplacementOpportunity:
+      type: object
+      required: [forSymbol, symbol, name, sector, evidence]
+      properties:
+        forSymbol: { type: ["string", "null"] }
+        symbol: { type: string }
+        name: { type: string }
+        sector: { type: ["string", "null"] }
+        evidence: { $ref: "#/components/schemas/OptimisationEvidence" }
+
+    OptimisationCapitalAllocationSuggestion:
+      type: object
+      required: [action, detail]
+      properties:
+        action: { type: string }
+        detail: { type: string }
+
+    PortfolioOptimisationAnalysis:
+      type: object
+      required:
+        [
+          portfolioId, health, concentration, diversification, positionQualityRanking, upgradeCandidates,
+          trimCandidates, exitCandidates, capitalAllocationSuggestions, replacementOpportunities,
+          cashDeploymentSuggestions, summary, disclaimer,
+        ]
+      properties:
+        portfolioId: { type: integer }
+        health:
+          type: object
+          required:
+            [
+              qualityScore, qualityLabel, capitalAllocationScore, diversificationScore, diversificationLabel,
+              overallRiskScore, overallRiskLabel, summary,
+            ]
+          properties:
+            qualityScore: { type: ["number", "null"] }
+            qualityLabel: { type: string }
+            capitalAllocationScore: { type: ["number", "null"] }
+            diversificationScore: { type: ["number", "null"] }
+            diversificationLabel: { type: string }
+            overallRiskScore: { type: ["number", "null"] }
+            overallRiskLabel: { type: string }
+            summary: { type: string }
+        concentration: { $ref: "#/components/schemas/ConstructionConcentrationRisk" }
+        diversification:
+          type: object
+          required: [bySector, byIndustry, growthValueMix, qualityMix, largestPositionPct, top10ExposurePct]
+          properties:
+            bySector:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            byIndustry:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            growthValueMix:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            qualityMix:
+              type: array
+              items: { $ref: "#/components/schemas/ConstructionAllocationSlice" }
+            largestPositionPct: { type: ["number", "null"] }
+            top10ExposurePct: { type: ["number", "null"] }
+        positionQualityRanking:
+          type: array
+          items: { $ref: "#/components/schemas/OptimisationPositionRow" }
+        upgradeCandidates:
+          type: array
+          items: { $ref: "#/components/schemas/OptimisationCandidate" }
+        trimCandidates:
+          type: array
+          items: { $ref: "#/components/schemas/OptimisationCandidate" }
+        exitCandidates:
+          type: array
+          items: { $ref: "#/components/schemas/OptimisationCandidate" }
+        capitalAllocationSuggestions:
+          type: array
+          items: { $ref: "#/components/schemas/OptimisationCapitalAllocationSuggestion" }
+        replacementOpportunities:
+          type: array
+          items: { $ref: "#/components/schemas/OptimisationReplacementOpportunity" }
+        cashDeploymentSuggestions:
+          type: array
+          items: { $ref: "#/components/schemas/OptimisationReplacementOpportunity" }
+        summary: { type: string }
+        disclaimer: { type: string }
+
+    OptimisationReview:
+      type: object
+      required: [id, portfolioId, symbol, action, note, createdAt]
+      properties:
+        id: { type: integer }
+        portfolioId: { type: integer }
+        symbol: { type: ["string", "null"] }
+        action: { type: string }
+        note: { type: string }
+        evidence:
+          type: object
+          additionalProperties: true
+          description: A snapshot of the evidence shown when this review was saved
+        createdAt: { type: string }
+
+    OptimisationReviewCreate:
+      type: object
+      required: [action, note]
+      properties:
+        symbol: { type: ["string", "null"] }
+        action: { type: string }
+        note: { type: string }
+        evidence:
+          type: object
+          additionalProperties: true
+          description: A snapshot of the evidence shown when this review was saved
 
     # ─── Institutional Investment Decision Engine (Phase 14) — pure
     # composition over already-computed ValueResearchReport/Management
