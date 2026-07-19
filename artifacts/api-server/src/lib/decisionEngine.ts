@@ -150,7 +150,11 @@ const VALUATION_STATUS: Record<ValuationRating, ChecklistStatus> = {
 // of already-computed 0-100 scores, mirroring Tom Nash's/Portfolio
 // Intelligence's own renormalize-over-available-inputs discipline. Never
 // recomputes any of the underlying scores.
-function decisionSynthesisScore(report: ValueResearchReport, managementQuality: ManagementQualityResult): number {
+// Exported (Phase 15 — Institutional Opportunity Discovery Engine) so the
+// scanner can reuse this exact synthesis score as its own ranking number
+// instead of inventing a second, competing composite. Zero behavior change —
+// same function, same math, now also callable from opportunityDiscovery.ts.
+export function decisionSynthesisScore(report: ValueResearchReport, managementQuality: ManagementQualityResult): number {
   const parts: { value: number; weight: number }[] = [
     { value: report.tomNash.convictionScore, weight: 0.5 },
     { value: report.investmentCommittee.confidenceScore, weight: 0.2 },
@@ -161,7 +165,10 @@ function decisionSynthesisScore(report: ValueResearchReport, managementQuality: 
   return round(parts.reduce((s, p) => s + p.value * p.weight, 0) / totalWeight);
 }
 
-function deriveRecommendation(
+// Exported (Phase 15) for the same reason as decisionSynthesisScore() above —
+// the scanner needs a recommendation per symbol without paying for the full
+// checklist/evidence/catalysts computation buildInstitutionalDecision() does.
+export function deriveRecommendation(
   report: ValueResearchReport,
   synthesisScore: number,
   portfolio: DecisionPortfolioContext | null,
