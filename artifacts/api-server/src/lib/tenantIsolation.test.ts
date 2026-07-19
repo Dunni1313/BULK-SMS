@@ -52,6 +52,7 @@ import {
   investingPortfolioNotesTable,
   investingDecisionSnapshotsTable,
   investingDecisionNotesTable,
+  investingSavedScreensTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -126,6 +127,8 @@ afterAll(async () => {
     // both per-symbol (no FK to a portfolio), unlike Phase 13's own two.
     investingDecisionSnapshotsTable,
     investingDecisionNotesTable,
+    // Phase 15 — Institutional Opportunity Discovery Engine's own new table.
+    investingSavedScreensTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -340,6 +343,16 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       symbol: "DECTST",
       note: "Test decision note",
+    }));
+  });
+
+  // Phase 15 — Institutional Opportunity Discovery Engine's own new table,
+  // reusing the same shared helper.
+  it("investing_saved_screens: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(investingSavedScreensTable, userA, userB, (userId) => ({
+      userId,
+      name: "Test Screen",
+      filtersJson: { sector: "Technology" },
     }));
   });
 

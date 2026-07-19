@@ -46,6 +46,7 @@ import tradeJournalRouter from "./tradeJournal";
 import institutionalMentorRouter from "./institutionalMentor";
 import dashboardWorkspacesRouter from "./dashboardWorkspaces";
 import opsRouter from "./ops";
+import opportunityDiscoveryRouter from "./opportunityDiscovery";
 
 const router: IRouter = Router();
 
@@ -96,5 +97,6 @@ router.use(tradeJournalRouter);
 router.use(institutionalMentorRouter);
 router.use(dashboardWorkspacesRouter);
 router.use(opsRouter);
+router.use(opportunityDiscoveryRouter);
 
 export default router;
