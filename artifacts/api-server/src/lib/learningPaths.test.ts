@@ -8,7 +8,7 @@ import { LEARNING_PATHS, getLearningPath, getLearningTopic, allLearningTopics } 
 import { getGlossaryTerm } from "./glossary.js";
 
 describe("learning path content", () => {
-  it("has exactly the 7 requested paths, in the requested order", () => {
+  it("has exactly the 8 requested paths, in the requested order", () => {
     expect(LEARNING_PATHS.map((p) => p.key)).toEqual([
       "foundations",
       "greeks",
@@ -17,6 +17,10 @@ describe("learning path content", () => {
       "portfolio",
       "performance",
       "institutional",
+      // Phase 21 — Institutional AI Coach & Education Platform. A 9th,
+      // Engine-1-scoped path (distinct from "institutional", Engine 3's own
+      // options-portfolio thinking).
+      "institutional-investing",
     ]);
   });
 
@@ -66,6 +70,15 @@ describe("learning path content", () => {
       "/learn/strategy-academy/iron_fly",
       "/learn/strategy-academy/calendar_spread",
       "/learn/strategy-academy/diagonal_spread",
+      // Phase 21 — Institutional AI Coach & Education Platform's own
+      // Institutional Investing Engine path, confirmed by direct inspection
+      // of App.tsx before this content was written.
+      "/research-terminal",
+      "/decision-engine",
+      "/stock-analyst/portfolio-optimisation",
+      "/stock-analyst/investment-committee",
+      "/monitoring-dashboard",
+      "/opportunity-discovery",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {

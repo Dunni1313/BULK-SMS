@@ -622,6 +622,142 @@ const INSTITUTIONAL_PATH: LearningPath = {
   ],
 };
 
+// Phase 21 — Institutional AI Coach & Education Platform. A ninth Learning
+// Path, scoped to Engine 1 (the Institutional Investing Engine) — distinct
+// from INSTITUTIONAL_PATH above, which is Engine 3's own options-portfolio
+// thinking (risk contribution via delta/theta/vega, buying power, roll/
+// convert). This path teaches the 9 named Engine-1 modules the Institutional
+// AI Coach explains: Business Quality, Financial Strength, the Decision
+// Engine, Portfolio Optimisation, the Research Terminal, the Investment
+// Committee, Monitoring, Margin of Safety, and Opportunity Discovery. Every
+// topic links to its own already-built page — no new page or calculation is
+// implied by this content.
+const INSTITUTIONAL_INVESTING_PATH: LearningPath = {
+  key: "institutional-investing",
+  title: "Institutional Investing Engine",
+  description: "How to read the Institutional Investing Engine's own already-computed research, decision, and portfolio modules.",
+  glossaryCategory: "value-investing",
+  topics: [
+    topic({
+      key: "investing-business-quality",
+      title: "Business Quality",
+      summary: "Is this a good business, independent of price?",
+      body: [
+        "Business Quality scores a company on already-computed factors (growth, profitability, moat inputs) into one 0-100 score and a Wonderful/Good/Average/Weak rating — a read on the business itself, before valuation ever enters the picture.",
+        "A high Business Quality score does not mean a stock is cheap — it means the underlying business is well-run. Valuation answers the separate question of whether the current price already reflects that.",
+      ],
+      whyItMatters: "Every other module downstream (the Decision Engine, Tom Nash's conviction score, the Investment Committee) uses Business Quality as one of its own inputs — understanding this score first makes every later module easier to read.",
+      externalHref: "/research-terminal",
+      relatedGlossaryKeys: ["business-quality-score", "economic-moat", "return-on-invested-capital"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "investing-financial-strength",
+      title: "Financial Strength",
+      summary: "Can the balance sheet survive a bad year?",
+      body: [
+        "Financial Strength rates leverage, interest coverage, liquidity, and free-cash-flow reliability into a Strong/Acceptable/Weak/Risky rating — a distress check, separate from growth or valuation.",
+        "The Decision Engine treats a Risky or Weak Financial Strength rating as an override: a business with real balance-sheet distress can be recommended Sell/Avoid regardless of how attractive it looks on every other dimension.",
+      ],
+      whyItMatters: "Financial Strength is one of the few checks that can override every other positive signal — a cheap, high-quality-looking business is still a poor investment if it can't survive its own debt load.",
+      externalHref: "/research-terminal",
+      relatedGlossaryKeys: ["return-on-equity", "free-cash-flow", "book-value"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "investing-decision-engine",
+      title: "The Decision Engine",
+      summary: "One recommendation, synthesised from every already-computed signal.",
+      body: [
+        "The Decision Engine combines Business Quality, Valuation, the Investment Committee's verdict, and (when available) Management Quality into a single Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation with a confidence score and a full investment checklist.",
+        "It never recomputes any of those underlying scores — it only synthesises and explains them, exactly like the Decision Coach does one level further.",
+      ],
+      whyItMatters: "The checklist and supporting/contradicting evidence exist so the recommendation is never a black box — every pass/warning/fail item traces back to a specific, already-computed number.",
+      externalHref: "/decision-engine",
+      relatedGlossaryKeys: ["institutional-decision-engine", "investment-checklist", "supporting-contradicting-evidence", "decision-confidence-score"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "investing-portfolio-optimisation",
+      title: "Portfolio Optimisation",
+      summary: "Upgrade, Trim, Exit, or Core — reading your own holdings against the Decision Engine.",
+      body: [
+        "Portfolio Optimisation classifies each holding in a portfolio into Upgrade/Trim/Exit/Core, built almost entirely from the Decision Engine's own recommendation for that symbol plus the portfolio's own concentration caps.",
+        "Replacement Opportunities and Cash Deployment candidates are simply Buy-rated symbols not already held, already ranked by the Decision Engine's own synthesis score — never a separate ranking.",
+      ],
+      whyItMatters: "This module turns single-symbol research into portfolio-level action, without inventing a second scoring system on top of the Decision Engine's own recommendation.",
+      externalHref: "/stock-analyst/portfolio-optimisation",
+      relatedGlossaryKeys: ["portfolio-optimisation", "concentration", "portfolio-diversification-score"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "investing-research-terminal",
+      title: "The Research Terminal",
+      summary: "Search, Analyse, Compare, Review — all in one screen.",
+      body: [
+        "The Research Terminal unifies every Engine 1 module (Overview, Statements, Decision Engine, Investment Committee, Investment Memo, Portfolio Impact, Monitoring, Evidence, Notes) into one page with Analyse, Compare, and Split-screen modes.",
+        "Every panel and comparison cell quotes an already-computed value — the Terminal itself computes nothing new, it only arranges existing outputs for a faster workflow.",
+      ],
+      whyItMatters: "A full review workflow (search → analyse → compare → review valuation → review decision → review portfolio impact → review monitoring → review committee → save notes) happens without ever leaving one page.",
+      externalHref: "/research-terminal",
+      relatedGlossaryKeys: ["research-terminal", "institutional-decision-engine"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "investing-investment-committee",
+      title: "The Investment Committee",
+      summary: "Three independent analysts, one consolidated verdict.",
+      body: [
+        "Graham, Buffett, and Tom Nash each cast an independent Buy/Hold/Wait vote from their own already-computed valuation model or conviction score — the Investment Committee aggregates those votes into one consolidated verdict, a confidence score, and an agreement signal (unanimous/majority/split/insufficient-data).",
+        "When the committee is genuinely split, the consolidated verdict defaults to the safe, neutral Hold — never a forced coin-flip.",
+      ],
+      whyItMatters: "Seeing every individual vote, not just the outcome, shows exactly where the analysts agree or disagree — more informative than a single blended number.",
+      externalHref: "/stock-analyst/investment-committee",
+      relatedGlossaryKeys: ["investment-committee-workbench", "conviction-score", "decision-confidence-score"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "investing-monitoring",
+      title: "Monitoring & Alerts",
+      summary: "What already happened, not a live feed.",
+      body: [
+        "Monitoring alerts record a moment when an already-configured trigger (a price target, portfolio drift, or a watchlist/opportunity condition) was actually crossed — a historical fact, not a continuously-updating signal.",
+        "Severity (low/medium/high) reflects how the triggering rule classified the condition at the time it fired.",
+      ],
+      whyItMatters: "The absence of an alert does not mean nothing is happening — it means no configured trigger has crossed its threshold yet. Monitoring complements periodic deep research, it doesn't replace it.",
+      externalHref: "/monitoring-dashboard",
+      relatedGlossaryKeys: ["monitoring-alert", "alert-severity", "portfolio-drift-alert"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "investing-margin-of-safety",
+      title: "Margin of Safety",
+      summary: "How much room for error is priced in?",
+      body: [
+        "Margin of safety is (fair value − price) / fair value across four independent, already-computed valuation models (Blended, Graham, DCF, Buffett) — a positive number means the model reads the stock as undervalued.",
+        "The Consolidated Margin of Safety reports how many of the four models agree on direction (cheap/fair/expensive), not just an average number — model disagreement is itself useful information.",
+      ],
+      whyItMatters: "No single valuation model is precise — the discipline is in cross-checking several independent methods and weighing convergence, not trusting one number.",
+      externalHref: "/research-terminal",
+      relatedGlossaryKeys: ["margin-of-safety", "intrinsic-value", "discounted-cash-flow", "graham-number"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "investing-opportunity-discovery",
+      title: "Opportunity Discovery",
+      summary: "Screen, rank, and bucket the known universe — using the Decision Engine's own score.",
+      body: [
+        "Opportunity Discovery screens the platform's known symbol universe, ranks candidates by the Decision Engine's own already-computed synthesis score, and sorts them into named opportunity buckets — it never introduces a second, competing ranking.",
+        "This is the same synthesis score Portfolio Optimisation's Replacement Opportunities and Cash Deployment candidates already reuse.",
+      ],
+      whyItMatters: "Screening and ranking stay consistent everywhere in the platform, because every module that ranks a symbol reuses the same Decision Engine score rather than recomputing its own.",
+      externalHref: "/opportunity-discovery",
+      relatedGlossaryKeys: ["opportunity-discovery-engine", "screener", "opportunity-ranking", "opportunity-buckets"],
+      estimatedMinutes: 4,
+    }),
+  ],
+};
+
 export const LEARNING_PATHS: LearningPath[] = [
   FOUNDATIONS_PATH,
   GREEKS_PATH,
@@ -630,6 +766,7 @@ export const LEARNING_PATHS: LearningPath[] = [
   PORTFOLIO_PATH,
   PERFORMANCE_PATH,
   INSTITUTIONAL_PATH,
+  INSTITUTIONAL_INVESTING_PATH,
 ];
 
 export function getLearningPath(key: string): LearningPath | null {

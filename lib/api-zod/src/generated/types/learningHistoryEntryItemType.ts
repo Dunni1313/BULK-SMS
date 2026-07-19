@@ -14,4 +14,5 @@ export const LearningHistoryEntryItemType = {
   glossary: 'glossary',
   path: 'path',
   strategy: 'strategy',
+  coach: 'coach',
 } as const;

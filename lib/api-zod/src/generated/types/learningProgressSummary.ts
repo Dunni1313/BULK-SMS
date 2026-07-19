@@ -14,6 +14,7 @@ export interface LearningProgressSummary {
   lessonsCompleted: number;
   glossaryTermsViewed: number;
   strategiesViewed: number;
+  coachesViewed: number;
   pathCompletion: LearningPathCompletion[];
   greeksQuiz: LearningQuizProgressSummary;
   valueQuiz: LearningQuizProgressSummary;
@@ -21,4 +22,5 @@ export interface LearningProgressSummary {
   completedLessonKeys: string[];
   completedGlossaryKeys: string[];
   completedStrategyKeys: string[];
+  completedCoachKeys: string[];
 }

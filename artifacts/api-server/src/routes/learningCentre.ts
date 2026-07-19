@@ -40,7 +40,7 @@ import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
-const VALID_ITEM_TYPES: LearningItemType[] = ["lesson", "glossary", "path", "strategy"];
+const VALID_ITEM_TYPES: LearningItemType[] = ["lesson", "glossary", "path", "strategy", "coach"];
 
 // GET /learning-centre/glossary?q=&category=
 router.get("/learning-centre/glossary", (req, res): void => {

@@ -11,7 +11,12 @@ import { asc, desc, eq } from "drizzle-orm";
 import { computeQuizProgress, type QuizProgressSummary } from "./quizProgress.js";
 import { LEARNING_PATHS } from "./learningPaths.js";
 
-export type LearningItemType = "lesson" | "glossary" | "path" | "strategy";
+// "coach" (Phase 21 — Institutional AI Coach) tracks which coach
+// explanations (coach:symbol item keys, e.g. "investment:AAPL") a user has
+// viewed/completed, mirroring "strategy"'s own flat (non-path) tracking
+// shape — coaches aren't organized into Learning Paths, so they get no
+// separate pathCompletion-style rollup, exactly like Strategy Academy.
+export type LearningItemType = "lesson" | "glossary" | "path" | "strategy" | "coach";
 
 export async function recordViewed(userId: string, itemType: LearningItemType, itemKey: string): Promise<void> {
   await db
@@ -54,6 +59,7 @@ export interface LearningProgressSummary {
   lessonsCompleted: number;
   glossaryTermsViewed: number;
   strategiesViewed: number;
+  coachesViewed: number;
   pathCompletion: LearningPathCompletion[];
   greeksQuiz: QuizProgressSummary;
   valueQuiz: QuizProgressSummary;
@@ -64,6 +70,7 @@ export interface LearningProgressSummary {
   completedLessonKeys: string[];
   completedGlossaryKeys: string[];
   completedStrategyKeys: string[];
+  completedCoachKeys: string[];
 }
 
 async function quizProgressFor(
@@ -94,9 +101,11 @@ export async function getLearningProgress(userId: string): Promise<LearningProgr
   const lessonRows = progressRows.filter((r) => r.itemType === "lesson");
   const glossaryRows = progressRows.filter((r) => r.itemType === "glossary");
   const strategyRows = progressRows.filter((r) => r.itemType === "strategy");
+  const coachRows = progressRows.filter((r) => r.itemType === "coach");
   const completedLessonKeys = new Set(lessonRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey));
   const completedGlossaryKeys = glossaryRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey);
   const completedStrategyKeys = strategyRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey);
+  const completedCoachKeys = coachRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey);
 
   const pathCompletion: LearningPathCompletion[] = LEARNING_PATHS.map((path) => {
     const topicsCompleted = path.topics.filter((t) => completedLessonKeys.has(t.key)).length;
@@ -124,10 +133,12 @@ export async function getLearningProgress(userId: string): Promise<LearningProgr
     lessonsCompleted: completedLessonKeys.size,
     glossaryTermsViewed: glossaryRows.length,
     strategiesViewed: strategyRows.length,
+    coachesViewed: coachRows.length,
     pathCompletion,
     completedLessonKeys: [...completedLessonKeys],
     completedGlossaryKeys,
     completedStrategyKeys,
+    completedCoachKeys,
     greeksQuiz,
     valueQuiz,
     recentHistory,

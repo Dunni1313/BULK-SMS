@@ -69,11 +69,12 @@ describe("Learning Centre routes (live, real Postgres)", () => {
   });
 
   describe("GET /learning-centre/paths", () => {
-    it("returns all 7 learning paths", async () => {
+    it("returns all 8 learning paths", async () => {
       const res = await get("/learning-centre/paths");
       expect(res.status).toBe(200);
       const body = (await res.json()) as { key: string }[];
-      expect(body).toHaveLength(7);
+      // Phase 21 — Institutional AI Coach & Education Platform added a 9th path.
+      expect(body).toHaveLength(8);
     });
   });
 
@@ -173,7 +174,8 @@ describe("Learning Centre routes (live, real Postgres)", () => {
         valueQuiz: { totalAttempts: number };
       };
       expect(typeof body.lessonsViewed).toBe("number");
-      expect(body.pathCompletion).toHaveLength(7);
+      // Phase 21 — Institutional AI Coach & Education Platform added a 9th path.
+      expect(body.pathCompletion).toHaveLength(8);
       expect(typeof body.greeksQuiz.totalAttempts).toBe("number");
       expect(typeof body.valueQuiz.totalAttempts).toBe("number");
     });

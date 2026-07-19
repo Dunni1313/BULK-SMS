@@ -14,4 +14,5 @@ export const LearningProgressActionItemType = {
   glossary: 'glossary',
   path: 'path',
   strategy: 'strategy',
+  coach: 'coach',
 } as const;

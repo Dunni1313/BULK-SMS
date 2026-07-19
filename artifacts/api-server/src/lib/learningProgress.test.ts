@@ -32,10 +32,13 @@ describe("getLearningProgress — a brand-new user", () => {
       expect(progress.lessonsCompleted).toBe(0);
       expect(progress.glossaryTermsViewed).toBe(0);
       expect(progress.strategiesViewed).toBe(0);
+      expect(progress.coachesViewed).toBe(0);
       expect(progress.completedLessonKeys).toEqual([]);
+      expect(progress.completedCoachKeys).toEqual([]);
       expect(progress.recentHistory).toEqual([]);
       expect(progress.pathCompletion.every((p) => p.topicsCompleted === 0)).toBe(true);
-      expect(progress.pathCompletion.length).toBe(7);
+      // Phase 21 — Institutional AI Coach & Education Platform added a 9th path.
+      expect(progress.pathCompletion.length).toBe(8);
     } finally {
       await cleanupUser(userId);
     }
