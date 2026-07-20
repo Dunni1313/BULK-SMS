@@ -8,6 +8,7 @@
 import type { TradingStrategyCategory } from './tradingStrategyCategory';
 import type { TradingStrategyChecklistItemDefinition } from './tradingStrategyChecklistItemDefinition';
 import type { TradingStrategyRequiredEvidenceItem } from './tradingStrategyRequiredEvidenceItem';
+import type { TradingStrategyValidation } from './tradingStrategyValidation';
 
 export interface TradingStrategy {
   id: number;
@@ -21,6 +22,7 @@ export interface TradingStrategy {
   educationalNotes: string;
   references: string[];
   version: string;
+  validation: TradingStrategyValidation;
   createdAt: string;
   updatedAt: string;
 }

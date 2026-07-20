@@ -23,4 +23,5 @@ export interface LearningProgressSummary {
   completedGlossaryKeys: string[];
   completedStrategyKeys: string[];
   completedCoachKeys: string[];
+  viewedStrategyKeys: string[];
 }

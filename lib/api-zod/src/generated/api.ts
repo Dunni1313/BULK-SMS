@@ -3355,7 +3355,8 @@ export const GetLearningProgressResponse = zod.object({
   "completedLessonKeys": zod.array(zod.string()),
   "completedGlossaryKeys": zod.array(zod.string()),
   "completedStrategyKeys": zod.array(zod.string()),
-  "completedCoachKeys": zod.array(zod.string())
+  "completedCoachKeys": zod.array(zod.string()),
+  "viewedStrategyKeys": zod.array(zod.string())
 })
 
 
@@ -8738,6 +8739,13 @@ export const ListTradingStrategiesResponseItem = zod.object({
   "educationalNotes": zod.string(),
   "references": zod.array(zod.string()),
   "version": zod.string(),
+  "validation": zod.object({
+  "valid": zod.boolean(),
+  "issues": zod.array(zod.object({
+  "field": zod.string(),
+  "message": zod.string()
+}))
+}),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -8788,6 +8796,13 @@ export const GetTradingStrategyResponse = zod.object({
   "educationalNotes": zod.string(),
   "references": zod.array(zod.string()),
   "version": zod.string(),
+  "validation": zod.object({
+  "valid": zod.boolean(),
+  "issues": zod.array(zod.object({
+  "field": zod.string(),
+  "message": zod.string()
+}))
+}),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -8833,6 +8848,13 @@ export const UpdateTradingStrategyResponse = zod.object({
   "educationalNotes": zod.string(),
   "references": zod.array(zod.string()),
   "version": zod.string(),
+  "validation": zod.object({
+  "valid": zod.boolean(),
+  "issues": zod.array(zod.object({
+  "field": zod.string(),
+  "message": zod.string()
+}))
+}),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })

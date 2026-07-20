@@ -11499,9 +11499,29 @@ components:
           items:
             $ref: "#/components/schemas/TradingStrategyEvidenceLink"
 
+    TradingStrategyValidationIssue:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+
+    TradingStrategyValidation:
+      type: object
+      required: [valid, issues]
+      properties:
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingStrategyValidationIssue"
+
     TradingStrategy:
       type: object
-      required: [id, name, description, category, timeframes, markets, requiredEvidence, checklist, educationalNotes, references, version, createdAt, updatedAt]
+      required: [id, name, description, category, timeframes, markets, requiredEvidence, checklist, educationalNotes, references, version, validation, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -11537,6 +11557,8 @@ components:
             type: string
         version:
           type: string
+        validation:
+          $ref: "#/components/schemas/TradingStrategyValidation"
         createdAt:
           type: string
         updatedAt:
@@ -13924,6 +13946,7 @@ components:
           completedGlossaryKeys,
           completedStrategyKeys,
           completedCoachKeys,
+          viewedStrategyKeys,
         ]
       properties:
         lessonsViewed:
@@ -13961,6 +13984,10 @@ components:
           items:
             type: string
         completedCoachKeys:
+          type: array
+          items:
+            type: string
+        viewedStrategyKeys:
           type: array
           items:
             type: string

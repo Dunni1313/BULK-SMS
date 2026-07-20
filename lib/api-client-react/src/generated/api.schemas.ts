@@ -5909,6 +5909,16 @@ export interface TradingStrategyChecklistItemState {
   evidenceLinks: TradingStrategyEvidenceLink[];
 }
 
+export interface TradingStrategyValidationIssue {
+  field: string;
+  message: string;
+}
+
+export interface TradingStrategyValidation {
+  valid: boolean;
+  issues: TradingStrategyValidationIssue[];
+}
+
 export type TradingStrategyCategory = typeof TradingStrategyCategory[keyof typeof TradingStrategyCategory];
 
 
@@ -5948,6 +5958,7 @@ export interface TradingStrategy {
   educationalNotes: string;
   references: string[];
   version: string;
+  validation: TradingStrategyValidation;
   createdAt: string;
   updatedAt: string;
 }
@@ -7331,6 +7342,7 @@ export interface LearningProgressSummary {
   completedGlossaryKeys: string[];
   completedStrategyKeys: string[];
   completedCoachKeys: string[];
+  viewedStrategyKeys: string[];
 }
 
 export type LearningProgressActionItemType = typeof LearningProgressActionItemType[keyof typeof LearningProgressActionItemType];

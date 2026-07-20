@@ -697,6 +697,8 @@ export * from './tradingStrategyRequiredEvidenceItem';
 export * from './tradingStrategyUpdate';
 export * from './tradingStrategyUpdateCategory';
 export * from './tradingStrategyUpdateRequiredEvidenceItem';
+export * from './tradingStrategyValidation';
+export * from './tradingStrategyValidationIssue';
 export * from './tradingStructureAnalysis';
 export * from './tradingStructureAnalysisConfidenceLevel';
 export * from './tradingStructureAnalysisDataSource';
