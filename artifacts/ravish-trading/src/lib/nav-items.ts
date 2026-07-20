@@ -61,6 +61,7 @@ import {
   Users,
   Terminal,
   FileBarChart2,
+  LayoutTemplate,
   LayoutList,
 } from "lucide-react";
 
@@ -105,6 +106,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Trading Research", href: "/trading-research", icon: Activity },
   { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
   { title: "Trading Backtest", href: "/trading-backtest", icon: History },
+  { title: "Trade Workspace", href: "/trade-workspace", icon: LayoutTemplate },
   { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
   { title: "Institutional Workspace", href: "/workspace", icon: LayoutPanelLeft },
   { title: "Research Terminal", href: "/research-terminal", icon: Terminal },
