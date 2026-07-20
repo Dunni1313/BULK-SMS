@@ -59,6 +59,8 @@ import tradingStrategiesRouter from "./tradingStrategies";
 import tradingStrategyChecklistsRouter from "./tradingStrategyChecklists";
 import tradingLiquidityTimelineRouter from "./tradingLiquidityTimeline";
 import tradingAnalyticsRouter from "./tradingAnalytics";
+import investingAnalyticsRouter from "./investingAnalytics";
+import executiveIntelligenceRouter from "./executiveIntelligence";
 
 const router: IRouter = Router();
 
@@ -122,5 +124,7 @@ router.use(tradingLiquidityTimelineRouter);
 router.use(tradingStrategiesRouter);
 router.use(tradingStrategyChecklistsRouter);
 router.use(tradingAnalyticsRouter);
+router.use(investingAnalyticsRouter);
+router.use(executiveIntelligenceRouter);
 
 export default router;
