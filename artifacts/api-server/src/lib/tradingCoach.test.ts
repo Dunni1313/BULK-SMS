@@ -21,21 +21,33 @@ import {
   explainJournalCoach,
   explainPsychologyCoach,
   explainScenarioCoach,
+  explainStrategyCoach,
 } from "./tradingCoach.js";
+import type { StrategyMetadata, StrategyChecklistInstance } from "./tradingStrategyFramework.js";
 import type { MultiTimeframeAnalysis } from "./tradingMultiTimeframe.js";
 import type { LiquidityAnalysis } from "./tradingLiquidity.js";
 import type { TradingRiskAnalysisWithContext } from "./tradingRisk.js";
 import type { ScenarioComparisonResult } from "./tradingScenarioComparison.js";
 
 describe("tradingCoach.ts — TRADING_COACH_TYPES / labels", () => {
-  it("has exactly the 8 requested coaches", () => {
-    expect(TRADING_COACH_TYPES).toEqual(["structure", "liquidity", "session", "risk", "trade-plan", "journal", "scenario", "psychology"]);
+  it("has exactly the 9 requested coaches (Phase 30 adds strategy)", () => {
+    expect(TRADING_COACH_TYPES).toEqual([
+      "structure",
+      "liquidity",
+      "session",
+      "risk",
+      "trade-plan",
+      "journal",
+      "scenario",
+      "psychology",
+      "strategy",
+    ]);
     for (const c of TRADING_COACH_TYPES) expect(TRADING_COACH_LABELS[c]).toBeTruthy();
   });
 
-  it("symbol-scoped and account-scoped coaches are mutually exclusive and cover every coach type", () => {
+  it("symbol-scoped and account-scoped coaches are mutually exclusive and cover every coach type except scenario and strategy", () => {
     const union = new Set([...SYMBOL_SCOPED_TRADING_COACHES, ...ACCOUNT_SCOPED_TRADING_COACHES]);
-    expect(union.size).toBe(TRADING_COACH_TYPES.length - 1); // scenario is neither (stateless POST)
+    expect(union.size).toBe(TRADING_COACH_TYPES.length - 2); // scenario (stateless POST) and strategy (resolved by id) are neither
     for (const c of SYMBOL_SCOPED_TRADING_COACHES) expect(ACCOUNT_SCOPED_TRADING_COACHES).not.toContain(c);
   });
 
@@ -344,5 +356,94 @@ describe("explainScenarioCoach", () => {
     const e = explainScenarioCoach(scenarioComparisonFixture({ bestRiskRewardName: null, tightestRiskName: null }));
     expect(e.risksReducingConfidence.length).toBe(2);
     expect(e.strengthsIncreasingConfidence).toEqual([]);
+  });
+});
+
+function strategyFixture(overrides: Partial<StrategyMetadata> = {}): StrategyMetadata {
+  return {
+    id: 1,
+    name: "My Setup",
+    description: "A personally defined trade setup.",
+    category: "trend",
+    timeframes: ["1h", "1D"],
+    markets: ["equities"],
+    requiredEvidence: ["structure", "liquidity"],
+    checklist: [
+      { id: "a", label: "Structure reviewed", required: true },
+      { id: "b", label: "Optional note", required: false },
+    ],
+    educationalNotes: "Some notes.",
+    references: ["A book"],
+    version: "1.0.0",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+describe("explainStrategyCoach", () => {
+  it("quotes the strategy's own metadata and honestly reports no checklist instance yet", () => {
+    const e = explainStrategyCoach(strategyFixture(), null);
+    expect(e.coach).toBe("strategy");
+    expect(e.symbol).toBeNull();
+    expect(e.headline).toContain("My Setup");
+    expect(e.headline).toContain("No checklist instance has been started");
+    expect(e.metricsUsed.some((m) => m.label === "Category" && m.detail === "trend")).toBe(true);
+    expect(e.risksReducingConfidence.some((r) => r.includes("No checklist instance"))).toBe(true);
+    expect(e.disclaimer).toBe(TRADING_COACH_DISCLAIMER);
+  });
+
+  it("reports partial checklist completion and missing evidence links, never fabricating completeness", () => {
+    const checklist: StrategyChecklistInstance = {
+      id: 10,
+      strategyId: 1,
+      symbol: "AAPL",
+      status: "in_progress",
+      items: [
+        { id: "a", label: "Structure reviewed", required: true, completed: false, notes: "", evidenceLinks: [] },
+        { id: "b", label: "Optional note", required: false, completed: false, notes: "", evidenceLinks: [] },
+      ],
+      notes: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const e = explainStrategyCoach(strategyFixture(), checklist);
+    expect(e.symbol).toBe("AAPL");
+    expect(e.headline).toContain("0/1 required item(s) complete");
+    expect(e.risksReducingConfidence.some((r) => r.includes("1 required checklist item(s) are still incomplete"))).toBe(true);
+    expect(e.risksReducingConfidence.some((r) => r.includes("no evidence link"))).toBe(true);
+    expect(e.strengthsIncreasingConfidence).toEqual([]);
+  });
+
+  it("reports full completion as a strength, never claiming the strategy itself is validated", () => {
+    const checklist: StrategyChecklistInstance = {
+      id: 10,
+      strategyId: 1,
+      symbol: "AAPL",
+      status: "complete",
+      items: [
+        {
+          id: "a",
+          label: "Structure reviewed",
+          required: true,
+          completed: true,
+          notes: "Checked",
+          evidenceLinks: [{ sourceType: "structure", label: "Market Structure Workbench", detail: "uptrend", url: "/market-structure-workbench?symbol=AAPL" }],
+        },
+      ],
+      notes: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const e = explainStrategyCoach(strategyFixture({ checklist: [{ id: "a", label: "Structure reviewed", required: true }] }), checklist);
+    expect(e.strengthsIncreasingConfidence.some((s) => s.includes("Every required checklist item"))).toBe(true);
+    expect(e.risksReducingConfidence).toEqual([]);
+    // Never a judgment on whether the strategy itself is sound — the
+    // Coach's own commonMistakes text explicitly WARNS against reading
+    // 100% completion as an entry signal, it never claims one itself.
+    const allText = JSON.stringify(e).toLowerCase();
+    expect(allText).not.toContain("good trade");
+    expect(allText).not.toContain("you should enter");
+    expect(allText).not.toContain("recommended entry");
   });
 });

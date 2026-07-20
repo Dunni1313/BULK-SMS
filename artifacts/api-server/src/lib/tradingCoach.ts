@@ -34,6 +34,11 @@ import type { LiquidityAnalysis } from "./tradingLiquidity.js";
 import type { SessionData } from "./tradingDomainModel.js";
 import type { TradingRiskAnalysisWithContext } from "./tradingRisk.js";
 import type { ScenarioComparisonResult } from "./tradingScenarioComparison.js";
+import {
+  computeChecklistCompletion,
+  type StrategyMetadata,
+  type StrategyChecklistInstance,
+} from "./tradingStrategyFramework.js";
 
 export type TradingCoachType =
   | "structure"
@@ -43,7 +48,8 @@ export type TradingCoachType =
   | "trade-plan"
   | "journal"
   | "scenario"
-  | "psychology";
+  | "psychology"
+  | "strategy";
 
 export const TRADING_COACH_TYPES: TradingCoachType[] = [
   "structure",
@@ -54,6 +60,7 @@ export const TRADING_COACH_TYPES: TradingCoachType[] = [
   "journal",
   "scenario",
   "psychology",
+  "strategy",
 ];
 
 export const TRADING_COACH_LABELS: Record<TradingCoachType, string> = {
@@ -65,12 +72,16 @@ export const TRADING_COACH_LABELS: Record<TradingCoachType, string> = {
   journal: "Journal Coach",
   scenario: "Scenario Coach",
   psychology: "Psychology & Discipline Coach",
+  strategy: "Strategy Coach",
 };
 
 // The subset of coach types resolved per-symbol (GET /trading/coach/:coach/:symbol).
 export const SYMBOL_SCOPED_TRADING_COACHES: TradingCoachType[] = ["structure", "liquidity", "session", "risk", "trade-plan"];
 // The subset resolved account-wide, no symbol (GET /trading/coach/:coach).
 export const ACCOUNT_SCOPED_TRADING_COACHES: TradingCoachType[] = ["journal", "psychology"];
+// The subset resolved by strategy id, per Phase 30's Strategy AI Coach
+// Integration (GET /trading/coach/strategy/:strategyId).
+export const STRATEGY_SCOPED_TRADING_COACHES: TradingCoachType[] = ["strategy"];
 
 export interface TradingCoachEvidenceItem {
   label: string;
@@ -100,7 +111,8 @@ export const TRADING_COACH_DISCLAIMER =
   "Institutional Trading AI Coach — Educational, Deterministic, Evidence Based. The Coach never creates a " +
   "trading signal, predicts a future price, recommends buying or selling, or invents a probability: every " +
   "figure above is a direct quote from an existing, already-computed engine (Market Structure, Multi-Timeframe " +
-  "Trend, Liquidity, Session, Risk Management, Trade Plans, Trading Journal, and Scenario Comparison). This " +
+  "Trend, Liquidity, Session, Risk Management, Trade Plans, Trading Journal, Scenario Comparison, or your own " +
+  "Strategy Framework metadata/checklists). This " +
   "module only explains and teaches using outputs that already exist — it creates no new trading logic, and " +
   "this is not trading advice.";
 
@@ -624,6 +636,85 @@ export function explainScenarioCoach(comparison: ScenarioComparisonResult): Trad
       "Institutional traders routinely sketch several candidate entry/stop/target combinations before committing capital, comparing the resulting size and ratio side by side — the same workflow this panel supports.",
     relatedGlossaryKeys: ["scenario-comparison", "risk-reward-ratio", "trading-position-sizing"],
     calculationSources: ["Scenario Comparison (Phase 28)", "computeRiskParameters() (Phase 24)"],
+    disclaimer: TRADING_COACH_DISCLAIMER,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 9. Strategy Coach (Phase 30, Institutional Strategy Framework) — explains
+//    a user's own registered Strategy Metadata and, if supplied, one of its
+//    own Checklist instances. Zero new logic: category/timeframes/markets/
+//    required evidence/educational notes/references are direct quotes of
+//    the strategy's own persisted fields, and checklist completion is
+//    computeChecklistCompletion() (tradingStrategyFramework.ts) — the exact
+//    same function the Checklist Viewer UI itself calls. This coach never
+//    evaluates whether the strategy ITSELF is sound — only reports what was
+//    authored and how much of a checklist instance has been completed.
+// ---------------------------------------------------------------------------
+export function explainStrategyCoach(
+  strategy: StrategyMetadata,
+  checklist: StrategyChecklistInstance | null,
+): TradingCoachExplanation {
+  const metricsUsed: TradingCoachEvidenceItem[] = [
+    ev("Category", strategy.category, "Strategy Metadata"),
+    ev("Timeframes", strategy.timeframes.join(", "), "Strategy Metadata"),
+    ev("Markets", strategy.markets.join(", "), "Strategy Metadata"),
+    ev("Required evidence", strategy.requiredEvidence.join(", "), "Strategy Metadata"),
+    ev("Checklist items", `${strategy.checklist.length} defined (${strategy.checklist.filter((c) => c.required).length} required)`, "Strategy Metadata"),
+    ev("Version", strategy.version, "Strategy Metadata"),
+  ];
+
+  const supportingEvidence: TradingCoachEvidenceItem[] = [];
+  if (strategy.educationalNotes.trim()) supportingEvidence.push(ev("Educational notes", strategy.educationalNotes, "Strategy Metadata"));
+  if (strategy.references.length > 0) supportingEvidence.push(ev("References", strategy.references.join("; "), "Strategy Metadata"));
+
+  const risksReducingConfidence: string[] = [];
+  const strengthsIncreasingConfidence: string[] = [];
+  let checklistLine = "No checklist instance has been started for this strategy yet.";
+
+  if (checklist) {
+    const summary = computeChecklistCompletion(checklist.items);
+    checklistLine = `Checklist${checklist.symbol ? ` for ${checklist.symbol}` : ""}: ${summary.requiredCompleted}/${summary.requiredTotal} required item(s) complete (${summary.percentComplete}% overall), status: ${checklist.status}.`;
+    metricsUsed.push(
+      ev(
+        "Checklist completion",
+        `${summary.requiredCompleted}/${summary.requiredTotal} required, ${summary.optionalCompleted}/${summary.optionalTotal} optional`,
+        "computeChecklistCompletion()",
+      ),
+    );
+    if (summary.allRequiredComplete) strengthsIncreasingConfidence.push("Every required checklist item has been marked complete.");
+    else risksReducingConfidence.push(`${summary.requiredTotal - summary.requiredCompleted} required checklist item(s) are still incomplete.`);
+
+    const missingEvidence = checklist.items.filter((i) => i.required && i.evidenceLinks.length === 0);
+    if (missingEvidence.length > 0)
+      risksReducingConfidence.push(`${missingEvidence.length} required item(s) have no evidence link attached yet: ${missingEvidence.map((i) => i.label).join(", ")}.`);
+  } else {
+    risksReducingConfidence.push("No checklist instance exists yet for this strategy — the Checklist Engine cannot report a completion state.");
+  }
+
+  return {
+    coach: "strategy",
+    coachLabel: TRADING_COACH_LABELS.strategy,
+    symbol: checklist?.symbol ?? null,
+    headline: `"${strategy.name}" (${strategy.category}) — ${checklistLine}`,
+    whyThisExists:
+      "The Strategy Coach explains your own registered Strategy Framework entry — its metadata (category, timeframes, markets, required evidence) and, if one exists, a Checklist instance's own completion state, exactly as computeChecklistCompletion() reports it. It never evaluates whether the strategy's own rules are sound — that judgment belongs entirely to you.",
+    metricsUsed,
+    supportingEvidence,
+    risksReducingConfidence,
+    strengthsIncreasingConfidence,
+    howToInterpret: [
+      "Required evidence lists which existing engine outputs this strategy's own author decided are relevant to check — the platform does not verify that decision, only surfaces it.",
+      "Checklist completion is a literal count of items you marked done yourself, each optionally with your own evidence-link citation — never an automatic pass/fail on the trade.",
+    ],
+    commonMistakes: [
+      "Treating 100% checklist completion as a signal to enter a trade — completion means the checklist was filled out, not that any underlying condition is favorable.",
+      "Registering a strategy's required evidence sources but never actually attaching an evidence link when completing a checklist item — leaving the citation trail empty.",
+    ],
+    institutionalPerspective:
+      "Formalizing a personal methodology as named, versioned metadata with an explicit checklist and required evidence — rather than relying on memory — is a basic institutional-discipline practice, independent of what the methodology itself says.",
+    relatedGlossaryKeys: ["trading-strategy-framework", "strategy-checklist", "strategy-evidence-link"],
+    calculationSources: ["Strategy Framework (Phase 30)", "computeChecklistCompletion() (Phase 30)"],
     disclaimer: TRADING_COACH_DISCLAIMER,
   };
 }

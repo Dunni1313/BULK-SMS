@@ -35,6 +35,8 @@ import {
   valueWatchlistTable,
   tradingTradePlansTable,
   tradingPositionsTable,
+  tradingStrategiesTable,
+  tradingStrategyChecklistsTable,
 } from "@workspace/db";
 import {
   GetReportTypesResponse,
@@ -48,6 +50,7 @@ import {
   GetAiCoachLearningSummaryReportResponse,
   GetExecutiveSummaryReportResponse,
   GetTradePlanningSummaryReportResponse,
+  GetStrategyFrameworkSummaryReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -84,11 +87,15 @@ import {
   buildAiCoachLearningSummaryReport,
   buildExecutiveSummaryReport,
   buildTradePlanningSummaryReport,
+  buildStrategyFrameworkSummaryReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
   type TradePlanSummaryItem,
+  type StrategyFrameworkChecklistSummaryItem,
 } from "../lib/institutionalReporting.js";
+import type { StrategyMetadata, StrategyCategory, EvidenceSourceType } from "../lib/tradingStrategyFramework.js";
+import type { Timeframe } from "../lib/tradingMarketData.js";
 
 const router: IRouter = Router();
 
@@ -321,6 +328,48 @@ router.get("/reporting/trade-planning-summary", async (req, res): Promise<void> 
   res.json(GetTradePlanningSummaryReportResponse.parse(built));
 });
 
+// ─── Strategy Framework Summary Report (Phase 30) — resolved the exact
+// same way routes/tradingStrategies.ts's own GET /trading/strategies and
+// routes/tradingStrategyChecklists.ts's own list routes already do. Zero
+// new queries beyond what those routes already run. ─────────────────────
+
+async function loadStrategyFrameworkSummaryInputs(userId: string) {
+  const strategyRows = await db.select().from(tradingStrategiesTable).where(eq(tradingStrategiesTable.userId, userId));
+  const strategies: StrategyMetadata[] = strategyRows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    category: r.category as StrategyCategory,
+    timeframes: r.timeframes as Timeframe[],
+    markets: r.markets as string[],
+    requiredEvidence: r.requiredEvidence as EvidenceSourceType[],
+    checklist: r.checklist,
+    educationalNotes: r.educationalNotes,
+    references: r.references as string[],
+    version: r.version,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+  }));
+
+  const strategyNameById = new Map(strategies.map((s) => [s.id, s.name]));
+  const checklistRows = await db.select().from(tradingStrategyChecklistsTable).where(eq(tradingStrategyChecklistsTable.userId, userId));
+  const checklists: StrategyFrameworkChecklistSummaryItem[] = checklistRows.map((c) => ({
+    strategyId: c.strategyId,
+    strategyName: strategyNameById.get(c.strategyId) ?? `Strategy #${c.strategyId}`,
+    symbol: c.symbol ?? null,
+    status: c.status,
+  }));
+
+  return { strategies, checklists };
+}
+
+router.get("/reporting/strategy-framework-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const { strategies, checklists } = await loadStrategyFrameworkSummaryInputs(userId);
+  const built = buildStrategyFrameworkSummaryReport(strategies, checklists);
+  res.json(GetStrategyFrameworkSummaryReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -412,6 +461,10 @@ async function regenerate(
     case "trade-planning-summary": {
       const { plans, risk } = await loadTradePlanningSummaryInputs(userId);
       return buildTradePlanningSummaryReport(plans, risk);
+    }
+    case "strategy-framework-summary": {
+      const { strategies, checklists } = await loadStrategyFrameworkSummaryInputs(userId);
+      return buildStrategyFrameworkSummaryReport(strategies, checklists);
     }
     default:
       return null;

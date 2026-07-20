@@ -8,7 +8,7 @@ import { LEARNING_PATHS, getLearningPath, getLearningTopic, allLearningTopics } 
 import { getGlossaryTerm } from "./glossary.js";
 
 describe("learning path content", () => {
-  it("has exactly the 9 requested paths, in the requested order (Phase 29 adds trading-engine)", () => {
+  it("has exactly the 10 requested paths, in the requested order (Phase 30 adds strategy-framework)", () => {
     expect(LEARNING_PATHS.map((p) => p.key)).toEqual([
       "foundations",
       "greeks",
@@ -24,6 +24,10 @@ describe("learning path content", () => {
       // Phase 29 — Institutional Trading AI Coach. A 10th, Engine-2-scoped
       // path (distinct from both "institutional" and "institutional-investing").
       "trading-engine",
+      // Phase 30 — Institutional Strategy Framework. An 11th path teaching
+      // the FRAMEWORK itself (registering metadata, the Checklist Engine,
+      // evidence citations), never a real trading methodology's own rules.
+      "strategy-framework",
     ]);
   });
 
@@ -90,6 +94,9 @@ describe("learning path content", () => {
       "/trade-planning-studio",
       "/trading-journal",
       "/trading-ai-coach",
+      // Phase 30 — Institutional Strategy Framework's own path, confirmed
+      // by direct inspection of App.tsx before this content was written.
+      "/strategy-framework",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {

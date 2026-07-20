@@ -34,7 +34,14 @@
 // order-flow, or execution data anywhere in this module.
 
 import { Router, type IRouter } from "express";
-import { db, tradingPositionsTable, tradingJournalEntriesTable, tradingTradePlansTable } from "@workspace/db";
+import {
+  db,
+  tradingPositionsTable,
+  tradingJournalEntriesTable,
+  tradingTradePlansTable,
+  tradingStrategiesTable,
+  tradingStrategyChecklistsTable,
+} from "@workspace/db";
 import { eq, desc, and } from "drizzle-orm";
 import { buildProbabilityAnalysis, type ProbabilityAnalysis } from "../lib/tradingProbability.js";
 import {
@@ -56,11 +63,15 @@ import {
   explainJournalCoach,
   explainPsychologyCoach,
   explainScenarioCoach,
+  explainStrategyCoach,
 } from "../lib/tradingCoach.js";
+import type { StrategyChecklistItemState, StrategyCategory, EvidenceSourceType } from "../lib/tradingStrategyFramework.js";
+import type { Timeframe } from "../lib/tradingMarketData.js";
 import { computeScenarioComparison, MIN_SCENARIOS, MAX_SCENARIOS } from "../lib/tradingScenarioComparison.js";
 import {
   GetTradingCoachExplanationResponse,
   GetTradingCoachAccountExplanationResponse,
+  GetTradingCoachStrategyExplanationResponse,
   ExplainTradingScenarioBody,
   ExplainTradingScenarioResponse,
 } from "@workspace/api-zod";
@@ -310,6 +321,81 @@ router.get("/trading/coach/:coach", async (req, res): Promise<void> => {
 
   const explanation = coach === "journal" ? explainJournalCoach(entries) : explainPsychologyCoach(entries);
   res.json(GetTradingCoachAccountExplanationResponse.parse(explanation));
+});
+
+// Strategy Coach (Phase 30) — resolved by strategy id, not a market
+// symbol or the account-wide reads above. A literal "strategy" first
+// path segment, registered before the generic /:coach/:symbol route
+// below so Express matches this one first (both would otherwise
+// structurally match a 2-segment URL); "strategy" is intentionally
+// absent from both SYMBOL_SCOPED_TRADING_COACHES and
+// ACCOUNT_SCOPED_TRADING_COACHES so neither of those two general
+// handlers accidentally accepts it either.
+router.get("/trading/coach/strategy/:strategyId", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.strategyId) ? req.params.strategyId[0] : req.params.strategyId;
+  const strategyId = parseInt(raw, 10);
+  if (isNaN(strategyId)) {
+    res.status(400).json({ error: "Invalid strategy id" });
+    return;
+  }
+
+  const userId = await getScopedUserId(req);
+  const [strategyRow] = await db
+    .select()
+    .from(tradingStrategiesTable)
+    .where(and(eq(tradingStrategiesTable.id, strategyId), eq(tradingStrategiesTable.userId, userId)));
+
+  if (!strategyRow) {
+    res.status(404).json({ error: "Strategy not found" });
+    return;
+  }
+
+  const checklistIdRaw = typeof req.query.checklistId === "string" ? req.query.checklistId : undefined;
+  let checklistRow: typeof tradingStrategyChecklistsTable.$inferSelect | null = null;
+  if (checklistIdRaw !== undefined) {
+    const checklistId = parseInt(checklistIdRaw, 10);
+    if (isNaN(checklistId)) {
+      res.status(400).json({ error: "Invalid checklistId" });
+      return;
+    }
+    const [row] = await db
+      .select()
+      .from(tradingStrategyChecklistsTable)
+      .where(and(eq(tradingStrategyChecklistsTable.id, checklistId), eq(tradingStrategyChecklistsTable.userId, userId), eq(tradingStrategyChecklistsTable.strategyId, strategyId)));
+    checklistRow = row ?? null;
+  }
+
+  const explanation = explainStrategyCoach(
+    {
+      id: strategyRow.id,
+      name: strategyRow.name,
+      description: strategyRow.description,
+      category: strategyRow.category as StrategyCategory,
+      timeframes: strategyRow.timeframes as Timeframe[],
+      markets: strategyRow.markets as string[],
+      requiredEvidence: strategyRow.requiredEvidence as EvidenceSourceType[],
+      checklist: strategyRow.checklist,
+      educationalNotes: strategyRow.educationalNotes,
+      references: strategyRow.references as string[],
+      version: strategyRow.version,
+      createdAt: strategyRow.createdAt.toISOString(),
+      updatedAt: strategyRow.updatedAt.toISOString(),
+    },
+    checklistRow
+      ? {
+          id: checklistRow.id,
+          strategyId: checklistRow.strategyId,
+          symbol: checklistRow.symbol ?? null,
+          status: checklistRow.status as "in_progress" | "complete",
+          items: checklistRow.items as StrategyChecklistItemState[],
+          notes: checklistRow.notes,
+          createdAt: checklistRow.createdAt.toISOString(),
+          updatedAt: checklistRow.updatedAt.toISOString(),
+        }
+      : null,
+  );
+
+  res.json(GetTradingCoachStrategyExplanationResponse.parse(explanation));
 });
 
 router.get("/trading/coach/:coach/:symbol", async (req, res): Promise<void> => {

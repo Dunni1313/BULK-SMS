@@ -879,6 +879,72 @@ const TRADING_ENGINE_PATH: LearningPath = {
   ],
 };
 
+// Phase 30 — Institutional Strategy Framework. Teaches the FRAMEWORK
+// itself — how to register a strategy's own metadata, use the Checklist
+// Engine, and cite existing evidence — never a real trading methodology's
+// own rules (no ICT/SMC/ASAD/Trader Bill/Tom Nash/Dunni Framework content
+// anywhere in this path).
+const STRATEGY_FRAMEWORK_PATH: LearningPath = {
+  key: "strategy-framework",
+  title: "Institutional Strategy Framework",
+  description: "How to register your own trading methodology's metadata and checklist — the platform never implements or evaluates the methodology itself.",
+  glossaryCategory: "trading",
+  topics: [
+    topic({
+      key: "strategy-framework-overview",
+      title: "What Is a Strategy?",
+      summary: "Metadata only — never a rule engine.",
+      body: [
+        "In this platform, a 'Strategy' is a METADATA record you author yourself: a name, description, category, the timeframes and markets it applies to, which existing engine outputs you consider relevant evidence, a checklist, educational notes, references, and a version number.",
+        "The platform never implements, evaluates, or judges the methodology you name — it only stores the shape you give it and helps you apply it consistently.",
+      ],
+      whyItMatters: "Formalizing your own rules as structured, versioned metadata — rather than relying on memory — is a basic institutional discipline, independent of what those rules actually say.",
+      externalHref: "/strategy-framework",
+      relatedGlossaryKeys: ["trading-strategy-framework"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "strategy-framework-categories-evidence",
+      title: "Categories and Evidence",
+      summary: "Generic structural labels and citation sources, not judgments.",
+      body: [
+        "Categories (Trend, Reversal, Breakout, Range, Scalping, Swing, Position, Other) are generic, structural labels — never a named real-world methodology.",
+        "Required Evidence lists which existing engine outputs (Market Structure, Liquidity, Sessions, Risk, Trade Plans, Journal, AI Coach) your own strategy's author decided are relevant — the platform never verifies that decision, only surfaces it.",
+      ],
+      whyItMatters: "Naming your own evidence sources up front makes it easy to check you actually reviewed them before a real trade, not after.",
+      externalHref: "/strategy-framework",
+      relatedGlossaryKeys: ["strategy-evidence-link"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "strategy-framework-checklist-engine",
+      title: "The Checklist Engine",
+      summary: "Required items, optional items, notes, and evidence links.",
+      body: [
+        "A strategy's own checklist TEMPLATE (defined once, as part of its metadata) is instantiated fresh into a real Checklist instance every time you apply it — completion state, per-item notes, and evidence links all start empty and are filled in by you.",
+        "A checklist reads 'complete' only once every REQUIRED item is marked done — optional items never block completion, and an empty checklist is never fabricated as complete.",
+      ],
+      whyItMatters: "A consistent, evidence-linked checklist turns a personal methodology into something reviewable after the fact, the same way a pre-flight checklist works regardless of the aircraft.",
+      externalHref: "/strategy-framework",
+      relatedGlossaryKeys: ["strategy-checklist"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "strategy-framework-coach",
+      title: "The Strategy Coach",
+      summary: "Explains your own registered strategy and checklist state.",
+      body: [
+        "The Strategy Coach explains your own strategy's metadata and, if one exists, a checklist instance's completion state — every figure is a direct quote of what you authored or what computeChecklistCompletion() reports, never a new judgment on whether the strategy itself is sound.",
+        "100% checklist completion means the checklist was filled out, not that any underlying market condition is favorable — the Coach is explicit about this distinction.",
+      ],
+      whyItMatters: "Keeping the Coach limited to explaining your own data, never evaluating your methodology, is what keeps the Strategy Framework a framework rather than a signal generator.",
+      externalHref: "/trading-ai-coach",
+      relatedGlossaryKeys: ["trading-strategy-framework", "strategy-checklist"],
+      estimatedMinutes: 3,
+    }),
+  ],
+};
+
 export const LEARNING_PATHS: LearningPath[] = [
   FOUNDATIONS_PATH,
   GREEKS_PATH,
@@ -889,6 +955,7 @@ export const LEARNING_PATHS: LearningPath[] = [
   INSTITUTIONAL_PATH,
   INSTITUTIONAL_INVESTING_PATH,
   TRADING_ENGINE_PATH,
+  STRATEGY_FRAMEWORK_PATH,
 ];
 
 export function getLearningPath(key: string): LearningPath | null {

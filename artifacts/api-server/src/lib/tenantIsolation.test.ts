@@ -58,6 +58,8 @@ import {
   investingMonitoringStatesTable,
   investingAlertNotesTable,
   investingOptimisationReviewsTable,
+  tradingStrategiesTable,
+  tradingStrategyChecklistsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -140,6 +142,12 @@ afterAll(async () => {
     // Phase 16 — Institutional Monitoring & Alerts Engine's own new tables.
     investingMonitoringStatesTable,
     investingAlertNotesTable,
+    // Phase 30 — Institutional Strategy Framework's own two new tables.
+    // Checklists first — they have their own FK to trading_strategies as
+    // ON DELETE CASCADE, so this is defensive/consistent with the rest of
+    // this loop, not strictly required.
+    tradingStrategyChecklistsTable,
+    tradingStrategiesTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -530,6 +538,63 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       symbol: "AAPL",
       note: "Watching this one closely.",
+    }));
+  });
+
+  // Phase 30 — Institutional Strategy Framework's own two new tables.
+  it("trading_strategies: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(tradingStrategiesTable, userA, userB, (userId) => ({
+      userId,
+      name: "Test Strategy",
+      description: "A personally defined trade setup.",
+      category: "trend",
+      timeframes: ["1h"],
+      markets: ["equities"],
+      requiredEvidence: ["structure"],
+      checklist: [{ id: "a", label: "A", required: true }],
+      references: [],
+    }));
+  });
+
+  it("trading_strategy_checklists: a userId-scoped query never crosses accounts", async () => {
+    // A checklist has a real FK to its own strategy (ON DELETE CASCADE) —
+    // seed one real strategy per user first so the checklist insert itself
+    // is valid, then prove isolation over the checklists table exactly like
+    // every other table above.
+    const [strategyA] = await db
+      .insert(tradingStrategiesTable)
+      .values({
+        userId: userA,
+        name: "Strategy A",
+        description: "d",
+        category: "trend",
+        timeframes: ["1h"],
+        markets: ["equities"],
+        requiredEvidence: ["structure"],
+        checklist: [{ id: "a", label: "A", required: true }],
+        references: [],
+      })
+      .returning({ id: tradingStrategiesTable.id });
+    const [strategyB] = await db
+      .insert(tradingStrategiesTable)
+      .values({
+        userId: userB,
+        name: "Strategy B",
+        description: "d",
+        category: "trend",
+        timeframes: ["1h"],
+        markets: ["equities"],
+        requiredEvidence: ["structure"],
+        checklist: [{ id: "a", label: "A", required: true }],
+        references: [],
+      })
+      .returning({ id: tradingStrategiesTable.id });
+
+    await assertTenantIsolation(tradingStrategyChecklistsTable, userA, userB, (userId) => ({
+      userId,
+      strategyId: userId === userA ? strategyA.id : strategyB.id,
+      status: "in_progress",
+      items: [{ id: "a", label: "A", required: true, completed: false, notes: "", evidenceLinks: [] }],
     }));
   });
 });

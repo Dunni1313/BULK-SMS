@@ -40,6 +40,7 @@ import type { CrossEngineDailyReport } from "./crossEngineDailyReport.js";
 import type { LearningProgressSummary } from "./learningProgress.js";
 import type { WatchlistTargetCheck } from "./watchlistTargets.js";
 import type { TradingRiskAnalysis } from "./tradingRisk.js";
+import { toStrategyLearningSummary, type StrategyMetadata, type StrategyLearningSummary } from "./tradingStrategyFramework.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -51,7 +52,8 @@ export type InstitutionalReportType =
   | "monitoring-summary"
   | "ai-coach-summary"
   | "executive-summary"
-  | "trade-planning-summary";
+  | "trade-planning-summary"
+  | "strategy-framework-summary";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -64,6 +66,7 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "ai-coach-summary",
   "executive-summary",
   "trade-planning-summary",
+  "strategy-framework-summary",
 ];
 
 export interface ReportTypeMeta {
@@ -142,6 +145,13 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "trade-planning-summary",
     label: "Trade Planning Summary Report",
     description: "The calling user's own Trade Plans (Institutional Trade Planning & Risk Studio) and Trading Risk analysis — position sizing, stop/target discipline, and portfolio risk budget.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "strategy-framework-summary",
+    label: "Strategy Framework Summary Report",
+    description: "The calling user's own registered Strategy Framework entries (Phase 30) — metadata, required evidence, and checklist-instance completion, never a strategy's own trading logic.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -753,6 +763,65 @@ export function buildTradePlanningSummaryReport(
     reportType: "trade-planning-summary",
     title: "Trade Planning Summary Report",
     subtitle: `${plans.length} trade plan${plans.length === 1 ? "" : "s"}, risk: ${risk.overall.label}`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: new Date().toISOString(),
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 11. Strategy Framework Summary Report (Phase 30, Institutional
+// Strategy Framework) — thin reformatting of the calling user's own
+// trading_strategies/trading_strategy_checklists rows via
+// toStrategyLearningSummary() (unmodified) and each checklist's own
+// already-persisted status field. No strategy logic is evaluated —
+// only metadata and completion state. ──────────────────────────────────
+
+export interface StrategyFrameworkChecklistSummaryItem {
+  strategyId: number;
+  strategyName: string;
+  symbol: string | null;
+  status: string;
+}
+
+export function buildStrategyFrameworkSummaryReport(
+  strategies: StrategyMetadata[],
+  checklists: StrategyFrameworkChecklistSummaryItem[],
+): InstitutionalReport {
+  const learningSummaries: StrategyLearningSummary[] = strategies.map(toStrategyLearningSummary);
+  const completeCount = checklists.filter((c) => c.status === "complete").length;
+  const inProgressCount = checklists.length - completeCount;
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Executive Summary",
+      strategies.length
+        ? `${strategies.length} strategy definition(s) on record, ${checklists.length} checklist instance(s) run (${completeCount} complete, ${inProgressCount} in progress).`
+        : "No strategies have been registered in the Strategy Framework yet.",
+    ),
+    section(
+      "strategy-registry",
+      "Strategy Registry",
+      strategies.length ? "Reused directly from the Institutional Strategy Framework's own trading_strategies rows." : "No strategies registered.",
+      learningSummaries.map(
+        (s) => `${s.name} (${s.category}, v${s.version}) — ${s.checklistItemCount} checklist item(s), required evidence: ${s.requiredEvidence.join(", ") || "none"}`,
+      ),
+    ),
+    section(
+      "checklist-instances",
+      "Checklist Instances",
+      checklists.length ? "Each row is a real, persisted checklist instance and its own completion status." : "No checklist instances have been run yet.",
+      checklists.map((c) => `${c.strategyName}${c.symbol ? ` (${c.symbol})` : ""}: ${c.status}`),
+    ),
+  ];
+
+  return {
+    reportType: "strategy-framework-summary",
+    title: "Strategy Framework Summary Report",
+    subtitle: `${strategies.length} strategy(ies), ${checklists.length} checklist instance(s)`,
     symbol: null,
     portfolioId: null,
     generatedAt: new Date().toISOString(),

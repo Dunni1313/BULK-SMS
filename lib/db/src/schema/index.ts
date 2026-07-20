@@ -42,3 +42,5 @@ export * from "./investingOptimisationReviews";
 export * from "./dashboardWorkspaces";
 export * from "./brokerReconciliationReports";
 export * from "./institutionalReports";
+export * from "./tradingStrategies";
+export * from "./tradingStrategyChecklists";

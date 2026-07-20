@@ -937,6 +937,30 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: ["trading-journal"],
     relatedLessonKeys: [],
   },
+  {
+    key: "trading-strategy-framework",
+    term: "Strategy Framework",
+    category: "trading",
+    definition: "A reusable structure (Phase 30) that lets a user register their own trading methodology as METADATA — name, description, category, timeframes, markets, required evidence, a checklist template, educational notes, references, and version — without the platform implementing, evaluating, or generating any signal for that methodology.",
+    relatedTermKeys: ["strategy-checklist", "strategy-evidence-link"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "strategy-checklist",
+    term: "Strategy Checklist",
+    category: "trading",
+    definition: "A specific, persisted instance of a strategy's own checklist template applied to one real use — tracking completion state, per-item notes, and evidence links. Every item's label and required/optional flag is copied from the parent strategy's own user-authored template; the platform never hardcodes checklist content.",
+    relatedTermKeys: ["trading-strategy-framework", "strategy-evidence-link"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "strategy-evidence-link",
+    term: "Strategy Evidence Link",
+    category: "trading",
+    definition: "A citation packaging a label, detail, and optional deep link back to an already-computed engine output (Market Structure, Liquidity, Sessions, Risk, Trade Plans, Journal, or the Trading AI Coach) — never a calculation of its own, only a reference trail proving where a piece of supporting evidence came from.",
+    relatedTermKeys: ["trading-strategy-framework", "strategy-checklist"],
+    relatedLessonKeys: [],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {

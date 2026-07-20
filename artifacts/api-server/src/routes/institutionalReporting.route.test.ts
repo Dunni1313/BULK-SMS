@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 10 report types (Phase 28 adds trade-planning-summary)", async () => {
+  it("GET /reporting/types returns all 11 report types (Phase 30 adds strategy-framework-summary)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(10);
+    expect(body).toHaveLength(11);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -63,6 +63,7 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "opportunity-discovery",
         "portfolio-health",
         "portfolio-review",
+        "strategy-framework-summary",
         "trade-planning-summary",
         "watchlist",
       ].sort(),
