@@ -47,6 +47,8 @@ import { getScopedUserId } from "../lib/tenantScope.js";
 import { getSettingsRow } from "../lib/serverState.js";
 import { narrateTradeFreeform, narrateTradeFreeformStream, llmAvailable } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
+import { buildSessionData } from "../lib/trading/sessionService.js";
+import type { SessionData } from "../lib/tradingDomainModel.js";
 import { AskTradingCoachBody, AskTradingCoachResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -85,6 +87,7 @@ function buildTradeCoachContext(
   probability: ProbabilityAnalysis,
   risk: TradingRiskAnalysisWithContext,
   journalRows: (typeof tradingJournalEntriesTable.$inferSelect)[],
+  session: SessionData | null,
 ) {
   const regime = probability.regime;
   const multiTimeframe = regime.multiTimeframe;
@@ -93,6 +96,18 @@ function buildTradeCoachContext(
     symbol: probability.symbol,
     dataSource: probability.dataSource,
     currentPrice: probability.currentPrice,
+    // Phase 27 — Institutional Liquidity & Session Workbench. Reuses
+    // sessionService.ts's own buildSessionData() unmodified — the coach
+    // previously had no session-hours awareness at all. Honestly null
+    // when the symbol's own session data can't be resolved (never
+    // fabricated), matching every other honest-null field in this context.
+    session: session
+      ? {
+          activeSessions: session.activeSessions,
+          sessionHigh: session.sessionHigh,
+          sessionLow: session.sessionLow,
+        }
+      : null,
     structure: multiTimeframe.timeframes.map((tf) => ({
       interval: tf.interval,
       trend: tf.structure.trend,
@@ -182,7 +197,8 @@ router.post("/trading/coach/ask", async (req, res): Promise<void> => {
   }
 
   const { risk, journalRows } = await gatherUserContext(userId, provider);
-  const context = buildTradeCoachContext(probability, risk, journalRows);
+  const session = await buildSessionData(parsed.data.symbol);
+  const context = buildTradeCoachContext(probability, risk, journalRows, session);
   const fallback = tradeCoachFallback(probability, risk, parsed.data.question);
   const n = await narrateTradeFreeform(parsed.data.question, context, fallback);
   res.json(AskTradingCoachResponse.parse({ answer: n.text, answerSource: n.source }));
@@ -208,7 +224,8 @@ router.post("/trading/coach/ask/stream", async (req, res): Promise<void> => {
   }
 
   const { risk, journalRows } = await gatherUserContext(userId, provider);
-  const context = buildTradeCoachContext(probability, risk, journalRows);
+  const session = await buildSessionData(parsed.data.symbol);
+  const context = buildTradeCoachContext(probability, risk, journalRows, session);
   const fallback = tradeCoachFallback(probability, risk, parsed.data.question);
 
   const sse = openSse(res);

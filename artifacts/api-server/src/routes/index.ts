@@ -53,6 +53,8 @@ import tradingTradePlansRouter from "./tradingTradePlans";
 import tradingWorkspaceNotesRouter from "./tradingWorkspaceNotes";
 import tradingSessionRouter from "./tradingSession";
 import tradingStructureTimelineRouter from "./tradingStructureTimeline";
+import tradingSessionWindowsRouter from "./tradingSessionWindows";
+import tradingLiquidityTimelineRouter from "./tradingLiquidityTimeline";
 
 const router: IRouter = Router();
 
@@ -110,5 +112,7 @@ router.use(tradingTradePlansRouter);
 router.use(tradingWorkspaceNotesRouter);
 router.use(tradingSessionRouter);
 router.use(tradingStructureTimelineRouter);
+router.use(tradingSessionWindowsRouter);
+router.use(tradingLiquidityTimelineRouter);
 
 export default router;
