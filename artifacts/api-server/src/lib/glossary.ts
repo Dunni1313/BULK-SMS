@@ -17,7 +17,8 @@ export type GlossaryCategory =
   | "portfolio"
   | "performance"
   | "institutional"
-  | "value-investing";
+  | "value-investing"
+  | "trading";
 
 export interface GlossaryTerm {
   key: string;
@@ -802,6 +803,140 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: ["monitoring-alert", "opportunity-discovery-engine"],
     relatedLessonKeys: [],
   },
+
+  // ─── Trading (Engine 2 — Phase 29's Institutional Trading AI Coach and its
+  // learning path). Every term here defines a concept the Trading Coach's
+  // 8 deterministic coaches (lib/tradingCoach.ts) or the Trade Planning &
+  // Risk Studio already reference — no new methodology is invented here,
+  // only its definition. ────────────────────────────────────────────────
+  {
+    key: "market-structure",
+    term: "Market Structure",
+    category: "trading",
+    definition: "A trend classification (uptrend, downtrend, or range) derived from detecting swing highs/lows in real candle data — higher highs + higher lows read uptrend, lower highs + lower lows read downtrend, anything else honestly reads range rather than a forced direction.",
+    relatedTermKeys: ["support-resistance-zone", "multi-timeframe-confluence"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "support-resistance-zone",
+    term: "Support/Resistance Zone",
+    category: "trading",
+    definition: "A price level where multiple separate swing highs or lows have clustered — its 'strength' is simply how many swing touches were detected there, not a guarantee that price will react there again.",
+    relatedTermKeys: ["market-structure"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "multi-timeframe-confluence",
+    term: "Multi-Timeframe Confluence",
+    category: "trading",
+    definition: "The % of reviewed timeframes (e.g. 15m, 1h, 1D) that share the same dominant trend classification. 100% means every timeframe agrees; a split reading honestly reports no single dominant trend rather than guessing one.",
+    relatedTermKeys: ["market-structure"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "liquidity-band",
+    term: "Liquidity Band",
+    category: "trading",
+    definition: "A High/Moderate/Low classification of a symbol's average dollar volume against named thresholds — a description of recent trading activity, not a directional signal.",
+    relatedTermKeys: ["volume-profile", "buy-sell-pressure"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "volume-profile",
+    term: "Volume Profile",
+    category: "trading",
+    definition: "A breakdown of which price levels carried the most real trading volume in a sampled candle window — descriptive of where activity actually occurred, not predictive of where price will go next.",
+    relatedTermKeys: ["liquidity-band"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "buy-sell-pressure",
+    term: "Buy/Sell Pressure",
+    category: "trading",
+    definition: "A proxy for directional volume, derived from each candle's own already-recorded up/down close — a bullish candle's volume counts toward buying pressure, a bearish candle's toward selling, never a separately fabricated imbalance number.",
+    relatedTermKeys: ["liquidity-band"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "trading-session",
+    term: "Trading Session",
+    category: "trading",
+    definition: "A fixed, named UTC time window (Sydney, Tokyo, London, New York) — reference data, not a live feed. 'Active' means the current time falls inside that window's own start/end UTC hours.",
+    relatedTermKeys: ["session-overlap"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "session-overlap",
+    term: "Session Overlap",
+    category: "trading",
+    definition: "Two or more named trading sessions being open at the same time (e.g. London + New York) — a calendar fact about which fixed windows coincide, not itself a trading signal.",
+    relatedTermKeys: ["trading-session"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "trading-position-sizing",
+    term: "Position Sizing (Trading)",
+    category: "trading",
+    definition: "The number of shares a stated account-risk percentage allows, given a specific stop distance — pure arithmetic (account risk dollars ÷ per-share stop distance), not a recommendation on how large to trade. Distinct from Engine 1's own portfolio 'position-sizing' entry, which covers target-weight holdings rather than stop/target-based positions.",
+    relatedTermKeys: ["risk-reward-ratio", "trading-capital-allocation"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "risk-reward-ratio",
+    term: "Risk/Reward Ratio",
+    category: "trading",
+    definition: "The planned reward distance (entry to target) divided by the planned risk distance (entry to stop) — a fact about the numbers entered into a Trade Plan or Scenario, never a judgment on whether those levels are well placed.",
+    relatedTermKeys: ["trading-position-sizing", "trade-plan"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "trading-capital-allocation",
+    term: "Capital Allocation (Trading)",
+    category: "trading",
+    definition: "The aggregate dollar risk across every stop-defined open position, scored against a named portfolio-wide cap — distinct from Engine 1's own portfolio capital-allocation concept, since Engine 2's positions are stop/target-based rather than target-weight-based.",
+    relatedTermKeys: ["portfolio-risk-budget"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "portfolio-risk-budget",
+    term: "Portfolio Risk Budget",
+    category: "trading",
+    definition: "The Risk Management Engine's own scored component covering total open-position dollar risk against a named cap, with an honest hard-cap override that floors the overall risk score if the cap is breached, regardless of how the other components scored.",
+    relatedTermKeys: ["trading-capital-allocation", "trading-position-sizing"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "trade-plan",
+    term: "Trade Plan",
+    category: "trading",
+    definition: "A human's own stated pre-trade intent — direction, entry, stop, target, account risk %, and thesis — saved before a position is opened, distinct from an already-open position and never machine-generated.",
+    relatedTermKeys: ["risk-reward-ratio", "scenario-comparison"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "scenario-comparison",
+    term: "Scenario Comparison",
+    category: "trading",
+    definition: "A stateless, non-persisted side-by-side comparison of 2-5 candidate entry/stop/target combinations, each run through the same Trade Plan arithmetic — 'Best R:R' and 'Tightest Risk' are honest max/min identifications, never a recommendation on which scenario to take.",
+    relatedTermKeys: ["trade-plan", "risk-reward-ratio"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "trading-journal",
+    term: "Trading Journal",
+    category: "trading",
+    definition: "A user's own recorded reflections on their trades — title, content, mood, tags, lesson learned, setup type, and (optionally) an R-multiple — read-only source data for the Journal Coach and Psychology & Discipline Coach, never a source of new judgments about the user.",
+    relatedTermKeys: ["r-multiple"],
+    relatedLessonKeys: [],
+  },
+  {
+    key: "r-multiple",
+    term: "R-Multiple",
+    category: "trading",
+    definition: "A trade's realized profit or loss expressed as a multiple of the amount originally risked (e.g. +2R means the trade gained twice the risked amount) — a number the user records themselves on a Journal entry, never recomputed or inferred by the platform.",
+    relatedTermKeys: ["trading-journal"],
+    relatedLessonKeys: [],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {
@@ -823,5 +958,5 @@ export function getGlossaryTerm(key: string): GlossaryTerm | null {
 }
 
 export function glossaryCategories(): GlossaryCategory[] {
-  return ["foundations", "greeks", "volatility", "strategies", "portfolio", "performance", "institutional", "value-investing"];
+  return ["foundations", "greeks", "volatility", "strategies", "portfolio", "performance", "institutional", "value-investing", "trading"];
 }

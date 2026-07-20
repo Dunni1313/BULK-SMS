@@ -8,7 +8,7 @@ import { LEARNING_PATHS, getLearningPath, getLearningTopic, allLearningTopics } 
 import { getGlossaryTerm } from "./glossary.js";
 
 describe("learning path content", () => {
-  it("has exactly the 8 requested paths, in the requested order", () => {
+  it("has exactly the 9 requested paths, in the requested order (Phase 29 adds trading-engine)", () => {
     expect(LEARNING_PATHS.map((p) => p.key)).toEqual([
       "foundations",
       "greeks",
@@ -21,6 +21,9 @@ describe("learning path content", () => {
       // Engine-1-scoped path (distinct from "institutional", Engine 3's own
       // options-portfolio thinking).
       "institutional-investing",
+      // Phase 29 — Institutional Trading AI Coach. A 10th, Engine-2-scoped
+      // path (distinct from both "institutional" and "institutional-investing").
+      "trading-engine",
     ]);
   });
 
@@ -79,6 +82,14 @@ describe("learning path content", () => {
       "/stock-analyst/investment-committee",
       "/monitoring-dashboard",
       "/opportunity-discovery",
+      // Phase 29 — Institutional Trading AI Coach's own Institutional
+      // Trading Engine path, confirmed by direct inspection of App.tsx
+      // before this content was written.
+      "/market-structure-workbench",
+      "/liquidity-workbench",
+      "/trade-planning-studio",
+      "/trading-journal",
+      "/trading-ai-coach",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {

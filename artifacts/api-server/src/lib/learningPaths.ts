@@ -758,6 +758,127 @@ const INSTITUTIONAL_INVESTING_PATH: LearningPath = {
   ],
 };
 
+// Phase 29 — Institutional Trading AI Coach & Education Platform. A tenth
+// Learning Path, scoped to Engine 2 (the Institutional Trading Engine) —
+// distinct from INSTITUTIONAL_INVESTING_PATH above (Engine 1). This path
+// teaches the 8 named Engine-2 modules the Trading AI Coach explains:
+// Market Structure, Liquidity, Sessions, Risk Management, Trade Planning,
+// the Trading Journal, Scenario Comparison, and Psychology & Discipline.
+// Every topic links to its own already-built page — no new page or
+// calculation is implied by this content.
+const TRADING_ENGINE_PATH: LearningPath = {
+  key: "trading-engine",
+  title: "Institutional Trading Engine",
+  description: "How to read the Institutional Trading Engine's own already-computed structure, liquidity, session, risk, and planning modules.",
+  glossaryCategory: "trading",
+  topics: [
+    topic({
+      key: "trading-market-structure",
+      title: "Market Structure",
+      summary: "Trend classification from real swing highs and lows.",
+      body: [
+        "Market Structure detects swing highs/lows in real candle data and classifies the resulting trend as uptrend, downtrend, or range — higher highs + higher lows read uptrend, lower highs + lower lows read downtrend, anything else honestly reads range.",
+        "Multi-Timeframe Confluence extends this across several timeframes (e.g. 15m, 1h, 1D) and reports what % of them agree on the same dominant trend — a split reading never guesses a winner.",
+      ],
+      whyItMatters: "Trend structure is the foundation every other Engine 2 module (Liquidity, Regime, Probability, Risk) is read alongside — understanding this first makes every later module easier to interpret.",
+      externalHref: "/market-structure-workbench",
+      relatedGlossaryKeys: ["market-structure", "support-resistance-zone", "multi-timeframe-confluence"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "trading-liquidity",
+      title: "Liquidity",
+      summary: "Volume profile, liquidity band, and buy/sell pressure.",
+      body: [
+        "The Liquidity Engine buckets real candle volume into price levels (a volume profile), scores an average-dollar-volume-based liquidity band (High/Moderate/Low), and derives a buy/sell pressure proxy directly from each candle's own already-recorded up/down close.",
+        "None of these are directional signals — they describe recent trading activity, not a forecast of future price movement.",
+      ],
+      whyItMatters: "Liquidity context helps judge how much size a market can absorb and how reliable a given trend or level reading is likely to be.",
+      externalHref: "/liquidity-workbench",
+      relatedGlossaryKeys: ["liquidity-band", "volume-profile", "buy-sell-pressure"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "trading-sessions",
+      title: "Sessions",
+      summary: "Fixed reference windows, not a live feed.",
+      body: [
+        "Sessions are fixed, named UTC time windows (Sydney, Tokyo, London, New York) — reference data, not a live feed. 'Active' simply means the current time falls inside that window's own start/end UTC hours.",
+        "An overlap (e.g. London + New York) is two windows both being open at once, by the calendar — not itself a signal, though it's often when the most global participants are active.",
+      ],
+      whyItMatters: "Session awareness helps with execution timing, distinct from and complementary to the Liquidity Coach's own volume-based read.",
+      externalHref: "/liquidity-workbench",
+      relatedGlossaryKeys: ["trading-session", "session-overlap"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "trading-risk-management",
+      title: "Risk Management",
+      summary: "Position sizing, stop/target discipline, and portfolio risk budget.",
+      body: [
+        "The Risk Management Engine scores three components — Position Sizing (largest single position's dollar risk vs. a named cap), Stop/Target Discipline (what fraction of open positions have both defined), and Portfolio Risk Budget (aggregate dollar risk vs. a named cap) — with a hard-cap override if either dollar-risk cap is breached.",
+        "Position size and risk/reward ratio are pure arithmetic over your own entered numbers — never a judgment on whether those specific levels are good.",
+      ],
+      whyItMatters: "A hard-cap override means a single mis-sized position or an over-committed portfolio can never be silently masked by an otherwise-good-looking blended score.",
+      externalHref: "/trade-planning-studio",
+      relatedGlossaryKeys: ["trading-position-sizing", "risk-reward-ratio", "trading-capital-allocation", "portfolio-risk-budget"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "trading-trade-planning",
+      title: "Trade Planning & Scenario Comparison",
+      summary: "A documented plan before a trade is opened — and comparing candidates before committing.",
+      body: [
+        "A Trade Plan is a human's own stated pre-trade intent — direction, entry, stop, target, account risk %, and thesis — saved before a position is opened, distinct from an already-open position and never machine-generated.",
+        "Scenario Comparison lets you compare 2-5 candidate entry/stop/target combinations side by side before committing to one as a real, persisted Trade Plan — 'Best R:R' and 'Tightest Risk' are honest max/min identifications, never a recommendation.",
+      ],
+      whyItMatters: "Documenting a plan — and comparing alternatives — before capital moves is a baseline institutional discipline, separate from any judgment about which direction is correct.",
+      externalHref: "/trade-planning-studio",
+      relatedGlossaryKeys: ["trade-plan", "scenario-comparison", "risk-reward-ratio"],
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "trading-journal-review",
+      title: "The Trading Journal",
+      summary: "Recording your own trades — mood, lessons, and outcomes.",
+      body: [
+        "The Trading Journal records a user's own reflections on their trades — title, content, mood, tags, lesson learned, setup type, and (optionally) an R-multiple.",
+        "The Journal Coach tallies these already-recorded fields (how many entries include a lesson learned, the most common recorded mood) — never a new interpretation of them.",
+      ],
+      whyItMatters: "Consistent journaling, reviewed with the same discipline for wins and losses, is what makes post-trade review actionable rather than a vague memory.",
+      externalHref: "/trading-journal",
+      relatedGlossaryKeys: ["trading-journal", "r-multiple"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "trading-psychology-discipline",
+      title: "Psychology & Discipline",
+      summary: "Discipline measured as documentation consistency — never a fabricated score.",
+      body: [
+        "The Psychology & Discipline Coach reports discipline purely as documentation consistency: what % of your journal entries record a lesson learned, and how many entries recorded a win (R-multiple > 0) versus a loss (R-multiple < 0) — literal tallies over your own already-recorded fields.",
+        "This coach never invents a psychological diagnosis or a discipline score from anything beyond what you've already written down.",
+      ],
+      whyItMatters: "Measuring documentation completeness (a fixable habit) rather than attempting a subjective psychological read keeps this coach honest and evidence-based.",
+      externalHref: "/trading-journal",
+      relatedGlossaryKeys: ["trading-journal", "r-multiple"],
+      estimatedMinutes: 3,
+    }),
+    topic({
+      key: "trading-ai-coach-overview",
+      title: "The Trading AI Coach",
+      summary: "8 deterministic coaches, one Evidence Explorer.",
+      body: [
+        "The Trading AI Coach explains Structure, Liquidity, Session, Risk, Trade Plan, Journal, Scenario, and Psychology & Discipline readings — every explanation quotes an already-computed engine output or an already-recorded journal fact, never a new signal, prediction, or recommendation.",
+        "The Evidence Explorer shows exactly which metrics and supporting evidence produced each reading, so no explanation is ever a black box.",
+      ],
+      whyItMatters: "Seeing the evidence behind every explanation, not just the headline, is what separates a coach from a black-box signal generator.",
+      externalHref: "/trading-ai-coach",
+      relatedGlossaryKeys: ["market-structure", "trade-plan"],
+      estimatedMinutes: 4,
+    }),
+  ],
+};
+
 export const LEARNING_PATHS: LearningPath[] = [
   FOUNDATIONS_PATH,
   GREEKS_PATH,
@@ -767,6 +888,7 @@ export const LEARNING_PATHS: LearningPath[] = [
   PERFORMANCE_PATH,
   INSTITUTIONAL_PATH,
   INSTITUTIONAL_INVESTING_PATH,
+  TRADING_ENGINE_PATH,
 ];
 
 export function getLearningPath(key: string): LearningPath | null {
