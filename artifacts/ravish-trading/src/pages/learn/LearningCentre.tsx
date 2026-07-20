@@ -561,6 +561,11 @@ function OverviewTab() {
               <CardContent className="pt-4 text-sm font-medium">Cross-Engine Workspace</CardContent>
             </Card>
           </Link>
+          <Link href="/options-income-workspace" data-testid="link-overview-options-income-workspace">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Options Income Workspace</CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

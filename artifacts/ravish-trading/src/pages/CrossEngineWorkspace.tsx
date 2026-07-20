@@ -57,6 +57,7 @@ import {
   FileBarChart2,
   GraduationCap,
   LayoutList,
+  Waves,
 } from "lucide-react";
 
 const VALID_TABS = ["overview", "search", "activity", "recent", "shortcuts"];
@@ -105,6 +106,7 @@ const WORKSPACE_SHORTCUTS: { label: string; href: string; icon: LucideIcon }[] =
   { label: "Trading Analytics", href: "/trading-analytics", icon: BarChart3 },
   { label: "Reporting Centre", href: "/reporting-centre", icon: FileBarChart2 },
   { label: "Learning Centre", href: "/learn", icon: GraduationCap },
+  { label: "Options Income Workspace", href: "/options-income-workspace", icon: Waves },
 ];
 
 export default function CrossEngineWorkspace() {

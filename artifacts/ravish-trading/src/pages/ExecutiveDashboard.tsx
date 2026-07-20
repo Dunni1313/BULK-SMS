@@ -68,6 +68,7 @@ import {
   BarChart3,
   Command,
   Grid3x3,
+  Waves,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -273,6 +274,9 @@ export default function ExecutiveDashboard() {
             </Link>
             <Link href="/cross-engine-workspace" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-cross-engine-workspace">
               <Grid3x3 className="w-3 h-3" /> Open the Cross-Engine Workspace →
+            </Link>
+            <Link href="/options-income-workspace" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-options-income-workspace">
+              <Waves className="w-3 h-3" /> Open the Options Income Workspace →
             </Link>
           </div>
         </CardContent>

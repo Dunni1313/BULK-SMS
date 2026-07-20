@@ -75,6 +75,7 @@ const StrategyWorkbench = lazy(() => import("./pages/StrategyWorkbench"));
 const TradingAnalyticsDashboard = lazy(() => import("./pages/TradingAnalyticsDashboard"));
 const ExecutiveIntelligence = lazy(() => import("./pages/ExecutiveIntelligence"));
 const CrossEngineWorkspace = lazy(() => import("./pages/CrossEngineWorkspace"));
+const OptionsIncomeWorkspace = lazy(() => import("./pages/OptionsIncomeWorkspace"));
 const ReportingCentre = lazy(() => import("./pages/ReportingCentre"));
 const ExecutiveDashboard = lazy(() => import("./pages/ExecutiveDashboard"));
 const DecisionEngine = lazy(() => import("./pages/DecisionEngine"));
@@ -180,6 +181,7 @@ function Router() {
           <Route path="/trading-analytics" component={TradingAnalyticsDashboard} />
           <Route path="/executive-intelligence" component={ExecutiveIntelligence} />
           <Route path="/cross-engine-workspace" component={CrossEngineWorkspace} />
+          <Route path="/options-income-workspace" component={OptionsIncomeWorkspace} />
           <Route path="/options-backtest" component={OptionsBacktest} />
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />

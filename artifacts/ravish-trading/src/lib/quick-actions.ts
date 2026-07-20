@@ -23,6 +23,7 @@ import {
   BarChart3,
   FileBarChart2,
   Command,
+  Waves,
 } from "lucide-react";
 
 export interface QuickAction {
@@ -65,4 +66,5 @@ export const CROSS_ENGINE_QUICK_ACTIONS: QuickAction[] = [
   { id: "open-learning", label: "Open Learning", href: "/learn", icon: GraduationCap, kind: "navigate" },
   { id: "open-executive-dashboard", label: "Open Executive Dashboard", href: "/stock-analyst/executive-dashboard", icon: PieChart, kind: "navigate" },
   { id: "open-executive-intelligence", label: "Open Executive Intelligence", href: "/executive-intelligence", icon: Command, kind: "navigate" },
+  { id: "open-options-income-workspace", label: "Open Options Income Workspace", href: "/options-income-workspace", icon: Waves, kind: "navigate" },
 ];
