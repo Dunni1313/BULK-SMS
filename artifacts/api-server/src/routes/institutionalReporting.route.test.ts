@@ -48,15 +48,16 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 12 report types (Phase 32 adds trading-analytics-summary)", async () => {
+  it("GET /reporting/types returns all 13 report types (Phase 33 adds executive-intelligence-summary)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(12);
+    expect(body).toHaveLength(13);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
         "company-research",
+        "executive-intelligence-summary",
         "executive-summary",
         "investment-committee",
         "monitoring-summary",
@@ -190,6 +191,44 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     const listRes = await fetch(`${baseUrl}/api/reporting/reports`);
     const list = (await listRes.json()) as { id: number; reportType: string }[];
     expect(list.some((r) => r.id === saved.id && r.reportType === "trading-analytics-summary")).toBe(true);
+
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
+  });
+
+  it("GET /reporting/executive-intelligence-summary (Phase 33) reuses the Executive Intelligence Hub's own composition, reformatted into report sections", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/executive-intelligence-summary`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("executive-intelligence-summary");
+    expect(body.sections.map((s) => s.id)).toEqual([
+      "executive-summary",
+      "investment-committee",
+      "portfolio-risk",
+      "strategy-usage",
+      "portfolio-health",
+      "risk-analytics",
+      "learning-analytics",
+      "coach-analytics",
+      "monitoring",
+      "checklist",
+    ]);
+    expect(body.disclaimer).toContain("no new investment recommendation");
+  });
+
+  it("full executive-intelligence-summary save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: "executive-intelligence-summary" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("executive-intelligence-summary");
+    expect(saved.report.reportType).toBe("executive-intelligence-summary");
+
+    const listRes = await fetch(`${baseUrl}/api/reporting/reports`);
+    const list = (await listRes.json()) as { id: number; reportType: string }[];
+    expect(list.some((r) => r.id === saved.id && r.reportType === "executive-intelligence-summary")).toBe(true);
 
     await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
   });

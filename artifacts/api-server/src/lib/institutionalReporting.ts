@@ -42,6 +42,7 @@ import type { WatchlistTargetCheck } from "./watchlistTargets.js";
 import type { TradingRiskAnalysis } from "./tradingRisk.js";
 import { toStrategyLearningSummary, type StrategyMetadata, type StrategyLearningSummary } from "./tradingStrategyFramework.js";
 import type { TradingAnalyticsDashboard } from "./tradingAnalytics.js";
+import type { ExecutiveIntelligenceHub } from "./executiveIntelligence.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -55,7 +56,8 @@ export type InstitutionalReportType =
   | "executive-summary"
   | "trade-planning-summary"
   | "strategy-framework-summary"
-  | "trading-analytics-summary";
+  | "trading-analytics-summary"
+  | "executive-intelligence-summary";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -70,6 +72,7 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "trade-planning-summary",
   "strategy-framework-summary",
   "trading-analytics-summary",
+  "executive-intelligence-summary",
 ];
 
 export interface ReportTypeMeta {
@@ -162,6 +165,13 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "trading-analytics-summary",
     label: "Trading Analytics Summary Report",
     description: "The calling user's own Trading Analytics Engine (Phase 32) — trades reviewed, strategy/checklist usage, journal, risk, learning, coach, and session activity. Pure aggregation of already-persisted data, never a signal or prediction.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "executive-intelligence-summary",
+    label: "Executive Intelligence Summary Report",
+    description: "The calling user's own unified Executive Intelligence Hub (Phase 33) — a single cross-engine view combining the Investing Engine's and Trading Engine's own analytics, a cross-engine risk/learning/AI-coach rollup, a Reporting Centre tally, and a chronological Activity Timeline. Pure composition of already-persisted, already-computed data, never a new signal or prediction.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -961,6 +971,100 @@ export function buildTradingAnalyticsSummaryReport(dashboard: TradingAnalyticsDa
     symbol: null,
     portfolioId: null,
     generatedAt: new Date().toISOString(),
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 13. Executive Intelligence Summary Report (Phase 33) — reuses
+// routes/executiveIntelligence.ts's own loadExecutiveIntelligenceInputs()/
+// buildExecutiveIntelligenceHub() exactly (the same functions
+// GET /executive/intelligence itself calls), then reformats the
+// already-computed hub into the generic ReportSection shape. Zero new
+// aggregation logic in this file. ──────────────────────────────────────────
+
+export function buildExecutiveIntelligenceSummaryReport(hub: ExecutiveIntelligenceHub): InstitutionalReport {
+  const { overview, investing, trading, strategy, portfolio, risk, learning, coach, reporting, activity } = hub;
+
+  const sections: ReportSection[] = [
+    section("executive-summary", "Executive Overview", overview.summary),
+    section(
+      "investment-committee",
+      "Investing Summary",
+      `${investing.overview.portfoliosCreated} portfolio(s), ${investing.overview.holdingsTracked} holding(s), ${investing.overview.watchlistItems} watchlist item(s), ${investing.committee.snapshotCount} committee snapshot(s) saved.`,
+      [
+        `Research notes written: ${investing.overview.researchNotesWritten}`,
+        `Risk snapshots saved: ${investing.risk.snapshotCount}${investing.risk.mostRecentOverallScore !== null ? ` (most recent score: ${investing.risk.mostRecentOverallScore})` : ""}`,
+        `Optimisation reviews saved: ${investing.optimisation.reviewCount}`,
+      ],
+    ),
+    section(
+      "portfolio-risk",
+      "Trading Summary",
+      `${trading.overview.tradesReviewed} position(s) reviewed, ${trading.overview.plansCreated} trade plan(s), ${trading.overview.journalEntries} journal entr(y/ies).`,
+      [
+        `Strategies registered: ${trading.overview.strategiesRegistered}`,
+        `Checklist instances: ${trading.overview.checklistInstances} (${trading.strategyUsage.checklistsComplete} complete)`,
+      ],
+    ),
+    section(
+      "strategy-usage",
+      "Strategy Summary",
+      strategy.checklistInstances
+        ? `${strategy.checklistsComplete} of ${strategy.checklistInstances} checklist instance(s) complete (${strategy.overallChecklistCompletionPct}% average completion).`
+        : "No checklist instances have been run yet.",
+    ),
+    section(
+      "portfolio-health",
+      "Portfolio Summary",
+      portfolio.portfolioCount
+        ? `${portfolio.portfolioCount} portfolio(s), ${portfolio.totalHoldings} total holding(s) across ${portfolio.distinctSymbolsHeld} distinct symbol(s).`
+        : "No portfolios created yet.",
+    ),
+    section(
+      "risk-analytics",
+      "Risk Summary",
+      `Investing: ${risk.investingRiskSnapshotsSaved} risk snapshot(s) saved. Trading: ${risk.tradingOpenPositionsCount} open position(s), ${risk.tradingStopTargetDisciplinePct}% with both a stop and a target set.`,
+    ),
+    section(
+      "learning-analytics",
+      "Learning Summary",
+      learning.totalTopics
+        ? `${learning.completedTopics} of ${learning.totalTopics} learning topic(s) completed across both engines.`
+        : "No Learning Centre progress recorded yet.",
+      learning.weakestPaths.length ? learning.weakestPaths.map((p) => `${p.title}: ${p.percentComplete}% complete`) : undefined,
+    ),
+    section(
+      "coach-analytics",
+      "AI Coach Summary",
+      coach.totalCoachViews
+        ? `${coach.totalCoachViews} AI Coach view(s) recorded — ${coach.investingCoachViews} Investing, ${coach.tradingCoachViews} Trading.`
+        : "No AI Coach views recorded yet.",
+    ),
+    section(
+      "monitoring",
+      "Reporting Summary",
+      reporting.totalReports
+        ? `${reporting.totalReports} report(s) generated across ${reporting.distinctReportTypesUsed} categor${reporting.distinctReportTypesUsed === 1 ? "y" : "ies"}.`
+        : "No reports generated yet.",
+      reporting.byType.map((t) => `${t.reportType}: ${t.count}`),
+    ),
+    section(
+      "checklist",
+      "Activity Timeline",
+      activity.length ? `${activity.length} recent activity entr(y/ies) across both engines.` : "No recent activity recorded yet.",
+      activity.slice(0, 15).map((a) => `${a.label} (${a.engine}): ${a.detail} — ${new Date(a.occurredAt).toLocaleDateString()}`),
+    ),
+  ];
+
+  return {
+    reportType: "executive-intelligence-summary",
+    title: "Executive Intelligence Summary Report",
+    subtitle: overview.summary,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: overview.generatedAt,
     dataSource: "MIXED",
     sections,
     disclaimer: REPORT_DISCLAIMER,

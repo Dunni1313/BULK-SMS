@@ -53,6 +53,7 @@ import {
   GetTradePlanningSummaryReportResponse,
   GetStrategyFrameworkSummaryReportResponse,
   GetTradingAnalyticsSummaryReportResponse,
+  GetExecutiveIntelligenceSummaryReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -91,6 +92,7 @@ import {
   buildTradePlanningSummaryReport,
   buildStrategyFrameworkSummaryReport,
   buildTradingAnalyticsSummaryReport,
+  buildExecutiveIntelligenceSummaryReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -109,6 +111,10 @@ import {
 import type { Timeframe } from "../lib/tradingMarketData.js";
 import { buildTradingAnalyticsDashboard } from "../lib/tradingAnalytics.js";
 import { loadTradingAnalyticsInputs } from "./tradingAnalytics.js";
+import { buildInvestingAnalyticsDashboard } from "../lib/investingAnalytics.js";
+import { loadInvestingAnalyticsInputs } from "./investingAnalytics.js";
+import { buildExecutiveIntelligenceHub } from "../lib/executiveIntelligence.js";
+import { loadExecutiveIntelligenceInputs } from "./executiveIntelligence.js";
 
 const router: IRouter = Router();
 
@@ -426,6 +432,23 @@ router.get("/reporting/trading-analytics-summary", async (req, res): Promise<voi
   res.json(GetTradingAnalyticsSummaryReportResponse.parse(built));
 });
 
+// ─── Executive Intelligence Summary Report (Phase 33) — reuses
+// routes/executiveIntelligence.ts's own loadExecutiveIntelligenceInputs()/
+// buildExecutiveIntelligenceHub() exactly (the same functions
+// GET /executive/intelligence itself calls), then reformats the already-
+// computed hub into the generic ReportSection shape. Zero new aggregation
+// logic in this file. ────────────────────────────────────────────────────
+
+router.get("/reporting/executive-intelligence-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const { investingInputs, tradingInputs, reportRows, activityInput } = await loadExecutiveIntelligenceInputs(userId);
+  const investing = buildInvestingAnalyticsDashboard(investingInputs);
+  const trading = buildTradingAnalyticsDashboard(tradingInputs);
+  const hub = buildExecutiveIntelligenceHub({ investing, trading, reportRows, activityInput });
+  const built = buildExecutiveIntelligenceSummaryReport(hub);
+  res.json(GetExecutiveIntelligenceSummaryReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -526,6 +549,13 @@ async function regenerate(
       const inputs = await loadTradingAnalyticsInputs(userId);
       const dashboard = buildTradingAnalyticsDashboard(inputs);
       return buildTradingAnalyticsSummaryReport(dashboard);
+    }
+    case "executive-intelligence-summary": {
+      const { investingInputs, tradingInputs, reportRows, activityInput } = await loadExecutiveIntelligenceInputs(userId);
+      const investing = buildInvestingAnalyticsDashboard(investingInputs);
+      const trading = buildTradingAnalyticsDashboard(tradingInputs);
+      const hub = buildExecutiveIntelligenceHub({ investing, trading, reportRows, activityInput });
+      return buildExecutiveIntelligenceSummaryReport(hub);
     }
     default:
       return null;
