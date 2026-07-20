@@ -41,4 +41,23 @@
 
 ## 4. Testing
 
-`ExecutiveDashboard.test.tsx` (6 tests) follows the established mocked-generated-hook pattern already used across every other Institutional Investing Engine page test: an honestly-empty render with zero data anywhere, real report data rendering in the report-shaped panels, an honest per-panel error state, real list data in the 4 non-report panels, and the Investment Committee Activity panel's deep-link correctly following the most recently decided symbol.
+`ExecutiveDashboard.test.tsx` (9 tests) follows the established mocked-generated-hook pattern already used across every other Institutional Investing Engine page test: an honestly-empty render with zero data anywhere, real report data rendering in the report-shaped panels, an honest per-panel error state, real list data in the 4 non-report panels, the Investment Committee Activity panel's deep-link correctly following the most recently decided symbol, and (Phase 33, below) the Cross-Engine Snapshot's own honest-empty/populated/error states.
+
+---
+
+## 5. Phase 33 — Cross-Engine Snapshot
+
+Phase 33's own brief asked to "reuse the existing Executive Dashboard, expand it into a complete command centre." A 12th panel, **Cross-Engine Snapshot**, was added directly below the page header and above the Daily Executive Summary card — a real KPI block, not just an outbound link:
+
+| KPI | Source engine |
+|---|---|
+| Portfolios | Investing |
+| Trades Reviewed | Trading |
+| Strategies Registered | Trading |
+| Reports Generated | Both (shared Reporting Centre) |
+| AI Coach Views | Both, correctly deduplicated |
+| Learning Topics (completed/total) | Both (shared learning catalog) |
+
+**Zero new aggregation logic.** Every figure is read directly from `GET /executive/intelligence` — the exact same already-computed `ExecutiveIntelligenceHub` the new `/executive-intelligence` page (Phase 33) renders in full. The panel follows the same honest loading/error/empty discipline every other panel on this page already established, and links out to the full Executive Intelligence Hub rather than duplicating it — the same "link out, don't duplicate" precedent already set by this page's own Research Terminal, Strategy Workbench, and Trading Analytics shortcut cards.
+
+No blended/combined score across the two engines is ever computed — each KPI stays independently attributable to its own originating engine. See `docs/Executive-Intelligence.md` for the full cross-engine hub and `docs/Executive-Reporting.md` for the Reporting Centre's new 13th report type.
