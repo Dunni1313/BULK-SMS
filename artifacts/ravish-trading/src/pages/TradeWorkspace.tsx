@@ -110,6 +110,7 @@ import {
   AlertTriangle,
   XCircle,
   HelpCircle,
+  ExternalLink,
 } from "lucide-react";
 
 function useSymbolFromDeepLink(): [string, (s: string) => void] {
@@ -636,6 +637,13 @@ export default function TradeWorkspace() {
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{structure.trendDetail}</p>
+                        <a
+                          href={`/market-structure-workbench?symbol=${symbol}`}
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          data-testid="link-open-market-structure-workbench"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Open full Market Structure Workbench
+                        </a>
                       </CardContent>
                     </Card>
                   )}

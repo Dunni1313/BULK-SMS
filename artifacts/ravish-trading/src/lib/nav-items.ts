@@ -63,6 +63,7 @@ import {
   FileBarChart2,
   LayoutTemplate,
   LayoutList,
+  ListTree,
 } from "lucide-react";
 
 export interface NavItem {
@@ -107,6 +108,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
   { title: "Trading Backtest", href: "/trading-backtest", icon: History },
   { title: "Trade Workspace", href: "/trade-workspace", icon: LayoutTemplate },
+  { title: "Market Structure Workbench", href: "/market-structure-workbench", icon: ListTree },
   { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
   { title: "Institutional Workspace", href: "/workspace", icon: LayoutPanelLeft },
   { title: "Research Terminal", href: "/research-terminal", icon: Terminal },

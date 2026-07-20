@@ -159,6 +159,7 @@ import {
   Landmark,
   Briefcase,
   PieChart,
+  ExternalLink,
 } from "lucide-react";
 
 // Bounded — a fast-scan summary, not a full history dump. The full lists
@@ -547,6 +548,13 @@ export default function InstitutionalDashboard() {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{structure.summary}</p>
+                <a
+                  href={`/market-structure-workbench?symbol=${symbol}`}
+                  className="flex items-center gap-1 text-xs text-primary hover:underline"
+                  data-testid="link-open-market-structure-workbench"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open full Market Structure Workbench
+                </a>
               </CardContent>
             </Card>
           )}

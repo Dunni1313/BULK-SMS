@@ -58,7 +58,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { NotebookPen, Pencil, Trash2, X } from "lucide-react";
+import { NotebookPen, Pencil, Trash2, X, ExternalLink } from "lucide-react";
 
 function moodBadgeClass(mood: string): string {
   switch (mood) {
@@ -335,6 +335,13 @@ export default function TradingJournal() {
           <p className="text-sm text-muted-foreground">
             Institutional Trading Engine (Engine 2) — reflections on your own trading positions. Never places an order.
           </p>
+          <a
+            href="/market-structure-workbench"
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-open-market-structure-workbench"
+          >
+            <ExternalLink className="h-3 w-3" /> Review structure in the Market Structure Workbench
+          </a>
         </div>
 
         <div className="space-y-4">
