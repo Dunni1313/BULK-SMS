@@ -833,6 +833,13 @@ export default function LiquidityWorkbench() {
                           <MessageCircle className="h-4 w-4" /> AI Trading Coach
                         </CardTitle>
                         <CardDescription className="text-xs">Explains existing liquidity/session outputs only — never a signal or directional call.</CardDescription>
+                        <a
+                          href={symbol ? `/trading-ai-coach?symbol=${symbol}&coach=liquidity` : "/trading-ai-coach"}
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          data-testid="link-open-trading-ai-coach"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Open full Institutional Trading AI Coach
+                        </a>
                       </CardHeader>
                       <CardContent className="space-y-2">
                         {coachHistory.length === 0 && !coachStreamingAnswer && (

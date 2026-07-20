@@ -356,6 +356,13 @@ export default function TradingJournal() {
           >
             <ExternalLink className="h-3 w-3" /> Plan trades &amp; review risk in the Trade Planning &amp; Risk Studio
           </a>
+          <a
+            href="/trading-ai-coach?coach=journal"
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-open-trading-ai-coach"
+          >
+            <ExternalLink className="h-3 w-3" /> Review documentation habits with the Institutional Trading AI Coach
+          </a>
         </div>
 
         <div className="space-y-4">

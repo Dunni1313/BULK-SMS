@@ -28,6 +28,7 @@ const CATEGORY_LABELS: Record<LearningGlossaryTermCategory | "all", string> = {
   performance: "Performance",
   institutional: "Institutional",
   "value-investing": "Value Investing",
+  trading: "Trading",
 };
 
 export default function Glossary() {

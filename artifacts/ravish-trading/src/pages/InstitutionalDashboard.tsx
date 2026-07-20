@@ -811,6 +811,9 @@ export default function InstitutionalDashboard() {
             <Link href="/trade-planning-studio" className="block text-xs text-primary hover:underline" data-testid="link-open-trade-planning-studio">
               Open Trade Planning &amp; Risk Studio →
             </Link>
+            <Link href="/trading-ai-coach" className="block text-xs text-primary hover:underline" data-testid="link-open-trading-ai-coach">
+              Open Institutional Trading AI Coach →
+            </Link>
           </CardContent>
         </Card>
 
