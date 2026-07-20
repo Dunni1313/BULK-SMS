@@ -39,6 +39,7 @@ import type { OpportunityScanResult, OpportunityBucket } from "./opportunityDisc
 import type { CrossEngineDailyReport } from "./crossEngineDailyReport.js";
 import type { LearningProgressSummary } from "./learningProgress.js";
 import type { WatchlistTargetCheck } from "./watchlistTargets.js";
+import type { TradingRiskAnalysis } from "./tradingRisk.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -49,7 +50,8 @@ export type InstitutionalReportType =
   | "opportunity-discovery"
   | "monitoring-summary"
   | "ai-coach-summary"
-  | "executive-summary";
+  | "executive-summary"
+  | "trade-planning-summary";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -61,6 +63,7 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "monitoring-summary",
   "ai-coach-summary",
   "executive-summary",
+  "trade-planning-summary",
 ];
 
 export interface ReportTypeMeta {
@@ -132,6 +135,13 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "executive-summary",
     label: "Executive Summary",
     description: "The Cross-Engine Daily Report's own one-pager — macro context, watchlist crossings, trading risk, and options-income portfolio health.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "trade-planning-summary",
+    label: "Trade Planning Summary Report",
+    description: "The calling user's own Trade Plans (Institutional Trade Planning & Risk Studio) and Trading Risk analysis — position sizing, stop/target discipline, and portfolio risk budget.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -678,5 +688,76 @@ export function buildExecutiveSummaryReport(cross: CrossEngineDailyReport): Inst
     dataSource: "MIXED",
     sections,
     disclaimer: cross.disclaimer || REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 10. Trade Planning Summary Report (Phase 28, Institutional Trade
+// Planning & Risk Studio) — thin reformatting of the calling user's own
+// trading_trade_plans rows and lib/tradingRisk.ts's own already-computed
+// TradingRiskAnalysis, exactly the same "reuse, never recompute" discipline
+// every other report type in this file already follows. ────────────────────
+
+export interface TradePlanSummaryItem {
+  symbol: string;
+  direction: string;
+  status: string;
+  thesis: string;
+  positionSize: number | null;
+  riskRewardRatio: number | null;
+}
+
+export function buildTradePlanningSummaryReport(
+  plans: TradePlanSummaryItem[],
+  risk: TradingRiskAnalysis,
+): InstitutionalReport {
+  const draft = plans.filter((p) => p.status === "draft").length;
+  const active = plans.filter((p) => p.status === "active").length;
+  const closed = plans.filter((p) => p.status === "closed").length;
+  const cancelled = plans.filter((p) => p.status === "cancelled").length;
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Executive Summary",
+      plans.length
+        ? `${plans.length} trade plan${plans.length === 1 ? "" : "s"} on record (${draft} draft, ${active} active, ${closed} closed, ${cancelled} cancelled). ${risk.overall.detail}`
+        : `No trade plans have been created yet. ${risk.overall.detail}`,
+    ),
+    section(
+      "trade-plans",
+      "Trade Plans Overview",
+      plans.length
+        ? "Reused directly from the Institutional Trade Planning & Risk Studio's own trading_trade_plans rows."
+        : "No trade plans to report.",
+      plans.map((p) => {
+        const parts = [`${p.symbol}: ${p.direction}, status ${p.status}`];
+        if (p.positionSize != null) parts.push(`position size ${p.positionSize}`);
+        if (p.riskRewardRatio != null) parts.push(`R:R ${p.riskRewardRatio}`);
+        parts.push(p.thesis);
+        return parts.join(" — ");
+      }),
+    ),
+    section(
+      "portfolio-risk",
+      "Trading Risk Summary",
+      `Overall: ${risk.overall.label}. ${risk.overall.detail}`,
+      [
+        `Position sizing: ${risk.positionSizing.detail}`,
+        `Stop/target discipline: ${risk.stopDiscipline.detail}`,
+        `Portfolio risk budget: ${risk.portfolioBudget.detail}`,
+      ],
+    ),
+  ];
+
+  return {
+    reportType: "trade-planning-summary",
+    title: "Trade Planning Summary Report",
+    subtitle: `${plans.length} trade plan${plans.length === 1 ? "" : "s"}, risk: ${risk.overall.label}`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: new Date().toISOString(),
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
   };
 }

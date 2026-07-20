@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 9 report types", async () => {
+  it("GET /reporting/types returns all 10 report types (Phase 28 adds trade-planning-summary)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(9);
+    expect(body).toHaveLength(10);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -63,6 +63,7 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "opportunity-discovery",
         "portfolio-health",
         "portfolio-review",
+        "trade-planning-summary",
         "watchlist",
       ].sort(),
     );
@@ -134,6 +135,26 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     const body = (await res.json()) as InstitutionalReport;
     expect(body.reportType).toBe("executive-summary");
     expect(body.sections.map((s) => s.id)).toEqual(["executive-summary", "investment-committee", "portfolio-risk", "portfolio-health"]);
+  });
+
+  it("GET /reporting/trade-planning-summary (Phase 28) reuses the calling user's own Trade Plans and Trading Risk analysis", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/trade-planning-summary`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("trade-planning-summary");
+    expect(body.sections.map((s) => s.id)).toEqual(["executive-summary", "trade-plans", "portfolio-risk"]);
+  });
+
+  it("full trade-planning-summary save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: "trade-planning-summary" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("trade-planning-summary");
+    expect(saved.report.reportType).toBe("trade-planning-summary");
   });
 
   it("full portfolio-review/portfolio-health flow via a fresh portfolio", async () => {

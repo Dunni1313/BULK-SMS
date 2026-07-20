@@ -33,6 +33,8 @@ import {
   investingResearchNotesTable,
   platformNotificationsTable,
   valueWatchlistTable,
+  tradingTradePlansTable,
+  tradingPositionsTable,
 } from "@workspace/db";
 import {
   GetReportTypesResponse,
@@ -45,6 +47,7 @@ import {
   GetMonitoringSummaryReportResponse,
   GetAiCoachLearningSummaryReportResponse,
   GetExecutiveSummaryReportResponse,
+  GetTradePlanningSummaryReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -64,6 +67,9 @@ import { scanOpportunities, bucketOpportunities, buildOpportunityRow, type Oppor
 import { computeWatchlistTargets } from "../lib/watchlistTargets.js";
 import { getLearningProgress } from "../lib/learningProgress.js";
 import { buildCrossEngineDailyReport } from "../lib/crossEngineDailyReport.js";
+import { buildTradingRiskAnalysis, type TradingPositionInput } from "../lib/tradingRisk.js";
+import { getMarketDataProvider } from "../lib/tradingMarketData.js";
+import { getSettingsRow } from "../lib/serverState.js";
 import { resolveDecisionManagementQuality, resolveDecisionPortfolioContext } from "./stockAnalyst.js";
 import { formatNotification } from "./notifications.js";
 import {
@@ -77,9 +83,11 @@ import {
   buildMonitoringSummaryReport,
   buildAiCoachLearningSummaryReport,
   buildExecutiveSummaryReport,
+  buildTradePlanningSummaryReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
+  type TradePlanSummaryItem,
 } from "../lib/institutionalReporting.js";
 
 const router: IRouter = Router();
@@ -267,6 +275,52 @@ router.get("/reporting/executive-summary", async (req, res): Promise<void> => {
   res.json(GetExecutiveSummaryReportResponse.parse(built));
 });
 
+// ─── Trade Planning Summary Report (Phase 28) — the calling user's own
+// trading_trade_plans rows + lib/tradingRisk.ts's own TradingRiskAnalysis,
+// resolved the exact same way routes/tradingTradePlans.ts's own
+// GET /trading/trade-plans and routes/tradingRisk.ts's own GET /trading/risk
+// already do. Zero new queries beyond what those two routes already run. ───
+
+async function loadTradePlanningSummaryInputs(userId: string) {
+  const planRows = await db
+    .select()
+    .from(tradingTradePlansTable)
+    .where(eq(tradingTradePlansTable.userId, userId))
+    .orderBy(desc(tradingTradePlansTable.createdAt));
+  const plans: TradePlanSummaryItem[] = planRows.map((p) => ({
+    symbol: p.symbol,
+    direction: p.direction,
+    status: p.status,
+    thesis: p.thesis,
+    positionSize: p.positionSize ?? null,
+    riskRewardRatio: p.riskRewardRatio ?? null,
+  }));
+
+  const positionRows = await db.select().from(tradingPositionsTable).where(eq(tradingPositionsTable.userId, userId));
+  const positions: TradingPositionInput[] = positionRows.map((r) => ({
+    id: r.id,
+    symbol: r.symbol,
+    side: r.side === "short" ? "short" : "long",
+    status: r.status === "closed" ? "closed" : "open",
+    quantity: r.quantity,
+    entryPrice: r.entryPrice,
+    stopPrice: r.stopPrice ?? null,
+    targetPrice: r.targetPrice ?? null,
+  }));
+  const settings = await getSettingsRow(userId);
+  const provider = await getMarketDataProvider(userId);
+  const risk = await buildTradingRiskAnalysis(positions, settings.tradingAccountValue ?? null, provider);
+
+  return { plans, risk };
+}
+
+router.get("/reporting/trade-planning-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const { plans, risk } = await loadTradePlanningSummaryInputs(userId);
+  const built = buildTradePlanningSummaryReport(plans, risk);
+  res.json(GetTradePlanningSummaryReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -354,6 +408,10 @@ async function regenerate(
     case "executive-summary": {
       const cross = await buildCrossEngineDailyReport(userId);
       return buildExecutiveSummaryReport(cross);
+    }
+    case "trade-planning-summary": {
+      const { plans, risk } = await loadTradePlanningSummaryInputs(userId);
+      return buildTradePlanningSummaryReport(plans, risk);
     }
     default:
       return null;

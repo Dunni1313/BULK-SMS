@@ -110,9 +110,9 @@ function decisionFor(report: ValueResearchReport): InstitutionalDecisionAnalysis
 }
 
 describe("institutionalReporting.ts — REPORT_TYPE_META", () => {
-  it("has exactly 9 entries matching REPORT_TYPES", () => {
-    expect(REPORT_TYPE_META).toHaveLength(9);
-    expect(REPORT_TYPES).toHaveLength(9);
+  it("has exactly 10 entries matching REPORT_TYPES (Phase 28 adds trade-planning-summary)", () => {
+    expect(REPORT_TYPE_META).toHaveLength(10);
+    expect(REPORT_TYPES).toHaveLength(10);
     expect(REPORT_TYPE_META.map((m) => m.reportType).sort()).toEqual([...REPORT_TYPES].sort());
   });
 
