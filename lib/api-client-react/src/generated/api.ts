@@ -209,6 +209,7 @@ import type {
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
   TradingLiquidityAnalysis,
+  TradingLiquidityTimeline,
   TradingMultiTimeframeAnalysis,
   TradingPosition,
   TradingPositionInput,
@@ -218,6 +219,7 @@ import type {
   TradingRiskAnalysis,
   TradingRunBacktestInput,
   TradingSessionData,
+  TradingSessionWindowsOverview,
   TradingStructureAnalysis,
   TradingStructureShiftTimeline,
   TradingTradePlan,
@@ -15458,6 +15460,83 @@ export function useGetTradingSession<TData = Awaited<ReturnType<typeof getTradin
 
 
 
+export const getGetTradingSessionWindowsUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/session-windows/${symbol}`
+}
+
+/**
+ * @summary For each of the 4 real named trading sessions (Sydney/Tokyo/London/New York) — its own most recent window's start/end/high/low/range/duration/data-freshness, which is currently active, which most recently closed (previous), and which opens next (upcoming). Descriptive only, never predictive; no synthetic sessions.
+ */
+export const getTradingSessionWindows = async (symbol: string, options?: RequestInit): Promise<TradingSessionWindowsOverview> => {
+
+  return customFetch<TradingSessionWindowsOverview>(getGetTradingSessionWindowsUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingSessionWindowsQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/session-windows/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingSessionWindowsQueryOptions = <TData = Awaited<ReturnType<typeof getTradingSessionWindows>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingSessionWindows>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingSessionWindowsQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingSessionWindows>>> = ({ signal }) => getTradingSessionWindows(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingSessionWindows>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingSessionWindowsQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingSessionWindows>>>
+export type GetTradingSessionWindowsQueryError = ErrorType<void>
+
+
+/**
+ * @summary For each of the 4 real named trading sessions (Sydney/Tokyo/London/New York) — its own most recent window's start/end/high/low/range/duration/data-freshness, which is currently active, which most recently closed (previous), and which opens next (upcoming). Descriptive only, never predictive; no synthetic sessions.
+ */
+
+export function useGetTradingSessionWindows<TData = Awaited<ReturnType<typeof getTradingSessionWindows>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingSessionWindows>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingSessionWindowsQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetTradingRiskUrl = () => {
 
 
@@ -15600,6 +15679,83 @@ export function useGetTradingLiquidity<TData = Awaited<ReturnType<typeof getTrad
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradingLiquidityQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingLiquidityTimelineUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/liquidity-timeline/${symbol}`
+}
+
+/**
+ * @summary A deterministic, chronological liquidity timeline for a symbol — replays the existing Liquidity Engine over rolling candle windows (zero new scoring), plus a relative-liquidity comparison (latest window vs. the average of the others) and the full-sample volume profile as Key Liquidity Zones.
+ */
+export const getTradingLiquidityTimeline = async (symbol: string, options?: RequestInit): Promise<TradingLiquidityTimeline> => {
+
+  return customFetch<TradingLiquidityTimeline>(getGetTradingLiquidityTimelineUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingLiquidityTimelineQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/liquidity-timeline/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingLiquidityTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingLiquidityTimelineQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>> = ({ signal }) => getTradingLiquidityTimeline(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingLiquidityTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>>
+export type GetTradingLiquidityTimelineQueryError = ErrorType<void>
+
+
+/**
+ * @summary A deterministic, chronological liquidity timeline for a symbol — replays the existing Liquidity Engine over rolling candle windows (zero new scoring), plus a relative-liquidity comparison (latest window vs. the average of the others) and the full-sample volume profile as Key Liquidity Zones.
+ */
+
+export function useGetTradingLiquidityTimeline<TData = Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingLiquidityTimelineQueryOptions(symbol,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

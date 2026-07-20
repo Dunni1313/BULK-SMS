@@ -4154,6 +4154,30 @@ paths:
         "404":
           description: Unknown or invalid symbol
 
+  # Phase 27 — Institutional Liquidity & Session Workbench. Reuses the
+  # trading-session tag (a sibling read alongside /trading/session/{symbol},
+  # not a replacement for it). Path-parameter-only, no query overrides.
+  /trading/session-windows/{symbol}:
+    get:
+      operationId: getTradingSessionWindows
+      tags: [trading-session]
+      summary: For each of the 4 real named trading sessions (Sydney/Tokyo/London/New York) — its own most recent window's start/end/high/low/range/duration/data-freshness, which is currently active, which most recently closed (previous), and which opens next (upcoming). Descriptive only, never predictive; no synthetic sessions.
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session windows overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingSessionWindowsOverview"
+        "404":
+          description: Unknown or invalid symbol
+
   # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
   /trading/risk:
     get:
@@ -4197,6 +4221,30 @@ paths:
           description: Unknown or invalid symbol
         "400":
           description: Invalid interval or lookback query override
+
+  # Phase 27 — Institutional Liquidity & Session Workbench. Reuses the
+  # trading-liquidity tag. Path-parameter-only, default 1D/90 interval/
+  # lookback (matching /trading/liquidity/{symbol}'s own defaults).
+  /trading/liquidity-timeline/{symbol}:
+    get:
+      operationId: getTradingLiquidityTimeline
+      tags: [trading-liquidity]
+      summary: A deterministic, chronological liquidity timeline for a symbol — replays the existing Liquidity Engine over rolling candle windows (zero new scoring), plus a relative-liquidity comparison (latest window vs. the average of the others) and the full-sample volume profile as Key Liquidity Zones.
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Liquidity timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingLiquidityTimeline"
+        "404":
+          description: Unknown or invalid symbol
 
   # ─── AI Trade Coach (Engine 2, Phase 3 Sprint 47) ───────────────────────────
   # SSE variant at /trading/coach/ask/stream is not modeled here, matching
@@ -11012,6 +11060,92 @@ components:
         sessionLow:
           type: ["number", "null"]
 
+    TradingSessionWindowSummary:
+      type: object
+      required:
+        [
+          name,
+          label,
+          role,
+          isActive,
+          startIso,
+          endIso,
+          nextStartIso,
+          durationHours,
+          high,
+          low,
+          range,
+          candleCount,
+          freshnessMinutes,
+        ]
+      properties:
+        name:
+          type: string
+          enum: [sydney, tokyo, london, new_york]
+        label:
+          type: string
+        role:
+          type: string
+          enum: [active, previous, upcoming, other]
+        isActive:
+          type: boolean
+        startIso:
+          type: string
+        endIso:
+          type: string
+        nextStartIso:
+          type: string
+        durationHours:
+          type: number
+        high:
+          type: ["number", "null"]
+        low:
+          type: ["number", "null"]
+        range:
+          type: ["number", "null"]
+        candleCount:
+          type: integer
+        freshnessMinutes:
+          type: ["number", "null"]
+
+    TradingSessionWindowsOverview:
+      type: object
+      required:
+        [symbol, asOf, dataSource, activeSessionNames, overlap, sessions, activeSession, previousSession, upcomingSession, summary]
+      properties:
+        symbol:
+          type: string
+        asOf:
+          type: string
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        activeSessionNames:
+          type: array
+          items:
+            type: string
+            enum: [sydney, tokyo, london, new_york]
+        overlap:
+          type: boolean
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingSessionWindowSummary"
+        activeSession:
+          oneOf:
+            - $ref: "#/components/schemas/TradingSessionWindowSummary"
+            - type: "null"
+        previousSession:
+          oneOf:
+            - $ref: "#/components/schemas/TradingSessionWindowSummary"
+            - type: "null"
+        upcomingSession:
+          oneOf:
+            - $ref: "#/components/schemas/TradingSessionWindowSummary"
+            - type: "null"
+        summary:
+          type: string
+
     TradingRiskScoreCard:
       type: object
       required: [score, label, detail]
@@ -11252,6 +11386,67 @@ components:
           enum: [High, Moderate, Low]
         confidenceExplanation:
           type: string
+        summary:
+          type: string
+
+    TradingLiquidityTimelinePoint:
+      type: object
+      required: [periodStart, periodEnd, liquidityBand, liquidityScore, avgDollarVolume, buySellDirection, candleCount]
+      properties:
+        periodStart:
+          type: string
+        periodEnd:
+          type: string
+        liquidityBand:
+          type: string
+          enum: [High, Moderate, Low]
+        liquidityScore:
+          type: number
+        avgDollarVolume:
+          type: number
+        buySellDirection:
+          type: string
+          enum: [buying, selling, neutral]
+        candleCount:
+          type: integer
+
+    TradingLiquidityTimeline:
+      type: object
+      required:
+        [
+          symbol,
+          interval,
+          dataSource,
+          candleCount,
+          points,
+          relativeLiquidity,
+          averageLiquidityScore,
+          keyLiquidityZones,
+          summary,
+        ]
+      properties:
+        symbol:
+          type: string
+        interval:
+          $ref: "#/components/schemas/TradingTimeframe"
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        candleCount:
+          type: integer
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingLiquidityTimelinePoint"
+        relativeLiquidity:
+          type: string
+          enum: ["Above Average", "Below Average", "Average", "Insufficient Data"]
+        averageLiquidityScore:
+          type: ["number", "null"]
+        keyLiquidityZones:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingVolumeProfileLevel"
         summary:
           type: string
 

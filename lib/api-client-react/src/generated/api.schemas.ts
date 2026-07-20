@@ -5856,6 +5856,77 @@ export interface TradingSessionData {
   sessionLow: number | null;
 }
 
+export type TradingSessionWindowSummaryName = typeof TradingSessionWindowSummaryName[keyof typeof TradingSessionWindowSummaryName];
+
+
+export const TradingSessionWindowSummaryName = {
+  sydney: 'sydney',
+  tokyo: 'tokyo',
+  london: 'london',
+  new_york: 'new_york',
+} as const;
+
+export type TradingSessionWindowSummaryRole = typeof TradingSessionWindowSummaryRole[keyof typeof TradingSessionWindowSummaryRole];
+
+
+export const TradingSessionWindowSummaryRole = {
+  active: 'active',
+  previous: 'previous',
+  upcoming: 'upcoming',
+  other: 'other',
+} as const;
+
+export interface TradingSessionWindowSummary {
+  name: TradingSessionWindowSummaryName;
+  label: string;
+  role: TradingSessionWindowSummaryRole;
+  isActive: boolean;
+  startIso: string;
+  endIso: string;
+  nextStartIso: string;
+  durationHours: number;
+  /** @nullable */
+  high: number | null;
+  /** @nullable */
+  low: number | null;
+  /** @nullable */
+  range: number | null;
+  candleCount: number;
+  /** @nullable */
+  freshnessMinutes: number | null;
+}
+
+export type TradingSessionWindowsOverviewDataSource = typeof TradingSessionWindowsOverviewDataSource[keyof typeof TradingSessionWindowsOverviewDataSource];
+
+
+export const TradingSessionWindowsOverviewDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingSessionWindowsOverviewActiveSessionNamesItem = typeof TradingSessionWindowsOverviewActiveSessionNamesItem[keyof typeof TradingSessionWindowsOverviewActiveSessionNamesItem];
+
+
+export const TradingSessionWindowsOverviewActiveSessionNamesItem = {
+  sydney: 'sydney',
+  tokyo: 'tokyo',
+  london: 'london',
+  new_york: 'new_york',
+} as const;
+
+export interface TradingSessionWindowsOverview {
+  symbol: string;
+  asOf: string;
+  dataSource: TradingSessionWindowsOverviewDataSource;
+  activeSessionNames: TradingSessionWindowsOverviewActiveSessionNamesItem[];
+  overlap: boolean;
+  sessions: TradingSessionWindowSummary[];
+  activeSession: TradingSessionWindowSummary | null;
+  previousSession: TradingSessionWindowSummary | null;
+  upcomingSession: TradingSessionWindowSummary | null;
+  summary: string;
+}
+
 export interface TradingVolumeProfileLevel {
   price: number;
   volume: number;
@@ -5916,6 +5987,65 @@ export interface TradingLiquidityAnalysis {
   buySellPressure: TradingBuySellPressure;
   confidenceLevel: TradingLiquidityAnalysisConfidenceLevel;
   confidenceExplanation: string;
+  summary: string;
+}
+
+export type TradingLiquidityTimelinePointLiquidityBand = typeof TradingLiquidityTimelinePointLiquidityBand[keyof typeof TradingLiquidityTimelinePointLiquidityBand];
+
+
+export const TradingLiquidityTimelinePointLiquidityBand = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export type TradingLiquidityTimelinePointBuySellDirection = typeof TradingLiquidityTimelinePointBuySellDirection[keyof typeof TradingLiquidityTimelinePointBuySellDirection];
+
+
+export const TradingLiquidityTimelinePointBuySellDirection = {
+  buying: 'buying',
+  selling: 'selling',
+  neutral: 'neutral',
+} as const;
+
+export interface TradingLiquidityTimelinePoint {
+  periodStart: string;
+  periodEnd: string;
+  liquidityBand: TradingLiquidityTimelinePointLiquidityBand;
+  liquidityScore: number;
+  avgDollarVolume: number;
+  buySellDirection: TradingLiquidityTimelinePointBuySellDirection;
+  candleCount: number;
+}
+
+export type TradingLiquidityTimelineDataSource = typeof TradingLiquidityTimelineDataSource[keyof typeof TradingLiquidityTimelineDataSource];
+
+
+export const TradingLiquidityTimelineDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingLiquidityTimelineRelativeLiquidity = typeof TradingLiquidityTimelineRelativeLiquidity[keyof typeof TradingLiquidityTimelineRelativeLiquidity];
+
+
+export const TradingLiquidityTimelineRelativeLiquidity = {
+  Above_Average: 'Above Average',
+  Below_Average: 'Below Average',
+  Average: 'Average',
+  Insufficient_Data: 'Insufficient Data',
+} as const;
+
+export interface TradingLiquidityTimeline {
+  symbol: string;
+  interval: TradingTimeframe;
+  dataSource: TradingLiquidityTimelineDataSource;
+  candleCount: number;
+  points: TradingLiquidityTimelinePoint[];
+  relativeLiquidity: TradingLiquidityTimelineRelativeLiquidity;
+  /** @nullable */
+  averageLiquidityScore: number | null;
+  keyLiquidityZones: TradingVolumeProfileLevel[];
   summary: string;
 }
 

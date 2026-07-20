@@ -8761,6 +8761,83 @@ export const GetTradingSessionResponse = zod.object({
 
 
 /**
+ * @summary For each of the 4 real named trading sessions (Sydney/Tokyo/London/New York) — its own most recent window's start/end/high/low/range/duration/data-freshness, which is currently active, which most recently closed (previous), and which opens next (upcoming). Descriptive only, never predictive; no synthetic sessions.
+ */
+export const GetTradingSessionWindowsParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingSessionWindowsResponse = zod.object({
+  "symbol": zod.string(),
+  "asOf": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "activeSessionNames": zod.array(zod.enum(['sydney', 'tokyo', 'london', 'new_york'])),
+  "overlap": zod.boolean(),
+  "sessions": zod.array(zod.object({
+  "name": zod.enum(['sydney', 'tokyo', 'london', 'new_york']),
+  "label": zod.string(),
+  "role": zod.enum(['active', 'previous', 'upcoming', 'other']),
+  "isActive": zod.boolean(),
+  "startIso": zod.string(),
+  "endIso": zod.string(),
+  "nextStartIso": zod.string(),
+  "durationHours": zod.number(),
+  "high": zod.number().nullable(),
+  "low": zod.number().nullable(),
+  "range": zod.number().nullable(),
+  "candleCount": zod.number(),
+  "freshnessMinutes": zod.number().nullable()
+})),
+  "activeSession": zod.union([zod.object({
+  "name": zod.enum(['sydney', 'tokyo', 'london', 'new_york']),
+  "label": zod.string(),
+  "role": zod.enum(['active', 'previous', 'upcoming', 'other']),
+  "isActive": zod.boolean(),
+  "startIso": zod.string(),
+  "endIso": zod.string(),
+  "nextStartIso": zod.string(),
+  "durationHours": zod.number(),
+  "high": zod.number().nullable(),
+  "low": zod.number().nullable(),
+  "range": zod.number().nullable(),
+  "candleCount": zod.number(),
+  "freshnessMinutes": zod.number().nullable()
+}),zod.null()]),
+  "previousSession": zod.union([zod.object({
+  "name": zod.enum(['sydney', 'tokyo', 'london', 'new_york']),
+  "label": zod.string(),
+  "role": zod.enum(['active', 'previous', 'upcoming', 'other']),
+  "isActive": zod.boolean(),
+  "startIso": zod.string(),
+  "endIso": zod.string(),
+  "nextStartIso": zod.string(),
+  "durationHours": zod.number(),
+  "high": zod.number().nullable(),
+  "low": zod.number().nullable(),
+  "range": zod.number().nullable(),
+  "candleCount": zod.number(),
+  "freshnessMinutes": zod.number().nullable()
+}),zod.null()]),
+  "upcomingSession": zod.union([zod.object({
+  "name": zod.enum(['sydney', 'tokyo', 'london', 'new_york']),
+  "label": zod.string(),
+  "role": zod.enum(['active', 'previous', 'upcoming', 'other']),
+  "isActive": zod.boolean(),
+  "startIso": zod.string(),
+  "endIso": zod.string(),
+  "nextStartIso": zod.string(),
+  "durationHours": zod.number(),
+  "high": zod.number().nullable(),
+  "low": zod.number().nullable(),
+  "range": zod.number().nullable(),
+  "candleCount": zod.number(),
+  "freshnessMinutes": zod.number().nullable()
+}),zod.null()]),
+  "summary": zod.string()
+})
+
+
+/**
  * @summary Portfolio risk analysis over the calling user's own open trading positions — position sizing, stop/target discipline, and portfolio risk budget, SIMULATED-first, honestly reports insufficient data rather than fabricating a default account value or position
  */
 export const GetTradingRiskResponse = zod.object({
@@ -8856,6 +8933,38 @@ export const GetTradingLiquidityResponse = zod.object({
 }),
   "confidenceLevel": zod.enum(['High', 'Moderate', 'Low']),
   "confidenceExplanation": zod.string(),
+  "summary": zod.string()
+})
+
+
+/**
+ * @summary A deterministic, chronological liquidity timeline for a symbol — replays the existing Liquidity Engine over rolling candle windows (zero new scoring), plus a relative-liquidity comparison (latest window vs. the average of the others) and the full-sample volume profile as Key Liquidity Zones.
+ */
+export const GetTradingLiquidityTimelineParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingLiquidityTimelineResponse = zod.object({
+  "symbol": zod.string(),
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "candleCount": zod.number(),
+  "points": zod.array(zod.object({
+  "periodStart": zod.string(),
+  "periodEnd": zod.string(),
+  "liquidityBand": zod.enum(['High', 'Moderate', 'Low']),
+  "liquidityScore": zod.number(),
+  "avgDollarVolume": zod.number(),
+  "buySellDirection": zod.enum(['buying', 'selling', 'neutral']),
+  "candleCount": zod.number()
+})),
+  "relativeLiquidity": zod.enum(['Above Average', 'Below Average', 'Average', 'Insufficient Data']),
+  "averageLiquidityScore": zod.number().nullable(),
+  "keyLiquidityZones": zod.array(zod.object({
+  "price": zod.number(),
+  "volume": zod.number(),
+  "pctOfTotal": zod.number()
+})),
   "summary": zod.string()
 })
 
