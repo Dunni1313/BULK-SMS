@@ -551,6 +551,11 @@ function OverviewTab() {
               <CardContent className="pt-4 text-sm font-medium">Trading Analytics Dashboard</CardContent>
             </Card>
           </Link>
+          <Link href="/executive-intelligence?tab=learning" data-testid="link-overview-executive-intelligence">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Executive Intelligence — Learning</CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

@@ -43,6 +43,8 @@ import {
   getGetStrategyFrameworkSummaryReportQueryKey,
   useGetTradingAnalyticsSummaryReport,
   getGetTradingAnalyticsSummaryReportQueryKey,
+  useGetExecutiveIntelligenceSummaryReport,
+  getGetExecutiveIntelligenceSummaryReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -76,7 +78,8 @@ type ReportType =
   | "executive-summary"
   | "trade-planning-summary"
   | "strategy-framework-summary"
-  | "trading-analytics-summary";
+  | "trading-analytics-summary"
+  | "executive-intelligence-summary";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -99,6 +102,7 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "trade-planning-summary",
   "strategy-framework-summary",
   "trading-analytics-summary",
+  "executive-intelligence-summary",
 ];
 
 export default function ReportingCentre() {
@@ -161,6 +165,7 @@ export default function ReportingCentre() {
   const tpsRes = useGetTradePlanningSummaryReport({ query: { queryKey: getGetTradePlanningSummaryReportQueryKey(), enabled: generated?.type === "trade-planning-summary" } });
   const sfsRes = useGetStrategyFrameworkSummaryReport({ query: { queryKey: getGetStrategyFrameworkSummaryReportQueryKey(), enabled: generated?.type === "strategy-framework-summary" } });
   const tasRes = useGetTradingAnalyticsSummaryReport({ query: { queryKey: getGetTradingAnalyticsSummaryReportQueryKey(), enabled: generated?.type === "trading-analytics-summary" } });
+  const eisRes = useGetExecutiveIntelligenceSummaryReport({ query: { queryKey: getGetExecutiveIntelligenceSummaryReportQueryKey(), enabled: generated?.type === "executive-intelligence-summary" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -183,9 +188,10 @@ export default function ReportingCentre() {
       "trade-planning-summary": tpsRes,
       "strategy-framework-summary": sfsRes,
       "trading-analytics-summary": tasRes,
+      "executive-intelligence-summary": eisRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

@@ -25,6 +25,7 @@ const mockState = vi.hoisted(() => ({
     { reportType: "executive-summary", label: "Executive Summary", description: "d", requiresSymbol: false, requiresPortfolio: false },
     { reportType: "trade-planning-summary", label: "Trade Planning Summary Report", description: "d", requiresSymbol: false, requiresPortfolio: false },
     { reportType: "trading-analytics-summary", label: "Trading Analytics Summary Report", description: "d", requiresSymbol: false, requiresPortfolio: false },
+    { reportType: "executive-intelligence-summary", label: "Executive Intelligence Summary Report", description: "d", requiresSymbol: false, requiresPortfolio: false },
   ] as unknown[],
   portfolios: [{ id: 1, name: "Core Portfolio", holdingsCount: 2 }] as unknown[],
   report: undefined as unknown,
@@ -73,6 +74,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetExecutiveSummaryReport: reportResult,
     useGetTradePlanningSummaryReport: reportResult,
     useGetTradingAnalyticsSummaryReport: reportResult,
+    useGetExecutiveIntelligenceSummaryReport: reportResult,
     useSaveInstitutionalReport: () => ({ mutate: saveMutate, isPending: false }),
     useListInstitutionalReports: () => ({ data: mockState.savedReports, refetch: savedListRefetch }),
     useGetSavedInstitutionalReport: () => ({ data: mockState.openedSaved }),
@@ -126,6 +128,23 @@ describe("ReportingCentre page", () => {
     expect(await screen.findByTestId("reporting-report-title")).toHaveTextContent("Trading Analytics Summary Report");
     const preview = screen.getByTestId("report-preview-content");
     expect(within(preview).getByText("3 position(s) reviewed.")).toBeInTheDocument();
+
+    window.history.pushState({}, "", "/reporting-centre");
+  });
+
+  it("Phase 33 — deep-linking to ?reportType=executive-intelligence-summary auto-generates the Executive Intelligence Summary Report", async () => {
+    mockState.report = fixtureReport({
+      reportType: "executive-intelligence-summary",
+      title: "Executive Intelligence Summary Report",
+      subtitle: "2 investing portfolio(s), 6 trading position(s) reviewed.",
+      sections: [{ id: "executive-summary", title: "Executive Overview", body: "2 investing portfolio(s), 6 trading position(s) reviewed." }],
+    });
+    window.history.pushState({}, "", "/reporting-centre?reportType=executive-intelligence-summary");
+    renderWithClient(<ReportingCentre />);
+
+    expect(await screen.findByTestId("reporting-report-title")).toHaveTextContent("Executive Intelligence Summary Report");
+    const preview = screen.getByTestId("report-preview-content");
+    expect(within(preview).getByText("2 investing portfolio(s), 6 trading position(s) reviewed.")).toBeInTheDocument();
 
     window.history.pushState({}, "", "/reporting-centre");
   });

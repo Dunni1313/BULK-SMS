@@ -160,6 +160,7 @@ import {
   Briefcase,
   PieChart,
   ExternalLink,
+  Command,
 } from "lucide-react";
 
 // Bounded — a fast-scan summary, not a full history dump. The full lists
@@ -813,6 +814,13 @@ export default function InstitutionalDashboard() {
             </Link>
             <Link href="/trading-ai-coach" className="block text-xs text-primary hover:underline" data-testid="link-open-trading-ai-coach">
               Open Institutional Trading AI Coach →
+            </Link>
+            {/* Phase 33 — Institutional Executive Intelligence & Reporting
+                Hub. Pure navigation, no fetch. Reachable from this Engine-2
+                dashboard for cross-engine convenience only — never a
+                duplicated feature. */}
+            <Link href="/executive-intelligence" className="flex items-center gap-1.5 text-xs text-primary hover:underline" data-testid="link-open-executive-intelligence">
+              <Command className="h-3 w-3" /> Open Executive Intelligence Hub →
             </Link>
           </CardContent>
         </Card>

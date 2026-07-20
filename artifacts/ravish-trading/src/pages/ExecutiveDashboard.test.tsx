@@ -18,6 +18,9 @@ const mockState = vi.hoisted(() => ({
   watchlist: [] as unknown[],
   researchNotes: [] as unknown[],
   recentDecisions: [] as unknown[],
+  hub: undefined as unknown,
+  hubLoading: false,
+  hubError: false,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -37,10 +40,34 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetValueWatchlist: () => ({ data: mockState.watchlist, isLoading: false, isError: false }),
     useGetAllResearchNotes: () => ({ data: mockState.researchNotes, isLoading: false, isError: false }),
     useGetRecentDecisionSnapshots: () => ({ data: mockState.recentDecisions, isLoading: false, isError: false }),
+    useGetExecutiveIntelligenceHub: () => ({ data: mockState.hub, isLoading: mockState.hubLoading, isError: mockState.hubError }),
   };
 });
 
 import ExecutiveDashboard from "./ExecutiveDashboard";
+
+function hubOverview(over: Record<string, unknown> = {}) {
+  return {
+    portfoliosCreated: 0,
+    holdingsTracked: 0,
+    researchNotesWritten: 0,
+    watchlistItems: 0,
+    committeeSnapshotsSaved: 0,
+    tradesReviewed: 0,
+    tradePlansCreated: 0,
+    journalEntries: 0,
+    strategiesRegistered: 0,
+    checklistInstances: 0,
+    learningTopicsCompleted: 0,
+    learningTopicsTotal: 0,
+    totalCoachViews: 0,
+    reportsGenerated: 0,
+    reportCategoriesUsed: 0,
+    generatedAt: new Date().toISOString(),
+    summary: "No activity recorded yet across either engine.",
+    ...over,
+  };
+}
 
 function report(over: Record<string, unknown> = {}) {
   return {
@@ -72,6 +99,7 @@ describe("ExecutiveDashboard", () => {
     mockState.watchlist = [];
     mockState.researchNotes = [];
     mockState.recentDecisions = [];
+    mockState.hub = { overview: hubOverview() };
 
     renderWithClient(<ExecutiveDashboard />);
 
@@ -89,6 +117,11 @@ describe("ExecutiveDashboard", () => {
     expect(screen.getByTestId("shortcut-terminal-analyse")).toBeInTheDocument();
     expect(screen.getByTestId("shortcut-terminal-compare")).toBeInTheDocument();
     expect(screen.getByTestId("shortcut-terminal-split")).toBeInTheDocument();
+    // Phase 33 — Cross-Engine Snapshot renders honestly all-zero KPIs for a
+    // brand-new user, never fabricating a nonzero figure.
+    const snapshot = screen.getByTestId("panel-cross-engine-snapshot");
+    expect(snapshot).toHaveTextContent("Cross-Engine Snapshot");
+    expect(screen.getByTestId("link-open-executive-intelligence")).toHaveAttribute("href", "/executive-intelligence");
   });
 
   it("renders real report data for the report-shaped panels", () => {
@@ -149,5 +182,35 @@ describe("ExecutiveDashboard", () => {
 
     const link = screen.getByTestId("panel-committee-activity-view-link");
     expect(link).toHaveAttribute("href", "/reporting-centre?reportType=investment-committee&symbol=GOOGL");
+  });
+
+  it("Cross-Engine Snapshot (Phase 33) renders real cross-engine KPIs from the Executive Intelligence Hub", () => {
+    mockState.hub = {
+      overview: hubOverview({
+        portfoliosCreated: 2,
+        tradesReviewed: 5,
+        strategiesRegistered: 1,
+        reportsGenerated: 3,
+        totalCoachViews: 4,
+        learningTopicsCompleted: 3,
+        learningTopicsTotal: 8,
+      }),
+    };
+
+    renderWithClient(<ExecutiveDashboard />);
+
+    const kpis = screen.getByTestId("cross-engine-snapshot-kpis");
+    expect(kpis).toHaveTextContent("2");
+    expect(kpis).toHaveTextContent("5");
+    expect(kpis).toHaveTextContent("3/8");
+  });
+
+  it("Cross-Engine Snapshot shows an honest error message when the hub fails to load", () => {
+    mockState.hub = undefined;
+    mockState.hubError = true;
+
+    renderWithClient(<ExecutiveDashboard />);
+
+    expect(screen.getByTestId("panel-cross-engine-snapshot-error")).toBeInTheDocument();
   });
 });

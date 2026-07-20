@@ -42,6 +42,7 @@ import {
   useGetValueWatchlist,
   useGetAllResearchNotes,
   useGetRecentDecisionSnapshots,
+  useGetExecutiveIntelligenceHub,
   type InstitutionalReport,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -65,6 +66,7 @@ import {
   Columns2,
   Boxes,
   BarChart3,
+  Command,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -178,6 +180,13 @@ export default function ExecutiveDashboard() {
   });
 
   const { data: savedReports, isLoading: savedReportsLoading, isError: savedReportsError } = useListInstitutionalReports();
+  // Phase 33 — Institutional Executive Intelligence & Reporting Hub. A real
+  // Cross-Engine Snapshot, not just an outbound link: a small set of KPIs
+  // spanning both the Investing Engine and Trading Engine, pulled directly
+  // from the same already-computed ExecutiveIntelligenceHub the new
+  // /executive-intelligence page renders in full — zero new aggregation
+  // logic here, purely a condensed read.
+  const { data: hub, isLoading: hubLoading, isError: hubError } = useGetExecutiveIntelligenceHub();
   const { data: watchlist, isLoading: watchlistLoading, isError: watchlistError } = useGetValueWatchlist();
   const { data: researchNotes, isLoading: researchNotesLoading, isError: researchNotesError } = useGetAllResearchNotes();
 
@@ -208,6 +217,60 @@ export default function ExecutiveDashboard() {
           </Badge>
         </div>
       </div>
+
+      {/* Cross-Engine Snapshot (Phase 33) — real KPIs spanning both engines,
+          plus a prominent link to the full Executive Intelligence Hub. */}
+      <Card className="bg-card border-border" data-testid="panel-cross-engine-snapshot">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Command className="w-4 h-4 text-indigo-400" /> Cross-Engine Snapshot
+          </CardTitle>
+          <CardDescription className="text-xs">
+            A unified read across the Institutional Investing Engine and the Institutional Trading Engine.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {hubLoading ? (
+            <Skeleton className="h-16 w-full" />
+          ) : hubError || !hub ? (
+            <p className="text-xs text-rose-400" data-testid="panel-cross-engine-snapshot-error">
+              Couldn't load the cross-engine snapshot. Try refreshing the page.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3" data-testid="cross-engine-snapshot-kpis">
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Portfolios</p>
+                <p className="text-lg font-semibold">{hub.overview.portfoliosCreated}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Trades Reviewed</p>
+                <p className="text-lg font-semibold">{hub.overview.tradesReviewed}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Strategies</p>
+                <p className="text-lg font-semibold">{hub.overview.strategiesRegistered}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Reports</p>
+                <p className="text-lg font-semibold">{hub.overview.reportsGenerated}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">AI Coach Views</p>
+                <p className="text-lg font-semibold">{hub.overview.totalCoachViews}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Learning Topics</p>
+                <p className="text-lg font-semibold">
+                  {hub.overview.learningTopicsCompleted}/{hub.overview.learningTopicsTotal}
+                </p>
+              </div>
+            </div>
+          )}
+          <Link href="/executive-intelligence" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-executive-intelligence">
+            <Command className="w-3 h-3" /> Open the Executive Intelligence Hub →
+          </Link>
+        </CardContent>
+      </Card>
 
       {/* Daily Executive Summary — full width, top of page */}
       <ReportSummaryCard

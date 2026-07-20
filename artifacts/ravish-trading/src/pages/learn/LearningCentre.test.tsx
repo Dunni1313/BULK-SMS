@@ -79,6 +79,14 @@ describe("LearningCentre", () => {
     expect(screen.getByTestId("link-overview-paths")).toBeInTheDocument();
   });
 
+  // Phase 33 — Institutional Executive Intelligence & Reporting Hub.
+  it("Overview tab links out to the Executive Intelligence Hub's own Learning tab, never a duplicated feature", async () => {
+    searchMock.current = "";
+    renderWithClient(<LearningCentre />);
+    const link = await screen.findByTestId("link-overview-executive-intelligence");
+    expect(link).toHaveAttribute("href", "/executive-intelligence?tab=learning");
+  });
+
   it("switching to the Simulations tab and running one shows the labeled, deterministic result", async () => {
     searchMock.current = "";
     runSimulationMock.data = {
