@@ -5381,6 +5381,46 @@ export interface TradingSupportResistanceZone {
   strength: number;
 }
 
+export type TradingStructureShiftEventType = typeof TradingStructureShiftEventType[keyof typeof TradingStructureShiftEventType];
+
+
+export const TradingStructureShiftEventType = {
+  higher_high: 'higher_high',
+  higher_low: 'higher_low',
+  lower_high: 'lower_high',
+  lower_low: 'lower_low',
+  trend_change: 'trend_change',
+  range_entry: 'range_entry',
+  range_exit: 'range_exit',
+  support_test: 'support_test',
+  resistance_test: 'resistance_test',
+} as const;
+
+export interface TradingStructureShiftEvent {
+  time: string;
+  type: TradingStructureShiftEventType;
+  label: string;
+  price: number;
+  detail: string;
+}
+
+export type TradingStructureShiftTimelineDataSource = typeof TradingStructureShiftTimelineDataSource[keyof typeof TradingStructureShiftTimelineDataSource];
+
+
+export const TradingStructureShiftTimelineDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export interface TradingStructureShiftTimeline {
+  symbol: string;
+  interval: TradingTimeframe;
+  dataSource: TradingStructureShiftTimelineDataSource;
+  candleCount: number;
+  events: TradingStructureShiftEvent[];
+  summary: string;
+}
+
 export type TradingStructureAnalysisDataSource = typeof TradingStructureAnalysisDataSource[keyof typeof TradingStructureAnalysisDataSource];
 
 

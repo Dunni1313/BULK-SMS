@@ -3740,18 +3740,46 @@ paths:
         "404":
           description: Unknown or invalid symbol
 
+  # ─── Structure Shift Timeline (Engine 2, Phase 26 — Institutional Market
+  # Structure Workbench) ────────────────────────────────────────────────────
+  # Deliberately documents the path parameter only, matching Sprint 40's own
+  # /trading/structure/{symbol} precedent — the route also accepts optional
+  # ?interval=&?lookback= query overrides, handled entirely server-side
+  # (not part of this typed contract, same disclosed Orval collision reason).
+  /trading/structure-timeline/{symbol}:
+    get:
+      operationId: getTradingStructureTimeline
+      tags: [trading-structure]
+      summary: A deterministic timeline of structure shift events (new higher high/low, new lower high/low, trend change, range entry/exit, support/resistance test) for a symbol — reuses the existing Market Structure scorer repeatedly over an expanding candle window, zero new scoring. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only.
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Structure shift timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingStructureShiftTimeline"
+        "404":
+          description: Unknown or invalid symbol
+
   # ─── Multi-Timeframe (Engine 2, Phase 3 Sprint 41) ──────────────────────────
   # Deliberately documents the path parameter only, matching Sprint 40's own
-  # precedent for /trading/structure/{symbol} — no query overrides on this
-  # route this sprint (the confluence panel always uses the default
-  # timeframe set), so the path+query Orval collision Sprint 40 disclosed
-  # doesn't apply here, but the same documented-surface discipline is kept
-  # for consistency.
+  # precedent for /trading/structure/{symbol} — the route also accepts an
+  # optional ?timeframes= override (Phase 26 — Institutional Market Structure
+  # Workbench, a comma-separated subset of the 5 real timeframes), handled
+  # entirely server-side, so the path+query Orval collision Sprint 40
+  # disclosed doesn't reproduce here in the formal spec, but the same
+  # documented-surface discipline is kept for consistency.
   /trading/multi-timeframe/{symbol}:
     get:
       operationId: getTradingMultiTimeframe
       tags: [trading-multi-timeframe]
-      summary: Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+      summary: Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D by default; Phase 26 added an optional ?timeframes= override for a caller-chosen subset of the 5 real timeframes, handled server-side only), SIMULATED-first, honestly labelled dataSource
       parameters:
         - name: symbol
           in: path
@@ -10496,6 +10524,56 @@ components:
           enum: [support, resistance]
         strength:
           type: integer
+
+    # ─── Structure Shift Timeline (Engine 2, Phase 26 — Institutional Market
+    # Structure Workbench) — reuses TradingMarketStructure's own scorer
+    # repeatedly, zero new scoring.
+    TradingStructureShiftEvent:
+      type: object
+      required: [time, type, label, price, detail]
+      properties:
+        time:
+          type: string
+        type:
+          type: string
+          enum:
+            [
+              higher_high,
+              higher_low,
+              lower_high,
+              lower_low,
+              trend_change,
+              range_entry,
+              range_exit,
+              support_test,
+              resistance_test,
+            ]
+        label:
+          type: string
+        price:
+          type: number
+        detail:
+          type: string
+
+    TradingStructureShiftTimeline:
+      type: object
+      required: [symbol, interval, dataSource, candleCount, events, summary]
+      properties:
+        symbol:
+          type: string
+        interval:
+          $ref: "#/components/schemas/TradingTimeframe"
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        candleCount:
+          type: integer
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingStructureShiftEvent"
+        summary:
+          type: string
 
     TradingStructureAnalysis:
       type: object

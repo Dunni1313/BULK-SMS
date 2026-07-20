@@ -8344,7 +8344,30 @@ export const GetTradingStructureResponse = zod.object({
 
 
 /**
- * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+ * @summary A deterministic timeline of structure shift events (new higher high/low, new lower high/low, trend change, range entry/exit, support/resistance test) for a symbol — reuses the existing Market Structure scorer repeatedly over an expanding candle window, zero new scoring. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only.
+ */
+export const GetTradingStructureTimelineParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingStructureTimelineResponse = zod.object({
+  "symbol": zod.string(),
+  "interval": zod.enum(['1m', '5m', '15m', '1h', '1D']),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "candleCount": zod.number(),
+  "events": zod.array(zod.object({
+  "time": zod.string(),
+  "type": zod.enum(['higher_high', 'higher_low', 'lower_high', 'lower_low', 'trend_change', 'range_entry', 'range_exit', 'support_test', 'resistance_test']),
+  "label": zod.string(),
+  "price": zod.number(),
+  "detail": zod.string()
+})),
+  "summary": zod.string()
+})
+
+
+/**
+ * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D by default; Phase 26 added an optional ?timeframes= override for a caller-chosen subset of the 5 real timeframes, handled server-side only), SIMULATED-first, honestly labelled dataSource
  */
 export const GetTradingMultiTimeframeParams = zod.object({
   "symbol": zod.coerce.string()

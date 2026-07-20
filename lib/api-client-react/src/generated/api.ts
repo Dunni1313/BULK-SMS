@@ -219,6 +219,7 @@ import type {
   TradingRunBacktestInput,
   TradingSessionData,
   TradingStructureAnalysis,
+  TradingStructureShiftTimeline,
   TradingTradePlan,
   TradingTradePlanInput,
   TradingTradePlanUpdate,
@@ -13971,6 +13972,83 @@ export function useGetTradingStructure<TData = Awaited<ReturnType<typeof getTrad
 
 
 
+export const getGetTradingStructureTimelineUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/structure-timeline/${symbol}`
+}
+
+/**
+ * @summary A deterministic timeline of structure shift events (new higher high/low, new lower high/low, trend change, range entry/exit, support/resistance test) for a symbol — reuses the existing Market Structure scorer repeatedly over an expanding candle window, zero new scoring. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only.
+ */
+export const getTradingStructureTimeline = async (symbol: string, options?: RequestInit): Promise<TradingStructureShiftTimeline> => {
+
+  return customFetch<TradingStructureShiftTimeline>(getGetTradingStructureTimelineUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingStructureTimelineQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/structure-timeline/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingStructureTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingStructureTimelineQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingStructureTimeline>>> = ({ signal }) => getTradingStructureTimeline(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingStructureTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingStructureTimeline>>>
+export type GetTradingStructureTimelineQueryError = ErrorType<void>
+
+
+/**
+ * @summary A deterministic timeline of structure shift events (new higher high/low, new lower high/low, trend change, range entry/exit, support/resistance test) for a symbol — reuses the existing Market Structure scorer repeatedly over an expanding candle window, zero new scoring. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only.
+ */
+
+export function useGetTradingStructureTimeline<TData = Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingStructureTimelineQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetTradingMultiTimeframeUrl = (symbol: string,) => {
 
 
@@ -13980,7 +14058,7 @@ export const getGetTradingMultiTimeframeUrl = (symbol: string,) => {
 }
 
 /**
- * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+ * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D by default; Phase 26 added an optional ?timeframes= override for a caller-chosen subset of the 5 real timeframes, handled server-side only), SIMULATED-first, honestly labelled dataSource
  */
 export const getTradingMultiTimeframe = async (symbol: string, options?: RequestInit): Promise<TradingMultiTimeframeAnalysis> => {
 
@@ -14027,7 +14105,7 @@ export type GetTradingMultiTimeframeQueryError = ErrorType<void>
 
 
 /**
- * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+ * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D by default; Phase 26 added an optional ?timeframes= override for a caller-chosen subset of the 5 real timeframes, handled server-side only), SIMULATED-first, honestly labelled dataSource
  */
 
 export function useGetTradingMultiTimeframe<TData = Awaited<ReturnType<typeof getTradingMultiTimeframe>>, TError = ErrorType<void>>(
