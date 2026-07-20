@@ -58,6 +58,7 @@ import tradingSessionWindowsRouter from "./tradingSessionWindows";
 import tradingStrategiesRouter from "./tradingStrategies";
 import tradingStrategyChecklistsRouter from "./tradingStrategyChecklists";
 import tradingLiquidityTimelineRouter from "./tradingLiquidityTimeline";
+import tradingAnalyticsRouter from "./tradingAnalytics";
 
 const router: IRouter = Router();
 
@@ -120,5 +121,6 @@ router.use(tradingSessionWindowsRouter);
 router.use(tradingLiquidityTimelineRouter);
 router.use(tradingStrategiesRouter);
 router.use(tradingStrategyChecklistsRouter);
+router.use(tradingAnalyticsRouter);
 
 export default router;
