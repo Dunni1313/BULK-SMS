@@ -10,7 +10,7 @@
 // (Phase 15) — zero new valuation model, zero new score, computed on this
 // page. The Comparison View reuses the existing
 // GET /opportunity-discovery/compare endpoint directly, unmodified.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearch, Link } from "wouter";
 import {
   useGetPortfolios,
@@ -216,7 +216,7 @@ function ReplacementCard({ opportunity }: { opportunity: OptimisationReplacement
 }
 
 export default function PortfolioOptimisation() {
-  const { data: portfolios, isLoading: portfoliosLoading } = useGetPortfolios();
+  const { data: portfolios, isLoading: portfoliosLoading, isError: portfoliosError } = useGetPortfolios();
   const { toast } = useToast();
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -237,22 +237,37 @@ export default function PortfolioOptimisation() {
     }
   }, [search]);
 
-  const { data: optimisation, isLoading: optimisationLoading } = useGetPortfolioOptimisation(selectedId ?? 0, {
+  const {
+    data: optimisation,
+    isLoading: optimisationLoading,
+    isError: optimisationError,
+  } = useGetPortfolioOptimisation(selectedId ?? 0, {
     query: { queryKey: getGetPortfolioOptimisationQueryKey(selectedId ?? 0), enabled: selectedId != null },
   });
-  const { data: reviews, isLoading: reviewsLoading } = useGetOptimisationReviews(selectedId ?? 0, {
+  const {
+    data: reviews,
+    isLoading: reviewsLoading,
+    isError: reviewsError,
+  } = useGetOptimisationReviews(selectedId ?? 0, {
     query: { queryKey: getGetOptimisationReviewsQueryKey(selectedId ?? 0), enabled: selectedId != null },
   });
 
   // Monitoring & Alerts integration: reuse the existing notifications list,
   // filtered to this portfolio's own held symbols — zero new alert-
   // detection logic, purely a read of already-generated alerts.
-  const heldSymbolSet = new Set((optimisation?.positionQualityRanking ?? []).map((p) => p.symbol));
+  const heldSymbolSet = useMemo(
+    () => new Set((optimisation?.positionQualityRanking ?? []).map((p) => p.symbol)),
+    [optimisation?.positionQualityRanking],
+  );
   const { data: notifications } = useListNotifications();
   const portfolioAlerts = (notifications ?? []).filter((n) => !n.isRead && n.relatedSymbol && heldSymbolSet.has(n.relatedSymbol));
 
   const compareSymbols = primarySymbol && compareSymbol ? `${primarySymbol},${compareSymbol}` : "";
-  const { data: comparison, isLoading: comparisonLoading } = useCompareOpportunitiesRoute(
+  const {
+    data: comparison,
+    isLoading: comparisonLoading,
+    isError: comparisonError,
+  } = useCompareOpportunitiesRoute(
     { symbols: compareSymbols },
     { query: { queryKey: getCompareOpportunitiesRouteQueryKey({ symbols: compareSymbols }), enabled: !!compareSymbols } },
   );
@@ -295,6 +310,10 @@ export default function PortfolioOptimisation() {
             <span className="text-xs text-muted-foreground">Portfolio</span>
             {portfoliosLoading ? (
               <Skeleton className="h-8 w-48" />
+            ) : portfoliosError ? (
+              <p className="text-xs text-rose-400" data-testid="portfolios-error">
+                Couldn't load portfolios. Try refreshing the page.
+              </p>
             ) : (
               <Select value={selectedId ? String(selectedId) : ""} onValueChange={(v) => setSelectedId(Number(v))}>
                 <SelectTrigger className="h-8 w-64 text-xs" data-testid="portfolio-select">
@@ -329,8 +348,14 @@ export default function PortfolioOptimisation() {
             Select a portfolio above to review its optimisation opportunities.
           </CardContent>
         </Card>
-      ) : optimisationLoading || !optimisation ? (
+      ) : optimisationLoading ? (
         <Skeleton className="h-64 w-full" />
+      ) : optimisationError || !optimisation ? (
+        <Card className="bg-card border-border">
+          <CardContent className="py-12 text-center text-sm text-rose-400" data-testid="optimisation-error">
+            Couldn't load optimisation data for this portfolio. Try refreshing the page.
+          </CardContent>
+        </Card>
       ) : (
         <Tabs defaultValue="overview">
           <TabsList className="flex-wrap h-auto">
@@ -517,6 +542,10 @@ export default function PortfolioOptimisation() {
             </div>
             {comparisonLoading ? (
               <Skeleton className="h-32 w-full" />
+            ) : comparisonError ? (
+              <p className="text-xs text-rose-400" data-testid="comparison-error">
+                Couldn't load comparison data. Try again.
+              </p>
             ) : comparison && comparison.rows.length > 0 ? (
               <div className="overflow-x-auto" data-testid="comparison-table">
                 <table className="w-full text-xs">
@@ -551,6 +580,10 @@ export default function PortfolioOptimisation() {
           <TabsContent value="reviews" className="mt-4 space-y-2">
             {reviewsLoading ? (
               <Skeleton className="h-16 w-full" />
+            ) : reviewsError ? (
+              <p className="text-xs text-rose-400 py-4 text-center" data-testid="reviews-error">
+                Couldn't load saved reviews. Try again.
+              </p>
             ) : !reviews || reviews.length === 0 ? (
               <p className="text-xs text-muted-foreground py-4 text-center">No saved reviews yet.</p>
             ) : (

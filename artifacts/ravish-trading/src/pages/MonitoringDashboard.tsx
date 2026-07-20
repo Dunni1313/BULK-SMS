@@ -132,6 +132,7 @@ function AlertNotesDialog({ notificationId, onOpenChange }: { notificationId: nu
                   variant="ghost"
                   data-testid={`button-delete-note-${n.id}`}
                   onClick={() => deleteNote.mutate({ id: n.id })}
+                  aria-label="Delete note"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useSearch, Link } from "wouter";
 import {
   useGetValueUniverse,
@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Markdown } from "@/components/ui/markdown";
 import { useToast } from "@/hooks/use-toast";
 import { streamCoach } from "@/lib/coach-stream";
+import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
   TrendingUp,
@@ -88,9 +89,6 @@ import {
 } from "recharts";
 
 type Level = ValueResearchInputLevel;
-
-const fmtUsd = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
 
 // Compact formatter for absolute statement figures (billions/millions), used by
 // the Financial Statements tab (Phase 2, Sprint 19) — statement line items are
@@ -1723,7 +1721,7 @@ export default function StockResearch() {
     );
   };
 
-  const watchedSymbols = new Set((watchlist ?? []).map((w) => w.symbol));
+  const watchedSymbols = useMemo(() => new Set((watchlist ?? []).map((w) => w.symbol)), [watchlist]);
 
   // Most recent live fetch across the universe (live data only), for the
   // sidebar's "is this current?" freshness indicator.
@@ -1837,6 +1835,7 @@ export default function StockResearch() {
                   onClick={() => refreshUniverse()}
                   disabled={universeRefreshing}
                   title="Refresh live fundamentals"
+                  aria-label="Refresh live fundamentals"
                   data-testid="refresh-universe"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${universeRefreshing ? "animate-spin" : ""}`} />

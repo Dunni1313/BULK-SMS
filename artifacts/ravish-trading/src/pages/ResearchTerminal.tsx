@@ -53,19 +53,16 @@ import { Link, useLocation, useSearch } from "wouter";
 import {
   useGetValueReport,
   useGetFinancialStatements,
-  useGetInstitutionalDecision,
-  useGetInvestmentMemo,
   useGetPortfolios,
   useListNotifications,
   useCompareOpportunitiesRoute,
   getGetValueReportQueryKey,
   getGetFinancialStatementsQueryKey,
-  getGetInstitutionalDecisionQueryKey,
-  getGetInvestmentMemoQueryKey,
   getCompareOpportunitiesRouteQueryKey,
 } from "@workspace/api-client-react";
-import { useQuery } from "@tanstack/react-query";
-import type { InstitutionalDecisionAnalysis, InvestmentMemo, ValueResearchReport } from "@workspace/api-client-react";
+import type { ValueResearchReport } from "@workspace/api-client-react";
+import { useInstitutionalDecision, useInvestmentMemo } from "@/hooks/use-institutional-decision";
+import { recommendationBadgeClass, checklistBadgeClass, fmtPct } from "@/lib/investing-format";
 import { ReportView, DecisionSummaryCard, ResearchNotesCard } from "./StockResearch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -141,71 +138,12 @@ function useSavedLayouts() {
   return { layouts, save, remove };
 }
 
-function recommendationBadgeClass(rec: string): string {
-  if (rec === "Buy" || rec === "Accumulate") return "border-emerald-500/40 text-emerald-400";
-  if (rec === "Hold") return "border-border text-muted-foreground";
-  if (rec === "Reduce") return "border-amber-500/40 text-amber-400";
-  return "border-rose-500/40 text-rose-400"; // Sell, Avoid
-}
-
-function checklistBadgeClass(status: string): string {
-  if (status === "pass") return "border-emerald-500/40 text-emerald-400";
-  if (status === "warning") return "border-amber-500/40 text-amber-400";
-  if (status === "fail") return "border-rose-500/40 text-rose-400";
-  return "border-border text-muted-foreground/60";
-}
-
 const FIXED_COMMENTARY =
   "This terminal shows deterministic, already-computed analysis only. For AI-narrated commentary and free-form Q&A, open the full Value Research page for this symbol.";
-
-// Same trick DecisionEngine.tsx/InvestmentCommitteeWorkbench.tsx already
-// use: the generated hook can't express the undocumented ?portfolioId=
-// override without re-triggering Orval's known duplicate-GetXParams-export
-// collision, so this composes a plain useQuery around the generated fetch
-// function instead.
-function useInstitutionalDecision(symbol: string, portfolioId: number | null) {
-  return useQuery<InstitutionalDecisionAnalysis>({
-    queryKey: [...getGetInstitutionalDecisionQueryKey(symbol), portfolioId ?? null],
-    queryFn: async () => {
-      if (portfolioId == null) {
-        const res = await fetch(`/api/stock-analyst/decision/${encodeURIComponent(symbol)}`);
-        if (!res.ok) throw new Error(`Unknown symbol: ${symbol}`);
-        return res.json();
-      }
-      const res = await fetch(`/api/stock-analyst/decision/${encodeURIComponent(symbol)}?portfolioId=${portfolioId}`);
-      if (!res.ok) throw new Error(`Unknown symbol: ${symbol}`);
-      return res.json();
-    },
-    enabled: !!symbol,
-    retry: false,
-  });
-}
-
-function useInvestmentMemo(symbol: string, portfolioId: number | null) {
-  return useQuery<InvestmentMemo>({
-    queryKey: [...getGetInvestmentMemoQueryKey(symbol), portfolioId ?? null],
-    queryFn: async () => {
-      if (portfolioId == null) {
-        const res = await fetch(`/api/stock-analyst/investment-memo/${encodeURIComponent(symbol)}`);
-        if (!res.ok) throw new Error(`Unknown symbol: ${symbol}`);
-        return res.json();
-      }
-      const res = await fetch(`/api/stock-analyst/investment-memo/${encodeURIComponent(symbol)}?portfolioId=${portfolioId}`);
-      if (!res.ok) throw new Error(`Unknown symbol: ${symbol}`);
-      return res.json();
-    },
-    enabled: !!symbol,
-    retry: false,
-  });
-}
 
 function fmt(n: number | null | undefined, dp = 2): string {
   if (n === null || n === undefined || Number.isNaN(n)) return "—";
   return n.toFixed(dp);
-}
-function fmtPct(n: number | null | undefined, dp = 1): string {
-  if (n === null || n === undefined || Number.isNaN(n)) return "—";
-  return `${(n * 100).toFixed(dp)}%`;
 }
 
 // ─── Financial Statement Explorer — compact revenue/net-income table over

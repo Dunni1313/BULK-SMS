@@ -441,7 +441,14 @@ export default function ReportingCentre() {
                         {visibleSections[Math.min(slideIndex, visibleSections.length - 1)].body}
                       </p>
                       <div className="flex items-center justify-center gap-3 mt-6">
-                        <Button size="icon" variant="outline" disabled={slideIndex === 0} onClick={() => setSlideIndex((i) => Math.max(0, i - 1))} data-testid="button-presentation-prev">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          disabled={slideIndex === 0}
+                          onClick={() => setSlideIndex((i) => Math.max(0, i - 1))}
+                          data-testid="button-presentation-prev"
+                          aria-label="Previous slide"
+                        >
                           <ChevronLeft className="w-4 h-4" />
                         </Button>
                         <span className="text-xs text-muted-foreground" data-testid="presentation-slide-counter">
@@ -453,6 +460,7 @@ export default function ReportingCentre() {
                           disabled={slideIndex >= visibleSections.length - 1}
                           onClick={() => setSlideIndex((i) => Math.min(visibleSections.length - 1, i + 1))}
                           data-testid="button-presentation-next"
+                          aria-label="Next slide"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </Button>
@@ -486,6 +494,7 @@ export default function ReportingCentre() {
                       variant="ghost"
                       onClick={() => deleteMutation.mutate({ id: r.id }, { onSuccess: () => savedListRefetch() })}
                       data-testid={`button-delete-saved-report-${r.id}`}
+                      aria-label={`Delete saved report: ${r.title}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

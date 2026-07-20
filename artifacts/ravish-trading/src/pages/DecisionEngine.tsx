@@ -12,7 +12,7 @@
 
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useSearch, Link } from "wouter";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetPortfolios,
   useGetDecisionSnapshots,
@@ -21,12 +21,11 @@ import {
   useAddDecisionNote,
   useUpdateDecisionNote,
   useDeleteDecisionNote,
-  getGetInstitutionalDecisionQueryKey,
   getGetDecisionSnapshotsQueryKey,
   getGetDecisionNotesQueryKey,
-  getInstitutionalDecision,
 } from "@workspace/api-client-react";
-import type { InstitutionalDecisionAnalysis } from "@workspace/api-client-react";
+import { useInstitutionalDecision } from "@/hooks/use-institutional-decision";
+import { recommendationBadgeClass, checklistBadgeClass } from "@/lib/investing-format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,44 +37,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Gavel, Search, Save, Trash2, Pencil } from "lucide-react";
 import { CoachDrawer } from "@/components/coach/CoachDrawer";
-
-function recommendationBadgeClass(rec: string): string {
-  if (rec === "Buy" || rec === "Accumulate") return "border-emerald-500/40 text-emerald-400";
-  if (rec === "Hold") return "border-border text-muted-foreground";
-  if (rec === "Reduce") return "border-amber-500/40 text-amber-400";
-  return "border-rose-500/40 text-rose-400"; // Sell, Avoid
-}
-
-function checklistBadgeClass(status: string): string {
-  if (status === "pass") return "border-emerald-500/40 text-emerald-400";
-  if (status === "warning") return "border-amber-500/40 text-amber-400";
-  if (status === "fail") return "border-rose-500/40 text-rose-400";
-  return "border-border text-muted-foreground/60"; // unavailable
-}
-
-const fmtPct = (n: number) => `${n}%`;
-
-// Fetches GET /stock-analyst/decision/:symbol, optionally augmented with the
-// undocumented (server-side-only) ?portfolioId= query param — the generated
-// hook can't express this without re-triggering Orval's known duplicate-
-// GetXParams-export collision (first disclosed at Sprint 40 for
-// /trading/structure/:symbol's own ?interval=/?lookback= overrides), so this
-// page composes a plain useQuery around the same generated fetch function
-// instead, matching its own query-key convention plus the optional
-// portfolioId.
-function useInstitutionalDecision(symbol: string, portfolioId: number | null) {
-  return useQuery<InstitutionalDecisionAnalysis>({
-    queryKey: [...getGetInstitutionalDecisionQueryKey(symbol), portfolioId ?? null],
-    queryFn: async () => {
-      if (portfolioId == null) return getInstitutionalDecision(symbol);
-      const res = await fetch(`/api/stock-analyst/decision/${encodeURIComponent(symbol)}?portfolioId=${portfolioId}`);
-      if (!res.ok) throw new Error(`Unknown symbol: ${symbol}`);
-      return res.json();
-    },
-    enabled: !!symbol,
-    retry: false,
-  });
-}
 
 export default function DecisionEngine() {
   const { toast } = useToast();

@@ -11,10 +11,10 @@
 // synthesis score — already-shipped engines, never recomputed here.
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   useScanOpportunities,
   useCompareOpportunitiesRoute,
+  getCompareOpportunitiesRouteQueryKey,
   useGetSavedScreens,
   useCreateSavedScreen,
   useDeleteSavedScreen,
@@ -27,18 +27,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { Telescope, Search, Plus, Trash2, X } from "lucide-react";
+import { recommendationBadgeClass, fmtPct } from "@/lib/investing-format";
 
-function recommendationBadgeClass(rec: string): string {
-  if (rec === "Buy" || rec === "Accumulate") return "border-emerald-500/40 text-emerald-400";
-  if (rec === "Hold") return "border-border text-muted-foreground";
-  if (rec === "Reduce") return "border-amber-500/40 text-amber-400";
-  return "border-rose-500/40 text-rose-400"; // Sell, Avoid
-}
-
-const fmtPct = (n: number | null) => (n == null ? "n/a" : `${(n * 100).toFixed(1)}%`);
 const fmtScore = (n: number | null) => (n == null ? "n/a" : `${n}/100`);
 
 interface FiltersState {
@@ -186,15 +180,16 @@ export default function OpportunityDiscovery() {
     });
   }
 
-  const compareQuery = useQuery({
-    queryKey: ["opportunity-discovery-compare", compareSymbols],
-    queryFn: async () => {
-      const res = await fetch(`/api/opportunity-discovery/compare?symbols=${encodeURIComponent(compareSymbols.join(","))}`);
-      if (!res.ok) throw new Error("Comparison failed");
-      return res.json();
+  const compareSymbolsParam = compareSymbols.join(",");
+  const compareQuery = useCompareOpportunitiesRoute(
+    { symbols: compareSymbolsParam },
+    {
+      query: {
+        queryKey: getCompareOpportunitiesRouteQueryKey({ symbols: compareSymbolsParam }),
+        enabled: compareSymbols.length >= 2,
+      },
     },
-    enabled: compareSymbols.length >= 2,
-  });
+  );
 
   const result = scan.data;
   const ranked = useMemo(() => result?.rows ?? [], [result]);
@@ -202,20 +197,19 @@ export default function OpportunityDiscovery() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center gap-2">
-          <Telescope className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Institutional Opportunity Discovery</h1>
-        </div>
-        <div className="mt-1 flex flex-wrap gap-2">
-          <Badge variant="outline" data-testid="badge-label-educational">Educational</Badge>
-          <Badge variant="outline" data-testid="badge-label-deterministic">Deterministic</Badge>
-          <Badge variant="outline" data-testid="badge-label-evidence-based">Evidence Based</Badge>
-        </div>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Telescope className="h-6 w-6" /> Institutional Opportunity Discovery
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
           Scans the Investing Engine's known-symbol universe and ranks opportunities using the existing Business
           Quality, Competitive Advantage, Valuation, Margin of Safety, Investment Committee, and Tom Nash
           engines — pure orchestration, no new scoring, no price forecasting.
         </p>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          <Badge variant="outline" data-testid="badge-label-educational">Educational</Badge>
+          <Badge variant="outline" data-testid="badge-label-deterministic">Deterministic</Badge>
+          <Badge variant="outline" data-testid="badge-label-evidence-based">Evidence Based</Badge>
+        </div>
       </div>
 
       <Card>
@@ -388,6 +382,14 @@ export default function OpportunityDiscovery() {
           {compareSymbols.length < 2 && (
             <p className="text-sm text-muted-foreground" data-testid="text-compare-instructions">
               Select at least 2 symbols from Top Rankings to compare them side by side.
+            </p>
+          )}
+          {compareSymbols.length >= 2 && compareQuery.isLoading && (
+            <Skeleton className="h-48 w-full" data-testid="skeleton-compare" />
+          )}
+          {compareSymbols.length >= 2 && compareQuery.isError && (
+            <p className="text-sm text-rose-400" data-testid="text-compare-error">
+              Couldn't load the comparison. Try again.
             </p>
           )}
           {compareQuery.data && (
