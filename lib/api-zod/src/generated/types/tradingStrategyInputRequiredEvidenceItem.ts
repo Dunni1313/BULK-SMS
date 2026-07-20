@@ -6,17 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type TradingCoachExplanationCoach = typeof TradingCoachExplanationCoach[keyof typeof TradingCoachExplanationCoach];
+export type TradingStrategyInputRequiredEvidenceItem = typeof TradingStrategyInputRequiredEvidenceItem[keyof typeof TradingStrategyInputRequiredEvidenceItem];
 
 
-export const TradingCoachExplanationCoach = {
+export const TradingStrategyInputRequiredEvidenceItem = {
   structure: 'structure',
   liquidity: 'liquidity',
   session: 'session',
   risk: 'risk',
   'trade-plan': 'trade-plan',
   journal: 'journal',
-  scenario: 'scenario',
-  psychology: 'psychology',
-  strategy: 'strategy',
+  coach: 'coach',
 } as const;

@@ -8720,6 +8720,319 @@ export const CompareTradingScenariosResponse = zod.object({
 
 
 /**
+ * @summary List the calling user's registered strategies, newest first
+ */
+export const ListTradingStrategiesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "category": zod.enum(['trend', 'reversal', 'breakout', 'range', 'scalping', 'swing', 'position', 'other']),
+  "timeframes": zod.array(zod.string()),
+  "markets": zod.array(zod.string()),
+  "requiredEvidence": zod.array(zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach'])),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean()
+})),
+  "educationalNotes": zod.string(),
+  "references": zod.array(zod.string()),
+  "version": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTradingStrategiesResponse = zod.array(ListTradingStrategiesResponseItem)
+
+
+/**
+ * @summary Register a new strategy (metadata only)
+ */
+export const CreateTradingStrategyBody = zod.object({
+  "name": zod.string(),
+  "description": zod.string(),
+  "category": zod.enum(['trend', 'reversal', 'breakout', 'range', 'scalping', 'swing', 'position', 'other']),
+  "timeframes": zod.array(zod.string()),
+  "markets": zod.array(zod.string()),
+  "requiredEvidence": zod.array(zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach'])),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean()
+})),
+  "educationalNotes": zod.string().optional(),
+  "references": zod.array(zod.string()),
+  "version": zod.string().optional()
+})
+
+
+/**
+ * @summary Get one strategy by id
+ */
+export const GetTradingStrategyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetTradingStrategyResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "category": zod.enum(['trend', 'reversal', 'breakout', 'range', 'scalping', 'swing', 'position', 'other']),
+  "timeframes": zod.array(zod.string()),
+  "markets": zod.array(zod.string()),
+  "requiredEvidence": zod.array(zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach'])),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean()
+})),
+  "educationalNotes": zod.string(),
+  "references": zod.array(zod.string()),
+  "version": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a strategy's metadata
+ */
+export const UpdateTradingStrategyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTradingStrategyBody = zod.object({
+  "name": zod.string().optional(),
+  "description": zod.string().optional(),
+  "category": zod.enum(['trend', 'reversal', 'breakout', 'range', 'scalping', 'swing', 'position', 'other']).optional(),
+  "timeframes": zod.array(zod.string()).optional(),
+  "markets": zod.array(zod.string()).optional(),
+  "requiredEvidence": zod.array(zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach'])).optional(),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean()
+})).optional(),
+  "educationalNotes": zod.string().optional(),
+  "references": zod.array(zod.string()).optional(),
+  "version": zod.string().optional()
+})
+
+export const UpdateTradingStrategyResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "category": zod.enum(['trend', 'reversal', 'breakout', 'range', 'scalping', 'swing', 'position', 'other']),
+  "timeframes": zod.array(zod.string()),
+  "markets": zod.array(zod.string()),
+  "requiredEvidence": zod.array(zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach'])),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean()
+})),
+  "educationalNotes": zod.string(),
+  "references": zod.array(zod.string()),
+  "version": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a strategy (cascades to its own checklist instances)
+ */
+export const DeleteTradingStrategyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List a strategy's own checklist instances, newest first
+ */
+export const ListTradingStrategyChecklistsParams = zod.object({
+  "strategyId": zod.coerce.number()
+})
+
+export const ListTradingStrategyChecklistsResponseItem = zod.object({
+  "id": zod.number(),
+  "strategyId": zod.number(),
+  "symbol": zod.string().nullable(),
+  "status": zod.enum(['in_progress', 'complete']),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean(),
+  "completed": zod.boolean(),
+  "notes": zod.string(),
+  "evidenceLinks": zod.array(zod.object({
+  "sourceType": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "url": zod.string().nullable()
+}))
+})),
+  "notes": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTradingStrategyChecklistsResponse = zod.array(ListTradingStrategyChecklistsResponseItem)
+
+
+/**
+ * @summary Instantiate a fresh checklist from the strategy's own template
+ */
+export const CreateTradingStrategyChecklistParams = zod.object({
+  "strategyId": zod.coerce.number()
+})
+
+export const CreateTradingStrategyChecklistBody = zod.object({
+  "symbol": zod.string().nullish()
+})
+
+
+/**
+ * @summary Get one checklist instance by id
+ */
+export const GetTradingStrategyChecklistParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetTradingStrategyChecklistResponse = zod.object({
+  "id": zod.number(),
+  "strategyId": zod.number(),
+  "symbol": zod.string().nullable(),
+  "status": zod.enum(['in_progress', 'complete']),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean(),
+  "completed": zod.boolean(),
+  "notes": zod.string(),
+  "evidenceLinks": zod.array(zod.object({
+  "sourceType": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "url": zod.string().nullable()
+}))
+})),
+  "notes": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a checklist instance's items/notes (status is re-derived, never client-set)
+ */
+export const UpdateTradingStrategyChecklistParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTradingStrategyChecklistBody = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean(),
+  "completed": zod.boolean(),
+  "notes": zod.string(),
+  "evidenceLinks": zod.array(zod.object({
+  "sourceType": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "url": zod.string().nullable()
+}))
+})).optional(),
+  "notes": zod.string().optional()
+})
+
+export const UpdateTradingStrategyChecklistResponse = zod.object({
+  "id": zod.number(),
+  "strategyId": zod.number(),
+  "symbol": zod.string().nullable(),
+  "status": zod.enum(['in_progress', 'complete']),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "required": zod.boolean(),
+  "completed": zod.boolean(),
+  "notes": zod.string(),
+  "evidenceLinks": zod.array(zod.object({
+  "sourceType": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'coach']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "url": zod.string().nullable()
+}))
+})),
+  "notes": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a checklist instance
+ */
+export const DeleteTradingStrategyChecklistParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Deterministic Strategy Coach explanation for one registered strategy (optionally grounded in one of its own checklist instances via ?checklistId=)
+ */
+export const GetTradingCoachStrategyExplanationParams = zod.object({
+  "strategyId": zod.coerce.number()
+})
+
+export const GetTradingCoachStrategyExplanationResponse = zod.object({
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology', 'strategy']),
+  "coachLabel": zod.string(),
+  "symbol": zod.string().nullable(),
+  "headline": zod.string(),
+  "whyThisExists": zod.string(),
+  "metricsUsed": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "risksReducingConfidence": zod.array(zod.string()),
+  "strengthsIncreasingConfidence": zod.array(zod.string()),
+  "howToInterpret": zod.array(zod.string()),
+  "commonMistakes": zod.array(zod.string()),
+  "institutionalPerspective": zod.string(),
+  "relatedGlossaryKeys": zod.array(zod.string()),
+  "calculationSources": zod.array(zod.string()),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Strategy Framework Summary Report — the calling user's own registered strategies and checklist-instance completion
+ */
+export const GetStrategyFrameworkSummaryReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
  * @summary List the calling user's workspace notes, newest first
  */
 export const ListTradingWorkspaceNotesResponseItem = zod.object({
@@ -9033,7 +9346,7 @@ export const GetTradingCoachAccountExplanationParams = zod.object({
 })
 
 export const GetTradingCoachAccountExplanationResponse = zod.object({
-  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology']),
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology', 'strategy']),
   "coachLabel": zod.string(),
   "symbol": zod.string().nullable(),
   "headline": zod.string(),
@@ -9068,7 +9381,7 @@ export const GetTradingCoachExplanationParams = zod.object({
 })
 
 export const GetTradingCoachExplanationResponse = zod.object({
-  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology']),
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology', 'strategy']),
   "coachLabel": zod.string(),
   "symbol": zod.string().nullable(),
   "headline": zod.string(),
@@ -9116,7 +9429,7 @@ export const ExplainTradingScenarioBody = zod.object({
 })
 
 export const ExplainTradingScenarioResponse = zod.object({
-  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology']),
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology', 'strategy']),
   "coachLabel": zod.string(),
   "symbol": zod.string().nullable(),
   "headline": zod.string(),
@@ -9322,7 +9635,7 @@ export const ListOptionsBacktestResultsResponse = zod.array(ListOptionsBacktestR
  * @summary The 9 available Institutional Report types, their labels, descriptions, and whether each requires a symbol/portfolio
  */
 export const GetReportTypesResponseItem = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "label": zod.string(),
   "description": zod.string(),
   "requiresSymbol": zod.boolean(),
@@ -9339,7 +9652,7 @@ export const GetInvestmentCommitteeReportParams = zod.object({
 })
 
 export const GetInvestmentCommitteeReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9364,7 +9677,7 @@ export const GetCompanyResearchReportParams = zod.object({
 })
 
 export const GetCompanyResearchReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9389,7 +9702,7 @@ export const GetPortfolioReviewReportParams = zod.object({
 })
 
 export const GetPortfolioReviewReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9414,7 +9727,7 @@ export const GetPortfolioHealthReportParams = zod.object({
 })
 
 export const GetPortfolioHealthReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9435,7 +9748,7 @@ export const GetPortfolioHealthReportResponse = zod.object({
  * @summary Watchlist Report — every Watchlist item's own price/margin-of-safety target status, reused directly from computeWatchlistTargets().
  */
 export const GetWatchlistReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9456,7 +9769,7 @@ export const GetWatchlistReportResponse = zod.object({
  * @summary Opportunity Discovery Report — the Opportunity Discovery scan's own buckets, reused directly.
  */
 export const GetOpportunityDiscoveryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9477,7 +9790,7 @@ export const GetOpportunityDiscoveryReportResponse = zod.object({
  * @summary Monitoring Summary Report — the user's own recorded monitoring alerts across every symbol.
  */
 export const GetMonitoringSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9498,7 +9811,7 @@ export const GetMonitoringSummaryReportResponse = zod.object({
  * @summary AI Coach Learning Summary — the Learning Centre's own progress tracker (lessons, glossary, strategies, coach explanations viewed, path completion, quiz performance).
  */
 export const GetAiCoachLearningSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9519,7 +9832,7 @@ export const GetAiCoachLearningSummaryReportResponse = zod.object({
  * @summary Executive Summary — the Cross-Engine Daily Report's own one-pager, reused directly.
  */
 export const GetExecutiveSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9540,7 +9853,7 @@ export const GetExecutiveSummaryReportResponse = zod.object({
  * @summary Trade Planning Summary Report (Phase 28) — the calling user's own Trade Plans (trading_trade_plans) and Trading Risk analysis (lib/tradingRisk.ts), reused directly. Pure composition, zero new analysis.
  */
 export const GetTradePlanningSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9561,7 +9874,7 @@ export const GetTradePlanningSummaryReportResponse = zod.object({
  * @summary Regenerate the given report type server-side and persist it to the calling user's own history (never trusts a client-supplied report body)
  */
 export const SaveInstitutionalReportBody = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "symbol": zod.string().optional(),
   "portfolioId": zod.number().optional()
 })
@@ -9575,7 +9888,7 @@ export const SaveInstitutionalReportResponse = zod.object({
   "dataSource": zod.string(),
   "createdAt": zod.string(),
   "report": zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9624,7 +9937,7 @@ export const GetSavedInstitutionalReportResponse = zod.object({
   "dataSource": zod.string(),
   "createdAt": zod.string(),
   "report": zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),

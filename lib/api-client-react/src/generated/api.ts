@@ -223,6 +223,12 @@ import type {
   TradingScenarioComparisonResult,
   TradingSessionData,
   TradingSessionWindowsOverview,
+  TradingStrategy,
+  TradingStrategyChecklist,
+  TradingStrategyChecklistInput,
+  TradingStrategyChecklistUpdate,
+  TradingStrategyInput,
+  TradingStrategyUpdate,
   TradingStructureAnalysis,
   TradingStructureShiftTimeline,
   TradingTradePlan,
@@ -15089,6 +15095,895 @@ export const useCompareTradingScenarios = <TError = ErrorType<void>,
       > => {
       return useMutation(getCompareTradingScenariosMutationOptions(options));
     }
+
+export const getListTradingStrategiesUrl = () => {
+
+
+
+
+  return `/api/trading/strategies`
+}
+
+/**
+ * @summary List the calling user's registered strategies, newest first
+ */
+export const listTradingStrategies = async ( options?: RequestInit): Promise<TradingStrategy[]> => {
+
+  return customFetch<TradingStrategy[]>(getListTradingStrategiesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingStrategiesQueryKey = () => {
+    return [
+    `/api/trading/strategies`
+    ] as const;
+    }
+
+
+export const getListTradingStrategiesQueryOptions = <TData = Awaited<ReturnType<typeof listTradingStrategies>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingStrategiesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingStrategies>>> = ({ signal }) => listTradingStrategies({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategies>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingStrategiesQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingStrategies>>>
+export type ListTradingStrategiesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's registered strategies, newest first
+ */
+
+export function useListTradingStrategies<TData = Awaited<ReturnType<typeof listTradingStrategies>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingStrategiesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingStrategyUrl = () => {
+
+
+
+
+  return `/api/trading/strategies`
+}
+
+/**
+ * @summary Register a new strategy (metadata only)
+ */
+export const createTradingStrategy = async (tradingStrategyInput: TradingStrategyInput, options?: RequestInit): Promise<TradingStrategy> => {
+
+  return customFetch<TradingStrategy>(getCreateTradingStrategyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingStrategyInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingStrategyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategy>>, TError,{data: BodyType<TradingStrategyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategy>>, TError,{data: BodyType<TradingStrategyInput>}, TContext> => {
+
+const mutationKey = ['createTradingStrategy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingStrategy>>, {data: BodyType<TradingStrategyInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTradingStrategy(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingStrategyMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingStrategy>>>
+    export type CreateTradingStrategyMutationBody = BodyType<TradingStrategyInput>
+    export type CreateTradingStrategyMutationError = ErrorType<void>
+
+    /**
+ * @summary Register a new strategy (metadata only)
+ */
+export const useCreateTradingStrategy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategy>>, TError,{data: BodyType<TradingStrategyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingStrategy>>,
+        TError,
+        {data: BodyType<TradingStrategyInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingStrategyMutationOptions(options));
+    }
+
+export const getGetTradingStrategyUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${id}`
+}
+
+/**
+ * @summary Get one strategy by id
+ */
+export const getTradingStrategy = async (id: number, options?: RequestInit): Promise<TradingStrategy> => {
+
+  return customFetch<TradingStrategy>(getGetTradingStrategyUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingStrategyQueryKey = (id: number,) => {
+    return [
+    `/api/trading/strategies/${id}`
+    ] as const;
+    }
+
+
+export const getGetTradingStrategyQueryOptions = <TData = Awaited<ReturnType<typeof getTradingStrategy>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingStrategyQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingStrategy>>> = ({ signal }) => getTradingStrategy(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingStrategyQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingStrategy>>>
+export type GetTradingStrategyQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get one strategy by id
+ */
+
+export function useGetTradingStrategy<TData = Awaited<ReturnType<typeof getTradingStrategy>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingStrategyQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingStrategyUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${id}`
+}
+
+/**
+ * @summary Update a strategy's metadata
+ */
+export const updateTradingStrategy = async (id: number,
+    tradingStrategyUpdate: TradingStrategyUpdate, options?: RequestInit): Promise<TradingStrategy> => {
+
+  return customFetch<TradingStrategy>(getUpdateTradingStrategyUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingStrategyUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingStrategyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategy>>, TError,{id: number;data: BodyType<TradingStrategyUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategy>>, TError,{id: number;data: BodyType<TradingStrategyUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingStrategy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingStrategy>>, {id: number;data: BodyType<TradingStrategyUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingStrategy(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingStrategyMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingStrategy>>>
+    export type UpdateTradingStrategyMutationBody = BodyType<TradingStrategyUpdate>
+    export type UpdateTradingStrategyMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a strategy's metadata
+ */
+export const useUpdateTradingStrategy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategy>>, TError,{id: number;data: BodyType<TradingStrategyUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingStrategy>>,
+        TError,
+        {id: number;data: BodyType<TradingStrategyUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingStrategyMutationOptions(options));
+    }
+
+export const getDeleteTradingStrategyUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${id}`
+}
+
+/**
+ * @summary Delete a strategy (cascades to its own checklist instances)
+ */
+export const deleteTradingStrategy = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingStrategyUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingStrategyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategy>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategy>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingStrategy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingStrategy>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingStrategy(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingStrategyMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingStrategy>>>
+
+    export type DeleteTradingStrategyMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a strategy (cascades to its own checklist instances)
+ */
+export const useDeleteTradingStrategy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategy>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingStrategy>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingStrategyMutationOptions(options));
+    }
+
+export const getListTradingStrategyChecklistsUrl = (strategyId: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${strategyId}/checklists`
+}
+
+/**
+ * @summary List a strategy's own checklist instances, newest first
+ */
+export const listTradingStrategyChecklists = async (strategyId: number, options?: RequestInit): Promise<TradingStrategyChecklist[]> => {
+
+  return customFetch<TradingStrategyChecklist[]>(getListTradingStrategyChecklistsUrl(strategyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingStrategyChecklistsQueryKey = (strategyId: number,) => {
+    return [
+    `/api/trading/strategies/${strategyId}/checklists`
+    ] as const;
+    }
+
+
+export const getListTradingStrategyChecklistsQueryOptions = <TData = Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError = ErrorType<void>>(strategyId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingStrategyChecklistsQueryKey(strategyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingStrategyChecklists>>> = ({ signal }) => listTradingStrategyChecklists(strategyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(strategyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingStrategyChecklistsQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingStrategyChecklists>>>
+export type ListTradingStrategyChecklistsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List a strategy's own checklist instances, newest first
+ */
+
+export function useListTradingStrategyChecklists<TData = Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError = ErrorType<void>>(
+ strategyId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingStrategyChecklistsQueryOptions(strategyId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingStrategyChecklistUrl = (strategyId: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${strategyId}/checklists`
+}
+
+/**
+ * @summary Instantiate a fresh checklist from the strategy's own template
+ */
+export const createTradingStrategyChecklist = async (strategyId: number,
+    tradingStrategyChecklistInput: TradingStrategyChecklistInput, options?: RequestInit): Promise<TradingStrategyChecklist> => {
+
+  return customFetch<TradingStrategyChecklist>(getCreateTradingStrategyChecklistUrl(strategyId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingStrategyChecklistInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingStrategyChecklistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategyChecklist>>, TError,{strategyId: number;data: BodyType<TradingStrategyChecklistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategyChecklist>>, TError,{strategyId: number;data: BodyType<TradingStrategyChecklistInput>}, TContext> => {
+
+const mutationKey = ['createTradingStrategyChecklist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingStrategyChecklist>>, {strategyId: number;data: BodyType<TradingStrategyChecklistInput>}> = (props) => {
+          const {strategyId,data} = props ?? {};
+
+          return  createTradingStrategyChecklist(strategyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingStrategyChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingStrategyChecklist>>>
+    export type CreateTradingStrategyChecklistMutationBody = BodyType<TradingStrategyChecklistInput>
+    export type CreateTradingStrategyChecklistMutationError = ErrorType<void>
+
+    /**
+ * @summary Instantiate a fresh checklist from the strategy's own template
+ */
+export const useCreateTradingStrategyChecklist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategyChecklist>>, TError,{strategyId: number;data: BodyType<TradingStrategyChecklistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingStrategyChecklist>>,
+        TError,
+        {strategyId: number;data: BodyType<TradingStrategyChecklistInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingStrategyChecklistMutationOptions(options));
+    }
+
+export const getGetTradingStrategyChecklistUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategy-checklists/${id}`
+}
+
+/**
+ * @summary Get one checklist instance by id
+ */
+export const getTradingStrategyChecklist = async (id: number, options?: RequestInit): Promise<TradingStrategyChecklist> => {
+
+  return customFetch<TradingStrategyChecklist>(getGetTradingStrategyChecklistUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingStrategyChecklistQueryKey = (id: number,) => {
+    return [
+    `/api/trading/strategy-checklists/${id}`
+    ] as const;
+    }
+
+
+export const getGetTradingStrategyChecklistQueryOptions = <TData = Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingStrategyChecklistQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingStrategyChecklist>>> = ({ signal }) => getTradingStrategyChecklist(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingStrategyChecklistQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingStrategyChecklist>>>
+export type GetTradingStrategyChecklistQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get one checklist instance by id
+ */
+
+export function useGetTradingStrategyChecklist<TData = Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingStrategyChecklistQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingStrategyChecklistUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategy-checklists/${id}`
+}
+
+/**
+ * @summary Update a checklist instance's items/notes (status is re-derived, never client-set)
+ */
+export const updateTradingStrategyChecklist = async (id: number,
+    tradingStrategyChecklistUpdate: TradingStrategyChecklistUpdate, options?: RequestInit): Promise<TradingStrategyChecklist> => {
+
+  return customFetch<TradingStrategyChecklist>(getUpdateTradingStrategyChecklistUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingStrategyChecklistUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingStrategyChecklistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>, TError,{id: number;data: BodyType<TradingStrategyChecklistUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>, TError,{id: number;data: BodyType<TradingStrategyChecklistUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingStrategyChecklist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>, {id: number;data: BodyType<TradingStrategyChecklistUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingStrategyChecklist(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingStrategyChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>>
+    export type UpdateTradingStrategyChecklistMutationBody = BodyType<TradingStrategyChecklistUpdate>
+    export type UpdateTradingStrategyChecklistMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a checklist instance's items/notes (status is re-derived, never client-set)
+ */
+export const useUpdateTradingStrategyChecklist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>, TError,{id: number;data: BodyType<TradingStrategyChecklistUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingStrategyChecklist>>,
+        TError,
+        {id: number;data: BodyType<TradingStrategyChecklistUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingStrategyChecklistMutationOptions(options));
+    }
+
+export const getDeleteTradingStrategyChecklistUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategy-checklists/${id}`
+}
+
+/**
+ * @summary Delete a checklist instance
+ */
+export const deleteTradingStrategyChecklist = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingStrategyChecklistUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingStrategyChecklistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingStrategyChecklist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingStrategyChecklist(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingStrategyChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>>
+
+    export type DeleteTradingStrategyChecklistMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a checklist instance
+ */
+export const useDeleteTradingStrategyChecklist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingStrategyChecklistMutationOptions(options));
+    }
+
+export const getGetTradingCoachStrategyExplanationUrl = (strategyId: number,) => {
+
+
+
+
+  return `/api/trading/coach/strategy/${strategyId}`
+}
+
+/**
+ * @summary Deterministic Strategy Coach explanation for one registered strategy (optionally grounded in one of its own checklist instances via ?checklistId=)
+ */
+export const getTradingCoachStrategyExplanation = async (strategyId: number, options?: RequestInit): Promise<TradingCoachExplanation> => {
+
+  return customFetch<TradingCoachExplanation>(getGetTradingCoachStrategyExplanationUrl(strategyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingCoachStrategyExplanationQueryKey = (strategyId: number,) => {
+    return [
+    `/api/trading/coach/strategy/${strategyId}`
+    ] as const;
+    }
+
+
+export const getGetTradingCoachStrategyExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError = ErrorType<void>>(strategyId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingCoachStrategyExplanationQueryKey(strategyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>> = ({ signal }) => getTradingCoachStrategyExplanation(strategyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(strategyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingCoachStrategyExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>>
+export type GetTradingCoachStrategyExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Strategy Coach explanation for one registered strategy (optionally grounded in one of its own checklist instances via ?checklistId=)
+ */
+
+export function useGetTradingCoachStrategyExplanation<TData = Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError = ErrorType<void>>(
+ strategyId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingCoachStrategyExplanationQueryOptions(strategyId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStrategyFrameworkSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/strategy-framework-summary`
+}
+
+/**
+ * @summary Strategy Framework Summary Report — the calling user's own registered strategies and checklist-instance completion
+ */
+export const getStrategyFrameworkSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetStrategyFrameworkSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyFrameworkSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/strategy-framework-summary`
+    ] as const;
+    }
+
+
+export const getGetStrategyFrameworkSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyFrameworkSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>> = ({ signal }) => getStrategyFrameworkSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyFrameworkSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>>
+export type GetStrategyFrameworkSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Strategy Framework Summary Report — the calling user's own registered strategies and checklist-instance completion
+ */
+
+export function useGetStrategyFrameworkSummaryReport<TData = Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyFrameworkSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getListTradingWorkspaceNotesUrl = () => {
 

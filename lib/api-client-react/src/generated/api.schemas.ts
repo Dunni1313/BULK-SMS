@@ -5874,6 +5874,192 @@ export interface TradingScenarioComparisonResult {
   summary: string;
 }
 
+export interface TradingStrategyChecklistItemDefinition {
+  id: string;
+  label: string;
+  required: boolean;
+}
+
+export type TradingStrategyEvidenceLinkSourceType = typeof TradingStrategyEvidenceLinkSourceType[keyof typeof TradingStrategyEvidenceLinkSourceType];
+
+
+export const TradingStrategyEvidenceLinkSourceType = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  coach: 'coach',
+} as const;
+
+export interface TradingStrategyEvidenceLink {
+  sourceType: TradingStrategyEvidenceLinkSourceType;
+  label: string;
+  detail: string;
+  url: string | null;
+}
+
+export interface TradingStrategyChecklistItemState {
+  id: string;
+  label: string;
+  required: boolean;
+  completed: boolean;
+  notes: string;
+  evidenceLinks: TradingStrategyEvidenceLink[];
+}
+
+export type TradingStrategyCategory = typeof TradingStrategyCategory[keyof typeof TradingStrategyCategory];
+
+
+export const TradingStrategyCategory = {
+  trend: 'trend',
+  reversal: 'reversal',
+  breakout: 'breakout',
+  range: 'range',
+  scalping: 'scalping',
+  swing: 'swing',
+  position: 'position',
+  other: 'other',
+} as const;
+
+export type TradingStrategyRequiredEvidenceItem = typeof TradingStrategyRequiredEvidenceItem[keyof typeof TradingStrategyRequiredEvidenceItem];
+
+
+export const TradingStrategyRequiredEvidenceItem = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  coach: 'coach',
+} as const;
+
+export interface TradingStrategy {
+  id: number;
+  name: string;
+  description: string;
+  category: TradingStrategyCategory;
+  timeframes: string[];
+  markets: string[];
+  requiredEvidence: TradingStrategyRequiredEvidenceItem[];
+  checklist: TradingStrategyChecklistItemDefinition[];
+  educationalNotes: string;
+  references: string[];
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TradingStrategyInputCategory = typeof TradingStrategyInputCategory[keyof typeof TradingStrategyInputCategory];
+
+
+export const TradingStrategyInputCategory = {
+  trend: 'trend',
+  reversal: 'reversal',
+  breakout: 'breakout',
+  range: 'range',
+  scalping: 'scalping',
+  swing: 'swing',
+  position: 'position',
+  other: 'other',
+} as const;
+
+export type TradingStrategyInputRequiredEvidenceItem = typeof TradingStrategyInputRequiredEvidenceItem[keyof typeof TradingStrategyInputRequiredEvidenceItem];
+
+
+export const TradingStrategyInputRequiredEvidenceItem = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  coach: 'coach',
+} as const;
+
+export interface TradingStrategyInput {
+  name: string;
+  description: string;
+  category: TradingStrategyInputCategory;
+  timeframes: string[];
+  markets: string[];
+  requiredEvidence: TradingStrategyInputRequiredEvidenceItem[];
+  checklist: TradingStrategyChecklistItemDefinition[];
+  educationalNotes?: string;
+  references: string[];
+  version?: string;
+}
+
+export type TradingStrategyUpdateCategory = typeof TradingStrategyUpdateCategory[keyof typeof TradingStrategyUpdateCategory];
+
+
+export const TradingStrategyUpdateCategory = {
+  trend: 'trend',
+  reversal: 'reversal',
+  breakout: 'breakout',
+  range: 'range',
+  scalping: 'scalping',
+  swing: 'swing',
+  position: 'position',
+  other: 'other',
+} as const;
+
+export type TradingStrategyUpdateRequiredEvidenceItem = typeof TradingStrategyUpdateRequiredEvidenceItem[keyof typeof TradingStrategyUpdateRequiredEvidenceItem];
+
+
+export const TradingStrategyUpdateRequiredEvidenceItem = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  coach: 'coach',
+} as const;
+
+export interface TradingStrategyUpdate {
+  name?: string;
+  description?: string;
+  category?: TradingStrategyUpdateCategory;
+  timeframes?: string[];
+  markets?: string[];
+  requiredEvidence?: TradingStrategyUpdateRequiredEvidenceItem[];
+  checklist?: TradingStrategyChecklistItemDefinition[];
+  educationalNotes?: string;
+  references?: string[];
+  version?: string;
+}
+
+export type TradingStrategyChecklistStatus = typeof TradingStrategyChecklistStatus[keyof typeof TradingStrategyChecklistStatus];
+
+
+export const TradingStrategyChecklistStatus = {
+  in_progress: 'in_progress',
+  complete: 'complete',
+} as const;
+
+export interface TradingStrategyChecklist {
+  id: number;
+  strategyId: number;
+  symbol: string | null;
+  status: TradingStrategyChecklistStatus;
+  items: TradingStrategyChecklistItemState[];
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TradingStrategyChecklistInput {
+  symbol?: string | null;
+}
+
+export interface TradingStrategyChecklistUpdate {
+  items?: TradingStrategyChecklistItemState[];
+  notes?: string;
+}
+
 export interface TradingWorkspaceNote {
   id: number;
   symbol: string;
@@ -6140,6 +6326,7 @@ export const TradingCoachExplanationCoach = {
   journal: 'journal',
   scenario: 'scenario',
   psychology: 'psychology',
+  strategy: 'strategy',
 } as const;
 
 export interface TradingCoachExplanation {
@@ -7836,6 +8023,7 @@ export const ReportTypeMetaReportType = {
   'ai-coach-summary': 'ai-coach-summary',
   'executive-summary': 'executive-summary',
   'trade-planning-summary': 'trade-planning-summary',
+  'strategy-framework-summary': 'strategy-framework-summary',
 } as const;
 
 export interface ReportTypeMeta {
@@ -7860,6 +8048,7 @@ export const InstitutionalReportReportType = {
   'ai-coach-summary': 'ai-coach-summary',
   'executive-summary': 'executive-summary',
   'trade-planning-summary': 'trade-planning-summary',
+  'strategy-framework-summary': 'strategy-framework-summary',
 } as const;
 
 export interface InstitutionalReport {
@@ -7888,6 +8077,7 @@ export const SaveInstitutionalReportInputReportType = {
   'ai-coach-summary': 'ai-coach-summary',
   'executive-summary': 'executive-summary',
   'trade-planning-summary': 'trade-planning-summary',
+  'strategy-framework-summary': 'strategy-framework-summary',
 } as const;
 
 export interface SaveInstitutionalReportInput {

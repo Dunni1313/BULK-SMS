@@ -20,4 +20,5 @@ export const InstitutionalReportReportType = {
   'ai-coach-summary': 'ai-coach-summary',
   'executive-summary': 'executive-summary',
   'trade-planning-summary': 'trade-planning-summary',
+  'strategy-framework-summary': 'strategy-framework-summary',
 } as const;

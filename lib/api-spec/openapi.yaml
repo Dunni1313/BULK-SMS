@@ -60,6 +60,8 @@ tags:
     description: Institutional Trade Workspace (Phase 25) — real persistence for a human-authored pre-trade plan (direction, thesis, entry/stop/target, derived position size and risk/reward), advisory only, never places an order
   - name: trading-workspace-notes
     description: Institutional Trade Workspace (Phase 25) — lightweight per-symbol free-text notes, distinct from the deeper structured Trading Journal
+  - name: trading-strategies
+    description: Institutional Strategy Framework (Phase 30) — user-authored Strategy Metadata (name, description, category, timeframes, markets, required evidence, a checklist template, educational notes, references, version) and Checklist Engine instances. Architecture/framework only — no named methodology (ICT/SMC/ASAD/Trader Bill/Tom Nash/Dunni Framework) is implemented, and no trading signal is ever generated.
   - name: trading-session
     description: Institutional Trade Workspace (Phase 25) — which named trading sessions are currently open plus today's realized session high/low, descriptive only, never predictive
   - name: broker
@@ -4059,6 +4061,255 @@ paths:
                 $ref: "#/components/schemas/TradingScenarioComparisonResult"
         "400":
           description: Invalid scenario count or shape
+
+  # ─── Institutional Strategy Framework (Engine 2, Phase 30) ───────────────────
+  # Architecture/framework phase: strategies are user-authored METADATA
+  # only (name, description, category, timeframes, markets, required
+  # evidence, a checklist template, educational notes, references,
+  # version) — never a trading rule/signal. No named real-world
+  # methodology (ICT/SMC/ASAD/Trader Bill/Tom Nash/Dunni Framework) is
+  # implemented anywhere in this platform.
+  /trading/strategies:
+    get:
+      operationId: listTradingStrategies
+      tags: [trading-strategies]
+      summary: List the calling user's registered strategies, newest first
+      responses:
+        "200":
+          description: Strategies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingStrategy"
+    post:
+      operationId: createTradingStrategy
+      tags: [trading-strategies]
+      summary: Register a new strategy (metadata only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingStrategyInput"
+      responses:
+        "201":
+          description: Strategy created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingStrategy"
+        "400":
+          description: Invalid strategy metadata
+
+  /trading/strategies/{id}:
+    get:
+      operationId: getTradingStrategy
+      tags: [trading-strategies]
+      summary: Get one strategy by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Strategy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingStrategy"
+        "404":
+          description: Strategy not found
+    patch:
+      operationId: updateTradingStrategy
+      tags: [trading-strategies]
+      summary: Update a strategy's metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingStrategyUpdate"
+      responses:
+        "200":
+          description: Updated strategy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingStrategy"
+        "400":
+          description: Invalid strategy metadata
+        "404":
+          description: Strategy not found
+    delete:
+      operationId: deleteTradingStrategy
+      tags: [trading-strategies]
+      summary: Delete a strategy (cascades to its own checklist instances)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Strategy deleted
+        "404":
+          description: Strategy not found
+
+  /trading/strategies/{strategyId}/checklists:
+    get:
+      operationId: listTradingStrategyChecklists
+      tags: [trading-strategies]
+      summary: List a strategy's own checklist instances, newest first
+      parameters:
+        - name: strategyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Checklist instances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingStrategyChecklist"
+        "404":
+          description: Strategy not found
+    post:
+      operationId: createTradingStrategyChecklist
+      tags: [trading-strategies]
+      summary: Instantiate a fresh checklist from the strategy's own template
+      parameters:
+        - name: strategyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingStrategyChecklistInput"
+      responses:
+        "201":
+          description: Checklist instance created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingStrategyChecklist"
+        "404":
+          description: Strategy not found
+
+  /trading/strategy-checklists/{id}:
+    get:
+      operationId: getTradingStrategyChecklist
+      tags: [trading-strategies]
+      summary: Get one checklist instance by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Checklist instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingStrategyChecklist"
+        "404":
+          description: Checklist not found
+    patch:
+      operationId: updateTradingStrategyChecklist
+      tags: [trading-strategies]
+      summary: Update a checklist instance's items/notes (status is re-derived, never client-set)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingStrategyChecklistUpdate"
+      responses:
+        "200":
+          description: Updated checklist instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingStrategyChecklist"
+        "404":
+          description: Checklist not found
+    delete:
+      operationId: deleteTradingStrategyChecklist
+      tags: [trading-strategies]
+      summary: Delete a checklist instance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Checklist instance deleted
+        "404":
+          description: Checklist not found
+
+  /trading/coach/strategy/{strategyId}:
+    get:
+      operationId: getTradingCoachStrategyExplanation
+      tags: [trading-coach]
+      summary: Deterministic Strategy Coach explanation for one registered strategy (optionally grounded in one of its own checklist instances via ?checklistId=)
+      parameters:
+        - name: strategyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Strategy Coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingCoachExplanation"
+        "400":
+          description: Invalid strategy id or checklistId
+        "404":
+          description: Strategy not found
+
+  /reporting/strategy-framework-summary:
+    get:
+      operationId: getStrategyFrameworkSummaryReport
+      tags: [reporting]
+      summary: Strategy Framework Summary Report — the calling user's own registered strategies and checklist-instance completion
+      responses:
+        "200":
+          description: Strategy Framework Summary Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
 
   /trading/workspace-notes:
     get:
@@ -11196,6 +11447,216 @@ components:
         summary:
           type: string
 
+    # ─── Institutional Strategy Framework (Phase 30) — Strategy Metadata is
+    # user-authored ONLY (name, description, category, timeframes, markets,
+    # required evidence, a checklist template, educational notes,
+    # references, version); a Checklist is a real, persisted INSTANCE of
+    # that template with completion state, per-item notes, and evidence
+    # links. Neither shape ever carries a trading rule/signal field. ───────
+
+    TradingStrategyChecklistItemDefinition:
+      type: object
+      required: [id, label, required]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        required:
+          type: boolean
+
+    TradingStrategyEvidenceLink:
+      type: object
+      required: [sourceType, label, detail, url]
+      properties:
+        sourceType:
+          type: string
+          enum: [structure, liquidity, session, risk, trade-plan, journal, coach]
+        label:
+          type: string
+        detail:
+          type: string
+        url:
+          type: string
+          nullable: true
+
+    TradingStrategyChecklistItemState:
+      type: object
+      required: [id, label, required, completed, notes, evidenceLinks]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        required:
+          type: boolean
+        completed:
+          type: boolean
+        notes:
+          type: string
+        evidenceLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingStrategyEvidenceLink"
+
+    TradingStrategy:
+      type: object
+      required: [id, name, description, category, timeframes, markets, requiredEvidence, checklist, educationalNotes, references, version, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [trend, reversal, breakout, range, scalping, swing, position, other]
+        timeframes:
+          type: array
+          items:
+            type: string
+        markets:
+          type: array
+          items:
+            type: string
+        requiredEvidence:
+          type: array
+          items:
+            type: string
+            enum: [structure, liquidity, session, risk, trade-plan, journal, coach]
+        checklist:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingStrategyChecklistItemDefinition"
+        educationalNotes:
+          type: string
+        references:
+          type: array
+          items:
+            type: string
+        version:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TradingStrategyInput:
+      type: object
+      required: [name, description, category, timeframes, markets, requiredEvidence, checklist, references]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [trend, reversal, breakout, range, scalping, swing, position, other]
+        timeframes:
+          type: array
+          items:
+            type: string
+        markets:
+          type: array
+          items:
+            type: string
+        requiredEvidence:
+          type: array
+          items:
+            type: string
+            enum: [structure, liquidity, session, risk, trade-plan, journal, coach]
+        checklist:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingStrategyChecklistItemDefinition"
+        educationalNotes:
+          type: string
+        references:
+          type: array
+          items:
+            type: string
+        version:
+          type: string
+
+    TradingStrategyUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [trend, reversal, breakout, range, scalping, swing, position, other]
+        timeframes:
+          type: array
+          items:
+            type: string
+        markets:
+          type: array
+          items:
+            type: string
+        requiredEvidence:
+          type: array
+          items:
+            type: string
+            enum: [structure, liquidity, session, risk, trade-plan, journal, coach]
+        checklist:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingStrategyChecklistItemDefinition"
+        educationalNotes:
+          type: string
+        references:
+          type: array
+          items:
+            type: string
+        version:
+          type: string
+
+    TradingStrategyChecklist:
+      type: object
+      required: [id, strategyId, symbol, status, items, notes, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        strategyId:
+          type: integer
+        symbol:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [in_progress, complete]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingStrategyChecklistItemState"
+        notes:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TradingStrategyChecklistInput:
+      type: object
+      properties:
+        symbol:
+          type: string
+          nullable: true
+
+    TradingStrategyChecklistUpdate:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingStrategyChecklistItemState"
+        notes:
+          type: string
+
     TradingWorkspaceNote:
       type: object
       required: [id, symbol, note, createdAt, updatedAt]
@@ -11684,7 +12145,7 @@ components:
       properties:
         coach:
           type: string
-          enum: [structure, liquidity, session, risk, trade-plan, journal, scenario, psychology]
+          enum: [structure, liquidity, session, risk, trade-plan, journal, scenario, psychology, strategy]
         coachLabel: { type: string }
         symbol:
           type: string
@@ -14622,7 +15083,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -14634,7 +15095,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -14652,7 +15113,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary]
         symbol: { type: string }
         portfolioId: { type: integer }
 
