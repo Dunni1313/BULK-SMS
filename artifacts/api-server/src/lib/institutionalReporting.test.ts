@@ -39,6 +39,7 @@ import {
   type StrategyFrameworkChecklistSummaryItem,
   type StrategyFrameworkLearningCoverageItem,
   type StrategyFrameworkWorkspaceNoteItem,
+  buildOptionsIncomeSummaryReport,
   businessQualitySection,
   financialStrengthSection,
   valuationSection,
@@ -46,6 +47,7 @@ import {
   investmentCommitteeSection,
   type WatchlistReportItem,
 } from "./institutionalReporting.js";
+import { buildOptionsIncomeDashboard } from "./optionsIncomeAnalytics.js";
 
 const NO_MANAGEMENT: ManagementQualityResult = { available: false, score: null, reason: "Document Intelligence could not resolve a filing in this environment." };
 
@@ -115,9 +117,9 @@ function decisionFor(report: ValueResearchReport): InstitutionalDecisionAnalysis
 }
 
 describe("institutionalReporting.ts — REPORT_TYPE_META", () => {
-  it("has exactly 13 entries matching REPORT_TYPES (Phase 33 adds executive-intelligence-summary)", () => {
-    expect(REPORT_TYPE_META).toHaveLength(13);
-    expect(REPORT_TYPES).toHaveLength(13);
+  it("has exactly 14 entries matching REPORT_TYPES (Phase 35 adds options-income-summary)", () => {
+    expect(REPORT_TYPE_META).toHaveLength(14);
+    expect(REPORT_TYPES).toHaveLength(14);
     expect(REPORT_TYPE_META.map((m) => m.reportType).sort()).toEqual([...REPORT_TYPES].sort());
   });
 
@@ -490,5 +492,56 @@ describe("institutionalReporting.ts — buildStrategyFrameworkSummaryReport", ()
     const built = buildStrategyFrameworkSummaryReport(strategies, [], [], workspaceNotes);
     const section = built.sections.find((s) => s.id === "workspace-notes")!;
     expect(section.bullets?.[0]).toBe("My Setup (updated 2026-01-02T00:00:00.000Z): Checked structure before entry.");
+  });
+});
+
+describe("institutionalReporting.ts — buildOptionsIncomeSummaryReport (Phase 35)", () => {
+  it("honestly reports all-empty sections for a brand-new user with no positions, never a fabricated figure", () => {
+    const dashboard = buildOptionsIncomeDashboard({ openRows: [], closedRows: [], thetaPositions: [] });
+    const built = buildOptionsIncomeSummaryReport(dashboard);
+    expect(built.reportType).toBe("options-income-summary");
+    expect(built.sections.map((s) => s.id)).toEqual(["executive-summary", "theta-income", "strategy-mix", "upcoming-expirations"]);
+    expect(built.sections.find((s) => s.id === "executive-summary")!.body).toMatch(/no open or closed/i);
+    expect(built.sections.find((s) => s.id === "theta-income")!.body).toMatch(/no open positions/i);
+    expect(built.sections.find((s) => s.id === "strategy-mix")!.body).toMatch(/no open positions/i);
+    expect(built.sections.find((s) => s.id === "upcoming-expirations")!.body).toMatch(/no open positions/i);
+  });
+
+  it("reformats a real Options Income Dashboard into report sections, byte-consistent with the source engine's own figures — never re-derived", () => {
+    const dashboard = buildOptionsIncomeDashboard({
+      openRows: [
+        { id: 1, symbol: "SPY", strategy: "iron_condor", credit: 150, maxLoss: 350, expiration: "2026-08-15" },
+        { id: 2, symbol: "MSFT", strategy: "calendar_spread", credit: 80, maxLoss: 200, expiration: "2026-08-01" },
+      ],
+      closedRows: [{ credit: 120 }],
+      thetaPositions: [
+        { symbol: "SPY", strategy: "iron_condor", theta: 2 },
+        { symbol: "MSFT", strategy: "calendar_spread", theta: 1.5 },
+      ],
+    });
+    const built = buildOptionsIncomeSummaryReport(dashboard);
+
+    expect(built.subtitle).toContain(`${dashboard.overview.openPositionsCount} open position(s)`);
+    expect(built.generatedAt).toBe(dashboard.generatedAt);
+
+    const overviewSection = built.sections.find((s) => s.id === "executive-summary")!;
+    expect(overviewSection.body).toContain(`${dashboard.overview.openPositionsCount} open position(s)`);
+    expect(overviewSection.bullets).toContain(`Capital allocated: $${dashboard.overview.totalCapitalAllocated.toLocaleString()}`);
+
+    const thetaSection = built.sections.find((s) => s.id === "theta-income")!;
+    expect(thetaSection.body).toContain(`$${dashboard.overview.theta.daily.toLocaleString()}/day`);
+
+    const mixSection = built.sections.find((s) => s.id === "strategy-mix")!;
+    expect(mixSection.bullets).toHaveLength(dashboard.strategyMix.length);
+    for (const m of dashboard.strategyMix) {
+      expect(mixSection.bullets).toContain(`${m.strategyLabel ?? m.strategy}: ${m.positionCount} position(s), $${m.capitalAllocated.toLocaleString()} allocated`);
+    }
+
+    const expirySection = built.sections.find((s) => s.id === "upcoming-expirations")!;
+    expect(expirySection.body).toContain(`${dashboard.upcomingExpirations.length} distinct expiration date(s)`);
+
+    // Never a P/L prediction, forecast, or trade recommendation anywhere in the report.
+    const serialized = JSON.stringify(built).toLowerCase();
+    expect(serialized).not.toMatch(/"probability"|"prediction"|"forecast"|"recommendation"/);
   });
 });

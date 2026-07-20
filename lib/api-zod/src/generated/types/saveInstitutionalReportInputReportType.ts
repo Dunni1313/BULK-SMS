@@ -23,4 +23,5 @@ export const SaveInstitutionalReportInputReportType = {
   'strategy-framework-summary': 'strategy-framework-summary',
   'trading-analytics-summary': 'trading-analytics-summary',
   'executive-intelligence-summary': 'executive-intelligence-summary',
+  'options-income-summary': 'options-income-summary',
 } as const;

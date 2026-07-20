@@ -43,6 +43,7 @@ import type { TradingRiskAnalysis } from "./tradingRisk.js";
 import { toStrategyLearningSummary, type StrategyMetadata, type StrategyLearningSummary } from "./tradingStrategyFramework.js";
 import type { TradingAnalyticsDashboard } from "./tradingAnalytics.js";
 import type { ExecutiveIntelligenceHub } from "./executiveIntelligence.js";
+import type { OptionsIncomeDashboard } from "./optionsIncomeAnalytics.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -57,7 +58,8 @@ export type InstitutionalReportType =
   | "trade-planning-summary"
   | "strategy-framework-summary"
   | "trading-analytics-summary"
-  | "executive-intelligence-summary";
+  | "executive-intelligence-summary"
+  | "options-income-summary";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -73,6 +75,7 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "strategy-framework-summary",
   "trading-analytics-summary",
   "executive-intelligence-summary",
+  "options-income-summary",
 ];
 
 export interface ReportTypeMeta {
@@ -172,6 +175,13 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "executive-intelligence-summary",
     label: "Executive Intelligence Summary Report",
     description: "The calling user's own unified Executive Intelligence Hub (Phase 33) — a single cross-engine view combining the Investing Engine's and Trading Engine's own analytics, a cross-engine risk/learning/AI-coach rollup, a Reporting Centre tally, and a chronological Activity Timeline. Pure composition of already-persisted, already-computed data, never a new signal or prediction.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "options-income-summary",
+    label: "Options Income Summary Report",
+    description: "The calling user's own Options Income Engine (Phase 35) — open/closed position counts, capital allocated, realized and projected premium, strategy mix, and upcoming expirations. Pure aggregation of already-persisted trades and already-computed Greeks, never a P/L prediction or trade recommendation.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -1065,6 +1075,71 @@ export function buildExecutiveIntelligenceSummaryReport(hub: ExecutiveIntelligen
     symbol: null,
     portfolioId: null,
     generatedAt: overview.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 14. Options Income Summary Report (Phase 35) — reuses
+// lib/optionsIncomeAnalytics.ts's own buildOptionsIncomeDashboard() exactly
+// (the same function GET /options-income/dashboard itself calls), then
+// reformats the already-computed dashboard into the generic ReportSection
+// shape. Zero new aggregation logic in this file, zero P/L prediction or
+// forecasting. ───────────────────────────────────────────────────────────
+
+export function buildOptionsIncomeSummaryReport(dashboard: OptionsIncomeDashboard): InstitutionalReport {
+  const { overview, strategyMix, upcomingExpirations } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Income Overview",
+      overview.openPositionsCount || overview.closedPositionsCount
+        ? `${overview.openPositionsCount} open position(s) with $${overview.totalCapitalAllocated.toLocaleString()} capital allocated, ` +
+          `$${overview.totalCreditCollectedOpen.toLocaleString()} in open credit and $${overview.totalRealizedPremium.toLocaleString()} realized premium ` +
+          `across ${overview.closedPositionsCount} closed position(s).`
+        : "No open or closed options-income positions on record yet.",
+      [
+        `Open positions: ${overview.openPositionsCount}`,
+        `Closed positions: ${overview.closedPositionsCount}`,
+        `Capital allocated: $${overview.totalCapitalAllocated.toLocaleString()}`,
+      ],
+    ),
+    section(
+      "theta-income",
+      "Monthly Premium (Theta Income)",
+      overview.theta.daily
+        ? `$${overview.theta.daily.toLocaleString()}/day, $${overview.theta.monthly.toLocaleString()}/month, ` +
+          `$${overview.theta.annualized.toLocaleString()}/year projected from live position Greeks — a theta projection, never a P/L forecast.`
+        : "No open positions to project theta income from.",
+      overview.theta.bySymbol.length ? overview.theta.bySymbol.map((s) => `${s.key}: $${s.theta.toLocaleString()}/day`) : undefined,
+    ),
+    section(
+      "strategy-mix",
+      "Strategy Mix",
+      strategyMix.length
+        ? `${strategyMix.length} distinct strategy(ies) in use across open positions.`
+        : "No open positions to break down by strategy yet.",
+      strategyMix.map((m) => `${m.strategyLabel ?? m.strategy}: ${m.positionCount} position(s), $${m.capitalAllocated.toLocaleString()} allocated`),
+    ),
+    section(
+      "upcoming-expirations",
+      "Upcoming Expirations",
+      upcomingExpirations.length
+        ? `${upcomingExpirations.length} distinct expiration date(s) among open positions, soonest in ${upcomingExpirations[0].daysToExpiry} day(s).`
+        : "No open positions with a recorded expiration date.",
+      upcomingExpirations.map((g) => `${g.expiration} (${g.daysToExpiry}d): ${g.positions.length} position(s)`),
+    ),
+  ];
+
+  return {
+    reportType: "options-income-summary",
+    title: "Options Income Summary Report",
+    subtitle: `${overview.openPositionsCount} open position(s), $${overview.totalCapitalAllocated.toLocaleString()} allocated`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
     dataSource: "MIXED",
     sections,
     disclaimer: REPORT_DISCLAIMER,

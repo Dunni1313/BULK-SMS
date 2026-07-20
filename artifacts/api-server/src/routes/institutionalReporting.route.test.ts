@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 13 report types (Phase 33 adds executive-intelligence-summary)", async () => {
+  it("GET /reporting/types returns all 14 report types (Phase 35 adds options-income-summary)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(13);
+    expect(body).toHaveLength(14);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -62,6 +62,7 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "investment-committee",
         "monitoring-summary",
         "opportunity-discovery",
+        "options-income-summary",
         "portfolio-health",
         "portfolio-review",
         "strategy-framework-summary",
@@ -191,6 +192,35 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     const listRes = await fetch(`${baseUrl}/api/reporting/reports`);
     const list = (await listRes.json()) as { id: number; reportType: string }[];
     expect(list.some((r) => r.id === saved.id && r.reportType === "trading-analytics-summary")).toBe(true);
+
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
+  });
+
+  it("GET /reporting/options-income-summary (Phase 35) reuses the Options Income Engine's own dashboard, reformatted into report sections, never a P/L forecast", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/options-income-summary`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("options-income-summary");
+    expect(body.sections.map((s) => s.id)).toEqual(["executive-summary", "theta-income", "strategy-mix", "upcoming-expirations"]);
+    expect(body.disclaimer).toContain("no new investment recommendation");
+    const serialized = JSON.stringify(body).toLowerCase();
+    expect(serialized).not.toMatch(/"probability"|"prediction"|"forecast"|"recommendation"/);
+  });
+
+  it("full options-income-summary save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: "options-income-summary" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("options-income-summary");
+    expect(saved.report.reportType).toBe("options-income-summary");
+
+    const listRes = await fetch(`${baseUrl}/api/reporting/reports`);
+    const list = (await listRes.json()) as { id: number; reportType: string }[];
+    expect(list.some((r) => r.id === saved.id && r.reportType === "options-income-summary")).toBe(true);
 
     await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
   });

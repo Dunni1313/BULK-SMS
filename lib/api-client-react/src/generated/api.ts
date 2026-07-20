@@ -131,6 +131,7 @@ import type {
   LearningSimulationResult,
   LearningStrategyAcademyEntry,
   ListDailyReportsParams,
+  ListOptionsIncomePositionsParams,
   ListReconciliationReports200,
   ListTradesParams,
   LiveMarketValidationReport,
@@ -154,7 +155,11 @@ import type {
   OptimisationReviewCreate,
   OptionChain,
   OptionsBacktestResult,
+  OptionsIncomeDashboard,
+  OptionsIncomePosition,
+  OptionsIncomePositionNotesInput,
   OptionsRunBacktestInput,
+  OptionsStrategyTemplate,
   OrderPreviewInput,
   OrderPreviewResult,
   PerformanceAnalytics,
@@ -16145,6 +16150,83 @@ export function useGetExecutiveIntelligenceSummaryReport<TData = Awaited<ReturnT
 
 
 
+export const getGetOptionsIncomeSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/options-income-summary`
+}
+
+/**
+ * @summary Options Income Summary Report — the calling user's own Options Income Engine (open/closed positions, capital allocated, theta income, strategy mix, upcoming expirations)
+ */
+export const getOptionsIncomeSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetOptionsIncomeSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsIncomeSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/options-income-summary`
+    ] as const;
+    }
+
+
+export const getGetOptionsIncomeSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsIncomeSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>> = ({ signal }) => getOptionsIncomeSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsIncomeSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>>
+export type GetOptionsIncomeSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Options Income Summary Report — the calling user's own Options Income Engine (open/closed positions, capital allocated, theta income, strategy mix, upcoming expirations)
+ */
+
+export function useGetOptionsIncomeSummaryReport<TData = Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsIncomeSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -17046,6 +17128,316 @@ export function useGetCrossEngineWorkspaceSearch<TData = Awaited<ReturnType<type
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetCrossEngineWorkspaceSearchQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsIncomeDashboardUrl = () => {
+
+
+
+
+  return `/api/options-income/dashboard`
+}
+
+/**
+ * @summary The calling user's own Options Income Dashboard — Income Overview (real credit collected, real capital allocated, projected theta income), Strategy Mix, and Upcoming Expirations. Pure aggregation over already-persisted trades rows. No P/L prediction, no forecasting.
+ */
+export const getOptionsIncomeDashboard = async ( options?: RequestInit): Promise<OptionsIncomeDashboard> => {
+
+  return customFetch<OptionsIncomeDashboard>(getGetOptionsIncomeDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsIncomeDashboardQueryKey = () => {
+    return [
+    `/api/options-income/dashboard`
+    ] as const;
+    }
+
+
+export const getGetOptionsIncomeDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsIncomeDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>> = ({ signal }) => getOptionsIncomeDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsIncomeDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>>
+export type GetOptionsIncomeDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own Options Income Dashboard — Income Overview (real credit collected, real capital allocated, projected theta income), Strategy Mix, and Upcoming Expirations. Pure aggregation over already-persisted trades rows. No P/L prediction, no forecasting.
+ */
+
+export function useGetOptionsIncomeDashboard<TData = Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsIncomeDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListOptionsIncomePositionsUrl = (params?: ListOptionsIncomePositionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/options-income/positions?${stringifiedParams}` : `/api/options-income/positions`
+}
+
+/**
+ * @summary The calling user's own options positions as a deterministic Position Model — Underlying, Strategy, Expiration, Premium, Collateral, live Greeks, Status, Lifecycle, and Notes. Never a new trade or a fabricated position.
+ */
+export const listOptionsIncomePositions = async (params?: ListOptionsIncomePositionsParams, options?: RequestInit): Promise<OptionsIncomePosition[]> => {
+
+  return customFetch<OptionsIncomePosition[]>(getListOptionsIncomePositionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOptionsIncomePositionsQueryKey = (params?: ListOptionsIncomePositionsParams,) => {
+    return [
+    `/api/options-income/positions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListOptionsIncomePositionsQueryOptions = <TData = Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError = ErrorType<unknown>>(params?: ListOptionsIncomePositionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOptionsIncomePositionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOptionsIncomePositions>>> = ({ signal }) => listOptionsIncomePositions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOptionsIncomePositionsQueryResult = NonNullable<Awaited<ReturnType<typeof listOptionsIncomePositions>>>
+export type ListOptionsIncomePositionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own options positions as a deterministic Position Model — Underlying, Strategy, Expiration, Premium, Collateral, live Greeks, Status, Lifecycle, and Notes. Never a new trade or a fabricated position.
+ */
+
+export function useListOptionsIncomePositions<TData = Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError = ErrorType<unknown>>(
+ params?: ListOptionsIncomePositionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOptionsIncomePositionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateOptionsIncomePositionNotesUrl = (id: number,) => {
+
+
+
+
+  return `/api/options-income/positions/${id}/notes`
+}
+
+/**
+ * @summary Updates the calling user's own position's notes field only — never touches status, legs, pricing, or execution.
+ */
+export const updateOptionsIncomePositionNotes = async (id: number,
+    optionsIncomePositionNotesInput: OptionsIncomePositionNotesInput, options?: RequestInit): Promise<OptionsIncomePosition> => {
+
+  return customFetch<OptionsIncomePosition>(getUpdateOptionsIncomePositionNotesUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsIncomePositionNotesInput,)
+  }
+);}
+
+
+
+
+export const getUpdateOptionsIncomePositionNotesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>, TError,{id: number;data: BodyType<OptionsIncomePositionNotesInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>, TError,{id: number;data: BodyType<OptionsIncomePositionNotesInput>}, TContext> => {
+
+const mutationKey = ['updateOptionsIncomePositionNotes'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>, {id: number;data: BodyType<OptionsIncomePositionNotesInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateOptionsIncomePositionNotes(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateOptionsIncomePositionNotesMutationResult = NonNullable<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>>
+    export type UpdateOptionsIncomePositionNotesMutationBody = BodyType<OptionsIncomePositionNotesInput>
+    export type UpdateOptionsIncomePositionNotesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Updates the calling user's own position's notes field only — never touches status, legs, pricing, or execution.
+ */
+export const useUpdateOptionsIncomePositionNotes = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>, TError,{id: number;data: BodyType<OptionsIncomePositionNotesInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>,
+        TError,
+        {id: number;data: BodyType<OptionsIncomePositionNotesInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateOptionsIncomePositionNotesMutationOptions(options));
+    }
+
+export const getGetOptionsStrategyLibraryUrl = () => {
+
+
+
+
+  return `/api/options-income/strategy-library`
+}
+
+/**
+ * @summary The static, deterministic Options Strategy Library — 9 reusable strategy templates (metadata only, never a generated trade), reusing lib/strategyAcademy.ts's own already-authored content for 8 of the 9.
+ */
+export const getOptionsStrategyLibrary = async ( options?: RequestInit): Promise<OptionsStrategyTemplate[]> => {
+
+  return customFetch<OptionsStrategyTemplate[]>(getGetOptionsStrategyLibraryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsStrategyLibraryQueryKey = () => {
+    return [
+    `/api/options-income/strategy-library`
+    ] as const;
+    }
+
+
+export const getGetOptionsStrategyLibraryQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsStrategyLibraryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>> = ({ signal }) => getOptionsStrategyLibrary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsStrategyLibraryQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>>
+export type GetOptionsStrategyLibraryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The static, deterministic Options Strategy Library — 9 reusable strategy templates (metadata only, never a generated trade), reusing lib/strategyAcademy.ts's own already-authored content for 8 of the 9.
+ */
+
+export function useGetOptionsStrategyLibrary<TData = Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsStrategyLibraryQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

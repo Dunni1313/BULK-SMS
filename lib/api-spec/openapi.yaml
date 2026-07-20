@@ -72,6 +72,8 @@ tags:
     description: Institutional Executive Intelligence & Reporting Hub (Phase 33) — unifies the Investing Engine's and Trading Engine's own analytics into a single executive view (overview, per-engine summaries, cross-engine risk/learning/coach rollups, a Reporting Centre tally, and a chronological Activity Timeline). Pure composition over already-persisted, already-computed data — no new scoring, no signal, no forecast, no AI prediction, no automated execution.
   - name: cross-engine-workspace
     description: Cross-Engine Orchestration & Unified Workspace (Phase 34) — one workspace spanning the Investing and Trading engines, with a chronological Activity Timeline extended with Trade Plan/Strategy/Learning entries, Cross-Engine Recent Items (most-recently-touched per category), Cross-Engine Tasks (already-flagged "needs attention" counts), and a deterministic Global Search over 9 already-persisted entity categories. Pure orchestration/aggregation/search over already-persisted data — no semantic search, no new scoring, no signal, no forecast, no AI prediction, no automated execution.
+  - name: options-income
+    description: Institutional Options Income Engine — Foundation (Phase 35) — deterministic aggregation and a Position Model view over the existing, mature Options Income Engine's own `trades` table (Income Overview, Strategy Mix, Upcoming Expirations, per-position Underlying/Strategy/Expiration/Premium/Collateral/Greeks/Status/Lifecycle/Notes), plus a static 9-strategy Strategy Library template catalog. Architecture-only foundation — no live brokerage execution, no auto trading, no auto adjustments, no AI predictions, no direction forecasting, no position recommendations, no trade alerts, no market timing.
   - name: broker
     description: Read-only Alpaca Paper Trading broker/account verification (account balances, open positions, open orders, connection health) — Paper Trading endpoint only, never places, modifies, or cancels an order
 
@@ -4353,6 +4355,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  # Phase 35 — Institutional Options Income Engine (Foundation). Extends
+  # the existing Reporting Centre with a 14th report type — reuses the
+  # generic InstitutionalReport/section() shape, no frontend change
+  # required beyond the report-type <Select> already populated dynamically
+  # from GET /reporting/types.
+  /reporting/options-income-summary:
+    get:
+      operationId: getOptionsIncomeSummaryReport
+      tags: [reporting]
+      summary: Options Income Summary Report — the calling user's own Options Income Engine (open/closed positions, capital allocated, theta income, strategy mix, upcoming expirations)
+      responses:
+        "200":
+          description: Options Income Summary Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -4579,6 +4599,82 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CrossEngineWorkspaceSearchResult"
+
+  # ─── Options Income Engine — Foundation (Phase 35) ──────────────────────────
+  /options-income/dashboard:
+    get:
+      operationId: getOptionsIncomeDashboard
+      tags: [options-income]
+      summary: The calling user's own Options Income Dashboard — Income Overview (real credit collected, real capital allocated, projected theta income), Strategy Mix, and Upcoming Expirations. Pure aggregation over already-persisted trades rows. No P/L prediction, no forecasting.
+      responses:
+        "200":
+          description: Options Income Dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsIncomeDashboard"
+
+  /options-income/positions:
+    get:
+      operationId: listOptionsIncomePositions
+      tags: [options-income]
+      summary: The calling user's own options positions as a deterministic Position Model — Underlying, Strategy, Expiration, Premium, Collateral, live Greeks, Status, Lifecycle, and Notes. Never a new trade or a fabricated position.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [open, closed, all]
+      responses:
+        "200":
+          description: Options positions (Position Model)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptionsIncomePosition"
+
+  /options-income/positions/{id}/notes:
+    patch:
+      operationId: updateOptionsIncomePositionNotes
+      tags: [options-income]
+      summary: Updates the calling user's own position's notes field only — never touches status, legs, pricing, or execution.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptionsIncomePositionNotesInput"
+      responses:
+        "200":
+          description: The updated position
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsIncomePosition"
+
+  /options-income/strategy-library:
+    get:
+      operationId: getOptionsStrategyLibrary
+      tags: [options-income]
+      summary: The static, deterministic Options Strategy Library — 9 reusable strategy templates (metadata only, never a generated trade), reusing lib/strategyAcademy.ts's own already-authored content for 8 of the 9.
+      responses:
+        "200":
+          description: Options Strategy Library templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptionsStrategyTemplate"
 
   # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
   /trading/risk:
@@ -15236,7 +15332,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -15248,7 +15344,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -15266,7 +15362,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -15956,3 +16052,121 @@ components:
           items:
             $ref: "#/components/schemas/CrossEngineWorkspaceSearchResultItem"
         totalMatches: { type: integer }
+
+    OptionsIncomePositionNotesInput:
+      type: object
+      required: [notes]
+      properties:
+        notes:
+          type: ["string", "null"]
+
+    OptionsPositionGreeks:
+      type: object
+      required: [delta, gamma, theta, vega]
+      properties:
+        delta: { type: number }
+        gamma: { type: number }
+        theta: { type: number }
+        vega: { type: number }
+
+    OptionsIncomePosition:
+      type: object
+      required: [id, underlying, strategy, strategyLabel, expiration, premium, collateral, greeks, status, lifecycle, notes, openDate, closeDate, realizedPnl]
+      properties:
+        id: { type: integer }
+        underlying: { type: string }
+        strategy: { type: string }
+        strategyLabel: { type: ["string", "null"] }
+        expiration: { type: ["string", "null"] }
+        premium: { type: number }
+        collateral: { type: number }
+        greeks:
+          $ref: "#/components/schemas/OptionsPositionGreeks"
+        status: { type: string }
+        lifecycle:
+          type: string
+          enum: [open, closed_expired, closed_assigned, closed_rolled, closed_manual, cancelled, rejected, unknown]
+        notes: { type: ["string", "null"] }
+        openDate: { type: string }
+        closeDate: { type: ["string", "null"] }
+        realizedPnl: { type: ["number", "null"] }
+
+    OptionsIncomeOverview:
+      type: object
+      required: [openPositionsCount, closedPositionsCount, totalCreditCollectedOpen, totalRealizedPremium, totalCapitalAllocated, theta, generatedAt]
+      properties:
+        openPositionsCount: { type: integer }
+        closedPositionsCount: { type: integer }
+        totalCreditCollectedOpen: { type: number }
+        totalRealizedPremium: { type: number }
+        totalCapitalAllocated: { type: number }
+        theta:
+          $ref: "#/components/schemas/ThetaIncome"
+        generatedAt: { type: string }
+
+    OptionsStrategyMixEntry:
+      type: object
+      required: [strategy, strategyLabel, positionCount, capitalAllocated]
+      properties:
+        strategy: { type: string }
+        strategyLabel: { type: ["string", "null"] }
+        positionCount: { type: integer }
+        capitalAllocated: { type: number }
+
+    OptionsUpcomingExpirationPosition:
+      type: object
+      required: [id, symbol, strategy, credit]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        strategy: { type: string }
+        credit: { type: number }
+
+    OptionsUpcomingExpirationGroup:
+      type: object
+      required: [expiration, daysToExpiry, positions]
+      properties:
+        expiration: { type: string }
+        daysToExpiry: { type: integer }
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsUpcomingExpirationPosition"
+
+    OptionsIncomeDashboard:
+      type: object
+      required: [overview, strategyMix, upcomingExpirations, generatedAt]
+      properties:
+        overview:
+          $ref: "#/components/schemas/OptionsIncomeOverview"
+        strategyMix:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsStrategyMixEntry"
+        upcomingExpirations:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsUpcomingExpirationGroup"
+        generatedAt: { type: string }
+
+    OptionsStrategyTemplate:
+      type: object
+      required: [key, label, legCount, incomeType, collateralType, collateralNote, builtByThisEngine, summary, idealMarket, assignmentRisk, executionStrategyKey]
+      properties:
+        key:
+          type: string
+          enum: [covered_call, cash_secured_put, wheel, iron_condor, iron_fly, calendar, diagonal, vertical_credit, vertical_debit]
+        label: { type: string }
+        legCount: { type: integer }
+        incomeType:
+          type: string
+          enum: [credit, debit]
+        collateralType:
+          type: string
+          enum: [stock, cash, margin, defined_risk, debit]
+        collateralNote: { type: string }
+        builtByThisEngine: { type: boolean }
+        summary: { type: string }
+        idealMarket: { type: string }
+        assignmentRisk: { type: string }
+        executionStrategyKey: { type: ["string", "null"] }

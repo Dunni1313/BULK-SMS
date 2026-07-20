@@ -8038,6 +8038,7 @@ export const ReportTypeMetaReportType = {
   'strategy-framework-summary': 'strategy-framework-summary',
   'trading-analytics-summary': 'trading-analytics-summary',
   'executive-intelligence-summary': 'executive-intelligence-summary',
+  'options-income-summary': 'options-income-summary',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8065,6 +8066,7 @@ export const InstitutionalReportReportType = {
   'strategy-framework-summary': 'strategy-framework-summary',
   'trading-analytics-summary': 'trading-analytics-summary',
   'executive-intelligence-summary': 'executive-intelligence-summary',
+  'options-income-summary': 'options-income-summary',
 } as const;
 
 export interface InstitutionalReport {
@@ -8096,6 +8098,7 @@ export const SaveInstitutionalReportInputReportType = {
   'strategy-framework-summary': 'strategy-framework-summary',
   'trading-analytics-summary': 'trading-analytics-summary',
   'executive-intelligence-summary': 'executive-intelligence-summary',
+  'options-income-summary': 'options-income-summary',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -8688,6 +8691,141 @@ export interface CrossEngineWorkspaceSearchResult {
   totalMatches: number;
 }
 
+export interface OptionsIncomePositionNotesInput {
+  /** @nullable */
+  notes: string | null;
+}
+
+export interface OptionsPositionGreeks {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export type OptionsIncomePositionLifecycle = typeof OptionsIncomePositionLifecycle[keyof typeof OptionsIncomePositionLifecycle];
+
+
+export const OptionsIncomePositionLifecycle = {
+  open: 'open',
+  closed_expired: 'closed_expired',
+  closed_assigned: 'closed_assigned',
+  closed_rolled: 'closed_rolled',
+  closed_manual: 'closed_manual',
+  cancelled: 'cancelled',
+  rejected: 'rejected',
+  unknown: 'unknown',
+} as const;
+
+export interface OptionsIncomePosition {
+  id: number;
+  underlying: string;
+  strategy: string;
+  /** @nullable */
+  strategyLabel: string | null;
+  /** @nullable */
+  expiration: string | null;
+  premium: number;
+  collateral: number;
+  greeks: OptionsPositionGreeks;
+  status: string;
+  lifecycle: OptionsIncomePositionLifecycle;
+  /** @nullable */
+  notes: string | null;
+  openDate: string;
+  /** @nullable */
+  closeDate: string | null;
+  /** @nullable */
+  realizedPnl: number | null;
+}
+
+export interface OptionsIncomeOverview {
+  openPositionsCount: number;
+  closedPositionsCount: number;
+  totalCreditCollectedOpen: number;
+  totalRealizedPremium: number;
+  totalCapitalAllocated: number;
+  theta: ThetaIncome;
+  generatedAt: string;
+}
+
+export interface OptionsStrategyMixEntry {
+  strategy: string;
+  /** @nullable */
+  strategyLabel: string | null;
+  positionCount: number;
+  capitalAllocated: number;
+}
+
+export interface OptionsUpcomingExpirationPosition {
+  id: number;
+  symbol: string;
+  strategy: string;
+  credit: number;
+}
+
+export interface OptionsUpcomingExpirationGroup {
+  expiration: string;
+  daysToExpiry: number;
+  positions: OptionsUpcomingExpirationPosition[];
+}
+
+export interface OptionsIncomeDashboard {
+  overview: OptionsIncomeOverview;
+  strategyMix: OptionsStrategyMixEntry[];
+  upcomingExpirations: OptionsUpcomingExpirationGroup[];
+  generatedAt: string;
+}
+
+export type OptionsStrategyTemplateKey = typeof OptionsStrategyTemplateKey[keyof typeof OptionsStrategyTemplateKey];
+
+
+export const OptionsStrategyTemplateKey = {
+  covered_call: 'covered_call',
+  cash_secured_put: 'cash_secured_put',
+  wheel: 'wheel',
+  iron_condor: 'iron_condor',
+  iron_fly: 'iron_fly',
+  calendar: 'calendar',
+  diagonal: 'diagonal',
+  vertical_credit: 'vertical_credit',
+  vertical_debit: 'vertical_debit',
+} as const;
+
+export type OptionsStrategyTemplateIncomeType = typeof OptionsStrategyTemplateIncomeType[keyof typeof OptionsStrategyTemplateIncomeType];
+
+
+export const OptionsStrategyTemplateIncomeType = {
+  credit: 'credit',
+  debit: 'debit',
+} as const;
+
+export type OptionsStrategyTemplateCollateralType = typeof OptionsStrategyTemplateCollateralType[keyof typeof OptionsStrategyTemplateCollateralType];
+
+
+export const OptionsStrategyTemplateCollateralType = {
+  stock: 'stock',
+  cash: 'cash',
+  margin: 'margin',
+  defined_risk: 'defined_risk',
+  debit: 'debit',
+} as const;
+
+export interface OptionsStrategyTemplate {
+  key: OptionsStrategyTemplateKey;
+  label: string;
+  legCount: number;
+  incomeType: OptionsStrategyTemplateIncomeType;
+  collateralType: OptionsStrategyTemplateCollateralType;
+  collateralNote: string;
+  builtByThisEngine: boolean;
+  summary: string;
+  idealMarket: string;
+  assignmentRisk: string;
+  /** @nullable */
+  executionStrategyKey: string | null;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -8844,6 +8982,19 @@ symbols: string;
 export type GetCrossEngineWorkspaceSearchParams = {
 q?: string;
 };
+
+export type ListOptionsIncomePositionsParams = {
+status?: ListOptionsIncomePositionsStatus;
+};
+
+export type ListOptionsIncomePositionsStatus = typeof ListOptionsIncomePositionsStatus[keyof typeof ListOptionsIncomePositionsStatus];
+
+
+export const ListOptionsIncomePositionsStatus = {
+  open: 'open',
+  closed: 'closed',
+  all: 'all',
+} as const;
 
 export type DeleteInstitutionalReport200 = {
   success: boolean;

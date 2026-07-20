@@ -54,6 +54,7 @@ import {
   GetStrategyFrameworkSummaryReportResponse,
   GetTradingAnalyticsSummaryReportResponse,
   GetExecutiveIntelligenceSummaryReportResponse,
+  GetOptionsIncomeSummaryReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -93,6 +94,7 @@ import {
   buildStrategyFrameworkSummaryReport,
   buildTradingAnalyticsSummaryReport,
   buildExecutiveIntelligenceSummaryReport,
+  buildOptionsIncomeSummaryReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -115,6 +117,8 @@ import { buildInvestingAnalyticsDashboard } from "../lib/investingAnalytics.js";
 import { loadInvestingAnalyticsInputs } from "./investingAnalytics.js";
 import { buildExecutiveIntelligenceHub } from "../lib/executiveIntelligence.js";
 import { loadExecutiveIntelligenceInputs } from "./executiveIntelligence.js";
+import { buildOptionsIncomeDashboard } from "../lib/optionsIncomeAnalytics.js";
+import { loadOptionsIncomeSummaryInputs } from "./optionsIncome.js";
 
 const router: IRouter = Router();
 
@@ -449,6 +453,21 @@ router.get("/reporting/executive-intelligence-summary", async (req, res): Promis
   res.json(GetExecutiveIntelligenceSummaryReportResponse.parse(built));
 });
 
+// ─── Options Income Summary Report (Phase 35) — reuses
+// routes/optionsIncome.ts's own loadOptionsIncomeSummaryInputs()/
+// buildOptionsIncomeDashboard() exactly (the same functions
+// GET /options-income/dashboard itself calls), then reformats the already-
+// computed dashboard into the generic ReportSection shape. Zero new
+// aggregation logic in this file. ──────────────────────────────────────────
+
+router.get("/reporting/options-income-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const inputs = await loadOptionsIncomeSummaryInputs(userId);
+  const dashboard = buildOptionsIncomeDashboard(inputs);
+  const built = buildOptionsIncomeSummaryReport(dashboard);
+  res.json(GetOptionsIncomeSummaryReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -556,6 +575,11 @@ async function regenerate(
       const trading = buildTradingAnalyticsDashboard(tradingInputs);
       const hub = buildExecutiveIntelligenceHub({ investing, trading, reportRows, activityInput });
       return buildExecutiveIntelligenceSummaryReport(hub);
+    }
+    case "options-income-summary": {
+      const inputs = await loadOptionsIncomeSummaryInputs(userId);
+      const dashboard = buildOptionsIncomeDashboard(inputs);
+      return buildOptionsIncomeSummaryReport(dashboard);
     }
     default:
       return null;
