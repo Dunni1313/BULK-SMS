@@ -8037,6 +8037,7 @@ export const ReportTypeMetaReportType = {
   'trade-planning-summary': 'trade-planning-summary',
   'strategy-framework-summary': 'strategy-framework-summary',
   'trading-analytics-summary': 'trading-analytics-summary',
+  'executive-intelligence-summary': 'executive-intelligence-summary',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8063,6 +8064,7 @@ export const InstitutionalReportReportType = {
   'trade-planning-summary': 'trade-planning-summary',
   'strategy-framework-summary': 'strategy-framework-summary',
   'trading-analytics-summary': 'trading-analytics-summary',
+  'executive-intelligence-summary': 'executive-intelligence-summary',
 } as const;
 
 export interface InstitutionalReport {
@@ -8093,6 +8095,7 @@ export const SaveInstitutionalReportInputReportType = {
   'trade-planning-summary': 'trade-planning-summary',
   'strategy-framework-summary': 'strategy-framework-summary',
   'trading-analytics-summary': 'trading-analytics-summary',
+  'executive-intelligence-summary': 'executive-intelligence-summary',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -8319,6 +8322,254 @@ export interface TradingAnalyticsDashboard {
   structure: TradingEngineUsageAnalytics;
   liquidity: TradingEngineUsageAnalytics;
   checklist: TradingChecklistAnalytics;
+}
+
+export interface InvestingAnalyticsOverview {
+  portfoliosCreated: number;
+  holdingsTracked: number;
+  researchNotesWritten: number;
+  watchlistItems: number;
+  committeeSnapshotsSaved: number;
+  riskSnapshotsSaved: number;
+  optimisationReviewsSaved: number;
+  savedScreens: number;
+  generatedAt: string;
+}
+
+export interface InvestingPortfolioAnalytics {
+  portfolioCount: number;
+  totalHoldings: number;
+  averageHoldingsPerPortfolio: number;
+  distinctSymbolsHeld: number;
+}
+
+export interface InvestingResearchAnalytics {
+  noteCount: number;
+  distinctSymbolsResearched: number;
+  /** @nullable */
+  mostRecentNoteAt: string | null;
+}
+
+export type InvestingWatchlistAnalyticsCategoryTally = {[key: string]: number};
+
+export type InvestingWatchlistAnalyticsDecisionTally = {[key: string]: number};
+
+export interface InvestingWatchlistAnalytics {
+  itemCount: number;
+  categoryTally: InvestingWatchlistAnalyticsCategoryTally;
+  decisionTally: InvestingWatchlistAnalyticsDecisionTally;
+}
+
+export type InvestingCommitteeAnalyticsRecommendationTally = {[key: string]: number};
+
+export interface InvestingCommitteeAnalytics {
+  snapshotCount: number;
+  recommendationTally: InvestingCommitteeAnalyticsRecommendationTally;
+  /** @nullable */
+  mostRecentSymbol: string | null;
+  /** @nullable */
+  mostRecentRecommendation: string | null;
+  /** @nullable */
+  mostRecentConfidence: number | null;
+  /** @nullable */
+  mostRecentSavedAt: string | null;
+}
+
+export interface InvestingRiskAnalyticsSummary {
+  snapshotCount: number;
+  /** @nullable */
+  mostRecentOverallScore: number | null;
+  /** @nullable */
+  averageOverallScore: number | null;
+  /** @nullable */
+  mostRecentSavedAt: string | null;
+}
+
+export type InvestingOptimisationAnalyticsActionTally = {[key: string]: number};
+
+export interface InvestingOptimisationAnalytics {
+  reviewCount: number;
+  actionTally: InvestingOptimisationAnalyticsActionTally;
+  /** @nullable */
+  mostRecentAction: string | null;
+  /** @nullable */
+  mostRecentSavedAt: string | null;
+}
+
+export type InvestingCoachUsageRowCoach = typeof InvestingCoachUsageRowCoach[keyof typeof InvestingCoachUsageRowCoach];
+
+
+export const InvestingCoachUsageRowCoach = {
+  investment: 'investment',
+  portfolio: 'portfolio',
+  decision: 'decision',
+  valuation: 'valuation',
+  risk: 'risk',
+  research: 'research',
+  monitoring: 'monitoring',
+  committee: 'committee',
+} as const;
+
+export interface InvestingCoachUsageRow {
+  coach: InvestingCoachUsageRowCoach;
+  label: string;
+  viewCount: number;
+}
+
+/**
+ * @nullable
+ */
+export type InvestingCoachAnalyticsMostRecentCoach = typeof InvestingCoachAnalyticsMostRecentCoach[keyof typeof InvestingCoachAnalyticsMostRecentCoach] | null;
+
+
+export const InvestingCoachAnalyticsMostRecentCoach = {
+  investment: 'investment',
+  portfolio: 'portfolio',
+  decision: 'decision',
+  valuation: 'valuation',
+  risk: 'risk',
+  research: 'research',
+  monitoring: 'monitoring',
+  committee: 'committee',
+} as const;
+
+export interface InvestingCoachAnalytics {
+  totalCoachViews: number;
+  byType: InvestingCoachUsageRow[];
+  /** @nullable */
+  mostRecentCoach: InvestingCoachAnalyticsMostRecentCoach;
+  /** @nullable */
+  mostRecentScope: string | null;
+  /** @nullable */
+  mostRecentViewedAt: string | null;
+}
+
+export interface InvestingAnalyticsDashboard {
+  overview: InvestingAnalyticsOverview;
+  portfolio: InvestingPortfolioAnalytics;
+  research: InvestingResearchAnalytics;
+  watchlist: InvestingWatchlistAnalytics;
+  committee: InvestingCommitteeAnalytics;
+  risk: InvestingRiskAnalyticsSummary;
+  optimisation: InvestingOptimisationAnalytics;
+  coach: InvestingCoachAnalytics;
+}
+
+export interface ExecutiveOverview {
+  portfoliosCreated: number;
+  holdingsTracked: number;
+  researchNotesWritten: number;
+  watchlistItems: number;
+  committeeSnapshotsSaved: number;
+  tradesReviewed: number;
+  tradePlansCreated: number;
+  journalEntries: number;
+  strategiesRegistered: number;
+  checklistInstances: number;
+  learningTopicsCompleted: number;
+  learningTopicsTotal: number;
+  totalCoachViews: number;
+  reportsGenerated: number;
+  reportCategoriesUsed: number;
+  generatedAt: string;
+  summary: string;
+}
+
+export interface ExecutiveRiskSummary {
+  investingRiskSnapshotsSaved: number;
+  /** @nullable */
+  investingMostRecentRiskScore: number | null;
+  tradingOpenPositionsCount: number;
+  tradingStopTargetDisciplinePct: number;
+}
+
+/**
+ * @nullable
+ */
+export type ExecutiveCoachSummaryMostRecentEngine = typeof ExecutiveCoachSummaryMostRecentEngine[keyof typeof ExecutiveCoachSummaryMostRecentEngine] | null;
+
+
+export const ExecutiveCoachSummaryMostRecentEngine = {
+  investing: 'investing',
+  trading: 'trading',
+} as const;
+
+export interface ExecutiveCoachSummary {
+  investingCoachViews: number;
+  tradingCoachViews: number;
+  totalCoachViews: number;
+  /** @nullable */
+  mostRecentEngine: ExecutiveCoachSummaryMostRecentEngine;
+  /** @nullable */
+  mostRecentCoach: string | null;
+  /** @nullable */
+  mostRecentViewedAt: string | null;
+}
+
+export interface ExecutiveReportingSummaryTypeRow {
+  reportType: string;
+  count: number;
+}
+
+export interface ExecutiveRecentReportRef {
+  id: number;
+  reportType: string;
+  title: string;
+  createdAt: string;
+}
+
+export interface ExecutiveReportingSummary {
+  totalReports: number;
+  distinctReportTypesUsed: number;
+  byType: ExecutiveReportingSummaryTypeRow[];
+  recentReports: ExecutiveRecentReportRef[];
+}
+
+export type ExecutiveActivityEntryType = typeof ExecutiveActivityEntryType[keyof typeof ExecutiveActivityEntryType];
+
+
+export const ExecutiveActivityEntryType = {
+  'journal-entry': 'journal-entry',
+  'committee-snapshot': 'committee-snapshot',
+  'risk-snapshot': 'risk-snapshot',
+  'optimisation-review': 'optimisation-review',
+  'research-note': 'research-note',
+  'report-generated': 'report-generated',
+  notification: 'notification',
+} as const;
+
+export type ExecutiveActivityEntryEngine = typeof ExecutiveActivityEntryEngine[keyof typeof ExecutiveActivityEntryEngine];
+
+
+export const ExecutiveActivityEntryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  platform: 'platform',
+} as const;
+
+export interface ExecutiveActivityEntry {
+  type: ExecutiveActivityEntryType;
+  engine: ExecutiveActivityEntryEngine;
+  label: string;
+  detail: string;
+  occurredAt: string;
+  /** @nullable */
+  symbol: string | null;
+  /** @nullable */
+  linkPath: string | null;
+}
+
+export interface ExecutiveIntelligenceHub {
+  overview: ExecutiveOverview;
+  investing: InvestingAnalyticsDashboard;
+  trading: TradingAnalyticsDashboard;
+  strategy: TradingStrategyUsageAnalytics;
+  portfolio: InvestingPortfolioAnalytics;
+  risk: ExecutiveRiskSummary;
+  learning: TradingLearningAnalytics;
+  coach: ExecutiveCoachSummary;
+  reporting: ExecutiveReportingSummary;
+  activity: ExecutiveActivityEntry[];
 }
 
 export type GetScannerResultsParams = {

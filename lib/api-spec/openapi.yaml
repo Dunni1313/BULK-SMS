@@ -66,6 +66,10 @@ tags:
     description: Institutional Trade Workspace (Phase 25) — which named trading sessions are currently open plus today's realized session high/low, descriptive only, never predictive
   - name: trading-analytics
     description: Institutional Trading Analytics Engine (Phase 32) — deterministic aggregation of already-persisted Trading Engine data (trades reviewed, plans, journal entries, strategy usage, checklist completion, learning progress, coach usage, session activity). Pure reporting/analytics — no signals, no predictions, no automated execution.
+  - name: investing-analytics
+    description: Institutional Investing Analytics Engine (Phase 33) — deterministic aggregation of already-persisted Investing Engine data (portfolios, holdings, research notes, watchlist, saved Investment Committee decision snapshots, saved risk snapshots, saved optimisation reviews, saved screener criteria, AI Coach usage). Pure reporting/analytics — no signals, no predictions, no automated execution.
+  - name: executive-intelligence
+    description: Institutional Executive Intelligence & Reporting Hub (Phase 33) — unifies the Investing Engine's and Trading Engine's own analytics into a single executive view (overview, per-engine summaries, cross-engine risk/learning/coach rollups, a Reporting Centre tally, and a chronological Activity Timeline). Pure composition over already-persisted, already-computed data — no new scoring, no signal, no forecast, no AI prediction, no automated execution.
   - name: broker
     description: Read-only Alpaca Paper Trading broker/account verification (account balances, open positions, open orders, connection health) — Paper Trading endpoint only, never places, modifies, or cancels an order
 
@@ -4329,6 +4333,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  # Phase 33 — Institutional Executive Intelligence & Reporting Hub. Extends
+  # the existing Reporting Centre with a 13th report type — reuses the
+  # generic InstitutionalReport/section() shape, no frontend change
+  # required beyond the report-type <Select> already populated dynamically
+  # from GET /reporting/types.
+  /reporting/executive-intelligence-summary:
+    get:
+      operationId: getExecutiveIntelligenceSummaryReport
+      tags: [reporting]
+      summary: Executive Intelligence Summary Report — the calling user's own unified cross-engine executive view (overview, investing, trading, strategy, portfolio, risk, learning, coach, reporting, activity)
+      responses:
+        "200":
+          description: Executive Intelligence Summary Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -4488,6 +4510,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TradingAnalyticsDashboard"
+
+  # Phase 33 — Institutional Investing Analytics Engine. Mirrors
+  # /trading/analytics exactly, applied to the Investing Engine's own
+  # already-persisted tables (portfolios, holdings, research notes,
+  # watchlist, saved committee/risk/optimisation snapshots, saved screens,
+  # AI Coach usage). Pure aggregation — no signals, no predictions.
+  /investing/analytics:
+    get:
+      operationId: getInvestingAnalyticsDashboard
+      tags: [investing-analytics]
+      summary: Deterministic aggregation of the calling user's own already-persisted Investing Engine data — portfolios, holdings, research notes, watchlist, saved Investment Committee decision snapshots, saved risk snapshots, saved optimisation reviews, saved screens, AI Coach usage. Never a new signal or prediction.
+      responses:
+        "200":
+          description: Investing analytics dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestingAnalyticsDashboard"
+
+  # Phase 33 — Institutional Executive Intelligence & Reporting Hub. Unifies
+  # the Investing Engine's and Trading Engine's own analytics into one
+  # executive view. Pure composition — no new scoring, no signal, no
+  # forecast, no AI prediction, no automated execution.
+  /executive/intelligence:
+    get:
+      operationId: getExecutiveIntelligenceHub
+      tags: [executive-intelligence]
+      summary: The calling user's own unified Executive Intelligence Hub — overview KPIs, the full Investing and Trading analytics dashboards, cross-engine strategy/portfolio/risk/learning/AI-coach rollups, a Reporting Centre tally, and a chronological Activity Timeline. Pure aggregation of already-persisted, already-computed data.
+      responses:
+        "200":
+          description: Executive Intelligence Hub
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutiveIntelligenceHub"
 
   # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
   /trading/risk:
@@ -15145,7 +15202,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -15157,7 +15214,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -15175,7 +15232,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -15468,3 +15525,277 @@ components:
           $ref: "#/components/schemas/TradingEngineUsageAnalytics"
         checklist:
           $ref: "#/components/schemas/TradingChecklistAnalytics"
+
+    # ─── Phase 33 — Institutional Investing Analytics Engine ──────────────────
+
+    InvestingAnalyticsOverview:
+      type: object
+      required:
+        [
+          portfoliosCreated,
+          holdingsTracked,
+          researchNotesWritten,
+          watchlistItems,
+          committeeSnapshotsSaved,
+          riskSnapshotsSaved,
+          optimisationReviewsSaved,
+          savedScreens,
+          generatedAt,
+        ]
+      properties:
+        portfoliosCreated: { type: integer }
+        holdingsTracked: { type: integer }
+        researchNotesWritten: { type: integer }
+        watchlistItems: { type: integer }
+        committeeSnapshotsSaved: { type: integer }
+        riskSnapshotsSaved: { type: integer }
+        optimisationReviewsSaved: { type: integer }
+        savedScreens: { type: integer }
+        generatedAt: { type: string }
+
+    InvestingPortfolioAnalytics:
+      type: object
+      required: [portfolioCount, totalHoldings, averageHoldingsPerPortfolio, distinctSymbolsHeld]
+      properties:
+        portfolioCount: { type: integer }
+        totalHoldings: { type: integer }
+        averageHoldingsPerPortfolio: { type: number }
+        distinctSymbolsHeld: { type: integer }
+
+    InvestingResearchAnalytics:
+      type: object
+      required: [noteCount, distinctSymbolsResearched, mostRecentNoteAt]
+      properties:
+        noteCount: { type: integer }
+        distinctSymbolsResearched: { type: integer }
+        mostRecentNoteAt: { type: ["string", "null"] }
+
+    InvestingWatchlistAnalytics:
+      type: object
+      required: [itemCount, categoryTally, decisionTally]
+      properties:
+        itemCount: { type: integer }
+        categoryTally:
+          type: object
+          additionalProperties: { type: integer }
+        decisionTally:
+          type: object
+          additionalProperties: { type: integer }
+
+    InvestingCommitteeAnalytics:
+      type: object
+      required: [snapshotCount, recommendationTally, mostRecentSymbol, mostRecentRecommendation, mostRecentConfidence, mostRecentSavedAt]
+      properties:
+        snapshotCount: { type: integer }
+        recommendationTally:
+          type: object
+          additionalProperties: { type: integer }
+        mostRecentSymbol: { type: ["string", "null"] }
+        mostRecentRecommendation: { type: ["string", "null"] }
+        mostRecentConfidence: { type: ["number", "null"] }
+        mostRecentSavedAt: { type: ["string", "null"] }
+
+    InvestingRiskAnalyticsSummary:
+      type: object
+      required: [snapshotCount, mostRecentOverallScore, averageOverallScore, mostRecentSavedAt]
+      properties:
+        snapshotCount: { type: integer }
+        mostRecentOverallScore: { type: ["number", "null"] }
+        averageOverallScore: { type: ["number", "null"] }
+        mostRecentSavedAt: { type: ["string", "null"] }
+
+    InvestingOptimisationAnalytics:
+      type: object
+      required: [reviewCount, actionTally, mostRecentAction, mostRecentSavedAt]
+      properties:
+        reviewCount: { type: integer }
+        actionTally:
+          type: object
+          additionalProperties: { type: integer }
+        mostRecentAction: { type: ["string", "null"] }
+        mostRecentSavedAt: { type: ["string", "null"] }
+
+    InvestingCoachUsageRow:
+      type: object
+      required: [coach, label, viewCount]
+      properties:
+        coach:
+          type: string
+          enum: [investment, portfolio, decision, valuation, risk, research, monitoring, committee]
+        label: { type: string }
+        viewCount: { type: integer }
+
+    InvestingCoachAnalytics:
+      type: object
+      required: [totalCoachViews, byType, mostRecentCoach, mostRecentScope, mostRecentViewedAt]
+      properties:
+        totalCoachViews: { type: integer }
+        byType:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvestingCoachUsageRow"
+        mostRecentCoach:
+          type: ["string", "null"]
+          enum: [investment, portfolio, decision, valuation, risk, research, monitoring, committee, null]
+        mostRecentScope: { type: ["string", "null"] }
+        mostRecentViewedAt: { type: ["string", "null"] }
+
+    InvestingAnalyticsDashboard:
+      type: object
+      required: [overview, portfolio, research, watchlist, committee, risk, optimisation, coach]
+      properties:
+        overview:
+          $ref: "#/components/schemas/InvestingAnalyticsOverview"
+        portfolio:
+          $ref: "#/components/schemas/InvestingPortfolioAnalytics"
+        research:
+          $ref: "#/components/schemas/InvestingResearchAnalytics"
+        watchlist:
+          $ref: "#/components/schemas/InvestingWatchlistAnalytics"
+        committee:
+          $ref: "#/components/schemas/InvestingCommitteeAnalytics"
+        risk:
+          $ref: "#/components/schemas/InvestingRiskAnalyticsSummary"
+        optimisation:
+          $ref: "#/components/schemas/InvestingOptimisationAnalytics"
+        coach:
+          $ref: "#/components/schemas/InvestingCoachAnalytics"
+
+    # ─── Phase 33 — Institutional Executive Intelligence & Reporting Hub ──────
+
+    ExecutiveOverview:
+      type: object
+      required:
+        [
+          portfoliosCreated,
+          holdingsTracked,
+          researchNotesWritten,
+          watchlistItems,
+          committeeSnapshotsSaved,
+          tradesReviewed,
+          tradePlansCreated,
+          journalEntries,
+          strategiesRegistered,
+          checklistInstances,
+          learningTopicsCompleted,
+          learningTopicsTotal,
+          totalCoachViews,
+          reportsGenerated,
+          reportCategoriesUsed,
+          generatedAt,
+          summary,
+        ]
+      properties:
+        portfoliosCreated: { type: integer }
+        holdingsTracked: { type: integer }
+        researchNotesWritten: { type: integer }
+        watchlistItems: { type: integer }
+        committeeSnapshotsSaved: { type: integer }
+        tradesReviewed: { type: integer }
+        tradePlansCreated: { type: integer }
+        journalEntries: { type: integer }
+        strategiesRegistered: { type: integer }
+        checklistInstances: { type: integer }
+        learningTopicsCompleted: { type: integer }
+        learningTopicsTotal: { type: integer }
+        totalCoachViews: { type: integer }
+        reportsGenerated: { type: integer }
+        reportCategoriesUsed: { type: integer }
+        generatedAt: { type: string }
+        summary: { type: string }
+
+    ExecutiveRiskSummary:
+      type: object
+      required: [investingRiskSnapshotsSaved, investingMostRecentRiskScore, tradingOpenPositionsCount, tradingStopTargetDisciplinePct]
+      properties:
+        investingRiskSnapshotsSaved: { type: integer }
+        investingMostRecentRiskScore: { type: ["number", "null"] }
+        tradingOpenPositionsCount: { type: integer }
+        tradingStopTargetDisciplinePct: { type: number }
+
+    ExecutiveCoachSummary:
+      type: object
+      required: [investingCoachViews, tradingCoachViews, totalCoachViews, mostRecentEngine, mostRecentCoach, mostRecentViewedAt]
+      properties:
+        investingCoachViews: { type: integer }
+        tradingCoachViews: { type: integer }
+        totalCoachViews: { type: integer }
+        mostRecentEngine:
+          type: ["string", "null"]
+          enum: [investing, trading, null]
+        mostRecentCoach: { type: ["string", "null"] }
+        mostRecentViewedAt: { type: ["string", "null"] }
+
+    ExecutiveReportingSummaryTypeRow:
+      type: object
+      required: [reportType, count]
+      properties:
+        reportType: { type: string }
+        count: { type: integer }
+
+    ExecutiveRecentReportRef:
+      type: object
+      required: [id, reportType, title, createdAt]
+      properties:
+        id: { type: integer }
+        reportType: { type: string }
+        title: { type: string }
+        createdAt: { type: string }
+
+    ExecutiveReportingSummary:
+      type: object
+      required: [totalReports, distinctReportTypesUsed, byType, recentReports]
+      properties:
+        totalReports: { type: integer }
+        distinctReportTypesUsed: { type: integer }
+        byType:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExecutiveReportingSummaryTypeRow"
+        recentReports:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExecutiveRecentReportRef"
+
+    ExecutiveActivityEntry:
+      type: object
+      required: [type, engine, label, detail, occurredAt, symbol, linkPath]
+      properties:
+        type:
+          type: string
+          enum: [journal-entry, committee-snapshot, risk-snapshot, optimisation-review, research-note, report-generated, notification]
+        engine:
+          type: string
+          enum: [investing, trading, platform]
+        label: { type: string }
+        detail: { type: string }
+        occurredAt: { type: string }
+        symbol: { type: ["string", "null"] }
+        linkPath: { type: ["string", "null"] }
+
+    ExecutiveIntelligenceHub:
+      type: object
+      required: [overview, investing, trading, strategy, portfolio, risk, learning, coach, reporting, activity]
+      properties:
+        overview:
+          $ref: "#/components/schemas/ExecutiveOverview"
+        investing:
+          $ref: "#/components/schemas/InvestingAnalyticsDashboard"
+        trading:
+          $ref: "#/components/schemas/TradingAnalyticsDashboard"
+        strategy:
+          $ref: "#/components/schemas/TradingStrategyUsageAnalytics"
+        portfolio:
+          $ref: "#/components/schemas/InvestingPortfolioAnalytics"
+        risk:
+          $ref: "#/components/schemas/ExecutiveRiskSummary"
+        learning:
+          $ref: "#/components/schemas/TradingLearningAnalytics"
+        coach:
+          $ref: "#/components/schemas/ExecutiveCoachSummary"
+        reporting:
+          $ref: "#/components/schemas/ExecutiveReportingSummary"
+        activity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExecutiveActivityEntry"

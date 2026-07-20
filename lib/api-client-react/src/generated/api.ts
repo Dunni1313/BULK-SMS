@@ -82,6 +82,7 @@ import type {
   ExecutionSubmitInput,
   ExecutionSubmitResult,
   ExecutionTicket,
+  ExecutiveIntelligenceHub,
   ExpirationDate,
   ExplainTradeInput,
   ExplainTradeResult,
@@ -108,6 +109,7 @@ import type {
   InstitutionalMentorResult,
   InstitutionalReport,
   InstitutionalReportListItem,
+  InvestingAnalyticsDashboard,
   InvestmentMemo,
   InvestmentThesis,
   JournalEntry,
@@ -16063,6 +16065,83 @@ export function useGetTradingAnalyticsSummaryReport<TData = Awaited<ReturnType<t
 
 
 
+export const getGetExecutiveIntelligenceSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/executive-intelligence-summary`
+}
+
+/**
+ * @summary Executive Intelligence Summary Report — the calling user's own unified cross-engine executive view (overview, investing, trading, strategy, portfolio, risk, learning, coach, reporting, activity)
+ */
+export const getExecutiveIntelligenceSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetExecutiveIntelligenceSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutiveIntelligenceSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/executive-intelligence-summary`
+    ] as const;
+    }
+
+
+export const getGetExecutiveIntelligenceSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutiveIntelligenceSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>> = ({ signal }) => getExecutiveIntelligenceSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutiveIntelligenceSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>>
+export type GetExecutiveIntelligenceSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Executive Intelligence Summary Report — the calling user's own unified cross-engine executive view (overview, investing, trading, strategy, portfolio, risk, learning, coach, reporting, activity)
+ */
+
+export function useGetExecutiveIntelligenceSummaryReport<TData = Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutiveIntelligenceSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -16649,6 +16728,160 @@ export function useGetTradingAnalyticsDashboard<TData = Awaited<ReturnType<typeo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradingAnalyticsDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestingAnalyticsDashboardUrl = () => {
+
+
+
+
+  return `/api/investing/analytics`
+}
+
+/**
+ * @summary Deterministic aggregation of the calling user's own already-persisted Investing Engine data — portfolios, holdings, research notes, watchlist, saved Investment Committee decision snapshots, saved risk snapshots, saved optimisation reviews, saved screens, AI Coach usage. Never a new signal or prediction.
+ */
+export const getInvestingAnalyticsDashboard = async ( options?: RequestInit): Promise<InvestingAnalyticsDashboard> => {
+
+  return customFetch<InvestingAnalyticsDashboard>(getGetInvestingAnalyticsDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestingAnalyticsDashboardQueryKey = () => {
+    return [
+    `/api/investing/analytics`
+    ] as const;
+    }
+
+
+export const getGetInvestingAnalyticsDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestingAnalyticsDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>> = ({ signal }) => getInvestingAnalyticsDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestingAnalyticsDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>>
+export type GetInvestingAnalyticsDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Deterministic aggregation of the calling user's own already-persisted Investing Engine data — portfolios, holdings, research notes, watchlist, saved Investment Committee decision snapshots, saved risk snapshots, saved optimisation reviews, saved screens, AI Coach usage. Never a new signal or prediction.
+ */
+
+export function useGetInvestingAnalyticsDashboard<TData = Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestingAnalyticsDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetExecutiveIntelligenceHubUrl = () => {
+
+
+
+
+  return `/api/executive/intelligence`
+}
+
+/**
+ * @summary The calling user's own unified Executive Intelligence Hub — overview KPIs, the full Investing and Trading analytics dashboards, cross-engine strategy/portfolio/risk/learning/AI-coach rollups, a Reporting Centre tally, and a chronological Activity Timeline. Pure aggregation of already-persisted, already-computed data.
+ */
+export const getExecutiveIntelligenceHub = async ( options?: RequestInit): Promise<ExecutiveIntelligenceHub> => {
+
+  return customFetch<ExecutiveIntelligenceHub>(getGetExecutiveIntelligenceHubUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutiveIntelligenceHubQueryKey = () => {
+    return [
+    `/api/executive/intelligence`
+    ] as const;
+    }
+
+
+export const getGetExecutiveIntelligenceHubQueryOptions = <TData = Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutiveIntelligenceHubQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>> = ({ signal }) => getExecutiveIntelligenceHub({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutiveIntelligenceHubQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>>
+export type GetExecutiveIntelligenceHubQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own unified Executive Intelligence Hub — overview KPIs, the full Investing and Trading analytics dashboards, cross-engine strategy/portfolio/risk/learning/AI-coach rollups, a Reporting Centre tally, and a chronological Activity Timeline. Pure aggregation of already-persisted, already-computed data.
+ */
+
+export function useGetExecutiveIntelligenceHub<TData = Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutiveIntelligenceHubQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

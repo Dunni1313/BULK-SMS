@@ -22,4 +22,5 @@ export const SaveInstitutionalReportInputReportType = {
   'trade-planning-summary': 'trade-planning-summary',
   'strategy-framework-summary': 'strategy-framework-summary',
   'trading-analytics-summary': 'trading-analytics-summary',
+  'executive-intelligence-summary': 'executive-intelligence-summary',
 } as const;
