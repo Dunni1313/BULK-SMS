@@ -52,6 +52,7 @@ import institutionalReportingRouter from "./institutionalReporting";
 import tradingTradePlansRouter from "./tradingTradePlans";
 import tradingWorkspaceNotesRouter from "./tradingWorkspaceNotes";
 import tradingSessionRouter from "./tradingSession";
+import tradingStructureTimelineRouter from "./tradingStructureTimeline";
 
 const router: IRouter = Router();
 
@@ -108,5 +109,6 @@ router.use(institutionalReportingRouter);
 router.use(tradingTradePlansRouter);
 router.use(tradingWorkspaceNotesRouter);
 router.use(tradingSessionRouter);
+router.use(tradingStructureTimelineRouter);
 
 export default router;
