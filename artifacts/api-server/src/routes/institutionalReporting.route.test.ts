@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 11 report types (Phase 30 adds strategy-framework-summary)", async () => {
+  it("GET /reporting/types returns all 12 report types (Phase 32 adds trading-analytics-summary)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(11);
+    expect(body).toHaveLength(12);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -65,6 +65,7 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "portfolio-review",
         "strategy-framework-summary",
         "trade-planning-summary",
+        "trading-analytics-summary",
         "watchlist",
       ].sort(),
     );
@@ -156,6 +157,41 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
     expect(saved.reportType).toBe("trade-planning-summary");
     expect(saved.report.reportType).toBe("trade-planning-summary");
+  });
+
+  it("GET /reporting/trading-analytics-summary (Phase 32) reuses the Trading Analytics Engine's own dashboard, reformatted into report sections", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/trading-analytics-summary`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("trading-analytics-summary");
+    expect(body.sections.map((s) => s.id)).toEqual([
+      "executive-summary",
+      "strategy-usage",
+      "journal-analytics",
+      "risk-analytics",
+      "learning-analytics",
+      "coach-analytics",
+      "session-analytics",
+    ]);
+    expect(body.disclaimer).toContain("no new investment recommendation");
+  });
+
+  it("full trading-analytics-summary save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: "trading-analytics-summary" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("trading-analytics-summary");
+    expect(saved.report.reportType).toBe("trading-analytics-summary");
+
+    const listRes = await fetch(`${baseUrl}/api/reporting/reports`);
+    const list = (await listRes.json()) as { id: number; reportType: string }[];
+    expect(list.some((r) => r.id === saved.id && r.reportType === "trading-analytics-summary")).toBe(true);
+
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
   });
 
   it("full portfolio-review/portfolio-health flow via a fresh portfolio", async () => {

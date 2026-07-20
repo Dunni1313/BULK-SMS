@@ -41,6 +41,7 @@ import type { LearningProgressSummary } from "./learningProgress.js";
 import type { WatchlistTargetCheck } from "./watchlistTargets.js";
 import type { TradingRiskAnalysis } from "./tradingRisk.js";
 import { toStrategyLearningSummary, type StrategyMetadata, type StrategyLearningSummary } from "./tradingStrategyFramework.js";
+import type { TradingAnalyticsDashboard } from "./tradingAnalytics.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -53,7 +54,8 @@ export type InstitutionalReportType =
   | "ai-coach-summary"
   | "executive-summary"
   | "trade-planning-summary"
-  | "strategy-framework-summary";
+  | "strategy-framework-summary"
+  | "trading-analytics-summary";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -67,6 +69,7 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "executive-summary",
   "trade-planning-summary",
   "strategy-framework-summary",
+  "trading-analytics-summary",
 ];
 
 export interface ReportTypeMeta {
@@ -152,6 +155,13 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "strategy-framework-summary",
     label: "Strategy Framework Summary Report",
     description: "The calling user's own registered Strategy Framework entries (Phase 30) — metadata, required evidence, and checklist-instance completion, never a strategy's own trading logic.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "trading-analytics-summary",
+    label: "Trading Analytics Summary Report",
+    description: "The calling user's own Trading Analytics Engine (Phase 32) — trades reviewed, strategy/checklist usage, journal, risk, learning, coach, and session activity. Pure aggregation of already-persisted data, never a signal or prediction.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -857,6 +867,97 @@ export function buildStrategyFrameworkSummaryReport(
     reportType: "strategy-framework-summary",
     title: "Strategy Framework Summary Report",
     subtitle: `${strategies.length} strategy(ies), ${checklists.length} checklist instance(s)`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: new Date().toISOString(),
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── Phase 32 — Institutional Trading Analytics Engine ────────────────────
+// A pure reformatting of buildTradingAnalyticsDashboard()'s own already-
+// computed output (lib/tradingAnalytics.ts) into the generic ReportSection
+// shape — zero new aggregation logic here, every figure is read straight
+// off the already-built dashboard.
+
+export function buildTradingAnalyticsSummaryReport(dashboard: TradingAnalyticsDashboard): InstitutionalReport {
+  const { overview, strategyUsage, journal, risk, learning, coach, session } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Executive Summary",
+      `${overview.tradesReviewed} position(s) reviewed, ${overview.plansCreated} trade plan(s), ${overview.journalEntries} journal entr(y/ies), ` +
+        `${overview.strategiesRegistered} strategy(ies) registered with ${overview.checklistInstances} checklist instance(s).`,
+    ),
+    section(
+      "strategy-usage",
+      "Strategy Usage",
+      strategyUsage.checklistInstances
+        ? `${strategyUsage.checklistsComplete} of ${strategyUsage.checklistInstances} checklist instance(s) complete (${strategyUsage.overallChecklistCompletionPct}% average completion).`
+        : "No checklist instances have been run yet.",
+      [
+        `Strategies registered: ${strategyUsage.strategiesRegistered}`,
+        `Checklist instances: ${strategyUsage.checklistInstances} (${strategyUsage.checklistsComplete} complete, ${strategyUsage.checklistsInProgress} in progress)`,
+      ],
+    ),
+    section(
+      "journal-analytics",
+      "Journal Analytics",
+      journal.entryCount
+        ? `${journal.entryCount} journal entr(y/ies), ${journal.lessonRecordedPct}% with a lesson recorded.`
+        : "No journal entries have been recorded yet.",
+      journal.entryCount
+        ? [
+            ...Object.entries(journal.moodTally).map(([mood, count]) => `Mood — ${mood}: ${count}`),
+            journal.averageRMultiple !== null ? `Average R-Multiple: ${journal.averageRMultiple}` : "Average R-Multiple: not yet recorded",
+          ]
+        : undefined,
+    ),
+    section(
+      "risk-analytics",
+      "Risk Analytics",
+      risk.openPositionsCount
+        ? `${risk.openPositionsCount} open position(s), ${risk.stopTargetDisciplinePct}% with both a stop and a target set.`
+        : "No open positions to report risk analytics for.",
+      [
+        `Trade plans with risk parameters: ${risk.plansWithRiskParams}`,
+        risk.averageAccountRiskPct !== null ? `Average account risk per plan: ${risk.averageAccountRiskPct}%` : "Average account risk per plan: not yet recorded",
+        risk.averageRiskRewardRatio !== null ? `Average risk/reward ratio: ${risk.averageRiskRewardRatio}` : "Average risk/reward ratio: not yet recorded",
+      ],
+    ),
+    section(
+      "learning-analytics",
+      "Learning Analytics",
+      learning.totalTopics
+        ? `${learning.completedTopics} of ${learning.totalTopics} learning topic(s) completed.`
+        : "No Learning Centre progress recorded yet.",
+      learning.weakestPaths.length ? learning.weakestPaths.map((p) => `${p.title}: ${p.percentComplete}% complete`) : undefined,
+    ),
+    section(
+      "coach-analytics",
+      "Coach Analytics",
+      coach.totalCoachViews
+        ? `${coach.totalCoachViews} Trading AI Coach view(s) recorded across ${coach.byType.filter((r) => r.viewCount > 0).length} of 9 coach type(s).`
+        : "No Trading AI Coach views recorded yet.",
+      coach.byType.filter((r) => r.viewCount > 0).map((r) => `${r.label}: ${r.viewCount} view(s)`),
+    ),
+    section(
+      "session-analytics",
+      "Session Analytics",
+      session.totalClassified
+        ? `${session.totalClassified} position(s) classified by real entry-timestamp trading session.`
+        : "No positions with a resolvable entry timestamp to classify by session.",
+      session.activity.map((a) => `${a.label}: ${a.count}`),
+    ),
+  ];
+
+  return {
+    reportType: "trading-analytics-summary",
+    title: "Trading Analytics Summary Report",
+    subtitle: `${overview.tradesReviewed} position(s), ${overview.journalEntries} journal entr(y/ies), ${overview.strategiesRegistered} strategy(ies)`,
     symbol: null,
     portfolioId: null,
     generatedAt: new Date().toISOString(),

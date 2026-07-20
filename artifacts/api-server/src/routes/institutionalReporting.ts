@@ -52,6 +52,7 @@ import {
   GetExecutiveSummaryReportResponse,
   GetTradePlanningSummaryReportResponse,
   GetStrategyFrameworkSummaryReportResponse,
+  GetTradingAnalyticsSummaryReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -89,6 +90,7 @@ import {
   buildExecutiveSummaryReport,
   buildTradePlanningSummaryReport,
   buildStrategyFrameworkSummaryReport,
+  buildTradingAnalyticsSummaryReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -105,6 +107,8 @@ import {
   type EvidenceSourceType,
 } from "../lib/tradingStrategyFramework.js";
 import type { Timeframe } from "../lib/tradingMarketData.js";
+import { buildTradingAnalyticsDashboard } from "../lib/tradingAnalytics.js";
+import { loadTradingAnalyticsInputs } from "./tradingAnalytics.js";
 
 const router: IRouter = Router();
 
@@ -407,6 +411,21 @@ router.get("/reporting/strategy-framework-summary", async (req, res): Promise<vo
   res.json(GetStrategyFrameworkSummaryReportResponse.parse(built));
 });
 
+// ─── Trading Analytics Summary Report (Phase 32) — reuses
+// routes/tradingAnalytics.ts's own loadTradingAnalyticsInputs()/
+// buildTradingAnalyticsDashboard() exactly (the same functions
+// GET /trading/analytics itself calls), then reformats the already-
+// computed dashboard into the generic ReportSection shape. Zero new
+// aggregation logic in this file. ──────────────────────────────────────────
+
+router.get("/reporting/trading-analytics-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const inputs = await loadTradingAnalyticsInputs(userId);
+  const dashboard = buildTradingAnalyticsDashboard(inputs);
+  const built = buildTradingAnalyticsSummaryReport(dashboard);
+  res.json(GetTradingAnalyticsSummaryReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -502,6 +521,11 @@ async function regenerate(
     case "strategy-framework-summary": {
       const { strategies, checklists, learningCoverage, workspaceNotes } = await loadStrategyFrameworkSummaryInputs(userId);
       return buildStrategyFrameworkSummaryReport(strategies, checklists, learningCoverage, workspaceNotes);
+    }
+    case "trading-analytics-summary": {
+      const inputs = await loadTradingAnalyticsInputs(userId);
+      const dashboard = buildTradingAnalyticsDashboard(inputs);
+      return buildTradingAnalyticsSummaryReport(dashboard);
     }
     default:
       return null;
