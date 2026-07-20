@@ -22,6 +22,7 @@ import type { OpportunityScanResult, OpportunityBucket } from "./opportunityDisc
 import type { CrossEngineDailyReport } from "./crossEngineDailyReport.js";
 import type { LearningProgressSummary } from "./learningProgress.js";
 import type { WatchlistTargetCheck } from "./watchlistTargets.js";
+import type { StrategyMetadata } from "./tradingStrategyFramework.js";
 import {
   REPORT_TYPES,
   REPORT_TYPE_META,
@@ -34,6 +35,10 @@ import {
   buildMonitoringSummaryReport,
   buildAiCoachLearningSummaryReport,
   buildExecutiveSummaryReport,
+  buildStrategyFrameworkSummaryReport,
+  type StrategyFrameworkChecklistSummaryItem,
+  type StrategyFrameworkLearningCoverageItem,
+  type StrategyFrameworkWorkspaceNoteItem,
   businessQualitySection,
   financialStrengthSection,
   valuationSection,
@@ -380,6 +385,7 @@ describe("institutionalReporting.ts — buildAiCoachLearningSummaryReport", () =
       completedGlossaryKeys: [],
       completedStrategyKeys: [],
       completedCoachKeys: [],
+      viewedStrategyKeys: [],
     };
     const built = buildAiCoachLearningSummaryReport(progress);
     expect(built.reportType).toBe("ai-coach-summary");
@@ -418,5 +424,71 @@ describe("institutionalReporting.ts — buildExecutiveSummaryReport", () => {
     expect(built.subtitle).toBe(cross.summary);
     expect(built.sections[0].body).toBe(cross.summary);
     expect(built.sections.find((s) => s.id === "portfolio-health")!.bullets).toContain("Top opportunity: MSFT (score 88)");
+  });
+});
+
+// Phase 31 — Institutional Strategy Workbench extension of the Phase 30
+// Strategy Framework Summary Report: 2 additive sections (Learning
+// Coverage, Workspace Notes), reusing an existing report type — not a new
+// one — so every pre-Phase-31 call site that omits the 2 new params keeps
+// working identically.
+function strategyFixture(overrides: Partial<StrategyMetadata> = {}): StrategyMetadata {
+  return {
+    id: 1,
+    name: "My Setup",
+    description: "A personally defined trade setup.",
+    category: "trend",
+    timeframes: ["1h", "1D"],
+    markets: ["equities"],
+    requiredEvidence: ["structure"],
+    checklist: [{ id: "a", label: "Structure reviewed", required: true }],
+    educationalNotes: "Some notes.",
+    references: [],
+    version: "1.0.0",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+describe("institutionalReporting.ts — buildStrategyFrameworkSummaryReport", () => {
+  it("is byte-identical to Phase 30's own pre-Phase-31 shape when the 2 new params are omitted", () => {
+    const strategies = [strategyFixture()];
+    const checklists: StrategyFrameworkChecklistSummaryItem[] = [{ strategyId: 1, strategyName: "My Setup", symbol: "AAPL", status: "in_progress" }];
+    const built = buildStrategyFrameworkSummaryReport(strategies, checklists);
+    expect(built.sections.map((s) => s.id)).toEqual([
+      "executive-summary",
+      "strategy-registry",
+      "checklist-instances",
+      "learning-coverage",
+      "workspace-notes",
+    ]);
+    // Both new sections honestly report empty when no input is given —
+    // never a fabricated coverage/notes claim.
+    expect(built.sections.find((s) => s.id === "learning-coverage")!.body).toMatch(/no registered strategies/i);
+    expect(built.sections.find((s) => s.id === "workspace-notes")!.body).toMatch(/no workspace notes/i);
+  });
+
+  it("Learning Coverage reflects real viewed/not-yet-viewed state per strategy, never a fabricated claim", () => {
+    const strategies = [strategyFixture({ id: 1, name: "Viewed Strategy" }), strategyFixture({ id: 2, name: "Unviewed Strategy" })];
+    const learningCoverage: StrategyFrameworkLearningCoverageItem[] = [
+      { strategyId: 1, strategyName: "Viewed Strategy", viewed: true },
+      { strategyId: 2, strategyName: "Unviewed Strategy", viewed: false },
+    ];
+    const built = buildStrategyFrameworkSummaryReport(strategies, [], learningCoverage, []);
+    const section = built.sections.find((s) => s.id === "learning-coverage")!;
+    expect(section.body).toMatch(/1 of 2/);
+    expect(section.bullets).toContain("Viewed Strategy: viewed");
+    expect(section.bullets).toContain("Unviewed Strategy: not yet viewed");
+  });
+
+  it("Workspace Notes reflects real recorded notes, never fabricates one for a strategy with none", () => {
+    const strategies = [strategyFixture()];
+    const workspaceNotes: StrategyFrameworkWorkspaceNoteItem[] = [
+      { strategyId: 1, strategyName: "My Setup", note: "Checked structure before entry.", updatedAt: "2026-01-02T00:00:00.000Z" },
+    ];
+    const built = buildStrategyFrameworkSummaryReport(strategies, [], [], workspaceNotes);
+    const section = built.sections.find((s) => s.id === "workspace-notes")!;
+    expect(section.bullets?.[0]).toBe("My Setup (updated 2026-01-02T00:00:00.000Z): Checked structure before entry.");
   });
 });

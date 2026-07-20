@@ -23,6 +23,7 @@ interface StrategyResponse {
   educationalNotes: string;
   references: string[];
   version: string;
+  validation: { valid: boolean; issues: { field: string; message: string }[] };
   createdAt: string;
   updatedAt: string;
 }
@@ -164,6 +165,19 @@ describe("Institutional Strategy Framework routes (live, real Postgres)", () => 
     it("400s for a non-numeric id", async () => {
       expect((await get("/trading/strategies/not-a-number")).status).toBe(400);
     });
+
+    it("Phase 31 — a freshly-created (and therefore already-valid) strategy honestly reports validation.valid = true with no issues", async () => {
+      const name = `Validation Summary Test ${randomUUID()}`;
+      const createRes = await post("/trading/strategies", validStrategyInput(name));
+      const created = (await createRes.json()) as StrategyResponse;
+      expect(created.validation).toEqual({ valid: true, issues: [] });
+
+      const getRes = await get(`/trading/strategies/${created.id}`);
+      const fetched = (await getRes.json()) as StrategyResponse;
+      expect(fetched.validation).toEqual({ valid: true, issues: [] });
+
+      await del(`/trading/strategies/${created.id}`);
+    });
   });
 
   describe("Checklist Engine CRUD", () => {
@@ -276,6 +290,9 @@ describe("Institutional Strategy Framework routes (live, real Postgres)", () => 
       expect(body.sections.some((s) => s.id === "executive-summary")).toBe(true);
       expect(body.sections.some((s) => s.id === "strategy-registry")).toBe(true);
       expect(body.sections.some((s) => s.id === "checklist-instances")).toBe(true);
+      // Phase 31 — Institutional Strategy Workbench extensions.
+      expect(body.sections.some((s) => s.id === "learning-coverage")).toBe(true);
+      expect(body.sections.some((s) => s.id === "workspace-notes")).toBe(true);
     });
 
     it("reflects a newly created strategy in the registry section", async () => {
@@ -288,6 +305,43 @@ describe("Institutional Strategy Framework routes (live, real Postgres)", () => 
       const registrySection = body.sections.find((s) => s.id === "strategy-registry")!;
       expect(registrySection.bullets?.some((b) => b.includes(name))).toBe(true);
 
+      await del(`/trading/strategies/${created.id}`);
+    });
+
+    it("Phase 31 — Learning Coverage honestly reports 'not yet viewed' until the Strategy Framework's own Mark-as-viewed action fires, then reflects it", async () => {
+      const name = `Learning Coverage Test ${randomUUID()}`;
+      const createRes = await post("/trading/strategies", validStrategyInput(name));
+      const created = (await createRes.json()) as StrategyResponse;
+
+      const before = (await (await get("/reporting/strategy-framework-summary")).json()) as ReportBody;
+      const beforeCoverage = before.sections.find((s) => s.id === "learning-coverage")!;
+      expect(beforeCoverage.bullets?.some((b) => b.includes(name) && b.includes("not yet viewed"))).toBe(true);
+
+      await post("/learning-centre/progress/view", { itemType: "strategy", itemKey: `strategy-framework:${created.id}` });
+
+      const after = (await (await get("/reporting/strategy-framework-summary")).json()) as ReportBody;
+      const afterCoverage = after.sections.find((s) => s.id === "learning-coverage")!;
+      expect(afterCoverage.bullets?.some((b) => b === `${name}: viewed`)).toBe(true);
+
+      await del(`/trading/strategies/${created.id}`);
+    });
+
+    it("Phase 31 — Workspace Notes reuses trading_workspace_notes under the STRATEGY:<id> pseudo-symbol, never a new table", async () => {
+      const name = `Workspace Note Test ${randomUUID()}`;
+      const createRes = await post("/trading/strategies", validStrategyInput(name));
+      const created = (await createRes.json()) as StrategyResponse;
+
+      const noteText = `Reviewed this strategy's own checklist ${randomUUID()}.`;
+      const noteRes = await post("/trading/workspace-notes", { symbol: `STRATEGY:${created.id}`, note: noteText });
+      expect(noteRes.status).toBe(201);
+      const note = (await noteRes.json()) as { id: number; symbol: string };
+      expect(note.symbol).toBe(`STRATEGY:${created.id}`);
+
+      const report = (await (await get("/reporting/strategy-framework-summary")).json()) as ReportBody;
+      const notesSection = report.sections.find((s) => s.id === "workspace-notes")!;
+      expect(notesSection.bullets?.some((b) => b.includes(name) && b.includes(noteText))).toBe(true);
+
+      await del(`/trading/workspace-notes/${note.id}`);
       await del(`/trading/strategies/${created.id}`);
     });
   });

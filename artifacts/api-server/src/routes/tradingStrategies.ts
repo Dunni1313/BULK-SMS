@@ -24,6 +24,7 @@ import {
 import { getScopedUserId } from "../lib/tenantScope.js";
 import {
   validateStrategyMetadata,
+  summarizeStrategyValidation,
   type StrategyMetadataInput,
   type StrategyCategory,
   type EvidenceSourceType,
@@ -32,7 +33,27 @@ import type { Timeframe } from "../lib/tradingMarketData.js";
 
 const router: IRouter = Router();
 
+// Phase 31 — Institutional Strategy Workbench. formatStrategy() now also
+// re-runs the exact same structural validateStrategyMetadata() check this
+// row already passed at write time, exposing it on read for the
+// Workbench's Strategy Validation Summary panel — an honest read-back of
+// the real mechanism, never a fabricated "Valid" label. Every persisted
+// row is guaranteed valid today (POST/PATCH below reject invalid input
+// before it's ever stored), so this will report valid:true in practice;
+// the value is having the real check visible, not a hardcoded claim.
 function formatStrategy(row: typeof tradingStrategiesTable.$inferSelect) {
+  const input: StrategyMetadataInput = {
+    name: row.name,
+    description: row.description,
+    category: row.category as StrategyCategory,
+    timeframes: row.timeframes as Timeframe[],
+    markets: row.markets as string[],
+    requiredEvidence: row.requiredEvidence as EvidenceSourceType[],
+    checklist: row.checklist as StrategyMetadataInput["checklist"],
+    educationalNotes: row.educationalNotes,
+    references: row.references as string[],
+    version: row.version,
+  };
   return {
     id: row.id,
     name: row.name,
@@ -45,6 +66,7 @@ function formatStrategy(row: typeof tradingStrategiesTable.$inferSelect) {
     educationalNotes: row.educationalNotes,
     references: row.references as string[],
     version: row.version,
+    validation: summarizeStrategyValidation(input),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

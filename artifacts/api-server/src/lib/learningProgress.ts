@@ -71,6 +71,14 @@ export interface LearningProgressSummary {
   completedGlossaryKeys: string[];
   completedStrategyKeys: string[];
   completedCoachKeys: string[];
+  // Phase 31 — Institutional Strategy Workbench. A "strategy" progress row
+  // is only ever recorded via recordViewed() (the Strategy Framework/
+  // Workbench's own "Mark as viewed" action never calls recordCompleted()),
+  // so completedStrategyKeys above is always empty for this item type in
+  // practice. Reuses the already-computed strategyRows below — no new
+  // query — to expose the real viewed-key list the Comparison view's
+  // "Learning Coverage" column and the Reporting extension both need.
+  viewedStrategyKeys: string[];
 }
 
 async function quizProgressFor(
@@ -139,6 +147,7 @@ export async function getLearningProgress(userId: string): Promise<LearningProgr
     completedGlossaryKeys,
     completedStrategyKeys,
     completedCoachKeys,
+    viewedStrategyKeys: strategyRows.map((r) => r.itemKey),
     greeksQuiz,
     valueQuiz,
     recentHistory,

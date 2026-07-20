@@ -786,13 +786,34 @@ export interface StrategyFrameworkChecklistSummaryItem {
   status: string;
 }
 
+// Phase 31 — Institutional Strategy Workbench. Both fields below are
+// optional, additive extensions of this same report (not a new report
+// type) — every pre-existing call site that omits them keeps working
+// identically, since both default to an empty list.
+
+export interface StrategyFrameworkLearningCoverageItem {
+  strategyId: number;
+  strategyName: string;
+  viewed: boolean;
+}
+
+export interface StrategyFrameworkWorkspaceNoteItem {
+  strategyId: number;
+  strategyName: string;
+  note: string;
+  updatedAt: string;
+}
+
 export function buildStrategyFrameworkSummaryReport(
   strategies: StrategyMetadata[],
   checklists: StrategyFrameworkChecklistSummaryItem[],
+  learningCoverage: StrategyFrameworkLearningCoverageItem[] = [],
+  workspaceNotes: StrategyFrameworkWorkspaceNoteItem[] = [],
 ): InstitutionalReport {
   const learningSummaries: StrategyLearningSummary[] = strategies.map(toStrategyLearningSummary);
   const completeCount = checklists.filter((c) => c.status === "complete").length;
   const inProgressCount = checklists.length - completeCount;
+  const viewedCount = learningCoverage.filter((l) => l.viewed).length;
 
   const sections: ReportSection[] = [
     section(
@@ -815,6 +836,20 @@ export function buildStrategyFrameworkSummaryReport(
       "Checklist Instances",
       checklists.length ? "Each row is a real, persisted checklist instance and its own completion status." : "No checklist instances have been run yet.",
       checklists.map((c) => `${c.strategyName}${c.symbol ? ` (${c.symbol})` : ""}: ${c.status}`),
+    ),
+    section(
+      "learning-coverage",
+      "Learning Coverage",
+      learningCoverage.length
+        ? `${viewedCount} of ${learningCoverage.length} registered strategy(ies) have had their Learning Viewer marked as viewed.`
+        : "No registered strategies to report Learning Coverage for.",
+      learningCoverage.map((l) => `${l.strategyName}: ${l.viewed ? "viewed" : "not yet viewed"}`),
+    ),
+    section(
+      "workspace-notes",
+      "Workspace Notes",
+      workspaceNotes.length ? "Free-text notes recorded against a strategy in the Strategy Workbench." : "No workspace notes have been recorded yet.",
+      workspaceNotes.map((n) => `${n.strategyName} (updated ${n.updatedAt}): ${n.note}`),
     ),
   ];
 

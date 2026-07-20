@@ -18,6 +18,10 @@ import {
   validateStrategyMetadata,
   isStrategyMetadataValid,
   toStrategyLearningSummary,
+  summarizeStrategyValidation,
+  strategyWorkspaceNoteSymbol,
+  isStrategyWorkspaceNoteSymbol,
+  parseStrategyIdFromWorkspaceNoteSymbol,
   type StrategyMetadataInput,
   type StrategyMetadata,
   type StrategyChecklistItemState,
@@ -239,5 +243,46 @@ describe("Strategy Learning Framework projection", () => {
       requiredEvidence: ["structure", "liquidity"],
       checklistItemCount: 2,
     });
+  });
+});
+
+// ─── Phase 31 — Institutional Strategy Workbench additions ──────────────
+
+describe("Strategy Validation Summary", () => {
+  it("reports valid:true with no issues for well-formed metadata", () => {
+    expect(summarizeStrategyValidation(validInput())).toEqual({ valid: true, issues: [] });
+  });
+
+  it("reports valid:false and surfaces the exact same issues validateStrategyMetadata() would, never a re-derived judgment", () => {
+    const input = validInput({ name: "" });
+    const direct = validateStrategyMetadata(input);
+    expect(summarizeStrategyValidation(input)).toEqual({ valid: false, issues: direct });
+    expect(direct.length).toBeGreaterThan(0);
+  });
+
+  it("never flags a real methodology name — the same structural-only guarantee as validateStrategyMetadata()", () => {
+    expect(summarizeStrategyValidation(validInput({ name: "My Tom-Nash-Inspired Setup" }))).toEqual({ valid: true, issues: [] });
+  });
+});
+
+describe("Strategy Workspace Notes — pseudo-symbol convention", () => {
+  it("builds a STRATEGY:<id> pseudo-symbol", () => {
+    expect(strategyWorkspaceNoteSymbol(42)).toBe("STRATEGY:42");
+  });
+
+  it("round-trips: a built symbol is recognized and its id recovered exactly", () => {
+    const symbol = strategyWorkspaceNoteSymbol(7);
+    expect(isStrategyWorkspaceNoteSymbol(symbol)).toBe(true);
+    expect(parseStrategyIdFromWorkspaceNoteSymbol(symbol)).toBe(7);
+  });
+
+  it("never mistakes a real ticker symbol for a strategy pseudo-symbol", () => {
+    expect(isStrategyWorkspaceNoteSymbol("AAPL")).toBe(false);
+    expect(parseStrategyIdFromWorkspaceNoteSymbol("AAPL")).toBeNull();
+  });
+
+  it("honestly returns null for a malformed pseudo-symbol rather than fabricating an id", () => {
+    expect(parseStrategyIdFromWorkspaceNoteSymbol("STRATEGY:not-a-number")).toBeNull();
+    expect(parseStrategyIdFromWorkspaceNoteSymbol("STRATEGY:")).toBeNull();
   });
 });

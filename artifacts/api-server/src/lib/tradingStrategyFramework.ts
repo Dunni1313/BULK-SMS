@@ -326,3 +326,51 @@ export function toStrategyLearningSummary(meta: StrategyMetadata): StrategyLearn
     checklistItemCount: meta.checklist.length,
   };
 }
+
+// ─── Strategy Validation Summary (Phase 31) ──────────────────────────────
+// A thin, honest read-back of validateStrategyMetadata()'s own structural
+// check for an already-persisted strategy. Every strategy in the registry
+// was already validated once at write time (routes/tradingStrategies.ts
+// rejects invalid input before it is ever stored) — this simply exposes
+// that same real mechanism on read, so the Workbench's Validation Summary
+// panel never fabricates a "Valid" label independent of the actual check.
+
+export interface StrategyValidationSummary {
+  valid: boolean;
+  issues: StrategyValidationIssue[];
+}
+
+export function summarizeStrategyValidation(input: StrategyMetadataInput): StrategyValidationSummary {
+  const issues = validateStrategyMetadata(input);
+  return { valid: issues.length === 0, issues };
+}
+
+// ─── Strategy Workspace Notes — pseudo-symbol convention (Phase 31) ──────
+// Institutional Strategy Workbench. Strategy-level free-text notes reuse
+// the existing, already-shipped trading_workspace_notes table (Phase 25)
+// rather than a new one — that table's `symbol` column is free text
+// (uppercased, never validated against a real ticker shape), so a strategy
+// note is stored under a small, disclosed pseudo-symbol namespace,
+// `STRATEGY:<id>`, instead of a real ticker. These two helpers are the
+// single source of truth for that convention so it can never drift between
+// the backend report loader and the frontend Workbench page.
+
+const STRATEGY_NOTE_PREFIX = "STRATEGY:";
+
+/** Builds the pseudo-symbol a Strategy Note is stored under in trading_workspace_notes. */
+export function strategyWorkspaceNoteSymbol(strategyId: number): string {
+  return `${STRATEGY_NOTE_PREFIX}${strategyId}`;
+}
+
+/** True iff a workspace-note symbol was created via strategyWorkspaceNoteSymbol(), never a real ticker. */
+export function isStrategyWorkspaceNoteSymbol(symbol: string): boolean {
+  return symbol.startsWith(STRATEGY_NOTE_PREFIX);
+}
+
+/** Recovers the strategy id from a pseudo-symbol, or null if it isn't one / isn't a valid integer. */
+export function parseStrategyIdFromWorkspaceNoteSymbol(symbol: string): number | null {
+  if (!isStrategyWorkspaceNoteSymbol(symbol)) return null;
+  const raw = symbol.slice(STRATEGY_NOTE_PREFIX.length);
+  const id = parseInt(raw, 10);
+  return Number.isFinite(id) && String(id) === raw ? id : null;
+}

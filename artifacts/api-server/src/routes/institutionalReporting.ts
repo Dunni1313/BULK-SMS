@@ -37,6 +37,7 @@ import {
   tradingPositionsTable,
   tradingStrategiesTable,
   tradingStrategyChecklistsTable,
+  tradingWorkspaceNotesTable,
 } from "@workspace/db";
 import {
   GetReportTypesResponse,
@@ -93,8 +94,16 @@ import {
   type WatchlistReportItem,
   type TradePlanSummaryItem,
   type StrategyFrameworkChecklistSummaryItem,
+  type StrategyFrameworkLearningCoverageItem,
+  type StrategyFrameworkWorkspaceNoteItem,
 } from "../lib/institutionalReporting.js";
-import type { StrategyMetadata, StrategyCategory, EvidenceSourceType } from "../lib/tradingStrategyFramework.js";
+import {
+  isStrategyWorkspaceNoteSymbol,
+  parseStrategyIdFromWorkspaceNoteSymbol,
+  type StrategyMetadata,
+  type StrategyCategory,
+  type EvidenceSourceType,
+} from "../lib/tradingStrategyFramework.js";
 import type { Timeframe } from "../lib/tradingMarketData.js";
 
 const router: IRouter = Router();
@@ -328,10 +337,17 @@ router.get("/reporting/trade-planning-summary", async (req, res): Promise<void> 
   res.json(GetTradePlanningSummaryReportResponse.parse(built));
 });
 
-// ─── Strategy Framework Summary Report (Phase 30) — resolved the exact
-// same way routes/tradingStrategies.ts's own GET /trading/strategies and
-// routes/tradingStrategyChecklists.ts's own list routes already do. Zero
-// new queries beyond what those routes already run. ─────────────────────
+// ─── Strategy Framework Summary Report (Phase 30, extended Phase 31) —
+// resolved the exact same way routes/tradingStrategies.ts's own
+// GET /trading/strategies and routes/tradingStrategyChecklists.ts's own
+// list routes already do. Learning Coverage reuses getLearningProgress()'s
+// own viewedStrategyKeys (Phase 31 addition, itself reusing an
+// already-computed variable — zero new query there); Workspace Notes
+// reuses the existing trading_workspace_notes table (Phase 25), filtered
+// to the STRATEGY:<id> pseudo-symbol convention
+// (isStrategyWorkspaceNoteSymbol/parseStrategyIdFromWorkspaceNoteSymbol,
+// lib/tradingStrategyFramework.ts) — no new table, no new query shape
+// beyond the one extra already-established list-by-user select. ─────────
 
 async function loadStrategyFrameworkSummaryInputs(userId: string) {
   const strategyRows = await db.select().from(tradingStrategiesTable).where(eq(tradingStrategiesTable.userId, userId));
@@ -360,13 +376,34 @@ async function loadStrategyFrameworkSummaryInputs(userId: string) {
     status: c.status,
   }));
 
-  return { strategies, checklists };
+  const progress = await getLearningProgress(userId);
+  const viewedKeys = new Set(progress.viewedStrategyKeys);
+  const learningCoverage: StrategyFrameworkLearningCoverageItem[] = strategies.map((s) => ({
+    strategyId: s.id,
+    strategyName: s.name,
+    viewed: viewedKeys.has(`strategy-framework:${s.id}`),
+  }));
+
+  const noteRows = await db.select().from(tradingWorkspaceNotesTable).where(eq(tradingWorkspaceNotesTable.userId, userId));
+  const workspaceNotes: StrategyFrameworkWorkspaceNoteItem[] = noteRows
+    .filter((n) => isStrategyWorkspaceNoteSymbol(n.symbol))
+    .map((n) => {
+      const strategyId = parseStrategyIdFromWorkspaceNoteSymbol(n.symbol);
+      return {
+        strategyId: strategyId ?? -1,
+        strategyName: (strategyId !== null ? strategyNameById.get(strategyId) : undefined) ?? `Strategy #${strategyId ?? "?"}`,
+        note: n.note,
+        updatedAt: n.updatedAt.toISOString(),
+      };
+    });
+
+  return { strategies, checklists, learningCoverage, workspaceNotes };
 }
 
 router.get("/reporting/strategy-framework-summary", async (req, res): Promise<void> => {
   const userId = await getScopedUserId(req);
-  const { strategies, checklists } = await loadStrategyFrameworkSummaryInputs(userId);
-  const built = buildStrategyFrameworkSummaryReport(strategies, checklists);
+  const { strategies, checklists, learningCoverage, workspaceNotes } = await loadStrategyFrameworkSummaryInputs(userId);
+  const built = buildStrategyFrameworkSummaryReport(strategies, checklists, learningCoverage, workspaceNotes);
   res.json(GetStrategyFrameworkSummaryReportResponse.parse(built));
 });
 
@@ -463,8 +500,8 @@ async function regenerate(
       return buildTradePlanningSummaryReport(plans, risk);
     }
     case "strategy-framework-summary": {
-      const { strategies, checklists } = await loadStrategyFrameworkSummaryInputs(userId);
-      return buildStrategyFrameworkSummaryReport(strategies, checklists);
+      const { strategies, checklists, learningCoverage, workspaceNotes } = await loadStrategyFrameworkSummaryInputs(userId);
+      return buildStrategyFrameworkSummaryReport(strategies, checklists, learningCoverage, workspaceNotes);
     }
     default:
       return null;

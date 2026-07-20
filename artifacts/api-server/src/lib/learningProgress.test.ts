@@ -87,6 +87,15 @@ describe("recordViewed / recordCompleted", () => {
     expect(progress.completedStrategyKeys).toEqual(["iron_condor"]);
   });
 
+  it("Phase 31 — viewedStrategyKeys reflects the Strategy Framework/Workbench's own view-only 'Mark as viewed' action, which never calls recordCompleted() and so never populates completedStrategyKeys", async () => {
+    await recordViewed(userId, "strategy", "strategy-framework:99");
+    const progress = await getLearningProgress(userId);
+    expect(progress.viewedStrategyKeys).toContain("strategy-framework:99");
+    // This key was only ever viewed, never completed, so it's honestly
+    // absent from the completed-only list even though it's real progress.
+    expect(progress.completedStrategyKeys).not.toContain("strategy-framework:99");
+  });
+
   it("pathCompletion correctly rolls up a completed topic into its own path's percentage", async () => {
     // foundations-stocks belongs to the "foundations" path per lib/learningPaths.ts.
     const progress = await getLearningProgress(userId);
