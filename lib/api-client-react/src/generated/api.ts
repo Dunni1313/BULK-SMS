@@ -205,6 +205,7 @@ import type {
   TradingBacktestResult,
   TradingCoachAskInput,
   TradingCoachAskResult,
+  TradingCompareScenariosInput,
   TradingJournalEntry,
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
@@ -218,6 +219,7 @@ import type {
   TradingRegimeAnalysis,
   TradingRiskAnalysis,
   TradingRunBacktestInput,
+  TradingScenarioComparisonResult,
   TradingSessionData,
   TradingSessionWindowsOverview,
   TradingStructureAnalysis,
@@ -15016,6 +15018,77 @@ export const useDeleteTradingTradePlan = <TError = ErrorType<void>,
       return useMutation(getDeleteTradingTradePlanMutationOptions(options));
     }
 
+export const getCompareTradingScenariosUrl = () => {
+
+
+
+
+  return `/api/trading/trade-plans/scenarios/compare`
+}
+
+/**
+ * @summary Compare 2-5 candidate trade scenarios (pure computeRiskParameters() arithmetic per scenario, never persisted)
+ */
+export const compareTradingScenarios = async (tradingCompareScenariosInput: TradingCompareScenariosInput, options?: RequestInit): Promise<TradingScenarioComparisonResult> => {
+
+  return customFetch<TradingScenarioComparisonResult>(getCompareTradingScenariosUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingCompareScenariosInput,)
+  }
+);}
+
+
+
+
+export const getCompareTradingScenariosMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof compareTradingScenarios>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof compareTradingScenarios>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext> => {
+
+const mutationKey = ['compareTradingScenarios'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof compareTradingScenarios>>, {data: BodyType<TradingCompareScenariosInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  compareTradingScenarios(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompareTradingScenariosMutationResult = NonNullable<Awaited<ReturnType<typeof compareTradingScenarios>>>
+    export type CompareTradingScenariosMutationBody = BodyType<TradingCompareScenariosInput>
+    export type CompareTradingScenariosMutationError = ErrorType<void>
+
+    /**
+ * @summary Compare 2-5 candidate trade scenarios (pure computeRiskParameters() arithmetic per scenario, never persisted)
+ */
+export const useCompareTradingScenarios = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof compareTradingScenarios>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof compareTradingScenarios>>,
+        TError,
+        {data: BodyType<TradingCompareScenariosInput>},
+        TContext
+      > => {
+      return useMutation(getCompareTradingScenariosMutationOptions(options));
+    }
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -16893,6 +16966,83 @@ export function useGetExecutiveSummaryReport<TData = Awaited<ReturnType<typeof g
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetExecutiveSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradePlanningSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/trade-planning-summary`
+}
+
+/**
+ * @summary Trade Planning Summary Report (Phase 28) — the calling user's own Trade Plans (trading_trade_plans) and Trading Risk analysis (lib/tradingRisk.ts), reused directly. Pure composition, zero new analysis.
+ */
+export const getTradePlanningSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetTradePlanningSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradePlanningSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/trade-planning-summary`
+    ] as const;
+    }
+
+
+export const getGetTradePlanningSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradePlanningSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>> = ({ signal }) => getTradePlanningSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradePlanningSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>>
+export type GetTradePlanningSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Trade Planning Summary Report (Phase 28) — the calling user's own Trade Plans (trading_trade_plans) and Trading Risk analysis (lib/tradingRisk.ts), reused directly. Pure composition, zero new analysis.
+ */
+
+export function useGetTradePlanningSummaryReport<TData = Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradePlanningSummaryReportQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

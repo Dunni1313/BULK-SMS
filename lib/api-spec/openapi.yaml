@@ -4035,6 +4035,31 @@ paths:
         "404":
           description: Trade plan not found
 
+  # ─── Trade Planning & Risk Studio (Engine 2, Phase 28) ───────────────────────
+  # A stateless, non-persisting preview — compares 2-5 candidate entry/stop/
+  # target scenarios via the exact same computeRiskParameters() math a real
+  # trade plan already uses. Never saves anything.
+  /trading/trade-plans/scenarios/compare:
+    post:
+      operationId: compareTradingScenarios
+      tags: [trading-trade-plans]
+      summary: Compare 2-5 candidate trade scenarios (pure computeRiskParameters() arithmetic per scenario, never persisted)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingCompareScenariosInput"
+      responses:
+        "200":
+          description: Scenario comparison result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingScenarioComparisonResult"
+        "400":
+          description: Invalid scenario count or shape
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -4514,6 +4539,19 @@ paths:
       responses:
         "200":
           description: Executive Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/trade-planning-summary:
+    get:
+      operationId: getTradePlanningSummaryReport
+      tags: [reporting]
+      summary: Trade Planning Summary Report (Phase 28) — the calling user's own Trade Plans (trading_trade_plans) and Trading Risk analysis (lib/tradingRisk.ts), reused directly. Pure composition, zero new analysis.
+      responses:
+        "200":
+          description: Trade Planning Summary Report
           content:
             application/json:
               schema:
@@ -11011,6 +11049,77 @@ components:
           type: string
           enum: [draft, active, closed, cancelled]
 
+    # ─── Scenario Comparison (Phase 28, Institutional Trade Planning & Risk
+    # Studio) — a stateless, non-persisting preview over the exact same
+    # computeRiskParameters() math a real Trade Plan already uses. ───────────
+    TradingScenarioInput:
+      type: object
+      required: [name, direction, accountRiskPct, entryPrice, stopPrice, targetPrice]
+      properties:
+        name:
+          type: string
+        direction:
+          type: string
+          enum: [long, short]
+        accountRiskPct:
+          type: number
+        entryPrice:
+          type: number
+        stopPrice:
+          type: number
+        targetPrice:
+          type: number
+
+    TradingCompareScenariosInput:
+      type: object
+      required: [scenarios]
+      properties:
+        symbol:
+          type: string
+        accountValue:
+          type: ["number", "null"]
+          description: Falls back to the calling user's own tradingAccountValue setting when omitted.
+        scenarios:
+          type: array
+          minItems: 2
+          maxItems: 5
+          items:
+            $ref: "#/components/schemas/TradingScenarioInput"
+
+    TradingScenarioResult:
+      type: object
+      required: [name, direction, risk]
+      properties:
+        name:
+          type: string
+        direction:
+          type: string
+          enum: [long, short]
+        risk:
+          $ref: "#/components/schemas/TradingTradePlanRisk"
+
+    TradingScenarioComparisonResult:
+      type: object
+      required: [symbol, accountValue, scenarios, bestRiskRewardName, tightestRiskName, summary]
+      properties:
+        symbol:
+          type: string
+          nullable: true
+        accountValue:
+          type: ["number", "null"]
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingScenarioResult"
+        bestRiskRewardName:
+          type: string
+          nullable: true
+        tightestRiskName:
+          type: string
+          nullable: true
+        summary:
+          type: string
+
     TradingWorkspaceNote:
       type: object
       required: [id, symbol, note, createdAt, updatedAt]
@@ -14373,7 +14482,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -14385,7 +14494,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -14403,7 +14512,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary]
         symbol: { type: string }
         portfolioId: { type: integer }
 

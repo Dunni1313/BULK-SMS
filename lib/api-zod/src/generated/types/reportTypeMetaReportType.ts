@@ -19,4 +19,5 @@ export const ReportTypeMetaReportType = {
   'monitoring-summary': 'monitoring-summary',
   'ai-coach-summary': 'ai-coach-summary',
   'executive-summary': 'executive-summary',
+  'trade-planning-summary': 'trade-planning-summary',
 } as const;

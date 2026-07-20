@@ -5819,6 +5819,61 @@ export interface TradingTradePlanUpdate {
   status?: TradingTradePlanUpdateStatus;
 }
 
+export type TradingScenarioInputDirection = typeof TradingScenarioInputDirection[keyof typeof TradingScenarioInputDirection];
+
+
+export const TradingScenarioInputDirection = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export interface TradingScenarioInput {
+  name: string;
+  direction: TradingScenarioInputDirection;
+  accountRiskPct: number;
+  entryPrice: number;
+  stopPrice: number;
+  targetPrice: number;
+}
+
+export interface TradingCompareScenariosInput {
+  symbol?: string;
+  /**
+     * Falls back to the calling user's own tradingAccountValue setting when omitted.
+     * @nullable
+     */
+  accountValue?: number | null;
+  /**
+     * @minItems 2
+     * @maxItems 5
+     */
+  scenarios: TradingScenarioInput[];
+}
+
+export type TradingScenarioResultDirection = typeof TradingScenarioResultDirection[keyof typeof TradingScenarioResultDirection];
+
+
+export const TradingScenarioResultDirection = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export interface TradingScenarioResult {
+  name: string;
+  direction: TradingScenarioResultDirection;
+  risk: TradingTradePlanRisk;
+}
+
+export interface TradingScenarioComparisonResult {
+  symbol: string | null;
+  /** @nullable */
+  accountValue: number | null;
+  scenarios: TradingScenarioResult[];
+  bestRiskRewardName: string | null;
+  tightestRiskName: string | null;
+  summary: string;
+}
+
 export interface TradingWorkspaceNote {
   id: number;
   symbol: string;
@@ -7740,6 +7795,7 @@ export const ReportTypeMetaReportType = {
   'monitoring-summary': 'monitoring-summary',
   'ai-coach-summary': 'ai-coach-summary',
   'executive-summary': 'executive-summary',
+  'trade-planning-summary': 'trade-planning-summary',
 } as const;
 
 export interface ReportTypeMeta {
@@ -7763,6 +7819,7 @@ export const InstitutionalReportReportType = {
   'monitoring-summary': 'monitoring-summary',
   'ai-coach-summary': 'ai-coach-summary',
   'executive-summary': 'executive-summary',
+  'trade-planning-summary': 'trade-planning-summary',
 } as const;
 
 export interface InstitutionalReport {
@@ -7790,6 +7847,7 @@ export const SaveInstitutionalReportInputReportType = {
   'monitoring-summary': 'monitoring-summary',
   'ai-coach-summary': 'ai-coach-summary',
   'executive-summary': 'executive-summary',
+  'trade-planning-summary': 'trade-planning-summary',
 } as const;
 
 export interface SaveInstitutionalReportInput {
