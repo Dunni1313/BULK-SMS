@@ -70,6 +70,8 @@ tags:
     description: Institutional Investing Analytics Engine (Phase 33) — deterministic aggregation of already-persisted Investing Engine data (portfolios, holdings, research notes, watchlist, saved Investment Committee decision snapshots, saved risk snapshots, saved optimisation reviews, saved screener criteria, AI Coach usage). Pure reporting/analytics — no signals, no predictions, no automated execution.
   - name: executive-intelligence
     description: Institutional Executive Intelligence & Reporting Hub (Phase 33) — unifies the Investing Engine's and Trading Engine's own analytics into a single executive view (overview, per-engine summaries, cross-engine risk/learning/coach rollups, a Reporting Centre tally, and a chronological Activity Timeline). Pure composition over already-persisted, already-computed data — no new scoring, no signal, no forecast, no AI prediction, no automated execution.
+  - name: cross-engine-workspace
+    description: Cross-Engine Orchestration & Unified Workspace (Phase 34) — one workspace spanning the Investing and Trading engines, with a chronological Activity Timeline extended with Trade Plan/Strategy/Learning entries, Cross-Engine Recent Items (most-recently-touched per category), Cross-Engine Tasks (already-flagged "needs attention" counts), and a deterministic Global Search over 9 already-persisted entity categories. Pure orchestration/aggregation/search over already-persisted data — no semantic search, no new scoring, no signal, no forecast, no AI prediction, no automated execution.
   - name: broker
     description: Read-only Alpaca Paper Trading broker/account verification (account balances, open positions, open orders, connection health) — Paper Trading endpoint only, never places, modifies, or cancels an order
 
@@ -4545,6 +4547,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ExecutiveIntelligenceHub"
+
+  /workspace/overview:
+    get:
+      operationId: getCrossEngineWorkspaceOverview
+      tags: [cross-engine-workspace]
+      summary: The calling user's own Unified Workspace payload — the full Phase 33 Executive Intelligence Hub, plus an extended Recent Activity timeline (Trade Plans/Strategies/Learning completions merged in), Cross-Engine Recent Items (most-recently-touched per category), and Cross-Engine Tasks (already-flagged "needs attention" counts). Pure aggregation of already-persisted, already-computed data.
+      responses:
+        "200":
+          description: Cross-Engine Workspace overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossEngineWorkspaceOverview"
+
+  /workspace/search:
+    get:
+      operationId: getCrossEngineWorkspaceSearch
+      tags: [cross-engine-workspace]
+      summary: Deterministic, case-insensitive substring Global Search over the calling user's own Portfolios, Holdings, Research Notes, Committee Snapshots, Trade Plans, Trading Journal entries, Strategies, Reports, and Learning Topics. Never semantic/AI search. An empty query returns no results.
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Global Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossEngineWorkspaceSearchResult"
 
   # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
   /trading/risk:
@@ -15799,3 +15833,126 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExecutiveActivityEntry"
+
+    WorkspaceActivityEntry:
+      type: object
+      required: [type, engine, label, detail, occurredAt, symbol, linkPath]
+      properties:
+        type:
+          type: string
+          enum:
+            [
+              journal-entry,
+              committee-snapshot,
+              risk-snapshot,
+              optimisation-review,
+              research-note,
+              report-generated,
+              notification,
+              trade-plan-created,
+              strategy-registered,
+              learning-topic-completed,
+            ]
+        engine:
+          type: string
+          enum: [investing, trading, platform]
+        label: { type: string }
+        detail: { type: string }
+        occurredAt: { type: string }
+        symbol: { type: ["string", "null"] }
+        linkPath: { type: ["string", "null"] }
+
+    WorkspaceRecentItem:
+      type: object
+      required: [category, label, detail, occurredAt, linkPath]
+      properties:
+        category:
+          type: string
+          enum:
+            [
+              portfolio,
+              holding,
+              research-note,
+              committee-snapshot,
+              trade-plan,
+              trading-journal,
+              strategy,
+              report,
+              learning-topic,
+            ]
+        label: { type: string }
+        detail: { type: string }
+        occurredAt: { type: string }
+        linkPath: { type: string }
+
+    WorkspaceTask:
+      type: object
+      required: [code, label, count, linkPath]
+      properties:
+        code:
+          type: string
+          enum:
+            [
+              unread-notifications,
+              positions-missing-stop-or-target,
+              portfolios-without-holdings,
+              strategy-checklists-in-progress,
+            ]
+        label: { type: string }
+        count: { type: integer }
+        linkPath: { type: string }
+
+    CrossEngineWorkspaceOverview:
+      type: object
+      required: [intelligence, recentActivity, recentItems, tasks, generatedAt]
+      properties:
+        intelligence:
+          $ref: "#/components/schemas/ExecutiveIntelligenceHub"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceActivityEntry"
+        recentItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceRecentItem"
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceTask"
+        generatedAt: { type: string }
+
+    CrossEngineWorkspaceSearchResultItem:
+      type: object
+      required: [category, id, label, detail, occurredAt, linkPath]
+      properties:
+        category:
+          type: string
+          enum:
+            [
+              portfolio,
+              holding,
+              research-note,
+              committee-snapshot,
+              trade-plan,
+              trading-journal,
+              strategy,
+              report,
+              learning-topic,
+            ]
+        id: { type: string }
+        label: { type: string }
+        detail: { type: string }
+        occurredAt: { type: ["string", "null"] }
+        linkPath: { type: string }
+
+    CrossEngineWorkspaceSearchResult:
+      type: object
+      required: [query, results, totalMatches]
+      properties:
+        query: { type: string }
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CrossEngineWorkspaceSearchResultItem"
+        totalMatches: { type: integer }

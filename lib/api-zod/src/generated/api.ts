@@ -9752,6 +9752,349 @@ export const GetExecutiveIntelligenceHubResponse = zod.object({
 
 
 /**
+ * @summary The calling user's own Unified Workspace payload — the full Phase 33 Executive Intelligence Hub, plus an extended Recent Activity timeline (Trade Plans/Strategies/Learning completions merged in), Cross-Engine Recent Items (most-recently-touched per category), and Cross-Engine Tasks (already-flagged "needs attention" counts). Pure aggregation of already-persisted, already-computed data.
+ */
+export const GetCrossEngineWorkspaceOverviewResponse = zod.object({
+  "intelligence": zod.object({
+  "overview": zod.object({
+  "portfoliosCreated": zod.number(),
+  "holdingsTracked": zod.number(),
+  "researchNotesWritten": zod.number(),
+  "watchlistItems": zod.number(),
+  "committeeSnapshotsSaved": zod.number(),
+  "tradesReviewed": zod.number(),
+  "tradePlansCreated": zod.number(),
+  "journalEntries": zod.number(),
+  "strategiesRegistered": zod.number(),
+  "checklistInstances": zod.number(),
+  "learningTopicsCompleted": zod.number(),
+  "learningTopicsTotal": zod.number(),
+  "totalCoachViews": zod.number(),
+  "reportsGenerated": zod.number(),
+  "reportCategoriesUsed": zod.number(),
+  "generatedAt": zod.string(),
+  "summary": zod.string()
+}),
+  "investing": zod.object({
+  "overview": zod.object({
+  "portfoliosCreated": zod.number(),
+  "holdingsTracked": zod.number(),
+  "researchNotesWritten": zod.number(),
+  "watchlistItems": zod.number(),
+  "committeeSnapshotsSaved": zod.number(),
+  "riskSnapshotsSaved": zod.number(),
+  "optimisationReviewsSaved": zod.number(),
+  "savedScreens": zod.number(),
+  "generatedAt": zod.string()
+}),
+  "portfolio": zod.object({
+  "portfolioCount": zod.number(),
+  "totalHoldings": zod.number(),
+  "averageHoldingsPerPortfolio": zod.number(),
+  "distinctSymbolsHeld": zod.number()
+}),
+  "research": zod.object({
+  "noteCount": zod.number(),
+  "distinctSymbolsResearched": zod.number(),
+  "mostRecentNoteAt": zod.string().nullable()
+}),
+  "watchlist": zod.object({
+  "itemCount": zod.number(),
+  "categoryTally": zod.record(zod.string(), zod.number()),
+  "decisionTally": zod.record(zod.string(), zod.number())
+}),
+  "committee": zod.object({
+  "snapshotCount": zod.number(),
+  "recommendationTally": zod.record(zod.string(), zod.number()),
+  "mostRecentSymbol": zod.string().nullable(),
+  "mostRecentRecommendation": zod.string().nullable(),
+  "mostRecentConfidence": zod.number().nullable(),
+  "mostRecentSavedAt": zod.string().nullable()
+}),
+  "risk": zod.object({
+  "snapshotCount": zod.number(),
+  "mostRecentOverallScore": zod.number().nullable(),
+  "averageOverallScore": zod.number().nullable(),
+  "mostRecentSavedAt": zod.string().nullable()
+}),
+  "optimisation": zod.object({
+  "reviewCount": zod.number(),
+  "actionTally": zod.record(zod.string(), zod.number()),
+  "mostRecentAction": zod.string().nullable(),
+  "mostRecentSavedAt": zod.string().nullable()
+}),
+  "coach": zod.object({
+  "totalCoachViews": zod.number(),
+  "byType": zod.array(zod.object({
+  "coach": zod.enum(['investment', 'portfolio', 'decision', 'valuation', 'risk', 'research', 'monitoring', 'committee']),
+  "label": zod.string(),
+  "viewCount": zod.number()
+})),
+  "mostRecentCoach": zod.union([zod.literal('investment'),zod.literal('portfolio'),zod.literal('decision'),zod.literal('valuation'),zod.literal('risk'),zod.literal('research'),zod.literal('monitoring'),zod.literal('committee'),zod.literal(null)]).nullable(),
+  "mostRecentScope": zod.string().nullable(),
+  "mostRecentViewedAt": zod.string().nullable()
+})
+}),
+  "trading": zod.object({
+  "overview": zod.object({
+  "tradesReviewed": zod.number(),
+  "plansCreated": zod.number(),
+  "journalEntries": zod.number(),
+  "workspaceNotes": zod.number(),
+  "strategiesRegistered": zod.number(),
+  "checklistInstances": zod.number(),
+  "generatedAt": zod.string()
+}),
+  "strategyUsage": zod.object({
+  "strategiesRegistered": zod.number(),
+  "checklistInstances": zod.number(),
+  "checklistsComplete": zod.number(),
+  "checklistsInProgress": zod.number(),
+  "overallChecklistCompletionPct": zod.number(),
+  "requiredEvidenceByType": zod.object({
+  "structure": zod.number(),
+  "liquidity": zod.number(),
+  "session": zod.number(),
+  "risk": zod.number(),
+  "trade-plan": zod.number(),
+  "journal": zod.number(),
+  "coach": zod.number()
+}),
+  "evidenceLinksAttachedByType": zod.object({
+  "structure": zod.number(),
+  "liquidity": zod.number(),
+  "session": zod.number(),
+  "risk": zod.number(),
+  "trade-plan": zod.number(),
+  "journal": zod.number(),
+  "coach": zod.number()
+})
+}),
+  "journal": zod.object({
+  "entryCount": zod.number(),
+  "moodTally": zod.record(zod.string(), zod.number()),
+  "setupTypeTally": zod.record(zod.string(), zod.number()),
+  "lessonRecordedCount": zod.number(),
+  "lessonRecordedPct": zod.number(),
+  "rMultipleEntriesCount": zod.number(),
+  "averageRMultiple": zod.number().nullable(),
+  "rMultipleDistribution": zod.array(zod.object({
+  "label": zod.string(),
+  "min": zod.number().nullable(),
+  "max": zod.number().nullable(),
+  "count": zod.number()
+}))
+}),
+  "risk": zod.object({
+  "plansWithRiskParams": zod.number(),
+  "averageAccountRiskPct": zod.number().nullable(),
+  "riskRewardDistribution": zod.array(zod.object({
+  "label": zod.string(),
+  "min": zod.number().nullable(),
+  "max": zod.number().nullable(),
+  "count": zod.number()
+})),
+  "averageRiskRewardRatio": zod.number().nullable(),
+  "positionsWithBothStopAndTarget": zod.number(),
+  "positionsWithNeitherStopNorTarget": zod.number(),
+  "openPositionsCount": zod.number(),
+  "stopTargetDisciplinePct": zod.number()
+}),
+  "learning": zod.object({
+  "lessonsViewed": zod.number(),
+  "lessonsCompleted": zod.number(),
+  "glossaryTermsViewed": zod.number(),
+  "strategiesViewed": zod.number(),
+  "coachesViewed": zod.number(),
+  "totalTopics": zod.number(),
+  "completedTopics": zod.number(),
+  "remainingTopics": zod.number(),
+  "weakestPaths": zod.array(zod.object({
+  "pathKey": zod.string(),
+  "title": zod.string(),
+  "percentComplete": zod.number()
+}))
+}),
+  "coach": zod.object({
+  "totalCoachViews": zod.number(),
+  "byType": zod.array(zod.object({
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology', 'strategy']),
+  "label": zod.string(),
+  "viewCount": zod.number()
+})),
+  "mostRecentCoach": zod.union([zod.literal('structure'),zod.literal('liquidity'),zod.literal('session'),zod.literal('risk'),zod.literal('trade-plan'),zod.literal('journal'),zod.literal('scenario'),zod.literal('psychology'),zod.literal('strategy'),zod.literal(null)]).nullable(),
+  "mostRecentScope": zod.string().nullable(),
+  "mostRecentViewedAt": zod.string().nullable()
+}),
+  "session": zod.object({
+  "totalClassified": zod.number(),
+  "activity": zod.array(zod.object({
+  "label": zod.enum(['Asia', 'London', 'New York', 'Overlap']),
+  "count": zod.number()
+})),
+  "rawSessionCounts": zod.object({
+  "sydney": zod.number(),
+  "tokyo": zod.number(),
+  "london": zod.number(),
+  "new_york": zod.number()
+})
+}),
+  "structure": zod.object({
+  "coachViewCount": zod.number(),
+  "strategiesRequiringAsEvidence": zod.number(),
+  "evidenceLinksAttached": zod.number()
+}),
+  "liquidity": zod.object({
+  "coachViewCount": zod.number(),
+  "strategiesRequiringAsEvidence": zod.number(),
+  "evidenceLinksAttached": zod.number()
+}),
+  "checklist": zod.object({
+  "totalInstances": zod.number(),
+  "totalComplete": zod.number(),
+  "totalInProgress": zod.number(),
+  "overallCompletionPct": zod.number(),
+  "byStrategy": zod.array(zod.object({
+  "strategyId": zod.number(),
+  "strategyName": zod.string(),
+  "instanceCount": zod.number(),
+  "completeCount": zod.number(),
+  "averagePercentComplete": zod.number()
+}))
+})
+}),
+  "strategy": zod.object({
+  "strategiesRegistered": zod.number(),
+  "checklistInstances": zod.number(),
+  "checklistsComplete": zod.number(),
+  "checklistsInProgress": zod.number(),
+  "overallChecklistCompletionPct": zod.number(),
+  "requiredEvidenceByType": zod.object({
+  "structure": zod.number(),
+  "liquidity": zod.number(),
+  "session": zod.number(),
+  "risk": zod.number(),
+  "trade-plan": zod.number(),
+  "journal": zod.number(),
+  "coach": zod.number()
+}),
+  "evidenceLinksAttachedByType": zod.object({
+  "structure": zod.number(),
+  "liquidity": zod.number(),
+  "session": zod.number(),
+  "risk": zod.number(),
+  "trade-plan": zod.number(),
+  "journal": zod.number(),
+  "coach": zod.number()
+})
+}),
+  "portfolio": zod.object({
+  "portfolioCount": zod.number(),
+  "totalHoldings": zod.number(),
+  "averageHoldingsPerPortfolio": zod.number(),
+  "distinctSymbolsHeld": zod.number()
+}),
+  "risk": zod.object({
+  "investingRiskSnapshotsSaved": zod.number(),
+  "investingMostRecentRiskScore": zod.number().nullable(),
+  "tradingOpenPositionsCount": zod.number(),
+  "tradingStopTargetDisciplinePct": zod.number()
+}),
+  "learning": zod.object({
+  "lessonsViewed": zod.number(),
+  "lessonsCompleted": zod.number(),
+  "glossaryTermsViewed": zod.number(),
+  "strategiesViewed": zod.number(),
+  "coachesViewed": zod.number(),
+  "totalTopics": zod.number(),
+  "completedTopics": zod.number(),
+  "remainingTopics": zod.number(),
+  "weakestPaths": zod.array(zod.object({
+  "pathKey": zod.string(),
+  "title": zod.string(),
+  "percentComplete": zod.number()
+}))
+}),
+  "coach": zod.object({
+  "investingCoachViews": zod.number(),
+  "tradingCoachViews": zod.number(),
+  "totalCoachViews": zod.number(),
+  "mostRecentEngine": zod.union([zod.literal('investing'),zod.literal('trading'),zod.literal(null)]).nullable(),
+  "mostRecentCoach": zod.string().nullable(),
+  "mostRecentViewedAt": zod.string().nullable()
+}),
+  "reporting": zod.object({
+  "totalReports": zod.number(),
+  "distinctReportTypesUsed": zod.number(),
+  "byType": zod.array(zod.object({
+  "reportType": zod.string(),
+  "count": zod.number()
+})),
+  "recentReports": zod.array(zod.object({
+  "id": zod.number(),
+  "reportType": zod.string(),
+  "title": zod.string(),
+  "createdAt": zod.string()
+}))
+}),
+  "activity": zod.array(zod.object({
+  "type": zod.enum(['journal-entry', 'committee-snapshot', 'risk-snapshot', 'optimisation-review', 'research-note', 'report-generated', 'notification']),
+  "engine": zod.enum(['investing', 'trading', 'platform']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "occurredAt": zod.string(),
+  "symbol": zod.string().nullable(),
+  "linkPath": zod.string().nullable()
+}))
+}),
+  "recentActivity": zod.array(zod.object({
+  "type": zod.enum(['journal-entry', 'committee-snapshot', 'risk-snapshot', 'optimisation-review', 'research-note', 'report-generated', 'notification', 'trade-plan-created', 'strategy-registered', 'learning-topic-completed']),
+  "engine": zod.enum(['investing', 'trading', 'platform']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "occurredAt": zod.string(),
+  "symbol": zod.string().nullable(),
+  "linkPath": zod.string().nullable()
+})),
+  "recentItems": zod.array(zod.object({
+  "category": zod.enum(['portfolio', 'holding', 'research-note', 'committee-snapshot', 'trade-plan', 'trading-journal', 'strategy', 'report', 'learning-topic']),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "occurredAt": zod.string(),
+  "linkPath": zod.string()
+})),
+  "tasks": zod.array(zod.object({
+  "code": zod.enum(['unread-notifications', 'positions-missing-stop-or-target', 'portfolios-without-holdings', 'strategy-checklists-in-progress']),
+  "label": zod.string(),
+  "count": zod.number(),
+  "linkPath": zod.string()
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
+ * @summary Deterministic, case-insensitive substring Global Search over the calling user's own Portfolios, Holdings, Research Notes, Committee Snapshots, Trade Plans, Trading Journal entries, Strategies, Reports, and Learning Topics. Never semantic/AI search. An empty query returns no results.
+ */
+export const GetCrossEngineWorkspaceSearchQueryParams = zod.object({
+  "q": zod.coerce.string().optional()
+})
+
+export const GetCrossEngineWorkspaceSearchResponse = zod.object({
+  "query": zod.string(),
+  "results": zod.array(zod.object({
+  "category": zod.enum(['portfolio', 'holding', 'research-note', 'committee-snapshot', 'trade-plan', 'trading-journal', 'strategy', 'report', 'learning-topic']),
+  "id": zod.string(),
+  "label": zod.string(),
+  "detail": zod.string(),
+  "occurredAt": zod.string().nullable(),
+  "linkPath": zod.string()
+})),
+  "totalMatches": zod.number()
+})
+
+
+/**
  * @summary Portfolio risk analysis over the calling user's own open trading positions — position sizing, stop/target discipline, and portfolio risk budget, SIMULATED-first, honestly reports insufficient data rather than fabricating a default account value or position
  */
 export const GetTradingRiskResponse = zod.object({

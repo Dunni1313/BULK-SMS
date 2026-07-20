@@ -61,6 +61,8 @@ import type {
   ConstructionRiskSnapshot,
   ConstructionWatchlistComparison,
   CrossEngineDailyReport,
+  CrossEngineWorkspaceOverview,
+  CrossEngineWorkspaceSearchResult,
   DailyReport,
   DailyReportSummary,
   DashboardWorkspace,
@@ -93,6 +95,7 @@ import type {
   GeneratedValueQuiz,
   GetAlertNotesParams,
   GetAutoAdjustmentLogParams,
+  GetCrossEngineWorkspaceSearchParams,
   GetEquityCurveParams,
   GetPerformanceAnalyticsParams,
   GetPerformanceBreakdownParams,
@@ -16882,6 +16885,167 @@ export function useGetExecutiveIntelligenceHub<TData = Awaited<ReturnType<typeof
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetExecutiveIntelligenceHubQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCrossEngineWorkspaceOverviewUrl = () => {
+
+
+
+
+  return `/api/workspace/overview`
+}
+
+/**
+ * @summary The calling user's own Unified Workspace payload — the full Phase 33 Executive Intelligence Hub, plus an extended Recent Activity timeline (Trade Plans/Strategies/Learning completions merged in), Cross-Engine Recent Items (most-recently-touched per category), and Cross-Engine Tasks (already-flagged "needs attention" counts). Pure aggregation of already-persisted, already-computed data.
+ */
+export const getCrossEngineWorkspaceOverview = async ( options?: RequestInit): Promise<CrossEngineWorkspaceOverview> => {
+
+  return customFetch<CrossEngineWorkspaceOverview>(getGetCrossEngineWorkspaceOverviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCrossEngineWorkspaceOverviewQueryKey = () => {
+    return [
+    `/api/workspace/overview`
+    ] as const;
+    }
+
+
+export const getGetCrossEngineWorkspaceOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCrossEngineWorkspaceOverviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>> = ({ signal }) => getCrossEngineWorkspaceOverview({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCrossEngineWorkspaceOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>>
+export type GetCrossEngineWorkspaceOverviewQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own Unified Workspace payload — the full Phase 33 Executive Intelligence Hub, plus an extended Recent Activity timeline (Trade Plans/Strategies/Learning completions merged in), Cross-Engine Recent Items (most-recently-touched per category), and Cross-Engine Tasks (already-flagged "needs attention" counts). Pure aggregation of already-persisted, already-computed data.
+ */
+
+export function useGetCrossEngineWorkspaceOverview<TData = Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCrossEngineWorkspaceOverviewQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCrossEngineWorkspaceSearchUrl = (params?: GetCrossEngineWorkspaceSearchParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/workspace/search?${stringifiedParams}` : `/api/workspace/search`
+}
+
+/**
+ * @summary Deterministic, case-insensitive substring Global Search over the calling user's own Portfolios, Holdings, Research Notes, Committee Snapshots, Trade Plans, Trading Journal entries, Strategies, Reports, and Learning Topics. Never semantic/AI search. An empty query returns no results.
+ */
+export const getCrossEngineWorkspaceSearch = async (params?: GetCrossEngineWorkspaceSearchParams, options?: RequestInit): Promise<CrossEngineWorkspaceSearchResult> => {
+
+  return customFetch<CrossEngineWorkspaceSearchResult>(getGetCrossEngineWorkspaceSearchUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCrossEngineWorkspaceSearchQueryKey = (params?: GetCrossEngineWorkspaceSearchParams,) => {
+    return [
+    `/api/workspace/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCrossEngineWorkspaceSearchQueryOptions = <TData = Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError = ErrorType<unknown>>(params?: GetCrossEngineWorkspaceSearchParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCrossEngineWorkspaceSearchQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>> = ({ signal }) => getCrossEngineWorkspaceSearch(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCrossEngineWorkspaceSearchQueryResult = NonNullable<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>>
+export type GetCrossEngineWorkspaceSearchQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Deterministic, case-insensitive substring Global Search over the calling user's own Portfolios, Holdings, Research Notes, Committee Snapshots, Trade Plans, Trading Journal entries, Strategies, Reports, and Learning Topics. Never semantic/AI search. An empty query returns no results.
+ */
+
+export function useGetCrossEngineWorkspaceSearch<TData = Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError = ErrorType<unknown>>(
+ params?: GetCrossEngineWorkspaceSearchParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCrossEngineWorkspaceSearchQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

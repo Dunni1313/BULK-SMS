@@ -8572,6 +8572,122 @@ export interface ExecutiveIntelligenceHub {
   activity: ExecutiveActivityEntry[];
 }
 
+export type WorkspaceActivityEntryType = typeof WorkspaceActivityEntryType[keyof typeof WorkspaceActivityEntryType];
+
+
+export const WorkspaceActivityEntryType = {
+  'journal-entry': 'journal-entry',
+  'committee-snapshot': 'committee-snapshot',
+  'risk-snapshot': 'risk-snapshot',
+  'optimisation-review': 'optimisation-review',
+  'research-note': 'research-note',
+  'report-generated': 'report-generated',
+  notification: 'notification',
+  'trade-plan-created': 'trade-plan-created',
+  'strategy-registered': 'strategy-registered',
+  'learning-topic-completed': 'learning-topic-completed',
+} as const;
+
+export type WorkspaceActivityEntryEngine = typeof WorkspaceActivityEntryEngine[keyof typeof WorkspaceActivityEntryEngine];
+
+
+export const WorkspaceActivityEntryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  platform: 'platform',
+} as const;
+
+export interface WorkspaceActivityEntry {
+  type: WorkspaceActivityEntryType;
+  engine: WorkspaceActivityEntryEngine;
+  label: string;
+  detail: string;
+  occurredAt: string;
+  /** @nullable */
+  symbol: string | null;
+  /** @nullable */
+  linkPath: string | null;
+}
+
+export type WorkspaceRecentItemCategory = typeof WorkspaceRecentItemCategory[keyof typeof WorkspaceRecentItemCategory];
+
+
+export const WorkspaceRecentItemCategory = {
+  portfolio: 'portfolio',
+  holding: 'holding',
+  'research-note': 'research-note',
+  'committee-snapshot': 'committee-snapshot',
+  'trade-plan': 'trade-plan',
+  'trading-journal': 'trading-journal',
+  strategy: 'strategy',
+  report: 'report',
+  'learning-topic': 'learning-topic',
+} as const;
+
+export interface WorkspaceRecentItem {
+  category: WorkspaceRecentItemCategory;
+  label: string;
+  detail: string;
+  occurredAt: string;
+  linkPath: string;
+}
+
+export type WorkspaceTaskCode = typeof WorkspaceTaskCode[keyof typeof WorkspaceTaskCode];
+
+
+export const WorkspaceTaskCode = {
+  'unread-notifications': 'unread-notifications',
+  'positions-missing-stop-or-target': 'positions-missing-stop-or-target',
+  'portfolios-without-holdings': 'portfolios-without-holdings',
+  'strategy-checklists-in-progress': 'strategy-checklists-in-progress',
+} as const;
+
+export interface WorkspaceTask {
+  code: WorkspaceTaskCode;
+  label: string;
+  count: number;
+  linkPath: string;
+}
+
+export interface CrossEngineWorkspaceOverview {
+  intelligence: ExecutiveIntelligenceHub;
+  recentActivity: WorkspaceActivityEntry[];
+  recentItems: WorkspaceRecentItem[];
+  tasks: WorkspaceTask[];
+  generatedAt: string;
+}
+
+export type CrossEngineWorkspaceSearchResultItemCategory = typeof CrossEngineWorkspaceSearchResultItemCategory[keyof typeof CrossEngineWorkspaceSearchResultItemCategory];
+
+
+export const CrossEngineWorkspaceSearchResultItemCategory = {
+  portfolio: 'portfolio',
+  holding: 'holding',
+  'research-note': 'research-note',
+  'committee-snapshot': 'committee-snapshot',
+  'trade-plan': 'trade-plan',
+  'trading-journal': 'trading-journal',
+  strategy: 'strategy',
+  report: 'report',
+  'learning-topic': 'learning-topic',
+} as const;
+
+export interface CrossEngineWorkspaceSearchResultItem {
+  category: CrossEngineWorkspaceSearchResultItemCategory;
+  id: string;
+  label: string;
+  detail: string;
+  /** @nullable */
+  occurredAt: string | null;
+  linkPath: string;
+}
+
+export interface CrossEngineWorkspaceSearchResult {
+  query: string;
+  results: CrossEngineWorkspaceSearchResultItem[];
+  totalMatches: number;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -8723,6 +8839,10 @@ export const GetValueWatchlistCheckTargets = {
 
 export type CompareOpportunitiesRouteParams = {
 symbols: string;
+};
+
+export type GetCrossEngineWorkspaceSearchParams = {
+q?: string;
 };
 
 export type DeleteInstitutionalReport200 = {
