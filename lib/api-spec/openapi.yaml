@@ -64,6 +64,8 @@ tags:
     description: Institutional Strategy Framework (Phase 30) — user-authored Strategy Metadata (name, description, category, timeframes, markets, required evidence, a checklist template, educational notes, references, version) and Checklist Engine instances. Architecture/framework only — no named methodology (ICT/SMC/ASAD/Trader Bill/Tom Nash/Dunni Framework) is implemented, and no trading signal is ever generated.
   - name: trading-session
     description: Institutional Trade Workspace (Phase 25) — which named trading sessions are currently open plus today's realized session high/low, descriptive only, never predictive
+  - name: trading-analytics
+    description: Institutional Trading Analytics Engine (Phase 32) — deterministic aggregation of already-persisted Trading Engine data (trades reviewed, plans, journal entries, strategy usage, checklist completion, learning progress, coach usage, session activity). Pure reporting/analytics — no signals, no predictions, no automated execution.
   - name: broker
     description: Read-only Alpaca Paper Trading broker/account verification (account balances, open positions, open orders, connection health) — Paper Trading endpoint only, never places, modifies, or cancels an order
 
@@ -4311,6 +4313,22 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  # Phase 32 — Institutional Trading Analytics Engine. Extends the existing
+  # Reporting Centre with a 12th report type — reuses the generic
+  # InstitutionalReport/section() shape, no frontend change required.
+  /reporting/trading-analytics-summary:
+    get:
+      operationId: getTradingAnalyticsSummaryReport
+      tags: [reporting]
+      summary: Trading Analytics Summary Report — the calling user's own aggregated Trading Engine analytics (trades reviewed, strategy usage, journal, risk, learning, coach, session activity)
+      responses:
+        "200":
+          description: Trading Analytics Summary Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -4453,6 +4471,23 @@ paths:
                 $ref: "#/components/schemas/TradingSessionWindowsOverview"
         "404":
           description: Unknown or invalid symbol
+
+  # Phase 32 — Institutional Trading Analytics Engine. One eager route
+  # returning the full analytics dashboard for the calling user's own
+  # already-persisted Trading Engine data. Pure aggregation — no signals, no
+  # predictions, no automated execution.
+  /trading/analytics:
+    get:
+      operationId: getTradingAnalyticsDashboard
+      tags: [trading-analytics]
+      summary: Deterministic aggregation of the calling user's own already-persisted Trading Engine data — trades reviewed, plans created, journal entries, strategy/checklist usage, learning progress, coach usage, session activity. Never a new signal or prediction.
+      responses:
+        "200":
+          description: Trading analytics dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingAnalyticsDashboard"
 
   # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
   /trading/risk:
@@ -15110,7 +15145,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -15122,7 +15157,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -15140,7 +15175,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -15169,3 +15204,267 @@ components:
         portfolioId: { type: integer, nullable: true }
         dataSource: { type: string }
         createdAt: { type: string }
+
+    # ─── Phase 32 — Institutional Trading Analytics Engine ────────────────────
+    # Every field below is a direct read, count, tally, or simple aggregate of
+    # data already persisted or already computed by an earlier phase. No new
+    # signal, score, or prediction of any kind.
+
+    TradingAnalyticsOverview:
+      type: object
+      required: [tradesReviewed, plansCreated, journalEntries, workspaceNotes, strategiesRegistered, checklistInstances, generatedAt]
+      properties:
+        tradesReviewed: { type: integer }
+        plansCreated: { type: integer }
+        journalEntries: { type: integer }
+        workspaceNotes: { type: integer }
+        strategiesRegistered: { type: integer }
+        checklistInstances: { type: integer }
+        generatedAt: { type: string }
+
+    TradingAnalyticsEvidenceTally:
+      type: object
+      required: [structure, liquidity, session, risk, "trade-plan", journal, coach]
+      properties:
+        structure: { type: integer }
+        liquidity: { type: integer }
+        session: { type: integer }
+        risk: { type: integer }
+        "trade-plan": { type: integer }
+        journal: { type: integer }
+        coach: { type: integer }
+
+    TradingStrategyUsageAnalytics:
+      type: object
+      required:
+        [
+          strategiesRegistered,
+          checklistInstances,
+          checklistsComplete,
+          checklistsInProgress,
+          overallChecklistCompletionPct,
+          requiredEvidenceByType,
+          evidenceLinksAttachedByType,
+        ]
+      properties:
+        strategiesRegistered: { type: integer }
+        checklistInstances: { type: integer }
+        checklistsComplete: { type: integer }
+        checklistsInProgress: { type: integer }
+        overallChecklistCompletionPct: { type: number }
+        requiredEvidenceByType:
+          $ref: "#/components/schemas/TradingAnalyticsEvidenceTally"
+        evidenceLinksAttachedByType:
+          $ref: "#/components/schemas/TradingAnalyticsEvidenceTally"
+
+    TradingAnalyticsRMultipleBucket:
+      type: object
+      required: [label, min, max, count]
+      properties:
+        label: { type: string }
+        min: { type: ["number", "null"] }
+        max: { type: ["number", "null"] }
+        count: { type: integer }
+
+    TradingJournalAnalytics:
+      type: object
+      required:
+        [
+          entryCount,
+          moodTally,
+          setupTypeTally,
+          lessonRecordedCount,
+          lessonRecordedPct,
+          rMultipleEntriesCount,
+          averageRMultiple,
+          rMultipleDistribution,
+        ]
+      properties:
+        entryCount: { type: integer }
+        moodTally:
+          type: object
+          additionalProperties: { type: integer }
+        setupTypeTally:
+          type: object
+          additionalProperties: { type: integer }
+        lessonRecordedCount: { type: integer }
+        lessonRecordedPct: { type: number }
+        rMultipleEntriesCount: { type: integer }
+        averageRMultiple: { type: ["number", "null"] }
+        rMultipleDistribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingAnalyticsRMultipleBucket"
+
+    TradingRiskAnalyticsSummary:
+      type: object
+      required:
+        [
+          plansWithRiskParams,
+          averageAccountRiskPct,
+          riskRewardDistribution,
+          averageRiskRewardRatio,
+          positionsWithBothStopAndTarget,
+          positionsWithNeitherStopNorTarget,
+          openPositionsCount,
+          stopTargetDisciplinePct,
+        ]
+      properties:
+        plansWithRiskParams: { type: integer }
+        averageAccountRiskPct: { type: ["number", "null"] }
+        riskRewardDistribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingAnalyticsRMultipleBucket"
+        averageRiskRewardRatio: { type: ["number", "null"] }
+        positionsWithBothStopAndTarget: { type: integer }
+        positionsWithNeitherStopNorTarget: { type: integer }
+        openPositionsCount: { type: integer }
+        stopTargetDisciplinePct: { type: number }
+
+    TradingAnalyticsWeakTopicPath:
+      type: object
+      required: [pathKey, title, percentComplete]
+      properties:
+        pathKey: { type: string }
+        title: { type: string }
+        percentComplete: { type: number }
+
+    TradingLearningAnalytics:
+      type: object
+      required:
+        [
+          lessonsViewed,
+          lessonsCompleted,
+          glossaryTermsViewed,
+          strategiesViewed,
+          coachesViewed,
+          totalTopics,
+          completedTopics,
+          remainingTopics,
+          weakestPaths,
+        ]
+      properties:
+        lessonsViewed: { type: integer }
+        lessonsCompleted: { type: integer }
+        glossaryTermsViewed: { type: integer }
+        strategiesViewed: { type: integer }
+        coachesViewed: { type: integer }
+        totalTopics: { type: integer }
+        completedTopics: { type: integer }
+        remainingTopics: { type: integer }
+        weakestPaths:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingAnalyticsWeakTopicPath"
+
+    TradingCoachUsageRow:
+      type: object
+      required: [coach, label, viewCount]
+      properties:
+        coach:
+          type: string
+          enum: [structure, liquidity, session, risk, "trade-plan", journal, scenario, psychology, strategy]
+        label: { type: string }
+        viewCount: { type: integer }
+
+    TradingCoachAnalytics:
+      type: object
+      required: [totalCoachViews, byType, mostRecentCoach, mostRecentScope, mostRecentViewedAt]
+      properties:
+        totalCoachViews: { type: integer }
+        byType:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingCoachUsageRow"
+        mostRecentCoach:
+          type: ["string", "null"]
+          enum: [structure, liquidity, session, risk, "trade-plan", journal, scenario, psychology, strategy, null]
+        mostRecentScope: { type: ["string", "null"] }
+        mostRecentViewedAt: { type: ["string", "null"] }
+
+    TradingSessionActivityRow:
+      type: object
+      required: [label, count]
+      properties:
+        label:
+          type: string
+          enum: [Asia, London, "New York", Overlap]
+        count: { type: integer }
+
+    TradingAnalyticsRawSessionCounts:
+      type: object
+      required: [sydney, tokyo, london, new_york]
+      properties:
+        sydney: { type: integer }
+        tokyo: { type: integer }
+        london: { type: integer }
+        new_york: { type: integer }
+
+    TradingSessionAnalytics:
+      type: object
+      required: [totalClassified, activity, rawSessionCounts]
+      properties:
+        totalClassified: { type: integer }
+        activity:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingSessionActivityRow"
+        rawSessionCounts:
+          $ref: "#/components/schemas/TradingAnalyticsRawSessionCounts"
+
+    TradingEngineUsageAnalytics:
+      type: object
+      required: [coachViewCount, strategiesRequiringAsEvidence, evidenceLinksAttached]
+      properties:
+        coachViewCount: { type: integer }
+        strategiesRequiringAsEvidence: { type: integer }
+        evidenceLinksAttached: { type: integer }
+
+    TradingChecklistAnalyticsRow:
+      type: object
+      required: [strategyId, strategyName, instanceCount, completeCount, averagePercentComplete]
+      properties:
+        strategyId: { type: integer }
+        strategyName: { type: string }
+        instanceCount: { type: integer }
+        completeCount: { type: integer }
+        averagePercentComplete: { type: number }
+
+    TradingChecklistAnalytics:
+      type: object
+      required: [totalInstances, totalComplete, totalInProgress, overallCompletionPct, byStrategy]
+      properties:
+        totalInstances: { type: integer }
+        totalComplete: { type: integer }
+        totalInProgress: { type: integer }
+        overallCompletionPct: { type: number }
+        byStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingChecklistAnalyticsRow"
+
+    TradingAnalyticsDashboard:
+      type: object
+      required: [overview, strategyUsage, journal, risk, learning, coach, session, structure, liquidity, checklist]
+      properties:
+        overview:
+          $ref: "#/components/schemas/TradingAnalyticsOverview"
+        strategyUsage:
+          $ref: "#/components/schemas/TradingStrategyUsageAnalytics"
+        journal:
+          $ref: "#/components/schemas/TradingJournalAnalytics"
+        risk:
+          $ref: "#/components/schemas/TradingRiskAnalyticsSummary"
+        learning:
+          $ref: "#/components/schemas/TradingLearningAnalytics"
+        coach:
+          $ref: "#/components/schemas/TradingCoachAnalytics"
+        session:
+          $ref: "#/components/schemas/TradingSessionAnalytics"
+        structure:
+          $ref: "#/components/schemas/TradingEngineUsageAnalytics"
+        liquidity:
+          $ref: "#/components/schemas/TradingEngineUsageAnalytics"
+        checklist:
+          $ref: "#/components/schemas/TradingChecklistAnalytics"

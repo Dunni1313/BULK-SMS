@@ -21,4 +21,5 @@ export const ReportTypeMetaReportType = {
   'executive-summary': 'executive-summary',
   'trade-planning-summary': 'trade-planning-summary',
   'strategy-framework-summary': 'strategy-framework-summary',
+  'trading-analytics-summary': 'trading-analytics-summary',
 } as const;

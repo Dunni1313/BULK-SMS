@@ -8036,6 +8036,7 @@ export const ReportTypeMetaReportType = {
   'executive-summary': 'executive-summary',
   'trade-planning-summary': 'trade-planning-summary',
   'strategy-framework-summary': 'strategy-framework-summary',
+  'trading-analytics-summary': 'trading-analytics-summary',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8061,6 +8062,7 @@ export const InstitutionalReportReportType = {
   'executive-summary': 'executive-summary',
   'trade-planning-summary': 'trade-planning-summary',
   'strategy-framework-summary': 'strategy-framework-summary',
+  'trading-analytics-summary': 'trading-analytics-summary',
 } as const;
 
 export interface InstitutionalReport {
@@ -8090,6 +8092,7 @@ export const SaveInstitutionalReportInputReportType = {
   'executive-summary': 'executive-summary',
   'trade-planning-summary': 'trade-planning-summary',
   'strategy-framework-summary': 'strategy-framework-summary',
+  'trading-analytics-summary': 'trading-analytics-summary',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -8117,6 +8120,205 @@ export interface InstitutionalReportListItem {
   portfolioId: number | null;
   dataSource: string;
   createdAt: string;
+}
+
+export interface TradingAnalyticsOverview {
+  tradesReviewed: number;
+  plansCreated: number;
+  journalEntries: number;
+  workspaceNotes: number;
+  strategiesRegistered: number;
+  checklistInstances: number;
+  generatedAt: string;
+}
+
+export interface TradingAnalyticsEvidenceTally {
+  structure: number;
+  liquidity: number;
+  session: number;
+  risk: number;
+  'trade-plan': number;
+  journal: number;
+  coach: number;
+}
+
+export interface TradingStrategyUsageAnalytics {
+  strategiesRegistered: number;
+  checklistInstances: number;
+  checklistsComplete: number;
+  checklistsInProgress: number;
+  overallChecklistCompletionPct: number;
+  requiredEvidenceByType: TradingAnalyticsEvidenceTally;
+  evidenceLinksAttachedByType: TradingAnalyticsEvidenceTally;
+}
+
+export interface TradingAnalyticsRMultipleBucket {
+  label: string;
+  /** @nullable */
+  min: number | null;
+  /** @nullable */
+  max: number | null;
+  count: number;
+}
+
+export type TradingJournalAnalyticsMoodTally = {[key: string]: number};
+
+export type TradingJournalAnalyticsSetupTypeTally = {[key: string]: number};
+
+export interface TradingJournalAnalytics {
+  entryCount: number;
+  moodTally: TradingJournalAnalyticsMoodTally;
+  setupTypeTally: TradingJournalAnalyticsSetupTypeTally;
+  lessonRecordedCount: number;
+  lessonRecordedPct: number;
+  rMultipleEntriesCount: number;
+  /** @nullable */
+  averageRMultiple: number | null;
+  rMultipleDistribution: TradingAnalyticsRMultipleBucket[];
+}
+
+export interface TradingRiskAnalyticsSummary {
+  plansWithRiskParams: number;
+  /** @nullable */
+  averageAccountRiskPct: number | null;
+  riskRewardDistribution: TradingAnalyticsRMultipleBucket[];
+  /** @nullable */
+  averageRiskRewardRatio: number | null;
+  positionsWithBothStopAndTarget: number;
+  positionsWithNeitherStopNorTarget: number;
+  openPositionsCount: number;
+  stopTargetDisciplinePct: number;
+}
+
+export interface TradingAnalyticsWeakTopicPath {
+  pathKey: string;
+  title: string;
+  percentComplete: number;
+}
+
+export interface TradingLearningAnalytics {
+  lessonsViewed: number;
+  lessonsCompleted: number;
+  glossaryTermsViewed: number;
+  strategiesViewed: number;
+  coachesViewed: number;
+  totalTopics: number;
+  completedTopics: number;
+  remainingTopics: number;
+  weakestPaths: TradingAnalyticsWeakTopicPath[];
+}
+
+export type TradingCoachUsageRowCoach = typeof TradingCoachUsageRowCoach[keyof typeof TradingCoachUsageRowCoach];
+
+
+export const TradingCoachUsageRowCoach = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  scenario: 'scenario',
+  psychology: 'psychology',
+  strategy: 'strategy',
+} as const;
+
+export interface TradingCoachUsageRow {
+  coach: TradingCoachUsageRowCoach;
+  label: string;
+  viewCount: number;
+}
+
+/**
+ * @nullable
+ */
+export type TradingCoachAnalyticsMostRecentCoach = typeof TradingCoachAnalyticsMostRecentCoach[keyof typeof TradingCoachAnalyticsMostRecentCoach] | null;
+
+
+export const TradingCoachAnalyticsMostRecentCoach = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  scenario: 'scenario',
+  psychology: 'psychology',
+  strategy: 'strategy',
+} as const;
+
+export interface TradingCoachAnalytics {
+  totalCoachViews: number;
+  byType: TradingCoachUsageRow[];
+  /** @nullable */
+  mostRecentCoach: TradingCoachAnalyticsMostRecentCoach;
+  /** @nullable */
+  mostRecentScope: string | null;
+  /** @nullable */
+  mostRecentViewedAt: string | null;
+}
+
+export type TradingSessionActivityRowLabel = typeof TradingSessionActivityRowLabel[keyof typeof TradingSessionActivityRowLabel];
+
+
+export const TradingSessionActivityRowLabel = {
+  Asia: 'Asia',
+  London: 'London',
+  New_York: 'New York',
+  Overlap: 'Overlap',
+} as const;
+
+export interface TradingSessionActivityRow {
+  label: TradingSessionActivityRowLabel;
+  count: number;
+}
+
+export interface TradingAnalyticsRawSessionCounts {
+  sydney: number;
+  tokyo: number;
+  london: number;
+  new_york: number;
+}
+
+export interface TradingSessionAnalytics {
+  totalClassified: number;
+  activity: TradingSessionActivityRow[];
+  rawSessionCounts: TradingAnalyticsRawSessionCounts;
+}
+
+export interface TradingEngineUsageAnalytics {
+  coachViewCount: number;
+  strategiesRequiringAsEvidence: number;
+  evidenceLinksAttached: number;
+}
+
+export interface TradingChecklistAnalyticsRow {
+  strategyId: number;
+  strategyName: string;
+  instanceCount: number;
+  completeCount: number;
+  averagePercentComplete: number;
+}
+
+export interface TradingChecklistAnalytics {
+  totalInstances: number;
+  totalComplete: number;
+  totalInProgress: number;
+  overallCompletionPct: number;
+  byStrategy: TradingChecklistAnalyticsRow[];
+}
+
+export interface TradingAnalyticsDashboard {
+  overview: TradingAnalyticsOverview;
+  strategyUsage: TradingStrategyUsageAnalytics;
+  journal: TradingJournalAnalytics;
+  risk: TradingRiskAnalyticsSummary;
+  learning: TradingLearningAnalytics;
+  coach: TradingCoachAnalytics;
+  session: TradingSessionAnalytics;
+  structure: TradingEngineUsageAnalytics;
+  liquidity: TradingEngineUsageAnalytics;
+  checklist: TradingChecklistAnalytics;
 }
 
 export type GetScannerResultsParams = {

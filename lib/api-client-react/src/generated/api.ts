@@ -202,6 +202,7 @@ import type {
   TradeAdjustmentPreviewResult,
   TradeInput,
   TradeMonitor,
+  TradingAnalyticsDashboard,
   TradingBacktestResult,
   TradingCoachAskInput,
   TradingCoachAskResult,
@@ -15985,6 +15986,83 @@ export function useGetStrategyFrameworkSummaryReport<TData = Awaited<ReturnType<
 
 
 
+export const getGetTradingAnalyticsSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/trading-analytics-summary`
+}
+
+/**
+ * @summary Trading Analytics Summary Report — the calling user's own aggregated Trading Engine analytics (trades reviewed, strategy usage, journal, risk, learning, coach, session activity)
+ */
+export const getTradingAnalyticsSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetTradingAnalyticsSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingAnalyticsSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/trading-analytics-summary`
+    ] as const;
+    }
+
+
+export const getGetTradingAnalyticsSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingAnalyticsSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>> = ({ signal }) => getTradingAnalyticsSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingAnalyticsSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>>
+export type GetTradingAnalyticsSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Trading Analytics Summary Report — the calling user's own aggregated Trading Engine analytics (trades reviewed, strategy usage, journal, risk, learning, coach, session activity)
+ */
+
+export function useGetTradingAnalyticsSummaryReport<TData = Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingAnalyticsSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -16494,6 +16572,83 @@ export function useGetTradingSessionWindows<TData = Awaited<ReturnType<typeof ge
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetTradingSessionWindowsQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingAnalyticsDashboardUrl = () => {
+
+
+
+
+  return `/api/trading/analytics`
+}
+
+/**
+ * @summary Deterministic aggregation of the calling user's own already-persisted Trading Engine data — trades reviewed, plans created, journal entries, strategy/checklist usage, learning progress, coach usage, session activity. Never a new signal or prediction.
+ */
+export const getTradingAnalyticsDashboard = async ( options?: RequestInit): Promise<TradingAnalyticsDashboard> => {
+
+  return customFetch<TradingAnalyticsDashboard>(getGetTradingAnalyticsDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingAnalyticsDashboardQueryKey = () => {
+    return [
+    `/api/trading/analytics`
+    ] as const;
+    }
+
+
+export const getGetTradingAnalyticsDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingAnalyticsDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>> = ({ signal }) => getTradingAnalyticsDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingAnalyticsDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>>
+export type GetTradingAnalyticsDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Deterministic aggregation of the calling user's own already-persisted Trading Engine data — trades reviewed, plans created, journal entries, strategy/checklist usage, learning progress, coach usage, session activity. Never a new signal or prediction.
+ */
+
+export function useGetTradingAnalyticsDashboard<TData = Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingAnalyticsDashboardQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
