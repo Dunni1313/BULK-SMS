@@ -24,6 +24,7 @@ const mockState = vi.hoisted(() => ({
     { reportType: "ai-coach-summary", label: "AI Coach Learning Summary", description: "d", requiresSymbol: false, requiresPortfolio: false },
     { reportType: "executive-summary", label: "Executive Summary", description: "d", requiresSymbol: false, requiresPortfolio: false },
     { reportType: "trade-planning-summary", label: "Trade Planning Summary Report", description: "d", requiresSymbol: false, requiresPortfolio: false },
+    { reportType: "trading-analytics-summary", label: "Trading Analytics Summary Report", description: "d", requiresSymbol: false, requiresPortfolio: false },
   ] as unknown[],
   portfolios: [{ id: 1, name: "Core Portfolio", holdingsCount: 2 }] as unknown[],
   report: undefined as unknown,
@@ -71,6 +72,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetAiCoachLearningSummaryReport: reportResult,
     useGetExecutiveSummaryReport: reportResult,
     useGetTradePlanningSummaryReport: reportResult,
+    useGetTradingAnalyticsSummaryReport: reportResult,
     useSaveInstitutionalReport: () => ({ mutate: saveMutate, isPending: false }),
     useListInstitutionalReports: () => ({ data: mockState.savedReports, refetch: savedListRefetch }),
     useGetSavedInstitutionalReport: () => ({ data: mockState.openedSaved }),
@@ -109,6 +111,23 @@ describe("ReportingCentre page", () => {
     const preview = screen.getByTestId("report-preview-content");
     expect(within(preview).getByText("Executive Summary")).toBeInTheDocument();
     expect(within(preview).getByText("Bullet A")).toBeInTheDocument();
+  });
+
+  it("Phase 32 — deep-linking to ?reportType=trading-analytics-summary auto-generates the Trading Analytics Summary Report", async () => {
+    mockState.report = fixtureReport({
+      reportType: "trading-analytics-summary",
+      title: "Trading Analytics Summary Report",
+      subtitle: "3 position(s), 2 journal entr(y/ies), 1 strategy(ies)",
+      sections: [{ id: "executive-summary", title: "Executive Summary", body: "3 position(s) reviewed." }],
+    });
+    window.history.pushState({}, "", "/reporting-centre?reportType=trading-analytics-summary");
+    renderWithClient(<ReportingCentre />);
+
+    expect(await screen.findByTestId("reporting-report-title")).toHaveTextContent("Trading Analytics Summary Report");
+    const preview = screen.getByTestId("report-preview-content");
+    expect(within(preview).getByText("3 position(s) reviewed.")).toBeInTheDocument();
+
+    window.history.pushState({}, "", "/reporting-centre");
   });
 
   it("Section Selector toggling a section removes it from the Report Preview", async () => {

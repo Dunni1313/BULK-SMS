@@ -118,6 +118,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Trading AI Coach", href: "/trading-ai-coach", icon: GraduationCap },
   { title: "Strategy Framework", href: "/strategy-framework", icon: Layers },
   { title: "Strategy Workbench", href: "/strategy-workbench", icon: Boxes },
+  { title: "Trading Analytics", href: "/trading-analytics", icon: BarChart3 },
   { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
   { title: "Institutional Workspace", href: "/workspace", icon: LayoutPanelLeft },
   { title: "Research Terminal", href: "/research-terminal", icon: Terminal },

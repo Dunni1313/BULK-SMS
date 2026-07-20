@@ -324,6 +324,34 @@ function ProgressTab() {
         </CardContent>
       </Card>
 
+      {/* Phase 32 — Institutional Trading Analytics Engine integration.
+          Mirrors lib/tradingAnalytics.ts's own buildLearningAnalytics()
+          weakestPaths derivation exactly (paths below 50% completion,
+          sorted lowest-first) — computed here client-side from the same
+          already-fetched pathCompletion data, no new fetch, never a
+          predicted recommendation of what to study next. */}
+      {(() => {
+        const weakestPaths = [...data.pathCompletion]
+          .filter((p) => p.topicsTotal > 0 && p.percentComplete < 50)
+          .sort((a, b) => a.percentComplete - b.percentComplete);
+        if (weakestPaths.length === 0) return null;
+        return (
+          <Card className="bg-card border-border" data-testid="card-weakest-topics">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Weakest Topics</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {weakestPaths.map((p) => (
+                <div key={p.pathKey} className="flex items-center justify-between text-xs" data-testid={`weak-topic-${p.pathKey}`}>
+                  <span>{p.title}</span>
+                  <span className="font-mono">{p.percentComplete}%</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {[
           { label: "Greeks Quiz", q: data.greeksQuiz },
@@ -516,6 +544,11 @@ function OverviewTab() {
           <Link href="/strategy-workbench" data-testid="link-overview-strategy-workbench">
             <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
               <CardContent className="pt-4 text-sm font-medium">Institutional Strategy Workbench</CardContent>
+            </Card>
+          </Link>
+          <Link href="/trading-analytics" data-testid="link-overview-trading-analytics">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Trading Analytics Dashboard</CardContent>
             </Card>
           </Link>
         </div>

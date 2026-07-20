@@ -255,6 +255,9 @@ export default function TradingAICoach() {
         <Link href="/strategy-workbench" className="text-xs text-primary hover:underline block" data-testid="link-trading-coach-open-strategy-workbench">
           Open the Institutional Strategy Workbench →
         </Link>
+        <Link href="/trading-analytics" className="text-xs text-primary hover:underline block" data-testid="link-trading-coach-open-trading-analytics">
+          Open the Trading Analytics Dashboard →
+        </Link>
       </div>
 
       <Card className="bg-card border-border">

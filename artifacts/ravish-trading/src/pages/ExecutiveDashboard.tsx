@@ -64,6 +64,7 @@ import {
   GitCompare,
   Columns2,
   Boxes,
+  BarChart3,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -458,6 +459,24 @@ export default function ExecutiveDashboard() {
           <CardContent>
             <Link href="/strategy-workbench" className="text-xs text-primary hover:underline flex items-center gap-1.5" data-testid="shortcut-strategy-workbench">
               <Boxes className="w-3 h-3" /> Open the Strategy Workbench
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* Trading Analytics Dashboard shortcut — pure navigation, no
+            fetch. Engine 2's own Institutional Trading Analytics Engine
+            (Phase 32), reachable from this Engine-1 dashboard for
+            cross-engine convenience only — never a duplicated feature. */}
+        <Card className="bg-card border-border" data-testid="panel-trading-analytics-shortcut">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-indigo-400" /> Trading Analytics
+            </CardTitle>
+            <CardDescription className="text-xs">Deterministic aggregation of your own Trading Engine usage — trades, strategies, journal, risk, learning, coach, sessions.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/trading-analytics" className="text-xs text-primary hover:underline flex items-center gap-1.5" data-testid="shortcut-trading-analytics">
+              <BarChart3 className="w-3 h-3" /> Open the Trading Analytics Dashboard
             </Link>
           </CardContent>
         </Card>

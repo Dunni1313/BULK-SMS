@@ -55,7 +55,7 @@ import { StrategyLearningPanel } from "@/components/strategy/StrategyLearningPan
 import { StrategyCoachExplanationPanel } from "@/components/strategy/StrategyCoachExplanationPanel";
 import { StrategyValidationSummary } from "@/components/strategy/StrategyValidationSummary";
 import { compareStrategies } from "@/lib/strategy-comparison";
-import { LayoutGrid, GitCompare, StickyNote, FileBarChart2, Save, Trash2 } from "lucide-react";
+import { LayoutGrid, GitCompare, StickyNote, FileBarChart2, Save, Trash2, BarChart3 } from "lucide-react";
 
 const WORKFLOW_STEPS = [
   "Browse Strategy Registry",
@@ -350,6 +350,13 @@ export default function StrategyWorkbench() {
             </li>
           ))}
         </ul>
+        <Link
+          href="/trading-analytics"
+          className="text-xs text-primary hover:underline flex items-center gap-1.5 mt-2"
+          data-testid="link-open-trading-analytics"
+        >
+          <BarChart3 className="w-3 h-3" /> Open the Trading Analytics Dashboard
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

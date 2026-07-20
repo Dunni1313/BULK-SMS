@@ -9,7 +9,7 @@
 // PortfolioOptimisationAnalysis, OpportunityScanResult, platform_notifications,
 // WatchlistTargetCheck, CrossEngineDailyReport, LearningProgressSummary).
 //
-// Every one of the 9 report-type hooks below is mounted unconditionally
+// Every one of the 12 report-type hooks below is mounted unconditionally
 // (Rules of Hooks) but gated via `enabled` on the currently-selected report
 // type AND an explicit "Generate Report" click — never fetched as a side
 // effect of typing into the builder form.
@@ -41,6 +41,8 @@ import {
   getGetTradePlanningSummaryReportQueryKey,
   useGetStrategyFrameworkSummaryReport,
   getGetStrategyFrameworkSummaryReportQueryKey,
+  useGetTradingAnalyticsSummaryReport,
+  getGetTradingAnalyticsSummaryReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -73,7 +75,8 @@ type ReportType =
   | "ai-coach-summary"
   | "executive-summary"
   | "trade-planning-summary"
-  | "strategy-framework-summary";
+  | "strategy-framework-summary"
+  | "trading-analytics-summary";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -95,6 +98,7 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "executive-summary",
   "trade-planning-summary",
   "strategy-framework-summary",
+  "trading-analytics-summary",
 ];
 
 export default function ReportingCentre() {
@@ -156,6 +160,7 @@ export default function ReportingCentre() {
   const esRes = useGetExecutiveSummaryReport({ query: { queryKey: getGetExecutiveSummaryReportQueryKey(), enabled: generated?.type === "executive-summary" } });
   const tpsRes = useGetTradePlanningSummaryReport({ query: { queryKey: getGetTradePlanningSummaryReportQueryKey(), enabled: generated?.type === "trade-planning-summary" } });
   const sfsRes = useGetStrategyFrameworkSummaryReport({ query: { queryKey: getGetStrategyFrameworkSummaryReportQueryKey(), enabled: generated?.type === "strategy-framework-summary" } });
+  const tasRes = useGetTradingAnalyticsSummaryReport({ query: { queryKey: getGetTradingAnalyticsSummaryReportQueryKey(), enabled: generated?.type === "trading-analytics-summary" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -177,9 +182,10 @@ export default function ReportingCentre() {
       "executive-summary": esRes,
       "trade-planning-summary": tpsRes,
       "strategy-framework-summary": sfsRes,
+      "trading-analytics-summary": tasRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

@@ -1022,6 +1022,13 @@ export default function TradeWorkspace() {
                         >
                           <ExternalLink className="h-3 w-3" /> Open the Institutional Strategy Workbench
                         </a>
+                        <a
+                          href="/trading-analytics"
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          data-testid="link-open-trading-analytics"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Open the Trading Analytics Dashboard
+                        </a>
                       </CardHeader>
                       <CardContent className="space-y-2">
                         {coachHistory.length === 0 && !coachStreamingAnswer && (
