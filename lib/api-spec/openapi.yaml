@@ -56,6 +56,12 @@ tags:
     description: Engine 2 AI Trade Coach — free-form Q&A grounded in Structure/Multi-Timeframe/Liquidity/Regime/Probability, the calling user's own portfolio Risk analysis, and recent Trading Journal reflections, SIMULATED-first, educational only, never places an order
   - name: trading-backtest
     description: Engine 2 Backtesting — a genuine walk-forward price-action backtest replaying SIMULATED candles through a named entry/exit rule set (trend-following, mean-reversion, structure-breakout), producing a real trade log and equity curve, SIMULATED-first, advisory only, never places an order
+  - name: trading-trade-plans
+    description: Institutional Trade Workspace (Phase 25) — real persistence for a human-authored pre-trade plan (direction, thesis, entry/stop/target, derived position size and risk/reward), advisory only, never places an order
+  - name: trading-workspace-notes
+    description: Institutional Trade Workspace (Phase 25) — lightweight per-symbol free-text notes, distinct from the deeper structured Trading Journal
+  - name: trading-session
+    description: Institutional Trade Workspace (Phase 25) — which named trading sessions are currently open plus today's realized session high/low, descriptive only, never predictive
   - name: broker
     description: Read-only Alpaca Paper Trading broker/account verification (account balances, open positions, open orders, connection health) — Paper Trading endpoint only, never places, modifies, or cancels an order
 
@@ -3899,6 +3905,226 @@ paths:
           description: Trading position deleted
         "404":
           description: Trading position not found
+
+  # ─── Institutional Trade Workspace (Engine 2, Phase 25) ─────────────────────
+  # Real persistence for the TradePlan domain concept (in-memory only since
+  # Phase 24) — the Trade Workspace's own Trade Plan Panel and its "Save
+  # Workspace" workflow step are the real UI consumer that triggers this.
+  /trading/trade-plans:
+    get:
+      operationId: listTradingTradePlans
+      tags: [trading-trade-plans]
+      summary: List the calling user's trade plans, newest first
+      responses:
+        "200":
+          description: Trade plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingTradePlan"
+    post:
+      operationId: createTradingTradePlan
+      tags: [trading-trade-plans]
+      summary: Create a trade plan (status always starts at draft)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingTradePlanInput"
+      responses:
+        "201":
+          description: Trade plan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingTradePlan"
+
+  /trading/trade-plans/{symbol}:
+    get:
+      operationId: listTradingTradePlansForSymbol
+      tags: [trading-trade-plans]
+      summary: List the calling user's trade plans for one symbol, newest first
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Trade plans for the symbol
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingTradePlan"
+
+  /trading/trade-plans/{id}:
+    patch:
+      operationId: updateTradingTradePlan
+      tags: [trading-trade-plans]
+      summary: Update a trade plan's thesis and/or status (status changes are validated against the allowed draft/active/closed/cancelled transition rules)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingTradePlanUpdate"
+      responses:
+        "200":
+          description: Updated trade plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingTradePlan"
+        "400":
+          description: Invalid status transition
+        "404":
+          description: Trade plan not found
+    delete:
+      operationId: deleteTradingTradePlan
+      tags: [trading-trade-plans]
+      summary: Delete a trade plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Trade plan deleted
+        "404":
+          description: Trade plan not found
+
+  /trading/workspace-notes:
+    get:
+      operationId: listTradingWorkspaceNotes
+      tags: [trading-workspace-notes]
+      summary: List the calling user's workspace notes, newest first
+      responses:
+        "200":
+          description: Workspace notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingWorkspaceNote"
+    post:
+      operationId: createTradingWorkspaceNote
+      tags: [trading-workspace-notes]
+      summary: Create a workspace note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingWorkspaceNoteInput"
+      responses:
+        "201":
+          description: Workspace note created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingWorkspaceNote"
+
+  /trading/workspace-notes/{symbol}:
+    get:
+      operationId: listTradingWorkspaceNotesForSymbol
+      tags: [trading-workspace-notes]
+      summary: List the calling user's workspace notes for one symbol, newest first
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Workspace notes for the symbol
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingWorkspaceNote"
+
+  /trading/workspace-notes/{id}:
+    patch:
+      operationId: updateTradingWorkspaceNote
+      tags: [trading-workspace-notes]
+      summary: Update a workspace note's text
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingWorkspaceNoteUpdate"
+      responses:
+        "200":
+          description: Updated workspace note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingWorkspaceNote"
+        "404":
+          description: Workspace note not found
+    delete:
+      operationId: deleteTradingWorkspaceNote
+      tags: [trading-workspace-notes]
+      summary: Delete a workspace note
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Workspace note deleted
+        "404":
+          description: Workspace note not found
+
+  # Deliberately documents the path parameter only, mirroring /trading/structure/{symbol}'s
+  # own established precedent — the route also accepts an optional ?asOf= override,
+  # validated and handled entirely server-side, kept out of this formal contract.
+  /trading/session/{symbol}:
+    get:
+      operationId: getTradingSession
+      tags: [trading-session]
+      summary: Which named trading sessions (Sydney/Tokyo/London/New York) are currently open, plus today's realized session high/low — descriptive only, never predictive
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingSessionData"
+        "404":
+          description: Unknown or invalid symbol
 
   # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
   /trading/risk:
@@ -10586,6 +10812,127 @@ components:
           type: number
         notes:
           type: string
+
+    TradingTradePlanRisk:
+      type: object
+      required: [accountRiskPct, entryPrice, stopPrice, targetPrice, positionSize, riskRewardRatio]
+      properties:
+        accountRiskPct:
+          type: number
+        entryPrice:
+          type: number
+        stopPrice:
+          type: number
+        targetPrice:
+          type: number
+        positionSize:
+          type: ["number", "null"]
+        riskRewardRatio:
+          type: ["number", "null"]
+
+    TradingTradePlan:
+      type: object
+      required: [id, symbol, direction, status, thesis, risk, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        direction:
+          type: string
+          enum: [long, short]
+        status:
+          type: string
+          enum: [draft, active, closed, cancelled]
+        thesis:
+          type: string
+        risk:
+          $ref: "#/components/schemas/TradingTradePlanRisk"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TradingTradePlanInput:
+      type: object
+      required: [symbol, direction, thesis, accountRiskPct, entryPrice, stopPrice, targetPrice]
+      properties:
+        symbol:
+          type: string
+        direction:
+          type: string
+          enum: [long, short]
+        thesis:
+          type: string
+        accountRiskPct:
+          type: number
+        entryPrice:
+          type: number
+        stopPrice:
+          type: number
+        targetPrice:
+          type: number
+        accountValue:
+          type: ["number", "null"]
+          description: The user's own current account value, used only to derive positionSize — honestly null (never fabricated) when not supplied
+
+    TradingTradePlanUpdate:
+      type: object
+      properties:
+        thesis:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, closed, cancelled]
+
+    TradingWorkspaceNote:
+      type: object
+      required: [id, symbol, note, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        symbol:
+          type: string
+        note:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TradingWorkspaceNoteInput:
+      type: object
+      required: [symbol, note]
+      properties:
+        symbol:
+          type: string
+        note:
+          type: string
+
+    TradingWorkspaceNoteUpdate:
+      type: object
+      required: [note]
+      properties:
+        note:
+          type: string
+
+    TradingSessionData:
+      type: object
+      required: [symbol, asOf, activeSessions, sessionHigh, sessionLow]
+      properties:
+        symbol:
+          type: string
+        asOf:
+          type: string
+        activeSessions:
+          type: array
+          items:
+            type: string
+            enum: [sydney, tokyo, london, new_york]
+        sessionHigh:
+          type: ["number", "null"]
+        sessionLow:
+          type: ["number", "null"]
 
     TradingRiskScoreCard:
       type: object

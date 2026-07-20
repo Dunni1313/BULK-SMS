@@ -40,6 +40,8 @@ import {
   investingRiskSnapshotsTable,
   tradingPositionsTable,
   tradingJournalEntriesTable,
+  tradingTradePlansTable,
+  tradingWorkspaceNotesTable,
   tradingBacktestResultsTable,
   platformNotificationsTable,
   optionsBacktestResultsTable,
@@ -105,6 +107,9 @@ afterAll(async () => {
     // Phase 3, Sprint 32 — Institutional Trading Engine's own new tables.
     tradingJournalEntriesTable,
     tradingPositionsTable,
+    // Phase 25 — Institutional Trade Workspace's own new tables.
+    tradingTradePlansTable,
+    tradingWorkspaceNotesTable,
     // Phase 3, Sprint 49 — Backtesting's own new table.
     tradingBacktestResultsTable,
     // Phase 4, Sprint 56 — Alerts & Notifications' own new table.
@@ -396,6 +401,28 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       title: "Test Entry",
       content: "content",
+    }));
+  });
+
+  // Phase 25 — Institutional Trade Workspace's own new tables.
+  it("trading_trade_plans: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(tradingTradePlansTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "AAPL",
+      direction: "long",
+      thesis: "Test thesis",
+      accountRiskPct: 1,
+      entryPrice: 100,
+      stopPrice: 95,
+      targetPrice: 115,
+    }));
+  });
+
+  it("trading_workspace_notes: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(tradingWorkspaceNotesTable, userA, userB, (userId) => ({
+      userId,
+      symbol: "AAPL",
+      note: "Test note",
     }));
   });
 

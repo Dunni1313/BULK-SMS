@@ -217,7 +217,14 @@ import type {
   TradingRegimeAnalysis,
   TradingRiskAnalysis,
   TradingRunBacktestInput,
+  TradingSessionData,
   TradingStructureAnalysis,
+  TradingTradePlan,
+  TradingTradePlanInput,
+  TradingTradePlanUpdate,
+  TradingWorkspaceNote,
+  TradingWorkspaceNoteInput,
+  TradingWorkspaceNoteUpdate,
   UniverseSymbol,
   ValueHistoryRow,
   ValueLessonsResponse,
@@ -14561,6 +14568,817 @@ export const useDeleteTradingPosition = <TError = ErrorType<void>,
       > => {
       return useMutation(getDeleteTradingPositionMutationOptions(options));
     }
+
+export const getListTradingTradePlansUrl = () => {
+
+
+
+
+  return `/api/trading/trade-plans`
+}
+
+/**
+ * @summary List the calling user's trade plans, newest first
+ */
+export const listTradingTradePlans = async ( options?: RequestInit): Promise<TradingTradePlan[]> => {
+
+  return customFetch<TradingTradePlan[]>(getListTradingTradePlansUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingTradePlansQueryKey = () => {
+    return [
+    `/api/trading/trade-plans`
+    ] as const;
+    }
+
+
+export const getListTradingTradePlansQueryOptions = <TData = Awaited<ReturnType<typeof listTradingTradePlans>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlans>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingTradePlansQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingTradePlans>>> = ({ signal }) => listTradingTradePlans({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlans>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingTradePlansQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingTradePlans>>>
+export type ListTradingTradePlansQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's trade plans, newest first
+ */
+
+export function useListTradingTradePlans<TData = Awaited<ReturnType<typeof listTradingTradePlans>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlans>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingTradePlansQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingTradePlanUrl = () => {
+
+
+
+
+  return `/api/trading/trade-plans`
+}
+
+/**
+ * @summary Create a trade plan (status always starts at draft)
+ */
+export const createTradingTradePlan = async (tradingTradePlanInput: TradingTradePlanInput, options?: RequestInit): Promise<TradingTradePlan> => {
+
+  return customFetch<TradingTradePlan>(getCreateTradingTradePlanUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingTradePlanInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingTradePlanMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingTradePlan>>, TError,{data: BodyType<TradingTradePlanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingTradePlan>>, TError,{data: BodyType<TradingTradePlanInput>}, TContext> => {
+
+const mutationKey = ['createTradingTradePlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingTradePlan>>, {data: BodyType<TradingTradePlanInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTradingTradePlan(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingTradePlanMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingTradePlan>>>
+    export type CreateTradingTradePlanMutationBody = BodyType<TradingTradePlanInput>
+    export type CreateTradingTradePlanMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a trade plan (status always starts at draft)
+ */
+export const useCreateTradingTradePlan = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingTradePlan>>, TError,{data: BodyType<TradingTradePlanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingTradePlan>>,
+        TError,
+        {data: BodyType<TradingTradePlanInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingTradePlanMutationOptions(options));
+    }
+
+export const getListTradingTradePlansForSymbolUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/trade-plans/${symbol}`
+}
+
+/**
+ * @summary List the calling user's trade plans for one symbol, newest first
+ */
+export const listTradingTradePlansForSymbol = async (symbol: string, options?: RequestInit): Promise<TradingTradePlan[]> => {
+
+  return customFetch<TradingTradePlan[]>(getListTradingTradePlansForSymbolUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingTradePlansForSymbolQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/trade-plans/${symbol}`
+    ] as const;
+    }
+
+
+export const getListTradingTradePlansForSymbolQueryOptions = <TData = Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingTradePlansForSymbolQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>> = ({ signal }) => listTradingTradePlansForSymbol(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingTradePlansForSymbolQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>>
+export type ListTradingTradePlansForSymbolQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's trade plans for one symbol, newest first
+ */
+
+export function useListTradingTradePlansForSymbol<TData = Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingTradePlansForSymbolQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingTradePlanUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/trade-plans/${id}`
+}
+
+/**
+ * @summary Update a trade plan's thesis and/or status (status changes are validated against the allowed draft/active/closed/cancelled transition rules)
+ */
+export const updateTradingTradePlan = async (id: number,
+    tradingTradePlanUpdate: TradingTradePlanUpdate, options?: RequestInit): Promise<TradingTradePlan> => {
+
+  return customFetch<TradingTradePlan>(getUpdateTradingTradePlanUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingTradePlanUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingTradePlanMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingTradePlan>>, TError,{id: number;data: BodyType<TradingTradePlanUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingTradePlan>>, TError,{id: number;data: BodyType<TradingTradePlanUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingTradePlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingTradePlan>>, {id: number;data: BodyType<TradingTradePlanUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingTradePlan(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingTradePlanMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingTradePlan>>>
+    export type UpdateTradingTradePlanMutationBody = BodyType<TradingTradePlanUpdate>
+    export type UpdateTradingTradePlanMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a trade plan's thesis and/or status (status changes are validated against the allowed draft/active/closed/cancelled transition rules)
+ */
+export const useUpdateTradingTradePlan = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingTradePlan>>, TError,{id: number;data: BodyType<TradingTradePlanUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingTradePlan>>,
+        TError,
+        {id: number;data: BodyType<TradingTradePlanUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingTradePlanMutationOptions(options));
+    }
+
+export const getDeleteTradingTradePlanUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/trade-plans/${id}`
+}
+
+/**
+ * @summary Delete a trade plan
+ */
+export const deleteTradingTradePlan = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingTradePlanUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingTradePlanMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingTradePlan>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingTradePlan>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingTradePlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingTradePlan>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingTradePlan(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingTradePlanMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingTradePlan>>>
+
+    export type DeleteTradingTradePlanMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a trade plan
+ */
+export const useDeleteTradingTradePlan = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingTradePlan>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingTradePlan>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingTradePlanMutationOptions(options));
+    }
+
+export const getListTradingWorkspaceNotesUrl = () => {
+
+
+
+
+  return `/api/trading/workspace-notes`
+}
+
+/**
+ * @summary List the calling user's workspace notes, newest first
+ */
+export const listTradingWorkspaceNotes = async ( options?: RequestInit): Promise<TradingWorkspaceNote[]> => {
+
+  return customFetch<TradingWorkspaceNote[]>(getListTradingWorkspaceNotesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingWorkspaceNotesQueryKey = () => {
+    return [
+    `/api/trading/workspace-notes`
+    ] as const;
+    }
+
+
+export const getListTradingWorkspaceNotesQueryOptions = <TData = Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingWorkspaceNotesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>> = ({ signal }) => listTradingWorkspaceNotes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingWorkspaceNotesQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>>
+export type ListTradingWorkspaceNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's workspace notes, newest first
+ */
+
+export function useListTradingWorkspaceNotes<TData = Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingWorkspaceNotesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingWorkspaceNoteUrl = () => {
+
+
+
+
+  return `/api/trading/workspace-notes`
+}
+
+/**
+ * @summary Create a workspace note
+ */
+export const createTradingWorkspaceNote = async (tradingWorkspaceNoteInput: TradingWorkspaceNoteInput, options?: RequestInit): Promise<TradingWorkspaceNote> => {
+
+  return customFetch<TradingWorkspaceNote>(getCreateTradingWorkspaceNoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingWorkspaceNoteInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingWorkspaceNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingWorkspaceNote>>, TError,{data: BodyType<TradingWorkspaceNoteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingWorkspaceNote>>, TError,{data: BodyType<TradingWorkspaceNoteInput>}, TContext> => {
+
+const mutationKey = ['createTradingWorkspaceNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingWorkspaceNote>>, {data: BodyType<TradingWorkspaceNoteInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTradingWorkspaceNote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingWorkspaceNoteMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingWorkspaceNote>>>
+    export type CreateTradingWorkspaceNoteMutationBody = BodyType<TradingWorkspaceNoteInput>
+    export type CreateTradingWorkspaceNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a workspace note
+ */
+export const useCreateTradingWorkspaceNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingWorkspaceNote>>, TError,{data: BodyType<TradingWorkspaceNoteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingWorkspaceNote>>,
+        TError,
+        {data: BodyType<TradingWorkspaceNoteInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingWorkspaceNoteMutationOptions(options));
+    }
+
+export const getListTradingWorkspaceNotesForSymbolUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/workspace-notes/${symbol}`
+}
+
+/**
+ * @summary List the calling user's workspace notes for one symbol, newest first
+ */
+export const listTradingWorkspaceNotesForSymbol = async (symbol: string, options?: RequestInit): Promise<TradingWorkspaceNote[]> => {
+
+  return customFetch<TradingWorkspaceNote[]>(getListTradingWorkspaceNotesForSymbolUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingWorkspaceNotesForSymbolQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/workspace-notes/${symbol}`
+    ] as const;
+    }
+
+
+export const getListTradingWorkspaceNotesForSymbolQueryOptions = <TData = Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingWorkspaceNotesForSymbolQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>> = ({ signal }) => listTradingWorkspaceNotesForSymbol(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingWorkspaceNotesForSymbolQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>>
+export type ListTradingWorkspaceNotesForSymbolQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's workspace notes for one symbol, newest first
+ */
+
+export function useListTradingWorkspaceNotesForSymbol<TData = Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingWorkspaceNotesForSymbolQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingWorkspaceNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/workspace-notes/${id}`
+}
+
+/**
+ * @summary Update a workspace note's text
+ */
+export const updateTradingWorkspaceNote = async (id: number,
+    tradingWorkspaceNoteUpdate: TradingWorkspaceNoteUpdate, options?: RequestInit): Promise<TradingWorkspaceNote> => {
+
+  return customFetch<TradingWorkspaceNote>(getUpdateTradingWorkspaceNoteUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingWorkspaceNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingWorkspaceNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>, TError,{id: number;data: BodyType<TradingWorkspaceNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>, TError,{id: number;data: BodyType<TradingWorkspaceNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingWorkspaceNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>, {id: number;data: BodyType<TradingWorkspaceNoteUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingWorkspaceNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingWorkspaceNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>>
+    export type UpdateTradingWorkspaceNoteMutationBody = BodyType<TradingWorkspaceNoteUpdate>
+    export type UpdateTradingWorkspaceNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a workspace note's text
+ */
+export const useUpdateTradingWorkspaceNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>, TError,{id: number;data: BodyType<TradingWorkspaceNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingWorkspaceNote>>,
+        TError,
+        {id: number;data: BodyType<TradingWorkspaceNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingWorkspaceNoteMutationOptions(options));
+    }
+
+export const getDeleteTradingWorkspaceNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/workspace-notes/${id}`
+}
+
+/**
+ * @summary Delete a workspace note
+ */
+export const deleteTradingWorkspaceNote = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingWorkspaceNoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingWorkspaceNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingWorkspaceNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingWorkspaceNote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingWorkspaceNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>>
+
+    export type DeleteTradingWorkspaceNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a workspace note
+ */
+export const useDeleteTradingWorkspaceNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingWorkspaceNoteMutationOptions(options));
+    }
+
+export const getGetTradingSessionUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/session/${symbol}`
+}
+
+/**
+ * @summary Which named trading sessions (Sydney/Tokyo/London/New York) are currently open, plus today's realized session high/low — descriptive only, never predictive
+ */
+export const getTradingSession = async (symbol: string, options?: RequestInit): Promise<TradingSessionData> => {
+
+  return customFetch<TradingSessionData>(getGetTradingSessionUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingSessionQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/session/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingSessionQueryOptions = <TData = Awaited<ReturnType<typeof getTradingSession>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingSessionQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingSession>>> = ({ signal }) => getTradingSession(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingSession>>>
+export type GetTradingSessionQueryError = ErrorType<void>
+
+
+/**
+ * @summary Which named trading sessions (Sydney/Tokyo/London/New York) are currently open, plus today's realized session high/low — descriptive only, never predictive
+ */
+
+export function useGetTradingSession<TData = Awaited<ReturnType<typeof getTradingSession>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingSessionQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetTradingRiskUrl = () => {
 

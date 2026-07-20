@@ -5701,6 +5701,121 @@ export interface TradingPositionUpdate {
   notes?: string;
 }
 
+export interface TradingTradePlanRisk {
+  accountRiskPct: number;
+  entryPrice: number;
+  stopPrice: number;
+  targetPrice: number;
+  /** @nullable */
+  positionSize: number | null;
+  /** @nullable */
+  riskRewardRatio: number | null;
+}
+
+export type TradingTradePlanDirection = typeof TradingTradePlanDirection[keyof typeof TradingTradePlanDirection];
+
+
+export const TradingTradePlanDirection = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export type TradingTradePlanStatus = typeof TradingTradePlanStatus[keyof typeof TradingTradePlanStatus];
+
+
+export const TradingTradePlanStatus = {
+  draft: 'draft',
+  active: 'active',
+  closed: 'closed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface TradingTradePlan {
+  id: number;
+  symbol: string;
+  direction: TradingTradePlanDirection;
+  status: TradingTradePlanStatus;
+  thesis: string;
+  risk: TradingTradePlanRisk;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TradingTradePlanInputDirection = typeof TradingTradePlanInputDirection[keyof typeof TradingTradePlanInputDirection];
+
+
+export const TradingTradePlanInputDirection = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export interface TradingTradePlanInput {
+  symbol: string;
+  direction: TradingTradePlanInputDirection;
+  thesis: string;
+  accountRiskPct: number;
+  entryPrice: number;
+  stopPrice: number;
+  targetPrice: number;
+  /**
+     * The user's own current account value, used only to derive positionSize — honestly null (never fabricated) when not supplied
+     * @nullable
+     */
+  accountValue?: number | null;
+}
+
+export type TradingTradePlanUpdateStatus = typeof TradingTradePlanUpdateStatus[keyof typeof TradingTradePlanUpdateStatus];
+
+
+export const TradingTradePlanUpdateStatus = {
+  draft: 'draft',
+  active: 'active',
+  closed: 'closed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface TradingTradePlanUpdate {
+  thesis?: string;
+  status?: TradingTradePlanUpdateStatus;
+}
+
+export interface TradingWorkspaceNote {
+  id: number;
+  symbol: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TradingWorkspaceNoteInput {
+  symbol: string;
+  note: string;
+}
+
+export interface TradingWorkspaceNoteUpdate {
+  note: string;
+}
+
+export type TradingSessionDataActiveSessionsItem = typeof TradingSessionDataActiveSessionsItem[keyof typeof TradingSessionDataActiveSessionsItem];
+
+
+export const TradingSessionDataActiveSessionsItem = {
+  sydney: 'sydney',
+  tokyo: 'tokyo',
+  london: 'london',
+  new_york: 'new_york',
+} as const;
+
+export interface TradingSessionData {
+  symbol: string;
+  asOf: string;
+  activeSessions: TradingSessionDataActiveSessionsItem[];
+  /** @nullable */
+  sessionHigh: number | null;
+  /** @nullable */
+  sessionLow: number | null;
+}
+
 export interface TradingVolumeProfileLevel {
   price: number;
   volume: number;

@@ -8551,6 +8551,193 @@ export const DeleteTradingPositionParams = zod.object({
 
 
 /**
+ * @summary List the calling user's trade plans, newest first
+ */
+export const ListTradingTradePlansResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "direction": zod.enum(['long', 'short']),
+  "status": zod.enum(['draft', 'active', 'closed', 'cancelled']),
+  "thesis": zod.string(),
+  "risk": zod.object({
+  "accountRiskPct": zod.number(),
+  "entryPrice": zod.number(),
+  "stopPrice": zod.number(),
+  "targetPrice": zod.number(),
+  "positionSize": zod.number().nullable(),
+  "riskRewardRatio": zod.number().nullable()
+}),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTradingTradePlansResponse = zod.array(ListTradingTradePlansResponseItem)
+
+
+/**
+ * @summary Create a trade plan (status always starts at draft)
+ */
+export const CreateTradingTradePlanBody = zod.object({
+  "symbol": zod.string(),
+  "direction": zod.enum(['long', 'short']),
+  "thesis": zod.string(),
+  "accountRiskPct": zod.number(),
+  "entryPrice": zod.number(),
+  "stopPrice": zod.number(),
+  "targetPrice": zod.number(),
+  "accountValue": zod.number().nullish().describe('The user\'s own current account value, used only to derive positionSize — honestly null (never fabricated) when not supplied')
+})
+
+
+/**
+ * @summary List the calling user's trade plans for one symbol, newest first
+ */
+export const ListTradingTradePlansForSymbolParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const ListTradingTradePlansForSymbolResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "direction": zod.enum(['long', 'short']),
+  "status": zod.enum(['draft', 'active', 'closed', 'cancelled']),
+  "thesis": zod.string(),
+  "risk": zod.object({
+  "accountRiskPct": zod.number(),
+  "entryPrice": zod.number(),
+  "stopPrice": zod.number(),
+  "targetPrice": zod.number(),
+  "positionSize": zod.number().nullable(),
+  "riskRewardRatio": zod.number().nullable()
+}),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTradingTradePlansForSymbolResponse = zod.array(ListTradingTradePlansForSymbolResponseItem)
+
+
+/**
+ * @summary Update a trade plan's thesis and/or status (status changes are validated against the allowed draft/active/closed/cancelled transition rules)
+ */
+export const UpdateTradingTradePlanParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTradingTradePlanBody = zod.object({
+  "thesis": zod.string().optional(),
+  "status": zod.enum(['draft', 'active', 'closed', 'cancelled']).optional()
+})
+
+export const UpdateTradingTradePlanResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "direction": zod.enum(['long', 'short']),
+  "status": zod.enum(['draft', 'active', 'closed', 'cancelled']),
+  "thesis": zod.string(),
+  "risk": zod.object({
+  "accountRiskPct": zod.number(),
+  "entryPrice": zod.number(),
+  "stopPrice": zod.number(),
+  "targetPrice": zod.number(),
+  "positionSize": zod.number().nullable(),
+  "riskRewardRatio": zod.number().nullable()
+}),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a trade plan
+ */
+export const DeleteTradingTradePlanParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List the calling user's workspace notes, newest first
+ */
+export const ListTradingWorkspaceNotesResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTradingWorkspaceNotesResponse = zod.array(ListTradingWorkspaceNotesResponseItem)
+
+
+/**
+ * @summary Create a workspace note
+ */
+export const CreateTradingWorkspaceNoteBody = zod.object({
+  "symbol": zod.string(),
+  "note": zod.string()
+})
+
+
+/**
+ * @summary List the calling user's workspace notes for one symbol, newest first
+ */
+export const ListTradingWorkspaceNotesForSymbolParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const ListTradingWorkspaceNotesForSymbolResponseItem = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTradingWorkspaceNotesForSymbolResponse = zod.array(ListTradingWorkspaceNotesForSymbolResponseItem)
+
+
+/**
+ * @summary Update a workspace note's text
+ */
+export const UpdateTradingWorkspaceNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTradingWorkspaceNoteBody = zod.object({
+  "note": zod.string()
+})
+
+export const UpdateTradingWorkspaceNoteResponse = zod.object({
+  "id": zod.number(),
+  "symbol": zod.string(),
+  "note": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a workspace note
+ */
+export const DeleteTradingWorkspaceNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Which named trading sessions (Sydney/Tokyo/London/New York) are currently open, plus today's realized session high/low — descriptive only, never predictive
+ */
+export const GetTradingSessionParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingSessionResponse = zod.object({
+  "symbol": zod.string(),
+  "asOf": zod.string(),
+  "activeSessions": zod.array(zod.enum(['sydney', 'tokyo', 'london', 'new_york'])),
+  "sessionHigh": zod.number().nullable(),
+  "sessionLow": zod.number().nullable()
+})
+
+
+/**
  * @summary Portfolio risk analysis over the calling user's own open trading positions — position sizing, stop/target discipline, and portfolio risk budget, SIMULATED-first, honestly reports insufficient data rather than fabricating a default account value or position
  */
 export const GetTradingRiskResponse = zod.object({

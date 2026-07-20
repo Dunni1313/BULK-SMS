@@ -49,6 +49,9 @@ import opsRouter from "./ops";
 import opportunityDiscoveryRouter from "./opportunityDiscovery";
 import monitoringEngineRouter from "./monitoringEngine";
 import institutionalReportingRouter from "./institutionalReporting";
+import tradingTradePlansRouter from "./tradingTradePlans";
+import tradingWorkspaceNotesRouter from "./tradingWorkspaceNotes";
+import tradingSessionRouter from "./tradingSession";
 
 const router: IRouter = Router();
 
@@ -102,5 +105,8 @@ router.use(opsRouter);
 router.use(opportunityDiscoveryRouter);
 router.use(monitoringEngineRouter);
 router.use(institutionalReportingRouter);
+router.use(tradingTradePlansRouter);
+router.use(tradingWorkspaceNotesRouter);
+router.use(tradingSessionRouter);
 
 export default router;
