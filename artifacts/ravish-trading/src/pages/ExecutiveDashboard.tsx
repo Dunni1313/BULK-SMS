@@ -63,6 +63,7 @@ import {
   Gavel,
   GitCompare,
   Columns2,
+  Boxes,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -440,6 +441,24 @@ export default function ExecutiveDashboard() {
                 <Columns2 className="w-3 h-3" /> Split-screen view
               </Link>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Strategy Workbench shortcut — pure navigation, no fetch. Engine 2's
+            own Institutional Strategy Workbench (Phase 31), reachable from
+            this Engine-1 dashboard for cross-engine convenience only —
+            never a duplicated feature. */}
+        <Card className="bg-card border-border" data-testid="panel-strategy-workbench-shortcut">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Boxes className="w-4 h-4 text-indigo-400" /> Strategy Workbench
+            </CardTitle>
+            <CardDescription className="text-xs">Browse, compare, and review your own registered trading strategies.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/strategy-workbench" className="text-xs text-primary hover:underline flex items-center gap-1.5" data-testid="shortcut-strategy-workbench">
+              <Boxes className="w-3 h-3" /> Open the Strategy Workbench
+            </Link>
           </CardContent>
         </Card>
       </div>

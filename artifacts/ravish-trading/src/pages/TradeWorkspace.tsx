@@ -1015,6 +1015,13 @@ export default function TradeWorkspace() {
                         >
                           <ExternalLink className="h-3 w-3" /> Register or review your own Strategy Framework
                         </a>
+                        <a
+                          href="/strategy-workbench"
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          data-testid="link-open-strategy-workbench"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Open the Institutional Strategy Workbench
+                        </a>
                       </CardHeader>
                       <CardContent className="space-y-2">
                         {coachHistory.length === 0 && !coachStreamingAnswer && (

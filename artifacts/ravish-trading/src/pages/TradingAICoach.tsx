@@ -252,6 +252,9 @@ export default function TradingAICoach() {
         <Link href="/strategy-framework" className="text-xs text-primary hover:underline block" data-testid="link-trading-coach-open-strategy-framework">
           Register or review your own Strategy Framework →
         </Link>
+        <Link href="/strategy-workbench" className="text-xs text-primary hover:underline block" data-testid="link-trading-coach-open-strategy-workbench">
+          Open the Institutional Strategy Workbench →
+        </Link>
       </div>
 
       <Card className="bg-card border-border">

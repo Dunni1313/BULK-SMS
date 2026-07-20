@@ -62,6 +62,7 @@ function fixtureStrategy(overrides: Record<string, unknown> = {}) {
     educationalNotes: "Some notes.",
     references: ["A book"],
     version: "1.0.0",
+    validation: { valid: true, issues: [] },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...overrides,
@@ -139,6 +140,8 @@ describe("StrategyFramework page", () => {
     await user.click(screen.getByTestId("button-select-strategy-1"));
 
     expect(screen.getByTestId("text-strategy-detail-name")).toHaveTextContent("My Setup");
+    expect(screen.getByTestId("panel-validation-summary")).toBeInTheDocument();
+    expect(screen.getByTestId("badge-validation-status")).toHaveTextContent("Structurally valid");
     expect(screen.getByTestId("panel-evidence-viewer")).toBeInTheDocument();
     expect(screen.getByTestId("badge-evidence-structure")).toBeInTheDocument();
     expect(screen.getByTestId("badge-evidence-liquidity")).toBeInTheDocument();

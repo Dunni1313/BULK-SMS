@@ -25,7 +25,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -34,35 +33,22 @@ import {
   useDeleteTradingStrategy,
   useGetTradingStrategy,
   getGetTradingStrategyQueryKey,
-  useListTradingStrategyChecklists,
-  getListTradingStrategyChecklistsQueryKey,
-  useCreateTradingStrategyChecklist,
-  useUpdateTradingStrategyChecklist,
-  useDeleteTradingStrategyChecklist,
-  useGetTradingCoachStrategyExplanation,
-  getGetTradingCoachStrategyExplanationQueryKey,
   useGetLearningPathByKey,
   useGetLearningProgress,
   getGetLearningProgressQueryKey,
-  useRecordLearningItemViewed,
   TradingStrategyCategory,
   TradingStrategyRequiredEvidenceItem,
   type TradingStrategy,
-  type TradingStrategyChecklist,
 } from "@workspace/api-client-react";
-import { ListChecks, Layers, GraduationCap, BookOpen, CheckCircle2, Circle, Trash2, MessageCircle } from "lucide-react";
+import { EvidenceViewer, EVIDENCE_LABELS } from "@/components/strategy/EvidenceViewer";
+import { ChecklistReviewPanel } from "@/components/strategy/ChecklistReviewPanel";
+import { StrategyLearningPanel } from "@/components/strategy/StrategyLearningPanel";
+import { StrategyCoachExplanationPanel } from "@/components/strategy/StrategyCoachExplanationPanel";
+import { StrategyValidationSummary } from "@/components/strategy/StrategyValidationSummary";
+import { Layers, GraduationCap, CheckCircle2, Circle, Trash2 } from "lucide-react";
 
 const CATEGORY_OPTIONS = Object.values(TradingStrategyCategory);
 const EVIDENCE_OPTIONS = Object.values(TradingStrategyRequiredEvidenceItem);
-const EVIDENCE_LABELS: Record<string, string> = {
-  structure: "Market Structure Workbench",
-  liquidity: "Liquidity & Session Workbench",
-  session: "Trading Session",
-  risk: "Risk Studio",
-  "trade-plan": "Trade Planning Studio",
-  journal: "Trading Journal",
-  coach: "Trading AI Coach",
-};
 
 function NewStrategyForm({ onCreated }: { onCreated: (id: number) => void }) {
   const [name, setName] = useState("");
@@ -199,117 +185,11 @@ function NewStrategyForm({ onCreated }: { onCreated: (id: number) => void }) {
   );
 }
 
-function ChecklistViewer({ strategy }: { strategy: TradingStrategy }) {
-  const { data: checklists } = useListTradingStrategyChecklists(strategy.id, {
-    query: { queryKey: getListTradingStrategyChecklistsQueryKey(strategy.id) },
-  });
-  const [symbol, setSymbol] = useState("");
-  const createChecklist = useCreateTradingStrategyChecklist();
-  const updateChecklist = useUpdateTradingStrategyChecklist();
-  const deleteChecklist = useDeleteTradingStrategyChecklist();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-
-  const selected = checklists?.find((c) => c.id === selectedId) ?? null;
-
-  const toggleItem = (checklist: TradingStrategyChecklist, itemId: string) => {
-    const items = checklist.items.map((i) => (i.id === itemId ? { ...i, completed: !i.completed } : i));
-    updateChecklist.mutate({ id: checklist.id, data: { items } });
-  };
-
-  return (
-    <div className="space-y-3" data-testid="panel-checklist-viewer">
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="Optional symbol"
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value)}
-          className="max-w-[160px]"
-          data-testid="input-checklist-symbol"
-        />
-        <Button
-          size="sm"
-          data-testid="button-new-checklist"
-          onClick={() =>
-            createChecklist.mutate(
-              { strategyId: strategy.id, data: { symbol: symbol.trim() || undefined } },
-              { onSuccess: (created) => setSelectedId(created.id) },
-            )
-          }
-        >
-          New Checklist
-        </Button>
-      </div>
-
-      {checklists?.length === 0 && (
-        <p className="text-sm text-muted-foreground" data-testid="text-checklists-empty">
-          No checklist instances yet for this strategy.
-        </p>
-      )}
-
-      {checklists && checklists.length > 0 && (
-        <ul className="space-y-1" data-testid="list-checklists">
-          {checklists.map((c) => (
-            <li key={c.id}>
-              <button
-                type="button"
-                data-testid={`button-select-checklist-${c.id}`}
-                onClick={() => setSelectedId(c.id)}
-                className={`w-full text-left text-sm p-2 rounded border ${selectedId === c.id ? "border-indigo-500" : "border-border"}`}
-              >
-                {c.symbol ?? "(no symbol)"} — <Badge variant={c.status === "complete" ? "default" : "secondary"}>{c.status}</Badge>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {selected && (
-        <div className="space-y-2 border-t border-border pt-3" data-testid={`checklist-detail-${selected.id}`}>
-          {selected.items.map((item) => (
-            <div key={item.id} className="flex items-start gap-2 text-sm">
-              <Checkbox
-                checked={item.completed}
-                onCheckedChange={() => toggleItem(selected, item.id)}
-                data-testid={`checkbox-checklist-item-${item.id}`}
-              />
-              <div>
-                <span>
-                  {item.label} {item.required ? <Badge variant="outline" className="ml-1 text-[10px]">required</Badge> : null}
-                </span>
-                {item.evidenceLinks.length === 0 && (
-                  <p className="text-xs text-muted-foreground" data-testid={`text-no-evidence-${item.id}`}>
-                    No evidence link attached yet.
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-          <Button
-            variant="destructive"
-            size="sm"
-            data-testid={`button-delete-checklist-${selected.id}`}
-            onClick={() => {
-              deleteChecklist.mutate({ id: selected.id });
-              setSelectedId(null);
-            }}
-          >
-            <Trash2 className="w-3 h-3 mr-1" /> Delete this checklist
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function StrategyDetail({ strategyId, onDeleted }: { strategyId: number; onDeleted: () => void }) {
   const { data: strategy, isLoading } = useGetTradingStrategy(strategyId, {
     query: { queryKey: getGetTradingStrategyQueryKey(strategyId) },
   });
   const deleteStrategy = useDeleteTradingStrategy();
-  const recordViewed = useRecordLearningItemViewed();
-  const { data: coach, isLoading: coachLoading } = useGetTradingCoachStrategyExplanation(strategyId, {
-    query: { queryKey: getGetTradingCoachStrategyExplanationQueryKey(strategyId) },
-  });
 
   if (isLoading || !strategy) return <Skeleton className="h-64 w-full" />;
 
@@ -349,90 +229,11 @@ function StrategyDetail({ strategyId, onDeleted }: { strategyId: number; onDelet
         </CardContent>
       </Card>
 
-      <Card data-testid="panel-evidence-viewer">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Layers className="w-4 h-4" /> Evidence Viewer
-          </CardTitle>
-          <CardDescription>Existing deterministic outputs this strategy's own author considers relevant — never calculated here.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          {strategy.requiredEvidence.map((ev) => (
-            <Badge key={ev} variant="secondary" data-testid={`badge-evidence-${ev}`}>
-              {EVIDENCE_LABELS[ev] ?? ev}
-            </Badge>
-          ))}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <ListChecks className="w-4 h-4" /> Checklist Viewer
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChecklistViewer strategy={strategy} />
-        </CardContent>
-      </Card>
-
-      <Card data-testid="panel-learning-viewer">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <BookOpen className="w-4 h-4" /> Learning Viewer
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <p data-testid="text-strategy-educational-notes">{strategy.educationalNotes || "No educational notes recorded."}</p>
-          {strategy.references.length > 0 && (
-            <ul className="list-disc list-inside text-muted-foreground" data-testid="list-strategy-references">
-              {strategy.references.map((r, i) => (
-                <li key={i}>{r}</li>
-              ))}
-            </ul>
-          )}
-          <Button
-            size="sm"
-            variant="outline"
-            data-testid="button-mark-strategy-learning-viewed"
-            onClick={() => recordViewed.mutate({ data: { itemType: "strategy", itemKey: `strategy-framework:${strategy.id}` } })}
-          >
-            Mark as viewed
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card data-testid="panel-strategy-coach">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <MessageCircle className="w-4 h-4" /> Strategy Coach
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          {coachLoading && <Skeleton className="h-16 w-full" />}
-          {coach && (
-            <>
-              <p data-testid="text-strategy-coach-headline">{coach.headline}</p>
-              <p className="text-muted-foreground">{coach.whyThisExists}</p>
-              <ul className="space-y-1">
-                {coach.metricsUsed.map((m, i) => (
-                  <li key={i} className="text-xs">
-                    <span className="font-medium">{m.label}:</span> {m.detail}
-                  </li>
-                ))}
-              </ul>
-              {coach.risksReducingConfidence.length > 0 && (
-                <ul className="list-disc list-inside text-amber-500 text-xs" data-testid="list-strategy-coach-risks">
-                  {coach.risksReducingConfidence.map((r, i) => (
-                    <li key={i}>{r}</li>
-                  ))}
-                </ul>
-              )}
-              <p className="text-[11px] text-muted-foreground italic">{coach.disclaimer}</p>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <StrategyValidationSummary validation={strategy.validation} />
+      <EvidenceViewer requiredEvidence={strategy.requiredEvidence} />
+      <ChecklistReviewPanel strategy={strategy} />
+      <StrategyLearningPanel strategy={strategy} />
+      <StrategyCoachExplanationPanel strategyId={strategyId} />
     </div>
   );
 }
