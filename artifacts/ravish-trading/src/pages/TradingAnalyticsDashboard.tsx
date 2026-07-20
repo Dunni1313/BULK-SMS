@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { BarChart3, LayoutGrid, Layers, BookOpen, ShieldAlert, GraduationCap, MessageSquare, Clock, FileBarChart2 } from "lucide-react";
+import { BarChart3, LayoutGrid, Layers, BookOpen, ShieldAlert, GraduationCap, MessageSquare, Clock, FileBarChart2, Grid3x3 } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 
 const CHART_COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ef4444", "#06b6d4", "#a855f7", "#84cc16", "#ec4899", "#14b8a6"];
@@ -123,6 +123,11 @@ export default function TradingAnalyticsDashboard() {
             No Predictions
           </Badge>
         </div>
+        {/* Phase 34 — Cross-Engine Orchestration & Unified Workspace. Pure
+            navigation, no fetch. */}
+        <Link href="/cross-engine-workspace" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-cross-engine-workspace">
+          <Grid3x3 className="w-3 h-3" /> Open Cross-Engine Workspace →
+        </Link>
       </div>
 
       {!hasAnyData && (

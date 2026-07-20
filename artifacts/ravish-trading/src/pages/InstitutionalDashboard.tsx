@@ -161,6 +161,7 @@ import {
   PieChart,
   ExternalLink,
   Command,
+  Grid3x3,
 } from "lucide-react";
 
 // Bounded — a fast-scan summary, not a full history dump. The full lists
@@ -821,6 +822,11 @@ export default function InstitutionalDashboard() {
                 duplicated feature. */}
             <Link href="/executive-intelligence" className="flex items-center gap-1.5 text-xs text-primary hover:underline" data-testid="link-open-executive-intelligence">
               <Command className="h-3 w-3" /> Open Executive Intelligence Hub →
+            </Link>
+            {/* Phase 34 — Cross-Engine Orchestration & Unified Workspace.
+                Pure navigation, no fetch. */}
+            <Link href="/cross-engine-workspace" className="flex items-center gap-1.5 text-xs text-primary hover:underline" data-testid="link-open-cross-engine-workspace">
+              <Grid3x3 className="h-3 w-3" /> Open Cross-Engine Workspace →
             </Link>
           </CardContent>
         </Card>

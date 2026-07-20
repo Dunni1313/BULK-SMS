@@ -38,6 +38,7 @@ import {
   Boxes,
   Briefcase,
   GraduationCap as CoachIcon,
+  LayoutPanelLeft,
 } from "lucide-react";
 
 function KpiCard({ label, value, testId }: { label: string; value: string | number; testId: string }) {
@@ -136,6 +137,12 @@ export default function ExecutiveIntelligence() {
             No Predictions
           </Badge>
         </div>
+        {/* Phase 34 — Cross-Engine Orchestration & Unified Workspace. Pure
+            navigation, no fetch — the Unified Workspace's own global search,
+            recent items, and tasks are a distinct, deeper surface. */}
+        <Link href="/cross-engine-workspace" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-cross-engine-workspace">
+          <LayoutPanelLeft className="w-3 h-3" /> Open Cross-Engine Workspace →
+        </Link>
       </div>
 
       {!hasAnyData && (

@@ -69,6 +69,7 @@ import {
   Layers,
   Boxes,
   Command,
+  Grid3x3,
 } from "lucide-react";
 
 export interface NavItem {
@@ -101,6 +102,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Adjustments", href: "/adjustments", icon: Wrench },
   { title: "Institutional Dashboard", href: "/institutional-dashboard", icon: LayoutGrid },
   { title: "Executive Intelligence", href: "/executive-intelligence", icon: Command },
+  { title: "Cross-Engine Workspace", href: "/cross-engine-workspace", icon: Grid3x3 },
   { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
   { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
   { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },

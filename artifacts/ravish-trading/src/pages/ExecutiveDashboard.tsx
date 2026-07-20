@@ -67,6 +67,7 @@ import {
   Boxes,
   BarChart3,
   Command,
+  Grid3x3,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -266,9 +267,14 @@ export default function ExecutiveDashboard() {
               </div>
             </div>
           )}
-          <Link href="/executive-intelligence" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-executive-intelligence">
-            <Command className="w-3 h-3" /> Open the Executive Intelligence Hub →
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/executive-intelligence" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-executive-intelligence">
+              <Command className="w-3 h-3" /> Open the Executive Intelligence Hub →
+            </Link>
+            <Link href="/cross-engine-workspace" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-cross-engine-workspace">
+              <Grid3x3 className="w-3 h-3" /> Open the Cross-Engine Workspace →
+            </Link>
+          </div>
         </CardContent>
       </Card>
 

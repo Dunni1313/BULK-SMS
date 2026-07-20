@@ -15,7 +15,7 @@
 // effect of typing into the builder form.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearch } from "wouter";
+import { Link, useSearch } from "wouter";
 import {
   useGetReportTypes,
   getGetReportTypesQueryKey,
@@ -64,7 +64,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { FileBarChart, Search, Save, Printer, ChevronLeft, ChevronRight, Trash2, GitCompare } from "lucide-react";
+import { FileBarChart, Search, Save, Printer, ChevronLeft, ChevronRight, Trash2, GitCompare, Grid3x3 } from "lucide-react";
 
 type ReportType =
   | "investment-committee"
@@ -284,6 +284,11 @@ export default function ReportingCentre() {
               Professional
             </Badge>
           </div>
+          {/* Phase 34 — Cross-Engine Orchestration & Unified Workspace. Pure
+              navigation, no fetch. */}
+          <Link href="/cross-engine-workspace?tab=shortcuts" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-cross-engine-workspace">
+            <Grid3x3 className="w-3 h-3" /> Open Cross-Engine Workspace →
+          </Link>
         </div>
 
         <Card className="bg-card border-border">

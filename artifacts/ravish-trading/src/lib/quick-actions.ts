@@ -7,7 +7,23 @@
 // the two surfaces can never silently drift out of sync.
 
 import type { LucideIcon } from "lucide-react";
-import { Search, Zap, PieChart, Landmark, BookOpen, GraduationCap, Sparkles, Download } from "lucide-react";
+import {
+  Search,
+  Zap,
+  PieChart,
+  Landmark,
+  BookOpen,
+  GraduationCap,
+  Sparkles,
+  Download,
+  Terminal,
+  Briefcase,
+  ClipboardList,
+  Layers,
+  BarChart3,
+  FileBarChart2,
+  Command,
+} from "lucide-react";
 
 export interface QuickAction {
   id: string;
@@ -29,4 +45,24 @@ export const QUICK_ACTIONS: QuickAction[] = [
   { id: "learning-centre", label: "Learning Centre", href: "/learn", icon: GraduationCap, kind: "navigate" },
   { id: "strategy-academy", label: "Strategy Academy", href: "/learn/strategy-academy", icon: Sparkles, kind: "navigate" },
   { id: "export-portfolio", label: "Export Portfolio (CSV)", href: "", icon: Download, kind: "export" },
+];
+
+// Phase 34 — Cross-Engine Orchestration & Unified Workspace. A second,
+// additive static list — every "action" here is still a pure navigation,
+// never a new capability — matching this phase's own "reuse existing
+// actions... do not create new business logic" instruction. Distinct from
+// QUICK_ACTIONS above (which is Options Income Engine-focused, Phase 10)
+// since these are the literal examples the Phase 34 brief itself named:
+// Open Research, Open Portfolio, Open Trade Plan, Open Strategy, Open
+// Analytics, Open Report, Open Learning, Open Executive Dashboard.
+export const CROSS_ENGINE_QUICK_ACTIONS: QuickAction[] = [
+  { id: "open-research", label: "Open Research", href: "/research-terminal", icon: Terminal, kind: "navigate" },
+  { id: "open-portfolio", label: "Open Portfolio", href: "/stock-analyst/portfolio-construction", icon: Briefcase, kind: "navigate" },
+  { id: "open-trade-plan", label: "Open Trade Plan", href: "/trade-planning-studio", icon: ClipboardList, kind: "navigate" },
+  { id: "open-strategy", label: "Open Strategy", href: "/strategy-framework", icon: Layers, kind: "navigate" },
+  { id: "open-analytics", label: "Open Analytics", href: "/trading-analytics", icon: BarChart3, kind: "navigate" },
+  { id: "open-report", label: "Open Report", href: "/reporting-centre", icon: FileBarChart2, kind: "navigate" },
+  { id: "open-learning", label: "Open Learning", href: "/learn", icon: GraduationCap, kind: "navigate" },
+  { id: "open-executive-dashboard", label: "Open Executive Dashboard", href: "/stock-analyst/executive-dashboard", icon: PieChart, kind: "navigate" },
+  { id: "open-executive-intelligence", label: "Open Executive Intelligence", href: "/executive-intelligence", icon: Command, kind: "navigate" },
 ];
