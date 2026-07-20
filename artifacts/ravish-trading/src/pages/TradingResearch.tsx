@@ -737,6 +737,13 @@ export default function TradingResearch() {
                 )}
 
                 <p className="border-t border-border pt-3 text-sm text-muted-foreground">{liquidity.summary}</p>
+                <a
+                  href={`/liquidity-workbench?symbol=${symbol}`}
+                  className="flex items-center gap-1 text-xs text-primary hover:underline"
+                  data-testid="link-open-liquidity-workbench"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open full Liquidity &amp; Session Workbench
+                </a>
               </CardContent>
             </Card>
           )}

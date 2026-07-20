@@ -342,6 +342,13 @@ export default function TradingJournal() {
           >
             <ExternalLink className="h-3 w-3" /> Review structure in the Market Structure Workbench
           </a>
+          <a
+            href="/liquidity-workbench"
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-open-liquidity-workbench"
+          >
+            <ExternalLink className="h-3 w-3" /> Review liquidity &amp; sessions in the Liquidity &amp; Session Workbench
+          </a>
         </div>
 
         <div className="space-y-4">

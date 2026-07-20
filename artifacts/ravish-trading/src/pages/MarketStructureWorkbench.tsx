@@ -510,6 +510,13 @@ export default function MarketStructureWorkbench() {
                               </Badge>
                             </div>
                             <p className="text-muted-foreground">{liquidity.summary}</p>
+                            <a
+                              href={`/liquidity-workbench?symbol=${symbol}`}
+                              className="flex items-center gap-1 text-primary hover:underline"
+                              data-testid="link-open-liquidity-workbench"
+                            >
+                              <ExternalLink className="h-3 w-3" /> Open full Liquidity &amp; Session Workbench
+                            </a>
                           </>
                         )}
                       </CardContent>

@@ -493,6 +493,11 @@ function OverviewTab() {
               <CardContent className="pt-4 text-sm font-medium">Market Structure Workbench</CardContent>
             </Card>
           </Link>
+          <Link href="/liquidity-workbench" data-testid="link-overview-liquidity-workbench">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Liquidity &amp; Session Workbench</CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>
