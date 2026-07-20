@@ -39,6 +39,8 @@ import {
   getGetExecutiveSummaryReportQueryKey,
   useGetTradePlanningSummaryReport,
   getGetTradePlanningSummaryReportQueryKey,
+  useGetStrategyFrameworkSummaryReport,
+  getGetStrategyFrameworkSummaryReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -70,7 +72,8 @@ type ReportType =
   | "monitoring-summary"
   | "ai-coach-summary"
   | "executive-summary"
-  | "trade-planning-summary";
+  | "trade-planning-summary"
+  | "strategy-framework-summary";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -91,6 +94,7 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "ai-coach-summary",
   "executive-summary",
   "trade-planning-summary",
+  "strategy-framework-summary",
 ];
 
 export default function ReportingCentre() {
@@ -151,6 +155,7 @@ export default function ReportingCentre() {
   const acRes = useGetAiCoachLearningSummaryReport({ query: { queryKey: getGetAiCoachLearningSummaryReportQueryKey(), enabled: generated?.type === "ai-coach-summary" } });
   const esRes = useGetExecutiveSummaryReport({ query: { queryKey: getGetExecutiveSummaryReportQueryKey(), enabled: generated?.type === "executive-summary" } });
   const tpsRes = useGetTradePlanningSummaryReport({ query: { queryKey: getGetTradePlanningSummaryReportQueryKey(), enabled: generated?.type === "trade-planning-summary" } });
+  const sfsRes = useGetStrategyFrameworkSummaryReport({ query: { queryKey: getGetStrategyFrameworkSummaryReportQueryKey(), enabled: generated?.type === "strategy-framework-summary" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -171,9 +176,10 @@ export default function ReportingCentre() {
       "ai-coach-summary": acRes,
       "executive-summary": esRes,
       "trade-planning-summary": tpsRes,
+      "strategy-framework-summary": sfsRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

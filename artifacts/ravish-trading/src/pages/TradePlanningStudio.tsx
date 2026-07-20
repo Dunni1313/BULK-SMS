@@ -1051,6 +1051,13 @@ export default function TradePlanningStudio() {
                         >
                           <ExternalLink className="h-3 w-3" /> Open full Institutional Trading AI Coach
                         </a>
+                        <a
+                          href="/strategy-framework"
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          data-testid="link-open-strategy-framework"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Register or review your own Strategy Framework
+                        </a>
                       </CardHeader>
                       <CardContent className="space-y-2">
                         {coachHistory.length === 0 && !coachStreamingAnswer && (

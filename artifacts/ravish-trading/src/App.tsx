@@ -70,6 +70,7 @@ const InvestmentCommitteeWorkbench = lazy(() => import("./pages/InvestmentCommit
 const ResearchTerminal = lazy(() => import("./pages/ResearchTerminal"));
 const InstitutionalAICoach = lazy(() => import("./pages/InstitutionalAICoach"));
 const TradingAICoach = lazy(() => import("./pages/TradingAICoach"));
+const StrategyFramework = lazy(() => import("./pages/StrategyFramework"));
 const ReportingCentre = lazy(() => import("./pages/ReportingCentre"));
 const ExecutiveDashboard = lazy(() => import("./pages/ExecutiveDashboard"));
 const DecisionEngine = lazy(() => import("./pages/DecisionEngine"));
@@ -170,6 +171,7 @@ function Router() {
           <Route path="/liquidity-workbench" component={LiquidityWorkbench} />
           <Route path="/trade-planning-studio" component={TradePlanningStudio} />
           <Route path="/trading-ai-coach" component={TradingAICoach} />
+          <Route path="/strategy-framework" component={StrategyFramework} />
           <Route path="/options-backtest" component={OptionsBacktest} />
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />

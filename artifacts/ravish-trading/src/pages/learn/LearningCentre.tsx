@@ -508,6 +508,11 @@ function OverviewTab() {
               <CardContent className="pt-4 text-sm font-medium">Institutional Trading AI Coach</CardContent>
             </Card>
           </Link>
+          <Link href="/strategy-framework" data-testid="link-overview-strategy-framework">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Institutional Strategy Framework</CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

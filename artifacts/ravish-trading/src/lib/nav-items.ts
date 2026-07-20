@@ -66,6 +66,7 @@ import {
   ListTree,
   Droplets,
   ClipboardList,
+  Layers,
 } from "lucide-react";
 
 export interface NavItem {
@@ -114,6 +115,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Liquidity & Session Workbench", href: "/liquidity-workbench", icon: Droplets },
   { title: "Trade Planning & Risk Studio", href: "/trade-planning-studio", icon: ClipboardList },
   { title: "Trading AI Coach", href: "/trading-ai-coach", icon: GraduationCap },
+  { title: "Strategy Framework", href: "/strategy-framework", icon: Layers },
   { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
   { title: "Institutional Workspace", href: "/workspace", icon: LayoutPanelLeft },
   { title: "Research Terminal", href: "/research-terminal", icon: Terminal },
