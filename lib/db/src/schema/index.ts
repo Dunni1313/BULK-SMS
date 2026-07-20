@@ -23,6 +23,8 @@ export * from "./investingHoldings";
 export * from "./investingRiskSnapshots";
 export * from "./tradingPositions";
 export * from "./tradingJournalEntries";
+export * from "./tradingTradePlans";
+export * from "./tradingWorkspaceNotes";
 export * from "./tradingBacktestResults";
 export * from "./platformNotifications";
 export * from "./optionsBacktestResults";
