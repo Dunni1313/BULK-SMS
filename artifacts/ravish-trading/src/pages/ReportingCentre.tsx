@@ -37,6 +37,8 @@ import {
   getGetAiCoachLearningSummaryReportQueryKey,
   useGetExecutiveSummaryReport,
   getGetExecutiveSummaryReportQueryKey,
+  useGetTradePlanningSummaryReport,
+  getGetTradePlanningSummaryReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -67,7 +69,8 @@ type ReportType =
   | "opportunity-discovery"
   | "monitoring-summary"
   | "ai-coach-summary"
-  | "executive-summary";
+  | "executive-summary"
+  | "trade-planning-summary";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -87,6 +90,7 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "monitoring-summary",
   "ai-coach-summary",
   "executive-summary",
+  "trade-planning-summary",
 ];
 
 export default function ReportingCentre() {
@@ -146,6 +150,7 @@ export default function ReportingCentre() {
   const msRes = useGetMonitoringSummaryReport({ query: { queryKey: getGetMonitoringSummaryReportQueryKey(), enabled: generated?.type === "monitoring-summary" } });
   const acRes = useGetAiCoachLearningSummaryReport({ query: { queryKey: getGetAiCoachLearningSummaryReportQueryKey(), enabled: generated?.type === "ai-coach-summary" } });
   const esRes = useGetExecutiveSummaryReport({ query: { queryKey: getGetExecutiveSummaryReportQueryKey(), enabled: generated?.type === "executive-summary" } });
+  const tpsRes = useGetTradePlanningSummaryReport({ query: { queryKey: getGetTradePlanningSummaryReportQueryKey(), enabled: generated?.type === "trade-planning-summary" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -165,9 +170,10 @@ export default function ReportingCentre() {
       "monitoring-summary": msRes,
       "ai-coach-summary": acRes,
       "executive-summary": esRes,
+      "trade-planning-summary": tpsRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

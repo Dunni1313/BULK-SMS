@@ -808,6 +808,9 @@ export default function InstitutionalDashboard() {
             <Link href="/trading-research" className="text-xs text-primary hover:underline">
               Manage positions →
             </Link>
+            <Link href="/trade-planning-studio" className="block text-xs text-primary hover:underline" data-testid="link-open-trade-planning-studio">
+              Open Trade Planning &amp; Risk Studio →
+            </Link>
           </CardContent>
         </Card>
 

@@ -54,6 +54,7 @@ const TradingBacktest = lazy(() => import("./pages/TradingBacktest"));
 const TradeWorkspace = lazy(() => import("./pages/TradeWorkspace"));
 const MarketStructureWorkbench = lazy(() => import("./pages/MarketStructureWorkbench"));
 const LiquidityWorkbench = lazy(() => import("./pages/LiquidityWorkbench"));
+const TradePlanningStudio = lazy(() => import("./pages/TradePlanningStudio"));
 const OptionsBacktest = lazy(() => import("./pages/OptionsBacktest"));
 const InstitutionalDashboard = lazy(() => import("./pages/InstitutionalDashboard"));
 const InstitutionalIntelligence = lazy(() => import("./pages/InstitutionalIntelligence"));
@@ -166,6 +167,7 @@ function Router() {
           <Route path="/trade-workspace" component={TradeWorkspace} />
           <Route path="/market-structure-workbench" component={MarketStructureWorkbench} />
           <Route path="/liquidity-workbench" component={LiquidityWorkbench} />
+          <Route path="/trade-planning-studio" component={TradePlanningStudio} />
           <Route path="/options-backtest" component={OptionsBacktest} />
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />

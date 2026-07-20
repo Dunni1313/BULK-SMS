@@ -498,6 +498,11 @@ function OverviewTab() {
               <CardContent className="pt-4 text-sm font-medium">Liquidity &amp; Session Workbench</CardContent>
             </Card>
           </Link>
+          <Link href="/trade-planning-studio" data-testid="link-overview-trade-planning-studio">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Trade Planning &amp; Risk Studio</CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

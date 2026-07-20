@@ -349,6 +349,13 @@ export default function TradingJournal() {
           >
             <ExternalLink className="h-3 w-3" /> Review liquidity &amp; sessions in the Liquidity &amp; Session Workbench
           </a>
+          <a
+            href="/trade-planning-studio"
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-open-trade-planning-studio"
+          >
+            <ExternalLink className="h-3 w-3" /> Plan trades &amp; review risk in the Trade Planning &amp; Risk Studio
+          </a>
         </div>
 
         <div className="space-y-4">

@@ -816,6 +816,13 @@ export default function LiquidityWorkbench() {
                         >
                           <ExternalLink className="h-3 w-3" /> Open Risk &amp; Journal in Trade Workspace
                         </a>
+                        <a
+                          href={symbol ? `/trade-planning-studio?symbol=${symbol}` : "/trade-planning-studio"}
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          data-testid="link-open-trade-planning-studio"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Open full Trade Planning &amp; Risk Studio
+                        </a>
                       </CardContent>
                     </Card>
 

@@ -873,6 +873,13 @@ export default function TradeWorkspace() {
                           Overall: {risk.overall.label}
                         </Badge>
                         <p className="text-sm text-muted-foreground">{risk.overall.detail}</p>
+                        <a
+                          href={symbol ? `/trade-planning-studio?symbol=${symbol}` : "/trade-planning-studio"}
+                          className="flex items-center gap-1 text-xs text-primary hover:underline"
+                          data-testid="link-open-trade-planning-studio"
+                        >
+                          <ExternalLink className="h-3 w-3" /> Open full Trade Planning &amp; Risk Studio
+                        </a>
                       </CardContent>
                     </Card>
                   )}
