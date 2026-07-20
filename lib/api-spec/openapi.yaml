@@ -4296,6 +4296,82 @@ paths:
         "404":
           description: Unknown or invalid symbol
 
+  # ─── Institutional Trading AI Coach (Phase 29) ──────────────────────────────
+  # Deterministic (zero-LLM) explanations, mirroring Engine 1's
+  # GET /stock-analyst/coach/{coach}/{symbol} (Phase 21) — never predicts
+  # price, never invents a probability, never recommends buying/selling.
+  /trading/coach/{coach}:
+    get:
+      operationId: getTradingCoachAccountExplanation
+      tags: [trading-coach]
+      summary: Deterministic Trading AI Coach explanation for an account-wide coach (journal, psychology) — reuses the calling user's own recent Trading Journal entries verbatim
+      parameters:
+        - name: coach
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [journal, psychology]
+      responses:
+        "200":
+          description: Coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingCoachExplanation"
+        "400":
+          description: Unknown or non-account-scoped coach type
+
+  /trading/coach/{coach}/{symbol}:
+    get:
+      operationId: getTradingCoachExplanation
+      tags: [trading-coach]
+      summary: Deterministic Trading AI Coach explanation for a per-symbol coach (structure, liquidity, session, risk, trade-plan) — reuses Structure/Multi-Timeframe/Liquidity/Session/Risk/Trade Plans verbatim
+      parameters:
+        - name: coach
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [structure, liquidity, session, risk, trade-plan]
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingCoachExplanation"
+        "400":
+          description: Unknown or non-symbol-scoped coach type
+        "404":
+          description: Unknown symbol
+
+  /trading/coach/scenario:
+    post:
+      operationId: explainTradingScenario
+      tags: [trading-coach]
+      summary: Deterministic Scenario Coach explanation — reuses computeScenarioComparison() (Phase 28) over the same scenario inputs, never persisted
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradingCompareScenariosInput"
+      responses:
+        "200":
+          description: Scenario Coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingCoachExplanation"
+        "400":
+          description: Invalid scenario count or shape
+
   # ─── Backtesting (Engine 2, Phase 3 Sprint 49) ──────────────────────────────
   /trading/backtest/run:
     post:
@@ -11578,6 +11654,70 @@ components:
           type: string
           enum: [llm, template]
 
+    # ─── Institutional Trading AI Coach (Phase 29) ──────────────────────────
+    TradingCoachEvidenceItem:
+      type: object
+      required: [label, detail, source]
+      properties:
+        label: { type: string }
+        detail: { type: string }
+        source: { type: string }
+
+    TradingCoachExplanation:
+      type: object
+      required:
+        - coach
+        - coachLabel
+        - symbol
+        - headline
+        - whyThisExists
+        - metricsUsed
+        - supportingEvidence
+        - risksReducingConfidence
+        - strengthsIncreasingConfidence
+        - howToInterpret
+        - commonMistakes
+        - institutionalPerspective
+        - relatedGlossaryKeys
+        - calculationSources
+        - disclaimer
+      properties:
+        coach:
+          type: string
+          enum: [structure, liquidity, session, risk, trade-plan, journal, scenario, psychology]
+        coachLabel: { type: string }
+        symbol:
+          type: string
+          nullable: true
+        headline: { type: string }
+        whyThisExists: { type: string }
+        metricsUsed:
+          type: array
+          items: { $ref: "#/components/schemas/TradingCoachEvidenceItem" }
+        supportingEvidence:
+          type: array
+          items: { $ref: "#/components/schemas/TradingCoachEvidenceItem" }
+        risksReducingConfidence:
+          type: array
+          items: { type: string }
+        strengthsIncreasingConfidence:
+          type: array
+          items: { type: string }
+        howToInterpret:
+          type: array
+          items: { type: string }
+        commonMistakes:
+          type: array
+          items: { type: string }
+        institutionalPerspective: { type: string }
+        relatedGlossaryKeys:
+          type: array
+          items: { type: string }
+        calculationSources:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
     TradingBacktestStrategy:
       type: string
       enum: [trend-following, mean-reversion, structure-breakout]
@@ -13088,7 +13228,7 @@ components:
           type: string
         category:
           type: string
-          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing]
+          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing, trading]
         definition:
           type: string
         relatedTermKeys:
@@ -13137,7 +13277,7 @@ components:
           type: string
         glossaryCategory:
           type: string
-          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing]
+          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing, trading]
         topics:
           type: array
           items:

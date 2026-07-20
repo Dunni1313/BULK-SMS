@@ -205,6 +205,7 @@ import type {
   TradingBacktestResult,
   TradingCoachAskInput,
   TradingCoachAskResult,
+  TradingCoachExplanation,
   TradingCompareScenariosInput,
   TradingJournalEntry,
   TradingJournalEntryInput,
@@ -15910,6 +15911,236 @@ export const useAskTradingCoach = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getAskTradingCoachMutationOptions(options));
+    }
+
+export const getGetTradingCoachAccountExplanationUrl = (coach: 'journal' | 'psychology',) => {
+
+
+
+
+  return `/api/trading/coach/${coach}`
+}
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for an account-wide coach (journal, psychology) — reuses the calling user's own recent Trading Journal entries verbatim
+ */
+export const getTradingCoachAccountExplanation = async (coach: 'journal' | 'psychology', options?: RequestInit): Promise<TradingCoachExplanation> => {
+
+  return customFetch<TradingCoachExplanation>(getGetTradingCoachAccountExplanationUrl(coach),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingCoachAccountExplanationQueryKey = (coach: 'journal' | 'psychology',) => {
+    return [
+    `/api/trading/coach/${coach}`
+    ] as const;
+    }
+
+
+export const getGetTradingCoachAccountExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError = ErrorType<void>>(coach: 'journal' | 'psychology', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingCoachAccountExplanationQueryKey(coach);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>> = ({ signal }) => getTradingCoachAccountExplanation(coach, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(coach), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingCoachAccountExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>>
+export type GetTradingCoachAccountExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for an account-wide coach (journal, psychology) — reuses the calling user's own recent Trading Journal entries verbatim
+ */
+
+export function useGetTradingCoachAccountExplanation<TData = Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError = ErrorType<void>>(
+ coach: 'journal' | 'psychology', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingCoachAccountExplanationQueryOptions(coach,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingCoachExplanationUrl = (coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string,) => {
+
+
+
+
+  return `/api/trading/coach/${coach}/${symbol}`
+}
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for a per-symbol coach (structure, liquidity, session, risk, trade-plan) — reuses Structure/Multi-Timeframe/Liquidity/Session/Risk/Trade Plans verbatim
+ */
+export const getTradingCoachExplanation = async (coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string, options?: RequestInit): Promise<TradingCoachExplanation> => {
+
+  return customFetch<TradingCoachExplanation>(getGetTradingCoachExplanationUrl(coach,symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingCoachExplanationQueryKey = (coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string,) => {
+    return [
+    `/api/trading/coach/${coach}/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingCoachExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError = ErrorType<void>>(coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingCoachExplanationQueryKey(coach,symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingCoachExplanation>>> = ({ signal }) => getTradingCoachExplanation(coach,symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(coach && symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingCoachExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingCoachExplanation>>>
+export type GetTradingCoachExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for a per-symbol coach (structure, liquidity, session, risk, trade-plan) — reuses Structure/Multi-Timeframe/Liquidity/Session/Risk/Trade Plans verbatim
+ */
+
+export function useGetTradingCoachExplanation<TData = Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError = ErrorType<void>>(
+ coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingCoachExplanationQueryOptions(coach,symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getExplainTradingScenarioUrl = () => {
+
+
+
+
+  return `/api/trading/coach/scenario`
+}
+
+/**
+ * @summary Deterministic Scenario Coach explanation — reuses computeScenarioComparison() (Phase 28) over the same scenario inputs, never persisted
+ */
+export const explainTradingScenario = async (tradingCompareScenariosInput: TradingCompareScenariosInput, options?: RequestInit): Promise<TradingCoachExplanation> => {
+
+  return customFetch<TradingCoachExplanation>(getExplainTradingScenarioUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingCompareScenariosInput,)
+  }
+);}
+
+
+
+
+export const getExplainTradingScenarioMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof explainTradingScenario>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof explainTradingScenario>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext> => {
+
+const mutationKey = ['explainTradingScenario'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof explainTradingScenario>>, {data: BodyType<TradingCompareScenariosInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  explainTradingScenario(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExplainTradingScenarioMutationResult = NonNullable<Awaited<ReturnType<typeof explainTradingScenario>>>
+    export type ExplainTradingScenarioMutationBody = BodyType<TradingCompareScenariosInput>
+    export type ExplainTradingScenarioMutationError = ErrorType<void>
+
+    /**
+ * @summary Deterministic Scenario Coach explanation — reuses computeScenarioComparison() (Phase 28) over the same scenario inputs, never persisted
+ */
+export const useExplainTradingScenario = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof explainTradingScenario>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof explainTradingScenario>>,
+        TError,
+        {data: BodyType<TradingCompareScenariosInput>},
+        TContext
+      > => {
+      return useMutation(getExplainTradingScenarioMutationOptions(options));
     }
 
 export const getRunTradingBacktestUrl = () => {

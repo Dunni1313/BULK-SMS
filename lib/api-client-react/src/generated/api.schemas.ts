@@ -6122,6 +6122,44 @@ export interface TradingCoachAskResult {
   answerSource: TradingCoachAskResultAnswerSource;
 }
 
+export interface TradingCoachEvidenceItem {
+  label: string;
+  detail: string;
+  source: string;
+}
+
+export type TradingCoachExplanationCoach = typeof TradingCoachExplanationCoach[keyof typeof TradingCoachExplanationCoach];
+
+
+export const TradingCoachExplanationCoach = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  scenario: 'scenario',
+  psychology: 'psychology',
+} as const;
+
+export interface TradingCoachExplanation {
+  coach: TradingCoachExplanationCoach;
+  coachLabel: string;
+  symbol: string | null;
+  headline: string;
+  whyThisExists: string;
+  metricsUsed: TradingCoachEvidenceItem[];
+  supportingEvidence: TradingCoachEvidenceItem[];
+  risksReducingConfidence: string[];
+  strengthsIncreasingConfidence: string[];
+  howToInterpret: string[];
+  commonMistakes: string[];
+  institutionalPerspective: string;
+  relatedGlossaryKeys: string[];
+  calculationSources: string[];
+  disclaimer: string;
+}
+
 export type TradingBacktestStrategy = typeof TradingBacktestStrategy[keyof typeof TradingBacktestStrategy];
 
 
@@ -6956,6 +6994,7 @@ export const LearningGlossaryTermCategory = {
   performance: 'performance',
   institutional: 'institutional',
   'value-investing': 'value-investing',
+  trading: 'trading',
 } as const;
 
 export interface LearningGlossaryTerm {
@@ -6991,6 +7030,7 @@ export const LearningPathGlossaryCategory = {
   performance: 'performance',
   institutional: 'institutional',
   'value-investing': 'value-investing',
+  trading: 'trading',
 } as const;
 
 export interface LearningPath {

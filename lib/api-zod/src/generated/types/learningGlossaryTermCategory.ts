@@ -18,4 +18,5 @@ export const LearningGlossaryTermCategory = {
   performance: 'performance',
   institutional: 'institutional',
   'value-investing': 'value-investing',
+  trading: 'trading',
 } as const;

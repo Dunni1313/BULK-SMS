@@ -3145,7 +3145,7 @@ export const GetInstitutionalMentorResponse = zod.object({
 export const GetGlossaryResponseItem = zod.object({
   "key": zod.string(),
   "term": zod.string(),
-  "category": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing']),
+  "category": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading']),
   "definition": zod.string(),
   "relatedTermKeys": zod.array(zod.string()),
   "relatedLessonKeys": zod.array(zod.string())
@@ -3160,7 +3160,7 @@ export const GetLearningPathsResponseItem = zod.object({
   "key": zod.string(),
   "title": zod.string(),
   "description": zod.string(),
-  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing']),
+  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading']),
   "topics": zod.array(zod.object({
   "key": zod.string(),
   "title": zod.string(),
@@ -3186,7 +3186,7 @@ export const GetLearningPathByKeyResponse = zod.object({
   "key": zod.string(),
   "title": zod.string(),
   "description": zod.string(),
-  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing']),
+  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading']),
   "topics": zod.array(zod.object({
   "key": zod.string(),
   "title": zod.string(),
@@ -9022,6 +9022,123 @@ export const AskTradingCoachBody = zod.object({
 export const AskTradingCoachResponse = zod.object({
   "answer": zod.string(),
   "answerSource": zod.enum(['llm', 'template'])
+})
+
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for an account-wide coach (journal, psychology) — reuses the calling user's own recent Trading Journal entries verbatim
+ */
+export const GetTradingCoachAccountExplanationParams = zod.object({
+  "coach": zod.enum(['journal', 'psychology'])
+})
+
+export const GetTradingCoachAccountExplanationResponse = zod.object({
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology']),
+  "coachLabel": zod.string(),
+  "symbol": zod.string().nullable(),
+  "headline": zod.string(),
+  "whyThisExists": zod.string(),
+  "metricsUsed": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "risksReducingConfidence": zod.array(zod.string()),
+  "strengthsIncreasingConfidence": zod.array(zod.string()),
+  "howToInterpret": zod.array(zod.string()),
+  "commonMistakes": zod.array(zod.string()),
+  "institutionalPerspective": zod.string(),
+  "relatedGlossaryKeys": zod.array(zod.string()),
+  "calculationSources": zod.array(zod.string()),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for a per-symbol coach (structure, liquidity, session, risk, trade-plan) — reuses Structure/Multi-Timeframe/Liquidity/Session/Risk/Trade Plans verbatim
+ */
+export const GetTradingCoachExplanationParams = zod.object({
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan']),
+  "symbol": zod.coerce.string()
+})
+
+export const GetTradingCoachExplanationResponse = zod.object({
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology']),
+  "coachLabel": zod.string(),
+  "symbol": zod.string().nullable(),
+  "headline": zod.string(),
+  "whyThisExists": zod.string(),
+  "metricsUsed": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "risksReducingConfidence": zod.array(zod.string()),
+  "strengthsIncreasingConfidence": zod.array(zod.string()),
+  "howToInterpret": zod.array(zod.string()),
+  "commonMistakes": zod.array(zod.string()),
+  "institutionalPerspective": zod.string(),
+  "relatedGlossaryKeys": zod.array(zod.string()),
+  "calculationSources": zod.array(zod.string()),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Deterministic Scenario Coach explanation — reuses computeScenarioComparison() (Phase 28) over the same scenario inputs, never persisted
+ */
+export const explainTradingScenarioBodyScenariosMin = 2;
+export const explainTradingScenarioBodyScenariosMax = 5;
+
+
+
+export const ExplainTradingScenarioBody = zod.object({
+  "symbol": zod.string().optional(),
+  "accountValue": zod.number().nullish().describe('Falls back to the calling user\'s own tradingAccountValue setting when omitted.'),
+  "scenarios": zod.array(zod.object({
+  "name": zod.string(),
+  "direction": zod.enum(['long', 'short']),
+  "accountRiskPct": zod.number(),
+  "entryPrice": zod.number(),
+  "stopPrice": zod.number(),
+  "targetPrice": zod.number()
+})).min(explainTradingScenarioBodyScenariosMin).max(explainTradingScenarioBodyScenariosMax)
+})
+
+export const ExplainTradingScenarioResponse = zod.object({
+  "coach": zod.enum(['structure', 'liquidity', 'session', 'risk', 'trade-plan', 'journal', 'scenario', 'psychology']),
+  "coachLabel": zod.string(),
+  "symbol": zod.string().nullable(),
+  "headline": zod.string(),
+  "whyThisExists": zod.string(),
+  "metricsUsed": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "supportingEvidence": zod.array(zod.object({
+  "label": zod.string(),
+  "detail": zod.string(),
+  "source": zod.string()
+})),
+  "risksReducingConfidence": zod.array(zod.string()),
+  "strengthsIncreasingConfidence": zod.array(zod.string()),
+  "howToInterpret": zod.array(zod.string()),
+  "commonMistakes": zod.array(zod.string()),
+  "institutionalPerspective": zod.string(),
+  "relatedGlossaryKeys": zod.array(zod.string()),
+  "calculationSources": zod.array(zod.string()),
+  "disclaimer": zod.string()
 })
 
 
