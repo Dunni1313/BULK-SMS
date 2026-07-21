@@ -66,6 +66,7 @@ import optionsIncomeRouter from "./optionsIncome";
 import optionsLifecycleRouter from "./optionsLifecycle";
 import riskExposureRouter from "./riskExposure";
 import performanceAttributionRouter from "./performanceAttribution";
+import scenarioEngineRouter from "./scenarioEngine";
 
 const router: IRouter = Router();
 
@@ -136,5 +137,6 @@ router.use(optionsIncomeRouter);
 router.use(optionsLifecycleRouter);
 router.use(riskExposureRouter);
 router.use(performanceAttributionRouter);
+router.use(scenarioEngineRouter);
 
 export default router;
