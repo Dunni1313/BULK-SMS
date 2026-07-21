@@ -61,6 +61,8 @@ import {
   tradingStrategiesTable,
   tradingStrategyChecklistsTable,
   compliancePoliciesTable,
+  investingWatchlistsTable,
+  investingWatchlistItemsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -152,6 +154,12 @@ afterAll(async () => {
     // Phase 42 — Institutional Portfolio Monitoring & Compliance Engine's
     // own new table.
     compliancePoliciesTable,
+    // Phase 43 — Institutional Watchlists & Opportunity Dashboard's own
+    // two new tables. Items first — they have their own FK to
+    // investing_watchlists as ON DELETE CASCADE, so this is defensive/
+    // consistent with the rest of this loop, not strictly required.
+    investingWatchlistItemsTable,
+    investingWatchlistsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -609,6 +617,25 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       label: "Isolation Test Policy",
       direction: "max",
       limitValue: 100,
+    }));
+  });
+
+  it("investing_watchlists: a userId-scoped query never crosses accounts (Phase 43)", async () => {
+    await assertTenantIsolation(investingWatchlistsTable, userA, userB, (userId) => ({
+      userId,
+      name: "Isolation Test Watchlist",
+      kind: "personal",
+    }));
+  });
+
+  it("investing_watchlist_items: a userId-scoped query never crosses accounts (Phase 43)", async () => {
+    const [watchlistA] = await db.insert(investingWatchlistsTable).values({ userId: userA, name: "Isolation Items A" }).returning({ id: investingWatchlistsTable.id });
+    const [watchlistB] = await db.insert(investingWatchlistsTable).values({ userId: userB, name: "Isolation Items B" }).returning({ id: investingWatchlistsTable.id });
+
+    await assertTenantIsolation(investingWatchlistItemsTable, userA, userB, (userId) => ({
+      userId,
+      watchlistId: userId === userA ? watchlistA.id : watchlistB.id,
+      symbol: "IBM",
     }));
   });
 });

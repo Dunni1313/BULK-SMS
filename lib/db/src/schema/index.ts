@@ -48,3 +48,4 @@ export * from "./optionsLifecycleState";
 export * from "./optionsLifecycleEvents";
 export * from "./optionsPositionChecklists";
 export * from "./compliancePolicies";
+export * from "./investingWatchlists";

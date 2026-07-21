@@ -70,6 +70,7 @@ import scenarioEngineRouter from "./scenarioEngine";
 import decisionSupportEngineRouter from "./decisionSupportEngine";
 import rebalancingEngineRouter from "./rebalancingEngine";
 import complianceEngineRouter from "./complianceEngine";
+import watchlistsRouter from "./watchlists";
 
 const router: IRouter = Router();
 
@@ -144,5 +145,6 @@ router.use(scenarioEngineRouter);
 router.use(decisionSupportEngineRouter);
 router.use(rebalancingEngineRouter);
 router.use(complianceEngineRouter);
+router.use(watchlistsRouter);
 
 export default router;
