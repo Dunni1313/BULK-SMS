@@ -45,6 +45,7 @@ import {
   AlertTriangle,
   Gauge,
   Scale,
+  ShieldCheck,
 } from "lucide-react";
 
 function KpiCard({ label, value, testId }: { label: string; value: string | number; testId: string }) {
@@ -169,6 +170,9 @@ export default function ExecutiveIntelligence() {
         </Link>
         <Link href="/rebalancing-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-rebalancing-engine">
           <Scale className="w-3 h-3" /> Open Rebalancing Engine →
+        </Link>
+        <Link href="/monitoring-compliance-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-monitoring-compliance-engine">
+          <ShieldCheck className="w-3 h-3" /> Open Monitoring & Compliance Engine →
         </Link>
       </div>
 

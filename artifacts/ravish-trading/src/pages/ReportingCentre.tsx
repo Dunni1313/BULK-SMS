@@ -71,6 +71,10 @@ import {
   getGetPortfolioAllocationReportQueryKey,
   useGetRebalancingPlanningReport,
   getGetRebalancingPlanningReportQueryKey,
+  useGetComplianceReport,
+  getGetComplianceReportQueryKey,
+  useGetPolicyMonitoringReport,
+  getGetPolicyMonitoringReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -118,7 +122,9 @@ type ReportType =
   | "executive-decision-summary"
   | "institutional-health-report"
   | "portfolio-allocation-report"
-  | "rebalancing-planning-report";
+  | "rebalancing-planning-report"
+  | "compliance-report"
+  | "policy-monitoring-report";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -155,6 +161,8 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "institutional-health-report",
   "portfolio-allocation-report",
   "rebalancing-planning-report",
+  "compliance-report",
+  "policy-monitoring-report",
 ];
 
 export default function ReportingCentre() {
@@ -233,6 +241,8 @@ export default function ReportingCentre() {
   const rprRes = useGetRebalancingPlanningReport(generated?.portfolioId ?? 0, {
     query: { queryKey: getGetRebalancingPlanningReportQueryKey(generated?.portfolioId ?? 0), enabled: generated?.type === "rebalancing-planning-report" && !!generated.portfolioId },
   });
+  const compReportRes = useGetComplianceReport({ query: { queryKey: getGetComplianceReportQueryKey(), enabled: generated?.type === "compliance-report" } });
+  const pmrRes = useGetPolicyMonitoringReport({ query: { queryKey: getGetPolicyMonitoringReportQueryKey(), enabled: generated?.type === "policy-monitoring-report" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -269,9 +279,11 @@ export default function ReportingCentre() {
       "institutional-health-report": ihrRes,
       "portfolio-allocation-report": parReportRes,
       "rebalancing-planning-report": rprRes,
+      "compliance-report": compReportRes,
+      "policy-monitoring-report": pmrRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes, edsRes, ihrRes, parReportRes, rprRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes, edsRes, ihrRes, parReportRes, rprRes, compReportRes, pmrRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

@@ -75,6 +75,7 @@ import {
   AlertTriangle,
   Gauge,
   Scale,
+  ShieldCheck,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -301,6 +302,9 @@ export default function ExecutiveDashboard() {
             </Link>
             <Link href="/rebalancing-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-rebalancing-engine">
               <Scale className="w-3 h-3" /> Open the Rebalancing Engine →
+            </Link>
+            <Link href="/monitoring-compliance-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-monitoring-compliance-engine">
+              <ShieldCheck className="w-3 h-3" /> Open the Monitoring & Compliance Engine →
             </Link>
           </div>
         </CardContent>

@@ -82,6 +82,7 @@ const PerformanceAttributionEngine = lazy(() => import("./pages/PerformanceAttri
 const ScenarioEngine = lazy(() => import("./pages/ScenarioEngine"));
 const DecisionSupportEngine = lazy(() => import("./pages/DecisionSupportEngine"));
 const RebalancingEngine = lazy(() => import("./pages/RebalancingEngine"));
+const MonitoringComplianceEngine = lazy(() => import("./pages/MonitoringComplianceEngine"));
 const ReportingCentre = lazy(() => import("./pages/ReportingCentre"));
 const ExecutiveDashboard = lazy(() => import("./pages/ExecutiveDashboard"));
 const DecisionEngine = lazy(() => import("./pages/DecisionEngine"));
@@ -194,6 +195,7 @@ function Router() {
           <Route path="/scenario-engine" component={ScenarioEngine} />
           <Route path="/decision-support-engine" component={DecisionSupportEngine} />
           <Route path="/rebalancing-engine" component={RebalancingEngine} />
+          <Route path="/monitoring-compliance-engine" component={MonitoringComplianceEngine} />
           <Route path="/options-backtest" component={OptionsBacktest} />
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />
