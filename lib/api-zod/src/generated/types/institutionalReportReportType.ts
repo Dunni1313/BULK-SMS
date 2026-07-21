@@ -32,4 +32,6 @@ export const InstitutionalReportReportType = {
   'performance-attribution-report': 'performance-attribution-report',
   'scenario-analysis-report': 'scenario-analysis-report',
   'stress-test-report': 'stress-test-report',
+  'executive-decision-summary': 'executive-decision-summary',
+  'institutional-health-report': 'institutional-health-report',
 } as const;

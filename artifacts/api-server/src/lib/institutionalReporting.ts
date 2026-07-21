@@ -49,6 +49,7 @@ import type { LifecycleSummary } from "./optionsLifecycle.js";
 import type { RiskExposureDashboard } from "./riskExposureEngine.js";
 import type { PerformanceDashboard } from "./performanceAttribution.js";
 import { DEFAULT_SCENARIOS, type ScenarioDashboard } from "./scenarioEngine.js";
+import type { DecisionSupportDashboard } from "./decisionSupportEngine.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -72,7 +73,9 @@ export type InstitutionalReportType =
   | "performance-summary"
   | "performance-attribution-report"
   | "scenario-analysis-report"
-  | "stress-test-report";
+  | "stress-test-report"
+  | "executive-decision-summary"
+  | "institutional-health-report";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -97,6 +100,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "performance-attribution-report",
   "scenario-analysis-report",
   "stress-test-report",
+  "executive-decision-summary",
+  "institutional-health-report",
 ];
 
 export interface ReportTypeMeta {
@@ -259,6 +264,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "stress-test-report",
     label: "Stress Test Report",
     description: "The calling user's own Options portfolio evaluated under the platform's named severe scenarios (Market -5%, Market -10%, Volatility Increase) via the existing What-If Stress Test engine (Black-Scholes repricing) — Greeks Impact, Buying Power Impact, and Capital Impact under stress. Analytical only — no forecasting, no probability estimates, never a hedging recommendation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "executive-decision-summary",
+    label: "Executive Decision Summary",
+    description: "The calling user's own Institutional Decision Support & Executive Insights Engine (Phase 40) — Executive Summary, Portfolio Health Overview, deterministic Executive Alerts, Outstanding Issues, and the Key Metrics Dashboard, consolidated across Investing, Trading, and Options. Interpretation only — no trade recommendations, no buy/sell signals, no portfolio optimisation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "institutional-health-report",
+    label: "Institutional Health Report",
+    description: "The calling user's own cross-engine health picture (Phase 40) — Portfolio Health Overview, Risk Summary, Diversification Summary, and the 11-dimension Executive Health scorecard, reused directly from the Risk & Exposure, Performance & Attribution, and Scenario & Stress Testing engines. Interpretation only — no AI predictions, no forecasting.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -1757,6 +1776,125 @@ export function buildStressTestReport(dashboard: ScenarioDashboard): Institution
     reportType: "stress-test-report",
     title: "Stress Test Report",
     subtitle: worst ? `Worst modeled: ${worst.label} (${fmtImpact(worst.unrealizedPnlImpact)})` : `${stressScenarios.length} severe scenario(s) evaluated`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── Institutional Decision Support & Executive Insights Engine (Phase 40) ──
+// Both reuse lib/decisionSupportEngine.ts's own buildDecisionSupportDashboard()
+// exactly (the same function GET /decision-support/dashboard itself calls),
+// then reformat the already-computed dashboard into the generic
+// ReportSection shape. Zero new decision-support math in this file. ────────
+
+export function buildExecutiveDecisionSummaryReport(dashboard: DecisionSupportDashboard): InstitutionalReport {
+  const { executiveSummary, portfolioHealthOverview, executiveAlerts, outstandingIssues, keyMetrics } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Executive Summary",
+      executiveSummary.summary,
+      [
+        `Investing: ${executiveSummary.investingHoldingsCount} holding(s) across ${executiveSummary.investingPortfolioCount} portfolio(s), market value ${fmtImpact(executiveSummary.investingMarketValue)}.`,
+        `Trading: ${executiveSummary.tradingOpenPositionsCount} open position(s), account value ${fmtImpact(executiveSummary.tradingAccountValue)}.`,
+        `Options: ${executiveSummary.optionsOpenPositionsCount} open position(s), portfolio value ${fmtImpact(executiveSummary.optionsPortfolioValue)}, buying power ${fmtImpact(executiveSummary.optionsBuyingPower)}.`,
+      ],
+    ),
+    section(
+      "portfolio-health-overview",
+      "Portfolio Health Overview",
+      `Overall portfolio health ${portfolioHealthOverview.overallScore ?? "n/a"}/100 — a renormalized average of each engine's own already-computed health/risk score.`,
+      [
+        `Investing: ${portfolioHealthOverview.investing.available ? `${portfolioHealthOverview.investing.score}/100 (${portfolioHealthOverview.investing.label})` : "unavailable"}`,
+        `Trading: ${portfolioHealthOverview.trading.available ? `${portfolioHealthOverview.trading.score}/100 (${portfolioHealthOverview.trading.label})` : "unavailable"}`,
+        `Options: ${portfolioHealthOverview.options.score}/100 (${portfolioHealthOverview.options.label})`,
+      ],
+    ),
+    section(
+      "executive-alerts",
+      "Executive Alerts",
+      executiveAlerts.length ? `${executiveAlerts.length} deterministic executive alert(s) — real, already-computed thresholds crossed, never a forecast or a suggested action.` : "No executive alerts — every monitored threshold is currently within range.",
+      executiveAlerts.map((a) => `[${a.severity}] ${a.label}: ${a.detail}`),
+    ),
+    section(
+      "outstanding-issues",
+      "Outstanding Issues",
+      outstandingIssues.length ? `${outstandingIssues.length} outstanding issue(s) already flagged by the underlying engines.` : "No outstanding issues on record.",
+      outstandingIssues.map((i) => `[${i.engine}] ${i.label}: ${i.detail}`),
+    ),
+    section(
+      "key-metrics-dashboard",
+      "Key Metrics Dashboard",
+      "Headline figures across Investing, Trading, and Options, reused directly from already-computed engine outputs.",
+      keyMetrics.map((m) => `${m.label}: ${m.value != null ? (m.unit === "usd" ? fmtImpact(m.value) : m.unit === "pct" ? `${m.value}%` : m.value) : "n/a"}`),
+    ),
+  ];
+
+  return {
+    reportType: "executive-decision-summary",
+    title: "Executive Decision Summary",
+    subtitle: `Overall health ${portfolioHealthOverview.overallScore ?? "n/a"}/100 — ${executiveAlerts.length} alert(s), ${outstandingIssues.length} issue(s)`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+export function buildInstitutionalHealthReport(dashboard: DecisionSupportDashboard): InstitutionalReport {
+  const { portfolioHealthOverview, riskSummary, diversificationSummary, executiveHealth } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "portfolio-health-overview",
+      "Portfolio Health Overview",
+      `Overall portfolio health ${portfolioHealthOverview.overallScore ?? "n/a"}/100.`,
+      [
+        `Investing: ${portfolioHealthOverview.investing.available ? `${portfolioHealthOverview.investing.score}/100 (${portfolioHealthOverview.investing.label})` : "unavailable"}`,
+        `Trading: ${portfolioHealthOverview.trading.available ? `${portfolioHealthOverview.trading.score}/100 (${portfolioHealthOverview.trading.label})` : "unavailable"}`,
+        `Options: ${portfolioHealthOverview.options.score}/100 (${portfolioHealthOverview.options.label})`,
+      ],
+    ),
+    section(
+      "risk-summary",
+      "Risk Summary",
+      "Each engine's own already-computed overall risk score, reused directly — never blended into one cross-engine risk figure.",
+      [
+        `Investing risk score: ${riskSummary.investingRiskScore ?? "n/a"}`,
+        `Trading risk score: ${riskSummary.tradingRiskScore ?? "n/a"}`,
+        `Options risk score (base case): ${riskSummary.optionsRiskScoreBaseline ?? "n/a"}`,
+      ],
+    ),
+    section(
+      "diversification-summary",
+      "Diversification Summary",
+      "Each engine's own already-computed diversification/concentration score, plus the disclosed, non-fabricated cross-engine symbol overlap.",
+      [
+        `Investing: ${diversificationSummary.investing.available ? `${diversificationSummary.investing.score}/100` : "unavailable"} — ${diversificationSummary.investing.detail}`,
+        `Trading: ${diversificationSummary.trading.available ? `${diversificationSummary.trading.score}/100` : "unavailable"} — ${diversificationSummary.trading.detail}`,
+        `Options: ${diversificationSummary.options.score}/100 — ${diversificationSummary.options.detail}`,
+        `Symbols held across multiple engines: ${diversificationSummary.correlationOverview.overlapSymbolCount}`,
+      ],
+    ),
+    section(
+      "executive-health-scorecard",
+      "Executive Health Scorecard",
+      `Composite health score ${executiveHealth.compositeScore ?? "n/a"}/100 — a renormalized average over the dimensions with a genuine, already-existing 0-100 score. Dimensions without a scoring formula are shown as raw figures, honestly excluded from the composite, never approximated.`,
+      executiveHealth.dimensions.map((d) => `${d.label}${d.score != null ? ` (${d.score}/100${d.includedInComposite ? ", in composite" : ""})` : ""}: ${d.detail}`),
+    ),
+  ];
+
+  return {
+    reportType: "institutional-health-report",
+    title: "Institutional Health Report",
+    subtitle: `Composite health ${executiveHealth.compositeScore ?? "n/a"}/100`,
     symbol: null,
     portfolioId: null,
     generatedAt: dashboard.generatedAt,

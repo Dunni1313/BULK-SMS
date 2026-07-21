@@ -63,6 +63,8 @@ import {
   GetPerformanceAttributionReportResponse,
   GetScenarioAnalysisReportResponse,
   GetStressTestReportResponse,
+  GetExecutiveDecisionSummaryReportResponse,
+  GetInstitutionalHealthReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -111,6 +113,8 @@ import {
   buildPerformanceAttributionReport,
   buildScenarioAnalysisReport,
   buildStressTestReport,
+  buildExecutiveDecisionSummaryReport,
+  buildInstitutionalHealthReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -140,6 +144,7 @@ import { buildLifecycleSummary } from "../lib/optionsLifecycle.js";
 import { buildRiskExposureDashboard } from "../lib/riskExposureEngine.js";
 import { buildPerformanceDashboard } from "../lib/performanceAttribution.js";
 import { buildScenarioDashboard } from "../lib/scenarioEngine.js";
+import { buildDecisionSupportDashboard } from "../lib/decisionSupportEngine.js";
 
 const router: IRouter = Router();
 
@@ -573,6 +578,26 @@ router.get("/reporting/stress-test-report", async (req, res): Promise<void> => {
   res.json(GetStressTestReportResponse.parse(built));
 });
 
+// ─── Institutional Decision Support & Executive Insights Engine (Phase 40) ──
+// Both reuse lib/decisionSupportEngine.ts's own buildDecisionSupportDashboard()
+// exactly (the same function GET /decision-support/dashboard itself calls),
+// then reformat the already-computed dashboard into the generic
+// ReportSection shape. Zero new decision-support math in this file. ────────
+
+router.get("/reporting/executive-decision-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildDecisionSupportDashboard(userId);
+  const built = buildExecutiveDecisionSummaryReport(dashboard);
+  res.json(GetExecutiveDecisionSummaryReportResponse.parse(built));
+});
+
+router.get("/reporting/institutional-health-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildDecisionSupportDashboard(userId);
+  const built = buildInstitutionalHealthReport(dashboard);
+  res.json(GetInstitutionalHealthReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -717,6 +742,14 @@ async function regenerate(
     case "stress-test-report": {
       const dashboard = await buildScenarioDashboard(userId);
       return buildStressTestReport(dashboard);
+    }
+    case "executive-decision-summary": {
+      const dashboard = await buildDecisionSupportDashboard(userId);
+      return buildExecutiveDecisionSummaryReport(dashboard);
+    }
+    case "institutional-health-report": {
+      const dashboard = await buildDecisionSupportDashboard(userId);
+      return buildInstitutionalHealthReport(dashboard);
     }
     default:
       return null;

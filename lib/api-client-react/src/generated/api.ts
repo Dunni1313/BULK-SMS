@@ -73,6 +73,9 @@ import type {
   DecisionNoteCreate,
   DecisionNoteUpdate,
   DecisionSnapshot,
+  DecisionSupportCoachExplanation,
+  DecisionSupportDashboard,
+  DecisionSupportTopicLearning,
   DeleteInstitutionalReport200,
   DeleteReportResult,
   DeleteResult,
@@ -16862,6 +16865,160 @@ export function useGetStressTestReport<TData = Awaited<ReturnType<typeof getStre
 
 
 
+export const getGetExecutiveDecisionSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/executive-decision-summary`
+}
+
+/**
+ * @summary Executive Decision Summary (Phase 40) — Executive Summary, Portfolio Health Overview, deterministic Executive Alerts, Outstanding Issues, and the Key Metrics Dashboard, reused directly from the Institutional Decision Support & Executive Insights Engine
+ */
+export const getExecutiveDecisionSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetExecutiveDecisionSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutiveDecisionSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/executive-decision-summary`
+    ] as const;
+    }
+
+
+export const getGetExecutiveDecisionSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutiveDecisionSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>> = ({ signal }) => getExecutiveDecisionSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutiveDecisionSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>>
+export type GetExecutiveDecisionSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Executive Decision Summary (Phase 40) — Executive Summary, Portfolio Health Overview, deterministic Executive Alerts, Outstanding Issues, and the Key Metrics Dashboard, reused directly from the Institutional Decision Support & Executive Insights Engine
+ */
+
+export function useGetExecutiveDecisionSummaryReport<TData = Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutiveDecisionSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInstitutionalHealthReportUrl = () => {
+
+
+
+
+  return `/api/reporting/institutional-health-report`
+}
+
+/**
+ * @summary Institutional Health Report (Phase 40) — Portfolio Health Overview, Risk Summary, Diversification Summary, and the 11-dimension Executive Health scorecard, reused directly from the Institutional Decision Support & Executive Insights Engine
+ */
+export const getInstitutionalHealthReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetInstitutionalHealthReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalHealthReportQueryKey = () => {
+    return [
+    `/api/reporting/institutional-health-report`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalHealthReportQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalHealthReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalHealthReport>>> = ({ signal }) => getInstitutionalHealthReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalHealthReportQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalHealthReport>>>
+export type GetInstitutionalHealthReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Institutional Health Report (Phase 40) — Portfolio Health Overview, Risk Summary, Diversification Summary, and the 11-dimension Executive Health scorecard, reused directly from the Institutional Decision Support & Executive Insights Engine
+ */
+
+export function useGetInstitutionalHealthReport<TData = Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalHealthReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -20054,6 +20211,391 @@ export function useGetScenarioLearning<TData = Awaited<ReturnType<typeof getScen
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetScenarioLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDecisionSupportDashboardUrl = () => {
+
+
+
+
+  return `/api/decision-support/dashboard`
+}
+
+/**
+ * @summary The calling user's own full Institutional Decision Support dashboard — Executive Summary, Portfolio Health Overview, Risk/Performance/Scenario/Capital Allocation/Exposure/Diversification Summary, deterministic Executive Alerts, Outstanding Issues, Key Metrics, and an 11-dimension Executive Health scorecard. Every figure is reused directly from the Risk & Exposure, Performance & Attribution, Scenario & Stress Testing, and Portfolio Concentration engines. Interpretation only — never a trade recommendation or forecast.
+ */
+export const getDecisionSupportDashboard = async ( options?: RequestInit): Promise<DecisionSupportDashboard> => {
+
+  return customFetch<DecisionSupportDashboard>(getGetDecisionSupportDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionSupportDashboardQueryKey = () => {
+    return [
+    `/api/decision-support/dashboard`
+    ] as const;
+    }
+
+
+export const getGetDecisionSupportDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionSupportDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionSupportDashboard>>> = ({ signal }) => getDecisionSupportDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionSupportDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionSupportDashboard>>>
+export type GetDecisionSupportDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full Institutional Decision Support dashboard — Executive Summary, Portfolio Health Overview, Risk/Performance/Scenario/Capital Allocation/Exposure/Diversification Summary, deterministic Executive Alerts, Outstanding Issues, Key Metrics, and an 11-dimension Executive Health scorecard. Every figure is reused directly from the Risk & Exposure, Performance & Attribution, Scenario & Stress Testing, and Portfolio Concentration engines. Interpretation only — never a trade recommendation or forecast.
+ */
+
+export function useGetDecisionSupportDashboard<TData = Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionSupportDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListDecisionSupportCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/decision-support/coach`
+}
+
+/**
+ * @summary All 8 deterministic AI Coach explanations (executive dashboards, institutional decision support, portfolio interpretation, risk, performance, scenario analysis, diversification, capital allocation). Never a trade recommendation.
+ */
+export const listDecisionSupportCoachTopics = async ( options?: RequestInit): Promise<DecisionSupportCoachExplanation[]> => {
+
+  return customFetch<DecisionSupportCoachExplanation[]>(getListDecisionSupportCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDecisionSupportCoachTopicsQueryKey = () => {
+    return [
+    `/api/decision-support/coach`
+    ] as const;
+    }
+
+
+export const getListDecisionSupportCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDecisionSupportCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>> = ({ signal }) => listDecisionSupportCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDecisionSupportCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>>
+export type ListDecisionSupportCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 8 deterministic AI Coach explanations (executive dashboards, institutional decision support, portfolio interpretation, risk, performance, scenario analysis, diversification, capital allocation). Never a trade recommendation.
+ */
+
+export function useListDecisionSupportCoachTopics<TData = Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDecisionSupportCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDecisionSupportCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/decision-support/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getDecisionSupportCoachTopic = async (topic: string, options?: RequestInit): Promise<DecisionSupportCoachExplanation> => {
+
+  return customFetch<DecisionSupportCoachExplanation>(getGetDecisionSupportCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionSupportCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/decision-support/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetDecisionSupportCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionSupportCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>> = ({ signal }) => getDecisionSupportCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionSupportCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>>
+export type GetDecisionSupportCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetDecisionSupportCoachTopic<TData = Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionSupportCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListDecisionSupportLearningUrl = () => {
+
+
+
+
+  return `/api/decision-support/learning`
+}
+
+/**
+ * @summary Every Decision Support topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listDecisionSupportLearning = async ( options?: RequestInit): Promise<DecisionSupportTopicLearning[]> => {
+
+  return customFetch<DecisionSupportTopicLearning[]>(getListDecisionSupportLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDecisionSupportLearningQueryKey = () => {
+    return [
+    `/api/decision-support/learning`
+    ] as const;
+    }
+
+
+export const getListDecisionSupportLearningQueryOptions = <TData = Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDecisionSupportLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDecisionSupportLearning>>> = ({ signal }) => listDecisionSupportLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDecisionSupportLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listDecisionSupportLearning>>>
+export type ListDecisionSupportLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Decision Support topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListDecisionSupportLearning<TData = Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDecisionSupportLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDecisionSupportLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/decision-support/learning/${topic}`
+}
+
+/**
+ * @summary One Decision Support topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getDecisionSupportLearning = async (topic: string, options?: RequestInit): Promise<DecisionSupportTopicLearning> => {
+
+  return customFetch<DecisionSupportTopicLearning>(getGetDecisionSupportLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionSupportLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/decision-support/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetDecisionSupportLearningQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionSupportLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionSupportLearning>>> = ({ signal }) => getDecisionSupportLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionSupportLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionSupportLearning>>>
+export type GetDecisionSupportLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Decision Support topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetDecisionSupportLearning<TData = Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionSupportLearningQueryOptions(topic,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

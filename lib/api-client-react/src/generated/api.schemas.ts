@@ -8047,6 +8047,8 @@ export const ReportTypeMetaReportType = {
   'performance-attribution-report': 'performance-attribution-report',
   'scenario-analysis-report': 'scenario-analysis-report',
   'stress-test-report': 'stress-test-report',
+  'executive-decision-summary': 'executive-decision-summary',
+  'institutional-health-report': 'institutional-health-report',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8083,6 +8085,8 @@ export const InstitutionalReportReportType = {
   'performance-attribution-report': 'performance-attribution-report',
   'scenario-analysis-report': 'scenario-analysis-report',
   'stress-test-report': 'stress-test-report',
+  'executive-decision-summary': 'executive-decision-summary',
+  'institutional-health-report': 'institutional-health-report',
 } as const;
 
 export interface InstitutionalReport {
@@ -8123,6 +8127,8 @@ export const SaveInstitutionalReportInputReportType = {
   'performance-attribution-report': 'performance-attribution-report',
   'scenario-analysis-report': 'scenario-analysis-report',
   'stress-test-report': 'stress-test-report',
+  'executive-decision-summary': 'executive-decision-summary',
+  'institutional-health-report': 'institutional-health-report',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -9920,6 +9926,275 @@ export const ScenarioTopicLearningTopic = {
 export interface ScenarioTopicLearning {
   topic: ScenarioTopicLearningTopic;
   links: ScenarioLearningLink[];
+}
+
+export interface DecisionSupportExecutiveSummary {
+  investingPortfolioCount: number;
+  investingHoldingsCount: number;
+  /** @nullable */
+  investingMarketValue: number | null;
+  tradingOpenPositionsCount: number;
+  /** @nullable */
+  tradingAccountValue: number | null;
+  optionsOpenPositionsCount: number;
+  /** @nullable */
+  optionsPortfolioValue: number | null;
+  /** @nullable */
+  optionsBuyingPower: number | null;
+  /** @nullable */
+  overallHealthScore: number | null;
+  alertCount: number;
+  outstandingIssueCount: number;
+  generatedAt: string;
+  summary: string;
+}
+
+export type DecisionSupportEnginePortfolioHealthEngine = typeof DecisionSupportEnginePortfolioHealthEngine[keyof typeof DecisionSupportEnginePortfolioHealthEngine];
+
+
+export const DecisionSupportEnginePortfolioHealthEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface DecisionSupportEnginePortfolioHealth {
+  engine: DecisionSupportEnginePortfolioHealthEngine;
+  available: boolean;
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+}
+
+export interface DecisionSupportPortfolioHealthOverview {
+  investing: DecisionSupportEnginePortfolioHealth;
+  trading: DecisionSupportEnginePortfolioHealth;
+  options: DecisionSupportEnginePortfolioHealth;
+  /** @nullable */
+  overallScore: number | null;
+}
+
+export interface DecisionSupportRiskSummary {
+  combined: RiskExposureCombinedView;
+  /** @nullable */
+  investingRiskScore: number | null;
+  /** @nullable */
+  tradingRiskScore: number | null;
+  /** @nullable */
+  optionsRiskScoreBaseline: number | null;
+}
+
+export type DecisionSupportScenarioWorstCaseEntryEngine = typeof DecisionSupportScenarioWorstCaseEntryEngine[keyof typeof DecisionSupportScenarioWorstCaseEntryEngine];
+
+
+export const DecisionSupportScenarioWorstCaseEntryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface DecisionSupportScenarioWorstCaseEntry {
+  engine: DecisionSupportScenarioWorstCaseEntryEngine;
+  scenarioLabel: string;
+  /** @nullable */
+  impactDollars: number | null;
+  /** @nullable */
+  impactPctOfValue: number | null;
+}
+
+export interface DecisionSupportScenarioSummary {
+  combined: CombinedScenarioView;
+  worstCaseByEngine: DecisionSupportScenarioWorstCaseEntry[];
+}
+
+export interface DecisionSupportCapitalAllocationSummary {
+  capitalAllocation: RiskExposureCapitalAllocationEntry[];
+  buyingPowerOverview: RiskExposureBuyingPowerEntry[];
+}
+
+export interface DecisionSupportExposureSummary {
+  sectorConcentration: RiskExposureSectorConcentrationEntry[];
+  strategyConcentration: RiskExposureStrategyConcentrationEntry[];
+  assetAllocation: RiskExposureAssetAllocationSummary;
+  greeksSummary: PortfolioGreeksSnapshot;
+}
+
+export type DecisionSupportEngineDiversificationEngine = typeof DecisionSupportEngineDiversificationEngine[keyof typeof DecisionSupportEngineDiversificationEngine];
+
+
+export const DecisionSupportEngineDiversificationEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface DecisionSupportEngineDiversification {
+  engine: DecisionSupportEngineDiversificationEngine;
+  available: boolean;
+  /** @nullable */
+  score: number | null;
+  detail: string;
+}
+
+export interface DecisionSupportDiversificationSummary {
+  investing: DecisionSupportEngineDiversification;
+  trading: DecisionSupportEngineDiversification;
+  options: DecisionSupportEngineDiversification;
+  correlationOverview: RiskExposureCorrelationOverview;
+  concentrationTimeline: RiskExposureConcentrationTimelinePoint[];
+}
+
+export type DecisionSupportExecutiveAlertEngine = typeof DecisionSupportExecutiveAlertEngine[keyof typeof DecisionSupportExecutiveAlertEngine];
+
+
+export const DecisionSupportExecutiveAlertEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+  'cross-engine': 'cross-engine',
+} as const;
+
+export type DecisionSupportExecutiveAlertSeverity = typeof DecisionSupportExecutiveAlertSeverity[keyof typeof DecisionSupportExecutiveAlertSeverity];
+
+
+export const DecisionSupportExecutiveAlertSeverity = {
+  info: 'info',
+  moderate: 'moderate',
+  elevated: 'elevated',
+} as const;
+
+export interface DecisionSupportExecutiveAlert {
+  code: string;
+  engine: DecisionSupportExecutiveAlertEngine;
+  severity: DecisionSupportExecutiveAlertSeverity;
+  label: string;
+  detail: string;
+}
+
+export type DecisionSupportOutstandingIssueEngine = typeof DecisionSupportOutstandingIssueEngine[keyof typeof DecisionSupportOutstandingIssueEngine];
+
+
+export const DecisionSupportOutstandingIssueEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface DecisionSupportOutstandingIssue {
+  code: string;
+  engine: DecisionSupportOutstandingIssueEngine;
+  label: string;
+  detail: string;
+}
+
+export type DecisionSupportKeyMetricEngine = typeof DecisionSupportKeyMetricEngine[keyof typeof DecisionSupportKeyMetricEngine];
+
+
+export const DecisionSupportKeyMetricEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+  'cross-engine': 'cross-engine',
+} as const;
+
+export type DecisionSupportKeyMetricUnit = typeof DecisionSupportKeyMetricUnit[keyof typeof DecisionSupportKeyMetricUnit];
+
+
+export const DecisionSupportKeyMetricUnit = {
+  usd: 'usd',
+  pct: 'pct',
+  score: 'score',
+  count: 'count',
+} as const;
+
+export interface DecisionSupportKeyMetric {
+  code: string;
+  engine: DecisionSupportKeyMetricEngine;
+  label: string;
+  /** @nullable */
+  value: number | null;
+  unit: DecisionSupportKeyMetricUnit;
+}
+
+export interface DecisionSupportExecutiveHealthDimension {
+  code: string;
+  label: string;
+  available: boolean;
+  /** @nullable */
+  score: number | null;
+  detail: string;
+  sourceModule: string;
+  includedInComposite: boolean;
+}
+
+export interface DecisionSupportExecutiveHealth {
+  dimensions: DecisionSupportExecutiveHealthDimension[];
+  /** @nullable */
+  compositeScore: number | null;
+}
+
+export interface DecisionSupportDashboard {
+  executiveSummary: DecisionSupportExecutiveSummary;
+  portfolioHealthOverview: DecisionSupportPortfolioHealthOverview;
+  riskSummary: DecisionSupportRiskSummary;
+  performanceSummary: PerformanceCombinedView;
+  scenarioSummary: DecisionSupportScenarioSummary;
+  capitalAllocationSummary: DecisionSupportCapitalAllocationSummary;
+  exposureSummary: DecisionSupportExposureSummary;
+  diversificationSummary: DecisionSupportDiversificationSummary;
+  executiveAlerts: DecisionSupportExecutiveAlert[];
+  outstandingIssues: DecisionSupportOutstandingIssue[];
+  keyMetrics: DecisionSupportKeyMetric[];
+  executiveHealth: DecisionSupportExecutiveHealth;
+  generatedAt: string;
+}
+
+export type DecisionSupportCoachExplanationTopic = typeof DecisionSupportCoachExplanationTopic[keyof typeof DecisionSupportCoachExplanationTopic];
+
+
+export const DecisionSupportCoachExplanationTopic = {
+  executive_dashboards: 'executive_dashboards',
+  institutional_decision_support: 'institutional_decision_support',
+  portfolio_interpretation: 'portfolio_interpretation',
+  risk: 'risk',
+  performance: 'performance',
+  scenario_analysis: 'scenario_analysis',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+} as const;
+
+export interface DecisionSupportCoachExplanation {
+  topic: DecisionSupportCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface DecisionSupportLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type DecisionSupportTopicLearningTopic = typeof DecisionSupportTopicLearningTopic[keyof typeof DecisionSupportTopicLearningTopic];
+
+
+export const DecisionSupportTopicLearningTopic = {
+  portfolio_management: 'portfolio_management',
+  risk_interpretation: 'risk_interpretation',
+  performance_interpretation: 'performance_interpretation',
+  scenario_analysis: 'scenario_analysis',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+  institutional_portfolio_management: 'institutional_portfolio_management',
+} as const;
+
+export interface DecisionSupportTopicLearning {
+  topic: DecisionSupportTopicLearningTopic;
+  links: DecisionSupportLearningLink[];
 }
 
 export type GetScannerResultsParams = {

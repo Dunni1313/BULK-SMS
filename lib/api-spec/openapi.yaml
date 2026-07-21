@@ -84,6 +84,8 @@ tags:
     description: Institutional Performance & Attribution Engine (Phase 38) — a deterministic cross-platform dashboard explaining Investing, Trading, and Options performance (per-engine views plus a Combined view — return by engine, sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline from monthly realized P&L and saved Investing portfolio snapshots). Every figure is reused directly from an existing, already-tested engine (lib/portfolioConstruction.ts, lib/optionsIncomeAnalytics.ts) or computed from real, already-persisted columns (trading_positions'/trades' own entry/exit price and P&L fields) using the exact Sharpe-ratio formula shape lib/tradingBacktest.ts already established. Analytical only — no AI predictions, no forecasts, no trade recommendations, no portfolio optimisation, no auto rebalancing, no auto execution, no alpha generation, no benchmark prediction.
   - name: scenario-engine
     description: Institutional Scenario & Stress Testing Engine (Phase 39) — a deterministic dashboard evaluating hypothetical market moves (Market ±5%/±10%, Volatility Increase/Decrease, Interest Rate Increase/Decrease, custom percentage move) across Investing, Trading, and Options portfolios. Options scenarios reuse lib/portfolioStressTest.ts's own already-shipped What-If simulator verbatim for price/volatility shocks, plus a new interest-rate scenario supplying a shocked rate to optionsMath.ts's own already-exported bs() parameter. Investing/Trading use a linear equity repricing formula; volatility/rate scenarios are honestly unavailable for those two engines (no IV/Greeks formalism for a raw equity position). Analytical only — no AI predictions, no market forecasting, no price targets, no trade recommendations, no portfolio optimisation, no auto hedging, no auto execution, no Monte Carlo simulation, no random scenario generation.
+  - name: decision-support-engine
+    description: Institutional Decision Support & Executive Insights Engine (Phase 40) — a deterministic executive workspace consolidating Risk & Exposure (Phase 37), Performance & Attribution (Phase 38), Scenario & Stress Testing (Phase 39), and Portfolio Concentration into one Executive Summary, Portfolio Health Overview, Risk/Performance/Scenario/Capital Allocation/Exposure/Diversification Summary, deterministic Executive Alerts, Outstanding Issues, Key Metrics Dashboard, and an 11-dimension Executive Health scorecard. Every figure is reused directly from an existing, already-tested engine or a thin, named-threshold aggregation over them — Investing/Trading/Options figures are always kept side by side, never blended into a fabricated composite. Interpretation only — no AI predictions, no trade recommendations, no buy/sell signals, no portfolio optimisation, no auto execution, no auto hedging, no auto rebalancing, no market forecasting, no machine learning, no generative investment advice.
 
 paths:
   /healthz:
@@ -4490,6 +4492,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  /reporting/executive-decision-summary:
+    get:
+      operationId: getExecutiveDecisionSummaryReport
+      tags: [reporting]
+      summary: Executive Decision Summary (Phase 40) — Executive Summary, Portfolio Health Overview, deterministic Executive Alerts, Outstanding Issues, and the Key Metrics Dashboard, reused directly from the Institutional Decision Support & Executive Insights Engine
+      responses:
+        "200":
+          description: Executive Decision Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/institutional-health-report:
+    get:
+      operationId: getInstitutionalHealthReport
+      tags: [reporting]
+      summary: Institutional Health Report (Phase 40) — Portfolio Health Overview, Risk Summary, Diversification Summary, and the 11-dimension Executive Health scorecard, reused directly from the Institutional Decision Support & Executive Insights Engine
+      responses:
+        "200":
+          description: Institutional Health Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -5286,6 +5314,91 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ScenarioTopicLearning"
+        "404":
+          description: Unknown topic key
+
+  /decision-support/dashboard:
+    get:
+      operationId: getDecisionSupportDashboard
+      tags: [decision-support-engine]
+      summary: The calling user's own full Institutional Decision Support dashboard — Executive Summary, Portfolio Health Overview, Risk/Performance/Scenario/Capital Allocation/Exposure/Diversification Summary, deterministic Executive Alerts, Outstanding Issues, Key Metrics, and an 11-dimension Executive Health scorecard. Every figure is reused directly from the Risk & Exposure, Performance & Attribution, Scenario & Stress Testing, and Portfolio Concentration engines. Interpretation only — never a trade recommendation or forecast.
+      responses:
+        "200":
+          description: The Decision Support dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionSupportDashboard"
+
+  /decision-support/coach:
+    get:
+      operationId: listDecisionSupportCoachTopics
+      tags: [decision-support-engine]
+      summary: All 8 deterministic AI Coach explanations (executive dashboards, institutional decision support, portfolio interpretation, risk, performance, scenario analysis, diversification, capital allocation). Never a trade recommendation.
+      responses:
+        "200":
+          description: Every Decision Support coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DecisionSupportCoachExplanation"
+
+  /decision-support/coach/{topic}:
+    get:
+      operationId: getDecisionSupportCoachTopic
+      tags: [decision-support-engine]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionSupportCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /decision-support/learning:
+    get:
+      operationId: listDecisionSupportLearning
+      tags: [decision-support-engine]
+      summary: Every Decision Support topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+      responses:
+        "200":
+          description: Every topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DecisionSupportTopicLearning"
+
+  /decision-support/learning/{topic}:
+    get:
+      operationId: getDecisionSupportLearning
+      tags: [decision-support-engine]
+      summary: One Decision Support topic's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionSupportTopicLearning"
         "404":
           description: Unknown topic key
 
@@ -15945,7 +16058,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -15957,7 +16070,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -15975,7 +16088,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -17903,3 +18016,316 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ScenarioLearningLink"
+
+    DecisionSupportExecutiveSummary:
+      type: object
+      required:
+        [
+          investingPortfolioCount,
+          investingHoldingsCount,
+          investingMarketValue,
+          tradingOpenPositionsCount,
+          tradingAccountValue,
+          optionsOpenPositionsCount,
+          optionsPortfolioValue,
+          optionsBuyingPower,
+          overallHealthScore,
+          alertCount,
+          outstandingIssueCount,
+          generatedAt,
+          summary,
+        ]
+      properties:
+        investingPortfolioCount: { type: integer }
+        investingHoldingsCount: { type: integer }
+        investingMarketValue: { type: ["number", "null"] }
+        tradingOpenPositionsCount: { type: integer }
+        tradingAccountValue: { type: ["number", "null"] }
+        optionsOpenPositionsCount: { type: integer }
+        optionsPortfolioValue: { type: ["number", "null"] }
+        optionsBuyingPower: { type: ["number", "null"] }
+        overallHealthScore: { type: ["number", "null"] }
+        alertCount: { type: integer }
+        outstandingIssueCount: { type: integer }
+        generatedAt: { type: string }
+        summary: { type: string }
+
+    DecisionSupportEnginePortfolioHealth:
+      type: object
+      required: [engine, available, score, label, detail]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        available: { type: boolean }
+        score: { type: ["number", "null"] }
+        label: { type: string }
+        detail: { type: string }
+
+    DecisionSupportPortfolioHealthOverview:
+      type: object
+      required: [investing, trading, options, overallScore]
+      properties:
+        investing:
+          $ref: "#/components/schemas/DecisionSupportEnginePortfolioHealth"
+        trading:
+          $ref: "#/components/schemas/DecisionSupportEnginePortfolioHealth"
+        options:
+          $ref: "#/components/schemas/DecisionSupportEnginePortfolioHealth"
+        overallScore: { type: ["number", "null"] }
+
+    DecisionSupportRiskSummary:
+      type: object
+      required: [combined, investingRiskScore, tradingRiskScore, optionsRiskScoreBaseline]
+      properties:
+        combined:
+          $ref: "#/components/schemas/RiskExposureCombinedView"
+        investingRiskScore: { type: ["number", "null"] }
+        tradingRiskScore: { type: ["number", "null"] }
+        optionsRiskScoreBaseline: { type: ["number", "null"] }
+
+    DecisionSupportScenarioWorstCaseEntry:
+      type: object
+      required: [engine, scenarioLabel, impactDollars, impactPctOfValue]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        scenarioLabel: { type: string }
+        impactDollars: { type: ["number", "null"] }
+        impactPctOfValue: { type: ["number", "null"] }
+
+    DecisionSupportScenarioSummary:
+      type: object
+      required: [combined, worstCaseByEngine]
+      properties:
+        combined:
+          $ref: "#/components/schemas/CombinedScenarioView"
+        worstCaseByEngine:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionSupportScenarioWorstCaseEntry"
+
+    DecisionSupportCapitalAllocationSummary:
+      type: object
+      required: [capitalAllocation, buyingPowerOverview]
+      properties:
+        capitalAllocation:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureCapitalAllocationEntry"
+        buyingPowerOverview:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureBuyingPowerEntry"
+
+    DecisionSupportExposureSummary:
+      type: object
+      required: [sectorConcentration, strategyConcentration, assetAllocation, greeksSummary]
+      properties:
+        sectorConcentration:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureSectorConcentrationEntry"
+        strategyConcentration:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureStrategyConcentrationEntry"
+        assetAllocation:
+          $ref: "#/components/schemas/RiskExposureAssetAllocationSummary"
+        greeksSummary:
+          $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+
+    DecisionSupportEngineDiversification:
+      type: object
+      required: [engine, available, score, detail]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        available: { type: boolean }
+        score: { type: ["number", "null"] }
+        detail: { type: string }
+
+    DecisionSupportDiversificationSummary:
+      type: object
+      required: [investing, trading, options, correlationOverview, concentrationTimeline]
+      properties:
+        investing:
+          $ref: "#/components/schemas/DecisionSupportEngineDiversification"
+        trading:
+          $ref: "#/components/schemas/DecisionSupportEngineDiversification"
+        options:
+          $ref: "#/components/schemas/DecisionSupportEngineDiversification"
+        correlationOverview:
+          $ref: "#/components/schemas/RiskExposureCorrelationOverview"
+        concentrationTimeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureConcentrationTimelinePoint"
+
+    DecisionSupportExecutiveAlert:
+      type: object
+      required: [code, engine, severity, label, detail]
+      properties:
+        code: { type: string }
+        engine:
+          type: string
+          enum: [investing, trading, options, cross-engine]
+        severity:
+          type: string
+          enum: [info, moderate, elevated]
+        label: { type: string }
+        detail: { type: string }
+
+    DecisionSupportOutstandingIssue:
+      type: object
+      required: [code, engine, label, detail]
+      properties:
+        code: { type: string }
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        label: { type: string }
+        detail: { type: string }
+
+    DecisionSupportKeyMetric:
+      type: object
+      required: [code, engine, label, value, unit]
+      properties:
+        code: { type: string }
+        engine:
+          type: string
+          enum: [investing, trading, options, cross-engine]
+        label: { type: string }
+        value: { type: ["number", "null"] }
+        unit:
+          type: string
+          enum: [usd, pct, score, count]
+
+    DecisionSupportExecutiveHealthDimension:
+      type: object
+      required: [code, label, available, score, detail, sourceModule, includedInComposite]
+      properties:
+        code: { type: string }
+        label: { type: string }
+        available: { type: boolean }
+        score: { type: ["number", "null"] }
+        detail: { type: string }
+        sourceModule: { type: string }
+        includedInComposite: { type: boolean }
+
+    DecisionSupportExecutiveHealth:
+      type: object
+      required: [dimensions, compositeScore]
+      properties:
+        dimensions:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionSupportExecutiveHealthDimension"
+        compositeScore: { type: ["number", "null"] }
+
+    DecisionSupportDashboard:
+      type: object
+      required:
+        [
+          executiveSummary,
+          portfolioHealthOverview,
+          riskSummary,
+          performanceSummary,
+          scenarioSummary,
+          capitalAllocationSummary,
+          exposureSummary,
+          diversificationSummary,
+          executiveAlerts,
+          outstandingIssues,
+          keyMetrics,
+          executiveHealth,
+          generatedAt,
+        ]
+      properties:
+        executiveSummary:
+          $ref: "#/components/schemas/DecisionSupportExecutiveSummary"
+        portfolioHealthOverview:
+          $ref: "#/components/schemas/DecisionSupportPortfolioHealthOverview"
+        riskSummary:
+          $ref: "#/components/schemas/DecisionSupportRiskSummary"
+        performanceSummary:
+          $ref: "#/components/schemas/PerformanceCombinedView"
+        scenarioSummary:
+          $ref: "#/components/schemas/DecisionSupportScenarioSummary"
+        capitalAllocationSummary:
+          $ref: "#/components/schemas/DecisionSupportCapitalAllocationSummary"
+        exposureSummary:
+          $ref: "#/components/schemas/DecisionSupportExposureSummary"
+        diversificationSummary:
+          $ref: "#/components/schemas/DecisionSupportDiversificationSummary"
+        executiveAlerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionSupportExecutiveAlert"
+        outstandingIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionSupportOutstandingIssue"
+        keyMetrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionSupportKeyMetric"
+        executiveHealth:
+          $ref: "#/components/schemas/DecisionSupportExecutiveHealth"
+        generatedAt: { type: string }
+
+    DecisionSupportCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum:
+            [
+              executive_dashboards,
+              institutional_decision_support,
+              portfolio_interpretation,
+              risk,
+              performance,
+              scenario_analysis,
+              diversification,
+              capital_allocation,
+            ]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    DecisionSupportLearningLink:
+      type: object
+      required: [pathKey, topicKey, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    DecisionSupportTopicLearning:
+      type: object
+      required: [topic, links]
+      properties:
+        topic:
+          type: string
+          enum:
+            [
+              portfolio_management,
+              risk_interpretation,
+              performance_interpretation,
+              scenario_analysis,
+              diversification,
+              capital_allocation,
+              institutional_portfolio_management,
+            ]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionSupportLearningLink"
