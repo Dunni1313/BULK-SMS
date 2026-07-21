@@ -61,6 +61,8 @@ import {
   GetPortfolioConcentrationReportResponse,
   GetPerformanceSummaryReportResponse,
   GetPerformanceAttributionReportResponse,
+  GetScenarioAnalysisReportResponse,
+  GetStressTestReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -107,6 +109,8 @@ import {
   buildPortfolioConcentrationReport,
   buildPerformanceSummaryReport,
   buildPerformanceAttributionReport,
+  buildScenarioAnalysisReport,
+  buildStressTestReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -135,6 +139,7 @@ import { buildOptionsPortfolioManagementView } from "../lib/optionsPortfolioMana
 import { buildLifecycleSummary } from "../lib/optionsLifecycle.js";
 import { buildRiskExposureDashboard } from "../lib/riskExposureEngine.js";
 import { buildPerformanceDashboard } from "../lib/performanceAttribution.js";
+import { buildScenarioDashboard } from "../lib/scenarioEngine.js";
 
 const router: IRouter = Router();
 
@@ -548,6 +553,26 @@ router.get("/reporting/performance-attribution-report", async (req, res): Promis
   res.json(GetPerformanceAttributionReportResponse.parse(built));
 });
 
+// ─── Institutional Scenario & Stress Testing Engine (Phase 39) ─────────────
+// Both reuse lib/scenarioEngine.ts's own buildScenarioDashboard() exactly
+// (the same function POST /scenario-engine/dashboard itself calls), then
+// reformat the already-computed dashboard into the generic ReportSection
+// shape. Zero new scenario/repricing math in this file. ────────────────────
+
+router.get("/reporting/scenario-analysis-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildScenarioDashboard(userId);
+  const built = buildScenarioAnalysisReport(dashboard);
+  res.json(GetScenarioAnalysisReportResponse.parse(built));
+});
+
+router.get("/reporting/stress-test-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildScenarioDashboard(userId);
+  const built = buildStressTestReport(dashboard);
+  res.json(GetStressTestReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -684,6 +709,14 @@ async function regenerate(
     case "performance-attribution-report": {
       const dashboard = await buildPerformanceDashboard(userId);
       return buildPerformanceAttributionReport(dashboard);
+    }
+    case "scenario-analysis-report": {
+      const dashboard = await buildScenarioDashboard(userId);
+      return buildScenarioAnalysisReport(dashboard);
+    }
+    case "stress-test-report": {
+      const dashboard = await buildScenarioDashboard(userId);
+      return buildStressTestReport(dashboard);
     }
     default:
       return null;

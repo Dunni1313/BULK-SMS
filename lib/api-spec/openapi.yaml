@@ -82,6 +82,8 @@ tags:
     description: Institutional Risk & Exposure Intelligence Engine (Phase 37) — a deterministic cross-platform dashboard unifying Investing, Trading, and Options risk (per-engine views plus a Combined view — capital allocation, buying power, sector/strategy concentration, asset allocation, Greeks summary, a disclosed non-fabricated cross-engine symbol-overlap Correlation Overview, and a real Concentration Timeline from saved risk snapshots and Options exposure history). Every figure is reused directly from an existing, already-tested engine (lib/investingRisk.ts, lib/portfolioConstruction.ts, lib/tradingRisk.ts, lib/portfolioDashboard.ts, lib/optionsPortfolioManagement.ts) or a thin, pure aggregation over them. Analytics and visibility only — no live execution, no auto hedging, no auto rebalancing, no trade/position recommendations, no AI predictions, no probability forecasting, no AI-based risk scoring, no automated alerts.
   - name: performance-attribution
     description: Institutional Performance & Attribution Engine (Phase 38) — a deterministic cross-platform dashboard explaining Investing, Trading, and Options performance (per-engine views plus a Combined view — return by engine, sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline from monthly realized P&L and saved Investing portfolio snapshots). Every figure is reused directly from an existing, already-tested engine (lib/portfolioConstruction.ts, lib/optionsIncomeAnalytics.ts) or computed from real, already-persisted columns (trading_positions'/trades' own entry/exit price and P&L fields) using the exact Sharpe-ratio formula shape lib/tradingBacktest.ts already established. Analytical only — no AI predictions, no forecasts, no trade recommendations, no portfolio optimisation, no auto rebalancing, no auto execution, no alpha generation, no benchmark prediction.
+  - name: scenario-engine
+    description: Institutional Scenario & Stress Testing Engine (Phase 39) — a deterministic dashboard evaluating hypothetical market moves (Market ±5%/±10%, Volatility Increase/Decrease, Interest Rate Increase/Decrease, custom percentage move) across Investing, Trading, and Options portfolios. Options scenarios reuse lib/portfolioStressTest.ts's own already-shipped What-If simulator verbatim for price/volatility shocks, plus a new interest-rate scenario supplying a shocked rate to optionsMath.ts's own already-exported bs() parameter. Investing/Trading use a linear equity repricing formula; volatility/rate scenarios are honestly unavailable for those two engines (no IV/Greeks formalism for a raw equity position). Analytical only — no AI predictions, no market forecasting, no price targets, no trade recommendations, no portfolio optimisation, no auto hedging, no auto execution, no Monte Carlo simulation, no random scenario generation.
 
 paths:
   /healthz:
@@ -4462,6 +4464,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  /reporting/scenario-analysis-report:
+    get:
+      operationId: getScenarioAnalysisReport
+      tags: [reporting]
+      summary: Scenario Analysis Report (Phase 39) — every default deterministic scenario evaluated as a hypothetical repricing across Investing, Trading, and Options, with Portfolio/Asset/Sector/Strategy Impact and a Scenario Comparison, reused directly from the Institutional Scenario & Stress Testing Engine
+      responses:
+        "200":
+          description: Scenario Analysis Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/stress-test-report:
+    get:
+      operationId: getStressTestReport
+      tags: [reporting]
+      summary: Stress Test Report (Phase 39) — the Options portfolio evaluated under the platform's named severe scenarios via the existing What-If Stress Test engine, with Greeks/Buying Power/Capital Impact under stress
+      responses:
+        "200":
+          description: Stress Test Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -5165,6 +5193,99 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PerformanceAttributionTopicLearning"
+        "404":
+          description: Unknown topic key
+
+  /scenario-engine/dashboard:
+    post:
+      operationId: runScenarioDashboard
+      tags: [scenario-engine]
+      summary: The calling user's own full cross-platform Scenario & Stress Testing dashboard — Investing, Trading, Options, and a Combined cross-engine view, evaluated across the 8 named default scenarios plus any caller-supplied custom percentage-move scenarios. Every figure is reused directly from an existing engine or a deterministic linear/Black-Scholes repricing. Analytical only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunScenarioDashboardInput"
+      responses:
+        "200":
+          description: The Scenario & Stress Testing dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScenarioDashboard"
+        "400":
+          description: Invalid request body
+
+  /scenario-engine/coach:
+    get:
+      operationId: listScenarioCoachTopics
+      tags: [scenario-engine]
+      summary: All 5 deterministic AI Coach explanations (scenario analysis, stress testing, portfolio resilience, Greeks impact, capital impact). Never a trade recommendation.
+      responses:
+        "200":
+          description: Every Scenario coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScenarioCoachExplanation"
+
+  /scenario-engine/coach/{topic}:
+    get:
+      operationId: getScenarioCoachTopic
+      tags: [scenario-engine]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScenarioCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /scenario-engine/learning:
+    get:
+      operationId: listScenarioLearning
+      tags: [scenario-engine]
+      summary: Every Scenario Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+      responses:
+        "200":
+          description: Every topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScenarioTopicLearning"
+
+  /scenario-engine/learning/{topic}:
+    get:
+      operationId: getScenarioLearning
+      tags: [scenario-engine]
+      summary: One Scenario Coach topic's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScenarioTopicLearning"
         "404":
           description: Unknown topic key
 
@@ -15824,7 +15945,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -15836,7 +15957,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -15854,7 +15975,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -17493,3 +17614,292 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PerformanceAttributionLearningLink"
+
+    ScenarioDefinition:
+      type: object
+      required: [key, label, category, priceShockPct, ivShockPct, ratePointsShock]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        category:
+          type: string
+          enum: [price, volatility, rate]
+        priceShockPct: { type: number }
+        ivShockPct: { type: number }
+        ratePointsShock: { type: number }
+
+    RunScenarioDashboardCustomScenario:
+      type: object
+      properties:
+        label: { type: ["string", "null"] }
+        priceShockPct: { type: ["number", "null"] }
+
+    RunScenarioDashboardInput:
+      type: object
+      properties:
+        customScenarios:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/RunScenarioDashboardCustomScenario"
+
+    ScenarioAttributionEntry:
+      type: object
+      required: [key, label, impactDollars]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        impactDollars: { type: number }
+
+    InvestingHoldingScenarioImpact:
+      type: object
+      required: [symbol, sector, shares, currentPrice, marketValue, shockedPrice, shockedMarketValue, impactDollars]
+      properties:
+        symbol: { type: string }
+        sector: { type: ["string", "null"] }
+        shares: { type: ["number", "null"] }
+        currentPrice: { type: ["number", "null"] }
+        marketValue: { type: ["number", "null"] }
+        shockedPrice: { type: ["number", "null"] }
+        shockedMarketValue: { type: ["number", "null"] }
+        impactDollars: { type: ["number", "null"] }
+
+    InvestingScenarioResult:
+      type: object
+      required: [scenario, available, reason, totalMarketValueBefore, totalMarketValueAfter, totalImpactDollars, totalImpactPct, holdings, sectorImpact, assetImpact]
+      properties:
+        scenario:
+          $ref: "#/components/schemas/ScenarioDefinition"
+        available: { type: boolean }
+        reason: { type: ["string", "null"] }
+        totalMarketValueBefore: { type: ["number", "null"] }
+        totalMarketValueAfter: { type: ["number", "null"] }
+        totalImpactDollars: { type: ["number", "null"] }
+        totalImpactPct: { type: ["number", "null"] }
+        holdings:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvestingHoldingScenarioImpact"
+        sectorImpact:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioAttributionEntry"
+        assetImpact:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioAttributionEntry"
+
+    InvestingScenarioView:
+      type: object
+      required: [portfolioCount, holdingsCount, baseMarketValue, results, summary]
+      properties:
+        portfolioCount: { type: integer }
+        holdingsCount: { type: integer }
+        baseMarketValue: { type: ["number", "null"] }
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvestingScenarioResult"
+        summary: { type: string }
+
+    TradingPositionScenarioImpact:
+      type: object
+      required: [id, symbol, side, quantity, entryPrice, currentPrice, shockedPrice, impactDollars, setupType]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        side: { type: string }
+        quantity: { type: number }
+        entryPrice: { type: number }
+        currentPrice: { type: ["number", "null"] }
+        shockedPrice: { type: ["number", "null"] }
+        impactDollars: { type: ["number", "null"] }
+        setupType: { type: ["string", "null"] }
+
+    TradingScenarioShockResult:
+      type: object
+      required: [scenario, available, reason, totalImpactDollars, positions, strategyImpact, assetImpact]
+      properties:
+        scenario:
+          $ref: "#/components/schemas/ScenarioDefinition"
+        available: { type: boolean }
+        reason: { type: ["string", "null"] }
+        totalImpactDollars: { type: ["number", "null"] }
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingPositionScenarioImpact"
+        strategyImpact:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioAttributionEntry"
+        assetImpact:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioAttributionEntry"
+
+    TradingScenarioView:
+      type: object
+      required: [openPositionsCount, results, summary]
+      properties:
+        openPositionsCount: { type: integer }
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradingScenarioShockResult"
+        summary: { type: string }
+
+    OptionsRateScenarioPositionImpact:
+      type: object
+      required: [tradeId, symbol, strategy, costToClose, unrealizedPnl]
+      properties:
+        tradeId: { type: integer }
+        symbol: { type: string }
+        strategy: { type: string }
+        costToClose: { type: number }
+        unrealizedPnl: { type: number }
+
+    OptionsRateScenarioResult:
+      type: object
+      required: [scenario, available, baseRiskFreeRate, shockedRiskFreeRate, totalImpactDollars, positions]
+      properties:
+        scenario:
+          $ref: "#/components/schemas/ScenarioDefinition"
+        available: { type: boolean }
+        baseRiskFreeRate: { type: number }
+        shockedRiskFreeRate: { type: number }
+        totalImpactDollars: { type: number }
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsRateScenarioPositionImpact"
+
+    OptionsScenarioView:
+      type: object
+      required: [stressTest, rateScenarios]
+      properties:
+        stressTest:
+          $ref: "#/components/schemas/PortfolioStressTestResult"
+        rateScenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsRateScenarioResult"
+
+    EngineScenarioImpact:
+      type: object
+      required: [engine, scenarioKey, scenarioLabel, available, impactDollars]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        scenarioKey: { type: string }
+        scenarioLabel: { type: string }
+        available: { type: boolean }
+        impactDollars: { type: ["number", "null"] }
+
+    CombinedScenarioSectorImpact:
+      type: object
+      required: [scenarioKey, sector, impactDollars]
+      properties:
+        scenarioKey: { type: string }
+        sector: { type: string }
+        impactDollars: { type: number }
+
+    CombinedScenarioStrategyImpact:
+      type: object
+      required: [engine, scenarioKey, key, label, impactDollars]
+      properties:
+        engine:
+          type: string
+          enum: [trading, options]
+        scenarioKey: { type: string }
+        key: { type: string }
+        label: { type: string }
+        impactDollars: { type: number }
+
+    CombinedScenarioAssetImpact:
+      type: object
+      required: [engine, scenarioKey, symbol, impactDollars]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        scenarioKey: { type: string }
+        symbol: { type: string }
+        impactDollars: { type: number }
+
+    CombinedScenarioView:
+      type: object
+      required: [byEngine, sectorImpact, strategyImpact, assetImpact]
+      properties:
+        byEngine:
+          type: array
+          items:
+            $ref: "#/components/schemas/EngineScenarioImpact"
+        sectorImpact:
+          type: array
+          items:
+            $ref: "#/components/schemas/CombinedScenarioSectorImpact"
+        strategyImpact:
+          type: array
+          items:
+            $ref: "#/components/schemas/CombinedScenarioStrategyImpact"
+        assetImpact:
+          type: array
+          items:
+            $ref: "#/components/schemas/CombinedScenarioAssetImpact"
+
+    ScenarioDashboard:
+      type: object
+      required: [scenarios, investing, trading, options, combined, generatedAt]
+      properties:
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioDefinition"
+        investing:
+          $ref: "#/components/schemas/InvestingScenarioView"
+        trading:
+          $ref: "#/components/schemas/TradingScenarioView"
+        options:
+          $ref: "#/components/schemas/OptionsScenarioView"
+        combined:
+          $ref: "#/components/schemas/CombinedScenarioView"
+        generatedAt: { type: string }
+
+    ScenarioCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum: [scenario_analysis, stress_testing, portfolio_resilience, greeks_impact, capital_impact]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    ScenarioLearningLink:
+      type: object
+      required: [pathKey, topicKey, category, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        category:
+          type: string
+          enum: [scenario, stress, resilience, greeks, capital]
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    ScenarioTopicLearning:
+      type: object
+      required: [topic, links]
+      properties:
+        topic:
+          type: string
+          enum: [scenario_analysis, stress_testing, portfolio_resilience, greeks_impact, capital_impact]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioLearningLink"

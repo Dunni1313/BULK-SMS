@@ -8045,6 +8045,8 @@ export const ReportTypeMetaReportType = {
   'portfolio-concentration-report': 'portfolio-concentration-report',
   'performance-summary': 'performance-summary',
   'performance-attribution-report': 'performance-attribution-report',
+  'scenario-analysis-report': 'scenario-analysis-report',
+  'stress-test-report': 'stress-test-report',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8079,6 +8081,8 @@ export const InstitutionalReportReportType = {
   'portfolio-concentration-report': 'portfolio-concentration-report',
   'performance-summary': 'performance-summary',
   'performance-attribution-report': 'performance-attribution-report',
+  'scenario-analysis-report': 'scenario-analysis-report',
+  'stress-test-report': 'stress-test-report',
 } as const;
 
 export interface InstitutionalReport {
@@ -8117,6 +8121,8 @@ export const SaveInstitutionalReportInputReportType = {
   'portfolio-concentration-report': 'portfolio-concentration-report',
   'performance-summary': 'performance-summary',
   'performance-attribution-report': 'performance-attribution-report',
+  'scenario-analysis-report': 'scenario-analysis-report',
+  'stress-test-report': 'stress-test-report',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -9651,6 +9657,269 @@ export const PerformanceAttributionTopicLearningTopic = {
 export interface PerformanceAttributionTopicLearning {
   topic: PerformanceAttributionTopicLearningTopic;
   links: PerformanceAttributionLearningLink[];
+}
+
+export type ScenarioDefinitionCategory = typeof ScenarioDefinitionCategory[keyof typeof ScenarioDefinitionCategory];
+
+
+export const ScenarioDefinitionCategory = {
+  price: 'price',
+  volatility: 'volatility',
+  rate: 'rate',
+} as const;
+
+export interface ScenarioDefinition {
+  key: string;
+  label: string;
+  category: ScenarioDefinitionCategory;
+  priceShockPct: number;
+  ivShockPct: number;
+  ratePointsShock: number;
+}
+
+export interface RunScenarioDashboardCustomScenario {
+  /** @nullable */
+  label?: string | null;
+  /** @nullable */
+  priceShockPct?: number | null;
+}
+
+export interface RunScenarioDashboardInput {
+  /** @nullable */
+  customScenarios?: RunScenarioDashboardCustomScenario[] | null;
+}
+
+export interface ScenarioAttributionEntry {
+  key: string;
+  label: string;
+  impactDollars: number;
+}
+
+export interface InvestingHoldingScenarioImpact {
+  symbol: string;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  shares: number | null;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  shockedPrice: number | null;
+  /** @nullable */
+  shockedMarketValue: number | null;
+  /** @nullable */
+  impactDollars: number | null;
+}
+
+export interface InvestingScenarioResult {
+  scenario: ScenarioDefinition;
+  available: boolean;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  totalMarketValueBefore: number | null;
+  /** @nullable */
+  totalMarketValueAfter: number | null;
+  /** @nullable */
+  totalImpactDollars: number | null;
+  /** @nullable */
+  totalImpactPct: number | null;
+  holdings: InvestingHoldingScenarioImpact[];
+  sectorImpact: ScenarioAttributionEntry[];
+  assetImpact: ScenarioAttributionEntry[];
+}
+
+export interface InvestingScenarioView {
+  portfolioCount: number;
+  holdingsCount: number;
+  /** @nullable */
+  baseMarketValue: number | null;
+  results: InvestingScenarioResult[];
+  summary: string;
+}
+
+export interface TradingPositionScenarioImpact {
+  id: number;
+  symbol: string;
+  side: string;
+  quantity: number;
+  entryPrice: number;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  shockedPrice: number | null;
+  /** @nullable */
+  impactDollars: number | null;
+  /** @nullable */
+  setupType: string | null;
+}
+
+export interface TradingScenarioShockResult {
+  scenario: ScenarioDefinition;
+  available: boolean;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  totalImpactDollars: number | null;
+  positions: TradingPositionScenarioImpact[];
+  strategyImpact: ScenarioAttributionEntry[];
+  assetImpact: ScenarioAttributionEntry[];
+}
+
+export interface TradingScenarioView {
+  openPositionsCount: number;
+  results: TradingScenarioShockResult[];
+  summary: string;
+}
+
+export interface OptionsRateScenarioPositionImpact {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  costToClose: number;
+  unrealizedPnl: number;
+}
+
+export interface OptionsRateScenarioResult {
+  scenario: ScenarioDefinition;
+  available: boolean;
+  baseRiskFreeRate: number;
+  shockedRiskFreeRate: number;
+  totalImpactDollars: number;
+  positions: OptionsRateScenarioPositionImpact[];
+}
+
+export interface OptionsScenarioView {
+  stressTest: PortfolioStressTestResult;
+  rateScenarios: OptionsRateScenarioResult[];
+}
+
+export type EngineScenarioImpactEngine = typeof EngineScenarioImpactEngine[keyof typeof EngineScenarioImpactEngine];
+
+
+export const EngineScenarioImpactEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface EngineScenarioImpact {
+  engine: EngineScenarioImpactEngine;
+  scenarioKey: string;
+  scenarioLabel: string;
+  available: boolean;
+  /** @nullable */
+  impactDollars: number | null;
+}
+
+export interface CombinedScenarioSectorImpact {
+  scenarioKey: string;
+  sector: string;
+  impactDollars: number;
+}
+
+export type CombinedScenarioStrategyImpactEngine = typeof CombinedScenarioStrategyImpactEngine[keyof typeof CombinedScenarioStrategyImpactEngine];
+
+
+export const CombinedScenarioStrategyImpactEngine = {
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface CombinedScenarioStrategyImpact {
+  engine: CombinedScenarioStrategyImpactEngine;
+  scenarioKey: string;
+  key: string;
+  label: string;
+  impactDollars: number;
+}
+
+export type CombinedScenarioAssetImpactEngine = typeof CombinedScenarioAssetImpactEngine[keyof typeof CombinedScenarioAssetImpactEngine];
+
+
+export const CombinedScenarioAssetImpactEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface CombinedScenarioAssetImpact {
+  engine: CombinedScenarioAssetImpactEngine;
+  scenarioKey: string;
+  symbol: string;
+  impactDollars: number;
+}
+
+export interface CombinedScenarioView {
+  byEngine: EngineScenarioImpact[];
+  sectorImpact: CombinedScenarioSectorImpact[];
+  strategyImpact: CombinedScenarioStrategyImpact[];
+  assetImpact: CombinedScenarioAssetImpact[];
+}
+
+export interface ScenarioDashboard {
+  scenarios: ScenarioDefinition[];
+  investing: InvestingScenarioView;
+  trading: TradingScenarioView;
+  options: OptionsScenarioView;
+  combined: CombinedScenarioView;
+  generatedAt: string;
+}
+
+export type ScenarioCoachExplanationTopic = typeof ScenarioCoachExplanationTopic[keyof typeof ScenarioCoachExplanationTopic];
+
+
+export const ScenarioCoachExplanationTopic = {
+  scenario_analysis: 'scenario_analysis',
+  stress_testing: 'stress_testing',
+  portfolio_resilience: 'portfolio_resilience',
+  greeks_impact: 'greeks_impact',
+  capital_impact: 'capital_impact',
+} as const;
+
+export interface ScenarioCoachExplanation {
+  topic: ScenarioCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export type ScenarioLearningLinkCategory = typeof ScenarioLearningLinkCategory[keyof typeof ScenarioLearningLinkCategory];
+
+
+export const ScenarioLearningLinkCategory = {
+  scenario: 'scenario',
+  stress: 'stress',
+  resilience: 'resilience',
+  greeks: 'greeks',
+  capital: 'capital',
+} as const;
+
+export interface ScenarioLearningLink {
+  pathKey: string;
+  topicKey: string;
+  category: ScenarioLearningLinkCategory;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type ScenarioTopicLearningTopic = typeof ScenarioTopicLearningTopic[keyof typeof ScenarioTopicLearningTopic];
+
+
+export const ScenarioTopicLearningTopic = {
+  scenario_analysis: 'scenario_analysis',
+  stress_testing: 'stress_testing',
+  portfolio_resilience: 'portfolio_resilience',
+  greeks_impact: 'greeks_impact',
+  capital_impact: 'capital_impact',
+} as const;
+
+export interface ScenarioTopicLearning {
+  topic: ScenarioTopicLearningTopic;
+  links: ScenarioLearningLink[];
 }
 
 export type GetScannerResultsParams = {

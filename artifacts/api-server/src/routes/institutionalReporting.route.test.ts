@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 20 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report; Phase 38 adds performance-summary and performance-attribution-report)", async () => {
+  it("GET /reporting/types returns all 22 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report; Phase 38 adds performance-summary and performance-attribution-report; Phase 39 adds scenario-analysis-report and stress-test-report)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(20);
+    expect(body).toHaveLength(22);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -69,6 +69,8 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "portfolio-concentration-report",
         "performance-summary",
         "performance-attribution-report",
+        "scenario-analysis-report",
+        "stress-test-report",
         "portfolio-health",
         "portfolio-review",
         "strategy-framework-summary",
@@ -77,6 +79,26 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "watchlist",
       ].sort(),
     );
+  });
+
+  it("GET /reporting/scenario-analysis-report resolves the full cross-engine Scenario Analysis Report", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/scenario-analysis-report`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("scenario-analysis-report");
+    expect(body.symbol).toBeNull();
+    expect(body.portfolioId).toBeNull();
+    expect(body.sections.map((s) => s.id)).toEqual(["executive-summary", "portfolio-impact-summary", "asset-impact", "sector-impact", "strategy-impact", "scenario-comparison"]);
+  });
+
+  it("GET /reporting/stress-test-report resolves the Options-focused Stress Test Report", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/stress-test-report`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("stress-test-report");
+    expect(body.symbol).toBeNull();
+    expect(body.portfolioId).toBeNull();
+    expect(body.sections.map((s) => s.id)).toEqual(["executive-summary", "portfolio-impact-summary", "greeks-impact", "buying-power-impact", "capital-impact"]);
   });
 
   it("GET /reporting/investment-committee/:symbol resolves a real report for a known symbol", async () => {

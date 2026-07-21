@@ -210,11 +210,15 @@ import type {
   RiskExposureDashboard,
   RiskExposureTopicLearning,
   RiskStatus,
+  RunScenarioDashboardInput,
   SaveInstitutionalReportInput,
   SavedInstitutionalReport,
   ScannerResult,
   ScannerRunInput,
   ScannerRunResponse,
+  ScenarioCoachExplanation,
+  ScenarioDashboard,
+  ScenarioTopicLearning,
   Settings,
   SettingsUpdate,
   TeachGreekInput,
@@ -16704,6 +16708,160 @@ export function useGetPerformanceAttributionReport<TData = Awaited<ReturnType<ty
 
 
 
+export const getGetScenarioAnalysisReportUrl = () => {
+
+
+
+
+  return `/api/reporting/scenario-analysis-report`
+}
+
+/**
+ * @summary Scenario Analysis Report (Phase 39) — every default deterministic scenario evaluated as a hypothetical repricing across Investing, Trading, and Options, with Portfolio/Asset/Sector/Strategy Impact and a Scenario Comparison, reused directly from the Institutional Scenario & Stress Testing Engine
+ */
+export const getScenarioAnalysisReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetScenarioAnalysisReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetScenarioAnalysisReportQueryKey = () => {
+    return [
+    `/api/reporting/scenario-analysis-report`
+    ] as const;
+    }
+
+
+export const getGetScenarioAnalysisReportQueryOptions = <TData = Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetScenarioAnalysisReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScenarioAnalysisReport>>> = ({ signal }) => getScenarioAnalysisReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetScenarioAnalysisReportQueryResult = NonNullable<Awaited<ReturnType<typeof getScenarioAnalysisReport>>>
+export type GetScenarioAnalysisReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Scenario Analysis Report (Phase 39) — every default deterministic scenario evaluated as a hypothetical repricing across Investing, Trading, and Options, with Portfolio/Asset/Sector/Strategy Impact and a Scenario Comparison, reused directly from the Institutional Scenario & Stress Testing Engine
+ */
+
+export function useGetScenarioAnalysisReport<TData = Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetScenarioAnalysisReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStressTestReportUrl = () => {
+
+
+
+
+  return `/api/reporting/stress-test-report`
+}
+
+/**
+ * @summary Stress Test Report (Phase 39) — the Options portfolio evaluated under the platform's named severe scenarios via the existing What-If Stress Test engine, with Greeks/Buying Power/Capital Impact under stress
+ */
+export const getStressTestReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetStressTestReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStressTestReportQueryKey = () => {
+    return [
+    `/api/reporting/stress-test-report`
+    ] as const;
+    }
+
+
+export const getGetStressTestReportQueryOptions = <TData = Awaited<ReturnType<typeof getStressTestReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStressTestReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStressTestReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStressTestReport>>> = ({ signal }) => getStressTestReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStressTestReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStressTestReportQueryResult = NonNullable<Awaited<ReturnType<typeof getStressTestReport>>>
+export type GetStressTestReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Stress Test Report (Phase 39) — the Options portfolio evaluated under the platform's named severe scenarios via the existing What-If Stress Test engine, with Greeks/Buying Power/Capital Impact under stress
+ */
+
+export function useGetStressTestReport<TData = Awaited<ReturnType<typeof getStressTestReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStressTestReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStressTestReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -19517,6 +19675,385 @@ export function useGetPerformanceAttributionLearning<TData = Awaited<ReturnType<
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetPerformanceAttributionLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunScenarioDashboardUrl = () => {
+
+
+
+
+  return `/api/scenario-engine/dashboard`
+}
+
+/**
+ * @summary The calling user's own full cross-platform Scenario & Stress Testing dashboard — Investing, Trading, Options, and a Combined cross-engine view, evaluated across the 8 named default scenarios plus any caller-supplied custom percentage-move scenarios. Every figure is reused directly from an existing engine or a deterministic linear/Black-Scholes repricing. Analytical only.
+ */
+export const runScenarioDashboard = async (runScenarioDashboardInput?: RunScenarioDashboardInput, options?: RequestInit): Promise<ScenarioDashboard> => {
+
+  return customFetch<ScenarioDashboard>(getRunScenarioDashboardUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      runScenarioDashboardInput,)
+  }
+);}
+
+
+
+
+export const getRunScenarioDashboardMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runScenarioDashboard>>, TError,{data?: BodyType<RunScenarioDashboardInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runScenarioDashboard>>, TError,{data?: BodyType<RunScenarioDashboardInput>}, TContext> => {
+
+const mutationKey = ['runScenarioDashboard'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runScenarioDashboard>>, {data?: BodyType<RunScenarioDashboardInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runScenarioDashboard(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunScenarioDashboardMutationResult = NonNullable<Awaited<ReturnType<typeof runScenarioDashboard>>>
+    export type RunScenarioDashboardMutationBody = BodyType<RunScenarioDashboardInput> | undefined
+    export type RunScenarioDashboardMutationError = ErrorType<void>
+
+    /**
+ * @summary The calling user's own full cross-platform Scenario & Stress Testing dashboard — Investing, Trading, Options, and a Combined cross-engine view, evaluated across the 8 named default scenarios plus any caller-supplied custom percentage-move scenarios. Every figure is reused directly from an existing engine or a deterministic linear/Black-Scholes repricing. Analytical only.
+ */
+export const useRunScenarioDashboard = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runScenarioDashboard>>, TError,{data?: BodyType<RunScenarioDashboardInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runScenarioDashboard>>,
+        TError,
+        {data?: BodyType<RunScenarioDashboardInput>},
+        TContext
+      > => {
+      return useMutation(getRunScenarioDashboardMutationOptions(options));
+    }
+
+export const getListScenarioCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/scenario-engine/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (scenario analysis, stress testing, portfolio resilience, Greeks impact, capital impact). Never a trade recommendation.
+ */
+export const listScenarioCoachTopics = async ( options?: RequestInit): Promise<ScenarioCoachExplanation[]> => {
+
+  return customFetch<ScenarioCoachExplanation[]>(getListScenarioCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListScenarioCoachTopicsQueryKey = () => {
+    return [
+    `/api/scenario-engine/coach`
+    ] as const;
+    }
+
+
+export const getListScenarioCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListScenarioCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listScenarioCoachTopics>>> = ({ signal }) => listScenarioCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListScenarioCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listScenarioCoachTopics>>>
+export type ListScenarioCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (scenario analysis, stress testing, portfolio resilience, Greeks impact, capital impact). Never a trade recommendation.
+ */
+
+export function useListScenarioCoachTopics<TData = Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListScenarioCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetScenarioCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/scenario-engine/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getScenarioCoachTopic = async (topic: string, options?: RequestInit): Promise<ScenarioCoachExplanation> => {
+
+  return customFetch<ScenarioCoachExplanation>(getGetScenarioCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetScenarioCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/scenario-engine/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetScenarioCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetScenarioCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScenarioCoachTopic>>> = ({ signal }) => getScenarioCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetScenarioCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getScenarioCoachTopic>>>
+export type GetScenarioCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetScenarioCoachTopic<TData = Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetScenarioCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListScenarioLearningUrl = () => {
+
+
+
+
+  return `/api/scenario-engine/learning`
+}
+
+/**
+ * @summary Every Scenario Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listScenarioLearning = async ( options?: RequestInit): Promise<ScenarioTopicLearning[]> => {
+
+  return customFetch<ScenarioTopicLearning[]>(getListScenarioLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListScenarioLearningQueryKey = () => {
+    return [
+    `/api/scenario-engine/learning`
+    ] as const;
+    }
+
+
+export const getListScenarioLearningQueryOptions = <TData = Awaited<ReturnType<typeof listScenarioLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScenarioLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListScenarioLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listScenarioLearning>>> = ({ signal }) => listScenarioLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listScenarioLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListScenarioLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listScenarioLearning>>>
+export type ListScenarioLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Scenario Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListScenarioLearning<TData = Awaited<ReturnType<typeof listScenarioLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScenarioLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListScenarioLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetScenarioLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/scenario-engine/learning/${topic}`
+}
+
+/**
+ * @summary One Scenario Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getScenarioLearning = async (topic: string, options?: RequestInit): Promise<ScenarioTopicLearning> => {
+
+  return customFetch<ScenarioTopicLearning>(getGetScenarioLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetScenarioLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/scenario-engine/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetScenarioLearningQueryOptions = <TData = Awaited<ReturnType<typeof getScenarioLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetScenarioLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScenarioLearning>>> = ({ signal }) => getScenarioLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getScenarioLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetScenarioLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getScenarioLearning>>>
+export type GetScenarioLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Scenario Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetScenarioLearning<TData = Awaited<ReturnType<typeof getScenarioLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetScenarioLearningQueryOptions(topic,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

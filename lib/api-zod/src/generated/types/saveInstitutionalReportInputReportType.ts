@@ -30,4 +30,6 @@ export const SaveInstitutionalReportInputReportType = {
   'portfolio-concentration-report': 'portfolio-concentration-report',
   'performance-summary': 'performance-summary',
   'performance-attribution-report': 'performance-attribution-report',
+  'scenario-analysis-report': 'scenario-analysis-report',
+  'stress-test-report': 'stress-test-report',
 } as const;

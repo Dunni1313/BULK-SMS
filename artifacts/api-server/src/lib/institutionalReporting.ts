@@ -48,6 +48,7 @@ import type { OptionsPortfolioManagementView } from "./optionsPortfolioManagemen
 import type { LifecycleSummary } from "./optionsLifecycle.js";
 import type { RiskExposureDashboard } from "./riskExposureEngine.js";
 import type { PerformanceDashboard } from "./performanceAttribution.js";
+import { DEFAULT_SCENARIOS, type ScenarioDashboard } from "./scenarioEngine.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -69,7 +70,9 @@ export type InstitutionalReportType =
   | "risk-exposure-summary"
   | "portfolio-concentration-report"
   | "performance-summary"
-  | "performance-attribution-report";
+  | "performance-attribution-report"
+  | "scenario-analysis-report"
+  | "stress-test-report";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -92,6 +95,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "portfolio-concentration-report",
   "performance-summary",
   "performance-attribution-report",
+  "scenario-analysis-report",
+  "stress-test-report",
 ];
 
 export interface ReportTypeMeta {
@@ -240,6 +245,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "performance-attribution-report",
     label: "Performance Attribution Report",
     description: "The calling user's own cross-engine performance-attribution picture (Phase 38) — sector attribution (Investing), strategy attribution (Trading + Options), asset attribution across all 3 engines, risk-adjusted performance (trade-return-based Sharpe/Sortino), capital efficiency, and a real Historical Performance Timeline. Pure aggregation of already-computed attribution figures, never an optimisation recommendation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "scenario-analysis-report",
+    label: "Scenario Analysis Report",
+    description: "The calling user's own Institutional Scenario & Stress Testing Engine (Phase 39) — every default deterministic scenario (Market ±5%/±10%, Volatility Increase/Decrease, Interest Rate Increase/Decrease) evaluated as a hypothetical repricing across Investing, Trading, and Options, with Portfolio/Asset/Sector/Strategy Impact and a side-by-side Scenario Comparison. Analytical only — no forecasting, no probability estimates, never a trade recommendation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "stress-test-report",
+    label: "Stress Test Report",
+    description: "The calling user's own Options portfolio evaluated under the platform's named severe scenarios (Market -5%, Market -10%, Volatility Increase) via the existing What-If Stress Test engine (Black-Scholes repricing) — Greeks Impact, Buying Power Impact, and Capital Impact under stress. Analytical only — no forecasting, no probability estimates, never a hedging recommendation.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -1586,6 +1605,158 @@ export function buildPerformanceAttributionReport(dashboard: PerformanceDashboar
     reportType: "performance-attribution-report",
     title: "Performance Attribution Report",
     subtitle: `${combined.assetAttribution.length} asset attribution reading(s) across 3 engines`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 21 & 22. Scenario Analysis Report + Stress Test Report (Phase 39) —
+// both reuse lib/scenarioEngine.ts's own buildScenarioDashboard() exactly
+// (the same function POST /scenario-engine/dashboard itself calls). Zero
+// new scenario/repricing math in this file — a genuine, non-overlapping
+// split of the same already-computed dashboard: the Scenario Analysis
+// Report covers the full multi-scenario, multi-engine Portfolio/Asset/
+// Sector/Strategy Impact + Scenario Comparison picture across Investing,
+// Trading, and Options; the Stress Test Report narrows to the platform's
+// own named severe scenarios (Market -5%, Market -10%, Volatility
+// Increase) and surfaces the Options-specific Greeks/Buying Power/Capital
+// Impact figures the existing What-If Stress Test engine already
+// computes. ───────────────────────────────────────────────────────────
+
+function fmtImpact(v: number | null): string {
+  return v == null ? "unavailable" : fmtPnl(v);
+}
+
+const STRESS_TEST_SCENARIO_KEYS = ["market_down_5", "market_down_10", "volatility_up"];
+const STRESS_TEST_SCENARIO_LABELS = new Set(DEFAULT_SCENARIOS.filter((s) => STRESS_TEST_SCENARIO_KEYS.includes(s.key)).map((s) => s.label));
+
+export function buildScenarioAnalysisReport(dashboard: ScenarioDashboard): InstitutionalReport {
+  const { scenarios, investing, trading, combined } = dashboard;
+  const priceScenarios = scenarios.filter((s) => s.category === "price");
+
+  const scenarioComparisonBullets = priceScenarios.map((s) => {
+    const entries = combined.byEngine.filter((e) => e.scenarioKey === s.key);
+    const parts = entries.map((e) => `${e.engine}: ${e.available ? fmtImpact(e.impactDollars) : "unavailable"}`);
+    return `${s.label}: ${parts.join(", ")}`;
+  });
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Executive Summary",
+      `${scenarios.length} deterministic scenario(s) evaluated across Investing (${investing.holdingsCount} holding(s)), Trading (${trading.openPositionsCount} open position(s)), and Options. Every scenario is a user-named hypothetical repricing over real, already-open holdings/positions/trades — never a forecast, never a probability estimate of the move actually occurring.`,
+      scenarioComparisonBullets,
+    ),
+    section(
+      "portfolio-impact-summary",
+      "Portfolio Impact Summary",
+      "Total repriced impact, per engine, per scenario — reused directly from each engine's own already-computed scenario result.",
+      combined.byEngine.map((e) => `[${e.engine}] ${e.scenarioLabel}: ${e.available ? fmtImpact(e.impactDollars) : "unavailable"}`),
+    ),
+    section(
+      "asset-impact",
+      "Asset Impact",
+      combined.assetImpact.length
+        ? `Impact attributed across ${combined.assetImpact.length} asset reading(s) across all 3 engines and every evaluated scenario.`
+        : "No asset impact available yet — this user has no Investing holdings, Trading positions, or Options trades on record.",
+      combined.assetImpact.slice(0, 25).map((a) => `[${a.engine}] ${a.symbol} (${a.scenarioKey}): ${fmtImpact(a.impactDollars)}`),
+    ),
+    section(
+      "sector-impact",
+      "Sector Impact",
+      combined.sectorImpact.length
+        ? `Investing holdings' impact attributed across ${new Set(combined.sectorImpact.map((s) => s.sector)).size} sector(s).`
+        : "No Investing sector impact available yet — this user has no Investing holdings on record.",
+      combined.sectorImpact.slice(0, 25).map((s) => `${s.sector} (${s.scenarioKey}): ${fmtImpact(s.impactDollars)}`),
+    ),
+    section(
+      "strategy-impact",
+      "Strategy Impact",
+      combined.strategyImpact.length
+        ? `Impact attributed across ${combined.strategyImpact.length} strategy reading(s) across Trading and Options.`
+        : "No strategy impact available yet.",
+      combined.strategyImpact.slice(0, 25).map((s) => `[${s.engine}] ${s.label} (${s.scenarioKey}): ${fmtImpact(s.impactDollars)}`),
+    ),
+    section(
+      "scenario-comparison",
+      "Scenario Comparison",
+      "Every default price scenario, compared side by side across all 3 engines.",
+      scenarioComparisonBullets,
+    ),
+  ];
+
+  return {
+    reportType: "scenario-analysis-report",
+    title: "Scenario Analysis Report",
+    subtitle: `${scenarios.length} scenario(s) across Investing, Trading, and Options`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+export function buildStressTestReport(dashboard: ScenarioDashboard): InstitutionalReport {
+  const { options } = dashboard;
+  const stressScenarios = options.stressTest.scenarios.filter((s) => STRESS_TEST_SCENARIO_LABELS.has(s.label));
+  const base = options.stressTest.base;
+
+  const worst = stressScenarios.reduce<(typeof stressScenarios)[number] | null>((acc, s) => {
+    if (s.unrealizedPnlImpact == null) return acc;
+    if (acc == null || (acc.unrealizedPnlImpact ?? 0) > s.unrealizedPnlImpact) return s;
+    return acc;
+  }, null);
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Executive Summary",
+      options.stressTest.available
+        ? `${stressScenarios.length} severe scenario(s) evaluated against the Options portfolio's own real, open positions via the existing What-If Stress Test engine (Black-Scholes repricing).${worst ? ` Worst modeled outcome: ${worst.label} (unrealized P&L ${fmtImpact(worst.unrealizedPnlImpact)}).` : ""}`
+        : `Options stress testing is currently unavailable: ${options.stressTest.inputIssues.join("; ") || "no open Options positions on record."}`,
+      stressScenarios.map((s) => `${s.label}: portfolio value ${fmtImpact(s.portfolioValueImpact)}, unrealized P&L ${fmtImpact(s.unrealizedPnlImpact)}`),
+    ),
+    section(
+      "portfolio-impact-summary",
+      "Portfolio Impact Summary (Severe Scenarios)",
+      "Total repriced portfolio value and unrealized P&L impact under each severe scenario, reused directly from the existing What-If Stress Test engine's own already-computed comparison.",
+      stressScenarios.map((s) => `${s.label}: portfolio value ${fmtImpact(s.portfolioValueImpact)}, unrealized P&L ${fmtImpact(s.unrealizedPnlImpact)}, drawdown ${s.drawdownPct != null ? s.drawdownPct.toFixed(2) + "%" : "unavailable"}`),
+    ),
+    section(
+      "greeks-impact",
+      "Greeks Impact",
+      `Base portfolio Greeks: delta ${base.greeks.delta}, gamma ${base.greeks.gamma}, theta ${base.greeks.theta}, vega ${base.greeks.vega}. Every figure below shows the SAME real open positions' Greeks immediately after each severe scenario's shock.`,
+      stressScenarios.map(
+        (s) =>
+          `${s.label}: delta ${s.after.greeks.delta} (${s.deltaChange >= 0 ? "+" : ""}${s.deltaChange}), gamma ${s.after.greeks.gamma} (${s.gammaChange >= 0 ? "+" : ""}${s.gammaChange}), theta ${s.after.greeks.theta} (${s.thetaChange >= 0 ? "+" : ""}${s.thetaChange}), vega ${s.after.greeks.vega} (${s.vegaChange >= 0 ? "+" : ""}${s.vegaChange})`,
+      ),
+    ),
+    section(
+      "buying-power-impact",
+      "Buying Power Impact",
+      `Base buying power: ${base.buyingPower != null ? `$${base.buyingPower.toLocaleString()}` : "unavailable"}.`,
+      stressScenarios.map((s) => `${s.label}: ${fmtImpact(s.buyingPowerImpactDollars)}`),
+    ),
+    section(
+      "capital-impact",
+      "Capital Impact",
+      `Base capital at risk: ${base.totalRiskDollars != null ? `$${base.totalRiskDollars.toLocaleString()}` : "unavailable"} (${base.totalRiskPct != null ? base.totalRiskPct.toFixed(2) + "%" : "unavailable"} of account value). A defined-risk options strategy's own reserved margin does not move purely because a price/volatility shock changed the position's mark-to-market value — this is a real property of defined-risk strategies, not an unimplemented feature.`,
+      stressScenarios.map(
+        (s) => `${s.label}: capital at risk ${s.after.totalRiskDollars != null ? `$${s.after.totalRiskDollars.toLocaleString()}` : "unavailable"} (${s.after.totalRiskPct != null ? s.after.totalRiskPct.toFixed(2) + "%" : "unavailable"})`,
+      ),
+    ),
+  ];
+
+  return {
+    reportType: "stress-test-report",
+    title: "Stress Test Report",
+    subtitle: worst ? `Worst modeled: ${worst.label} (${fmtImpact(worst.unrealizedPnlImpact)})` : `${stressScenarios.length} severe scenario(s) evaluated`,
     symbol: null,
     portfolioId: null,
     generatedAt: dashboard.generatedAt,
