@@ -63,6 +63,9 @@ import {
   compliancePoliciesTable,
   investingWatchlistsTable,
   investingWatchlistItemsTable,
+  portfolioWorkflowInstancesTable,
+  workspacePinnedResourcesTable,
+  workspaceRecentViewsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -160,6 +163,11 @@ afterAll(async () => {
     // consistent with the rest of this loop, not strictly required.
     investingWatchlistItemsTable,
     investingWatchlistsTable,
+    // Phase 44 — Institutional Portfolio Workspace & Workflow Center's own
+    // three new tables.
+    portfolioWorkflowInstancesTable,
+    workspacePinnedResourcesTable,
+    workspaceRecentViewsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -636,6 +644,33 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       watchlistId: userId === userA ? watchlistA.id : watchlistB.id,
       symbol: "IBM",
+    }));
+  });
+
+  it("portfolio_workflow_instances: a userId-scoped query never crosses accounts (Phase 44)", async () => {
+    await assertTenantIsolation(portfolioWorkflowInstancesTable, userA, userB, (userId) => ({
+      userId,
+      workflowKey: "morning_review",
+    }));
+  });
+
+  it("workspace_pinned_resources: a userId-scoped query never crosses accounts (Phase 44)", async () => {
+    await assertTenantIsolation(workspacePinnedResourcesTable, userA, userB, (userId) => ({
+      userId,
+      resourceType: "dashboard",
+      resourceKey: "isolation-test-resource",
+      label: "Isolation Test Resource",
+      linkPath: "/watchlists-engine",
+    }));
+  });
+
+  it("workspace_recent_views: a userId-scoped query never crosses accounts (Phase 44)", async () => {
+    await assertTenantIsolation(workspaceRecentViewsTable, userA, userB, (userId) => ({
+      userId,
+      resourceType: "dashboard",
+      resourceKey: "isolation-test-resource",
+      label: "Isolation Test Resource",
+      linkPath: "/watchlists-engine",
     }));
   });
 });

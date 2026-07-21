@@ -71,6 +71,7 @@ import decisionSupportEngineRouter from "./decisionSupportEngine";
 import rebalancingEngineRouter from "./rebalancingEngine";
 import complianceEngineRouter from "./complianceEngine";
 import watchlistsRouter from "./watchlists";
+import portfolioWorkspaceRouter from "./portfolioWorkspace";
 
 const router: IRouter = Router();
 
@@ -146,5 +147,6 @@ router.use(decisionSupportEngineRouter);
 router.use(rebalancingEngineRouter);
 router.use(complianceEngineRouter);
 router.use(watchlistsRouter);
+router.use(portfolioWorkspaceRouter);
 
 export default router;
