@@ -74,6 +74,8 @@ tags:
     description: Cross-Engine Orchestration & Unified Workspace (Phase 34) — one workspace spanning the Investing and Trading engines, with a chronological Activity Timeline extended with Trade Plan/Strategy/Learning entries, Cross-Engine Recent Items (most-recently-touched per category), Cross-Engine Tasks (already-flagged "needs attention" counts), and a deterministic Global Search over 9 already-persisted entity categories. Pure orchestration/aggregation/search over already-persisted data — no semantic search, no new scoring, no signal, no forecast, no AI prediction, no automated execution.
   - name: options-income
     description: Institutional Options Income Engine — Foundation (Phase 35) — deterministic aggregation and a Position Model view over the existing, mature Options Income Engine's own `trades` table (Income Overview, Strategy Mix, Upcoming Expirations, per-position Underlying/Strategy/Expiration/Premium/Collateral/Greeks/Status/Lifecycle/Notes), plus a static 9-strategy Strategy Library template catalog. Architecture-only foundation — no live brokerage execution, no auto trading, no auto adjustments, no AI predictions, no direction forecasting, no position recommendations, no trade alerts, no market timing.
+  - name: options-lifecycle
+    description: Institutional Position Lifecycle Manager (Phase 36) — deterministic lifecycle-stage tracking (Draft/Planned/Open/Monitoring/Near Expiration/Assignment Risk/Closed/Archived, no automatic transitions), an append-only event log backing the Position Timeline/Position History/Adjustment Journal/Assignment Tracker, per-position institutional checklists for the 9 Strategy Library strategies, a review-schedule assignment (Daily/Weekly/Monthly/Expiration/Manual, no reminders or notifications), and a portfolio management view (position concentration, strategy/sector allocation, expiration ladder, capital utilisation, buying power allocation, income allocation) reused directly from the existing Portfolio Risk Dashboard and Options Income Engine. Deterministic workflow tooling only — no live brokerage execution, no auto trading, no auto adjustments, no AI predictions, no direction forecasting, no position recommendations, no trade alerts, no automated rolling, no automated assignment handling.
   - name: broker
     description: Read-only Alpaca Paper Trading broker/account verification (account balances, open positions, open orders, connection health) — Paper Trading endpoint only, never places, modifies, or cancels an order
 
@@ -4373,6 +4375,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  # Phase 36 — Institutional Position Lifecycle Manager. Extends the
+  # existing Reporting Centre with a 15th and 16th report type — reuses
+  # the generic InstitutionalReport/section() shape, no frontend change
+  # required beyond the report-type <Select> already populated dynamically
+  # from GET /reporting/types.
+  /reporting/options-portfolio-review:
+    get:
+      operationId: getOptionsPortfolioReviewReport
+      tags: [reporting]
+      summary: Options Portfolio Review — the calling user's own Options Portfolio Management view (position concentration, strategy/sector allocation, expiration ladder, capital/buying-power utilisation, income allocation)
+      responses:
+        "200":
+          description: Options Portfolio Review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/position-lifecycle-summary:
+    get:
+      operationId: getPositionLifecycleSummaryReport
+      tags: [reporting]
+      summary: Position Lifecycle Summary — the calling user's own positions tallied by their real lifecycle stage
+      responses:
+        "200":
+          description: Position Lifecycle Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -4675,6 +4708,238 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/OptionsStrategyTemplate"
+
+  # ─── Institutional Position Lifecycle Manager (Phase 36) ────────────────────
+  /options-lifecycle/portfolio:
+    get:
+      operationId: getOptionsLifecyclePortfolio
+      tags: [options-lifecycle]
+      summary: The calling user's own Options Portfolio Management view — position concentration, strategy/sector allocation, expiration ladder, capital utilisation, buying power allocation, and income allocation, all reused directly from the existing Portfolio Risk Dashboard and Options Income Engine, plus a deterministic Portfolio Exposure Timeline and Position Lifecycle Summary.
+      responses:
+        "200":
+          description: Options Portfolio Management view
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsPortfolioManagementView"
+
+  /options-lifecycle/coach:
+    get:
+      operationId: listOptionsLifecycleCoachTopics
+      tags: [options-lifecycle]
+      summary: All 5 deterministic AI Coach explanations (lifecycle stages, review process, assignment mechanics, capital allocation, portfolio concentration). Never a trade recommendation.
+      responses:
+        "200":
+          description: Every lifecycle coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptionsLifecycleCoachExplanation"
+
+  /options-lifecycle/coach/{topic}:
+    get:
+      operationId: getOptionsLifecycleCoachTopic
+      tags: [options-lifecycle]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsLifecycleCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /options-lifecycle/learning:
+    get:
+      operationId: listOptionsLifecycleLearning
+      tags: [options-lifecycle]
+      summary: Every lifecycle stage connected to relevant EXISTING Learning Centre content (lessons, strategy explanations, risk concepts, assignment concepts) — reused, never duplicated.
+      responses:
+        "200":
+          description: Every stage's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptionsLifecycleStageLearning"
+
+  /options-lifecycle/learning/{stage}:
+    get:
+      operationId: getOptionsLifecycleLearning
+      tags: [options-lifecycle]
+      summary: One lifecycle stage's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: stage
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The stage's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsLifecycleStageLearning"
+        "404":
+          description: Unknown lifecycle stage
+
+  /options-lifecycle/{tradeId}/state:
+    get:
+      operationId: getOptionsLifecycleState
+      tags: [options-lifecycle]
+      summary: The calling user's own position's current lifecycle stage and review cadence — creates an honest default (derived from the trade's own real status) on first read, never a fabricated stage.
+      parameters:
+        - name: tradeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The position's lifecycle state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsLifecycleState"
+        "404":
+          description: Position not found or not owned by the caller
+    patch:
+      operationId: updateOptionsLifecycleState
+      tags: [options-lifecycle]
+      summary: Sets the position's lifecycle stage and/or review cadence — an explicit user action, never an automatic transition. A stage change is recorded to the position's own Position Timeline.
+      parameters:
+        - name: tradeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptionsLifecycleStateUpdateInput"
+      responses:
+        "200":
+          description: The updated lifecycle state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsLifecycleState"
+        "400":
+          description: Invalid stage or review cadence
+        "404":
+          description: Position not found or not owned by the caller
+
+  /options-lifecycle/{tradeId}/timeline:
+    get:
+      operationId: getOptionsLifecycleTimeline
+      tags: [options-lifecycle]
+      summary: The calling user's own position's full event log (Position Timeline / Position History) — every stage change, review, adjustment journal entry, and assignment note, newest first. The Adjustment Journal and Assignment Tracker are this same data filtered by eventType.
+      parameters:
+        - name: tradeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The position's event log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptionsLifecycleEvent"
+        "404":
+          description: Position not found or not owned by the caller
+
+  /options-lifecycle/{tradeId}/events:
+    post:
+      operationId: createOptionsLifecycleEvent
+      tags: [options-lifecycle]
+      summary: Records a review, adjustment journal entry, or assignment note against the calling user's own position. Never a stage_change event directly — use PATCH .../state for that, which records its own event automatically.
+      parameters:
+        - name: tradeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptionsLifecycleEventInput"
+      responses:
+        "200":
+          description: The recorded event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsLifecycleEvent"
+        "400":
+          description: Invalid eventType or reviewType
+        "404":
+          description: Position not found or not owned by the caller
+
+  /options-lifecycle/{tradeId}/checklist:
+    get:
+      operationId: getOptionsLifecycleChecklist
+      tags: [options-lifecycle]
+      summary: The calling user's own position's institutional checklist instance — instantiated from the position's own strategy's static template on first read (pass ?strategyKey= the first time; server-side only, outside the typed contract, matching this codebase's own established path+query Orval-collision workaround).
+      parameters:
+        - name: tradeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The position's checklist instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsPositionChecklist"
+        "404":
+          description: Position not found, not owned by the caller, or an unknown strategyKey
+    patch:
+      operationId: updateOptionsLifecycleChecklistItem
+      tags: [options-lifecycle]
+      summary: Toggles one checklist item's checked state. Checklist data only — never submits an order, never triggers an adjustment, never changes the position's lifecycle stage.
+      parameters:
+        - name: tradeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptionsChecklistToggleInput"
+      responses:
+        "200":
+          description: The updated checklist instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptionsPositionChecklist"
+        "404":
+          description: Position, checklist, or item not found
 
   # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
   /trading/risk:
@@ -15332,7 +15597,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -15344,7 +15609,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -15362,7 +15627,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -16170,3 +16435,242 @@ components:
         idealMarket: { type: string }
         assignmentRisk: { type: string }
         executionStrategyKey: { type: ["string", "null"] }
+
+    OptionsLifecycleState:
+      type: object
+      required: [id, tradeId, stage, reviewCadence, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        tradeId: { type: integer }
+        stage:
+          type: string
+          enum: [draft, planned, open, monitoring, near_expiration, assignment_risk, closed, archived]
+        reviewCadence:
+          type: string
+          enum: [daily, weekly, monthly, expiration, manual]
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    OptionsLifecycleStateUpdateInput:
+      type: object
+      properties:
+        stage:
+          type: string
+          enum: [draft, planned, open, monitoring, near_expiration, assignment_risk, closed, archived]
+        reviewCadence:
+          type: string
+          enum: [daily, weekly, monthly, expiration, manual]
+
+    OptionsLifecycleEvent:
+      type: object
+      required: [id, tradeId, eventType, stage, reviewType, detail, createdAt]
+      properties:
+        id: { type: integer }
+        tradeId: { type: integer }
+        eventType:
+          type: string
+          enum: [stage_change, review, adjustment_note, assignment_note]
+        stage: { type: ["string", "null"] }
+        reviewType: { type: ["string", "null"] }
+        detail: { type: string }
+        createdAt: { type: string }
+
+    OptionsLifecycleEventInput:
+      type: object
+      required: [eventType, detail]
+      properties:
+        eventType:
+          type: string
+          enum: [review, adjustment_note, assignment_note]
+        reviewType:
+          type: string
+          enum: [daily, weekly, monthly, expiration, manual]
+        detail: { type: string }
+
+    OptionsPositionChecklistItem:
+      type: object
+      required: [id, label, required, checked]
+      properties:
+        id: { type: string }
+        label: { type: string }
+        required: { type: boolean }
+        checked: { type: boolean }
+
+    OptionsPositionChecklist:
+      type: object
+      required: [id, tradeId, strategyKey, items, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        tradeId: { type: integer }
+        strategyKey: { type: string }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsPositionChecklistItem"
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    OptionsChecklistToggleInput:
+      type: object
+      required: [itemId, checked]
+      properties:
+        itemId: { type: string }
+        checked: { type: boolean }
+
+    OptionsLifecycleCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum: [lifecycle_stages, review_process, assignment_mechanics, capital_allocation, portfolio_concentration]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    OptionsLifecycleLearningLink:
+      type: object
+      required: [pathKey, topicKey, category, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        category:
+          type: string
+          enum: [lesson, strategy, risk, assignment]
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    OptionsLifecycleStageLearning:
+      type: object
+      required: [stage, links]
+      properties:
+        stage:
+          type: string
+          enum: [draft, planned, open, monitoring, near_expiration, assignment_risk, closed, archived]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsLifecycleLearningLink"
+
+    OptionsLifecycleSummaryEntry:
+      type: object
+      required: [stage, count]
+      properties:
+        stage:
+          type: string
+          enum: [draft, planned, open, monitoring, near_expiration, assignment_risk, closed, archived]
+        count: { type: integer }
+
+    OptionsLifecycleSummary:
+      type: object
+      required: [totalPositions, byStage, positionsAwaitingReview]
+      properties:
+        totalPositions: { type: integer }
+        byStage:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsLifecycleSummaryEntry"
+        positionsAwaitingReview: { type: integer }
+
+    OptionsExposureTimelineStrategyCount:
+      type: object
+      required: [strategy, count]
+      properties:
+        strategy: { type: string }
+        count: { type: integer }
+
+    OptionsExposureTimelinePoint:
+      type: object
+      required: [monthEnd, openPositionsCount, byStrategy]
+      properties:
+        monthEnd: { type: string }
+        openPositionsCount: { type: integer }
+        byStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsExposureTimelineStrategyCount"
+
+    OptionsPortfolioIncomeAllocation:
+      type: object
+      required: [bySymbol, byStrategy, strategyMix]
+      properties:
+        bySymbol:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThetaBreakdown"
+        byStrategy:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThetaBreakdown"
+        strategyMix:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsStrategyMixEntry"
+
+    OptionsPortfolioCapitalUtilisation:
+      type: object
+      required: [portfolioValue, totalRiskDollars, totalRiskPct]
+      properties:
+        portfolioValue: { type: number }
+        totalRiskDollars: { type: number }
+        totalRiskPct: { type: number }
+
+    OptionsPortfolioBuyingPowerAllocation:
+      type: object
+      required: [buyingPower]
+      properties:
+        buyingPower: { type: number }
+
+    OptionsPortfolioManagementView:
+      type: object
+      required:
+        [
+          positionConcentration,
+          strategyAllocation,
+          sectorAllocation,
+          expirationLadder,
+          capitalUtilisation,
+          buyingPowerAllocation,
+          incomeAllocation,
+          expirationTracker,
+          exposureTimeline,
+          lifecycleSummary,
+          generatedAt,
+        ]
+      properties:
+        positionConcentration:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        strategyAllocation:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        sectorAllocation:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        expirationLadder:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConcentrationBucket"
+        capitalUtilisation:
+          $ref: "#/components/schemas/OptionsPortfolioCapitalUtilisation"
+        buyingPowerAllocation:
+          $ref: "#/components/schemas/OptionsPortfolioBuyingPowerAllocation"
+        incomeAllocation:
+          $ref: "#/components/schemas/OptionsPortfolioIncomeAllocation"
+        expirationTracker:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsUpcomingExpirationGroup"
+        exposureTimeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsExposureTimelinePoint"
+        lifecycleSummary:
+          $ref: "#/components/schemas/OptionsLifecycleSummary"
+        generatedAt: { type: string }

@@ -117,9 +117,9 @@ function decisionFor(report: ValueResearchReport): InstitutionalDecisionAnalysis
 }
 
 describe("institutionalReporting.ts — REPORT_TYPE_META", () => {
-  it("has exactly 14 entries matching REPORT_TYPES (Phase 35 adds options-income-summary)", () => {
-    expect(REPORT_TYPE_META).toHaveLength(14);
-    expect(REPORT_TYPES).toHaveLength(14);
+  it("has exactly 16 entries matching REPORT_TYPES (Phase 36 adds options-portfolio-review and position-lifecycle-summary)", () => {
+    expect(REPORT_TYPE_META).toHaveLength(16);
+    expect(REPORT_TYPES).toHaveLength(16);
     expect(REPORT_TYPE_META.map((m) => m.reportType).sort()).toEqual([...REPORT_TYPES].sort());
   });
 

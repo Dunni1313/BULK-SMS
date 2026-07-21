@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 14 report types (Phase 35 adds options-income-summary)", async () => {
+  it("GET /reporting/types returns all 16 report types (Phase 36 adds options-portfolio-review and position-lifecycle-summary)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(14);
+    expect(body).toHaveLength(16);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -63,6 +63,8 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "monitoring-summary",
         "opportunity-discovery",
         "options-income-summary",
+        "options-portfolio-review",
+        "position-lifecycle-summary",
         "portfolio-health",
         "portfolio-review",
         "strategy-framework-summary",
@@ -222,6 +224,60 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     const list = (await listRes.json()) as { id: number; reportType: string }[];
     expect(list.some((r) => r.id === saved.id && r.reportType === "options-income-summary")).toBe(true);
 
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
+  });
+
+  it("GET /reporting/options-portfolio-review (Phase 36) reuses the Options Portfolio Management view, reformatted into report sections, never a rebalancing recommendation", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/options-portfolio-review`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("options-portfolio-review");
+    expect(body.sections.map((s) => s.id)).toEqual([
+      "capital-utilisation",
+      "position-concentration",
+      "strategy-allocation",
+      "sector-allocation",
+      "expiration-ladder",
+      "income-allocation",
+      "expiration-tracker",
+    ]);
+    expect(body.disclaimer).toContain("no new investment recommendation");
+    const serialized = JSON.stringify(body).toLowerCase();
+    expect(serialized).not.toMatch(/"probability"|"prediction"|"forecast"|"recommendation"|"rebalanc/);
+  });
+
+  it("full options-portfolio-review save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: "options-portfolio-review" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("options-portfolio-review");
+    expect(saved.report.reportType).toBe("options-portfolio-review");
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
+  });
+
+  it("GET /reporting/position-lifecycle-summary (Phase 36) reuses buildLifecycleSummary()'s own real tally, reformatted into report sections, never an automated stage assessment", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/position-lifecycle-summary`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("position-lifecycle-summary");
+    expect(body.sections.map((s) => s.id)).toEqual(["lifecycle-overview", "positions-by-stage"]);
+    expect(body.disclaimer).toContain("no new investment recommendation");
+  });
+
+  it("full position-lifecycle-summary save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: "position-lifecycle-summary" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("position-lifecycle-summary");
+    expect(saved.report.reportType).toBe("position-lifecycle-summary");
     await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
   });
 

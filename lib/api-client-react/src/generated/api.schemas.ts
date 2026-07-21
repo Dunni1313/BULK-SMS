@@ -8039,6 +8039,8 @@ export const ReportTypeMetaReportType = {
   'trading-analytics-summary': 'trading-analytics-summary',
   'executive-intelligence-summary': 'executive-intelligence-summary',
   'options-income-summary': 'options-income-summary',
+  'options-portfolio-review': 'options-portfolio-review',
+  'position-lifecycle-summary': 'position-lifecycle-summary',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8067,6 +8069,8 @@ export const InstitutionalReportReportType = {
   'trading-analytics-summary': 'trading-analytics-summary',
   'executive-intelligence-summary': 'executive-intelligence-summary',
   'options-income-summary': 'options-income-summary',
+  'options-portfolio-review': 'options-portfolio-review',
+  'position-lifecycle-summary': 'position-lifecycle-summary',
 } as const;
 
 export interface InstitutionalReport {
@@ -8099,6 +8103,8 @@ export const SaveInstitutionalReportInputReportType = {
   'trading-analytics-summary': 'trading-analytics-summary',
   'executive-intelligence-summary': 'executive-intelligence-summary',
   'options-income-summary': 'options-income-summary',
+  'options-portfolio-review': 'options-portfolio-review',
+  'position-lifecycle-summary': 'position-lifecycle-summary',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -8824,6 +8830,261 @@ export interface OptionsStrategyTemplate {
   assignmentRisk: string;
   /** @nullable */
   executionStrategyKey: string | null;
+}
+
+export type OptionsLifecycleStateStage = typeof OptionsLifecycleStateStage[keyof typeof OptionsLifecycleStateStage];
+
+
+export const OptionsLifecycleStateStage = {
+  draft: 'draft',
+  planned: 'planned',
+  open: 'open',
+  monitoring: 'monitoring',
+  near_expiration: 'near_expiration',
+  assignment_risk: 'assignment_risk',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export type OptionsLifecycleStateReviewCadence = typeof OptionsLifecycleStateReviewCadence[keyof typeof OptionsLifecycleStateReviewCadence];
+
+
+export const OptionsLifecycleStateReviewCadence = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  expiration: 'expiration',
+  manual: 'manual',
+} as const;
+
+export interface OptionsLifecycleState {
+  id: number;
+  tradeId: number;
+  stage: OptionsLifecycleStateStage;
+  reviewCadence: OptionsLifecycleStateReviewCadence;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OptionsLifecycleStateUpdateInputStage = typeof OptionsLifecycleStateUpdateInputStage[keyof typeof OptionsLifecycleStateUpdateInputStage];
+
+
+export const OptionsLifecycleStateUpdateInputStage = {
+  draft: 'draft',
+  planned: 'planned',
+  open: 'open',
+  monitoring: 'monitoring',
+  near_expiration: 'near_expiration',
+  assignment_risk: 'assignment_risk',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export type OptionsLifecycleStateUpdateInputReviewCadence = typeof OptionsLifecycleStateUpdateInputReviewCadence[keyof typeof OptionsLifecycleStateUpdateInputReviewCadence];
+
+
+export const OptionsLifecycleStateUpdateInputReviewCadence = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  expiration: 'expiration',
+  manual: 'manual',
+} as const;
+
+export interface OptionsLifecycleStateUpdateInput {
+  stage?: OptionsLifecycleStateUpdateInputStage;
+  reviewCadence?: OptionsLifecycleStateUpdateInputReviewCadence;
+}
+
+export type OptionsLifecycleEventEventType = typeof OptionsLifecycleEventEventType[keyof typeof OptionsLifecycleEventEventType];
+
+
+export const OptionsLifecycleEventEventType = {
+  stage_change: 'stage_change',
+  review: 'review',
+  adjustment_note: 'adjustment_note',
+  assignment_note: 'assignment_note',
+} as const;
+
+export interface OptionsLifecycleEvent {
+  id: number;
+  tradeId: number;
+  eventType: OptionsLifecycleEventEventType;
+  /** @nullable */
+  stage: string | null;
+  /** @nullable */
+  reviewType: string | null;
+  detail: string;
+  createdAt: string;
+}
+
+export type OptionsLifecycleEventInputEventType = typeof OptionsLifecycleEventInputEventType[keyof typeof OptionsLifecycleEventInputEventType];
+
+
+export const OptionsLifecycleEventInputEventType = {
+  review: 'review',
+  adjustment_note: 'adjustment_note',
+  assignment_note: 'assignment_note',
+} as const;
+
+export type OptionsLifecycleEventInputReviewType = typeof OptionsLifecycleEventInputReviewType[keyof typeof OptionsLifecycleEventInputReviewType];
+
+
+export const OptionsLifecycleEventInputReviewType = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  expiration: 'expiration',
+  manual: 'manual',
+} as const;
+
+export interface OptionsLifecycleEventInput {
+  eventType: OptionsLifecycleEventInputEventType;
+  reviewType?: OptionsLifecycleEventInputReviewType;
+  detail: string;
+}
+
+export interface OptionsPositionChecklistItem {
+  id: string;
+  label: string;
+  required: boolean;
+  checked: boolean;
+}
+
+export interface OptionsPositionChecklist {
+  id: number;
+  tradeId: number;
+  strategyKey: string;
+  items: OptionsPositionChecklistItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OptionsChecklistToggleInput {
+  itemId: string;
+  checked: boolean;
+}
+
+export type OptionsLifecycleCoachExplanationTopic = typeof OptionsLifecycleCoachExplanationTopic[keyof typeof OptionsLifecycleCoachExplanationTopic];
+
+
+export const OptionsLifecycleCoachExplanationTopic = {
+  lifecycle_stages: 'lifecycle_stages',
+  review_process: 'review_process',
+  assignment_mechanics: 'assignment_mechanics',
+  capital_allocation: 'capital_allocation',
+  portfolio_concentration: 'portfolio_concentration',
+} as const;
+
+export interface OptionsLifecycleCoachExplanation {
+  topic: OptionsLifecycleCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export type OptionsLifecycleLearningLinkCategory = typeof OptionsLifecycleLearningLinkCategory[keyof typeof OptionsLifecycleLearningLinkCategory];
+
+
+export const OptionsLifecycleLearningLinkCategory = {
+  lesson: 'lesson',
+  strategy: 'strategy',
+  risk: 'risk',
+  assignment: 'assignment',
+} as const;
+
+export interface OptionsLifecycleLearningLink {
+  pathKey: string;
+  topicKey: string;
+  category: OptionsLifecycleLearningLinkCategory;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type OptionsLifecycleStageLearningStage = typeof OptionsLifecycleStageLearningStage[keyof typeof OptionsLifecycleStageLearningStage];
+
+
+export const OptionsLifecycleStageLearningStage = {
+  draft: 'draft',
+  planned: 'planned',
+  open: 'open',
+  monitoring: 'monitoring',
+  near_expiration: 'near_expiration',
+  assignment_risk: 'assignment_risk',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export interface OptionsLifecycleStageLearning {
+  stage: OptionsLifecycleStageLearningStage;
+  links: OptionsLifecycleLearningLink[];
+}
+
+export type OptionsLifecycleSummaryEntryStage = typeof OptionsLifecycleSummaryEntryStage[keyof typeof OptionsLifecycleSummaryEntryStage];
+
+
+export const OptionsLifecycleSummaryEntryStage = {
+  draft: 'draft',
+  planned: 'planned',
+  open: 'open',
+  monitoring: 'monitoring',
+  near_expiration: 'near_expiration',
+  assignment_risk: 'assignment_risk',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export interface OptionsLifecycleSummaryEntry {
+  stage: OptionsLifecycleSummaryEntryStage;
+  count: number;
+}
+
+export interface OptionsLifecycleSummary {
+  totalPositions: number;
+  byStage: OptionsLifecycleSummaryEntry[];
+  positionsAwaitingReview: number;
+}
+
+export interface OptionsExposureTimelineStrategyCount {
+  strategy: string;
+  count: number;
+}
+
+export interface OptionsExposureTimelinePoint {
+  monthEnd: string;
+  openPositionsCount: number;
+  byStrategy: OptionsExposureTimelineStrategyCount[];
+}
+
+export interface OptionsPortfolioIncomeAllocation {
+  bySymbol: ThetaBreakdown[];
+  byStrategy: ThetaBreakdown[];
+  strategyMix: OptionsStrategyMixEntry[];
+}
+
+export interface OptionsPortfolioCapitalUtilisation {
+  portfolioValue: number;
+  totalRiskDollars: number;
+  totalRiskPct: number;
+}
+
+export interface OptionsPortfolioBuyingPowerAllocation {
+  buyingPower: number;
+}
+
+export interface OptionsPortfolioManagementView {
+  positionConcentration: ConcentrationBucket[];
+  strategyAllocation: ConcentrationBucket[];
+  sectorAllocation: ConcentrationBucket[];
+  expirationLadder: ConcentrationBucket[];
+  capitalUtilisation: OptionsPortfolioCapitalUtilisation;
+  buyingPowerAllocation: OptionsPortfolioBuyingPowerAllocation;
+  incomeAllocation: OptionsPortfolioIncomeAllocation;
+  expirationTracker: OptionsUpcomingExpirationGroup[];
+  exposureTimeline: OptionsExposureTimelinePoint[];
+  lifecycleSummary: OptionsLifecycleSummary;
+  generatedAt: string;
 }
 
 export type GetScannerResultsParams = {

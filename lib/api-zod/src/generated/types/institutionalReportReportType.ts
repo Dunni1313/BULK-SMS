@@ -24,4 +24,6 @@ export const InstitutionalReportReportType = {
   'trading-analytics-summary': 'trading-analytics-summary',
   'executive-intelligence-summary': 'executive-intelligence-summary',
   'options-income-summary': 'options-income-summary',
+  'options-portfolio-review': 'options-portfolio-review',
+  'position-lifecycle-summary': 'position-lifecycle-summary',
 } as const;

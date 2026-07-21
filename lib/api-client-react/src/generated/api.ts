@@ -155,9 +155,18 @@ import type {
   OptimisationReviewCreate,
   OptionChain,
   OptionsBacktestResult,
+  OptionsChecklistToggleInput,
   OptionsIncomeDashboard,
   OptionsIncomePosition,
   OptionsIncomePositionNotesInput,
+  OptionsLifecycleCoachExplanation,
+  OptionsLifecycleEvent,
+  OptionsLifecycleEventInput,
+  OptionsLifecycleStageLearning,
+  OptionsLifecycleState,
+  OptionsLifecycleStateUpdateInput,
+  OptionsPortfolioManagementView,
+  OptionsPositionChecklist,
   OptionsRunBacktestInput,
   OptionsStrategyTemplate,
   OrderPreviewInput,
@@ -16227,6 +16236,160 @@ export function useGetOptionsIncomeSummaryReport<TData = Awaited<ReturnType<type
 
 
 
+export const getGetOptionsPortfolioReviewReportUrl = () => {
+
+
+
+
+  return `/api/reporting/options-portfolio-review`
+}
+
+/**
+ * @summary Options Portfolio Review — the calling user's own Options Portfolio Management view (position concentration, strategy/sector allocation, expiration ladder, capital/buying-power utilisation, income allocation)
+ */
+export const getOptionsPortfolioReviewReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetOptionsPortfolioReviewReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsPortfolioReviewReportQueryKey = () => {
+    return [
+    `/api/reporting/options-portfolio-review`
+    ] as const;
+    }
+
+
+export const getGetOptionsPortfolioReviewReportQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsPortfolioReviewReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>> = ({ signal }) => getOptionsPortfolioReviewReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsPortfolioReviewReportQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>>
+export type GetOptionsPortfolioReviewReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Options Portfolio Review — the calling user's own Options Portfolio Management view (position concentration, strategy/sector allocation, expiration ladder, capital/buying-power utilisation, income allocation)
+ */
+
+export function useGetOptionsPortfolioReviewReport<TData = Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsPortfolioReviewReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPositionLifecycleSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/position-lifecycle-summary`
+}
+
+/**
+ * @summary Position Lifecycle Summary — the calling user's own positions tallied by their real lifecycle stage
+ */
+export const getPositionLifecycleSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPositionLifecycleSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPositionLifecycleSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/position-lifecycle-summary`
+    ] as const;
+    }
+
+
+export const getGetPositionLifecycleSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPositionLifecycleSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>> = ({ signal }) => getPositionLifecycleSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPositionLifecycleSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>>
+export type GetPositionLifecycleSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Position Lifecycle Summary — the calling user's own positions tallied by their real lifecycle stage
+ */
+
+export function useGetPositionLifecycleSummaryReport<TData = Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPositionLifecycleSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -17449,6 +17612,838 @@ export function useGetOptionsStrategyLibrary<TData = Awaited<ReturnType<typeof g
 
 
 
+
+export const getGetOptionsLifecyclePortfolioUrl = () => {
+
+
+
+
+  return `/api/options-lifecycle/portfolio`
+}
+
+/**
+ * @summary The calling user's own Options Portfolio Management view — position concentration, strategy/sector allocation, expiration ladder, capital utilisation, buying power allocation, and income allocation, all reused directly from the existing Portfolio Risk Dashboard and Options Income Engine, plus a deterministic Portfolio Exposure Timeline and Position Lifecycle Summary.
+ */
+export const getOptionsLifecyclePortfolio = async ( options?: RequestInit): Promise<OptionsPortfolioManagementView> => {
+
+  return customFetch<OptionsPortfolioManagementView>(getGetOptionsLifecyclePortfolioUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecyclePortfolioQueryKey = () => {
+    return [
+    `/api/options-lifecycle/portfolio`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecyclePortfolioQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecyclePortfolioQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>> = ({ signal }) => getOptionsLifecyclePortfolio({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecyclePortfolioQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>>
+export type GetOptionsLifecyclePortfolioQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own Options Portfolio Management view — position concentration, strategy/sector allocation, expiration ladder, capital utilisation, buying power allocation, and income allocation, all reused directly from the existing Portfolio Risk Dashboard and Options Income Engine, plus a deterministic Portfolio Exposure Timeline and Position Lifecycle Summary.
+ */
+
+export function useGetOptionsLifecyclePortfolio<TData = Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecyclePortfolioQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListOptionsLifecycleCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/options-lifecycle/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (lifecycle stages, review process, assignment mechanics, capital allocation, portfolio concentration). Never a trade recommendation.
+ */
+export const listOptionsLifecycleCoachTopics = async ( options?: RequestInit): Promise<OptionsLifecycleCoachExplanation[]> => {
+
+  return customFetch<OptionsLifecycleCoachExplanation[]>(getListOptionsLifecycleCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOptionsLifecycleCoachTopicsQueryKey = () => {
+    return [
+    `/api/options-lifecycle/coach`
+    ] as const;
+    }
+
+
+export const getListOptionsLifecycleCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOptionsLifecycleCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>> = ({ signal }) => listOptionsLifecycleCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOptionsLifecycleCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>>
+export type ListOptionsLifecycleCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (lifecycle stages, review process, assignment mechanics, capital allocation, portfolio concentration). Never a trade recommendation.
+ */
+
+export function useListOptionsLifecycleCoachTopics<TData = Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOptionsLifecycleCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsLifecycleCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/options-lifecycle/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getOptionsLifecycleCoachTopic = async (topic: string, options?: RequestInit): Promise<OptionsLifecycleCoachExplanation> => {
+
+  return customFetch<OptionsLifecycleCoachExplanation>(getGetOptionsLifecycleCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/options-lifecycle/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>> = ({ signal }) => getOptionsLifecycleCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>>
+export type GetOptionsLifecycleCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetOptionsLifecycleCoachTopic<TData = Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListOptionsLifecycleLearningUrl = () => {
+
+
+
+
+  return `/api/options-lifecycle/learning`
+}
+
+/**
+ * @summary Every lifecycle stage connected to relevant EXISTING Learning Centre content (lessons, strategy explanations, risk concepts, assignment concepts) — reused, never duplicated.
+ */
+export const listOptionsLifecycleLearning = async ( options?: RequestInit): Promise<OptionsLifecycleStageLearning[]> => {
+
+  return customFetch<OptionsLifecycleStageLearning[]>(getListOptionsLifecycleLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOptionsLifecycleLearningQueryKey = () => {
+    return [
+    `/api/options-lifecycle/learning`
+    ] as const;
+    }
+
+
+export const getListOptionsLifecycleLearningQueryOptions = <TData = Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOptionsLifecycleLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>> = ({ signal }) => listOptionsLifecycleLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOptionsLifecycleLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>>
+export type ListOptionsLifecycleLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every lifecycle stage connected to relevant EXISTING Learning Centre content (lessons, strategy explanations, risk concepts, assignment concepts) — reused, never duplicated.
+ */
+
+export function useListOptionsLifecycleLearning<TData = Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOptionsLifecycleLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsLifecycleLearningUrl = (stage: string,) => {
+
+
+
+
+  return `/api/options-lifecycle/learning/${stage}`
+}
+
+/**
+ * @summary One lifecycle stage's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getOptionsLifecycleLearning = async (stage: string, options?: RequestInit): Promise<OptionsLifecycleStageLearning> => {
+
+  return customFetch<OptionsLifecycleStageLearning>(getGetOptionsLifecycleLearningUrl(stage),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleLearningQueryKey = (stage: string,) => {
+    return [
+    `/api/options-lifecycle/learning/${stage}`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleLearningQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError = ErrorType<void>>(stage: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleLearningQueryKey(stage);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>> = ({ signal }) => getOptionsLifecycleLearning(stage, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(stage), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>>
+export type GetOptionsLifecycleLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One lifecycle stage's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetOptionsLifecycleLearning<TData = Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError = ErrorType<void>>(
+ stage: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleLearningQueryOptions(stage,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsLifecycleStateUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/state`
+}
+
+/**
+ * @summary The calling user's own position's current lifecycle stage and review cadence — creates an honest default (derived from the trade's own real status) on first read, never a fabricated stage.
+ */
+export const getOptionsLifecycleState = async (tradeId: number, options?: RequestInit): Promise<OptionsLifecycleState> => {
+
+  return customFetch<OptionsLifecycleState>(getGetOptionsLifecycleStateUrl(tradeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleStateQueryKey = (tradeId: number,) => {
+    return [
+    `/api/options-lifecycle/${tradeId}/state`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleStateQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError = ErrorType<void>>(tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleStateQueryKey(tradeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleState>>> = ({ signal }) => getOptionsLifecycleState(tradeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(tradeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleStateQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleState>>>
+export type GetOptionsLifecycleStateQueryError = ErrorType<void>
+
+
+/**
+ * @summary The calling user's own position's current lifecycle stage and review cadence — creates an honest default (derived from the trade's own real status) on first read, never a fabricated stage.
+ */
+
+export function useGetOptionsLifecycleState<TData = Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError = ErrorType<void>>(
+ tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleStateQueryOptions(tradeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateOptionsLifecycleStateUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/state`
+}
+
+/**
+ * @summary Sets the position's lifecycle stage and/or review cadence — an explicit user action, never an automatic transition. A stage change is recorded to the position's own Position Timeline.
+ */
+export const updateOptionsLifecycleState = async (tradeId: number,
+    optionsLifecycleStateUpdateInput: OptionsLifecycleStateUpdateInput, options?: RequestInit): Promise<OptionsLifecycleState> => {
+
+  return customFetch<OptionsLifecycleState>(getUpdateOptionsLifecycleStateUrl(tradeId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsLifecycleStateUpdateInput,)
+  }
+);}
+
+
+
+
+export const getUpdateOptionsLifecycleStateMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleState>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleState>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateOptionsLifecycleState'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOptionsLifecycleState>>, {tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>}> = (props) => {
+          const {tradeId,data} = props ?? {};
+
+          return  updateOptionsLifecycleState(tradeId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateOptionsLifecycleStateMutationResult = NonNullable<Awaited<ReturnType<typeof updateOptionsLifecycleState>>>
+    export type UpdateOptionsLifecycleStateMutationBody = BodyType<OptionsLifecycleStateUpdateInput>
+    export type UpdateOptionsLifecycleStateMutationError = ErrorType<void>
+
+    /**
+ * @summary Sets the position's lifecycle stage and/or review cadence — an explicit user action, never an automatic transition. A stage change is recorded to the position's own Position Timeline.
+ */
+export const useUpdateOptionsLifecycleState = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleState>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateOptionsLifecycleState>>,
+        TError,
+        {tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateOptionsLifecycleStateMutationOptions(options));
+    }
+
+export const getGetOptionsLifecycleTimelineUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/timeline`
+}
+
+/**
+ * @summary The calling user's own position's full event log (Position Timeline / Position History) — every stage change, review, adjustment journal entry, and assignment note, newest first. The Adjustment Journal and Assignment Tracker are this same data filtered by eventType.
+ */
+export const getOptionsLifecycleTimeline = async (tradeId: number, options?: RequestInit): Promise<OptionsLifecycleEvent[]> => {
+
+  return customFetch<OptionsLifecycleEvent[]>(getGetOptionsLifecycleTimelineUrl(tradeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleTimelineQueryKey = (tradeId: number,) => {
+    return [
+    `/api/options-lifecycle/${tradeId}/timeline`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError = ErrorType<void>>(tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleTimelineQueryKey(tradeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>> = ({ signal }) => getOptionsLifecycleTimeline(tradeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(tradeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>>
+export type GetOptionsLifecycleTimelineQueryError = ErrorType<void>
+
+
+/**
+ * @summary The calling user's own position's full event log (Position Timeline / Position History) — every stage change, review, adjustment journal entry, and assignment note, newest first. The Adjustment Journal and Assignment Tracker are this same data filtered by eventType.
+ */
+
+export function useGetOptionsLifecycleTimeline<TData = Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError = ErrorType<void>>(
+ tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleTimelineQueryOptions(tradeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateOptionsLifecycleEventUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/events`
+}
+
+/**
+ * @summary Records a review, adjustment journal entry, or assignment note against the calling user's own position. Never a stage_change event directly — use PATCH .../state for that, which records its own event automatically.
+ */
+export const createOptionsLifecycleEvent = async (tradeId: number,
+    optionsLifecycleEventInput: OptionsLifecycleEventInput, options?: RequestInit): Promise<OptionsLifecycleEvent> => {
+
+  return customFetch<OptionsLifecycleEvent>(getCreateOptionsLifecycleEventUrl(tradeId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsLifecycleEventInput,)
+  }
+);}
+
+
+
+
+export const getCreateOptionsLifecycleEventMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleEventInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleEventInput>}, TContext> => {
+
+const mutationKey = ['createOptionsLifecycleEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>, {tradeId: number;data: BodyType<OptionsLifecycleEventInput>}> = (props) => {
+          const {tradeId,data} = props ?? {};
+
+          return  createOptionsLifecycleEvent(tradeId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateOptionsLifecycleEventMutationResult = NonNullable<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>>
+    export type CreateOptionsLifecycleEventMutationBody = BodyType<OptionsLifecycleEventInput>
+    export type CreateOptionsLifecycleEventMutationError = ErrorType<void>
+
+    /**
+ * @summary Records a review, adjustment journal entry, or assignment note against the calling user's own position. Never a stage_change event directly — use PATCH .../state for that, which records its own event automatically.
+ */
+export const useCreateOptionsLifecycleEvent = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleEventInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createOptionsLifecycleEvent>>,
+        TError,
+        {tradeId: number;data: BodyType<OptionsLifecycleEventInput>},
+        TContext
+      > => {
+      return useMutation(getCreateOptionsLifecycleEventMutationOptions(options));
+    }
+
+export const getGetOptionsLifecycleChecklistUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/checklist`
+}
+
+/**
+ * @summary The calling user's own position's institutional checklist instance — instantiated from the position's own strategy's static template on first read (pass ?strategyKey= the first time; server-side only, outside the typed contract, matching this codebase's own established path+query Orval-collision workaround).
+ */
+export const getOptionsLifecycleChecklist = async (tradeId: number, options?: RequestInit): Promise<OptionsPositionChecklist> => {
+
+  return customFetch<OptionsPositionChecklist>(getGetOptionsLifecycleChecklistUrl(tradeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleChecklistQueryKey = (tradeId: number,) => {
+    return [
+    `/api/options-lifecycle/${tradeId}/checklist`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleChecklistQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError = ErrorType<void>>(tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleChecklistQueryKey(tradeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>> = ({ signal }) => getOptionsLifecycleChecklist(tradeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(tradeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleChecklistQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>>
+export type GetOptionsLifecycleChecklistQueryError = ErrorType<void>
+
+
+/**
+ * @summary The calling user's own position's institutional checklist instance — instantiated from the position's own strategy's static template on first read (pass ?strategyKey= the first time; server-side only, outside the typed contract, matching this codebase's own established path+query Orval-collision workaround).
+ */
+
+export function useGetOptionsLifecycleChecklist<TData = Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError = ErrorType<void>>(
+ tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleChecklistQueryOptions(tradeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateOptionsLifecycleChecklistItemUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/checklist`
+}
+
+/**
+ * @summary Toggles one checklist item's checked state. Checklist data only — never submits an order, never triggers an adjustment, never changes the position's lifecycle stage.
+ */
+export const updateOptionsLifecycleChecklistItem = async (tradeId: number,
+    optionsChecklistToggleInput: OptionsChecklistToggleInput, options?: RequestInit): Promise<OptionsPositionChecklist> => {
+
+  return customFetch<OptionsPositionChecklist>(getUpdateOptionsLifecycleChecklistItemUrl(tradeId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsChecklistToggleInput,)
+  }
+);}
+
+
+
+
+export const getUpdateOptionsLifecycleChecklistItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>, TError,{tradeId: number;data: BodyType<OptionsChecklistToggleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>, TError,{tradeId: number;data: BodyType<OptionsChecklistToggleInput>}, TContext> => {
+
+const mutationKey = ['updateOptionsLifecycleChecklistItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>, {tradeId: number;data: BodyType<OptionsChecklistToggleInput>}> = (props) => {
+          const {tradeId,data} = props ?? {};
+
+          return  updateOptionsLifecycleChecklistItem(tradeId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateOptionsLifecycleChecklistItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>>
+    export type UpdateOptionsLifecycleChecklistItemMutationBody = BodyType<OptionsChecklistToggleInput>
+    export type UpdateOptionsLifecycleChecklistItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Toggles one checklist item's checked state. Checklist data only — never submits an order, never triggers an adjustment, never changes the position's lifecycle stage.
+ */
+export const useUpdateOptionsLifecycleChecklistItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>, TError,{tradeId: number;data: BodyType<OptionsChecklistToggleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>,
+        TError,
+        {tradeId: number;data: BodyType<OptionsChecklistToggleInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateOptionsLifecycleChecklistItemMutationOptions(options));
+    }
 
 export const getGetTradingRiskUrl = () => {
 

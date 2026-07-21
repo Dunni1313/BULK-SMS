@@ -44,6 +44,8 @@ import { toStrategyLearningSummary, type StrategyMetadata, type StrategyLearning
 import type { TradingAnalyticsDashboard } from "./tradingAnalytics.js";
 import type { ExecutiveIntelligenceHub } from "./executiveIntelligence.js";
 import type { OptionsIncomeDashboard } from "./optionsIncomeAnalytics.js";
+import type { OptionsPortfolioManagementView } from "./optionsPortfolioManagement.js";
+import type { LifecycleSummary } from "./optionsLifecycle.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -59,7 +61,9 @@ export type InstitutionalReportType =
   | "strategy-framework-summary"
   | "trading-analytics-summary"
   | "executive-intelligence-summary"
-  | "options-income-summary";
+  | "options-income-summary"
+  | "options-portfolio-review"
+  | "position-lifecycle-summary";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -76,6 +80,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "trading-analytics-summary",
   "executive-intelligence-summary",
   "options-income-summary",
+  "options-portfolio-review",
+  "position-lifecycle-summary",
 ];
 
 export interface ReportTypeMeta {
@@ -182,6 +188,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "options-income-summary",
     label: "Options Income Summary Report",
     description: "The calling user's own Options Income Engine (Phase 35) — open/closed position counts, capital allocated, realized and projected premium, strategy mix, and upcoming expirations. Pure aggregation of already-persisted trades and already-computed Greeks, never a P/L prediction or trade recommendation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "options-portfolio-review",
+    label: "Options Portfolio Review",
+    description: "The calling user's own Options Portfolio Management view (Phase 36) — position concentration, strategy/sector allocation, the expiration ladder, capital and buying-power utilisation, and income allocation. Pure aggregation of already-computed portfolio analytics and Options Income Engine data, never a rebalancing recommendation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "position-lifecycle-summary",
+    label: "Position Lifecycle Summary",
+    description: "The calling user's own Position Lifecycle Manager (Phase 36) — every open and closed position tallied by its own real lifecycle stage (Draft/Planned/Open/Monitoring/Near Expiration/Assignment Risk/Closed/Archived) and how many positions are currently awaiting review. Pure tally of already-recorded, explicitly user-set lifecycle state, never an automated stage assessment.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -1140,6 +1160,130 @@ export function buildOptionsIncomeSummaryReport(dashboard: OptionsIncomeDashboar
     symbol: null,
     portfolioId: null,
     generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 15. Options Portfolio Review (Phase 36) — reuses
+// lib/optionsPortfolioManagement.ts's own buildOptionsPortfolioManagementView()
+// exactly (the same function GET /options-lifecycle/portfolio itself
+// calls), then reformats the already-computed view into the generic
+// ReportSection shape. Zero new allocation math in this file, zero
+// rebalancing recommendation. ─────────────────────────────────────────────
+
+export function buildOptionsPortfolioReviewReport(view: OptionsPortfolioManagementView): InstitutionalReport {
+  const { positionConcentration, strategyAllocation, sectorAllocation, expirationLadder, capitalUtilisation, buyingPowerAllocation, incomeAllocation, expirationTracker } = view;
+
+  const sections: ReportSection[] = [
+    section(
+      "capital-utilisation",
+      "Capital Utilisation",
+      `Portfolio value $${capitalUtilisation.portfolioValue.toLocaleString()}, total risk $${capitalUtilisation.totalRiskDollars.toLocaleString()} ` +
+        `(${capitalUtilisation.totalRiskPct.toFixed(1)}% of portfolio value), buying power $${buyingPowerAllocation.buyingPower.toLocaleString()}.`,
+      [
+        `Portfolio value: $${capitalUtilisation.portfolioValue.toLocaleString()}`,
+        `Total risk: $${capitalUtilisation.totalRiskDollars.toLocaleString()} (${capitalUtilisation.totalRiskPct.toFixed(1)}%)`,
+        `Buying power: $${buyingPowerAllocation.buyingPower.toLocaleString()}`,
+      ],
+    ),
+    section(
+      "position-concentration",
+      "Position Concentration",
+      positionConcentration.length
+        ? `Open risk spread across ${positionConcentration.length} symbol(s).`
+        : "No open positions to break down by symbol.",
+      positionConcentration.map((c) => `${c.label}: ${c.positionCount} position(s) (${c.weightPct.toFixed(1)}%)`),
+    ),
+    section(
+      "strategy-allocation",
+      "Strategy Allocation",
+      strategyAllocation.length
+        ? `Open risk spread across ${strategyAllocation.length} strategy(ies).`
+        : "No open positions to break down by strategy.",
+      strategyAllocation.map((c) => `${c.label}: ${c.positionCount} position(s) (${c.weightPct.toFixed(1)}%)`),
+    ),
+    section(
+      "sector-allocation",
+      "Sector Allocation",
+      sectorAllocation.length
+        ? `Open risk spread across ${sectorAllocation.length} sector(s).`
+        : "No open positions to break down by sector.",
+      sectorAllocation.map((c) => `${c.label}: ${c.positionCount} position(s) (${c.weightPct.toFixed(1)}%)`),
+    ),
+    section(
+      "expiration-ladder",
+      "Expiration Ladder",
+      expirationLadder.length
+        ? `Open risk spread across ${expirationLadder.length} expiration bucket(s).`
+        : "No open positions with a recorded expiration.",
+      expirationLadder.map((c) => `${c.label}: ${c.positionCount} position(s) (${c.weightPct.toFixed(1)}%)`),
+    ),
+    section(
+      "income-allocation",
+      "Income Allocation",
+      incomeAllocation.strategyMix.length
+        ? `${incomeAllocation.strategyMix.length} distinct strategy(ies) currently generating income.`
+        : "No open positions currently generating income.",
+      incomeAllocation.strategyMix.map((m) => `${m.strategyLabel ?? m.strategy}: ${m.positionCount} position(s), $${m.capitalAllocated.toLocaleString()} allocated`),
+    ),
+    section(
+      "expiration-tracker",
+      "Expiration Tracker",
+      expirationTracker.length
+        ? `${expirationTracker.length} distinct expiration date(s) among open positions, soonest in ${expirationTracker[0].daysToExpiry} day(s).`
+        : "No open positions with a recorded expiration date.",
+      expirationTracker.map((g) => `${g.expiration} (${g.daysToExpiry}d): ${g.positions.length} position(s)`),
+    ),
+  ];
+
+  return {
+    reportType: "options-portfolio-review",
+    title: "Options Portfolio Review",
+    subtitle: `$${capitalUtilisation.portfolioValue.toLocaleString()} portfolio value, ${capitalUtilisation.totalRiskPct.toFixed(1)}% risk utilised`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: view.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 16. Position Lifecycle Summary (Phase 36) — reuses
+// lib/optionsLifecycle.ts's own buildLifecycleSummary() exactly (the same
+// tally OptionsPortfolioManagementView.lifecycleSummary itself carries),
+// then reformats the already-computed tally into the generic ReportSection
+// shape. Zero new lifecycle-scoring logic in this file. ───────────────────
+
+export function buildPositionLifecycleSummaryReport(summary: LifecycleSummary): InstitutionalReport {
+  const nonZeroStages = summary.byStage.filter((s) => s.count > 0);
+
+  const sections: ReportSection[] = [
+    section(
+      "lifecycle-overview",
+      "Lifecycle Overview",
+      summary.totalPositions
+        ? `${summary.totalPositions} position(s) on record, ${summary.positionsAwaitingReview} currently in Monitoring, Near Expiration, or Assignment Risk.`
+        : "No positions on record yet.",
+      [`Total positions: ${summary.totalPositions}`, `Awaiting review: ${summary.positionsAwaitingReview}`],
+    ),
+    section(
+      "positions-by-stage",
+      "Positions by Lifecycle Stage",
+      nonZeroStages.length ? `${nonZeroStages.length} distinct lifecycle stage(s) represented.` : "No positions on record yet.",
+      nonZeroStages.map((s) => `${s.stage}: ${s.count} position(s)`),
+    ),
+  ];
+
+  return {
+    reportType: "position-lifecycle-summary",
+    title: "Position Lifecycle Summary",
+    subtitle: `${summary.totalPositions} position(s), ${summary.positionsAwaitingReview} awaiting review`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: new Date().toISOString(),
     dataSource: "MIXED",
     sections,
     disclaimer: REPORT_DISCLAIMER,

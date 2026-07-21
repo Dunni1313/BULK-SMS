@@ -55,6 +55,8 @@ import {
   GetTradingAnalyticsSummaryReportResponse,
   GetExecutiveIntelligenceSummaryReportResponse,
   GetOptionsIncomeSummaryReportResponse,
+  GetOptionsPortfolioReviewReportResponse,
+  GetPositionLifecycleSummaryReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -95,6 +97,8 @@ import {
   buildTradingAnalyticsSummaryReport,
   buildExecutiveIntelligenceSummaryReport,
   buildOptionsIncomeSummaryReport,
+  buildOptionsPortfolioReviewReport,
+  buildPositionLifecycleSummaryReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -119,6 +123,8 @@ import { buildExecutiveIntelligenceHub } from "../lib/executiveIntelligence.js";
 import { loadExecutiveIntelligenceInputs } from "./executiveIntelligence.js";
 import { buildOptionsIncomeDashboard } from "../lib/optionsIncomeAnalytics.js";
 import { loadOptionsIncomeSummaryInputs } from "./optionsIncome.js";
+import { buildOptionsPortfolioManagementView } from "../lib/optionsPortfolioManagement.js";
+import { buildLifecycleSummary } from "../lib/optionsLifecycle.js";
 
 const router: IRouter = Router();
 
@@ -468,6 +474,28 @@ router.get("/reporting/options-income-summary", async (req, res): Promise<void> 
   res.json(GetOptionsIncomeSummaryReportResponse.parse(built));
 });
 
+// ─── Options Portfolio Review / Position Lifecycle Summary (Phase 36) —
+// reuse lib/optionsPortfolioManagement.ts's own
+// buildOptionsPortfolioManagementView() / lib/optionsLifecycle.ts's own
+// buildLifecycleSummary() exactly (the same functions
+// GET /options-lifecycle/portfolio itself calls), then reformat the
+// already-computed view/tally into the generic ReportSection shape. Zero
+// new aggregation or lifecycle-scoring logic in this file. ────────────────
+
+router.get("/reporting/options-portfolio-review", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const view = await buildOptionsPortfolioManagementView(userId);
+  const built = buildOptionsPortfolioReviewReport(view);
+  res.json(GetOptionsPortfolioReviewReportResponse.parse(built));
+});
+
+router.get("/reporting/position-lifecycle-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const summary = await buildLifecycleSummary(userId);
+  const built = buildPositionLifecycleSummaryReport(summary);
+  res.json(GetPositionLifecycleSummaryReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -580,6 +608,14 @@ async function regenerate(
       const inputs = await loadOptionsIncomeSummaryInputs(userId);
       const dashboard = buildOptionsIncomeDashboard(inputs);
       return buildOptionsIncomeSummaryReport(dashboard);
+    }
+    case "options-portfolio-review": {
+      const view = await buildOptionsPortfolioManagementView(userId);
+      return buildOptionsPortfolioReviewReport(view);
+    }
+    case "position-lifecycle-summary": {
+      const summary = await buildLifecycleSummary(userId);
+      return buildPositionLifecycleSummaryReport(summary);
     }
     default:
       return null;
