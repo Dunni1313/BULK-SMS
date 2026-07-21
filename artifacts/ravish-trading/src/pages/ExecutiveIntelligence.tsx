@@ -151,6 +151,9 @@ export default function ExecutiveIntelligence() {
         <Link href="/options-lifecycle-manager" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-options-lifecycle-manager">
           <GitBranch className="w-3 h-3" /> Open Position Lifecycle Manager →
         </Link>
+        <Link href="/risk-exposure-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-risk-exposure-engine">
+          <ShieldAlert className="w-3 h-3" /> Open Risk & Exposure Engine →
+        </Link>
       </div>
 
       {!hasAnyData && (

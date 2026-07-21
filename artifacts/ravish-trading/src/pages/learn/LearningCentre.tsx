@@ -571,6 +571,11 @@ function OverviewTab() {
               <CardContent className="pt-4 text-sm font-medium">Position Lifecycle Manager</CardContent>
             </Card>
           </Link>
+          <Link href="/risk-exposure-engine" data-testid="link-overview-risk-exposure-engine">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Risk & Exposure Engine</CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

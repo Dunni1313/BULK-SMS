@@ -51,6 +51,10 @@ import {
   getGetOptionsPortfolioReviewReportQueryKey,
   useGetPositionLifecycleSummaryReport,
   getGetPositionLifecycleSummaryReportQueryKey,
+  useGetRiskExposureSummaryReport,
+  getGetRiskExposureSummaryReportQueryKey,
+  useGetPortfolioConcentrationReport,
+  getGetPortfolioConcentrationReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -88,7 +92,9 @@ type ReportType =
   | "executive-intelligence-summary"
   | "options-income-summary"
   | "options-portfolio-review"
-  | "position-lifecycle-summary";
+  | "position-lifecycle-summary"
+  | "risk-exposure-summary"
+  | "portfolio-concentration-report";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -115,6 +121,8 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "options-income-summary",
   "options-portfolio-review",
   "position-lifecycle-summary",
+  "risk-exposure-summary",
+  "portfolio-concentration-report",
 ];
 
 export default function ReportingCentre() {
@@ -181,6 +189,8 @@ export default function ReportingCentre() {
   const oisRes = useGetOptionsIncomeSummaryReport({ query: { queryKey: getGetOptionsIncomeSummaryReportQueryKey(), enabled: generated?.type === "options-income-summary" } });
   const oprRes = useGetOptionsPortfolioReviewReport({ query: { queryKey: getGetOptionsPortfolioReviewReportQueryKey(), enabled: generated?.type === "options-portfolio-review" } });
   const plsRes = useGetPositionLifecycleSummaryReport({ query: { queryKey: getGetPositionLifecycleSummaryReportQueryKey(), enabled: generated?.type === "position-lifecycle-summary" } });
+  const resRes = useGetRiskExposureSummaryReport({ query: { queryKey: getGetRiskExposureSummaryReportQueryKey(), enabled: generated?.type === "risk-exposure-summary" } });
+  const pcrRes = useGetPortfolioConcentrationReport({ query: { queryKey: getGetPortfolioConcentrationReportQueryKey(), enabled: generated?.type === "portfolio-concentration-report" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -207,9 +217,11 @@ export default function ReportingCentre() {
       "options-income-summary": oisRes,
       "options-portfolio-review": oprRes,
       "position-lifecycle-summary": plsRes,
+      "risk-exposure-summary": resRes,
+      "portfolio-concentration-report": pcrRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;
