@@ -576,6 +576,11 @@ function OverviewTab() {
               <CardContent className="pt-4 text-sm font-medium">Risk & Exposure Engine</CardContent>
             </Card>
           </Link>
+          <Link href="/performance-attribution-engine" data-testid="link-overview-performance-attribution-engine">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Performance & Attribution Engine</CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

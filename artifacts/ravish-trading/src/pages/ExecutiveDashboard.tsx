@@ -71,6 +71,7 @@ import {
   Waves,
   GitBranch,
   ShieldAlert,
+  LineChart,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -285,6 +286,9 @@ export default function ExecutiveDashboard() {
             </Link>
             <Link href="/risk-exposure-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-risk-exposure-engine">
               <ShieldAlert className="w-3 h-3" /> Open the Risk & Exposure Engine →
+            </Link>
+            <Link href="/performance-attribution-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-performance-attribution-engine">
+              <LineChart className="w-3 h-3" /> Open the Performance & Attribution Engine →
             </Link>
           </div>
         </CardContent>

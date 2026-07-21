@@ -33,6 +33,7 @@ import {
   FileBarChart2,
   GraduationCap,
   ShieldAlert,
+  LineChart,
   Building2,
   TrendingUp,
   Boxes,
@@ -153,6 +154,9 @@ export default function ExecutiveIntelligence() {
         </Link>
         <Link href="/risk-exposure-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-risk-exposure-engine">
           <ShieldAlert className="w-3 h-3" /> Open Risk & Exposure Engine →
+        </Link>
+        <Link href="/performance-attribution-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-performance-attribution-engine">
+          <LineChart className="w-3 h-3" /> Open Performance & Attribution Engine →
         </Link>
       </div>
 

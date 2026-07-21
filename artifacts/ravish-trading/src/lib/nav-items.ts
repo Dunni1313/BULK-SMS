@@ -108,6 +108,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Options Income Workspace", href: "/options-income-workspace", icon: Waves },
   { title: "Position Lifecycle Manager", href: "/options-lifecycle-manager", icon: GitBranch },
   { title: "Risk & Exposure Engine", href: "/risk-exposure-engine", icon: ShieldAlert },
+  { title: "Performance & Attribution Engine", href: "/performance-attribution-engine", icon: LineChart },
   { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
   { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
   { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },
