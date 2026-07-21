@@ -35,6 +35,23 @@ export type OptionsStrategyLibraryKey =
   | "vertical_credit"
   | "vertical_debit";
 
+// Phase 36 — a small, additive, runtime-checkable export of the same 9
+// keys the type above already enumerates (a TS union type has no runtime
+// representation of its own), so lib/optionsLifecycleChecklists.ts can
+// validate a caller-supplied strategyKey without redefining this list a
+// second time.
+export const OPTIONS_STRATEGY_TEMPLATE_KEYS: OptionsStrategyLibraryKey[] = [
+  "covered_call",
+  "cash_secured_put",
+  "wheel",
+  "iron_condor",
+  "iron_fly",
+  "calendar",
+  "diagonal",
+  "vertical_credit",
+  "vertical_debit",
+];
+
 export type OptionsCollateralType = "stock" | "cash" | "margin" | "defined_risk" | "debit";
 export type OptionsIncomeType = "credit" | "debit";
 

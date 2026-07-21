@@ -63,6 +63,7 @@ import investingAnalyticsRouter from "./investingAnalytics";
 import executiveIntelligenceRouter from "./executiveIntelligence";
 import crossEngineWorkspaceRouter from "./crossEngineWorkspace";
 import optionsIncomeRouter from "./optionsIncome";
+import optionsLifecycleRouter from "./optionsLifecycle";
 
 const router: IRouter = Router();
 
@@ -130,5 +131,6 @@ router.use(investingAnalyticsRouter);
 router.use(executiveIntelligenceRouter);
 router.use(crossEngineWorkspaceRouter);
 router.use(optionsIncomeRouter);
+router.use(optionsLifecycleRouter);
 
 export default router;
