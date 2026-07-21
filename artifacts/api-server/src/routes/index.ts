@@ -68,6 +68,7 @@ import riskExposureRouter from "./riskExposure";
 import performanceAttributionRouter from "./performanceAttribution";
 import scenarioEngineRouter from "./scenarioEngine";
 import decisionSupportEngineRouter from "./decisionSupportEngine";
+import rebalancingEngineRouter from "./rebalancingEngine";
 
 const router: IRouter = Router();
 
@@ -140,5 +141,6 @@ router.use(riskExposureRouter);
 router.use(performanceAttributionRouter);
 router.use(scenarioEngineRouter);
 router.use(decisionSupportEngineRouter);
+router.use(rebalancingEngineRouter);
 
 export default router;

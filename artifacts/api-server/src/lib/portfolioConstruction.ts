@@ -184,13 +184,17 @@ export function computePortfolioAllocation(
   };
 }
 
-// Orchestration helper for the route: resolves a live/simulated price per
-// distinct symbol (deduped — a portfolio may list the same symbol only once
-// by design, but this stays defensive) and calls the pure engine above.
-export async function buildPortfolioAllocation(
+// Extracted (Phase 41 — Institutional Rebalancing & Allocation Planning
+// Engine) from buildPortfolioAllocation()'s own inline resolution loop, so a
+// caller that needs the SAME resolved prices/meta for more than one
+// computePortfolioAllocation() call (e.g. a "current vs. proposed target"
+// comparison) can resolve once and reuse — never a second, duplicate set of
+// provider calls for the same holdings. buildPortfolioAllocation() itself is
+// unchanged in behavior, confirmed by its own pre-existing tests.
+export async function resolvePricesAndMeta(
   holdings: PortfolioHoldingInput[],
   provider: FundamentalsProvider,
-): Promise<PortfolioAllocationResult> {
+): Promise<{ prices: Map<string, number | null>; meta: Map<string, SymbolMeta> }> {
   const prices = new Map<string, number | null>();
   const meta = new Map<string, SymbolMeta>();
   const distinctSymbols = [...new Set(holdings.map((h) => h.symbol))];
@@ -206,5 +210,16 @@ export async function buildPortfolioAllocation(
       });
     }),
   );
+  return { prices, meta };
+}
+
+// Orchestration helper for the route: resolves a live/simulated price per
+// distinct symbol (deduped — a portfolio may list the same symbol only once
+// by design, but this stays defensive) and calls the pure engine above.
+export async function buildPortfolioAllocation(
+  holdings: PortfolioHoldingInput[],
+  provider: FundamentalsProvider,
+): Promise<PortfolioAllocationResult> {
+  const { prices, meta } = await resolvePricesAndMeta(holdings, provider);
   return computePortfolioAllocation(holdings, prices, meta);
 }
