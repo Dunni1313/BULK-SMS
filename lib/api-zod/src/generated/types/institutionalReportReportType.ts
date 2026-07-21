@@ -28,4 +28,6 @@ export const InstitutionalReportReportType = {
   'position-lifecycle-summary': 'position-lifecycle-summary',
   'risk-exposure-summary': 'risk-exposure-summary',
   'portfolio-concentration-report': 'portfolio-concentration-report',
+  'performance-summary': 'performance-summary',
+  'performance-attribution-report': 'performance-attribution-report',
 } as const;

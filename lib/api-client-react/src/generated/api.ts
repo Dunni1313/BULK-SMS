@@ -172,7 +172,10 @@ import type {
   OrderPreviewInput,
   OrderPreviewResult,
   PerformanceAnalytics,
+  PerformanceAttributionCoachExplanation,
+  PerformanceAttributionTopicLearning,
   PerformanceBreakdownBucket,
+  PerformanceDashboard,
   PlatformNotification,
   PlatformNotificationUpdate,
   PortfolioAnalystResult,
@@ -16547,6 +16550,160 @@ export function useGetPortfolioConcentrationReport<TData = Awaited<ReturnType<ty
 
 
 
+export const getGetPerformanceSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/performance-summary`
+}
+
+/**
+ * @summary Performance Summary Report (Phase 38) — real Investing unrealized P&L, Trading/Options realized P&L, win rate, and capital efficiency, reused directly from the Institutional Performance & Attribution Engine
+ */
+export const getPerformanceSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPerformanceSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/performance-summary`
+    ] as const;
+    }
+
+
+export const getGetPerformanceSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceSummaryReport>>> = ({ signal }) => getPerformanceSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceSummaryReport>>>
+export type GetPerformanceSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Performance Summary Report (Phase 38) — real Investing unrealized P&L, Trading/Options realized P&L, win rate, and capital efficiency, reused directly from the Institutional Performance & Attribution Engine
+ */
+
+export function useGetPerformanceSummaryReport<TData = Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceAttributionReportUrl = () => {
+
+
+
+
+  return `/api/reporting/performance-attribution-report`
+}
+
+/**
+ * @summary Performance Attribution Report (Phase 38) — sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline, reused directly from the Institutional Performance & Attribution Engine
+ */
+export const getPerformanceAttributionReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPerformanceAttributionReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceAttributionReportQueryKey = () => {
+    return [
+    `/api/reporting/performance-attribution-report`
+    ] as const;
+    }
+
+
+export const getGetPerformanceAttributionReportQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceAttributionReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceAttributionReport>>> = ({ signal }) => getPerformanceAttributionReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceAttributionReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceAttributionReport>>>
+export type GetPerformanceAttributionReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Performance Attribution Report (Phase 38) — sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline, reused directly from the Institutional Performance & Attribution Engine
+ */
+
+export function useGetPerformanceAttributionReport<TData = Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceAttributionReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -18975,6 +19132,391 @@ export function useGetRiskExposureLearning<TData = Awaited<ReturnType<typeof get
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetRiskExposureLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceDashboardUrl = () => {
+
+
+
+
+  return `/api/performance-attribution/dashboard`
+}
+
+/**
+ * @summary The calling user's own full cross-platform Performance & Attribution dashboard — Investing, Trading, Options, a Combined cross-engine view, and a real Historical Performance Timeline. Every figure is reused directly from an existing engine, or computed from real, already-persisted columns. Analytical only.
+ */
+export const getPerformanceDashboard = async ( options?: RequestInit): Promise<PerformanceDashboard> => {
+
+  return customFetch<PerformanceDashboard>(getGetPerformanceDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceDashboardQueryKey = () => {
+    return [
+    `/api/performance-attribution/dashboard`
+    ] as const;
+    }
+
+
+export const getGetPerformanceDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceDashboard>>> = ({ signal }) => getPerformanceDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceDashboard>>>
+export type GetPerformanceDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full cross-platform Performance & Attribution dashboard — Investing, Trading, Options, a Combined cross-engine view, and a real Historical Performance Timeline. Every figure is reused directly from an existing engine, or computed from real, already-persisted columns. Analytical only.
+ */
+
+export function useGetPerformanceDashboard<TData = Awaited<ReturnType<typeof getPerformanceDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListPerformanceAttributionCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/performance-attribution/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (performance metrics, attribution, capital efficiency, risk-adjusted returns, portfolio interpretation). Never a trade recommendation.
+ */
+export const listPerformanceAttributionCoachTopics = async ( options?: RequestInit): Promise<PerformanceAttributionCoachExplanation[]> => {
+
+  return customFetch<PerformanceAttributionCoachExplanation[]>(getListPerformanceAttributionCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPerformanceAttributionCoachTopicsQueryKey = () => {
+    return [
+    `/api/performance-attribution/coach`
+    ] as const;
+    }
+
+
+export const getListPerformanceAttributionCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPerformanceAttributionCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>> = ({ signal }) => listPerformanceAttributionCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPerformanceAttributionCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>>
+export type ListPerformanceAttributionCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (performance metrics, attribution, capital efficiency, risk-adjusted returns, portfolio interpretation). Never a trade recommendation.
+ */
+
+export function useListPerformanceAttributionCoachTopics<TData = Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPerformanceAttributionCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceAttributionCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/performance-attribution/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getPerformanceAttributionCoachTopic = async (topic: string, options?: RequestInit): Promise<PerformanceAttributionCoachExplanation> => {
+
+  return customFetch<PerformanceAttributionCoachExplanation>(getGetPerformanceAttributionCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceAttributionCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/performance-attribution/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetPerformanceAttributionCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceAttributionCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>> = ({ signal }) => getPerformanceAttributionCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceAttributionCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>>
+export type GetPerformanceAttributionCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetPerformanceAttributionCoachTopic<TData = Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceAttributionCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListPerformanceAttributionLearningUrl = () => {
+
+
+
+
+  return `/api/performance-attribution/learning`
+}
+
+/**
+ * @summary Every Performance & Attribution Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listPerformanceAttributionLearning = async ( options?: RequestInit): Promise<PerformanceAttributionTopicLearning[]> => {
+
+  return customFetch<PerformanceAttributionTopicLearning[]>(getListPerformanceAttributionLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPerformanceAttributionLearningQueryKey = () => {
+    return [
+    `/api/performance-attribution/learning`
+    ] as const;
+    }
+
+
+export const getListPerformanceAttributionLearningQueryOptions = <TData = Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPerformanceAttributionLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>> = ({ signal }) => listPerformanceAttributionLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPerformanceAttributionLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>>
+export type ListPerformanceAttributionLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Performance & Attribution Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListPerformanceAttributionLearning<TData = Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPerformanceAttributionLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceAttributionLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/performance-attribution/learning/${topic}`
+}
+
+/**
+ * @summary One Performance & Attribution Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getPerformanceAttributionLearning = async (topic: string, options?: RequestInit): Promise<PerformanceAttributionTopicLearning> => {
+
+  return customFetch<PerformanceAttributionTopicLearning>(getGetPerformanceAttributionLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceAttributionLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/performance-attribution/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetPerformanceAttributionLearningQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceAttributionLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>> = ({ signal }) => getPerformanceAttributionLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceAttributionLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>>
+export type GetPerformanceAttributionLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Performance & Attribution Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetPerformanceAttributionLearning<TData = Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceAttributionLearningQueryOptions(topic,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

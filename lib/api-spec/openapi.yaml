@@ -80,6 +80,8 @@ tags:
     description: Read-only Alpaca Paper Trading broker/account verification (account balances, open positions, open orders, connection health) — Paper Trading endpoint only, never places, modifies, or cancels an order
   - name: risk-exposure
     description: Institutional Risk & Exposure Intelligence Engine (Phase 37) — a deterministic cross-platform dashboard unifying Investing, Trading, and Options risk (per-engine views plus a Combined view — capital allocation, buying power, sector/strategy concentration, asset allocation, Greeks summary, a disclosed non-fabricated cross-engine symbol-overlap Correlation Overview, and a real Concentration Timeline from saved risk snapshots and Options exposure history). Every figure is reused directly from an existing, already-tested engine (lib/investingRisk.ts, lib/portfolioConstruction.ts, lib/tradingRisk.ts, lib/portfolioDashboard.ts, lib/optionsPortfolioManagement.ts) or a thin, pure aggregation over them. Analytics and visibility only — no live execution, no auto hedging, no auto rebalancing, no trade/position recommendations, no AI predictions, no probability forecasting, no AI-based risk scoring, no automated alerts.
+  - name: performance-attribution
+    description: Institutional Performance & Attribution Engine (Phase 38) — a deterministic cross-platform dashboard explaining Investing, Trading, and Options performance (per-engine views plus a Combined view — return by engine, sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline from monthly realized P&L and saved Investing portfolio snapshots). Every figure is reused directly from an existing, already-tested engine (lib/portfolioConstruction.ts, lib/optionsIncomeAnalytics.ts) or computed from real, already-persisted columns (trading_positions'/trades' own entry/exit price and P&L fields) using the exact Sharpe-ratio formula shape lib/tradingBacktest.ts already established. Analytical only — no AI predictions, no forecasts, no trade recommendations, no portfolio optimisation, no auto rebalancing, no auto execution, no alpha generation, no benchmark prediction.
 
 paths:
   /healthz:
@@ -4434,6 +4436,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  /reporting/performance-summary:
+    get:
+      operationId: getPerformanceSummaryReport
+      tags: [reporting]
+      summary: Performance Summary Report (Phase 38) — real Investing unrealized P&L, Trading/Options realized P&L, win rate, and capital efficiency, reused directly from the Institutional Performance & Attribution Engine
+      responses:
+        "200":
+          description: Performance Summary Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/performance-attribution-report:
+    get:
+      operationId: getPerformanceAttributionReport
+      tags: [reporting]
+      summary: Performance Attribution Report (Phase 38) — sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline, reused directly from the Institutional Performance & Attribution Engine
+      responses:
+        "200":
+          description: Performance Attribution Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -5052,6 +5080,91 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RiskExposureTopicLearning"
+        "404":
+          description: Unknown topic key
+
+  /performance-attribution/dashboard:
+    get:
+      operationId: getPerformanceDashboard
+      tags: [performance-attribution]
+      summary: The calling user's own full cross-platform Performance & Attribution dashboard — Investing, Trading, Options, a Combined cross-engine view, and a real Historical Performance Timeline. Every figure is reused directly from an existing engine, or computed from real, already-persisted columns. Analytical only.
+      responses:
+        "200":
+          description: The Performance & Attribution dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceDashboard"
+
+  /performance-attribution/coach:
+    get:
+      operationId: listPerformanceAttributionCoachTopics
+      tags: [performance-attribution]
+      summary: All 5 deterministic AI Coach explanations (performance metrics, attribution, capital efficiency, risk-adjusted returns, portfolio interpretation). Never a trade recommendation.
+      responses:
+        "200":
+          description: Every Performance & Attribution coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PerformanceAttributionCoachExplanation"
+
+  /performance-attribution/coach/{topic}:
+    get:
+      operationId: getPerformanceAttributionCoachTopic
+      tags: [performance-attribution]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceAttributionCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /performance-attribution/learning:
+    get:
+      operationId: listPerformanceAttributionLearning
+      tags: [performance-attribution]
+      summary: Every Performance & Attribution Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+      responses:
+        "200":
+          description: Every topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PerformanceAttributionTopicLearning"
+
+  /performance-attribution/learning/{topic}:
+    get:
+      operationId: getPerformanceAttributionLearning
+      tags: [performance-attribution]
+      summary: One Performance & Attribution Coach topic's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceAttributionTopicLearning"
         "404":
           description: Unknown topic key
 
@@ -15711,7 +15824,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -15723,7 +15836,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -15741,7 +15854,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -17002,3 +17115,381 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RiskExposureLearningLink"
+
+    PerformanceRiskAdjusted:
+      type: object
+      required: [available, reason, sharpeRatio, sortinoRatio, tradeCount, basis]
+      properties:
+        available: { type: boolean }
+        reason: { type: ["string", "null"] }
+        sharpeRatio: { type: ["number", "null"] }
+        sortinoRatio: { type: ["number", "null"] }
+        tradeCount: { type: integer }
+        basis: { type: string }
+
+    PerformanceAttributionEntry:
+      type: object
+      required: [key, label, pnl, tradeCount, weightPct]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        pnl: { type: number }
+        tradeCount: { type: integer }
+        weightPct: { type: ["number", "null"] }
+
+    PerformanceInvestingHolding:
+      type: object
+      required: [symbol, sector, shares, avgCostBasis, currentPrice, costBasisValue, marketValue, unrealizedPnl, unrealizedPnlPct]
+      properties:
+        symbol: { type: string }
+        sector: { type: ["string", "null"] }
+        shares: { type: ["number", "null"] }
+        avgCostBasis: { type: ["number", "null"] }
+        currentPrice: { type: ["number", "null"] }
+        costBasisValue: { type: ["number", "null"] }
+        marketValue: { type: ["number", "null"] }
+        unrealizedPnl: { type: ["number", "null"] }
+        unrealizedPnlPct: { type: ["number", "null"] }
+
+    PerformanceInvestingView:
+      type: object
+      required:
+        [portfolioCount, holdingsCount, totalCostBasisValue, totalMarketValue, totalUnrealizedPnl, totalUnrealizedPnlPct, holdings, sectorAttribution, assetAttribution, riskAdjusted, capitalEfficiency, unresolvedSymbols, summary]
+      properties:
+        portfolioCount: { type: integer }
+        holdingsCount: { type: integer }
+        totalCostBasisValue: { type: ["number", "null"] }
+        totalMarketValue: { type: ["number", "null"] }
+        totalUnrealizedPnl: { type: ["number", "null"] }
+        totalUnrealizedPnlPct: { type: ["number", "null"] }
+        holdings:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceInvestingHolding"
+        sectorAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceAttributionEntry"
+        assetAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceAttributionEntry"
+        riskAdjusted:
+          $ref: "#/components/schemas/PerformanceRiskAdjusted"
+        capitalEfficiency:
+          type: object
+          required: [totalDeployed, returnOnDeployedCapitalPct, detail]
+          properties:
+            totalDeployed: { type: ["number", "null"] }
+            returnOnDeployedCapitalPct: { type: ["number", "null"] }
+            detail: { type: string }
+        unresolvedSymbols:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+
+    PerformanceTradingPosition:
+      type: object
+      required: [id, symbol, side, status, quantity, entryPrice, exitPrice, realizedPnl, realizedPnlPct, holdingDays, setupType]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        side: { type: string }
+        status: { type: string }
+        quantity: { type: number }
+        entryPrice: { type: number }
+        exitPrice: { type: ["number", "null"] }
+        realizedPnl: { type: ["number", "null"] }
+        realizedPnlPct: { type: ["number", "null"] }
+        holdingDays: { type: ["number", "null"] }
+        setupType: { type: ["string", "null"] }
+
+    PerformanceTradingView:
+      type: object
+      required:
+        [
+          totalPositions,
+          openPositionsCount,
+          closedPositionsCount,
+          winningTrades,
+          losingTrades,
+          winRate,
+          averageWin,
+          averageLoss,
+          totalRealizedPnl,
+          largestWinner,
+          largestLoser,
+          averageHoldingDays,
+          positions,
+          strategyAttribution,
+          assetAttribution,
+          riskAdjusted,
+          capitalEfficiency,
+          summary,
+        ]
+      properties:
+        totalPositions: { type: integer }
+        openPositionsCount: { type: integer }
+        closedPositionsCount: { type: integer }
+        winningTrades: { type: integer }
+        losingTrades: { type: integer }
+        winRate: { type: ["number", "null"] }
+        averageWin: { type: ["number", "null"] }
+        averageLoss: { type: ["number", "null"] }
+        totalRealizedPnl: { type: ["number", "null"] }
+        largestWinner: { type: ["number", "null"] }
+        largestLoser: { type: ["number", "null"] }
+        averageHoldingDays: { type: ["number", "null"] }
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceTradingPosition"
+        strategyAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceAttributionEntry"
+        assetAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceAttributionEntry"
+        riskAdjusted:
+          $ref: "#/components/schemas/PerformanceRiskAdjusted"
+        capitalEfficiency:
+          type: object
+          required: [capitalCommitted, returnOnCapitalPct, detail]
+          properties:
+            capitalCommitted: { type: ["number", "null"] }
+            returnOnCapitalPct: { type: ["number", "null"] }
+            detail: { type: string }
+        summary: { type: string }
+
+    PerformanceOptionsTrade:
+      type: object
+      required: [id, symbol, strategy, status, credit, currentPnl, currentPnlPercent, holdingDays]
+      properties:
+        id: { type: integer }
+        symbol: { type: string }
+        strategy: { type: string }
+        status: { type: string }
+        credit: { type: number }
+        currentPnl: { type: ["number", "null"] }
+        currentPnlPercent: { type: ["number", "null"] }
+        holdingDays: { type: ["number", "null"] }
+
+    PerformanceOptionsView:
+      type: object
+      required:
+        [
+          openPositionsCount,
+          closedPositionsCount,
+          winningTrades,
+          losingTrades,
+          winRate,
+          averageWin,
+          averageLoss,
+          totalRealizedPnl,
+          income,
+          trades,
+          strategyAttribution,
+          assetAttribution,
+          incomeAttribution,
+          riskAdjusted,
+          capitalEfficiency,
+          summary,
+        ]
+      properties:
+        openPositionsCount: { type: integer }
+        closedPositionsCount: { type: integer }
+        winningTrades: { type: integer }
+        losingTrades: { type: integer }
+        winRate: { type: ["number", "null"] }
+        averageWin: { type: ["number", "null"] }
+        averageLoss: { type: ["number", "null"] }
+        totalRealizedPnl: { type: ["number", "null"] }
+        income:
+          $ref: "#/components/schemas/OptionsIncomeOverview"
+        trades:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceOptionsTrade"
+        strategyAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceAttributionEntry"
+        assetAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceAttributionEntry"
+        incomeAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionsStrategyMixEntry"
+        riskAdjusted:
+          $ref: "#/components/schemas/PerformanceRiskAdjusted"
+        capitalEfficiency:
+          type: object
+          required: [capitalCommitted, returnOnCapitalPct, detail]
+          properties:
+            capitalCommitted: { type: ["number", "null"] }
+            returnOnCapitalPct: { type: ["number", "null"] }
+            detail: { type: string }
+        summary: { type: string }
+
+    PerformanceEngineSummary:
+      type: object
+      required: [engine, label, totalPnl, pnlLabel]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        label: { type: string }
+        totalPnl: { type: ["number", "null"] }
+        pnlLabel: { type: string }
+
+    PerformanceCombinedSectorAttribution:
+      type: object
+      required: [engine, sector, pnl]
+      properties:
+        engine:
+          type: string
+          enum: [investing]
+        sector: { type: string }
+        pnl: { type: number }
+
+    PerformanceCombinedStrategyAttribution:
+      type: object
+      required: [engine, key, label, pnl]
+      properties:
+        engine:
+          type: string
+          enum: [trading, options]
+        key: { type: string }
+        label: { type: string }
+        pnl: { type: number }
+
+    PerformanceCombinedAssetAttribution:
+      type: object
+      required: [engine, symbol, pnl]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        symbol: { type: string }
+        pnl: { type: number }
+
+    PerformanceCombinedCapitalEfficiency:
+      type: object
+      required: [engine, label, returnPct]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        label: { type: string }
+        returnPct: { type: ["number", "null"] }
+
+    PerformanceCombinedRiskAdjusted:
+      type: object
+      required: [engine, available, sharpeRatio, sortinoRatio]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        available: { type: boolean }
+        sharpeRatio: { type: ["number", "null"] }
+        sortinoRatio: { type: ["number", "null"] }
+
+    PerformanceCombinedView:
+      type: object
+      required: [byEngine, sectorAttribution, strategyAttribution, assetAttribution, capitalEfficiency, riskAdjusted]
+      properties:
+        byEngine:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceEngineSummary"
+        sectorAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceCombinedSectorAttribution"
+        strategyAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceCombinedStrategyAttribution"
+        assetAttribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceCombinedAssetAttribution"
+        capitalEfficiency:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceCombinedCapitalEfficiency"
+        riskAdjusted:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceCombinedRiskAdjusted"
+
+    PerformanceTimelinePoint:
+      type: object
+      required: [monthEnd, source, detail, value]
+      properties:
+        monthEnd: { type: string }
+        source:
+          type: string
+          enum: [options-realized, trading-realized, investing-market-value]
+        detail: { type: string }
+        value: { type: ["number", "null"] }
+
+    PerformanceDashboard:
+      type: object
+      required: [investing, trading, options, combined, timeline, generatedAt]
+      properties:
+        investing:
+          $ref: "#/components/schemas/PerformanceInvestingView"
+        trading:
+          $ref: "#/components/schemas/PerformanceTradingView"
+        options:
+          $ref: "#/components/schemas/PerformanceOptionsView"
+        combined:
+          $ref: "#/components/schemas/PerformanceCombinedView"
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceTimelinePoint"
+        generatedAt: { type: string }
+
+    PerformanceAttributionCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum: [performance_metrics, attribution, capital_efficiency, risk_adjusted_returns, portfolio_interpretation]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    PerformanceAttributionLearningLink:
+      type: object
+      required: [pathKey, topicKey, category, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        category:
+          type: string
+          enum: [metrics, attribution, capital, risk_adjusted, interpretation]
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    PerformanceAttributionTopicLearning:
+      type: object
+      required: [topic, links]
+      properties:
+        topic:
+          type: string
+          enum: [performance_metrics, attribution, capital_efficiency, risk_adjusted_returns, portfolio_interpretation]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceAttributionLearningLink"

@@ -8043,6 +8043,8 @@ export const ReportTypeMetaReportType = {
   'position-lifecycle-summary': 'position-lifecycle-summary',
   'risk-exposure-summary': 'risk-exposure-summary',
   'portfolio-concentration-report': 'portfolio-concentration-report',
+  'performance-summary': 'performance-summary',
+  'performance-attribution-report': 'performance-attribution-report',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8075,6 +8077,8 @@ export const InstitutionalReportReportType = {
   'position-lifecycle-summary': 'position-lifecycle-summary',
   'risk-exposure-summary': 'risk-exposure-summary',
   'portfolio-concentration-report': 'portfolio-concentration-report',
+  'performance-summary': 'performance-summary',
+  'performance-attribution-report': 'performance-attribution-report',
 } as const;
 
 export interface InstitutionalReport {
@@ -8111,6 +8115,8 @@ export const SaveInstitutionalReportInputReportType = {
   'position-lifecycle-summary': 'position-lifecycle-summary',
   'risk-exposure-summary': 'risk-exposure-summary',
   'portfolio-concentration-report': 'portfolio-concentration-report',
+  'performance-summary': 'performance-summary',
+  'performance-attribution-report': 'performance-attribution-report',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -9293,6 +9299,358 @@ export const RiskExposureTopicLearningTopic = {
 export interface RiskExposureTopicLearning {
   topic: RiskExposureTopicLearningTopic;
   links: RiskExposureLearningLink[];
+}
+
+export interface PerformanceRiskAdjusted {
+  available: boolean;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  sharpeRatio: number | null;
+  /** @nullable */
+  sortinoRatio: number | null;
+  tradeCount: number;
+  basis: string;
+}
+
+export interface PerformanceAttributionEntry {
+  key: string;
+  label: string;
+  pnl: number;
+  tradeCount: number;
+  /** @nullable */
+  weightPct: number | null;
+}
+
+export interface PerformanceInvestingHolding {
+  symbol: string;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  costBasisValue: number | null;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  unrealizedPnl: number | null;
+  /** @nullable */
+  unrealizedPnlPct: number | null;
+}
+
+export type PerformanceInvestingViewCapitalEfficiency = {
+  /** @nullable */
+  totalDeployed: number | null;
+  /** @nullable */
+  returnOnDeployedCapitalPct: number | null;
+  detail: string;
+};
+
+export interface PerformanceInvestingView {
+  portfolioCount: number;
+  holdingsCount: number;
+  /** @nullable */
+  totalCostBasisValue: number | null;
+  /** @nullable */
+  totalMarketValue: number | null;
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+  /** @nullable */
+  totalUnrealizedPnlPct: number | null;
+  holdings: PerformanceInvestingHolding[];
+  sectorAttribution: PerformanceAttributionEntry[];
+  assetAttribution: PerformanceAttributionEntry[];
+  riskAdjusted: PerformanceRiskAdjusted;
+  capitalEfficiency: PerformanceInvestingViewCapitalEfficiency;
+  unresolvedSymbols: string[];
+  summary: string;
+}
+
+export interface PerformanceTradingPosition {
+  id: number;
+  symbol: string;
+  side: string;
+  status: string;
+  quantity: number;
+  entryPrice: number;
+  /** @nullable */
+  exitPrice: number | null;
+  /** @nullable */
+  realizedPnl: number | null;
+  /** @nullable */
+  realizedPnlPct: number | null;
+  /** @nullable */
+  holdingDays: number | null;
+  /** @nullable */
+  setupType: string | null;
+}
+
+export type PerformanceTradingViewCapitalEfficiency = {
+  /** @nullable */
+  capitalCommitted: number | null;
+  /** @nullable */
+  returnOnCapitalPct: number | null;
+  detail: string;
+};
+
+export interface PerformanceTradingView {
+  totalPositions: number;
+  openPositionsCount: number;
+  closedPositionsCount: number;
+  winningTrades: number;
+  losingTrades: number;
+  /** @nullable */
+  winRate: number | null;
+  /** @nullable */
+  averageWin: number | null;
+  /** @nullable */
+  averageLoss: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  /** @nullable */
+  largestWinner: number | null;
+  /** @nullable */
+  largestLoser: number | null;
+  /** @nullable */
+  averageHoldingDays: number | null;
+  positions: PerformanceTradingPosition[];
+  strategyAttribution: PerformanceAttributionEntry[];
+  assetAttribution: PerformanceAttributionEntry[];
+  riskAdjusted: PerformanceRiskAdjusted;
+  capitalEfficiency: PerformanceTradingViewCapitalEfficiency;
+  summary: string;
+}
+
+export interface PerformanceOptionsTrade {
+  id: number;
+  symbol: string;
+  strategy: string;
+  status: string;
+  credit: number;
+  /** @nullable */
+  currentPnl: number | null;
+  /** @nullable */
+  currentPnlPercent: number | null;
+  /** @nullable */
+  holdingDays: number | null;
+}
+
+export type PerformanceOptionsViewCapitalEfficiency = {
+  /** @nullable */
+  capitalCommitted: number | null;
+  /** @nullable */
+  returnOnCapitalPct: number | null;
+  detail: string;
+};
+
+export interface PerformanceOptionsView {
+  openPositionsCount: number;
+  closedPositionsCount: number;
+  winningTrades: number;
+  losingTrades: number;
+  /** @nullable */
+  winRate: number | null;
+  /** @nullable */
+  averageWin: number | null;
+  /** @nullable */
+  averageLoss: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  income: OptionsIncomeOverview;
+  trades: PerformanceOptionsTrade[];
+  strategyAttribution: PerformanceAttributionEntry[];
+  assetAttribution: PerformanceAttributionEntry[];
+  incomeAttribution: OptionsStrategyMixEntry[];
+  riskAdjusted: PerformanceRiskAdjusted;
+  capitalEfficiency: PerformanceOptionsViewCapitalEfficiency;
+  summary: string;
+}
+
+export type PerformanceEngineSummaryEngine = typeof PerformanceEngineSummaryEngine[keyof typeof PerformanceEngineSummaryEngine];
+
+
+export const PerformanceEngineSummaryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceEngineSummary {
+  engine: PerformanceEngineSummaryEngine;
+  label: string;
+  /** @nullable */
+  totalPnl: number | null;
+  pnlLabel: string;
+}
+
+export type PerformanceCombinedSectorAttributionEngine = typeof PerformanceCombinedSectorAttributionEngine[keyof typeof PerformanceCombinedSectorAttributionEngine];
+
+
+export const PerformanceCombinedSectorAttributionEngine = {
+  investing: 'investing',
+} as const;
+
+export interface PerformanceCombinedSectorAttribution {
+  engine: PerformanceCombinedSectorAttributionEngine;
+  sector: string;
+  pnl: number;
+}
+
+export type PerformanceCombinedStrategyAttributionEngine = typeof PerformanceCombinedStrategyAttributionEngine[keyof typeof PerformanceCombinedStrategyAttributionEngine];
+
+
+export const PerformanceCombinedStrategyAttributionEngine = {
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceCombinedStrategyAttribution {
+  engine: PerformanceCombinedStrategyAttributionEngine;
+  key: string;
+  label: string;
+  pnl: number;
+}
+
+export type PerformanceCombinedAssetAttributionEngine = typeof PerformanceCombinedAssetAttributionEngine[keyof typeof PerformanceCombinedAssetAttributionEngine];
+
+
+export const PerformanceCombinedAssetAttributionEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceCombinedAssetAttribution {
+  engine: PerformanceCombinedAssetAttributionEngine;
+  symbol: string;
+  pnl: number;
+}
+
+export type PerformanceCombinedCapitalEfficiencyEngine = typeof PerformanceCombinedCapitalEfficiencyEngine[keyof typeof PerformanceCombinedCapitalEfficiencyEngine];
+
+
+export const PerformanceCombinedCapitalEfficiencyEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceCombinedCapitalEfficiency {
+  engine: PerformanceCombinedCapitalEfficiencyEngine;
+  label: string;
+  /** @nullable */
+  returnPct: number | null;
+}
+
+export type PerformanceCombinedRiskAdjustedEngine = typeof PerformanceCombinedRiskAdjustedEngine[keyof typeof PerformanceCombinedRiskAdjustedEngine];
+
+
+export const PerformanceCombinedRiskAdjustedEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceCombinedRiskAdjusted {
+  engine: PerformanceCombinedRiskAdjustedEngine;
+  available: boolean;
+  /** @nullable */
+  sharpeRatio: number | null;
+  /** @nullable */
+  sortinoRatio: number | null;
+}
+
+export interface PerformanceCombinedView {
+  byEngine: PerformanceEngineSummary[];
+  sectorAttribution: PerformanceCombinedSectorAttribution[];
+  strategyAttribution: PerformanceCombinedStrategyAttribution[];
+  assetAttribution: PerformanceCombinedAssetAttribution[];
+  capitalEfficiency: PerformanceCombinedCapitalEfficiency[];
+  riskAdjusted: PerformanceCombinedRiskAdjusted[];
+}
+
+export type PerformanceTimelinePointSource = typeof PerformanceTimelinePointSource[keyof typeof PerformanceTimelinePointSource];
+
+
+export const PerformanceTimelinePointSource = {
+  'options-realized': 'options-realized',
+  'trading-realized': 'trading-realized',
+  'investing-market-value': 'investing-market-value',
+} as const;
+
+export interface PerformanceTimelinePoint {
+  monthEnd: string;
+  source: PerformanceTimelinePointSource;
+  detail: string;
+  /** @nullable */
+  value: number | null;
+}
+
+export interface PerformanceDashboard {
+  investing: PerformanceInvestingView;
+  trading: PerformanceTradingView;
+  options: PerformanceOptionsView;
+  combined: PerformanceCombinedView;
+  timeline: PerformanceTimelinePoint[];
+  generatedAt: string;
+}
+
+export type PerformanceAttributionCoachExplanationTopic = typeof PerformanceAttributionCoachExplanationTopic[keyof typeof PerformanceAttributionCoachExplanationTopic];
+
+
+export const PerformanceAttributionCoachExplanationTopic = {
+  performance_metrics: 'performance_metrics',
+  attribution: 'attribution',
+  capital_efficiency: 'capital_efficiency',
+  risk_adjusted_returns: 'risk_adjusted_returns',
+  portfolio_interpretation: 'portfolio_interpretation',
+} as const;
+
+export interface PerformanceAttributionCoachExplanation {
+  topic: PerformanceAttributionCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export type PerformanceAttributionLearningLinkCategory = typeof PerformanceAttributionLearningLinkCategory[keyof typeof PerformanceAttributionLearningLinkCategory];
+
+
+export const PerformanceAttributionLearningLinkCategory = {
+  metrics: 'metrics',
+  attribution: 'attribution',
+  capital: 'capital',
+  risk_adjusted: 'risk_adjusted',
+  interpretation: 'interpretation',
+} as const;
+
+export interface PerformanceAttributionLearningLink {
+  pathKey: string;
+  topicKey: string;
+  category: PerformanceAttributionLearningLinkCategory;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type PerformanceAttributionTopicLearningTopic = typeof PerformanceAttributionTopicLearningTopic[keyof typeof PerformanceAttributionTopicLearningTopic];
+
+
+export const PerformanceAttributionTopicLearningTopic = {
+  performance_metrics: 'performance_metrics',
+  attribution: 'attribution',
+  capital_efficiency: 'capital_efficiency',
+  risk_adjusted_returns: 'risk_adjusted_returns',
+  portfolio_interpretation: 'portfolio_interpretation',
+} as const;
+
+export interface PerformanceAttributionTopicLearning {
+  topic: PerformanceAttributionTopicLearningTopic;
+  links: PerformanceAttributionLearningLink[];
 }
 
 export type GetScannerResultsParams = {
