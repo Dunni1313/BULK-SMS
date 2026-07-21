@@ -72,6 +72,7 @@ import {
   Grid3x3,
   Waves,
   GitBranch,
+  AlertTriangle,
 } from "lucide-react";
 
 export interface NavItem {
@@ -109,6 +110,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Position Lifecycle Manager", href: "/options-lifecycle-manager", icon: GitBranch },
   { title: "Risk & Exposure Engine", href: "/risk-exposure-engine", icon: ShieldAlert },
   { title: "Performance & Attribution Engine", href: "/performance-attribution-engine", icon: LineChart },
+  { title: "Scenario & Stress Testing Engine", href: "/scenario-engine", icon: AlertTriangle },
   { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
   { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
   { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },

@@ -42,6 +42,7 @@ import {
   LayoutPanelLeft,
   Waves,
   GitBranch,
+  AlertTriangle,
 } from "lucide-react";
 
 function KpiCard({ label, value, testId }: { label: string; value: string | number; testId: string }) {
@@ -157,6 +158,9 @@ export default function ExecutiveIntelligence() {
         </Link>
         <Link href="/performance-attribution-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-performance-attribution-engine">
           <LineChart className="w-3 h-3" /> Open Performance & Attribution Engine →
+        </Link>
+        <Link href="/scenario-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-scenario-engine">
+          <AlertTriangle className="w-3 h-3" /> Open Scenario & Stress Testing Engine →
         </Link>
       </div>
 

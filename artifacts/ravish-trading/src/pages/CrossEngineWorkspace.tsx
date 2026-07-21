@@ -61,6 +61,7 @@ import {
   GitBranch,
   ShieldAlert,
   LineChart,
+  AlertTriangle,
 } from "lucide-react";
 
 const VALID_TABS = ["overview", "search", "activity", "recent", "shortcuts"];
@@ -113,6 +114,7 @@ const WORKSPACE_SHORTCUTS: { label: string; href: string; icon: LucideIcon }[] =
   { label: "Position Lifecycle Manager", href: "/options-lifecycle-manager", icon: GitBranch },
   { label: "Risk & Exposure Engine", href: "/risk-exposure-engine", icon: ShieldAlert },
   { label: "Performance & Attribution Engine", href: "/performance-attribution-engine", icon: LineChart },
+  { label: "Scenario & Stress Testing Engine", href: "/scenario-engine", icon: AlertTriangle },
 ];
 
 export default function CrossEngineWorkspace() {

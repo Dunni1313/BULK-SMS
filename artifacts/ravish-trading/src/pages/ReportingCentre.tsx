@@ -59,6 +59,10 @@ import {
   getGetPerformanceSummaryReportQueryKey,
   useGetPerformanceAttributionReport,
   getGetPerformanceAttributionReportQueryKey,
+  useGetScenarioAnalysisReport,
+  getGetScenarioAnalysisReportQueryKey,
+  useGetStressTestReport,
+  getGetStressTestReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -100,7 +104,9 @@ type ReportType =
   | "risk-exposure-summary"
   | "portfolio-concentration-report"
   | "performance-summary"
-  | "performance-attribution-report";
+  | "performance-attribution-report"
+  | "scenario-analysis-report"
+  | "stress-test-report";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -131,6 +137,8 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "portfolio-concentration-report",
   "performance-summary",
   "performance-attribution-report",
+  "scenario-analysis-report",
+  "stress-test-report",
 ];
 
 export default function ReportingCentre() {
@@ -201,6 +209,8 @@ export default function ReportingCentre() {
   const pcrRes = useGetPortfolioConcentrationReport({ query: { queryKey: getGetPortfolioConcentrationReportQueryKey(), enabled: generated?.type === "portfolio-concentration-report" } });
   const psRes = useGetPerformanceSummaryReport({ query: { queryKey: getGetPerformanceSummaryReportQueryKey(), enabled: generated?.type === "performance-summary" } });
   const parRes = useGetPerformanceAttributionReport({ query: { queryKey: getGetPerformanceAttributionReportQueryKey(), enabled: generated?.type === "performance-attribution-report" } });
+  const sarRes = useGetScenarioAnalysisReport({ query: { queryKey: getGetScenarioAnalysisReportQueryKey(), enabled: generated?.type === "scenario-analysis-report" } });
+  const strRes = useGetStressTestReport({ query: { queryKey: getGetStressTestReportQueryKey(), enabled: generated?.type === "stress-test-report" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -231,9 +241,11 @@ export default function ReportingCentre() {
       "portfolio-concentration-report": pcrRes,
       "performance-summary": psRes,
       "performance-attribution-report": parRes,
+      "scenario-analysis-report": sarRes,
+      "stress-test-report": strRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

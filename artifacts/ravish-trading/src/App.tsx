@@ -79,6 +79,7 @@ const OptionsIncomeWorkspace = lazy(() => import("./pages/OptionsIncomeWorkspace
 const OptionsLifecycleManager = lazy(() => import("./pages/OptionsLifecycleManager"));
 const RiskExposureEngine = lazy(() => import("./pages/RiskExposureEngine"));
 const PerformanceAttributionEngine = lazy(() => import("./pages/PerformanceAttributionEngine"));
+const ScenarioEngine = lazy(() => import("./pages/ScenarioEngine"));
 const ReportingCentre = lazy(() => import("./pages/ReportingCentre"));
 const ExecutiveDashboard = lazy(() => import("./pages/ExecutiveDashboard"));
 const DecisionEngine = lazy(() => import("./pages/DecisionEngine"));
@@ -188,6 +189,7 @@ function Router() {
           <Route path="/options-lifecycle-manager" component={OptionsLifecycleManager} />
           <Route path="/risk-exposure-engine" component={RiskExposureEngine} />
           <Route path="/performance-attribution-engine" component={PerformanceAttributionEngine} />
+          <Route path="/scenario-engine" component={ScenarioEngine} />
           <Route path="/options-backtest" component={OptionsBacktest} />
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />

@@ -27,6 +27,7 @@ import {
   GitBranch,
   ShieldAlert,
   LineChart,
+  AlertTriangle,
 } from "lucide-react";
 
 export interface QuickAction {
@@ -73,4 +74,5 @@ export const CROSS_ENGINE_QUICK_ACTIONS: QuickAction[] = [
   { id: "open-options-lifecycle-manager", label: "Open Position Lifecycle Manager", href: "/options-lifecycle-manager", icon: GitBranch, kind: "navigate" },
   { id: "open-risk-exposure-engine", label: "Open Risk & Exposure Engine", href: "/risk-exposure-engine", icon: ShieldAlert, kind: "navigate" },
   { id: "open-performance-attribution-engine", label: "Open Performance & Attribution Engine", href: "/performance-attribution-engine", icon: LineChart, kind: "navigate" },
+  { id: "open-scenario-engine", label: "Open Scenario & Stress Testing Engine", href: "/scenario-engine", icon: AlertTriangle, kind: "navigate" },
 ];

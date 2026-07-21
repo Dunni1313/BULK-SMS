@@ -72,6 +72,7 @@ import {
   GitBranch,
   ShieldAlert,
   LineChart,
+  AlertTriangle,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -289,6 +290,9 @@ export default function ExecutiveDashboard() {
             </Link>
             <Link href="/performance-attribution-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-performance-attribution-engine">
               <LineChart className="w-3 h-3" /> Open the Performance & Attribution Engine →
+            </Link>
+            <Link href="/scenario-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-scenario-engine">
+              <AlertTriangle className="w-3 h-3" /> Open the Scenario & Stress Testing Engine →
             </Link>
           </div>
         </CardContent>
