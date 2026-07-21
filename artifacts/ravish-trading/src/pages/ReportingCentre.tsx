@@ -47,6 +47,10 @@ import {
   getGetExecutiveIntelligenceSummaryReportQueryKey,
   useGetOptionsIncomeSummaryReport,
   getGetOptionsIncomeSummaryReportQueryKey,
+  useGetOptionsPortfolioReviewReport,
+  getGetOptionsPortfolioReviewReportQueryKey,
+  useGetPositionLifecycleSummaryReport,
+  getGetPositionLifecycleSummaryReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -82,7 +86,9 @@ type ReportType =
   | "strategy-framework-summary"
   | "trading-analytics-summary"
   | "executive-intelligence-summary"
-  | "options-income-summary";
+  | "options-income-summary"
+  | "options-portfolio-review"
+  | "position-lifecycle-summary";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -107,6 +113,8 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "trading-analytics-summary",
   "executive-intelligence-summary",
   "options-income-summary",
+  "options-portfolio-review",
+  "position-lifecycle-summary",
 ];
 
 export default function ReportingCentre() {
@@ -171,6 +179,8 @@ export default function ReportingCentre() {
   const tasRes = useGetTradingAnalyticsSummaryReport({ query: { queryKey: getGetTradingAnalyticsSummaryReportQueryKey(), enabled: generated?.type === "trading-analytics-summary" } });
   const eisRes = useGetExecutiveIntelligenceSummaryReport({ query: { queryKey: getGetExecutiveIntelligenceSummaryReportQueryKey(), enabled: generated?.type === "executive-intelligence-summary" } });
   const oisRes = useGetOptionsIncomeSummaryReport({ query: { queryKey: getGetOptionsIncomeSummaryReportQueryKey(), enabled: generated?.type === "options-income-summary" } });
+  const oprRes = useGetOptionsPortfolioReviewReport({ query: { queryKey: getGetOptionsPortfolioReviewReportQueryKey(), enabled: generated?.type === "options-portfolio-review" } });
+  const plsRes = useGetPositionLifecycleSummaryReport({ query: { queryKey: getGetPositionLifecycleSummaryReportQueryKey(), enabled: generated?.type === "position-lifecycle-summary" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -195,9 +205,11 @@ export default function ReportingCentre() {
       "trading-analytics-summary": tasRes,
       "executive-intelligence-summary": eisRes,
       "options-income-summary": oisRes,
+      "options-portfolio-review": oprRes,
+      "position-lifecycle-summary": plsRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

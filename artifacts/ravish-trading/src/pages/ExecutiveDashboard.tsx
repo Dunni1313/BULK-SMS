@@ -69,6 +69,7 @@ import {
   Command,
   Grid3x3,
   Waves,
+  GitBranch,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -277,6 +278,9 @@ export default function ExecutiveDashboard() {
             </Link>
             <Link href="/options-income-workspace" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-options-income-workspace">
               <Waves className="w-3 h-3" /> Open the Options Income Workspace →
+            </Link>
+            <Link href="/options-lifecycle-manager" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-options-lifecycle-manager">
+              <GitBranch className="w-3 h-3" /> Open the Position Lifecycle Manager →
             </Link>
           </div>
         </CardContent>

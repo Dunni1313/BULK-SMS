@@ -40,6 +40,7 @@ import {
   GraduationCap as CoachIcon,
   LayoutPanelLeft,
   Waves,
+  GitBranch,
 } from "lucide-react";
 
 function KpiCard({ label, value, testId }: { label: string; value: string | number; testId: string }) {
@@ -146,6 +147,9 @@ export default function ExecutiveIntelligence() {
         </Link>
         <Link href="/options-income-workspace" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-options-income-workspace">
           <Waves className="w-3 h-3" /> Open Options Income Workspace →
+        </Link>
+        <Link href="/options-lifecycle-manager" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-options-lifecycle-manager">
+          <GitBranch className="w-3 h-3" /> Open Position Lifecycle Manager →
         </Link>
       </div>
 

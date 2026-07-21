@@ -24,6 +24,7 @@ import {
   FileBarChart2,
   Command,
   Waves,
+  GitBranch,
 } from "lucide-react";
 
 export interface QuickAction {
@@ -67,4 +68,5 @@ export const CROSS_ENGINE_QUICK_ACTIONS: QuickAction[] = [
   { id: "open-executive-dashboard", label: "Open Executive Dashboard", href: "/stock-analyst/executive-dashboard", icon: PieChart, kind: "navigate" },
   { id: "open-executive-intelligence", label: "Open Executive Intelligence", href: "/executive-intelligence", icon: Command, kind: "navigate" },
   { id: "open-options-income-workspace", label: "Open Options Income Workspace", href: "/options-income-workspace", icon: Waves, kind: "navigate" },
+  { id: "open-options-lifecycle-manager", label: "Open Position Lifecycle Manager", href: "/options-lifecycle-manager", icon: GitBranch, kind: "navigate" },
 ];

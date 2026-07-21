@@ -58,6 +58,7 @@ import {
   GraduationCap,
   LayoutList,
   Waves,
+  GitBranch,
 } from "lucide-react";
 
 const VALID_TABS = ["overview", "search", "activity", "recent", "shortcuts"];
@@ -107,6 +108,7 @@ const WORKSPACE_SHORTCUTS: { label: string; href: string; icon: LucideIcon }[] =
   { label: "Reporting Centre", href: "/reporting-centre", icon: FileBarChart2 },
   { label: "Learning Centre", href: "/learn", icon: GraduationCap },
   { label: "Options Income Workspace", href: "/options-income-workspace", icon: Waves },
+  { label: "Position Lifecycle Manager", href: "/options-lifecycle-manager", icon: GitBranch },
 ];
 
 export default function CrossEngineWorkspace() {

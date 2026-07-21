@@ -71,6 +71,7 @@ import {
   Command,
   Grid3x3,
   Waves,
+  GitBranch,
 } from "lucide-react";
 
 export interface NavItem {
@@ -105,6 +106,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Executive Intelligence", href: "/executive-intelligence", icon: Command },
   { title: "Cross-Engine Workspace", href: "/cross-engine-workspace", icon: Grid3x3 },
   { title: "Options Income Workspace", href: "/options-income-workspace", icon: Waves },
+  { title: "Position Lifecycle Manager", href: "/options-lifecycle-manager", icon: GitBranch },
   { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
   { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
   { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },

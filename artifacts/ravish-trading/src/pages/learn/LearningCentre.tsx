@@ -566,6 +566,11 @@ function OverviewTab() {
               <CardContent className="pt-4 text-sm font-medium">Options Income Workspace</CardContent>
             </Card>
           </Link>
+          <Link href="/options-lifecycle-manager" data-testid="link-overview-options-lifecycle-manager">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm font-medium">Position Lifecycle Manager</CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>
