@@ -111,6 +111,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Risk & Exposure Engine", href: "/risk-exposure-engine", icon: ShieldAlert },
   { title: "Performance & Attribution Engine", href: "/performance-attribution-engine", icon: LineChart },
   { title: "Scenario & Stress Testing Engine", href: "/scenario-engine", icon: AlertTriangle },
+  { title: "Decision Support Engine", href: "/decision-support-engine", icon: Gauge },
   { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
   { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
   { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },

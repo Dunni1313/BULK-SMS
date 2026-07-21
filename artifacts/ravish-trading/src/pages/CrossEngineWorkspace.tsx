@@ -62,6 +62,7 @@ import {
   ShieldAlert,
   LineChart,
   AlertTriangle,
+  Gauge,
 } from "lucide-react";
 
 const VALID_TABS = ["overview", "search", "activity", "recent", "shortcuts"];
@@ -115,6 +116,7 @@ const WORKSPACE_SHORTCUTS: { label: string; href: string; icon: LucideIcon }[] =
   { label: "Risk & Exposure Engine", href: "/risk-exposure-engine", icon: ShieldAlert },
   { label: "Performance & Attribution Engine", href: "/performance-attribution-engine", icon: LineChart },
   { label: "Scenario & Stress Testing Engine", href: "/scenario-engine", icon: AlertTriangle },
+  { label: "Decision Support Engine", href: "/decision-support-engine", icon: Gauge },
 ];
 
 export default function CrossEngineWorkspace() {

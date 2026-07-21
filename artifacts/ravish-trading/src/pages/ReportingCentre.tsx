@@ -63,6 +63,10 @@ import {
   getGetScenarioAnalysisReportQueryKey,
   useGetStressTestReport,
   getGetStressTestReportQueryKey,
+  useGetExecutiveDecisionSummaryReport,
+  getGetExecutiveDecisionSummaryReportQueryKey,
+  useGetInstitutionalHealthReport,
+  getGetInstitutionalHealthReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -106,7 +110,9 @@ type ReportType =
   | "performance-summary"
   | "performance-attribution-report"
   | "scenario-analysis-report"
-  | "stress-test-report";
+  | "stress-test-report"
+  | "executive-decision-summary"
+  | "institutional-health-report";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -139,6 +145,8 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "performance-attribution-report",
   "scenario-analysis-report",
   "stress-test-report",
+  "executive-decision-summary",
+  "institutional-health-report",
 ];
 
 export default function ReportingCentre() {
@@ -211,6 +219,8 @@ export default function ReportingCentre() {
   const parRes = useGetPerformanceAttributionReport({ query: { queryKey: getGetPerformanceAttributionReportQueryKey(), enabled: generated?.type === "performance-attribution-report" } });
   const sarRes = useGetScenarioAnalysisReport({ query: { queryKey: getGetScenarioAnalysisReportQueryKey(), enabled: generated?.type === "scenario-analysis-report" } });
   const strRes = useGetStressTestReport({ query: { queryKey: getGetStressTestReportQueryKey(), enabled: generated?.type === "stress-test-report" } });
+  const edsRes = useGetExecutiveDecisionSummaryReport({ query: { queryKey: getGetExecutiveDecisionSummaryReportQueryKey(), enabled: generated?.type === "executive-decision-summary" } });
+  const ihrRes = useGetInstitutionalHealthReport({ query: { queryKey: getGetInstitutionalHealthReportQueryKey(), enabled: generated?.type === "institutional-health-report" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -243,9 +253,11 @@ export default function ReportingCentre() {
       "performance-attribution-report": parRes,
       "scenario-analysis-report": sarRes,
       "stress-test-report": strRes,
+      "executive-decision-summary": edsRes,
+      "institutional-health-report": ihrRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes, edsRes, ihrRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

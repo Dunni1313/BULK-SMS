@@ -73,6 +73,7 @@ import {
   ShieldAlert,
   LineChart,
   AlertTriangle,
+  Gauge,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -293,6 +294,9 @@ export default function ExecutiveDashboard() {
             </Link>
             <Link href="/scenario-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-scenario-engine">
               <AlertTriangle className="w-3 h-3" /> Open the Scenario & Stress Testing Engine →
+            </Link>
+            <Link href="/decision-support-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-decision-support-engine">
+              <Gauge className="w-3 h-3" /> Open the Decision Support Engine →
             </Link>
           </div>
         </CardContent>
