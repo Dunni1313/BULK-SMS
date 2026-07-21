@@ -92,6 +92,8 @@ tags:
     description: Institutional Portfolio Monitoring & Compliance Engine (Phase 42) — user-defined, editable policies (limits) evaluated against already-computed figures reused verbatim from the Risk & Exposure Engine (Phase 37), the Decision Support Engine's own Diversification Summary (Phase 40), and the Options Income Engine's own theta income (Phase 35). Every evaluation reports a current value, a policy limit, a difference, and a status (compliant/breach/unavailable — never fabricated). Monitoring only — no trade recommendations, no buy/sell signals, no portfolio optimisation, no auto rebalancing, no auto execution, no AI predictions, no forecasting, no machine learning, no broker integration changes.
   - name: investing-watchlists
     description: Institutional Watchlists & Opportunity Dashboard (Phase 43) — named, taggable, manually-orderable Personal and Institutional watchlists (a new, separate primitive from the existing flat value_watchlist table), with per-symbol analytics reused verbatim from the Risk & Exposure Engine (Phase 37), the Performance & Attribution Engine (Phase 38), the Scenario Engine (Phase 39), the Decision Support Engine's own Diversification Summary (Phase 40), and the Compliance Engine (Phase 42), plus a portfolio-wide Watchlist Health rollup and Cross-Engine Summary. Monitoring and organisation only — no trade recommendations, no buy/sell signals, no ranked/scored "opportunity" signal, no portfolio optimisation, no auto rebalancing, no auto execution, no auto watchlist generation, no AI predictions, no forecasting, no machine learning.
+  - name: portfolio-workspace
+    description: Institutional Portfolio Workspace & Workflow Center (Phase 44) — a unified operating dashboard bringing together the Decision Support Engine's own Executive Home/Portfolio Snapshot (Phase 40, reused wholesale), the Risk & Exposure Engine (Phase 37), the Performance & Attribution Engine (Phase 38), the Rebalancing Engine (Phase 41), the Compliance Engine (Phase 42), and the Watchlists Engine (Phase 43) into Holdings/Trading/Options/Risk/Performance/Compliance/Watchlists Overview cards, a merged Outstanding Issues list, Recent Reports, and Active Workflows — plus a deterministic Workflow Center (Morning/Weekly/Monthly/Quarterly/Portfolio/Risk/Compliance/Performance/Scenario Review, each a static checklist of already-shipped pages) and a Workspace layer (Pinned Resources/Favorites, Recently Viewed, and a fixed Quick Actions list). Orchestration and workflow only — no trade recommendations, no buy/sell signals, no AI predictions, no portfolio optimisation, no auto execution, no auto hedging, no machine learning, no market forecasting, no broker integration changes.
 
 paths:
   /healthz:
@@ -6630,6 +6632,343 @@ paths:
       responses:
         "200":
           description: Opportunity Dashboard Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /portfolio-workspace/dashboard:
+    get:
+      operationId: getPortfolioWorkspaceDashboard
+      tags: [portfolio-workspace]
+      summary: The full Institutional Portfolio Workspace dashboard — Executive Home, Portfolio Snapshot (reused wholesale from the Decision Support Engine), Holdings/Trading/Options/Risk/Performance/Compliance/Watchlists Overview, Recent Reports, Active Workflows, and a merged Outstanding Issues list. Orchestration only — no trade recommendations, no AI predictions.
+      responses:
+        "200":
+          description: The Portfolio Workspace dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioWorkspaceDashboard"
+
+  /portfolio-workspace/workflows:
+    get:
+      operationId: listWorkflowDefinitions
+      tags: [portfolio-workspace]
+      summary: The static Workflow Center catalog (Morning/Weekly/Monthly/Quarterly/Portfolio/Risk/Compliance/Performance/Scenario Review) — every step is a deep link into an already-shipped page. Never automation.
+      responses:
+        "200":
+          description: Every workflow definition
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowDefinition"
+
+  /portfolio-workspace/workflows/instances:
+    get:
+      operationId: listWorkflowInstances
+      tags: [portfolio-workspace]
+      summary: The calling user's own started workflow instances, optionally filtered by status.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, enum: [active, completed, abandoned] }
+      responses:
+        "200":
+          description: The calling user's own workflow instances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkflowInstance"
+
+  /portfolio-workspace/workflows/{key}/start:
+    post:
+      operationId: startWorkflowInstance
+      tags: [portfolio-workspace]
+      summary: Start a new instance of a catalog workflow.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "201":
+          description: The newly-started workflow instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowInstance"
+        "404":
+          description: Unknown workflow key
+
+  /portfolio-workspace/workflows/instances/{id}:
+    patch:
+      operationId: updateWorkflowInstance
+      tags: [portfolio-workspace]
+      summary: Toggle one step's completion, or set the instance's own status (active/abandoned). A step-completion update never changes anything about the user's portfolio, positions, or trades — it only records that the user reviewed that step.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWorkflowInstanceInput"
+      responses:
+        "200":
+          description: The updated workflow instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowInstance"
+        "404":
+          description: Instance not found, or the step key is not part of this workflow's own catalog definition
+    delete:
+      operationId: deleteWorkflowInstance
+      tags: [portfolio-workspace]
+      summary: Delete a workflow instance (its own tracked progress only — never touches the static catalog definition).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+        "404":
+          description: Instance not found
+
+  /portfolio-workspace/pins:
+    get:
+      operationId: listPinnedResources
+      tags: [portfolio-workspace]
+      summary: The calling user's own pinned resources (Favorites) — dashboards, reports, watchlists, strategies, learning topics, or a plain page.
+      responses:
+        "200":
+          description: Every pinned resource
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PinnedResource"
+    post:
+      operationId: pinResource
+      tags: [portfolio-workspace]
+      summary: Pin a resource. Never auto-pinned — every pin originates from this explicit call.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PinResourceInput"
+      responses:
+        "201":
+          description: The newly-pinned resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PinnedResource"
+        "409":
+          description: This resource is already pinned
+
+  /portfolio-workspace/pins/{id}:
+    delete:
+      operationId: unpinResource
+      tags: [portfolio-workspace]
+      summary: Unpin a resource.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Unpinned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+        "404":
+          description: Pin not found
+
+  /portfolio-workspace/pins/reorder:
+    post:
+      operationId: reorderPinnedResources
+      tags: [portfolio-workspace]
+      summary: Manually reorder the calling user's own pinned resources.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderWorkspaceItemsInput"
+      responses:
+        "200":
+          description: Reordered
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+
+  /portfolio-workspace/recent-views:
+    get:
+      operationId: listRecentViews
+      tags: [portfolio-workspace]
+      summary: The calling user's own most-recently-viewed resources, opened from within the Portfolio Workspace itself — never a global, every-page view tracker.
+      responses:
+        "200":
+          description: Every recently-viewed resource, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecentViewEntry"
+    post:
+      operationId: recordRecentView
+      tags: [portfolio-workspace]
+      summary: Record that the calling user just opened a resource from the Portfolio Workspace.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordRecentViewInput"
+      responses:
+        "201":
+          description: The recorded view
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecentViewEntry"
+
+  /portfolio-workspace/quick-actions:
+    get:
+      operationId: listQuickActions
+      tags: [portfolio-workspace]
+      summary: A fixed, curated list of navigation shortcuts into already-shipped surfaces — never persisted, never user-configurable.
+      responses:
+        "200":
+          description: Every quick action
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuickAction"
+
+  /portfolio-workspace/coach:
+    get:
+      operationId: listWorkspaceCoachTopics
+      tags: [portfolio-workspace]
+      summary: All 5 deterministic AI Coach explanations (portfolio review workflows, institutional operating processes, review cycles, governance, reporting). Never a trade recommendation.
+      responses:
+        "200":
+          description: Every Workspace coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkspaceCoachExplanation"
+
+  /portfolio-workspace/coach/{topic}:
+    get:
+      operationId: getWorkspaceCoachTopic
+      tags: [portfolio-workspace]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /portfolio-workspace/learning:
+    get:
+      operationId: listWorkspaceLearning
+      tags: [portfolio-workspace]
+      summary: Every Portfolio Workspace topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+      responses:
+        "200":
+          description: Every topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkspaceTopicLearning"
+
+  /portfolio-workspace/learning/{topic}:
+    get:
+      operationId: getWorkspaceLearning
+      tags: [portfolio-workspace]
+      summary: One Portfolio Workspace topic's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: The topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceTopicLearning"
+        "404":
+          description: Unknown topic key
+
+  /reporting/portfolio-workspace-summary:
+    get:
+      operationId: getPortfolioWorkspaceSummaryReport
+      tags: [reporting]
+      summary: Portfolio Workspace Summary Report (Phase 44) — the concise headline reformat of the full Portfolio Workspace dashboard. Orchestration only — no trade recommendations.
+      responses:
+        "200":
+          description: Portfolio Workspace Summary Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/institutional-review-report:
+    get:
+      operationId: getInstitutionalReviewReport
+      tags: [reporting]
+      summary: Institutional Review Report (Phase 44) — a deeper review record, the report a portfolio manager would generate and archive at the end of a completed Workflow Center review cycle. Orchestration only — no trade recommendations.
+      responses:
+        "200":
+          description: Institutional Review Report
           content:
             application/json:
               schema:
@@ -16786,7 +17125,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report, portfolio-workspace-summary, institutional-review-report]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -16798,7 +17137,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report, portfolio-workspace-summary, institutional-review-report]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -16816,7 +17155,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report, portfolio-workspace-summary, institutional-review-report]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -19805,3 +20144,284 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/WatchlistsLearningLink"
+
+    # ─── Institutional Portfolio Workspace & Workflow Center (Phase 44) ─────
+
+    WorkspaceHoldingsAllocationHighlight:
+      type: object
+      required: [symbol, marketValue, weightPct]
+      properties:
+        symbol: { type: string }
+        marketValue: { type: ["number", "null"] }
+        weightPct: { type: ["number", "null"] }
+
+    WorkspaceHoldingsOverview:
+      type: object
+      required: [portfoliosCount, holdingsCount, totalMarketValue, totalUnrealizedPnl, totalUnrealizedPnlPct, topAllocations, driftedHoldingsCount, summary]
+      properties:
+        portfoliosCount: { type: integer }
+        holdingsCount: { type: integer }
+        totalMarketValue: { type: ["number", "null"] }
+        totalUnrealizedPnl: { type: ["number", "null"] }
+        totalUnrealizedPnlPct: { type: ["number", "null"] }
+        topAllocations:
+          type: array
+          items: { $ref: "#/components/schemas/WorkspaceHoldingsAllocationHighlight" }
+        driftedHoldingsCount: { type: integer }
+        summary: { type: string }
+
+    WorkspaceTradingOverview:
+      type: object
+      required: [openPositionsCount, accountValue, stopTargetDisciplinePct, totalRealizedPnl, winRate, summary]
+      properties:
+        openPositionsCount: { type: integer }
+        accountValue: { type: ["number", "null"] }
+        stopTargetDisciplinePct: { type: ["number", "null"] }
+        totalRealizedPnl: { type: ["number", "null"] }
+        winRate: { type: ["number", "null"] }
+        summary: { type: string }
+
+    WorkspaceOptionsOverview:
+      type: object
+      required: [openPositionsCount, portfolioValue, buyingPower, totalRealizedPnl, winRate, summary]
+      properties:
+        openPositionsCount: { type: integer }
+        portfolioValue: { type: ["number", "null"] }
+        buyingPower: { type: ["number", "null"] }
+        totalRealizedPnl: { type: ["number", "null"] }
+        winRate: { type: ["number", "null"] }
+        summary: { type: string }
+
+    WorkspaceComplianceOverview:
+      type: object
+      required: [complianceSummary, policyViolations, generatedAt]
+      properties:
+        complianceSummary:
+          $ref: "#/components/schemas/ComplianceSummary"
+        policyViolations:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        generatedAt: { type: string }
+
+    WorkspaceWatchlistsOverview:
+      type: object
+      required: [watchlists, watchlistHealth, crossEngineSummary, dashboardSummary, generatedAt]
+      properties:
+        watchlists:
+          type: array
+          items: { $ref: "#/components/schemas/InvestingWatchlist" }
+        watchlistHealth:
+          type: array
+          items: { $ref: "#/components/schemas/WatchlistHealthEntry" }
+        crossEngineSummary:
+          $ref: "#/components/schemas/WatchlistsCrossEngineSummary"
+        dashboardSummary:
+          $ref: "#/components/schemas/WatchlistsDashboardSummary"
+        generatedAt: { type: string }
+
+    WorkspaceOutstandingIssue:
+      type: object
+      required: [source, code, label, detail, linkPath]
+      properties:
+        source:
+          type: string
+          enum: [decision-support, watchlists, compliance]
+        code: { type: string }
+        label: { type: string }
+        detail: { type: string }
+        linkPath: { type: string }
+
+    PortfolioWorkspaceDashboard:
+      type: object
+      required:
+        [
+          executiveHome,
+          portfolioSnapshot,
+          holdingsOverview,
+          tradingOverview,
+          optionsOverview,
+          riskOverview,
+          performanceOverview,
+          complianceOverview,
+          watchlistsOverview,
+          recentReports,
+          activeWorkflows,
+          outstandingIssues,
+          generatedAt,
+        ]
+      properties:
+        executiveHome:
+          $ref: "#/components/schemas/DecisionSupportExecutiveSummary"
+        portfolioSnapshot:
+          $ref: "#/components/schemas/DecisionSupportDashboard"
+        holdingsOverview:
+          $ref: "#/components/schemas/WorkspaceHoldingsOverview"
+        tradingOverview:
+          $ref: "#/components/schemas/WorkspaceTradingOverview"
+        optionsOverview:
+          $ref: "#/components/schemas/WorkspaceOptionsOverview"
+        riskOverview:
+          $ref: "#/components/schemas/RiskExposureDashboard"
+        performanceOverview:
+          $ref: "#/components/schemas/PerformanceDashboard"
+        complianceOverview:
+          $ref: "#/components/schemas/WorkspaceComplianceOverview"
+        watchlistsOverview:
+          $ref: "#/components/schemas/WorkspaceWatchlistsOverview"
+        recentReports:
+          $ref: "#/components/schemas/ExecutiveReportingSummary"
+        activeWorkflows:
+          type: array
+          items: { $ref: "#/components/schemas/WorkflowInstance" }
+        outstandingIssues:
+          type: array
+          items: { $ref: "#/components/schemas/WorkspaceOutstandingIssue" }
+        generatedAt: { type: string }
+
+    # ─── Workflow Center ─────────────────────────────────────────────────────
+
+    WorkflowStepDefinition:
+      type: object
+      required: [key, label, detail, linkPath]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        detail: { type: string }
+        linkPath: { type: string }
+
+    WorkflowDefinition:
+      type: object
+      required: [key, title, description, cadence, steps]
+      properties:
+        key: { type: string }
+        title: { type: string }
+        description: { type: string }
+        cadence:
+          type: string
+          enum: [ad_hoc, daily, weekly, monthly, quarterly]
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/WorkflowStepDefinition" }
+
+    WorkflowInstance:
+      type: object
+      required: [id, workflowKey, title, status, completedStepKeys, totalSteps, startedAt, completedAt, updatedAt]
+      properties:
+        id: { type: integer }
+        workflowKey: { type: string }
+        title: { type: string }
+        status:
+          type: string
+          enum: [active, completed, abandoned]
+        completedStepKeys:
+          type: array
+          items: { type: string }
+        totalSteps: { type: integer }
+        startedAt: { type: string }
+        completedAt: { type: ["string", "null"] }
+        updatedAt: { type: string }
+
+    UpdateWorkflowInstanceInput:
+      type: object
+      properties:
+        stepKey: { type: string }
+        completed: { type: boolean }
+        status:
+          type: string
+          enum: [active, abandoned]
+
+    # ─── Workspace: Pinned Resources, Recently Viewed, Quick Actions ────────
+
+    PinnedResource:
+      type: object
+      required: [id, resourceType, resourceKey, label, linkPath, sortOrder, createdAt]
+      properties:
+        id: { type: integer }
+        resourceType: { type: string }
+        resourceKey: { type: string }
+        label: { type: string }
+        linkPath: { type: string }
+        sortOrder: { type: integer }
+        createdAt: { type: string }
+
+    PinResourceInput:
+      type: object
+      required: [resourceType, resourceKey, label, linkPath]
+      properties:
+        resourceType: { type: string }
+        resourceKey: { type: string }
+        label: { type: string }
+        linkPath: { type: string }
+
+    ReorderWorkspaceItemsInput:
+      type: object
+      required: [orderedIds]
+      properties:
+        orderedIds:
+          type: array
+          items: { type: integer }
+
+    RecentViewEntry:
+      type: object
+      required: [id, resourceType, resourceKey, label, linkPath, viewedAt]
+      properties:
+        id: { type: integer }
+        resourceType: { type: string }
+        resourceKey: { type: string }
+        label: { type: string }
+        linkPath: { type: string }
+        viewedAt: { type: string }
+
+    RecordRecentViewInput:
+      type: object
+      required: [resourceType, resourceKey, label, linkPath]
+      properties:
+        resourceType: { type: string }
+        resourceKey: { type: string }
+        label: { type: string }
+        linkPath: { type: string }
+
+    QuickAction:
+      type: object
+      required: [key, label, linkPath]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        linkPath: { type: string }
+
+    # ─── Workspace AI Coach & Learning ───────────────────────────────────────
+
+    WorkspaceCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum: [portfolio_review_workflows, institutional_operating_processes, review_cycles, governance, reporting]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    WorkspaceLearningLink:
+      type: object
+      required: [pathKey, topicKey, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    WorkspaceTopicLearning:
+      type: object
+      required: [topic, links]
+      properties:
+        topic:
+          type: string
+          enum: [portfolio_workflows, institutional_review_process, governance, monitoring, performance_review, risk_review]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceLearningLink"

@@ -40,4 +40,6 @@ export const SaveInstitutionalReportInputReportType = {
   'policy-monitoring-report': 'policy-monitoring-report',
   'watchlist-summary-report': 'watchlist-summary-report',
   'opportunity-dashboard-report': 'opportunity-dashboard-report',
+  'portfolio-workspace-summary': 'portfolio-workspace-summary',
+  'institutional-review-report': 'institutional-review-report',
 } as const;

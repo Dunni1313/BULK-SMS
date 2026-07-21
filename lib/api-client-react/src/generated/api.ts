@@ -88,6 +88,7 @@ import type {
   DeleteInvestingWatchlist200,
   DeleteReportResult,
   DeleteResult,
+  DeleteWorkflowInstance200,
   EarningsIntelligenceAnalysis,
   EarningsPlay,
   EquityPoint,
@@ -149,6 +150,7 @@ import type {
   ListOptionsIncomePositionsParams,
   ListReconciliationReports200,
   ListTradesParams,
+  ListWorkflowInstancesParams,
   LiveMarketValidationReport,
   ManagementQualityAnalysis,
   MarketBriefingResponse,
@@ -192,6 +194,8 @@ import type {
   PerformanceAttributionTopicLearning,
   PerformanceBreakdownBucket,
   PerformanceDashboard,
+  PinResourceInput,
+  PinnedResource,
   PlatformNotification,
   PlatformNotificationUpdate,
   PortfolioAnalystResult,
@@ -204,10 +208,12 @@ import type {
   PortfolioStressTestInput,
   PortfolioStressTestResult,
   PortfolioSummary,
+  PortfolioWorkspaceDashboard,
   Position,
   PositionSizingInput,
   PositionSizingResult,
   ProposeAllocationInput,
+  QuickAction,
   QuizGradeResult,
   QuizInput,
   QuizProgress,
@@ -216,14 +222,18 @@ import type {
   RebalancingDashboard,
   RebalancingProposedAllocationComparison,
   RebalancingTopicLearning,
+  RecentViewEntry,
   ReconciliationReportDetail,
   ReconciliationReportSummary,
   ReconciliationResult,
   RecordLearningItemCompleted200,
   RecordLearningItemViewed200,
+  RecordRecentViewInput,
   RemoveInvestingWatchlistItem200,
   ReorderInvestingWatchlistItems200,
   ReorderInvestingWatchlists200,
+  ReorderPinnedResources200,
+  ReorderWorkspaceItemsInput,
   ReportTypeMeta,
   ResearchNoteCreate,
   ResearchNoteItem,
@@ -292,9 +302,11 @@ import type {
   TradingWorkspaceNoteInput,
   TradingWorkspaceNoteUpdate,
   UniverseSymbol,
+  UnpinResource200,
   UpdateCompliancePolicyInput,
   UpdateInvestingWatchlistInput,
   UpdateInvestingWatchlistItemInput,
+  UpdateWorkflowInstanceInput,
   ValueHistoryRow,
   ValueLessonsResponse,
   ValueMacroContext,
@@ -310,7 +322,11 @@ import type {
   WatchlistReorderInput,
   WatchlistsCoachExplanation,
   WatchlistsDashboard,
-  WatchlistsTopicLearning
+  WatchlistsTopicLearning,
+  WorkflowDefinition,
+  WorkflowInstance,
+  WorkspaceCoachExplanation,
+  WorkspaceTopicLearning
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -25455,6 +25471,1432 @@ export function useGetOpportunityDashboardReport<TData = Awaited<ReturnType<type
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetOpportunityDashboardReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioWorkspaceDashboardUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/dashboard`
+}
+
+/**
+ * @summary The full Institutional Portfolio Workspace dashboard — Executive Home, Portfolio Snapshot (reused wholesale from the Decision Support Engine), Holdings/Trading/Options/Risk/Performance/Compliance/Watchlists Overview, Recent Reports, Active Workflows, and a merged Outstanding Issues list. Orchestration only — no trade recommendations, no AI predictions.
+ */
+export const getPortfolioWorkspaceDashboard = async ( options?: RequestInit): Promise<PortfolioWorkspaceDashboard> => {
+
+  return customFetch<PortfolioWorkspaceDashboard>(getGetPortfolioWorkspaceDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioWorkspaceDashboardQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/dashboard`
+    ] as const;
+    }
+
+
+export const getGetPortfolioWorkspaceDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioWorkspaceDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>> = ({ signal }) => getPortfolioWorkspaceDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioWorkspaceDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>>
+export type GetPortfolioWorkspaceDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The full Institutional Portfolio Workspace dashboard — Executive Home, Portfolio Snapshot (reused wholesale from the Decision Support Engine), Holdings/Trading/Options/Risk/Performance/Compliance/Watchlists Overview, Recent Reports, Active Workflows, and a merged Outstanding Issues list. Orchestration only — no trade recommendations, no AI predictions.
+ */
+
+export function useGetPortfolioWorkspaceDashboard<TData = Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioWorkspaceDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWorkflowDefinitionsUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/workflows`
+}
+
+/**
+ * @summary The static Workflow Center catalog (Morning/Weekly/Monthly/Quarterly/Portfolio/Risk/Compliance/Performance/Scenario Review) — every step is a deep link into an already-shipped page. Never automation.
+ */
+export const listWorkflowDefinitions = async ( options?: RequestInit): Promise<WorkflowDefinition[]> => {
+
+  return customFetch<WorkflowDefinition[]>(getListWorkflowDefinitionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkflowDefinitionsQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/workflows`
+    ] as const;
+    }
+
+
+export const getListWorkflowDefinitionsQueryOptions = <TData = Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkflowDefinitionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkflowDefinitions>>> = ({ signal }) => listWorkflowDefinitions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkflowDefinitionsQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkflowDefinitions>>>
+export type ListWorkflowDefinitionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The static Workflow Center catalog (Morning/Weekly/Monthly/Quarterly/Portfolio/Risk/Compliance/Performance/Scenario Review) — every step is a deep link into an already-shipped page. Never automation.
+ */
+
+export function useListWorkflowDefinitions<TData = Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkflowDefinitionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWorkflowInstancesUrl = (params?: ListWorkflowInstancesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/portfolio-workspace/workflows/instances?${stringifiedParams}` : `/api/portfolio-workspace/workflows/instances`
+}
+
+/**
+ * @summary The calling user's own started workflow instances, optionally filtered by status.
+ */
+export const listWorkflowInstances = async (params?: ListWorkflowInstancesParams, options?: RequestInit): Promise<WorkflowInstance[]> => {
+
+  return customFetch<WorkflowInstance[]>(getListWorkflowInstancesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkflowInstancesQueryKey = (params?: ListWorkflowInstancesParams,) => {
+    return [
+    `/api/portfolio-workspace/workflows/instances`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListWorkflowInstancesQueryOptions = <TData = Awaited<ReturnType<typeof listWorkflowInstances>>, TError = ErrorType<unknown>>(params?: ListWorkflowInstancesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkflowInstances>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkflowInstancesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkflowInstances>>> = ({ signal }) => listWorkflowInstances(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkflowInstances>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkflowInstancesQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkflowInstances>>>
+export type ListWorkflowInstancesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own started workflow instances, optionally filtered by status.
+ */
+
+export function useListWorkflowInstances<TData = Awaited<ReturnType<typeof listWorkflowInstances>>, TError = ErrorType<unknown>>(
+ params?: ListWorkflowInstancesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkflowInstances>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkflowInstancesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getStartWorkflowInstanceUrl = (key: string,) => {
+
+
+
+
+  return `/api/portfolio-workspace/workflows/${key}/start`
+}
+
+/**
+ * @summary Start a new instance of a catalog workflow.
+ */
+export const startWorkflowInstance = async (key: string, options?: RequestInit): Promise<WorkflowInstance> => {
+
+  return customFetch<WorkflowInstance>(getStartWorkflowInstanceUrl(key),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getStartWorkflowInstanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startWorkflowInstance>>, TError,{key: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startWorkflowInstance>>, TError,{key: string}, TContext> => {
+
+const mutationKey = ['startWorkflowInstance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startWorkflowInstance>>, {key: string}> = (props) => {
+          const {key} = props ?? {};
+
+          return  startWorkflowInstance(key,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartWorkflowInstanceMutationResult = NonNullable<Awaited<ReturnType<typeof startWorkflowInstance>>>
+
+    export type StartWorkflowInstanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Start a new instance of a catalog workflow.
+ */
+export const useStartWorkflowInstance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startWorkflowInstance>>, TError,{key: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startWorkflowInstance>>,
+        TError,
+        {key: string},
+        TContext
+      > => {
+      return useMutation(getStartWorkflowInstanceMutationOptions(options));
+    }
+
+export const getUpdateWorkflowInstanceUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-workspace/workflows/instances/${id}`
+}
+
+/**
+ * @summary Toggle one step's completion, or set the instance's own status (active/abandoned). A step-completion update never changes anything about the user's portfolio, positions, or trades — it only records that the user reviewed that step.
+ */
+export const updateWorkflowInstance = async (id: number,
+    updateWorkflowInstanceInput: UpdateWorkflowInstanceInput, options?: RequestInit): Promise<WorkflowInstance> => {
+
+  return customFetch<WorkflowInstance>(getUpdateWorkflowInstanceUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateWorkflowInstanceInput,)
+  }
+);}
+
+
+
+
+export const getUpdateWorkflowInstanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkflowInstance>>, TError,{id: number;data: BodyType<UpdateWorkflowInstanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateWorkflowInstance>>, TError,{id: number;data: BodyType<UpdateWorkflowInstanceInput>}, TContext> => {
+
+const mutationKey = ['updateWorkflowInstance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateWorkflowInstance>>, {id: number;data: BodyType<UpdateWorkflowInstanceInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateWorkflowInstance(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateWorkflowInstanceMutationResult = NonNullable<Awaited<ReturnType<typeof updateWorkflowInstance>>>
+    export type UpdateWorkflowInstanceMutationBody = BodyType<UpdateWorkflowInstanceInput>
+    export type UpdateWorkflowInstanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Toggle one step's completion, or set the instance's own status (active/abandoned). A step-completion update never changes anything about the user's portfolio, positions, or trades — it only records that the user reviewed that step.
+ */
+export const useUpdateWorkflowInstance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkflowInstance>>, TError,{id: number;data: BodyType<UpdateWorkflowInstanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateWorkflowInstance>>,
+        TError,
+        {id: number;data: BodyType<UpdateWorkflowInstanceInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateWorkflowInstanceMutationOptions(options));
+    }
+
+export const getDeleteWorkflowInstanceUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-workspace/workflows/instances/${id}`
+}
+
+/**
+ * @summary Delete a workflow instance (its own tracked progress only — never touches the static catalog definition).
+ */
+export const deleteWorkflowInstance = async (id: number, options?: RequestInit): Promise<DeleteWorkflowInstance200> => {
+
+  return customFetch<DeleteWorkflowInstance200>(getDeleteWorkflowInstanceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteWorkflowInstanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkflowInstance>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteWorkflowInstance>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteWorkflowInstance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteWorkflowInstance>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteWorkflowInstance(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteWorkflowInstanceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteWorkflowInstance>>>
+
+    export type DeleteWorkflowInstanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a workflow instance (its own tracked progress only — never touches the static catalog definition).
+ */
+export const useDeleteWorkflowInstance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkflowInstance>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteWorkflowInstance>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteWorkflowInstanceMutationOptions(options));
+    }
+
+export const getListPinnedResourcesUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/pins`
+}
+
+/**
+ * @summary The calling user's own pinned resources (Favorites) — dashboards, reports, watchlists, strategies, learning topics, or a plain page.
+ */
+export const listPinnedResources = async ( options?: RequestInit): Promise<PinnedResource[]> => {
+
+  return customFetch<PinnedResource[]>(getListPinnedResourcesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPinnedResourcesQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/pins`
+    ] as const;
+    }
+
+
+export const getListPinnedResourcesQueryOptions = <TData = Awaited<ReturnType<typeof listPinnedResources>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPinnedResources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPinnedResourcesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPinnedResources>>> = ({ signal }) => listPinnedResources({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPinnedResources>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPinnedResourcesQueryResult = NonNullable<Awaited<ReturnType<typeof listPinnedResources>>>
+export type ListPinnedResourcesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own pinned resources (Favorites) — dashboards, reports, watchlists, strategies, learning topics, or a plain page.
+ */
+
+export function useListPinnedResources<TData = Awaited<ReturnType<typeof listPinnedResources>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPinnedResources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPinnedResourcesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getPinResourceUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/pins`
+}
+
+/**
+ * @summary Pin a resource. Never auto-pinned — every pin originates from this explicit call.
+ */
+export const pinResource = async (pinResourceInput: PinResourceInput, options?: RequestInit): Promise<PinnedResource> => {
+
+  return customFetch<PinnedResource>(getPinResourceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      pinResourceInput,)
+  }
+);}
+
+
+
+
+export const getPinResourceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pinResource>>, TError,{data: BodyType<PinResourceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pinResource>>, TError,{data: BodyType<PinResourceInput>}, TContext> => {
+
+const mutationKey = ['pinResource'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pinResource>>, {data: BodyType<PinResourceInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  pinResource(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PinResourceMutationResult = NonNullable<Awaited<ReturnType<typeof pinResource>>>
+    export type PinResourceMutationBody = BodyType<PinResourceInput>
+    export type PinResourceMutationError = ErrorType<void>
+
+    /**
+ * @summary Pin a resource. Never auto-pinned — every pin originates from this explicit call.
+ */
+export const usePinResource = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pinResource>>, TError,{data: BodyType<PinResourceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pinResource>>,
+        TError,
+        {data: BodyType<PinResourceInput>},
+        TContext
+      > => {
+      return useMutation(getPinResourceMutationOptions(options));
+    }
+
+export const getUnpinResourceUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-workspace/pins/${id}`
+}
+
+/**
+ * @summary Unpin a resource.
+ */
+export const unpinResource = async (id: number, options?: RequestInit): Promise<UnpinResource200> => {
+
+  return customFetch<UnpinResource200>(getUnpinResourceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getUnpinResourceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpinResource>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unpinResource>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['unpinResource'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unpinResource>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  unpinResource(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnpinResourceMutationResult = NonNullable<Awaited<ReturnType<typeof unpinResource>>>
+
+    export type UnpinResourceMutationError = ErrorType<void>
+
+    /**
+ * @summary Unpin a resource.
+ */
+export const useUnpinResource = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpinResource>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof unpinResource>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getUnpinResourceMutationOptions(options));
+    }
+
+export const getReorderPinnedResourcesUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/pins/reorder`
+}
+
+/**
+ * @summary Manually reorder the calling user's own pinned resources.
+ */
+export const reorderPinnedResources = async (reorderWorkspaceItemsInput: ReorderWorkspaceItemsInput, options?: RequestInit): Promise<ReorderPinnedResources200> => {
+
+  return customFetch<ReorderPinnedResources200>(getReorderPinnedResourcesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      reorderWorkspaceItemsInput,)
+  }
+);}
+
+
+
+
+export const getReorderPinnedResourcesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderPinnedResources>>, TError,{data: BodyType<ReorderWorkspaceItemsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderPinnedResources>>, TError,{data: BodyType<ReorderWorkspaceItemsInput>}, TContext> => {
+
+const mutationKey = ['reorderPinnedResources'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderPinnedResources>>, {data: BodyType<ReorderWorkspaceItemsInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderPinnedResources(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderPinnedResourcesMutationResult = NonNullable<Awaited<ReturnType<typeof reorderPinnedResources>>>
+    export type ReorderPinnedResourcesMutationBody = BodyType<ReorderWorkspaceItemsInput>
+    export type ReorderPinnedResourcesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually reorder the calling user's own pinned resources.
+ */
+export const useReorderPinnedResources = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderPinnedResources>>, TError,{data: BodyType<ReorderWorkspaceItemsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderPinnedResources>>,
+        TError,
+        {data: BodyType<ReorderWorkspaceItemsInput>},
+        TContext
+      > => {
+      return useMutation(getReorderPinnedResourcesMutationOptions(options));
+    }
+
+export const getListRecentViewsUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/recent-views`
+}
+
+/**
+ * @summary The calling user's own most-recently-viewed resources, opened from within the Portfolio Workspace itself — never a global, every-page view tracker.
+ */
+export const listRecentViews = async ( options?: RequestInit): Promise<RecentViewEntry[]> => {
+
+  return customFetch<RecentViewEntry[]>(getListRecentViewsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRecentViewsQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/recent-views`
+    ] as const;
+    }
+
+
+export const getListRecentViewsQueryOptions = <TData = Awaited<ReturnType<typeof listRecentViews>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRecentViews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRecentViewsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRecentViews>>> = ({ signal }) => listRecentViews({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRecentViews>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRecentViewsQueryResult = NonNullable<Awaited<ReturnType<typeof listRecentViews>>>
+export type ListRecentViewsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own most-recently-viewed resources, opened from within the Portfolio Workspace itself — never a global, every-page view tracker.
+ */
+
+export function useListRecentViews<TData = Awaited<ReturnType<typeof listRecentViews>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRecentViews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRecentViewsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRecordRecentViewUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/recent-views`
+}
+
+/**
+ * @summary Record that the calling user just opened a resource from the Portfolio Workspace.
+ */
+export const recordRecentView = async (recordRecentViewInput: RecordRecentViewInput, options?: RequestInit): Promise<RecentViewEntry> => {
+
+  return customFetch<RecentViewEntry>(getRecordRecentViewUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      recordRecentViewInput,)
+  }
+);}
+
+
+
+
+export const getRecordRecentViewMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordRecentView>>, TError,{data: BodyType<RecordRecentViewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordRecentView>>, TError,{data: BodyType<RecordRecentViewInput>}, TContext> => {
+
+const mutationKey = ['recordRecentView'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordRecentView>>, {data: BodyType<RecordRecentViewInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordRecentView(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordRecentViewMutationResult = NonNullable<Awaited<ReturnType<typeof recordRecentView>>>
+    export type RecordRecentViewMutationBody = BodyType<RecordRecentViewInput>
+    export type RecordRecentViewMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record that the calling user just opened a resource from the Portfolio Workspace.
+ */
+export const useRecordRecentView = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordRecentView>>, TError,{data: BodyType<RecordRecentViewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordRecentView>>,
+        TError,
+        {data: BodyType<RecordRecentViewInput>},
+        TContext
+      > => {
+      return useMutation(getRecordRecentViewMutationOptions(options));
+    }
+
+export const getListQuickActionsUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/quick-actions`
+}
+
+/**
+ * @summary A fixed, curated list of navigation shortcuts into already-shipped surfaces — never persisted, never user-configurable.
+ */
+export const listQuickActions = async ( options?: RequestInit): Promise<QuickAction[]> => {
+
+  return customFetch<QuickAction[]>(getListQuickActionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuickActionsQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/quick-actions`
+    ] as const;
+    }
+
+
+export const getListQuickActionsQueryOptions = <TData = Awaited<ReturnType<typeof listQuickActions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuickActions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuickActionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuickActions>>> = ({ signal }) => listQuickActions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuickActions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListQuickActionsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuickActions>>>
+export type ListQuickActionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary A fixed, curated list of navigation shortcuts into already-shipped surfaces — never persisted, never user-configurable.
+ */
+
+export function useListQuickActions<TData = Awaited<ReturnType<typeof listQuickActions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuickActions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListQuickActionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWorkspaceCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio review workflows, institutional operating processes, review cycles, governance, reporting). Never a trade recommendation.
+ */
+export const listWorkspaceCoachTopics = async ( options?: RequestInit): Promise<WorkspaceCoachExplanation[]> => {
+
+  return customFetch<WorkspaceCoachExplanation[]>(getListWorkspaceCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkspaceCoachTopicsQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/coach`
+    ] as const;
+    }
+
+
+export const getListWorkspaceCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkspaceCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>> = ({ signal }) => listWorkspaceCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkspaceCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>>
+export type ListWorkspaceCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio review workflows, institutional operating processes, review cycles, governance, reporting). Never a trade recommendation.
+ */
+
+export function useListWorkspaceCoachTopics<TData = Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkspaceCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWorkspaceCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/portfolio-workspace/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getWorkspaceCoachTopic = async (topic: string, options?: RequestInit): Promise<WorkspaceCoachExplanation> => {
+
+  return customFetch<WorkspaceCoachExplanation>(getGetWorkspaceCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWorkspaceCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/portfolio-workspace/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetWorkspaceCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorkspaceCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>> = ({ signal }) => getWorkspaceCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWorkspaceCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>>
+export type GetWorkspaceCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetWorkspaceCoachTopic<TData = Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWorkspaceCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWorkspaceLearningUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/learning`
+}
+
+/**
+ * @summary Every Portfolio Workspace topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listWorkspaceLearning = async ( options?: RequestInit): Promise<WorkspaceTopicLearning[]> => {
+
+  return customFetch<WorkspaceTopicLearning[]>(getListWorkspaceLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkspaceLearningQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/learning`
+    ] as const;
+    }
+
+
+export const getListWorkspaceLearningQueryOptions = <TData = Awaited<ReturnType<typeof listWorkspaceLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkspaceLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkspaceLearning>>> = ({ signal }) => listWorkspaceLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkspaceLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkspaceLearning>>>
+export type ListWorkspaceLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Portfolio Workspace topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListWorkspaceLearning<TData = Awaited<ReturnType<typeof listWorkspaceLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkspaceLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWorkspaceLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/portfolio-workspace/learning/${topic}`
+}
+
+/**
+ * @summary One Portfolio Workspace topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getWorkspaceLearning = async (topic: string, options?: RequestInit): Promise<WorkspaceTopicLearning> => {
+
+  return customFetch<WorkspaceTopicLearning>(getGetWorkspaceLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWorkspaceLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/portfolio-workspace/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetWorkspaceLearningQueryOptions = <TData = Awaited<ReturnType<typeof getWorkspaceLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorkspaceLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkspaceLearning>>> = ({ signal }) => getWorkspaceLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWorkspaceLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getWorkspaceLearning>>>
+export type GetWorkspaceLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Portfolio Workspace topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetWorkspaceLearning<TData = Awaited<ReturnType<typeof getWorkspaceLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWorkspaceLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioWorkspaceSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/portfolio-workspace-summary`
+}
+
+/**
+ * @summary Portfolio Workspace Summary Report (Phase 44) — the concise headline reformat of the full Portfolio Workspace dashboard. Orchestration only — no trade recommendations.
+ */
+export const getPortfolioWorkspaceSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioWorkspaceSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioWorkspaceSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/portfolio-workspace-summary`
+    ] as const;
+    }
+
+
+export const getGetPortfolioWorkspaceSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioWorkspaceSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>> = ({ signal }) => getPortfolioWorkspaceSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioWorkspaceSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>>
+export type GetPortfolioWorkspaceSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio Workspace Summary Report (Phase 44) — the concise headline reformat of the full Portfolio Workspace dashboard. Orchestration only — no trade recommendations.
+ */
+
+export function useGetPortfolioWorkspaceSummaryReport<TData = Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioWorkspaceSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInstitutionalReviewReportUrl = () => {
+
+
+
+
+  return `/api/reporting/institutional-review-report`
+}
+
+/**
+ * @summary Institutional Review Report (Phase 44) — a deeper review record, the report a portfolio manager would generate and archive at the end of a completed Workflow Center review cycle. Orchestration only — no trade recommendations.
+ */
+export const getInstitutionalReviewReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetInstitutionalReviewReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalReviewReportQueryKey = () => {
+    return [
+    `/api/reporting/institutional-review-report`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalReviewReportQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalReviewReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalReviewReport>>> = ({ signal }) => getInstitutionalReviewReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalReviewReportQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalReviewReport>>>
+export type GetInstitutionalReviewReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Institutional Review Report (Phase 44) — a deeper review record, the report a portfolio manager would generate and archive at the end of a completed Workflow Center review cycle. Orchestration only — no trade recommendations.
+ */
+
+export function useGetInstitutionalReviewReport<TData = Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalReviewReportQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

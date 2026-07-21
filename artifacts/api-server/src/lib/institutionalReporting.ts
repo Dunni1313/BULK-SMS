@@ -54,6 +54,7 @@ import type { RebalancingDashboard, ProposedAllocationComparison } from "./rebal
 import { REBALANCE_DRIFT_THRESHOLD_PCT } from "./portfolioConstruction.js";
 import type { MonitoringComplianceDashboard, PolicyEvaluation } from "./complianceEngine.js";
 import type { WatchlistsDashboard, SymbolAnalytics } from "./watchlistsEngine.js";
+import type { PortfolioWorkspaceDashboard } from "./portfolioWorkspace.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -85,7 +86,9 @@ export type InstitutionalReportType =
   | "compliance-report"
   | "policy-monitoring-report"
   | "watchlist-summary-report"
-  | "opportunity-dashboard-report";
+  | "opportunity-dashboard-report"
+  | "portfolio-workspace-summary"
+  | "institutional-review-report";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -118,6 +121,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "policy-monitoring-report",
   "watchlist-summary-report",
   "opportunity-dashboard-report",
+  "portfolio-workspace-summary",
+  "institutional-review-report",
 ];
 
 export interface ReportTypeMeta {
@@ -336,6 +341,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "opportunity-dashboard-report",
     label: "Opportunity Dashboard Report",
     description: "The calling user's own full per-symbol Opportunity Overview (Phase 43) — every distinct watched symbol's own allocation, performance, Greeks (where applicable), scenario impact, and compliance status, reused directly from the Risk & Exposure, Performance, Scenario, and Compliance engines. Distinct from the existing Opportunity Discovery Report, which is a universe-wide screening scan, not scoped to your own watchlists. Monitoring only — no trade recommendations, no ranked/scored opportunity signal.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "portfolio-workspace-summary",
+    label: "Portfolio Workspace Summary Report",
+    description: "The calling user's own Institutional Portfolio Workspace (Phase 44) — a concise headline reformat of Executive Home, Portfolio Snapshot, Holdings/Trading/Options Overview, and the merged Outstanding Issues list. Orchestration only — no trade recommendations, no AI predictions.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "institutional-review-report",
+    label: "Institutional Review Report",
+    description: "The calling user's own deeper review record (Phase 44) — the report a portfolio manager would generate and archive at the end of a completed Workflow Center review cycle: Risk/Compliance/Watchlists Overview detail, Active Workflows, and every merged Outstanding Issue. Orchestration only — no trade recommendations, no AI predictions.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -2346,6 +2365,126 @@ export function buildOpportunityDashboardReport(dashboard: WatchlistsDashboard):
     reportType: "opportunity-dashboard-report",
     title: "Opportunity Dashboard Report",
     subtitle: opportunityOverview.length ? `${opportunityOverview.length} distinct watched symbol(s), ${heldCount} currently held somewhere.` : "No watched symbols yet.",
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 32. Portfolio Workspace Summary Report (Phase 44) — reuses the same
+// PortfolioWorkspaceDashboard's own already-computed fields directly. Zero
+// new scoring/aggregation math in this file — a concise headline reformat
+// of Executive Home, Portfolio Snapshot, Holdings/Trading/Options
+// Overview, and the merged Outstanding Issues list. Orchestration only —
+// no trade recommendations, no AI predictions. ─────────────────────────
+
+export function buildPortfolioWorkspaceSummaryReport(dashboard: PortfolioWorkspaceDashboard): InstitutionalReport {
+  const { executiveHome, holdingsOverview, tradingOverview, optionsOverview, outstandingIssues, activeWorkflows, recentReports } = dashboard;
+
+  const sections: ReportSection[] = [
+    section("workspace-executive-home", "Executive Home", executiveHome.summary, [
+      `Overall portfolio health: ${executiveHome.overallHealthScore ?? "n/a"}/100.`,
+      `${executiveHome.alertCount} executive alert(s), ${executiveHome.outstandingIssueCount} outstanding issue(s) on record.`,
+    ]),
+    section(
+      "workspace-holdings-overview",
+      "Holdings Overview",
+      holdingsOverview.summary,
+      holdingsOverview.topAllocations.map((a) => `${a.symbol}: $${a.marketValue?.toLocaleString() ?? "n/a"} (${a.weightPct ?? "n/a"}%)`),
+    ),
+    section("workspace-trading-overview", "Trading Overview", tradingOverview.summary, [
+      `Account value: ${tradingOverview.accountValue != null ? `$${tradingOverview.accountValue.toLocaleString()}` : "n/a"}.`,
+      `Stop/target discipline: ${tradingOverview.stopTargetDisciplinePct ?? "n/a"}%.`,
+    ]),
+    section("workspace-options-overview", "Options Overview", optionsOverview.summary, [
+      `Buying power: ${optionsOverview.buyingPower != null ? `$${optionsOverview.buyingPower.toLocaleString()}` : "n/a"}.`,
+    ]),
+    section(
+      "workspace-active-workflows",
+      "Active Workflows",
+      activeWorkflows.length ? `${activeWorkflows.length} workflow(s) currently in progress.` : "No workflows currently in progress.",
+      activeWorkflows.map((w) => `${w.title}: ${w.completedStepKeys.length}/${w.totalSteps} step(s) completed.`),
+    ),
+    section(
+      "workspace-recent-reports",
+      "Recent Reports",
+      `${recentReports.totalReports} report(s) on record across ${recentReports.distinctReportTypesUsed} categor${recentReports.distinctReportTypesUsed === 1 ? "y" : "ies"}.`,
+      recentReports.recentReports.map((r) => `${r.title} (${r.reportType})`),
+    ),
+    section(
+      "workspace-outstanding-issues",
+      "Outstanding Issues",
+      outstandingIssues.length ? `${outstandingIssues.length} outstanding issue(s) across the platform.` : "No outstanding issues.",
+      outstandingIssues.map((i) => `[${i.source}] ${i.label}: ${i.detail}`),
+    ),
+  ];
+
+  return {
+    reportType: "portfolio-workspace-summary",
+    title: "Portfolio Workspace Summary Report",
+    subtitle: executiveHome.summary,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 33. Institutional Review Report (Phase 44) — the deeper review
+// record: Risk/Compliance/Watchlists Overview detail, Active Workflows,
+// and every merged Outstanding Issue. Reuses the same
+// PortfolioWorkspaceDashboard's own already-computed fields directly. Zero
+// new scoring/aggregation math in this file. Orchestration only — no
+// trade recommendations, no AI predictions. ─────────────────────────────
+
+export function buildInstitutionalReviewReport(dashboard: PortfolioWorkspaceDashboard): InstitutionalReport {
+  const { portfolioSnapshot, riskOverview, complianceOverview, watchlistsOverview, activeWorkflows, outstandingIssues } = dashboard;
+
+  const sections: ReportSection[] = [
+    section("review-portfolio-health", "Portfolio Health Overview", portfolioSnapshot.executiveSummary.summary, [
+      `Overall score: ${portfolioSnapshot.portfolioHealthOverview.overallScore ?? "n/a"}/100.`,
+    ]),
+    section(
+      "review-risk-overview",
+      "Risk Overview",
+      `Investing risk score: ${riskOverview.investing.risk.overall.score ?? "n/a"}/100. Trading risk score: ${riskOverview.trading.risk.overall.score ?? "n/a"}/100.`,
+      [`Combined capital allocation across ${riskOverview.combined.capitalAllocation.length} engine(s) on record.`],
+    ),
+    section(
+      "review-compliance-overview",
+      "Compliance Overview",
+      `${complianceOverview.complianceSummary.compliantCount} compliant, ${complianceOverview.complianceSummary.breachCount} breach(es).`,
+      complianceOverview.policyViolations.map((p) => `${p.label}: ${p.detail}`),
+    ),
+    section(
+      "review-watchlists-overview",
+      "Watchlists Overview",
+      watchlistsOverview.dashboardSummary.performanceSummary.detail,
+      watchlistsOverview.watchlistHealth.map((h) => `${h.name} [${h.kind}]: ${h.heldCount}/${h.itemCount} held, ${h.breachCount} breach(es).`),
+    ),
+    section(
+      "review-active-workflows",
+      "Active Workflows",
+      activeWorkflows.length ? `${activeWorkflows.length} review workflow(s) currently in progress.` : "No review workflow currently in progress.",
+      activeWorkflows.map((w) => `${w.title} (started ${w.startedAt}): ${w.completedStepKeys.length}/${w.totalSteps} step(s) completed.`),
+    ),
+    section(
+      "review-outstanding-issues",
+      "Outstanding Issues",
+      outstandingIssues.length ? `${outstandingIssues.length} outstanding issue(s) identified during this review.` : "No outstanding issues identified during this review.",
+      outstandingIssues.map((i) => `[${i.source}] ${i.label}: ${i.detail}`),
+    ),
+  ];
+
+  return {
+    reportType: "institutional-review-report",
+    title: "Institutional Review Report",
+    subtitle: outstandingIssues.length ? `${outstandingIssues.length} outstanding issue(s) identified during this review.` : "No outstanding issues identified during this review.",
     symbol: null,
     portfolioId: null,
     generatedAt: dashboard.generatedAt,

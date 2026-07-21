@@ -117,9 +117,9 @@ function decisionFor(report: ValueResearchReport): InstitutionalDecisionAnalysis
 }
 
 describe("institutionalReporting.ts — REPORT_TYPE_META", () => {
-  it("has exactly 18 entries matching REPORT_TYPES (Phase 37 adds risk-exposure-summary and portfolio-concentration-report)", () => {
-    expect(REPORT_TYPE_META).toHaveLength(18);
-    expect(REPORT_TYPES).toHaveLength(18);
+  it("has exactly 32 entries matching REPORT_TYPES (mechanically updated as each later phase — through Phase 44's portfolio-workspace-summary/institutional-review-report — added its own new report types; this count had drifted out of sync with REPORT_TYPES since Phase 38 and is corrected here, a pre-existing staleness discovered while extending this file for Phase 44, not a Phase 44 regression)", () => {
+    expect(REPORT_TYPE_META).toHaveLength(32);
+    expect(REPORT_TYPES).toHaveLength(32);
     expect(REPORT_TYPE_META.map((m) => m.reportType).sort()).toEqual([...REPORT_TYPES].sort());
   });
 

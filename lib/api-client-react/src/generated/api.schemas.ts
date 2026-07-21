@@ -8055,6 +8055,8 @@ export const ReportTypeMetaReportType = {
   'policy-monitoring-report': 'policy-monitoring-report',
   'watchlist-summary-report': 'watchlist-summary-report',
   'opportunity-dashboard-report': 'opportunity-dashboard-report',
+  'portfolio-workspace-summary': 'portfolio-workspace-summary',
+  'institutional-review-report': 'institutional-review-report',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8099,6 +8101,8 @@ export const InstitutionalReportReportType = {
   'policy-monitoring-report': 'policy-monitoring-report',
   'watchlist-summary-report': 'watchlist-summary-report',
   'opportunity-dashboard-report': 'opportunity-dashboard-report',
+  'portfolio-workspace-summary': 'portfolio-workspace-summary',
+  'institutional-review-report': 'institutional-review-report',
 } as const;
 
 export interface InstitutionalReport {
@@ -8147,6 +8151,8 @@ export const SaveInstitutionalReportInputReportType = {
   'policy-monitoring-report': 'policy-monitoring-report',
   'watchlist-summary-report': 'watchlist-summary-report',
   'opportunity-dashboard-report': 'opportunity-dashboard-report',
+  'portfolio-workspace-summary': 'portfolio-workspace-summary',
+  'institutional-review-report': 'institutional-review-report',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -10850,6 +10856,249 @@ export interface WatchlistsTopicLearning {
   links: WatchlistsLearningLink[];
 }
 
+export interface WorkspaceHoldingsAllocationHighlight {
+  symbol: string;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  weightPct: number | null;
+}
+
+export interface WorkspaceHoldingsOverview {
+  portfoliosCount: number;
+  holdingsCount: number;
+  /** @nullable */
+  totalMarketValue: number | null;
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+  /** @nullable */
+  totalUnrealizedPnlPct: number | null;
+  topAllocations: WorkspaceHoldingsAllocationHighlight[];
+  driftedHoldingsCount: number;
+  summary: string;
+}
+
+export interface WorkspaceTradingOverview {
+  openPositionsCount: number;
+  /** @nullable */
+  accountValue: number | null;
+  /** @nullable */
+  stopTargetDisciplinePct: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  /** @nullable */
+  winRate: number | null;
+  summary: string;
+}
+
+export interface WorkspaceOptionsOverview {
+  openPositionsCount: number;
+  /** @nullable */
+  portfolioValue: number | null;
+  /** @nullable */
+  buyingPower: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  /** @nullable */
+  winRate: number | null;
+  summary: string;
+}
+
+export interface WorkspaceComplianceOverview {
+  complianceSummary: ComplianceSummary;
+  policyViolations: CompliancePolicyEvaluation[];
+  generatedAt: string;
+}
+
+export interface WorkspaceWatchlistsOverview {
+  watchlists: InvestingWatchlist[];
+  watchlistHealth: WatchlistHealthEntry[];
+  crossEngineSummary: WatchlistsCrossEngineSummary;
+  dashboardSummary: WatchlistsDashboardSummary;
+  generatedAt: string;
+}
+
+export type WorkspaceOutstandingIssueSource = typeof WorkspaceOutstandingIssueSource[keyof typeof WorkspaceOutstandingIssueSource];
+
+
+export const WorkspaceOutstandingIssueSource = {
+  'decision-support': 'decision-support',
+  watchlists: 'watchlists',
+  compliance: 'compliance',
+} as const;
+
+export interface WorkspaceOutstandingIssue {
+  source: WorkspaceOutstandingIssueSource;
+  code: string;
+  label: string;
+  detail: string;
+  linkPath: string;
+}
+
+export type WorkflowInstanceStatus = typeof WorkflowInstanceStatus[keyof typeof WorkflowInstanceStatus];
+
+
+export const WorkflowInstanceStatus = {
+  active: 'active',
+  completed: 'completed',
+  abandoned: 'abandoned',
+} as const;
+
+export interface WorkflowInstance {
+  id: number;
+  workflowKey: string;
+  title: string;
+  status: WorkflowInstanceStatus;
+  completedStepKeys: string[];
+  totalSteps: number;
+  startedAt: string;
+  /** @nullable */
+  completedAt: string | null;
+  updatedAt: string;
+}
+
+export interface PortfolioWorkspaceDashboard {
+  executiveHome: DecisionSupportExecutiveSummary;
+  portfolioSnapshot: DecisionSupportDashboard;
+  holdingsOverview: WorkspaceHoldingsOverview;
+  tradingOverview: WorkspaceTradingOverview;
+  optionsOverview: WorkspaceOptionsOverview;
+  riskOverview: RiskExposureDashboard;
+  performanceOverview: PerformanceDashboard;
+  complianceOverview: WorkspaceComplianceOverview;
+  watchlistsOverview: WorkspaceWatchlistsOverview;
+  recentReports: ExecutiveReportingSummary;
+  activeWorkflows: WorkflowInstance[];
+  outstandingIssues: WorkspaceOutstandingIssue[];
+  generatedAt: string;
+}
+
+export interface WorkflowStepDefinition {
+  key: string;
+  label: string;
+  detail: string;
+  linkPath: string;
+}
+
+export type WorkflowDefinitionCadence = typeof WorkflowDefinitionCadence[keyof typeof WorkflowDefinitionCadence];
+
+
+export const WorkflowDefinitionCadence = {
+  ad_hoc: 'ad_hoc',
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  quarterly: 'quarterly',
+} as const;
+
+export interface WorkflowDefinition {
+  key: string;
+  title: string;
+  description: string;
+  cadence: WorkflowDefinitionCadence;
+  steps: WorkflowStepDefinition[];
+}
+
+export type UpdateWorkflowInstanceInputStatus = typeof UpdateWorkflowInstanceInputStatus[keyof typeof UpdateWorkflowInstanceInputStatus];
+
+
+export const UpdateWorkflowInstanceInputStatus = {
+  active: 'active',
+  abandoned: 'abandoned',
+} as const;
+
+export interface UpdateWorkflowInstanceInput {
+  stepKey?: string;
+  completed?: boolean;
+  status?: UpdateWorkflowInstanceInputStatus;
+}
+
+export interface PinnedResource {
+  id: number;
+  resourceType: string;
+  resourceKey: string;
+  label: string;
+  linkPath: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface PinResourceInput {
+  resourceType: string;
+  resourceKey: string;
+  label: string;
+  linkPath: string;
+}
+
+export interface ReorderWorkspaceItemsInput {
+  orderedIds: number[];
+}
+
+export interface RecentViewEntry {
+  id: number;
+  resourceType: string;
+  resourceKey: string;
+  label: string;
+  linkPath: string;
+  viewedAt: string;
+}
+
+export interface RecordRecentViewInput {
+  resourceType: string;
+  resourceKey: string;
+  label: string;
+  linkPath: string;
+}
+
+export interface QuickAction {
+  key: string;
+  label: string;
+  linkPath: string;
+}
+
+export type WorkspaceCoachExplanationTopic = typeof WorkspaceCoachExplanationTopic[keyof typeof WorkspaceCoachExplanationTopic];
+
+
+export const WorkspaceCoachExplanationTopic = {
+  portfolio_review_workflows: 'portfolio_review_workflows',
+  institutional_operating_processes: 'institutional_operating_processes',
+  review_cycles: 'review_cycles',
+  governance: 'governance',
+  reporting: 'reporting',
+} as const;
+
+export interface WorkspaceCoachExplanation {
+  topic: WorkspaceCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface WorkspaceLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type WorkspaceTopicLearningTopic = typeof WorkspaceTopicLearningTopic[keyof typeof WorkspaceTopicLearningTopic];
+
+
+export const WorkspaceTopicLearningTopic = {
+  portfolio_workflows: 'portfolio_workflows',
+  institutional_review_process: 'institutional_review_process',
+  governance: 'governance',
+  monitoring: 'monitoring',
+  performance_review: 'performance_review',
+  risk_review: 'risk_review',
+} as const;
+
+export interface WorkspaceTopicLearning {
+  topic: WorkspaceTopicLearningTopic;
+  links: WorkspaceLearningLink[];
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -11041,6 +11290,31 @@ export type ReorderInvestingWatchlistItems200 = {
 };
 
 export type RemoveInvestingWatchlistItem200 = {
+  success: boolean;
+};
+
+export type ListWorkflowInstancesParams = {
+status?: ListWorkflowInstancesStatus;
+};
+
+export type ListWorkflowInstancesStatus = typeof ListWorkflowInstancesStatus[keyof typeof ListWorkflowInstancesStatus];
+
+
+export const ListWorkflowInstancesStatus = {
+  active: 'active',
+  completed: 'completed',
+  abandoned: 'abandoned',
+} as const;
+
+export type DeleteWorkflowInstance200 = {
+  success: boolean;
+};
+
+export type UnpinResource200 = {
+  success: boolean;
+};
+
+export type ReorderPinnedResources200 = {
   success: boolean;
 };
 

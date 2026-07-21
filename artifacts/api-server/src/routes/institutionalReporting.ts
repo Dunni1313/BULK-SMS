@@ -71,6 +71,8 @@ import {
   GetPolicyMonitoringReportResponse,
   GetWatchlistSummaryReportResponse,
   GetOpportunityDashboardReportResponse,
+  GetPortfolioWorkspaceSummaryReportResponse,
+  GetInstitutionalReviewReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -127,6 +129,8 @@ import {
   buildPolicyMonitoringReport,
   buildWatchlistSummaryReport,
   buildOpportunityDashboardReport,
+  buildPortfolioWorkspaceSummaryReport,
+  buildInstitutionalReviewReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -160,6 +164,7 @@ import { buildDecisionSupportDashboard } from "../lib/decisionSupportEngine.js";
 import { buildRebalancingDashboard, buildProposedAllocationComparisonForPortfolio } from "../lib/rebalancingEngine.js";
 import { buildMonitoringComplianceDashboard } from "../lib/complianceEngine.js";
 import { buildWatchlistsDashboard } from "../lib/watchlistsEngine.js";
+import { buildPortfolioWorkspaceDashboard } from "../lib/portfolioWorkspace.js";
 
 const router: IRouter = Router();
 
@@ -683,6 +688,28 @@ router.get("/reporting/watchlist-summary-report", async (req, res): Promise<void
   res.json(GetWatchlistSummaryReportResponse.parse(built));
 });
 
+// ─── Institutional Portfolio Workspace & Workflow Center (Phase 44) —
+// both reuse lib/portfolioWorkspace.ts's own buildPortfolioWorkspaceDashboard()
+// exactly (the same function GET /portfolio-workspace/dashboard itself
+// calls), then reformat the already-computed dashboard into the generic
+// ReportSection shape. Zero new scoring/aggregation math in this file.
+// Orchestration and workflow only — no trade recommendations, no AI
+// predictions. ────────────────────────────────────────────────────────────
+
+router.get("/reporting/portfolio-workspace-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildPortfolioWorkspaceDashboard(userId);
+  const built = buildPortfolioWorkspaceSummaryReport(dashboard);
+  res.json(GetPortfolioWorkspaceSummaryReportResponse.parse(built));
+});
+
+router.get("/reporting/institutional-review-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildPortfolioWorkspaceDashboard(userId);
+  const built = buildInstitutionalReviewReport(dashboard);
+  res.json(GetInstitutionalReviewReportResponse.parse(built));
+});
+
 router.get("/reporting/opportunity-dashboard-report", async (req, res): Promise<void> => {
   const userId = await getScopedUserId(req);
   const dashboard = await buildWatchlistsDashboard(userId);
@@ -870,6 +897,14 @@ async function regenerate(
     case "opportunity-dashboard-report": {
       const dashboard = await buildWatchlistsDashboard(userId);
       return buildOpportunityDashboardReport(dashboard);
+    }
+    case "portfolio-workspace-summary": {
+      const dashboard = await buildPortfolioWorkspaceDashboard(userId);
+      return buildPortfolioWorkspaceSummaryReport(dashboard);
+    }
+    case "institutional-review-report": {
+      const dashboard = await buildPortfolioWorkspaceDashboard(userId);
+      return buildInstitutionalReviewReport(dashboard);
     }
     default:
       return null;
