@@ -88,6 +88,8 @@ tags:
     description: Institutional Decision Support & Executive Insights Engine (Phase 40) — a deterministic executive workspace consolidating Risk & Exposure (Phase 37), Performance & Attribution (Phase 38), Scenario & Stress Testing (Phase 39), and Portfolio Concentration into one Executive Summary, Portfolio Health Overview, Risk/Performance/Scenario/Capital Allocation/Exposure/Diversification Summary, deterministic Executive Alerts, Outstanding Issues, Key Metrics Dashboard, and an 11-dimension Executive Health scorecard. Every figure is reused directly from an existing, already-tested engine or a thin, named-threshold aggregation over them — Investing/Trading/Options figures are always kept side by side, never blended into a fabricated composite. Interpretation only — no AI predictions, no trade recommendations, no buy/sell signals, no portfolio optimisation, no auto execution, no auto hedging, no auto rebalancing, no market forecasting, no machine learning, no generative investment advice.
   - name: rebalancing-engine
     description: Institutional Portfolio Rebalancing & Allocation Planning Engine (Phase 41) — deterministic Current vs. Target Allocation and Allocation Drift per Investing portfolio (reused verbatim from Portfolio Construction, Phase 2 Sprint 28), cross-engine Sector/Asset/Strategy/Capital Allocation and an Allocation Timeline (reused verbatim from the Risk & Exposure Engine, Phase 37), and a Rebalancing Planner comparing current allocation against a caller-supplied set of proposed target weights, including the dollar capital movement required to close each drift. Planning and analysis only — no trade recommendations, no buy/sell signals, no automatic portfolio optimisation, no automatic rebalancing, no auto execution, no AI predictions, no forecasting, no machine learning, no broker integration changes. Trading/Options positions honestly carry no target-weight concept in this codebase and are never approximated.
+  - name: compliance-engine
+    description: Institutional Portfolio Monitoring & Compliance Engine (Phase 42) — user-defined, editable policies (limits) evaluated against already-computed figures reused verbatim from the Risk & Exposure Engine (Phase 37), the Decision Support Engine's own Diversification Summary (Phase 40), and the Options Income Engine's own theta income (Phase 35). Every evaluation reports a current value, a policy limit, a difference, and a status (compliant/breach/unavailable — never fabricated). Monitoring only — no trade recommendations, no buy/sell signals, no portfolio optimisation, no auto rebalancing, no auto execution, no AI predictions, no forecasting, no machine learning, no broker integration changes.
 
 paths:
   /healthz:
@@ -4553,6 +4555,32 @@ paths:
         "404":
           description: Portfolio not found
 
+  /reporting/compliance-report:
+    get:
+      operationId: getComplianceReport
+      tags: [reporting]
+      summary: Compliance Report (Phase 42) — the Compliance Summary and every current Policy Violation, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no auto-remediation.
+      responses:
+        "200":
+          description: Compliance Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/policy-monitoring-report:
+    get:
+      operationId: getPolicyMonitoringReport
+      tags: [reporting]
+      summary: Policy Monitoring Report (Phase 42) — every configured policy grouped by category with its current value, limit, difference, and status, plus the Compliance Timeline, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no portfolio optimisation.
+      responses:
+        "200":
+          description: Policy Monitoring Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -5548,6 +5576,210 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RebalancingTopicLearning"
+        "404":
+          description: Unknown topic key
+
+  /compliance/dashboard:
+    get:
+      operationId: getMonitoringComplianceDashboard
+      tags: [compliance-engine]
+      summary: The calling user's own full Monitoring & Compliance dashboard — every configured policy evaluated against its own already-computed current value, grouped by category, plus a Compliance Summary, Policy Violations, and a Compliance Timeline. Monitoring only — never a trade recommendation.
+      responses:
+        "200":
+          description: The Monitoring & Compliance dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringComplianceDashboard"
+
+  /compliance/policy-types:
+    get:
+      operationId: listCompliancePolicyTypes
+      tags: [compliance-engine]
+      summary: The fixed, documented set of 15 policy types this engine implements, including each type's own suggested default limit value (reused from named caps already used elsewhere in this codebase).
+      responses:
+        "200":
+          description: Every policy type's own metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CompliancePolicyTypeMeta"
+
+  /compliance/policies:
+    get:
+      operationId: listCompliancePolicies
+      tags: [compliance-engine]
+      summary: The calling user's own configured compliance policies.
+      responses:
+        "200":
+          description: Every policy
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CompliancePolicy"
+    post:
+      operationId: createCompliancePolicy
+      tags: [compliance-engine]
+      summary: Create a new compliance policy.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCompliancePolicyInput"
+      responses:
+        "201":
+          description: The created policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompliancePolicy"
+        "400":
+          description: Invalid request body or unknown policy type
+
+  /compliance/policies/{id}:
+    get:
+      operationId: getCompliancePolicy
+      tags: [compliance-engine]
+      summary: One compliance policy by id.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompliancePolicy"
+        "404":
+          description: Policy not found
+    patch:
+      operationId: updateCompliancePolicy
+      tags: [compliance-engine]
+      summary: Update a compliance policy (label, targetKey, direction, limitValue, enabled).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCompliancePolicyInput"
+      responses:
+        "200":
+          description: The updated policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompliancePolicy"
+        "400":
+          description: Invalid request body
+        "404":
+          description: Policy not found
+    delete:
+      operationId: deleteCompliancePolicy
+      tags: [compliance-engine]
+      summary: Delete a compliance policy.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+        "404":
+          description: Policy not found
+
+  /compliance/coach:
+    get:
+      operationId: listComplianceCoachTopics
+      tags: [compliance-engine]
+      summary: All 5 deterministic AI Coach explanations (portfolio monitoring, compliance concepts, risk limits, capital limits, governance). Never a trade recommendation.
+      responses:
+        "200":
+          description: Every Compliance coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceCoachExplanation"
+
+  /compliance/coach/{topic}:
+    get:
+      operationId: getComplianceCoachTopic
+      tags: [compliance-engine]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /compliance/learning:
+    get:
+      operationId: listComplianceLearning
+      tags: [compliance-engine]
+      summary: Every Compliance topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+      responses:
+        "200":
+          description: Every topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceTopicLearning"
+
+  /compliance/learning/{topic}:
+    get:
+      operationId: getComplianceLearning
+      tags: [compliance-engine]
+      summary: One Compliance topic's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceTopicLearning"
         "404":
           description: Unknown topic key
 
@@ -16207,7 +16439,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -16219,7 +16451,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -16237,7 +16469,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -18619,3 +18851,224 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RebalancingLearningLink"
+
+    # ─── Institutional Portfolio Monitoring & Compliance Engine (Phase 42) ──
+
+    CompliancePolicyType:
+      type: string
+      enum:
+        [
+          sector_allocation_max,
+          position_allocation_max,
+          strategy_allocation_max,
+          investing_capital_allocation_max,
+          trading_capital_allocation_max,
+          options_capital_allocation_max,
+          trading_buying_power_utilization_max,
+          options_buying_power_utilization_max,
+          portfolio_delta_max,
+          portfolio_gamma_max,
+          portfolio_theta_exposure_max,
+          expiration_concentration_max,
+          investing_diversification_min,
+          options_diversification_min,
+          options_income_stability_min,
+        ]
+
+    CompliancePolicyCategory:
+      type: string
+      enum: [allocation, sector, asset, position, strategy, greeks, buying_power, income_stability, diversification]
+
+    CompliancePolicyDirection:
+      type: string
+      enum: [max, min]
+
+    CompliancePolicyTypeMeta:
+      type: object
+      required: [policyType, category, label, description, unit, direction, requiresTargetKey, defaultLimitValue, engine]
+      properties:
+        policyType:
+          $ref: "#/components/schemas/CompliancePolicyType"
+        category:
+          $ref: "#/components/schemas/CompliancePolicyCategory"
+        label: { type: string }
+        description: { type: string }
+        unit:
+          type: string
+          enum: [pct, usd, score, delta, gamma, theta]
+        direction:
+          $ref: "#/components/schemas/CompliancePolicyDirection"
+        requiresTargetKey: { type: boolean }
+        defaultLimitValue: { type: number }
+        engine:
+          type: string
+          enum: [investing, trading, options, cross-engine]
+
+    CompliancePolicy:
+      type: object
+      required: [id, policyType, label, targetKey, direction, limitValue, enabled, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        policyType: { type: string }
+        label: { type: string }
+        targetKey: { type: ["string", "null"] }
+        direction: { type: string }
+        limitValue: { type: number }
+        enabled: { type: boolean }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    CreateCompliancePolicyInput:
+      type: object
+      required: [policyType, label, direction, limitValue]
+      properties:
+        policyType: { type: string }
+        label: { type: string }
+        targetKey: { type: string }
+        direction:
+          $ref: "#/components/schemas/CompliancePolicyDirection"
+        limitValue: { type: number }
+        enabled: { type: boolean }
+
+    UpdateCompliancePolicyInput:
+      type: object
+      properties:
+        label: { type: string }
+        targetKey: { type: string }
+        direction:
+          $ref: "#/components/schemas/CompliancePolicyDirection"
+        limitValue: { type: number }
+        enabled: { type: boolean }
+
+    CompliancePolicyEvaluation:
+      type: object
+      required: [policyId, policyType, category, label, targetKey, direction, limitValue, currentValue, differenceValue, status, detail, enabled]
+      properties:
+        policyId: { type: integer }
+        policyType:
+          $ref: "#/components/schemas/CompliancePolicyType"
+        category:
+          $ref: "#/components/schemas/CompliancePolicyCategory"
+        label: { type: string }
+        targetKey: { type: ["string", "null"] }
+        direction:
+          $ref: "#/components/schemas/CompliancePolicyDirection"
+        limitValue: { type: number }
+        currentValue: { type: ["number", "null"] }
+        differenceValue: { type: ["number", "null"] }
+        status:
+          type: string
+          enum: [compliant, breach, unavailable]
+        detail: { type: string }
+        enabled: { type: boolean }
+
+    ComplianceSummary:
+      type: object
+      required: [totalPolicies, enabledPolicies, compliantCount, breachCount, unavailableCount, overallStatus, summary]
+      properties:
+        totalPolicies: { type: integer }
+        enabledPolicies: { type: integer }
+        compliantCount: { type: integer }
+        breachCount: { type: integer }
+        unavailableCount: { type: integer }
+        overallStatus:
+          type: string
+          enum: [compliant, breach, no_policies]
+        summary: { type: string }
+
+    MonitoringComplianceDashboard:
+      type: object
+      required:
+        [
+          complianceSummary,
+          evaluations,
+          allocationLimits,
+          sectorLimits,
+          assetLimits,
+          positionLimits,
+          strategyLimits,
+          greeksLimits,
+          buyingPowerLimits,
+          incomeStabilityLimits,
+          diversificationLimits,
+          policyViolations,
+          complianceTimeline,
+          complianceTimelineNote,
+          generatedAt,
+        ]
+      properties:
+        complianceSummary:
+          $ref: "#/components/schemas/ComplianceSummary"
+        evaluations:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        allocationLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        sectorLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        assetLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        positionLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        strategyLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        greeksLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        buyingPowerLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        incomeStabilityLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        diversificationLimits:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        policyViolations:
+          type: array
+          items: { $ref: "#/components/schemas/CompliancePolicyEvaluation" }
+        complianceTimeline:
+          type: array
+          items: { $ref: "#/components/schemas/RiskExposureConcentrationTimelinePoint" }
+        complianceTimelineNote: { type: string }
+        generatedAt: { type: string }
+
+    ComplianceCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum: [portfolio_monitoring, compliance_concepts, risk_limits, capital_limits, governance]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    ComplianceLearningLink:
+      type: object
+      required: [pathKey, topicKey, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    ComplianceTopicLearning:
+      type: object
+      required: [topic, links]
+      properties:
+        topic:
+          type: string
+          enum: [portfolio_governance, risk_policies, institutional_compliance, diversification, capital_allocation, portfolio_monitoring]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/ComplianceLearningLink"

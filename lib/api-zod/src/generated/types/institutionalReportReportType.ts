@@ -36,4 +36,6 @@ export const InstitutionalReportReportType = {
   'institutional-health-report': 'institutional-health-report',
   'portfolio-allocation-report': 'portfolio-allocation-report',
   'rebalancing-planning-report': 'rebalancing-planning-report',
+  'compliance-report': 'compliance-report',
+  'policy-monitoring-report': 'policy-monitoring-report',
 } as const;

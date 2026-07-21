@@ -45,6 +45,10 @@ import type {
   CompareOpportunitiesRouteParams,
   CompareReportsRequest,
   CompareReportsResponse,
+  ComplianceCoachExplanation,
+  CompliancePolicy,
+  CompliancePolicyTypeMeta,
+  ComplianceTopicLearning,
   ConstructionHolding,
   ConstructionHoldingCreate,
   ConstructionHoldingUpdate,
@@ -60,6 +64,7 @@ import type {
   ConstructionPortfolioUpdate,
   ConstructionRiskSnapshot,
   ConstructionWatchlistComparison,
+  CreateCompliancePolicyInput,
   CrossEngineDailyReport,
   CrossEngineWorkspaceOverview,
   CrossEngineWorkspaceSearchResult,
@@ -76,6 +81,7 @@ import type {
   DecisionSupportCoachExplanation,
   DecisionSupportDashboard,
   DecisionSupportTopicLearning,
+  DeleteCompliancePolicy200,
   DeleteInstitutionalReport200,
   DeleteReportResult,
   DeleteResult,
@@ -144,6 +150,7 @@ import type {
   MonitoringAlertNote,
   MonitoringAlertNoteCreate,
   MonitoringAlertNoteUpdate,
+  MonitoringComplianceDashboard,
   MonitoringStatus,
   NarrateCrossEngineDailyReportResult,
   NarrateInvestmentCommitteeInput,
@@ -276,6 +283,7 @@ import type {
   TradingWorkspaceNoteInput,
   TradingWorkspaceNoteUpdate,
   UniverseSymbol,
+  UpdateCompliancePolicyInput,
   ValueHistoryRow,
   ValueLessonsResponse,
   ValueMacroContext,
@@ -17178,6 +17186,160 @@ export function useGetRebalancingPlanningReport<TData = Awaited<ReturnType<typeo
 
 
 
+export const getGetComplianceReportUrl = () => {
+
+
+
+
+  return `/api/reporting/compliance-report`
+}
+
+/**
+ * @summary Compliance Report (Phase 42) — the Compliance Summary and every current Policy Violation, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no auto-remediation.
+ */
+export const getComplianceReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetComplianceReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComplianceReportQueryKey = () => {
+    return [
+    `/api/reporting/compliance-report`
+    ] as const;
+    }
+
+
+export const getGetComplianceReportQueryOptions = <TData = Awaited<ReturnType<typeof getComplianceReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComplianceReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComplianceReport>>> = ({ signal }) => getComplianceReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComplianceReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComplianceReportQueryResult = NonNullable<Awaited<ReturnType<typeof getComplianceReport>>>
+export type GetComplianceReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compliance Report (Phase 42) — the Compliance Summary and every current Policy Violation, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no auto-remediation.
+ */
+
+export function useGetComplianceReport<TData = Awaited<ReturnType<typeof getComplianceReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComplianceReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPolicyMonitoringReportUrl = () => {
+
+
+
+
+  return `/api/reporting/policy-monitoring-report`
+}
+
+/**
+ * @summary Policy Monitoring Report (Phase 42) — every configured policy grouped by category with its current value, limit, difference, and status, plus the Compliance Timeline, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no portfolio optimisation.
+ */
+export const getPolicyMonitoringReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPolicyMonitoringReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPolicyMonitoringReportQueryKey = () => {
+    return [
+    `/api/reporting/policy-monitoring-report`
+    ] as const;
+    }
+
+
+export const getGetPolicyMonitoringReportQueryOptions = <TData = Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPolicyMonitoringReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPolicyMonitoringReport>>> = ({ signal }) => getPolicyMonitoringReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPolicyMonitoringReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPolicyMonitoringReport>>>
+export type GetPolicyMonitoringReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Policy Monitoring Report (Phase 42) — every configured policy grouped by category with its current value, limit, difference, and status, plus the Compliance Timeline, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no portfolio optimisation.
+ */
+
+export function useGetPolicyMonitoringReport<TData = Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPolicyMonitoringReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -21212,6 +21374,835 @@ export function useGetRebalancingLearning<TData = Awaited<ReturnType<typeof getR
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetRebalancingLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMonitoringComplianceDashboardUrl = () => {
+
+
+
+
+  return `/api/compliance/dashboard`
+}
+
+/**
+ * @summary The calling user's own full Monitoring & Compliance dashboard — every configured policy evaluated against its own already-computed current value, grouped by category, plus a Compliance Summary, Policy Violations, and a Compliance Timeline. Monitoring only — never a trade recommendation.
+ */
+export const getMonitoringComplianceDashboard = async ( options?: RequestInit): Promise<MonitoringComplianceDashboard> => {
+
+  return customFetch<MonitoringComplianceDashboard>(getGetMonitoringComplianceDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMonitoringComplianceDashboardQueryKey = () => {
+    return [
+    `/api/compliance/dashboard`
+    ] as const;
+    }
+
+
+export const getGetMonitoringComplianceDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMonitoringComplianceDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>> = ({ signal }) => getMonitoringComplianceDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMonitoringComplianceDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>>
+export type GetMonitoringComplianceDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full Monitoring & Compliance dashboard — every configured policy evaluated against its own already-computed current value, grouped by category, plus a Compliance Summary, Policy Violations, and a Compliance Timeline. Monitoring only — never a trade recommendation.
+ */
+
+export function useGetMonitoringComplianceDashboard<TData = Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMonitoringComplianceDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListCompliancePolicyTypesUrl = () => {
+
+
+
+
+  return `/api/compliance/policy-types`
+}
+
+/**
+ * @summary The fixed, documented set of 15 policy types this engine implements, including each type's own suggested default limit value (reused from named caps already used elsewhere in this codebase).
+ */
+export const listCompliancePolicyTypes = async ( options?: RequestInit): Promise<CompliancePolicyTypeMeta[]> => {
+
+  return customFetch<CompliancePolicyTypeMeta[]>(getListCompliancePolicyTypesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCompliancePolicyTypesQueryKey = () => {
+    return [
+    `/api/compliance/policy-types`
+    ] as const;
+    }
+
+
+export const getListCompliancePolicyTypesQueryOptions = <TData = Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCompliancePolicyTypesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCompliancePolicyTypes>>> = ({ signal }) => listCompliancePolicyTypes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCompliancePolicyTypesQueryResult = NonNullable<Awaited<ReturnType<typeof listCompliancePolicyTypes>>>
+export type ListCompliancePolicyTypesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The fixed, documented set of 15 policy types this engine implements, including each type's own suggested default limit value (reused from named caps already used elsewhere in this codebase).
+ */
+
+export function useListCompliancePolicyTypes<TData = Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCompliancePolicyTypesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListCompliancePoliciesUrl = () => {
+
+
+
+
+  return `/api/compliance/policies`
+}
+
+/**
+ * @summary The calling user's own configured compliance policies.
+ */
+export const listCompliancePolicies = async ( options?: RequestInit): Promise<CompliancePolicy[]> => {
+
+  return customFetch<CompliancePolicy[]>(getListCompliancePoliciesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCompliancePoliciesQueryKey = () => {
+    return [
+    `/api/compliance/policies`
+    ] as const;
+    }
+
+
+export const getListCompliancePoliciesQueryOptions = <TData = Awaited<ReturnType<typeof listCompliancePolicies>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCompliancePoliciesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCompliancePolicies>>> = ({ signal }) => listCompliancePolicies({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicies>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCompliancePoliciesQueryResult = NonNullable<Awaited<ReturnType<typeof listCompliancePolicies>>>
+export type ListCompliancePoliciesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own configured compliance policies.
+ */
+
+export function useListCompliancePolicies<TData = Awaited<ReturnType<typeof listCompliancePolicies>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCompliancePoliciesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCompliancePolicyUrl = () => {
+
+
+
+
+  return `/api/compliance/policies`
+}
+
+/**
+ * @summary Create a new compliance policy.
+ */
+export const createCompliancePolicy = async (createCompliancePolicyInput: CreateCompliancePolicyInput, options?: RequestInit): Promise<CompliancePolicy> => {
+
+  return customFetch<CompliancePolicy>(getCreateCompliancePolicyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createCompliancePolicyInput,)
+  }
+);}
+
+
+
+
+export const getCreateCompliancePolicyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCompliancePolicy>>, TError,{data: BodyType<CreateCompliancePolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCompliancePolicy>>, TError,{data: BodyType<CreateCompliancePolicyInput>}, TContext> => {
+
+const mutationKey = ['createCompliancePolicy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCompliancePolicy>>, {data: BodyType<CreateCompliancePolicyInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCompliancePolicy(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCompliancePolicyMutationResult = NonNullable<Awaited<ReturnType<typeof createCompliancePolicy>>>
+    export type CreateCompliancePolicyMutationBody = BodyType<CreateCompliancePolicyInput>
+    export type CreateCompliancePolicyMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a new compliance policy.
+ */
+export const useCreateCompliancePolicy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCompliancePolicy>>, TError,{data: BodyType<CreateCompliancePolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCompliancePolicy>>,
+        TError,
+        {data: BodyType<CreateCompliancePolicyInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCompliancePolicyMutationOptions(options));
+    }
+
+export const getGetCompliancePolicyUrl = (id: number,) => {
+
+
+
+
+  return `/api/compliance/policies/${id}`
+}
+
+/**
+ * @summary One compliance policy by id.
+ */
+export const getCompliancePolicy = async (id: number, options?: RequestInit): Promise<CompliancePolicy> => {
+
+  return customFetch<CompliancePolicy>(getGetCompliancePolicyUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompliancePolicyQueryKey = (id: number,) => {
+    return [
+    `/api/compliance/policies/${id}`
+    ] as const;
+    }
+
+
+export const getGetCompliancePolicyQueryOptions = <TData = Awaited<ReturnType<typeof getCompliancePolicy>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompliancePolicy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompliancePolicyQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompliancePolicy>>> = ({ signal }) => getCompliancePolicy(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompliancePolicy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompliancePolicyQueryResult = NonNullable<Awaited<ReturnType<typeof getCompliancePolicy>>>
+export type GetCompliancePolicyQueryError = ErrorType<void>
+
+
+/**
+ * @summary One compliance policy by id.
+ */
+
+export function useGetCompliancePolicy<TData = Awaited<ReturnType<typeof getCompliancePolicy>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompliancePolicy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompliancePolicyQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateCompliancePolicyUrl = (id: number,) => {
+
+
+
+
+  return `/api/compliance/policies/${id}`
+}
+
+/**
+ * @summary Update a compliance policy (label, targetKey, direction, limitValue, enabled).
+ */
+export const updateCompliancePolicy = async (id: number,
+    updateCompliancePolicyInput: UpdateCompliancePolicyInput, options?: RequestInit): Promise<CompliancePolicy> => {
+
+  return customFetch<CompliancePolicy>(getUpdateCompliancePolicyUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateCompliancePolicyInput,)
+  }
+);}
+
+
+
+
+export const getUpdateCompliancePolicyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCompliancePolicy>>, TError,{id: number;data: BodyType<UpdateCompliancePolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCompliancePolicy>>, TError,{id: number;data: BodyType<UpdateCompliancePolicyInput>}, TContext> => {
+
+const mutationKey = ['updateCompliancePolicy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCompliancePolicy>>, {id: number;data: BodyType<UpdateCompliancePolicyInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCompliancePolicy(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCompliancePolicyMutationResult = NonNullable<Awaited<ReturnType<typeof updateCompliancePolicy>>>
+    export type UpdateCompliancePolicyMutationBody = BodyType<UpdateCompliancePolicyInput>
+    export type UpdateCompliancePolicyMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a compliance policy (label, targetKey, direction, limitValue, enabled).
+ */
+export const useUpdateCompliancePolicy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCompliancePolicy>>, TError,{id: number;data: BodyType<UpdateCompliancePolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCompliancePolicy>>,
+        TError,
+        {id: number;data: BodyType<UpdateCompliancePolicyInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCompliancePolicyMutationOptions(options));
+    }
+
+export const getDeleteCompliancePolicyUrl = (id: number,) => {
+
+
+
+
+  return `/api/compliance/policies/${id}`
+}
+
+/**
+ * @summary Delete a compliance policy.
+ */
+export const deleteCompliancePolicy = async (id: number, options?: RequestInit): Promise<DeleteCompliancePolicy200> => {
+
+  return customFetch<DeleteCompliancePolicy200>(getDeleteCompliancePolicyUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCompliancePolicyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCompliancePolicy>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCompliancePolicy>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCompliancePolicy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCompliancePolicy>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCompliancePolicy(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCompliancePolicyMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCompliancePolicy>>>
+
+    export type DeleteCompliancePolicyMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a compliance policy.
+ */
+export const useDeleteCompliancePolicy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCompliancePolicy>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCompliancePolicy>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCompliancePolicyMutationOptions(options));
+    }
+
+export const getListComplianceCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/compliance/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio monitoring, compliance concepts, risk limits, capital limits, governance). Never a trade recommendation.
+ */
+export const listComplianceCoachTopics = async ( options?: RequestInit): Promise<ComplianceCoachExplanation[]> => {
+
+  return customFetch<ComplianceCoachExplanation[]>(getListComplianceCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListComplianceCoachTopicsQueryKey = () => {
+    return [
+    `/api/compliance/coach`
+    ] as const;
+    }
+
+
+export const getListComplianceCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListComplianceCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listComplianceCoachTopics>>> = ({ signal }) => listComplianceCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListComplianceCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listComplianceCoachTopics>>>
+export type ListComplianceCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio monitoring, compliance concepts, risk limits, capital limits, governance). Never a trade recommendation.
+ */
+
+export function useListComplianceCoachTopics<TData = Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListComplianceCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetComplianceCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/compliance/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getComplianceCoachTopic = async (topic: string, options?: RequestInit): Promise<ComplianceCoachExplanation> => {
+
+  return customFetch<ComplianceCoachExplanation>(getGetComplianceCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComplianceCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/compliance/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetComplianceCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComplianceCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComplianceCoachTopic>>> = ({ signal }) => getComplianceCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComplianceCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getComplianceCoachTopic>>>
+export type GetComplianceCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetComplianceCoachTopic<TData = Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComplianceCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListComplianceLearningUrl = () => {
+
+
+
+
+  return `/api/compliance/learning`
+}
+
+/**
+ * @summary Every Compliance topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listComplianceLearning = async ( options?: RequestInit): Promise<ComplianceTopicLearning[]> => {
+
+  return customFetch<ComplianceTopicLearning[]>(getListComplianceLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListComplianceLearningQueryKey = () => {
+    return [
+    `/api/compliance/learning`
+    ] as const;
+    }
+
+
+export const getListComplianceLearningQueryOptions = <TData = Awaited<ReturnType<typeof listComplianceLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComplianceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListComplianceLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listComplianceLearning>>> = ({ signal }) => listComplianceLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listComplianceLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListComplianceLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listComplianceLearning>>>
+export type ListComplianceLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Compliance topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListComplianceLearning<TData = Awaited<ReturnType<typeof listComplianceLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComplianceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListComplianceLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetComplianceLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/compliance/learning/${topic}`
+}
+
+/**
+ * @summary One Compliance topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getComplianceLearning = async (topic: string, options?: RequestInit): Promise<ComplianceTopicLearning> => {
+
+  return customFetch<ComplianceTopicLearning>(getGetComplianceLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComplianceLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/compliance/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetComplianceLearningQueryOptions = <TData = Awaited<ReturnType<typeof getComplianceLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComplianceLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComplianceLearning>>> = ({ signal }) => getComplianceLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComplianceLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComplianceLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getComplianceLearning>>>
+export type GetComplianceLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Compliance topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetComplianceLearning<TData = Awaited<ReturnType<typeof getComplianceLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComplianceLearningQueryOptions(topic,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

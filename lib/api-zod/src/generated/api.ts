@@ -9037,7 +9037,7 @@ export const GetTradingCoachStrategyExplanationResponse = zod.object({
  * @summary Strategy Framework Summary Report — the calling user's own registered strategies and checklist-instance completion
  */
 export const GetStrategyFrameworkSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9058,7 +9058,7 @@ export const GetStrategyFrameworkSummaryReportResponse = zod.object({
  * @summary Trading Analytics Summary Report — the calling user's own aggregated Trading Engine analytics (trades reviewed, strategy usage, journal, risk, learning, coach, session activity)
  */
 export const GetTradingAnalyticsSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9079,7 +9079,7 @@ export const GetTradingAnalyticsSummaryReportResponse = zod.object({
  * @summary Executive Intelligence Summary Report — the calling user's own unified cross-engine executive view (overview, investing, trading, strategy, portfolio, risk, learning, coach, reporting, activity)
  */
 export const GetExecutiveIntelligenceSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9100,7 +9100,7 @@ export const GetExecutiveIntelligenceSummaryReportResponse = zod.object({
  * @summary Options Income Summary Report — the calling user's own Options Income Engine (open/closed positions, capital allocated, theta income, strategy mix, upcoming expirations)
  */
 export const GetOptionsIncomeSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9121,7 +9121,7 @@ export const GetOptionsIncomeSummaryReportResponse = zod.object({
  * @summary Options Portfolio Review — the calling user's own Options Portfolio Management view (position concentration, strategy/sector allocation, expiration ladder, capital/buying-power utilisation, income allocation)
  */
 export const GetOptionsPortfolioReviewReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9142,7 +9142,7 @@ export const GetOptionsPortfolioReviewReportResponse = zod.object({
  * @summary Position Lifecycle Summary — the calling user's own positions tallied by their real lifecycle stage
  */
 export const GetPositionLifecycleSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9163,7 +9163,7 @@ export const GetPositionLifecycleSummaryReportResponse = zod.object({
  * @summary Risk & Exposure Summary (Phase 37) — capital allocation, buying power, Greeks summary, and the disclosed cross-engine symbol overlap, reused directly from the Institutional Risk & Exposure Intelligence Engine
  */
 export const GetRiskExposureSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9184,7 +9184,7 @@ export const GetRiskExposureSummaryReportResponse = zod.object({
  * @summary Portfolio Concentration Report (Phase 37) — sector/strategy concentration, asset allocation, and a real concentration timeline, reused directly from the Institutional Risk & Exposure Intelligence Engine
  */
 export const GetPortfolioConcentrationReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9205,7 +9205,7 @@ export const GetPortfolioConcentrationReportResponse = zod.object({
  * @summary Performance Summary Report (Phase 38) — real Investing unrealized P&L, Trading/Options realized P&L, win rate, and capital efficiency, reused directly from the Institutional Performance & Attribution Engine
  */
 export const GetPerformanceSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9226,7 +9226,7 @@ export const GetPerformanceSummaryReportResponse = zod.object({
  * @summary Performance Attribution Report (Phase 38) — sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline, reused directly from the Institutional Performance & Attribution Engine
  */
 export const GetPerformanceAttributionReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9247,7 +9247,7 @@ export const GetPerformanceAttributionReportResponse = zod.object({
  * @summary Scenario Analysis Report (Phase 39) — every default deterministic scenario evaluated as a hypothetical repricing across Investing, Trading, and Options, with Portfolio/Asset/Sector/Strategy Impact and a Scenario Comparison, reused directly from the Institutional Scenario & Stress Testing Engine
  */
 export const GetScenarioAnalysisReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9268,7 +9268,7 @@ export const GetScenarioAnalysisReportResponse = zod.object({
  * @summary Stress Test Report (Phase 39) — the Options portfolio evaluated under the platform's named severe scenarios via the existing What-If Stress Test engine, with Greeks/Buying Power/Capital Impact under stress
  */
 export const GetStressTestReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9289,7 +9289,7 @@ export const GetStressTestReportResponse = zod.object({
  * @summary Executive Decision Summary (Phase 40) — Executive Summary, Portfolio Health Overview, deterministic Executive Alerts, Outstanding Issues, and the Key Metrics Dashboard, reused directly from the Institutional Decision Support & Executive Insights Engine
  */
 export const GetExecutiveDecisionSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9310,7 +9310,7 @@ export const GetExecutiveDecisionSummaryReportResponse = zod.object({
  * @summary Institutional Health Report (Phase 40) — Portfolio Health Overview, Risk Summary, Diversification Summary, and the 11-dimension Executive Health scorecard, reused directly from the Institutional Decision Support & Executive Insights Engine
  */
 export const GetInstitutionalHealthReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9331,7 +9331,7 @@ export const GetInstitutionalHealthReportResponse = zod.object({
  * @summary Portfolio Allocation Report (Phase 41) — Current vs. Target Allocation and Drift per Investing portfolio, plus cross-engine Sector/Asset/Strategy/Capital Allocation and the Allocation Timeline, reused directly from the Institutional Rebalancing & Allocation Planning Engine. Planning and analysis only — no trade recommendations, no automatic rebalancing.
  */
 export const GetPortfolioAllocationReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -9356,7 +9356,49 @@ export const GetRebalancingPlanningReportParams = zod.object({
 })
 
 export const GetRebalancingPlanningReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Compliance Report (Phase 42) — the Compliance Summary and every current Policy Violation, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no auto-remediation.
+ */
+export const GetComplianceReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "symbol": zod.string().nullable(),
+  "portfolioId": zod.number().nullable(),
+  "generatedAt": zod.string(),
+  "dataSource": zod.string(),
+  "sections": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "bullets": zod.array(zod.string()).optional()
+})),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Policy Monitoring Report (Phase 42) — every configured policy grouped by category with its current value, limit, difference, and status, plus the Compliance Timeline, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no portfolio optimisation.
+ */
+export const GetPolicyMonitoringReportResponse = zod.object({
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -12416,6 +12458,353 @@ export const GetRebalancingLearningResponse = zod.object({
 
 
 /**
+ * @summary The calling user's own full Monitoring & Compliance dashboard — every configured policy evaluated against its own already-computed current value, grouped by category, plus a Compliance Summary, Policy Violations, and a Compliance Timeline. Monitoring only — never a trade recommendation.
+ */
+export const GetMonitoringComplianceDashboardResponse = zod.object({
+  "complianceSummary": zod.object({
+  "totalPolicies": zod.number(),
+  "enabledPolicies": zod.number(),
+  "compliantCount": zod.number(),
+  "breachCount": zod.number(),
+  "unavailableCount": zod.number(),
+  "overallStatus": zod.enum(['compliant', 'breach', 'no_policies']),
+  "summary": zod.string()
+}),
+  "evaluations": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "allocationLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "sectorLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "assetLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "positionLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "strategyLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "greeksLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "buyingPowerLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "incomeStabilityLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "diversificationLimits": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "policyViolations": zod.array(zod.object({
+  "policyId": zod.number(),
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "currentValue": zod.number().nullable(),
+  "differenceValue": zod.number().nullable(),
+  "status": zod.enum(['compliant', 'breach', 'unavailable']),
+  "detail": zod.string(),
+  "enabled": zod.boolean()
+})),
+  "complianceTimeline": zod.array(zod.object({
+  "date": zod.string(),
+  "source": zod.enum(['options-exposure', 'investing-risk-snapshot']),
+  "detail": zod.string(),
+  "value": zod.number().nullable()
+})),
+  "complianceTimelineNote": zod.string(),
+  "generatedAt": zod.string()
+})
+
+
+/**
+ * @summary The fixed, documented set of 15 policy types this engine implements, including each type's own suggested default limit value (reused from named caps already used elsewhere in this codebase).
+ */
+export const ListCompliancePolicyTypesResponseItem = zod.object({
+  "policyType": zod.enum(['sector_allocation_max', 'position_allocation_max', 'strategy_allocation_max', 'investing_capital_allocation_max', 'trading_capital_allocation_max', 'options_capital_allocation_max', 'trading_buying_power_utilization_max', 'options_buying_power_utilization_max', 'portfolio_delta_max', 'portfolio_gamma_max', 'portfolio_theta_exposure_max', 'expiration_concentration_max', 'investing_diversification_min', 'options_diversification_min', 'options_income_stability_min']),
+  "category": zod.enum(['allocation', 'sector', 'asset', 'position', 'strategy', 'greeks', 'buying_power', 'income_stability', 'diversification']),
+  "label": zod.string(),
+  "description": zod.string(),
+  "unit": zod.enum(['pct', 'usd', 'score', 'delta', 'gamma', 'theta']),
+  "direction": zod.enum(['max', 'min']),
+  "requiresTargetKey": zod.boolean(),
+  "defaultLimitValue": zod.number(),
+  "engine": zod.enum(['investing', 'trading', 'options', 'cross-engine'])
+})
+export const ListCompliancePolicyTypesResponse = zod.array(ListCompliancePolicyTypesResponseItem)
+
+
+/**
+ * @summary The calling user's own configured compliance policies.
+ */
+export const ListCompliancePoliciesResponseItem = zod.object({
+  "id": zod.number(),
+  "policyType": zod.string(),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.string(),
+  "limitValue": zod.number(),
+  "enabled": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListCompliancePoliciesResponse = zod.array(ListCompliancePoliciesResponseItem)
+
+
+/**
+ * @summary Create a new compliance policy.
+ */
+export const CreateCompliancePolicyBody = zod.object({
+  "policyType": zod.string(),
+  "label": zod.string(),
+  "targetKey": zod.string().optional(),
+  "direction": zod.enum(['max', 'min']),
+  "limitValue": zod.number(),
+  "enabled": zod.boolean().optional()
+})
+
+
+/**
+ * @summary One compliance policy by id.
+ */
+export const GetCompliancePolicyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCompliancePolicyResponse = zod.object({
+  "id": zod.number(),
+  "policyType": zod.string(),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.string(),
+  "limitValue": zod.number(),
+  "enabled": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a compliance policy (label, targetKey, direction, limitValue, enabled).
+ */
+export const UpdateCompliancePolicyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCompliancePolicyBody = zod.object({
+  "label": zod.string().optional(),
+  "targetKey": zod.string().optional(),
+  "direction": zod.enum(['max', 'min']).optional(),
+  "limitValue": zod.number().optional(),
+  "enabled": zod.boolean().optional()
+})
+
+export const UpdateCompliancePolicyResponse = zod.object({
+  "id": zod.number(),
+  "policyType": zod.string(),
+  "label": zod.string(),
+  "targetKey": zod.string().nullable(),
+  "direction": zod.string(),
+  "limitValue": zod.number(),
+  "enabled": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a compliance policy.
+ */
+export const DeleteCompliancePolicyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteCompliancePolicyResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio monitoring, compliance concepts, risk limits, capital limits, governance). Never a trade recommendation.
+ */
+export const ListComplianceCoachTopicsResponseItem = zod.object({
+  "topic": zod.enum(['portfolio_monitoring', 'compliance_concepts', 'risk_limits', 'capital_limits', 'governance']),
+  "title": zod.string(),
+  "explanation": zod.array(zod.string()),
+  "disclaimer": zod.string()
+})
+export const ListComplianceCoachTopicsResponse = zod.array(ListComplianceCoachTopicsResponseItem)
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const GetComplianceCoachTopicParams = zod.object({
+  "topic": zod.coerce.string()
+})
+
+export const GetComplianceCoachTopicResponse = zod.object({
+  "topic": zod.enum(['portfolio_monitoring', 'compliance_concepts', 'risk_limits', 'capital_limits', 'governance']),
+  "title": zod.string(),
+  "explanation": zod.array(zod.string()),
+  "disclaimer": zod.string()
+})
+
+
+/**
+ * @summary Every Compliance topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const ListComplianceLearningResponseItem = zod.object({
+  "topic": zod.enum(['portfolio_governance', 'risk_policies', 'institutional_compliance', 'diversification', 'capital_allocation', 'portfolio_monitoring']),
+  "links": zod.array(zod.object({
+  "pathKey": zod.string(),
+  "topicKey": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "href": zod.string()
+}))
+})
+export const ListComplianceLearningResponse = zod.array(ListComplianceLearningResponseItem)
+
+
+/**
+ * @summary One Compliance topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const GetComplianceLearningParams = zod.object({
+  "topic": zod.coerce.string()
+})
+
+export const GetComplianceLearningResponse = zod.object({
+  "topic": zod.enum(['portfolio_governance', 'risk_policies', 'institutional_compliance', 'diversification', 'capital_allocation', 'portfolio_monitoring']),
+  "links": zod.array(zod.object({
+  "pathKey": zod.string(),
+  "topicKey": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "href": zod.string()
+}))
+})
+
+
+/**
  * @summary Portfolio risk analysis over the calling user's own open trading positions — position sizing, stop/target discipline, and portfolio risk budget, SIMULATED-first, honestly reports insufficient data rather than fabricating a default account value or position
  */
 export const GetTradingRiskResponse = zod.object({
@@ -12858,7 +13247,7 @@ export const ListOptionsBacktestResultsResponse = zod.array(ListOptionsBacktestR
  * @summary The 9 available Institutional Report types, their labels, descriptions, and whether each requires a symbol/portfolio
  */
 export const GetReportTypesResponseItem = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "label": zod.string(),
   "description": zod.string(),
   "requiresSymbol": zod.boolean(),
@@ -12875,7 +13264,7 @@ export const GetInvestmentCommitteeReportParams = zod.object({
 })
 
 export const GetInvestmentCommitteeReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -12900,7 +13289,7 @@ export const GetCompanyResearchReportParams = zod.object({
 })
 
 export const GetCompanyResearchReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -12925,7 +13314,7 @@ export const GetPortfolioReviewReportParams = zod.object({
 })
 
 export const GetPortfolioReviewReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -12950,7 +13339,7 @@ export const GetPortfolioHealthReportParams = zod.object({
 })
 
 export const GetPortfolioHealthReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -12971,7 +13360,7 @@ export const GetPortfolioHealthReportResponse = zod.object({
  * @summary Watchlist Report — every Watchlist item's own price/margin-of-safety target status, reused directly from computeWatchlistTargets().
  */
 export const GetWatchlistReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -12992,7 +13381,7 @@ export const GetWatchlistReportResponse = zod.object({
  * @summary Opportunity Discovery Report — the Opportunity Discovery scan's own buckets, reused directly.
  */
 export const GetOpportunityDiscoveryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -13013,7 +13402,7 @@ export const GetOpportunityDiscoveryReportResponse = zod.object({
  * @summary Monitoring Summary Report — the user's own recorded monitoring alerts across every symbol.
  */
 export const GetMonitoringSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -13034,7 +13423,7 @@ export const GetMonitoringSummaryReportResponse = zod.object({
  * @summary AI Coach Learning Summary — the Learning Centre's own progress tracker (lessons, glossary, strategies, coach explanations viewed, path completion, quiz performance).
  */
 export const GetAiCoachLearningSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -13055,7 +13444,7 @@ export const GetAiCoachLearningSummaryReportResponse = zod.object({
  * @summary Executive Summary — the Cross-Engine Daily Report's own one-pager, reused directly.
  */
 export const GetExecutiveSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -13076,7 +13465,7 @@ export const GetExecutiveSummaryReportResponse = zod.object({
  * @summary Trade Planning Summary Report (Phase 28) — the calling user's own Trade Plans (trading_trade_plans) and Trading Risk analysis (lib/tradingRisk.ts), reused directly. Pure composition, zero new analysis.
  */
 export const GetTradePlanningSummaryReportResponse = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -13097,7 +13486,7 @@ export const GetTradePlanningSummaryReportResponse = zod.object({
  * @summary Regenerate the given report type server-side and persist it to the calling user's own history (never trusts a client-supplied report body)
  */
 export const SaveInstitutionalReportBody = zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "symbol": zod.string().optional(),
   "portfolioId": zod.number().optional()
 })
@@ -13111,7 +13500,7 @@ export const SaveInstitutionalReportResponse = zod.object({
   "dataSource": zod.string(),
   "createdAt": zod.string(),
   "report": zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),
@@ -13160,7 +13549,7 @@ export const GetSavedInstitutionalReportResponse = zod.object({
   "dataSource": zod.string(),
   "createdAt": zod.string(),
   "report": zod.object({
-  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report']),
+  "reportType": zod.enum(['investment-committee', 'company-research', 'portfolio-review', 'portfolio-health', 'watchlist', 'opportunity-discovery', 'monitoring-summary', 'ai-coach-summary', 'executive-summary', 'trade-planning-summary', 'strategy-framework-summary', 'trading-analytics-summary', 'executive-intelligence-summary', 'options-income-summary', 'options-portfolio-review', 'position-lifecycle-summary', 'risk-exposure-summary', 'portfolio-concentration-report', 'performance-summary', 'performance-attribution-report', 'scenario-analysis-report', 'stress-test-report', 'executive-decision-summary', 'institutional-health-report', 'portfolio-allocation-report', 'rebalancing-planning-report', 'compliance-report', 'policy-monitoring-report']),
   "title": zod.string(),
   "subtitle": zod.string(),
   "symbol": zod.string().nullable(),

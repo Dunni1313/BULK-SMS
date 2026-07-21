@@ -8051,6 +8051,8 @@ export const ReportTypeMetaReportType = {
   'institutional-health-report': 'institutional-health-report',
   'portfolio-allocation-report': 'portfolio-allocation-report',
   'rebalancing-planning-report': 'rebalancing-planning-report',
+  'compliance-report': 'compliance-report',
+  'policy-monitoring-report': 'policy-monitoring-report',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8091,6 +8093,8 @@ export const InstitutionalReportReportType = {
   'institutional-health-report': 'institutional-health-report',
   'portfolio-allocation-report': 'portfolio-allocation-report',
   'rebalancing-planning-report': 'rebalancing-planning-report',
+  'compliance-report': 'compliance-report',
+  'policy-monitoring-report': 'policy-monitoring-report',
 } as const;
 
 export interface InstitutionalReport {
@@ -8135,6 +8139,8 @@ export const SaveInstitutionalReportInputReportType = {
   'institutional-health-report': 'institutional-health-report',
   'portfolio-allocation-report': 'portfolio-allocation-report',
   'rebalancing-planning-report': 'rebalancing-planning-report',
+  'compliance-report': 'compliance-report',
+  'policy-monitoring-report': 'policy-monitoring-report',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -10324,6 +10330,221 @@ export interface RebalancingTopicLearning {
   links: RebalancingLearningLink[];
 }
 
+export type CompliancePolicyType = typeof CompliancePolicyType[keyof typeof CompliancePolicyType];
+
+
+export const CompliancePolicyType = {
+  sector_allocation_max: 'sector_allocation_max',
+  position_allocation_max: 'position_allocation_max',
+  strategy_allocation_max: 'strategy_allocation_max',
+  investing_capital_allocation_max: 'investing_capital_allocation_max',
+  trading_capital_allocation_max: 'trading_capital_allocation_max',
+  options_capital_allocation_max: 'options_capital_allocation_max',
+  trading_buying_power_utilization_max: 'trading_buying_power_utilization_max',
+  options_buying_power_utilization_max: 'options_buying_power_utilization_max',
+  portfolio_delta_max: 'portfolio_delta_max',
+  portfolio_gamma_max: 'portfolio_gamma_max',
+  portfolio_theta_exposure_max: 'portfolio_theta_exposure_max',
+  expiration_concentration_max: 'expiration_concentration_max',
+  investing_diversification_min: 'investing_diversification_min',
+  options_diversification_min: 'options_diversification_min',
+  options_income_stability_min: 'options_income_stability_min',
+} as const;
+
+export type CompliancePolicyCategory = typeof CompliancePolicyCategory[keyof typeof CompliancePolicyCategory];
+
+
+export const CompliancePolicyCategory = {
+  allocation: 'allocation',
+  sector: 'sector',
+  asset: 'asset',
+  position: 'position',
+  strategy: 'strategy',
+  greeks: 'greeks',
+  buying_power: 'buying_power',
+  income_stability: 'income_stability',
+  diversification: 'diversification',
+} as const;
+
+export type CompliancePolicyDirection = typeof CompliancePolicyDirection[keyof typeof CompliancePolicyDirection];
+
+
+export const CompliancePolicyDirection = {
+  max: 'max',
+  min: 'min',
+} as const;
+
+export type CompliancePolicyTypeMetaUnit = typeof CompliancePolicyTypeMetaUnit[keyof typeof CompliancePolicyTypeMetaUnit];
+
+
+export const CompliancePolicyTypeMetaUnit = {
+  pct: 'pct',
+  usd: 'usd',
+  score: 'score',
+  delta: 'delta',
+  gamma: 'gamma',
+  theta: 'theta',
+} as const;
+
+export type CompliancePolicyTypeMetaEngine = typeof CompliancePolicyTypeMetaEngine[keyof typeof CompliancePolicyTypeMetaEngine];
+
+
+export const CompliancePolicyTypeMetaEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+  'cross-engine': 'cross-engine',
+} as const;
+
+export interface CompliancePolicyTypeMeta {
+  policyType: CompliancePolicyType;
+  category: CompliancePolicyCategory;
+  label: string;
+  description: string;
+  unit: CompliancePolicyTypeMetaUnit;
+  direction: CompliancePolicyDirection;
+  requiresTargetKey: boolean;
+  defaultLimitValue: number;
+  engine: CompliancePolicyTypeMetaEngine;
+}
+
+export interface CompliancePolicy {
+  id: number;
+  policyType: string;
+  label: string;
+  /** @nullable */
+  targetKey: string | null;
+  direction: string;
+  limitValue: number;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCompliancePolicyInput {
+  policyType: string;
+  label: string;
+  targetKey?: string;
+  direction: CompliancePolicyDirection;
+  limitValue: number;
+  enabled?: boolean;
+}
+
+export interface UpdateCompliancePolicyInput {
+  label?: string;
+  targetKey?: string;
+  direction?: CompliancePolicyDirection;
+  limitValue?: number;
+  enabled?: boolean;
+}
+
+export type CompliancePolicyEvaluationStatus = typeof CompliancePolicyEvaluationStatus[keyof typeof CompliancePolicyEvaluationStatus];
+
+
+export const CompliancePolicyEvaluationStatus = {
+  compliant: 'compliant',
+  breach: 'breach',
+  unavailable: 'unavailable',
+} as const;
+
+export interface CompliancePolicyEvaluation {
+  policyId: number;
+  policyType: CompliancePolicyType;
+  category: CompliancePolicyCategory;
+  label: string;
+  /** @nullable */
+  targetKey: string | null;
+  direction: CompliancePolicyDirection;
+  limitValue: number;
+  /** @nullable */
+  currentValue: number | null;
+  /** @nullable */
+  differenceValue: number | null;
+  status: CompliancePolicyEvaluationStatus;
+  detail: string;
+  enabled: boolean;
+}
+
+export type ComplianceSummaryOverallStatus = typeof ComplianceSummaryOverallStatus[keyof typeof ComplianceSummaryOverallStatus];
+
+
+export const ComplianceSummaryOverallStatus = {
+  compliant: 'compliant',
+  breach: 'breach',
+  no_policies: 'no_policies',
+} as const;
+
+export interface ComplianceSummary {
+  totalPolicies: number;
+  enabledPolicies: number;
+  compliantCount: number;
+  breachCount: number;
+  unavailableCount: number;
+  overallStatus: ComplianceSummaryOverallStatus;
+  summary: string;
+}
+
+export interface MonitoringComplianceDashboard {
+  complianceSummary: ComplianceSummary;
+  evaluations: CompliancePolicyEvaluation[];
+  allocationLimits: CompliancePolicyEvaluation[];
+  sectorLimits: CompliancePolicyEvaluation[];
+  assetLimits: CompliancePolicyEvaluation[];
+  positionLimits: CompliancePolicyEvaluation[];
+  strategyLimits: CompliancePolicyEvaluation[];
+  greeksLimits: CompliancePolicyEvaluation[];
+  buyingPowerLimits: CompliancePolicyEvaluation[];
+  incomeStabilityLimits: CompliancePolicyEvaluation[];
+  diversificationLimits: CompliancePolicyEvaluation[];
+  policyViolations: CompliancePolicyEvaluation[];
+  complianceTimeline: RiskExposureConcentrationTimelinePoint[];
+  complianceTimelineNote: string;
+  generatedAt: string;
+}
+
+export type ComplianceCoachExplanationTopic = typeof ComplianceCoachExplanationTopic[keyof typeof ComplianceCoachExplanationTopic];
+
+
+export const ComplianceCoachExplanationTopic = {
+  portfolio_monitoring: 'portfolio_monitoring',
+  compliance_concepts: 'compliance_concepts',
+  risk_limits: 'risk_limits',
+  capital_limits: 'capital_limits',
+  governance: 'governance',
+} as const;
+
+export interface ComplianceCoachExplanation {
+  topic: ComplianceCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface ComplianceLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type ComplianceTopicLearningTopic = typeof ComplianceTopicLearningTopic[keyof typeof ComplianceTopicLearningTopic];
+
+
+export const ComplianceTopicLearningTopic = {
+  portfolio_governance: 'portfolio_governance',
+  risk_policies: 'risk_policies',
+  institutional_compliance: 'institutional_compliance',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+  portfolio_monitoring: 'portfolio_monitoring',
+} as const;
+
+export interface ComplianceTopicLearning {
+  topic: ComplianceTopicLearningTopic;
+  links: ComplianceLearningLink[];
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -10493,6 +10714,10 @@ export const ListOptionsIncomePositionsStatus = {
   closed: 'closed',
   all: 'all',
 } as const;
+
+export type DeleteCompliancePolicy200 = {
+  success: boolean;
+};
 
 export type DeleteInstitutionalReport200 = {
   success: boolean;

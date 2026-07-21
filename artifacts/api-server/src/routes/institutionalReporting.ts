@@ -67,6 +67,8 @@ import {
   GetInstitutionalHealthReportResponse,
   GetPortfolioAllocationReportResponse,
   GetRebalancingPlanningReportResponse,
+  GetComplianceReportResponse,
+  GetPolicyMonitoringReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -119,6 +121,8 @@ import {
   buildInstitutionalHealthReport,
   buildPortfolioAllocationReport,
   buildRebalancingPlanningReport,
+  buildComplianceReport,
+  buildPolicyMonitoringReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -150,6 +154,7 @@ import { buildPerformanceDashboard } from "../lib/performanceAttribution.js";
 import { buildScenarioDashboard } from "../lib/scenarioEngine.js";
 import { buildDecisionSupportDashboard } from "../lib/decisionSupportEngine.js";
 import { buildRebalancingDashboard, buildProposedAllocationComparisonForPortfolio } from "../lib/rebalancingEngine.js";
+import { buildMonitoringComplianceDashboard } from "../lib/complianceEngine.js";
 
 const router: IRouter = Router();
 
@@ -637,6 +642,27 @@ router.get("/reporting/rebalancing-planning-report/:portfolioId", async (req, re
   res.json(GetRebalancingPlanningReportResponse.parse(built));
 });
 
+// ─── Institutional Portfolio Monitoring & Compliance Engine (Phase 42) —
+// both reuse lib/complianceEngine.ts's own buildMonitoringComplianceDashboard()
+// exactly (the same function GET /compliance/dashboard itself calls), then
+// reformat the already-computed dashboard into the generic ReportSection
+// shape. Zero new policy-evaluation math in this file. Monitoring only —
+// no trade recommendations, no portfolio optimisation. ─────────────────────
+
+router.get("/reporting/compliance-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildMonitoringComplianceDashboard(userId);
+  const built = buildComplianceReport(dashboard);
+  res.json(GetComplianceReportResponse.parse(built));
+});
+
+router.get("/reporting/policy-monitoring-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildMonitoringComplianceDashboard(userId);
+  const built = buildPolicyMonitoringReport(dashboard);
+  res.json(GetPolicyMonitoringReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -801,6 +827,14 @@ async function regenerate(
       const provider = await getFundamentalsProvider(userId);
       const comparison = await buildProposedAllocationComparisonForPortfolio(resolved.portfolioId, resolved.holdingInputs, [], provider);
       return buildRebalancingPlanningReport(comparison, resolved.name);
+    }
+    case "compliance-report": {
+      const dashboard = await buildMonitoringComplianceDashboard(userId);
+      return buildComplianceReport(dashboard);
+    }
+    case "policy-monitoring-report": {
+      const dashboard = await buildMonitoringComplianceDashboard(userId);
+      return buildPolicyMonitoringReport(dashboard);
     }
     default:
       return null;

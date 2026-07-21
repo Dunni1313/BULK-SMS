@@ -52,6 +52,7 @@ import { DEFAULT_SCENARIOS, type ScenarioDashboard } from "./scenarioEngine.js";
 import type { DecisionSupportDashboard } from "./decisionSupportEngine.js";
 import type { RebalancingDashboard, ProposedAllocationComparison } from "./rebalancingEngine.js";
 import { REBALANCE_DRIFT_THRESHOLD_PCT } from "./portfolioConstruction.js";
+import type { MonitoringComplianceDashboard, PolicyEvaluation } from "./complianceEngine.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -79,7 +80,9 @@ export type InstitutionalReportType =
   | "executive-decision-summary"
   | "institutional-health-report"
   | "portfolio-allocation-report"
-  | "rebalancing-planning-report";
+  | "rebalancing-planning-report"
+  | "compliance-report"
+  | "policy-monitoring-report";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -108,6 +111,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "institutional-health-report",
   "portfolio-allocation-report",
   "rebalancing-planning-report",
+  "compliance-report",
+  "policy-monitoring-report",
 ];
 
 export interface ReportTypeMeta {
@@ -300,6 +305,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     description: "The calling user's own Rebalancing Planner output for one Investing portfolio (Phase 41) — current allocation compared against a caller-supplied set of proposed target weights, including the dollar capital movement required to close each drift. Planning and analysis only — never a suggested trade or share count.",
     requiresSymbol: false,
     requiresPortfolio: true,
+  },
+  {
+    reportType: "compliance-report",
+    label: "Compliance Report",
+    description: "The calling user's own Monitoring & Compliance Engine (Phase 42) — the Compliance Summary and every current Policy Violation, reused directly from the Risk & Exposure, Portfolio Concentration, and Options Income engines. Monitoring only — no trade recommendations, no auto-remediation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "policy-monitoring-report",
+    label: "Policy Monitoring Report",
+    description: "The calling user's own full Policy Monitoring detail (Phase 42) — every configured policy grouped by category (Allocation, Sector, Asset, Position, Strategy, Greeks, Buying Power, Income Stability, Diversification) with its current value, limit, difference, and status, plus the Compliance Timeline. Monitoring only — no trade recommendations, no portfolio optimisation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
   },
 ];
 
@@ -2073,6 +2092,122 @@ export function buildRebalancingPlanningReport(comparison: ProposedAllocationCom
     symbol: null,
     portfolioId: comparison.portfolioId,
     generatedAt: new Date().toISOString(),
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 28. Compliance Report (Phase 42) — reuses
+// lib/complianceEngine.ts's own buildMonitoringComplianceDashboard()
+// output directly (the same function GET /compliance/dashboard itself
+// calls). Zero new policy-evaluation math in this file. Executive-summary
+// level only — the Compliance Summary and every current Policy
+// Violation. Monitoring only — no trade recommendations, no
+// auto-remediation. ─────────────────────────────────────────────────────
+
+function evaluationBullet(e: PolicyEvaluation): string {
+  return `[${e.category}] ${e.label}${e.targetKey ? ` (${e.targetKey})` : ""}: ${e.detail}`;
+}
+
+export function buildComplianceReport(dashboard: MonitoringComplianceDashboard): InstitutionalReport {
+  const { complianceSummary, policyViolations } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "compliance-summary",
+      "Compliance Summary",
+      complianceSummary.summary,
+      [
+        `Total policies: ${complianceSummary.totalPolicies} (${complianceSummary.enabledPolicies} enabled)`,
+        `Compliant: ${complianceSummary.compliantCount}`,
+        `Breach: ${complianceSummary.breachCount}`,
+        `Unavailable: ${complianceSummary.unavailableCount}`,
+        `Overall status: ${complianceSummary.overallStatus}`,
+      ],
+    ),
+    section(
+      "policy-violations",
+      "Policy Violations",
+      policyViolations.length
+        ? `${policyViolations.length} enabled policy(ies) currently in breach. Monitoring only — no recommended remediation.`
+        : "No enabled policy is currently in breach.",
+      policyViolations.map(evaluationBullet),
+    ),
+  ];
+
+  return {
+    reportType: "compliance-report",
+    title: "Compliance Report",
+    subtitle: complianceSummary.summary,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 29. Policy Monitoring Report (Phase 42) — reuses the same
+// MonitoringComplianceDashboard, but surfaces the full operational
+// detail: every category-grouped limit section plus the Compliance
+// Timeline. Zero new policy-evaluation math in this file. Monitoring
+// only — no trade recommendations, no portfolio optimisation. ──────────
+
+export function buildPolicyMonitoringReport(dashboard: MonitoringComplianceDashboard): InstitutionalReport {
+  const {
+    complianceSummary,
+    allocationLimits,
+    sectorLimits,
+    assetLimits,
+    positionLimits,
+    strategyLimits,
+    greeksLimits,
+    buyingPowerLimits,
+    incomeStabilityLimits,
+    diversificationLimits,
+    complianceTimeline,
+    complianceTimelineNote,
+  } = dashboard;
+
+  const categorySection = (id: string, title: string, evaluations: PolicyEvaluation[]): ReportSection =>
+    section(
+      id,
+      title,
+      evaluations.length ? `${evaluations.length} policy(ies) configured for ${title}.` : `No policy configured for ${title} yet.`,
+      evaluations.map((e) => `${evaluationBullet(e)} [current ${e.currentValue ?? "unavailable"} vs. limit ${e.limitValue}${e.differenceValue != null ? `, difference ${e.differenceValue > 0 ? "+" : ""}${e.differenceValue}` : ""}]`),
+    );
+
+  const sections: ReportSection[] = [
+    section("compliance-summary", "Compliance Summary", complianceSummary.summary, [
+      `Total policies: ${complianceSummary.totalPolicies} (${complianceSummary.enabledPolicies} enabled)`,
+      `Overall status: ${complianceSummary.overallStatus}`,
+    ]),
+    categorySection("allocation-limits", "Allocation Limits", allocationLimits),
+    categorySection("sector-limits", "Sector Limits", sectorLimits),
+    categorySection("asset-limits", "Asset Limits", assetLimits),
+    categorySection("position-limits", "Position Limits", positionLimits),
+    categorySection("strategy-limits", "Strategy Limits", strategyLimits),
+    categorySection("greeks-limits", "Greeks Limits", greeksLimits),
+    categorySection("buying-power-limits", "Buying Power Limits", buyingPowerLimits),
+    categorySection("income-stability-limits", "Income Stability Limits", incomeStabilityLimits),
+    categorySection("diversification-limits", "Diversification Limits", diversificationLimits),
+    section(
+      "compliance-timeline",
+      "Compliance Timeline",
+      complianceTimeline.length ? `${complianceTimeline.length} real, historical data point(s). ${complianceTimelineNote}` : `No historical data points yet. ${complianceTimelineNote}`,
+      complianceTimeline.map((p) => `${p.date} [${p.source}]: ${p.detail}`),
+    ),
+  ];
+
+  return {
+    reportType: "policy-monitoring-report",
+    title: "Policy Monitoring Report",
+    subtitle: complianceSummary.summary,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
     dataSource: "MIXED",
     sections,
     disclaimer: REPORT_DISCLAIMER,

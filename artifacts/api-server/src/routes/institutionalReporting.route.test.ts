@@ -48,15 +48,16 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 26 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report; Phase 38 adds performance-summary and performance-attribution-report; Phase 39 adds scenario-analysis-report and stress-test-report; Phase 40 adds executive-decision-summary and institutional-health-report; Phase 41 adds portfolio-allocation-report and rebalancing-planning-report)", async () => {
+  it("GET /reporting/types returns all 28 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report; Phase 38 adds performance-summary and performance-attribution-report; Phase 39 adds scenario-analysis-report and stress-test-report; Phase 40 adds executive-decision-summary and institutional-health-report; Phase 41 adds portfolio-allocation-report and rebalancing-planning-report; Phase 42 adds compliance-report and policy-monitoring-report)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(26);
+    expect(body).toHaveLength(28);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
         "company-research",
+        "compliance-report",
         "executive-intelligence-summary",
         "executive-summary",
         "investment-committee",
@@ -64,6 +65,7 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "opportunity-discovery",
         "options-income-summary",
         "options-portfolio-review",
+        "policy-monitoring-report",
         "position-lifecycle-summary",
         "risk-exposure-summary",
         "portfolio-concentration-report",
@@ -472,5 +474,55 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
       body: JSON.stringify({}),
     });
     expect(res.status).toBe(400);
+  });
+
+  it("GET /reporting/compliance-report resolves the Compliance Report (Phase 42)", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/compliance-report`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("compliance-report");
+    expect(body.symbol).toBeNull();
+    expect(body.portfolioId).toBeNull();
+    expect(body.sections.map((s) => s.id)).toEqual(["compliance-summary", "policy-violations"]);
+  });
+
+  it("GET /reporting/policy-monitoring-report resolves the full Policy Monitoring Report (Phase 42)", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/policy-monitoring-report`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("policy-monitoring-report");
+    expect(body.symbol).toBeNull();
+    expect(body.portfolioId).toBeNull();
+    expect(body.sections.map((s) => s.id)).toEqual([
+      "compliance-summary",
+      "allocation-limits",
+      "sector-limits",
+      "asset-limits",
+      "position-limits",
+      "strategy-limits",
+      "greeks-limits",
+      "buying-power-limits",
+      "income-stability-limits",
+      "diversification-limits",
+      "compliance-timeline",
+    ]);
+  });
+
+  it("full compliance-report save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ reportType: "compliance-report" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("compliance-report");
+    expect(saved.report.reportType).toBe("compliance-report");
+
+    const listRes = await fetch(`${baseUrl}/api/reporting/reports`);
+    const list = (await listRes.json()) as { id: number; reportType: string }[];
+    expect(list.some((r) => r.id === saved.id && r.reportType === "compliance-report")).toBe(true);
+
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
   });
 });
