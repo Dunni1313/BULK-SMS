@@ -65,6 +65,8 @@ import {
   GetStressTestReportResponse,
   GetExecutiveDecisionSummaryReportResponse,
   GetInstitutionalHealthReportResponse,
+  GetPortfolioAllocationReportResponse,
+  GetRebalancingPlanningReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -115,6 +117,8 @@ import {
   buildStressTestReport,
   buildExecutiveDecisionSummaryReport,
   buildInstitutionalHealthReport,
+  buildPortfolioAllocationReport,
+  buildRebalancingPlanningReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -145,6 +149,7 @@ import { buildRiskExposureDashboard } from "../lib/riskExposureEngine.js";
 import { buildPerformanceDashboard } from "../lib/performanceAttribution.js";
 import { buildScenarioDashboard } from "../lib/scenarioEngine.js";
 import { buildDecisionSupportDashboard } from "../lib/decisionSupportEngine.js";
+import { buildRebalancingDashboard, buildProposedAllocationComparisonForPortfolio } from "../lib/rebalancingEngine.js";
 
 const router: IRouter = Router();
 
@@ -598,6 +603,40 @@ router.get("/reporting/institutional-health-report", async (req, res): Promise<v
   res.json(GetInstitutionalHealthReportResponse.parse(built));
 });
 
+// ─── Institutional Portfolio Rebalancing & Allocation Planning Engine
+// (Phase 41) — both reuse lib/rebalancingEngine.ts's own
+// buildRebalancingDashboard()/buildProposedAllocationComparisonForPortfolio()
+// exactly (the same functions GET /rebalancing/dashboard and
+// POST /rebalancing/portfolios/:id/propose themselves call), then reformat
+// the already-computed dashboard/comparison into the generic ReportSection
+// shape. Zero new allocation/drift/capital-movement math in this file.
+// Planning and analysis only — no trade recommendations, no automatic
+// rebalancing. The Rebalancing Planning Report defaults its "proposed"
+// comparison to each holding's own already-stored target weight (no
+// caller-supplied override) since this generic reporting flow carries no
+// custom-proposal input — the interactive Rebalancing Planner with
+// caller-supplied targets remains POST /rebalancing/portfolios/:id/propose. ──
+
+router.get("/reporting/portfolio-allocation-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildRebalancingDashboard(userId);
+  const built = buildPortfolioAllocationReport(dashboard);
+  res.json(GetPortfolioAllocationReportResponse.parse(built));
+});
+
+router.get("/reporting/rebalancing-planning-report/:portfolioId", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const resolved = await resolveOwnedPortfolio(req.params.portfolioId, userId);
+  if (!resolved) {
+    res.status(404).json({ error: "Portfolio not found" });
+    return;
+  }
+  const provider = await getFundamentalsProvider(userId);
+  const comparison = await buildProposedAllocationComparisonForPortfolio(resolved.portfolioId, resolved.holdingInputs, [], provider);
+  const built = buildRebalancingPlanningReport(comparison, resolved.name);
+  res.json(GetRebalancingPlanningReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -750,6 +789,18 @@ async function regenerate(
     case "institutional-health-report": {
       const dashboard = await buildDecisionSupportDashboard(userId);
       return buildInstitutionalHealthReport(dashboard);
+    }
+    case "portfolio-allocation-report": {
+      const dashboard = await buildRebalancingDashboard(userId);
+      return buildPortfolioAllocationReport(dashboard);
+    }
+    case "rebalancing-planning-report": {
+      if (portfolioId == null) return null;
+      const resolved = await resolveOwnedPortfolio(String(portfolioId), userId);
+      if (!resolved) return null;
+      const provider = await getFundamentalsProvider(userId);
+      const comparison = await buildProposedAllocationComparisonForPortfolio(resolved.portfolioId, resolved.holdingInputs, [], provider);
+      return buildRebalancingPlanningReport(comparison, resolved.name);
     }
     default:
       return null;

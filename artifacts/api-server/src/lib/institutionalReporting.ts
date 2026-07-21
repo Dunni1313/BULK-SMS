@@ -50,6 +50,8 @@ import type { RiskExposureDashboard } from "./riskExposureEngine.js";
 import type { PerformanceDashboard } from "./performanceAttribution.js";
 import { DEFAULT_SCENARIOS, type ScenarioDashboard } from "./scenarioEngine.js";
 import type { DecisionSupportDashboard } from "./decisionSupportEngine.js";
+import type { RebalancingDashboard, ProposedAllocationComparison } from "./rebalancingEngine.js";
+import { REBALANCE_DRIFT_THRESHOLD_PCT } from "./portfolioConstruction.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -75,7 +77,9 @@ export type InstitutionalReportType =
   | "scenario-analysis-report"
   | "stress-test-report"
   | "executive-decision-summary"
-  | "institutional-health-report";
+  | "institutional-health-report"
+  | "portfolio-allocation-report"
+  | "rebalancing-planning-report";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -102,6 +106,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "stress-test-report",
   "executive-decision-summary",
   "institutional-health-report",
+  "portfolio-allocation-report",
+  "rebalancing-planning-report",
 ];
 
 export interface ReportTypeMeta {
@@ -280,6 +286,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     description: "The calling user's own cross-engine health picture (Phase 40) — Portfolio Health Overview, Risk Summary, Diversification Summary, and the 11-dimension Executive Health scorecard, reused directly from the Risk & Exposure, Performance & Attribution, and Scenario & Stress Testing engines. Interpretation only — no AI predictions, no forecasting.",
     requiresSymbol: false,
     requiresPortfolio: false,
+  },
+  {
+    reportType: "portfolio-allocation-report",
+    label: "Portfolio Allocation Report",
+    description: "The calling user's own Rebalancing & Allocation Planning Engine (Phase 41) — Current vs. Target Allocation and Drift per Investing portfolio, plus cross-engine Sector/Asset/Strategy/Capital Allocation and the Allocation Timeline. Planning and analysis only — no trade recommendations, no automatic rebalancing.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "rebalancing-planning-report",
+    label: "Rebalancing Planning Report",
+    description: "The calling user's own Rebalancing Planner output for one Investing portfolio (Phase 41) — current allocation compared against a caller-supplied set of proposed target weights, including the dollar capital movement required to close each drift. Planning and analysis only — never a suggested trade or share count.",
+    requiresSymbol: false,
+    requiresPortfolio: true,
   },
 ];
 
@@ -1898,6 +1918,161 @@ export function buildInstitutionalHealthReport(dashboard: DecisionSupportDashboa
     symbol: null,
     portfolioId: null,
     generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 26. Portfolio Allocation Report (Phase 41) — reuses
+// lib/rebalancingEngine.ts's own buildRebalancingDashboard() output
+// directly (the same function GET /rebalancing/dashboard itself calls).
+// Zero new allocation/drift math in this file. Planning and analysis
+// only — no trade recommendations, no automatic rebalancing. ────────────
+
+export function buildPortfolioAllocationReport(dashboard: RebalancingDashboard): InstitutionalReport {
+  const { portfolios, crossEngineCapitalAllocation, crossEngineSectorAllocation, crossEngineStrategyAllocation, crossEngineAssetAllocation, allocationTimeline, targetAllocationAvailability } = dashboard;
+
+  const driftedCount = portfolios.reduce((s, p) => s + p.allocation.holdings.filter((h) => h.rebalanceAction === "buy" || h.rebalanceAction === "sell").length, 0);
+
+  const sections: ReportSection[] = [
+    section(
+      "current-vs-target-allocation",
+      "Current vs. Target Allocation",
+      dashboard.summary,
+      portfolios.map(
+        (p) =>
+          `${p.portfolioName}: ${p.allocation.holdings.length} holding(s)` +
+          (p.allocation.totalMarketValue != null ? `, market value $${p.allocation.totalMarketValue.toLocaleString()}` : ", market value unavailable") +
+          (p.allocation.targetWeightSumWarning ? ` — ${p.allocation.targetWeightSumWarning}` : ""),
+      ),
+    ),
+    section(
+      "allocation-drift",
+      "Allocation Drift",
+      driftedCount > 0
+        ? `${driftedCount} holding(s) across all portfolios have drifted more than ${REBALANCE_DRIFT_THRESHOLD_PCT}pp from their own stored target weight.`
+        : "No holding has drifted more than the threshold from its own stored target weight.",
+      portfolios.flatMap((p) =>
+        p.allocation.holdings
+          .filter((h) => h.rebalanceAction === "buy" || h.rebalanceAction === "sell")
+          .map(
+            (h) =>
+              `[${p.portfolioName}] ${h.symbol}: current ${h.actualWeightPct ?? "n/a"}% vs. target ${h.targetWeightPct}% (drift ${h.driftPct != null ? `${h.driftPct > 0 ? "+" : ""}${h.driftPct}pp` : "n/a"}, ${h.rebalanceAction})`,
+          ),
+      ),
+    ),
+    section(
+      "sector-allocation",
+      "Sector Allocation",
+      crossEngineSectorAllocation.length
+        ? `Sector exposure across ${crossEngineSectorAllocation.length} sector reading(s) across Investing and Options, reused directly from the Risk & Exposure Engine.`
+        : "No sector data available yet.",
+      crossEngineSectorAllocation.map((s) => `[${s.engine}] ${s.sector}: ${s.weightPct.toFixed(1)}%`),
+    ),
+    section(
+      "asset-allocation",
+      "Asset Allocation",
+      "Position/holding counts across all 3 engines, reused directly from the Risk & Exposure Engine.",
+      [
+        `Investing holdings: ${crossEngineAssetAllocation.investingHoldingsCount} across ${crossEngineAssetAllocation.investingPortfolioCount} portfolio(s)`,
+        `Trading open positions: ${crossEngineAssetAllocation.tradingOpenPositionsCount}`,
+        `Options open positions: ${crossEngineAssetAllocation.optionsOpenPositionsCount}`,
+      ],
+    ),
+    section(
+      "strategy-allocation",
+      "Strategy Allocation",
+      crossEngineStrategyAllocation.length
+        ? `Open options risk spread across ${crossEngineStrategyAllocation.length} strategy(ies), reused directly from the Risk & Exposure Engine.`
+        : "No open options positions to break down by strategy.",
+      crossEngineStrategyAllocation.map((s) => `${s.label ?? s.key}: ${s.positionCount} position(s) (${s.weightPct.toFixed(1)}%)`),
+    ),
+    section(
+      "capital-allocation",
+      "Capital Allocation",
+      "Real committed capital across all 3 engines, reused directly from the Risk & Exposure Engine.",
+      crossEngineCapitalAllocation.map((c) => `${c.label}: ${c.value != null ? `$${c.value.toLocaleString()}` : "unavailable"}`),
+    ),
+    section(
+      "allocation-timeline",
+      "Allocation Timeline",
+      allocationTimeline.length
+        ? `${allocationTimeline.length} real, historical data point(s), reused directly from the Risk & Exposure Engine's own Concentration Timeline.`
+        : "No historical allocation data points yet.",
+      allocationTimeline.map((p) => `${p.date} [${p.source}]: ${p.detail}`),
+    ),
+    section(
+      "target-allocation-availability",
+      "Target Allocation Availability",
+      "Honest disclosure of which engines have a genuine, stored target-weight concept to compare against — never approximated for an engine that has none.",
+      targetAllocationAvailability.map((t) => `${t.engine}: ${t.available ? "available" : "unavailable"} — ${t.reason}`),
+    ),
+  ];
+
+  return {
+    reportType: "portfolio-allocation-report",
+    title: "Portfolio Allocation Report",
+    subtitle: `${portfolios.length} Investing portfolio(s) · ${driftedCount} holding(s) drifted`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 27. Rebalancing Planning Report (Phase 41) — reuses
+// lib/rebalancingEngine.ts's own buildProposedAllocationComparison()
+// output directly (the same function POST
+// /rebalancing/portfolios/:id/propose itself calls). Zero new drift/
+// capital-movement math in this file. Planning and analysis only — never a
+// suggested trade or share count. ─────────────────────────────────────────
+
+export function buildRebalancingPlanningReport(comparison: ProposedAllocationComparison, portfolioName: string): InstitutionalReport {
+  const { current, proposed, rows, totalCapitalToDeployDollars, totalCapitalToRaiseDollars, summary } = comparison;
+
+  const movedCount = rows.filter((r) => r.rebalanceActionVsProposed === "buy" || r.rebalanceActionVsProposed === "sell").length;
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Executive Summary",
+      summary,
+      [
+        `Current market value: ${current.totalMarketValue != null ? `$${current.totalMarketValue.toLocaleString()}` : "unavailable"}`,
+        `Proposed market value: ${proposed.totalMarketValue != null ? `$${proposed.totalMarketValue.toLocaleString()}` : "unavailable"}`,
+      ],
+    ),
+    section(
+      "proposed-allocation-comparison",
+      "Proposed Allocation Comparison",
+      `${rows.length} holding(s) compared. ${movedCount} would drift more than ${REBALANCE_DRIFT_THRESHOLD_PCT}pp from the proposed target weights.`,
+      rows.map(
+        (r) =>
+          `${r.symbol}: current ${r.currentWeightPct ?? "n/a"}% → proposed target ${r.proposedTargetWeightPct}%` +
+          (r.storedTargetWeightPct !== r.proposedTargetWeightPct ? ` (stored target was ${r.storedTargetWeightPct}%)` : "") +
+          ` — drift ${r.driftFromProposedPct != null ? `${r.driftFromProposedPct > 0 ? "+" : ""}${r.driftFromProposedPct}pp` : "n/a"}, ${r.rebalanceActionVsProposed}`,
+      ),
+    ),
+    section(
+      "capital-movement-required",
+      "Capital Movement Required",
+      `Approximately $${(totalCapitalToDeployDollars ?? 0).toLocaleString()} would need to move in and $${(totalCapitalToRaiseDollars ?? 0).toLocaleString()} would need to move out to fully close every drift from the proposed target weights. Dollar figures only — never a suggested trade, share count, or order.`,
+      rows
+        .filter((r) => r.capitalMovementDollars != null && r.capitalMovementDollars !== 0)
+        .map((r) => `${r.symbol}: ${r.capitalMovementDollars! > 0 ? "+" : ""}$${r.capitalMovementDollars!.toLocaleString()}`),
+    ),
+  ];
+
+  return {
+    reportType: "rebalancing-planning-report",
+    title: `Rebalancing Planning Report — ${portfolioName}`,
+    subtitle: summary,
+    symbol: null,
+    portfolioId: comparison.portfolioId,
+    generatedAt: new Date().toISOString(),
     dataSource: "MIXED",
     sections,
     disclaimer: REPORT_DISCLAIMER,

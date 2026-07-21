@@ -34,4 +34,6 @@ export const SaveInstitutionalReportInputReportType = {
   'stress-test-report': 'stress-test-report',
   'executive-decision-summary': 'executive-decision-summary',
   'institutional-health-report': 'institutional-health-report',
+  'portfolio-allocation-report': 'portfolio-allocation-report',
+  'rebalancing-planning-report': 'rebalancing-planning-report',
 } as const;

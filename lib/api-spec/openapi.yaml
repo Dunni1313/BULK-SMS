@@ -86,6 +86,8 @@ tags:
     description: Institutional Scenario & Stress Testing Engine (Phase 39) — a deterministic dashboard evaluating hypothetical market moves (Market ±5%/±10%, Volatility Increase/Decrease, Interest Rate Increase/Decrease, custom percentage move) across Investing, Trading, and Options portfolios. Options scenarios reuse lib/portfolioStressTest.ts's own already-shipped What-If simulator verbatim for price/volatility shocks, plus a new interest-rate scenario supplying a shocked rate to optionsMath.ts's own already-exported bs() parameter. Investing/Trading use a linear equity repricing formula; volatility/rate scenarios are honestly unavailable for those two engines (no IV/Greeks formalism for a raw equity position). Analytical only — no AI predictions, no market forecasting, no price targets, no trade recommendations, no portfolio optimisation, no auto hedging, no auto execution, no Monte Carlo simulation, no random scenario generation.
   - name: decision-support-engine
     description: Institutional Decision Support & Executive Insights Engine (Phase 40) — a deterministic executive workspace consolidating Risk & Exposure (Phase 37), Performance & Attribution (Phase 38), Scenario & Stress Testing (Phase 39), and Portfolio Concentration into one Executive Summary, Portfolio Health Overview, Risk/Performance/Scenario/Capital Allocation/Exposure/Diversification Summary, deterministic Executive Alerts, Outstanding Issues, Key Metrics Dashboard, and an 11-dimension Executive Health scorecard. Every figure is reused directly from an existing, already-tested engine or a thin, named-threshold aggregation over them — Investing/Trading/Options figures are always kept side by side, never blended into a fabricated composite. Interpretation only — no AI predictions, no trade recommendations, no buy/sell signals, no portfolio optimisation, no auto execution, no auto hedging, no auto rebalancing, no market forecasting, no machine learning, no generative investment advice.
+  - name: rebalancing-engine
+    description: Institutional Portfolio Rebalancing & Allocation Planning Engine (Phase 41) — deterministic Current vs. Target Allocation and Allocation Drift per Investing portfolio (reused verbatim from Portfolio Construction, Phase 2 Sprint 28), cross-engine Sector/Asset/Strategy/Capital Allocation and an Allocation Timeline (reused verbatim from the Risk & Exposure Engine, Phase 37), and a Rebalancing Planner comparing current allocation against a caller-supplied set of proposed target weights, including the dollar capital movement required to close each drift. Planning and analysis only — no trade recommendations, no buy/sell signals, no automatic portfolio optimisation, no automatic rebalancing, no auto execution, no AI predictions, no forecasting, no machine learning, no broker integration changes. Trading/Options positions honestly carry no target-weight concept in this codebase and are never approximated.
 
 paths:
   /healthz:
@@ -4518,6 +4520,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  /reporting/portfolio-allocation-report:
+    get:
+      operationId: getPortfolioAllocationReport
+      tags: [reporting]
+      summary: Portfolio Allocation Report (Phase 41) — Current vs. Target Allocation and Drift per Investing portfolio, plus cross-engine Sector/Asset/Strategy/Capital Allocation and the Allocation Timeline, reused directly from the Institutional Rebalancing & Allocation Planning Engine. Planning and analysis only — no trade recommendations, no automatic rebalancing.
+      responses:
+        "200":
+          description: Portfolio Allocation Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/rebalancing-planning-report/{portfolioId}:
+    get:
+      operationId: getRebalancingPlanningReport
+      tags: [reporting]
+      summary: Rebalancing Planning Report (Phase 41) — current allocation for a selected Investing portfolio compared against its own stored target weights (via the Rebalancing Planner), including the dollar capital movement required to close each drift. Planning and analysis only — never a suggested trade or share count.
+      parameters:
+        - name: portfolioId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Rebalancing Planning Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+        "404":
+          description: Portfolio not found
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -5399,6 +5434,120 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DecisionSupportTopicLearning"
+        "404":
+          description: Unknown topic key
+
+  /rebalancing/dashboard:
+    get:
+      operationId: getRebalancingDashboard
+      tags: [rebalancing-engine]
+      summary: The calling user's own full Rebalancing & Allocation Planning dashboard — Current vs. Target Allocation and Drift per Investing portfolio, cross-engine Sector/Asset/Strategy/Capital Allocation, and an Allocation Timeline. Every figure is reused directly from Portfolio Construction and the Risk & Exposure Engine. Planning and analysis only — never a trade recommendation or forecast.
+      responses:
+        "200":
+          description: The Rebalancing dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RebalancingDashboard"
+
+  /rebalancing/portfolios/{id}/propose:
+    post:
+      operationId: proposeAllocation
+      tags: [rebalancing-engine]
+      summary: Compares an Investing portfolio's current allocation against a caller-supplied set of proposed target weights (the Rebalancing Planner) — the same deterministic drift engine used for stored targets, applied to a hypothetical "what if" target set. Never persists the proposed targets, never suggests a trade, never a share count to execute.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProposeAllocationInput"
+      responses:
+        "200":
+          description: The proposed allocation comparison
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RebalancingProposedAllocationComparison"
+        "400":
+          description: Invalid request body
+        "404":
+          description: Unknown portfolio id
+
+  /rebalancing/coach:
+    get:
+      operationId: listRebalancingCoachTopics
+      tags: [rebalancing-engine]
+      summary: All 5 deterministic AI Coach explanations (portfolio allocation, rebalancing concepts, diversification, capital efficiency, portfolio construction). Never a trade recommendation.
+      responses:
+        "200":
+          description: Every Rebalancing coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RebalancingCoachExplanation"
+
+  /rebalancing/coach/{topic}:
+    get:
+      operationId: getRebalancingCoachTopic
+      tags: [rebalancing-engine]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RebalancingCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /rebalancing/learning:
+    get:
+      operationId: listRebalancingLearning
+      tags: [rebalancing-engine]
+      summary: Every Rebalancing topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+      responses:
+        "200":
+          description: Every topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RebalancingTopicLearning"
+
+  /rebalancing/learning/{topic}:
+    get:
+      operationId: getRebalancingLearning
+      tags: [rebalancing-engine]
+      summary: One Rebalancing topic's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RebalancingTopicLearning"
         "404":
           description: Unknown topic key
 
@@ -16058,7 +16207,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -16070,7 +16219,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -16088,7 +16237,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -18329,3 +18478,144 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DecisionSupportLearningLink"
+
+    RebalancingPortfolioSummary:
+      type: object
+      required: [portfolioId, portfolioName, allocation]
+      properties:
+        portfolioId: { type: integer }
+        portfolioName: { type: string }
+        allocation:
+          $ref: "#/components/schemas/ConstructionPortfolioAllocationResult"
+
+    RebalancingTargetAllocationAvailability:
+      type: object
+      required: [engine, available, reason]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        available: { type: boolean }
+        reason: { type: string }
+
+    RebalancingDashboard:
+      type: object
+      required:
+        [
+          portfolios,
+          crossEngineCapitalAllocation,
+          crossEngineBuyingPowerOverview,
+          crossEngineSectorAllocation,
+          crossEngineStrategyAllocation,
+          crossEngineAssetAllocation,
+          allocationTimeline,
+          targetAllocationAvailability,
+          summary,
+          generatedAt,
+        ]
+      properties:
+        portfolios:
+          type: array
+          items: { $ref: "#/components/schemas/RebalancingPortfolioSummary" }
+        crossEngineCapitalAllocation:
+          type: array
+          items: { $ref: "#/components/schemas/RiskExposureCapitalAllocationEntry" }
+        crossEngineBuyingPowerOverview:
+          type: array
+          items: { $ref: "#/components/schemas/RiskExposureBuyingPowerEntry" }
+        crossEngineSectorAllocation:
+          type: array
+          items: { $ref: "#/components/schemas/RiskExposureSectorConcentrationEntry" }
+        crossEngineStrategyAllocation:
+          type: array
+          items: { $ref: "#/components/schemas/RiskExposureStrategyConcentrationEntry" }
+        crossEngineAssetAllocation:
+          $ref: "#/components/schemas/RiskExposureAssetAllocationSummary"
+        allocationTimeline:
+          type: array
+          items: { $ref: "#/components/schemas/RiskExposureConcentrationTimelinePoint" }
+        targetAllocationAvailability:
+          type: array
+          items: { $ref: "#/components/schemas/RebalancingTargetAllocationAvailability" }
+        summary: { type: string }
+        generatedAt: { type: string }
+
+    RebalancingProposedTargetInput:
+      type: object
+      required: [symbol, targetWeightPct]
+      properties:
+        symbol: { type: string }
+        targetWeightPct: { type: number }
+
+    ProposeAllocationInput:
+      type: object
+      required: [targets]
+      properties:
+        targets:
+          type: array
+          items: { $ref: "#/components/schemas/RebalancingProposedTargetInput" }
+
+    RebalancingAllocationComparisonRow:
+      type: object
+      required: [symbol, currentWeightPct, storedTargetWeightPct, proposedTargetWeightPct, driftFromProposedPct, capitalMovementDollars, rebalanceActionVsProposed]
+      properties:
+        symbol: { type: string }
+        currentWeightPct: { type: ["number", "null"] }
+        storedTargetWeightPct: { type: number }
+        proposedTargetWeightPct: { type: number }
+        driftFromProposedPct: { type: ["number", "null"] }
+        capitalMovementDollars: { type: ["number", "null"] }
+        rebalanceActionVsProposed:
+          type: string
+          enum: [buy, sell, hold, unknown]
+
+    RebalancingProposedAllocationComparison:
+      type: object
+      required: [portfolioId, current, proposed, rows, totalCapitalToDeployDollars, totalCapitalToRaiseDollars, summary]
+      properties:
+        portfolioId: { type: integer }
+        current:
+          $ref: "#/components/schemas/ConstructionPortfolioAllocationResult"
+        proposed:
+          $ref: "#/components/schemas/ConstructionPortfolioAllocationResult"
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/RebalancingAllocationComparisonRow" }
+        totalCapitalToDeployDollars: { type: ["number", "null"] }
+        totalCapitalToRaiseDollars: { type: ["number", "null"] }
+        summary: { type: string }
+
+    RebalancingCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum: [portfolio_allocation, rebalancing_concepts, diversification, capital_efficiency, portfolio_construction]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    RebalancingLearningLink:
+      type: object
+      required: [pathKey, topicKey, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    RebalancingTopicLearning:
+      type: object
+      required: [topic, links]
+      properties:
+        topic:
+          type: string
+          enum: [asset_allocation, portfolio_construction, diversification, capital_allocation, institutional_rebalancing, risk_management]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/RebalancingLearningLink"

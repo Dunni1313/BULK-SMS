@@ -194,10 +194,15 @@ import type {
   Position,
   PositionSizingInput,
   PositionSizingResult,
+  ProposeAllocationInput,
   QuizGradeResult,
   QuizInput,
   QuizProgress,
   RavishScore,
+  RebalancingCoachExplanation,
+  RebalancingDashboard,
+  RebalancingProposedAllocationComparison,
+  RebalancingTopicLearning,
   ReconciliationReportDetail,
   ReconciliationReportSummary,
   ReconciliationResult,
@@ -17019,6 +17024,160 @@ export function useGetInstitutionalHealthReport<TData = Awaited<ReturnType<typeo
 
 
 
+export const getGetPortfolioAllocationReportUrl = () => {
+
+
+
+
+  return `/api/reporting/portfolio-allocation-report`
+}
+
+/**
+ * @summary Portfolio Allocation Report (Phase 41) — Current vs. Target Allocation and Drift per Investing portfolio, plus cross-engine Sector/Asset/Strategy/Capital Allocation and the Allocation Timeline, reused directly from the Institutional Rebalancing & Allocation Planning Engine. Planning and analysis only — no trade recommendations, no automatic rebalancing.
+ */
+export const getPortfolioAllocationReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioAllocationReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioAllocationReportQueryKey = () => {
+    return [
+    `/api/reporting/portfolio-allocation-report`
+    ] as const;
+    }
+
+
+export const getGetPortfolioAllocationReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioAllocationReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioAllocationReport>>> = ({ signal }) => getPortfolioAllocationReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioAllocationReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioAllocationReport>>>
+export type GetPortfolioAllocationReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio Allocation Report (Phase 41) — Current vs. Target Allocation and Drift per Investing portfolio, plus cross-engine Sector/Asset/Strategy/Capital Allocation and the Allocation Timeline, reused directly from the Institutional Rebalancing & Allocation Planning Engine. Planning and analysis only — no trade recommendations, no automatic rebalancing.
+ */
+
+export function useGetPortfolioAllocationReport<TData = Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioAllocationReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRebalancingPlanningReportUrl = (portfolioId: number,) => {
+
+
+
+
+  return `/api/reporting/rebalancing-planning-report/${portfolioId}`
+}
+
+/**
+ * @summary Rebalancing Planning Report (Phase 41) — current allocation for a selected Investing portfolio compared against its own stored target weights (via the Rebalancing Planner), including the dollar capital movement required to close each drift. Planning and analysis only — never a suggested trade or share count.
+ */
+export const getRebalancingPlanningReport = async (portfolioId: number, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetRebalancingPlanningReportUrl(portfolioId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRebalancingPlanningReportQueryKey = (portfolioId: number,) => {
+    return [
+    `/api/reporting/rebalancing-planning-report/${portfolioId}`
+    ] as const;
+    }
+
+
+export const getGetRebalancingPlanningReportQueryOptions = <TData = Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError = ErrorType<void>>(portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRebalancingPlanningReportQueryKey(portfolioId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRebalancingPlanningReport>>> = ({ signal }) => getRebalancingPlanningReport(portfolioId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(portfolioId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRebalancingPlanningReportQueryResult = NonNullable<Awaited<ReturnType<typeof getRebalancingPlanningReport>>>
+export type GetRebalancingPlanningReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Rebalancing Planning Report (Phase 41) — current allocation for a selected Investing portfolio compared against its own stored target weights (via the Rebalancing Planner), including the dollar capital movement required to close each drift. Planning and analysis only — never a suggested trade or share count.
+ */
+
+export function useGetRebalancingPlanningReport<TData = Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError = ErrorType<void>>(
+ portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRebalancingPlanningReportQueryOptions(portfolioId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -20596,6 +20755,463 @@ export function useGetDecisionSupportLearning<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetDecisionSupportLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRebalancingDashboardUrl = () => {
+
+
+
+
+  return `/api/rebalancing/dashboard`
+}
+
+/**
+ * @summary The calling user's own full Rebalancing & Allocation Planning dashboard — Current vs. Target Allocation and Drift per Investing portfolio, cross-engine Sector/Asset/Strategy/Capital Allocation, and an Allocation Timeline. Every figure is reused directly from Portfolio Construction and the Risk & Exposure Engine. Planning and analysis only — never a trade recommendation or forecast.
+ */
+export const getRebalancingDashboard = async ( options?: RequestInit): Promise<RebalancingDashboard> => {
+
+  return customFetch<RebalancingDashboard>(getGetRebalancingDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRebalancingDashboardQueryKey = () => {
+    return [
+    `/api/rebalancing/dashboard`
+    ] as const;
+    }
+
+
+export const getGetRebalancingDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getRebalancingDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRebalancingDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRebalancingDashboard>>> = ({ signal }) => getRebalancingDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRebalancingDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRebalancingDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getRebalancingDashboard>>>
+export type GetRebalancingDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full Rebalancing & Allocation Planning dashboard — Current vs. Target Allocation and Drift per Investing portfolio, cross-engine Sector/Asset/Strategy/Capital Allocation, and an Allocation Timeline. Every figure is reused directly from Portfolio Construction and the Risk & Exposure Engine. Planning and analysis only — never a trade recommendation or forecast.
+ */
+
+export function useGetRebalancingDashboard<TData = Awaited<ReturnType<typeof getRebalancingDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRebalancingDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getProposeAllocationUrl = (id: number,) => {
+
+
+
+
+  return `/api/rebalancing/portfolios/${id}/propose`
+}
+
+/**
+ * @summary Compares an Investing portfolio's current allocation against a caller-supplied set of proposed target weights (the Rebalancing Planner) — the same deterministic drift engine used for stored targets, applied to a hypothetical "what if" target set. Never persists the proposed targets, never suggests a trade, never a share count to execute.
+ */
+export const proposeAllocation = async (id: number,
+    proposeAllocationInput: ProposeAllocationInput, options?: RequestInit): Promise<RebalancingProposedAllocationComparison> => {
+
+  return customFetch<RebalancingProposedAllocationComparison>(getProposeAllocationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      proposeAllocationInput,)
+  }
+);}
+
+
+
+
+export const getProposeAllocationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof proposeAllocation>>, TError,{id: number;data: BodyType<ProposeAllocationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof proposeAllocation>>, TError,{id: number;data: BodyType<ProposeAllocationInput>}, TContext> => {
+
+const mutationKey = ['proposeAllocation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof proposeAllocation>>, {id: number;data: BodyType<ProposeAllocationInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  proposeAllocation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProposeAllocationMutationResult = NonNullable<Awaited<ReturnType<typeof proposeAllocation>>>
+    export type ProposeAllocationMutationBody = BodyType<ProposeAllocationInput>
+    export type ProposeAllocationMutationError = ErrorType<void>
+
+    /**
+ * @summary Compares an Investing portfolio's current allocation against a caller-supplied set of proposed target weights (the Rebalancing Planner) — the same deterministic drift engine used for stored targets, applied to a hypothetical "what if" target set. Never persists the proposed targets, never suggests a trade, never a share count to execute.
+ */
+export const useProposeAllocation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof proposeAllocation>>, TError,{id: number;data: BodyType<ProposeAllocationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof proposeAllocation>>,
+        TError,
+        {id: number;data: BodyType<ProposeAllocationInput>},
+        TContext
+      > => {
+      return useMutation(getProposeAllocationMutationOptions(options));
+    }
+
+export const getListRebalancingCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/rebalancing/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio allocation, rebalancing concepts, diversification, capital efficiency, portfolio construction). Never a trade recommendation.
+ */
+export const listRebalancingCoachTopics = async ( options?: RequestInit): Promise<RebalancingCoachExplanation[]> => {
+
+  return customFetch<RebalancingCoachExplanation[]>(getListRebalancingCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRebalancingCoachTopicsQueryKey = () => {
+    return [
+    `/api/rebalancing/coach`
+    ] as const;
+    }
+
+
+export const getListRebalancingCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRebalancingCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRebalancingCoachTopics>>> = ({ signal }) => listRebalancingCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRebalancingCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listRebalancingCoachTopics>>>
+export type ListRebalancingCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio allocation, rebalancing concepts, diversification, capital efficiency, portfolio construction). Never a trade recommendation.
+ */
+
+export function useListRebalancingCoachTopics<TData = Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRebalancingCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRebalancingCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/rebalancing/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getRebalancingCoachTopic = async (topic: string, options?: RequestInit): Promise<RebalancingCoachExplanation> => {
+
+  return customFetch<RebalancingCoachExplanation>(getGetRebalancingCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRebalancingCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/rebalancing/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetRebalancingCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRebalancingCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRebalancingCoachTopic>>> = ({ signal }) => getRebalancingCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRebalancingCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getRebalancingCoachTopic>>>
+export type GetRebalancingCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetRebalancingCoachTopic<TData = Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRebalancingCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListRebalancingLearningUrl = () => {
+
+
+
+
+  return `/api/rebalancing/learning`
+}
+
+/**
+ * @summary Every Rebalancing topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listRebalancingLearning = async ( options?: RequestInit): Promise<RebalancingTopicLearning[]> => {
+
+  return customFetch<RebalancingTopicLearning[]>(getListRebalancingLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRebalancingLearningQueryKey = () => {
+    return [
+    `/api/rebalancing/learning`
+    ] as const;
+    }
+
+
+export const getListRebalancingLearningQueryOptions = <TData = Awaited<ReturnType<typeof listRebalancingLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRebalancingLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRebalancingLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRebalancingLearning>>> = ({ signal }) => listRebalancingLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRebalancingLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRebalancingLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listRebalancingLearning>>>
+export type ListRebalancingLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Rebalancing topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListRebalancingLearning<TData = Awaited<ReturnType<typeof listRebalancingLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRebalancingLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRebalancingLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRebalancingLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/rebalancing/learning/${topic}`
+}
+
+/**
+ * @summary One Rebalancing topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getRebalancingLearning = async (topic: string, options?: RequestInit): Promise<RebalancingTopicLearning> => {
+
+  return customFetch<RebalancingTopicLearning>(getGetRebalancingLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRebalancingLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/rebalancing/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetRebalancingLearningQueryOptions = <TData = Awaited<ReturnType<typeof getRebalancingLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRebalancingLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRebalancingLearning>>> = ({ signal }) => getRebalancingLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRebalancingLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRebalancingLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getRebalancingLearning>>>
+export type GetRebalancingLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Rebalancing topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetRebalancingLearning<TData = Awaited<ReturnType<typeof getRebalancingLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRebalancingLearningQueryOptions(topic,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

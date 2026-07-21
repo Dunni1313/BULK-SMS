@@ -8049,6 +8049,8 @@ export const ReportTypeMetaReportType = {
   'stress-test-report': 'stress-test-report',
   'executive-decision-summary': 'executive-decision-summary',
   'institutional-health-report': 'institutional-health-report',
+  'portfolio-allocation-report': 'portfolio-allocation-report',
+  'rebalancing-planning-report': 'rebalancing-planning-report',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8087,6 +8089,8 @@ export const InstitutionalReportReportType = {
   'stress-test-report': 'stress-test-report',
   'executive-decision-summary': 'executive-decision-summary',
   'institutional-health-report': 'institutional-health-report',
+  'portfolio-allocation-report': 'portfolio-allocation-report',
+  'rebalancing-planning-report': 'rebalancing-planning-report',
 } as const;
 
 export interface InstitutionalReport {
@@ -8129,6 +8133,8 @@ export const SaveInstitutionalReportInputReportType = {
   'stress-test-report': 'stress-test-report',
   'executive-decision-summary': 'executive-decision-summary',
   'institutional-health-report': 'institutional-health-report',
+  'portfolio-allocation-report': 'portfolio-allocation-report',
+  'rebalancing-planning-report': 'rebalancing-planning-report',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -10195,6 +10201,127 @@ export const DecisionSupportTopicLearningTopic = {
 export interface DecisionSupportTopicLearning {
   topic: DecisionSupportTopicLearningTopic;
   links: DecisionSupportLearningLink[];
+}
+
+export interface RebalancingPortfolioSummary {
+  portfolioId: number;
+  portfolioName: string;
+  allocation: ConstructionPortfolioAllocationResult;
+}
+
+export type RebalancingTargetAllocationAvailabilityEngine = typeof RebalancingTargetAllocationAvailabilityEngine[keyof typeof RebalancingTargetAllocationAvailabilityEngine];
+
+
+export const RebalancingTargetAllocationAvailabilityEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface RebalancingTargetAllocationAvailability {
+  engine: RebalancingTargetAllocationAvailabilityEngine;
+  available: boolean;
+  reason: string;
+}
+
+export interface RebalancingDashboard {
+  portfolios: RebalancingPortfolioSummary[];
+  crossEngineCapitalAllocation: RiskExposureCapitalAllocationEntry[];
+  crossEngineBuyingPowerOverview: RiskExposureBuyingPowerEntry[];
+  crossEngineSectorAllocation: RiskExposureSectorConcentrationEntry[];
+  crossEngineStrategyAllocation: RiskExposureStrategyConcentrationEntry[];
+  crossEngineAssetAllocation: RiskExposureAssetAllocationSummary;
+  allocationTimeline: RiskExposureConcentrationTimelinePoint[];
+  targetAllocationAvailability: RebalancingTargetAllocationAvailability[];
+  summary: string;
+  generatedAt: string;
+}
+
+export interface RebalancingProposedTargetInput {
+  symbol: string;
+  targetWeightPct: number;
+}
+
+export interface ProposeAllocationInput {
+  targets: RebalancingProposedTargetInput[];
+}
+
+export type RebalancingAllocationComparisonRowRebalanceActionVsProposed = typeof RebalancingAllocationComparisonRowRebalanceActionVsProposed[keyof typeof RebalancingAllocationComparisonRowRebalanceActionVsProposed];
+
+
+export const RebalancingAllocationComparisonRowRebalanceActionVsProposed = {
+  buy: 'buy',
+  sell: 'sell',
+  hold: 'hold',
+  unknown: 'unknown',
+} as const;
+
+export interface RebalancingAllocationComparisonRow {
+  symbol: string;
+  /** @nullable */
+  currentWeightPct: number | null;
+  storedTargetWeightPct: number;
+  proposedTargetWeightPct: number;
+  /** @nullable */
+  driftFromProposedPct: number | null;
+  /** @nullable */
+  capitalMovementDollars: number | null;
+  rebalanceActionVsProposed: RebalancingAllocationComparisonRowRebalanceActionVsProposed;
+}
+
+export interface RebalancingProposedAllocationComparison {
+  portfolioId: number;
+  current: ConstructionPortfolioAllocationResult;
+  proposed: ConstructionPortfolioAllocationResult;
+  rows: RebalancingAllocationComparisonRow[];
+  /** @nullable */
+  totalCapitalToDeployDollars: number | null;
+  /** @nullable */
+  totalCapitalToRaiseDollars: number | null;
+  summary: string;
+}
+
+export type RebalancingCoachExplanationTopic = typeof RebalancingCoachExplanationTopic[keyof typeof RebalancingCoachExplanationTopic];
+
+
+export const RebalancingCoachExplanationTopic = {
+  portfolio_allocation: 'portfolio_allocation',
+  rebalancing_concepts: 'rebalancing_concepts',
+  diversification: 'diversification',
+  capital_efficiency: 'capital_efficiency',
+  portfolio_construction: 'portfolio_construction',
+} as const;
+
+export interface RebalancingCoachExplanation {
+  topic: RebalancingCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface RebalancingLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type RebalancingTopicLearningTopic = typeof RebalancingTopicLearningTopic[keyof typeof RebalancingTopicLearningTopic];
+
+
+export const RebalancingTopicLearningTopic = {
+  asset_allocation: 'asset_allocation',
+  portfolio_construction: 'portfolio_construction',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+  institutional_rebalancing: 'institutional_rebalancing',
+  risk_management: 'risk_management',
+} as const;
+
+export interface RebalancingTopicLearning {
+  topic: RebalancingTopicLearningTopic;
+  links: RebalancingLearningLink[];
 }
 
 export type GetScannerResultsParams = {
