@@ -47,6 +47,7 @@ import type { OptionsIncomeDashboard } from "./optionsIncomeAnalytics.js";
 import type { OptionsPortfolioManagementView } from "./optionsPortfolioManagement.js";
 import type { LifecycleSummary } from "./optionsLifecycle.js";
 import type { RiskExposureDashboard } from "./riskExposureEngine.js";
+import type { PerformanceDashboard } from "./performanceAttribution.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -66,7 +67,9 @@ export type InstitutionalReportType =
   | "options-portfolio-review"
   | "position-lifecycle-summary"
   | "risk-exposure-summary"
-  | "portfolio-concentration-report";
+  | "portfolio-concentration-report"
+  | "performance-summary"
+  | "performance-attribution-report";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -87,6 +90,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "position-lifecycle-summary",
   "risk-exposure-summary",
   "portfolio-concentration-report",
+  "performance-summary",
+  "performance-attribution-report",
 ];
 
 export interface ReportTypeMeta {
@@ -221,6 +226,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "portfolio-concentration-report",
     label: "Portfolio Concentration Report",
     description: "The calling user's own cross-engine concentration picture (Phase 37) — sector concentration (Investing + Options), strategy concentration (Options), asset allocation across all 3 engines, and a real concentration timeline from saved Investing risk snapshots and the Options Exposure Timeline. Pure aggregation of already-computed concentration figures, never a diversification recommendation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "performance-summary",
+    label: "Performance Summary Report",
+    description: "The calling user's own Institutional Performance & Attribution Engine (Phase 38) — real Investing unrealized P&L, Trading and Options realized P&L, win rate, average win/loss, and the Combined cross-engine return-by-engine view. Pure aggregation of already-persisted, real trade/holding data, never a forecast or trade recommendation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "performance-attribution-report",
+    label: "Performance Attribution Report",
+    description: "The calling user's own cross-engine performance-attribution picture (Phase 38) — sector attribution (Investing), strategy attribution (Trading + Options), asset attribution across all 3 engines, risk-adjusted performance (trade-return-based Sharpe/Sortino), capital efficiency, and a real Historical Performance Timeline. Pure aggregation of already-computed attribution figures, never an optimisation recommendation.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -1421,6 +1440,152 @@ export function buildPortfolioConcentrationReport(dashboard: RiskExposureDashboa
     reportType: "portfolio-concentration-report",
     title: "Portfolio Concentration Report",
     subtitle: `${combined.assetAllocation.investingHoldingsCount + combined.assetAllocation.tradingOpenPositionsCount + combined.assetAllocation.optionsOpenPositionsCount} total position(s)/holding(s) across 3 engines`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 19. Performance Summary Report (Phase 38) — reuses
+// lib/performanceAttribution.ts's own buildPerformanceDashboard() exactly
+// (the same function GET /performance-attribution/dashboard itself calls),
+// then reformats the already-computed dashboard into the generic
+// ReportSection shape. Zero new performance calculation or aggregation
+// logic in this file, zero forecast, zero trade recommendation. ───────────
+
+function fmtPnl(v: number | null): string {
+  if (v == null) return "n/a";
+  return `${v >= 0 ? "+" : ""}$${v.toLocaleString()}`;
+}
+
+export function buildPerformanceSummaryReport(dashboard: PerformanceDashboard): InstitutionalReport {
+  const { investing, trading, options, combined } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "executive-summary",
+      "Executive Summary",
+      `Investing unrealized P&L: ${fmtPnl(investing.totalUnrealizedPnl)}. Trading realized P&L: ${fmtPnl(trading.totalRealizedPnl)} (win rate ${trading.winRate != null ? trading.winRate.toFixed(1) + "%" : "n/a"}). ` +
+        `Options realized P&L: ${fmtPnl(options.totalRealizedPnl)} (win rate ${options.winRate != null ? options.winRate.toFixed(1) + "%" : "n/a"}).`,
+      combined.byEngine.map((e) => `${e.label}: ${fmtPnl(e.totalPnl)} (${e.pnlLabel})`),
+    ),
+    section(
+      "investing-performance",
+      "Investing Performance",
+      investing.holdingsCount
+        ? `${investing.holdingsCount} holding(s) across ${investing.portfolioCount} portfolio(s). Unrealized P&L ${fmtPnl(investing.totalUnrealizedPnl)}${investing.totalUnrealizedPnlPct != null ? ` (${investing.totalUnrealizedPnlPct.toFixed(2)}%)` : ""}.`
+        : "No Investing holdings on record yet.",
+      investing.holdings.slice(0, 15).map((h) => `${h.symbol}: unrealized P&L ${fmtPnl(h.unrealizedPnl)}${h.unrealizedPnlPct != null ? ` (${h.unrealizedPnlPct.toFixed(2)}%)` : ""}`),
+    ),
+    section(
+      "trading-performance",
+      "Trading Performance",
+      trading.totalPositions
+        ? `${trading.totalPositions} position(s) (${trading.openPositionsCount} open, ${trading.closedPositionsCount} closed). Win rate ${trading.winRate != null ? trading.winRate.toFixed(1) + "%" : "n/a"}, average win ${fmtPnl(trading.averageWin)}, average loss ${fmtPnl(trading.averageLoss)}.`
+        : "No Trading positions on record yet.",
+      [`Total realized P&L: ${fmtPnl(trading.totalRealizedPnl)}`, `Largest winner: ${fmtPnl(trading.largestWinner)}`, `Largest loser: ${fmtPnl(trading.largestLoser)}`],
+    ),
+    section(
+      "options-performance",
+      "Options Performance",
+      options.openPositionsCount || options.closedPositionsCount
+        ? `${options.openPositionsCount} open, ${options.closedPositionsCount} closed. Win rate ${options.winRate != null ? options.winRate.toFixed(1) + "%" : "n/a"}, average win ${fmtPnl(options.averageWin)}, average loss ${fmtPnl(options.averageLoss)}.`
+        : "No Options positions on record yet.",
+      [`Total realized P&L: ${fmtPnl(options.totalRealizedPnl)}`, `Total realized premium (gross credit): $${options.income.totalRealizedPremium.toLocaleString()}`],
+    ),
+    section(
+      "capital-efficiency",
+      "Capital Efficiency",
+      "Real return relative to real capital committed, per engine — reused directly from each engine's own already-computed figure.",
+      combined.capitalEfficiency.map((c) => `${c.label}: ${c.returnPct != null ? c.returnPct.toFixed(2) + "%" : "unavailable"}`),
+    ),
+  ];
+
+  return {
+    reportType: "performance-summary",
+    title: "Performance Summary Report",
+    subtitle: `Investing ${fmtPnl(investing.totalUnrealizedPnl)} · Trading ${fmtPnl(trading.totalRealizedPnl)} · Options ${fmtPnl(options.totalRealizedPnl)}`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 20. Performance Attribution Report (Phase 38) — reuses the same
+// buildPerformanceDashboard() output's own already-computed sector/
+// strategy/asset attribution, risk-adjusted performance, and historical
+// timeline. Zero new attribution math in this file, zero optimisation
+// recommendation. ───────────────────────────────────────────────────────
+
+export function buildPerformanceAttributionReport(dashboard: PerformanceDashboard): InstitutionalReport {
+  const { investing, trading, options, combined, timeline } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "sector-attribution",
+      "Sector Attribution",
+      investing.sectorAttribution.length ? `Investing unrealized P&L attributed across ${investing.sectorAttribution.length} sector(s).` : "No Investing sector attribution available yet.",
+      investing.sectorAttribution.map((s) => `${s.label}: ${fmtPnl(s.pnl)} (${s.tradeCount} holding(s))`),
+    ),
+    section(
+      "strategy-attribution",
+      "Strategy Attribution",
+      combined.strategyAttribution.length
+        ? `Realized P&L attributed across ${combined.strategyAttribution.length} strategy reading(s) across Trading and Options.`
+        : "No strategy attribution available yet.",
+      combined.strategyAttribution.map((s) => `[${s.engine}] ${s.label}: ${fmtPnl(s.pnl)}`),
+    ),
+    section(
+      "asset-attribution",
+      "Asset Attribution",
+      combined.assetAttribution.length
+        ? `P&L attributed across ${combined.assetAttribution.length} asset reading(s) across all 3 engines.`
+        : "No asset attribution available yet.",
+      combined.assetAttribution.slice(0, 20).map((a) => `[${a.engine}] ${a.symbol}: ${fmtPnl(a.pnl)}`),
+    ),
+    section(
+      "income-attribution",
+      "Income Attribution",
+      options.incomeAttribution.length
+        ? `Options income allocated across ${options.incomeAttribution.length} strategy(ies) currently generating income.`
+        : "No open Options positions currently generating income.",
+      options.incomeAttribution.map((m) => `${m.strategyLabel ?? m.strategy}: ${m.positionCount} position(s), $${m.capitalAllocated.toLocaleString()} allocated`),
+    ),
+    section(
+      "risk-adjusted-performance",
+      "Risk-Adjusted Performance",
+      "Trade-return-based Sharpe/Sortino ratios, reused directly from each engine's own already-computed figure — never a time-series forecast.",
+      combined.riskAdjusted.map(
+        (r) =>
+          `${r.engine}: ${r.available ? `Sharpe ${r.sharpeRatio ?? "n/a"}, Sortino ${r.sortinoRatio ?? "n/a"}` : (r.engine === "investing" ? investing.riskAdjusted.reason : r.engine === "trading" ? trading.riskAdjusted.reason : options.riskAdjusted.reason) ?? "unavailable"}`,
+      ),
+    ),
+    section(
+      "capital-efficiency",
+      "Capital Efficiency",
+      "Real return relative to real capital committed, per engine.",
+      combined.capitalEfficiency.map((c) => `${c.label}: ${c.returnPct != null ? c.returnPct.toFixed(2) + "%" : "unavailable"}`),
+    ),
+    section(
+      "historical-performance-timeline",
+      "Historical Performance Timeline",
+      timeline.length
+        ? `${timeline.length} real, historical data point(s) from monthly realized P&L (Trading/Options) and saved Investing portfolio snapshots.`
+        : "No historical performance data points yet.",
+      timeline.map((p) => `${p.monthEnd} [${p.source}]: ${p.detail}`),
+    ),
+  ];
+
+  return {
+    reportType: "performance-attribution-report",
+    title: "Performance Attribution Report",
+    subtitle: `${combined.assetAttribution.length} asset attribution reading(s) across 3 engines`,
     symbol: null,
     portfolioId: null,
     generatedAt: dashboard.generatedAt,

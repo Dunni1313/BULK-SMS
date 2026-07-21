@@ -59,6 +59,8 @@ import {
   GetPositionLifecycleSummaryReportResponse,
   GetRiskExposureSummaryReportResponse,
   GetPortfolioConcentrationReportResponse,
+  GetPerformanceSummaryReportResponse,
+  GetPerformanceAttributionReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -103,6 +105,8 @@ import {
   buildPositionLifecycleSummaryReport,
   buildRiskExposureSummaryReport,
   buildPortfolioConcentrationReport,
+  buildPerformanceSummaryReport,
+  buildPerformanceAttributionReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -130,6 +134,7 @@ import { loadOptionsIncomeSummaryInputs } from "./optionsIncome.js";
 import { buildOptionsPortfolioManagementView } from "../lib/optionsPortfolioManagement.js";
 import { buildLifecycleSummary } from "../lib/optionsLifecycle.js";
 import { buildRiskExposureDashboard } from "../lib/riskExposureEngine.js";
+import { buildPerformanceDashboard } from "../lib/performanceAttribution.js";
 
 const router: IRouter = Router();
 
@@ -522,6 +527,27 @@ router.get("/reporting/portfolio-concentration-report", async (req, res): Promis
   res.json(GetPortfolioConcentrationReportResponse.parse(built));
 });
 
+// ─── Institutional Performance & Attribution Engine (Phase 38) ─────────────
+// Both reuse lib/performanceAttribution.ts's own buildPerformanceDashboard()
+// exactly (the same function GET /performance-attribution/dashboard itself
+// calls), then reformat the already-computed dashboard into the generic
+// ReportSection shape. Zero new performance/attribution calculation logic
+// in this file. ──────────────────────────────────────────────────────────
+
+router.get("/reporting/performance-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildPerformanceDashboard(userId);
+  const built = buildPerformanceSummaryReport(dashboard);
+  res.json(GetPerformanceSummaryReportResponse.parse(built));
+});
+
+router.get("/reporting/performance-attribution-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildPerformanceDashboard(userId);
+  const built = buildPerformanceAttributionReport(dashboard);
+  res.json(GetPerformanceAttributionReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -650,6 +676,14 @@ async function regenerate(
     case "portfolio-concentration-report": {
       const dashboard = await buildRiskExposureDashboard(userId);
       return buildPortfolioConcentrationReport(dashboard);
+    }
+    case "performance-summary": {
+      const dashboard = await buildPerformanceDashboard(userId);
+      return buildPerformanceSummaryReport(dashboard);
+    }
+    case "performance-attribution-report": {
+      const dashboard = await buildPerformanceDashboard(userId);
+      return buildPerformanceAttributionReport(dashboard);
     }
     default:
       return null;

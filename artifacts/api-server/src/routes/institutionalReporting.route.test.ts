@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 18 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report)", async () => {
+  it("GET /reporting/types returns all 20 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report; Phase 38 adds performance-summary and performance-attribution-report)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(18);
+    expect(body).toHaveLength(20);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -67,6 +67,8 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "position-lifecycle-summary",
         "risk-exposure-summary",
         "portfolio-concentration-report",
+        "performance-summary",
+        "performance-attribution-report",
         "portfolio-health",
         "portfolio-review",
         "strategy-framework-summary",

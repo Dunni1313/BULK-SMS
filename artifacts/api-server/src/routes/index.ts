@@ -65,6 +65,7 @@ import crossEngineWorkspaceRouter from "./crossEngineWorkspace";
 import optionsIncomeRouter from "./optionsIncome";
 import optionsLifecycleRouter from "./optionsLifecycle";
 import riskExposureRouter from "./riskExposure";
+import performanceAttributionRouter from "./performanceAttribution";
 
 const router: IRouter = Router();
 
@@ -134,5 +135,6 @@ router.use(crossEngineWorkspaceRouter);
 router.use(optionsIncomeRouter);
 router.use(optionsLifecycleRouter);
 router.use(riskExposureRouter);
+router.use(performanceAttributionRouter);
 
 export default router;
