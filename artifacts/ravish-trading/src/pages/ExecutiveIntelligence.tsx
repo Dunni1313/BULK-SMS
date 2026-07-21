@@ -47,6 +47,7 @@ import {
   Scale,
   ShieldCheck,
   Eye,
+  Workflow,
 } from "lucide-react";
 
 function KpiCard({ label, value, testId }: { label: string; value: string | number; testId: string }) {
@@ -177,6 +178,9 @@ export default function ExecutiveIntelligence() {
         </Link>
         <Link href="/watchlists-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-watchlists-engine">
           <Eye className="w-3 h-3" /> Open Watchlists & Opportunity Dashboard →
+        </Link>
+        <Link href="/portfolio-workspace" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-portfolio-workspace">
+          <Workflow className="w-3 h-3" /> Open Institutional Portfolio Workspace →
         </Link>
       </div>
 
