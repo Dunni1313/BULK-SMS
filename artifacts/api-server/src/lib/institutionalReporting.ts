@@ -46,6 +46,7 @@ import type { ExecutiveIntelligenceHub } from "./executiveIntelligence.js";
 import type { OptionsIncomeDashboard } from "./optionsIncomeAnalytics.js";
 import type { OptionsPortfolioManagementView } from "./optionsPortfolioManagement.js";
 import type { LifecycleSummary } from "./optionsLifecycle.js";
+import type { RiskExposureDashboard } from "./riskExposureEngine.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -63,7 +64,9 @@ export type InstitutionalReportType =
   | "executive-intelligence-summary"
   | "options-income-summary"
   | "options-portfolio-review"
-  | "position-lifecycle-summary";
+  | "position-lifecycle-summary"
+  | "risk-exposure-summary"
+  | "portfolio-concentration-report";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -82,6 +85,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "options-income-summary",
   "options-portfolio-review",
   "position-lifecycle-summary",
+  "risk-exposure-summary",
+  "portfolio-concentration-report",
 ];
 
 export interface ReportTypeMeta {
@@ -202,6 +207,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "position-lifecycle-summary",
     label: "Position Lifecycle Summary",
     description: "The calling user's own Position Lifecycle Manager (Phase 36) — every open and closed position tallied by its own real lifecycle stage (Draft/Planned/Open/Monitoring/Near Expiration/Assignment Risk/Closed/Archived) and how many positions are currently awaiting review. Pure tally of already-recorded, explicitly user-set lifecycle state, never an automated stage assessment.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "risk-exposure-summary",
+    label: "Risk & Exposure Summary",
+    description: "The calling user's own Institutional Risk & Exposure Intelligence Engine (Phase 37) — capital allocation, buying power, and Greeks summary across Investing, Trading, and Options, plus each engine's own overall risk read and the disclosed, non-fabricated cross-engine symbol overlap. Pure aggregation of already-computed per-engine risk analyses, never a hedging or rebalancing recommendation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "portfolio-concentration-report",
+    label: "Portfolio Concentration Report",
+    description: "The calling user's own cross-engine concentration picture (Phase 37) — sector concentration (Investing + Options), strategy concentration (Options), asset allocation across all 3 engines, and a real concentration timeline from saved Investing risk snapshots and the Options Exposure Timeline. Pure aggregation of already-computed concentration figures, never a diversification recommendation.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -1284,6 +1303,127 @@ export function buildPositionLifecycleSummaryReport(summary: LifecycleSummary): 
     symbol: null,
     portfolioId: null,
     generatedAt: new Date().toISOString(),
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 17. Risk & Exposure Summary (Phase 37) — reuses
+// lib/riskExposureEngine.ts's own buildRiskExposureDashboard() exactly (the
+// same function GET /risk-exposure/dashboard itself calls), then reformats
+// the already-computed dashboard into the generic ReportSection shape.
+// Zero new risk scoring, zero new aggregation logic, zero hedging or
+// rebalancing recommendation in this file. ─────────────────────────────────
+
+export function buildRiskExposureSummaryReport(dashboard: RiskExposureDashboard): InstitutionalReport {
+  const { investing, trading, options, combined } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "risk-overview",
+      "Risk Overview",
+      `Investing: ${investing.risk.overall.label}. Trading: ${trading.risk.overall.label}. Options: ${options.dashboard.overallRiskRating.label}.`,
+      [`Investing: ${investing.risk.overall.detail}`, `Trading: ${trading.risk.overall.detail}`, `Options: ${options.dashboard.healthScore.toFixed(0)}/100 health score (${options.dashboard.overallRiskRating.label})`],
+    ),
+    section(
+      "capital-allocation",
+      "Capital Allocation",
+      "Real committed capital across all 3 engines, reused directly from each engine's own risk view.",
+      combined.capitalAllocation.map((c) => `${c.label}: ${c.value != null ? `$${c.value.toLocaleString()}` : "unavailable"}`),
+    ),
+    section(
+      "buying-power-overview",
+      "Buying Power Overview",
+      "Capital genuinely still available to deploy in Trading and Options.",
+      combined.buyingPowerOverview.map((b) => `${b.label}: ${b.value != null ? `$${b.value.toLocaleString()}` : "unavailable"}`),
+    ),
+    section(
+      "greeks-summary",
+      "Greeks Summary",
+      "The Options Income Engine's own net portfolio Greeks, reused directly, unmodified, from the existing Portfolio Risk Dashboard.",
+      [
+        `Net delta: ${combined.greeksSummary.delta.toFixed(2)}`,
+        `Net gamma: ${combined.greeksSummary.gamma.toFixed(4)}`,
+        `Net theta: ${combined.greeksSummary.theta.toFixed(2)}`,
+        `Net vega: ${combined.greeksSummary.vega.toFixed(2)}`,
+      ],
+    ),
+    section(
+      "cross-engine-exposure",
+      "Cross-Engine Exposure (Correlation Overview)",
+      combined.correlationOverview.overlapSymbolCount
+        ? `${combined.correlationOverview.overlapSymbolCount} symbol(s) genuinely held in more than one engine at once.`
+        : "No symbol is currently held in more than one engine at once.",
+      [combined.correlationOverview.note, ...combined.correlationOverview.overlaps.map((o) => `${o.symbol}: ${o.engines.join(", ")}`)],
+    ),
+  ];
+
+  return {
+    reportType: "risk-exposure-summary",
+    title: "Risk & Exposure Summary",
+    subtitle: `Investing ${investing.risk.overall.label} · Trading ${trading.risk.overall.label} · Options ${options.dashboard.overallRiskRating.label}`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 18. Portfolio Concentration Report (Phase 37) — reuses the same
+// buildRiskExposureDashboard() output's own already-computed combined
+// concentration/allocation figures. Zero new concentration math in this
+// file, zero diversification recommendation. ────────────────────────────
+
+export function buildPortfolioConcentrationReport(dashboard: RiskExposureDashboard): InstitutionalReport {
+  const { combined } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "sector-concentration",
+      "Sector Concentration",
+      combined.sectorConcentration.length
+        ? `Risk spread across ${combined.sectorConcentration.length} sector reading(s) across Investing and Options.`
+        : "No sector data available across Investing or Options yet.",
+      combined.sectorConcentration.map((s) => `[${s.engine}] ${s.sector}: ${s.weightPct.toFixed(1)}%`),
+    ),
+    section(
+      "strategy-concentration",
+      "Strategy Concentration",
+      combined.strategyConcentration.length
+        ? `Open options risk spread across ${combined.strategyConcentration.length} strategy(ies).`
+        : "No open options positions to break down by strategy.",
+      combined.strategyConcentration.map((s) => `${s.label ?? s.key}: ${s.positionCount} position(s) (${s.weightPct.toFixed(1)}%)`),
+    ),
+    section(
+      "asset-allocation",
+      "Asset Allocation",
+      "Position/holding counts across all 3 engines.",
+      [
+        `Investing holdings: ${combined.assetAllocation.investingHoldingsCount} across ${combined.assetAllocation.investingPortfolioCount} portfolio(s)`,
+        `Trading open positions: ${combined.assetAllocation.tradingOpenPositionsCount}`,
+        `Options open positions: ${combined.assetAllocation.optionsOpenPositionsCount}`,
+      ],
+    ),
+    section(
+      "concentration-timeline",
+      "Concentration Timeline",
+      combined.concentrationTimeline.length
+        ? `${combined.concentrationTimeline.length} real, historical data point(s) from saved Investing risk snapshots and the Options Exposure Timeline.`
+        : "No historical concentration data points yet.",
+      combined.concentrationTimeline.map((p) => `${p.date} [${p.source}]: ${p.detail}`),
+    ),
+  ];
+
+  return {
+    reportType: "portfolio-concentration-report",
+    title: "Portfolio Concentration Report",
+    subtitle: `${combined.assetAllocation.investingHoldingsCount + combined.assetAllocation.tradingOpenPositionsCount + combined.assetAllocation.optionsOpenPositionsCount} total position(s)/holding(s) across 3 engines`,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
     dataSource: "MIXED",
     sections,
     disclaimer: REPORT_DISCLAIMER,

@@ -57,6 +57,8 @@ import {
   GetOptionsIncomeSummaryReportResponse,
   GetOptionsPortfolioReviewReportResponse,
   GetPositionLifecycleSummaryReportResponse,
+  GetRiskExposureSummaryReportResponse,
+  GetPortfolioConcentrationReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -99,6 +101,8 @@ import {
   buildOptionsIncomeSummaryReport,
   buildOptionsPortfolioReviewReport,
   buildPositionLifecycleSummaryReport,
+  buildRiskExposureSummaryReport,
+  buildPortfolioConcentrationReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -125,6 +129,7 @@ import { buildOptionsIncomeDashboard } from "../lib/optionsIncomeAnalytics.js";
 import { loadOptionsIncomeSummaryInputs } from "./optionsIncome.js";
 import { buildOptionsPortfolioManagementView } from "../lib/optionsPortfolioManagement.js";
 import { buildLifecycleSummary } from "../lib/optionsLifecycle.js";
+import { buildRiskExposureDashboard } from "../lib/riskExposureEngine.js";
 
 const router: IRouter = Router();
 
@@ -496,6 +501,27 @@ router.get("/reporting/position-lifecycle-summary", async (req, res): Promise<vo
   res.json(GetPositionLifecycleSummaryReportResponse.parse(built));
 });
 
+// ─── Institutional Risk & Exposure Intelligence Engine (Phase 37) ───────────
+// Both reuse lib/riskExposureEngine.ts's own buildRiskExposureDashboard()
+// exactly (the same function GET /risk-exposure/dashboard itself calls),
+// then reformat the already-computed dashboard into the generic
+// ReportSection shape. Zero new risk scoring or aggregation logic in this
+// file. ─────────────────────────────────────────────────────────────────────
+
+router.get("/reporting/risk-exposure-summary", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildRiskExposureDashboard(userId);
+  const built = buildRiskExposureSummaryReport(dashboard);
+  res.json(GetRiskExposureSummaryReportResponse.parse(built));
+});
+
+router.get("/reporting/portfolio-concentration-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildRiskExposureDashboard(userId);
+  const built = buildPortfolioConcentrationReport(dashboard);
+  res.json(GetPortfolioConcentrationReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -616,6 +642,14 @@ async function regenerate(
     case "position-lifecycle-summary": {
       const summary = await buildLifecycleSummary(userId);
       return buildPositionLifecycleSummaryReport(summary);
+    }
+    case "risk-exposure-summary": {
+      const dashboard = await buildRiskExposureDashboard(userId);
+      return buildRiskExposureSummaryReport(dashboard);
+    }
+    case "portfolio-concentration-report": {
+      const dashboard = await buildRiskExposureDashboard(userId);
+      return buildPortfolioConcentrationReport(dashboard);
     }
     default:
       return null;

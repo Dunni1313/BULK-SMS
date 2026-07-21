@@ -26,4 +26,6 @@ export const InstitutionalReportReportType = {
   'options-income-summary': 'options-income-summary',
   'options-portfolio-review': 'options-portfolio-review',
   'position-lifecycle-summary': 'position-lifecycle-summary',
+  'risk-exposure-summary': 'risk-exposure-summary',
+  'portfolio-concentration-report': 'portfolio-concentration-report',
 } as const;

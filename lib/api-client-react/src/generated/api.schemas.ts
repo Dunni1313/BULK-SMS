@@ -8041,6 +8041,8 @@ export const ReportTypeMetaReportType = {
   'options-income-summary': 'options-income-summary',
   'options-portfolio-review': 'options-portfolio-review',
   'position-lifecycle-summary': 'position-lifecycle-summary',
+  'risk-exposure-summary': 'risk-exposure-summary',
+  'portfolio-concentration-report': 'portfolio-concentration-report',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8071,6 +8073,8 @@ export const InstitutionalReportReportType = {
   'options-income-summary': 'options-income-summary',
   'options-portfolio-review': 'options-portfolio-review',
   'position-lifecycle-summary': 'position-lifecycle-summary',
+  'risk-exposure-summary': 'risk-exposure-summary',
+  'portfolio-concentration-report': 'portfolio-concentration-report',
 } as const;
 
 export interface InstitutionalReport {
@@ -8105,6 +8109,8 @@ export const SaveInstitutionalReportInputReportType = {
   'options-income-summary': 'options-income-summary',
   'options-portfolio-review': 'options-portfolio-review',
   'position-lifecycle-summary': 'position-lifecycle-summary',
+  'risk-exposure-summary': 'risk-exposure-summary',
+  'portfolio-concentration-report': 'portfolio-concentration-report',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -9085,6 +9091,208 @@ export interface OptionsPortfolioManagementView {
   exposureTimeline: OptionsExposureTimelinePoint[];
   lifecycleSummary: OptionsLifecycleSummary;
   generatedAt: string;
+}
+
+export interface RiskExposureSymbolAllocation {
+  symbol: string;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  weightPct: number | null;
+}
+
+export interface RiskExposureInvestingView {
+  portfolioCount: number;
+  holdingsCount: number;
+  risk: ConstructionPortfolioRiskAnalysis;
+  allocationBySymbol: RiskExposureSymbolAllocation[];
+}
+
+export interface RiskExposureTradingView {
+  openPositionsCount: number;
+  /** @nullable */
+  accountValue: number | null;
+  risk: TradingRiskAnalysis;
+}
+
+export interface RiskExposureOptionsView {
+  dashboard: PortfolioDashboardResult;
+  portfolioManagement: OptionsPortfolioManagementView;
+}
+
+export type RiskExposureCapitalAllocationEntryEngine = typeof RiskExposureCapitalAllocationEntryEngine[keyof typeof RiskExposureCapitalAllocationEntryEngine];
+
+
+export const RiskExposureCapitalAllocationEntryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface RiskExposureCapitalAllocationEntry {
+  engine: RiskExposureCapitalAllocationEntryEngine;
+  label: string;
+  /** @nullable */
+  value: number | null;
+}
+
+export type RiskExposureBuyingPowerEntryEngine = typeof RiskExposureBuyingPowerEntryEngine[keyof typeof RiskExposureBuyingPowerEntryEngine];
+
+
+export const RiskExposureBuyingPowerEntryEngine = {
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface RiskExposureBuyingPowerEntry {
+  engine: RiskExposureBuyingPowerEntryEngine;
+  label: string;
+  /** @nullable */
+  value: number | null;
+}
+
+export type RiskExposureSectorConcentrationEntryEngine = typeof RiskExposureSectorConcentrationEntryEngine[keyof typeof RiskExposureSectorConcentrationEntryEngine];
+
+
+export const RiskExposureSectorConcentrationEntryEngine = {
+  investing: 'investing',
+  options: 'options',
+} as const;
+
+export interface RiskExposureSectorConcentrationEntry {
+  engine: RiskExposureSectorConcentrationEntryEngine;
+  sector: string;
+  weightPct: number;
+}
+
+export interface RiskExposureStrategyConcentrationEntry {
+  key: string;
+  /** @nullable */
+  label: string | null;
+  positionCount: number;
+  weightPct: number;
+}
+
+export interface RiskExposureAssetAllocationSummary {
+  investingHoldingsCount: number;
+  investingPortfolioCount: number;
+  tradingOpenPositionsCount: number;
+  optionsOpenPositionsCount: number;
+}
+
+export type RiskExposureCrossEngineOverlapEntryEnginesItem = typeof RiskExposureCrossEngineOverlapEntryEnginesItem[keyof typeof RiskExposureCrossEngineOverlapEntryEnginesItem];
+
+
+export const RiskExposureCrossEngineOverlapEntryEnginesItem = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface RiskExposureCrossEngineOverlapEntry {
+  symbol: string;
+  engines: RiskExposureCrossEngineOverlapEntryEnginesItem[];
+}
+
+export interface RiskExposureCorrelationOverview {
+  overlaps: RiskExposureCrossEngineOverlapEntry[];
+  overlapSymbolCount: number;
+  note: string;
+}
+
+export type RiskExposureConcentrationTimelinePointSource = typeof RiskExposureConcentrationTimelinePointSource[keyof typeof RiskExposureConcentrationTimelinePointSource];
+
+
+export const RiskExposureConcentrationTimelinePointSource = {
+  'options-exposure': 'options-exposure',
+  'investing-risk-snapshot': 'investing-risk-snapshot',
+} as const;
+
+export interface RiskExposureConcentrationTimelinePoint {
+  date: string;
+  source: RiskExposureConcentrationTimelinePointSource;
+  detail: string;
+  /** @nullable */
+  value: number | null;
+}
+
+export interface RiskExposureCombinedView {
+  capitalAllocation: RiskExposureCapitalAllocationEntry[];
+  buyingPowerOverview: RiskExposureBuyingPowerEntry[];
+  sectorConcentration: RiskExposureSectorConcentrationEntry[];
+  strategyConcentration: RiskExposureStrategyConcentrationEntry[];
+  assetAllocation: RiskExposureAssetAllocationSummary;
+  greeksSummary: PortfolioGreeksSnapshot;
+  correlationOverview: RiskExposureCorrelationOverview;
+  concentrationTimeline: RiskExposureConcentrationTimelinePoint[];
+}
+
+export interface RiskExposureDashboard {
+  investing: RiskExposureInvestingView;
+  trading: RiskExposureTradingView;
+  options: RiskExposureOptionsView;
+  combined: RiskExposureCombinedView;
+  generatedAt: string;
+}
+
+export type RiskExposureCoachExplanationTopic = typeof RiskExposureCoachExplanationTopic[keyof typeof RiskExposureCoachExplanationTopic];
+
+
+export const RiskExposureCoachExplanationTopic = {
+  risk: 'risk',
+  exposure: 'exposure',
+  diversification: 'diversification',
+  concentration: 'concentration',
+  position_sizing: 'position_sizing',
+  capital_allocation: 'capital_allocation',
+  greeks: 'greeks',
+} as const;
+
+export interface RiskExposureCoachExplanation {
+  topic: RiskExposureCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export type RiskExposureLearningLinkCategory = typeof RiskExposureLearningLinkCategory[keyof typeof RiskExposureLearningLinkCategory];
+
+
+export const RiskExposureLearningLinkCategory = {
+  risk: 'risk',
+  exposure: 'exposure',
+  diversification: 'diversification',
+  concentration: 'concentration',
+  sizing: 'sizing',
+  capital: 'capital',
+  greeks: 'greeks',
+} as const;
+
+export interface RiskExposureLearningLink {
+  pathKey: string;
+  topicKey: string;
+  category: RiskExposureLearningLinkCategory;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type RiskExposureTopicLearningTopic = typeof RiskExposureTopicLearningTopic[keyof typeof RiskExposureTopicLearningTopic];
+
+
+export const RiskExposureTopicLearningTopic = {
+  risk: 'risk',
+  exposure: 'exposure',
+  diversification: 'diversification',
+  concentration: 'concentration',
+  position_sizing: 'position_sizing',
+  capital_allocation: 'capital_allocation',
+  greeks: 'greeks',
+} as const;
+
+export interface RiskExposureTopicLearning {
+  topic: RiskExposureTopicLearningTopic;
+  links: RiskExposureLearningLink[];
 }
 
 export type GetScannerResultsParams = {

@@ -78,6 +78,8 @@ tags:
     description: Institutional Position Lifecycle Manager (Phase 36) — deterministic lifecycle-stage tracking (Draft/Planned/Open/Monitoring/Near Expiration/Assignment Risk/Closed/Archived, no automatic transitions), an append-only event log backing the Position Timeline/Position History/Adjustment Journal/Assignment Tracker, per-position institutional checklists for the 9 Strategy Library strategies, a review-schedule assignment (Daily/Weekly/Monthly/Expiration/Manual, no reminders or notifications), and a portfolio management view (position concentration, strategy/sector allocation, expiration ladder, capital utilisation, buying power allocation, income allocation) reused directly from the existing Portfolio Risk Dashboard and Options Income Engine. Deterministic workflow tooling only — no live brokerage execution, no auto trading, no auto adjustments, no AI predictions, no direction forecasting, no position recommendations, no trade alerts, no automated rolling, no automated assignment handling.
   - name: broker
     description: Read-only Alpaca Paper Trading broker/account verification (account balances, open positions, open orders, connection health) — Paper Trading endpoint only, never places, modifies, or cancels an order
+  - name: risk-exposure
+    description: Institutional Risk & Exposure Intelligence Engine (Phase 37) — a deterministic cross-platform dashboard unifying Investing, Trading, and Options risk (per-engine views plus a Combined view — capital allocation, buying power, sector/strategy concentration, asset allocation, Greeks summary, a disclosed non-fabricated cross-engine symbol-overlap Correlation Overview, and a real Concentration Timeline from saved risk snapshots and Options exposure history). Every figure is reused directly from an existing, already-tested engine (lib/investingRisk.ts, lib/portfolioConstruction.ts, lib/tradingRisk.ts, lib/portfolioDashboard.ts, lib/optionsPortfolioManagement.ts) or a thin, pure aggregation over them. Analytics and visibility only — no live execution, no auto hedging, no auto rebalancing, no trade/position recommendations, no AI predictions, no probability forecasting, no AI-based risk scoring, no automated alerts.
 
 paths:
   /healthz:
@@ -4406,6 +4408,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/InstitutionalReport"
 
+  /reporting/risk-exposure-summary:
+    get:
+      operationId: getRiskExposureSummaryReport
+      tags: [reporting]
+      summary: Risk & Exposure Summary (Phase 37) — capital allocation, buying power, Greeks summary, and the disclosed cross-engine symbol overlap, reused directly from the Institutional Risk & Exposure Intelligence Engine
+      responses:
+        "200":
+          description: Risk & Exposure Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/portfolio-concentration-report:
+    get:
+      operationId: getPortfolioConcentrationReport
+      tags: [reporting]
+      summary: Portfolio Concentration Report (Phase 37) — sector/strategy concentration, asset allocation, and a real concentration timeline, reused directly from the Institutional Risk & Exposure Intelligence Engine
+      responses:
+        "200":
+          description: Portfolio Concentration Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
   /trading/workspace-notes:
     get:
       operationId: listTradingWorkspaceNotes
@@ -4940,6 +4968,92 @@ paths:
                 $ref: "#/components/schemas/OptionsPositionChecklist"
         "404":
           description: Position, checklist, or item not found
+
+  # ─── Institutional Risk & Exposure Intelligence Engine (Phase 37) ───────────
+  /risk-exposure/dashboard:
+    get:
+      operationId: getRiskExposureDashboard
+      tags: [risk-exposure]
+      summary: The calling user's own full cross-platform Risk & Exposure dashboard — Investing, Trading, Options, and a Combined cross-engine view. Every figure is reused directly from an existing engine or a pure aggregation over them. Analytics and visibility only.
+      responses:
+        "200":
+          description: The Risk & Exposure dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskExposureDashboard"
+
+  /risk-exposure/coach:
+    get:
+      operationId: listRiskExposureCoachTopics
+      tags: [risk-exposure]
+      summary: All 7 deterministic AI Coach explanations (risk, exposure, diversification, concentration, position sizing, capital allocation, Greeks). Never a trade or hedging recommendation.
+      responses:
+        "200":
+          description: Every Risk & Exposure coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RiskExposureCoachExplanation"
+
+  /risk-exposure/coach/{topic}:
+    get:
+      operationId: getRiskExposureCoachTopic
+      tags: [risk-exposure]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade or hedging recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskExposureCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /risk-exposure/learning:
+    get:
+      operationId: listRiskExposureLearning
+      tags: [risk-exposure]
+      summary: Every Risk & Exposure Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+      responses:
+        "200":
+          description: Every topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RiskExposureTopicLearning"
+
+  /risk-exposure/learning/{topic}:
+    get:
+      operationId: getRiskExposureLearning
+      tags: [risk-exposure]
+      summary: One Risk & Exposure Coach topic's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskExposureTopicLearning"
+        "404":
+          description: Unknown topic key
 
   # ─── Risk Management (Engine 2, Phase 3 Sprint 44) ──────────────────────────
   /trading/risk:
@@ -15597,7 +15711,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -15609,7 +15723,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -15627,7 +15741,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -16674,3 +16788,217 @@ components:
         lifecycleSummary:
           $ref: "#/components/schemas/OptionsLifecycleSummary"
         generatedAt: { type: string }
+
+    # ─── Institutional Risk & Exposure Intelligence Engine (Phase 37) ─────────
+    RiskExposureSymbolAllocation:
+      type: object
+      required: [symbol, marketValue, weightPct]
+      properties:
+        symbol: { type: string }
+        marketValue: { type: ["number", "null"] }
+        weightPct: { type: ["number", "null"] }
+
+    RiskExposureInvestingView:
+      type: object
+      required: [portfolioCount, holdingsCount, risk, allocationBySymbol]
+      properties:
+        portfolioCount: { type: integer }
+        holdingsCount: { type: integer }
+        risk:
+          $ref: "#/components/schemas/ConstructionPortfolioRiskAnalysis"
+        allocationBySymbol:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureSymbolAllocation"
+
+    RiskExposureTradingView:
+      type: object
+      required: [openPositionsCount, accountValue, risk]
+      properties:
+        openPositionsCount: { type: integer }
+        accountValue: { type: ["number", "null"] }
+        risk:
+          $ref: "#/components/schemas/TradingRiskAnalysis"
+
+    RiskExposureOptionsView:
+      type: object
+      required: [dashboard, portfolioManagement]
+      properties:
+        dashboard:
+          $ref: "#/components/schemas/PortfolioDashboardResult"
+        portfolioManagement:
+          $ref: "#/components/schemas/OptionsPortfolioManagementView"
+
+    RiskExposureCapitalAllocationEntry:
+      type: object
+      required: [engine, label, value]
+      properties:
+        engine:
+          type: string
+          enum: [investing, trading, options]
+        label: { type: string }
+        value: { type: ["number", "null"] }
+
+    RiskExposureBuyingPowerEntry:
+      type: object
+      required: [engine, label, value]
+      properties:
+        engine:
+          type: string
+          enum: [trading, options]
+        label: { type: string }
+        value: { type: ["number", "null"] }
+
+    RiskExposureSectorConcentrationEntry:
+      type: object
+      required: [engine, sector, weightPct]
+      properties:
+        engine:
+          type: string
+          enum: [investing, options]
+        sector: { type: string }
+        weightPct: { type: number }
+
+    RiskExposureStrategyConcentrationEntry:
+      type: object
+      required: [key, label, positionCount, weightPct]
+      properties:
+        key: { type: string }
+        label: { type: ["string", "null"] }
+        positionCount: { type: integer }
+        weightPct: { type: number }
+
+    RiskExposureAssetAllocationSummary:
+      type: object
+      required: [investingHoldingsCount, investingPortfolioCount, tradingOpenPositionsCount, optionsOpenPositionsCount]
+      properties:
+        investingHoldingsCount: { type: integer }
+        investingPortfolioCount: { type: integer }
+        tradingOpenPositionsCount: { type: integer }
+        optionsOpenPositionsCount: { type: integer }
+
+    RiskExposureCrossEngineOverlapEntry:
+      type: object
+      required: [symbol, engines]
+      properties:
+        symbol: { type: string }
+        engines:
+          type: array
+          items:
+            type: string
+            enum: [investing, trading, options]
+
+    RiskExposureCorrelationOverview:
+      type: object
+      required: [overlaps, overlapSymbolCount, note]
+      properties:
+        overlaps:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureCrossEngineOverlapEntry"
+        overlapSymbolCount: { type: integer }
+        note: { type: string }
+
+    RiskExposureConcentrationTimelinePoint:
+      type: object
+      required: [date, source, detail, value]
+      properties:
+        date: { type: string }
+        source:
+          type: string
+          enum: [options-exposure, investing-risk-snapshot]
+        detail: { type: string }
+        value: { type: ["number", "null"] }
+
+    RiskExposureCombinedView:
+      type: object
+      required:
+        [
+          capitalAllocation,
+          buyingPowerOverview,
+          sectorConcentration,
+          strategyConcentration,
+          assetAllocation,
+          greeksSummary,
+          correlationOverview,
+          concentrationTimeline,
+        ]
+      properties:
+        capitalAllocation:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureCapitalAllocationEntry"
+        buyingPowerOverview:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureBuyingPowerEntry"
+        sectorConcentration:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureSectorConcentrationEntry"
+        strategyConcentration:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureStrategyConcentrationEntry"
+        assetAllocation:
+          $ref: "#/components/schemas/RiskExposureAssetAllocationSummary"
+        greeksSummary:
+          $ref: "#/components/schemas/PortfolioGreeksSnapshot"
+        correlationOverview:
+          $ref: "#/components/schemas/RiskExposureCorrelationOverview"
+        concentrationTimeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureConcentrationTimelinePoint"
+
+    RiskExposureDashboard:
+      type: object
+      required: [investing, trading, options, combined, generatedAt]
+      properties:
+        investing:
+          $ref: "#/components/schemas/RiskExposureInvestingView"
+        trading:
+          $ref: "#/components/schemas/RiskExposureTradingView"
+        options:
+          $ref: "#/components/schemas/RiskExposureOptionsView"
+        combined:
+          $ref: "#/components/schemas/RiskExposureCombinedView"
+        generatedAt: { type: string }
+
+    RiskExposureCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum: [risk, exposure, diversification, concentration, position_sizing, capital_allocation, greeks]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    RiskExposureLearningLink:
+      type: object
+      required: [pathKey, topicKey, category, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        category:
+          type: string
+          enum: [risk, exposure, diversification, concentration, sizing, capital, greeks]
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    RiskExposureTopicLearning:
+      type: object
+      required: [topic, links]
+      properties:
+        topic:
+          type: string
+          enum: [risk, exposure, diversification, concentration, position_sizing, capital_allocation, greeks]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureLearningLink"

@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 16 report types (Phase 36 adds options-portfolio-review and position-lifecycle-summary)", async () => {
+  it("GET /reporting/types returns all 18 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(16);
+    expect(body).toHaveLength(18);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -65,6 +65,8 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "options-income-summary",
         "options-portfolio-review",
         "position-lifecycle-summary",
+        "risk-exposure-summary",
+        "portfolio-concentration-report",
         "portfolio-health",
         "portfolio-review",
         "strategy-framework-summary",
@@ -278,6 +280,52 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
     expect(saved.reportType).toBe("position-lifecycle-summary");
     expect(saved.report.reportType).toBe("position-lifecycle-summary");
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
+  });
+
+  it("GET /reporting/risk-exposure-summary (Phase 37) reuses the Risk & Exposure Intelligence Engine's own dashboard, reformatted into report sections, never a hedging or rebalancing recommendation", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/risk-exposure-summary`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("risk-exposure-summary");
+    expect(body.sections.map((s) => s.id)).toEqual(["risk-overview", "capital-allocation", "buying-power-overview", "greeks-summary", "cross-engine-exposure"]);
+    expect(body.disclaimer).toContain("no new investment recommendation");
+    const serialized = JSON.stringify(body).toLowerCase();
+    expect(serialized).not.toMatch(/"probability"|"prediction"|"forecast"|"recommendation"|"rebalanc|"hedg/);
+  });
+
+  it("full risk-exposure-summary save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: "risk-exposure-summary" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("risk-exposure-summary");
+    expect(saved.report.reportType).toBe("risk-exposure-summary");
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
+  });
+
+  it("GET /reporting/portfolio-concentration-report (Phase 37) reuses the same Risk & Exposure dashboard's own combined concentration figures, reformatted into report sections, never a diversification recommendation", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/portfolio-concentration-report`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("portfolio-concentration-report");
+    expect(body.sections.map((s) => s.id)).toEqual(["sector-concentration", "strategy-concentration", "asset-allocation", "concentration-timeline"]);
+    expect(body.disclaimer).toContain("no new investment recommendation");
+  });
+
+  it("full portfolio-concentration-report save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: "portfolio-concentration-report" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("portfolio-concentration-report");
+    expect(saved.report.reportType).toBe("portfolio-concentration-report");
     await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
   });
 

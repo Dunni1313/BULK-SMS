@@ -203,6 +203,9 @@ import type {
   ResearchNoteUpdate,
   RestoreReportsRequest,
   RestoreReportsResult,
+  RiskExposureCoachExplanation,
+  RiskExposureDashboard,
+  RiskExposureTopicLearning,
   RiskStatus,
   SaveInstitutionalReportInput,
   SavedInstitutionalReport,
@@ -16390,6 +16393,160 @@ export function useGetPositionLifecycleSummaryReport<TData = Awaited<ReturnType<
 
 
 
+export const getGetRiskExposureSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/risk-exposure-summary`
+}
+
+/**
+ * @summary Risk & Exposure Summary (Phase 37) — capital allocation, buying power, Greeks summary, and the disclosed cross-engine symbol overlap, reused directly from the Institutional Risk & Exposure Intelligence Engine
+ */
+export const getRiskExposureSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetRiskExposureSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRiskExposureSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/risk-exposure-summary`
+    ] as const;
+    }
+
+
+export const getGetRiskExposureSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRiskExposureSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>> = ({ signal }) => getRiskExposureSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRiskExposureSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>>
+export type GetRiskExposureSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Risk & Exposure Summary (Phase 37) — capital allocation, buying power, Greeks summary, and the disclosed cross-engine symbol overlap, reused directly from the Institutional Risk & Exposure Intelligence Engine
+ */
+
+export function useGetRiskExposureSummaryReport<TData = Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRiskExposureSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioConcentrationReportUrl = () => {
+
+
+
+
+  return `/api/reporting/portfolio-concentration-report`
+}
+
+/**
+ * @summary Portfolio Concentration Report (Phase 37) — sector/strategy concentration, asset allocation, and a real concentration timeline, reused directly from the Institutional Risk & Exposure Intelligence Engine
+ */
+export const getPortfolioConcentrationReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioConcentrationReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioConcentrationReportQueryKey = () => {
+    return [
+    `/api/reporting/portfolio-concentration-report`
+    ] as const;
+    }
+
+
+export const getGetPortfolioConcentrationReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioConcentrationReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>> = ({ signal }) => getPortfolioConcentrationReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioConcentrationReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>>
+export type GetPortfolioConcentrationReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio Concentration Report (Phase 37) — sector/strategy concentration, asset allocation, and a real concentration timeline, reused directly from the Institutional Risk & Exposure Intelligence Engine
+ */
+
+export function useGetPortfolioConcentrationReport<TData = Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioConcentrationReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingWorkspaceNotesUrl = () => {
 
 
@@ -18444,6 +18601,391 @@ export const useUpdateOptionsLifecycleChecklistItem = <TError = ErrorType<void>,
       > => {
       return useMutation(getUpdateOptionsLifecycleChecklistItemMutationOptions(options));
     }
+
+export const getGetRiskExposureDashboardUrl = () => {
+
+
+
+
+  return `/api/risk-exposure/dashboard`
+}
+
+/**
+ * @summary The calling user's own full cross-platform Risk & Exposure dashboard — Investing, Trading, Options, and a Combined cross-engine view. Every figure is reused directly from an existing engine or a pure aggregation over them. Analytics and visibility only.
+ */
+export const getRiskExposureDashboard = async ( options?: RequestInit): Promise<RiskExposureDashboard> => {
+
+  return customFetch<RiskExposureDashboard>(getGetRiskExposureDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRiskExposureDashboardQueryKey = () => {
+    return [
+    `/api/risk-exposure/dashboard`
+    ] as const;
+    }
+
+
+export const getGetRiskExposureDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRiskExposureDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRiskExposureDashboard>>> = ({ signal }) => getRiskExposureDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRiskExposureDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getRiskExposureDashboard>>>
+export type GetRiskExposureDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full cross-platform Risk & Exposure dashboard — Investing, Trading, Options, and a Combined cross-engine view. Every figure is reused directly from an existing engine or a pure aggregation over them. Analytics and visibility only.
+ */
+
+export function useGetRiskExposureDashboard<TData = Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRiskExposureDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListRiskExposureCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/risk-exposure/coach`
+}
+
+/**
+ * @summary All 7 deterministic AI Coach explanations (risk, exposure, diversification, concentration, position sizing, capital allocation, Greeks). Never a trade or hedging recommendation.
+ */
+export const listRiskExposureCoachTopics = async ( options?: RequestInit): Promise<RiskExposureCoachExplanation[]> => {
+
+  return customFetch<RiskExposureCoachExplanation[]>(getListRiskExposureCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRiskExposureCoachTopicsQueryKey = () => {
+    return [
+    `/api/risk-exposure/coach`
+    ] as const;
+    }
+
+
+export const getListRiskExposureCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRiskExposureCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>> = ({ signal }) => listRiskExposureCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRiskExposureCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>>
+export type ListRiskExposureCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 7 deterministic AI Coach explanations (risk, exposure, diversification, concentration, position sizing, capital allocation, Greeks). Never a trade or hedging recommendation.
+ */
+
+export function useListRiskExposureCoachTopics<TData = Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRiskExposureCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRiskExposureCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/risk-exposure/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade or hedging recommendation.
+ */
+export const getRiskExposureCoachTopic = async (topic: string, options?: RequestInit): Promise<RiskExposureCoachExplanation> => {
+
+  return customFetch<RiskExposureCoachExplanation>(getGetRiskExposureCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRiskExposureCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/risk-exposure/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetRiskExposureCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRiskExposureCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>> = ({ signal }) => getRiskExposureCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRiskExposureCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>>
+export type GetRiskExposureCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade or hedging recommendation.
+ */
+
+export function useGetRiskExposureCoachTopic<TData = Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRiskExposureCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListRiskExposureLearningUrl = () => {
+
+
+
+
+  return `/api/risk-exposure/learning`
+}
+
+/**
+ * @summary Every Risk & Exposure Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listRiskExposureLearning = async ( options?: RequestInit): Promise<RiskExposureTopicLearning[]> => {
+
+  return customFetch<RiskExposureTopicLearning[]>(getListRiskExposureLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRiskExposureLearningQueryKey = () => {
+    return [
+    `/api/risk-exposure/learning`
+    ] as const;
+    }
+
+
+export const getListRiskExposureLearningQueryOptions = <TData = Awaited<ReturnType<typeof listRiskExposureLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRiskExposureLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRiskExposureLearning>>> = ({ signal }) => listRiskExposureLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRiskExposureLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listRiskExposureLearning>>>
+export type ListRiskExposureLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Risk & Exposure Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListRiskExposureLearning<TData = Awaited<ReturnType<typeof listRiskExposureLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRiskExposureLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRiskExposureLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/risk-exposure/learning/${topic}`
+}
+
+/**
+ * @summary One Risk & Exposure Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getRiskExposureLearning = async (topic: string, options?: RequestInit): Promise<RiskExposureTopicLearning> => {
+
+  return customFetch<RiskExposureTopicLearning>(getGetRiskExposureLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRiskExposureLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/risk-exposure/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetRiskExposureLearningQueryOptions = <TData = Awaited<ReturnType<typeof getRiskExposureLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRiskExposureLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRiskExposureLearning>>> = ({ signal }) => getRiskExposureLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRiskExposureLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getRiskExposureLearning>>>
+export type GetRiskExposureLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Risk & Exposure Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetRiskExposureLearning<TData = Awaited<ReturnType<typeof getRiskExposureLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRiskExposureLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetTradingRiskUrl = () => {
 
