@@ -34,7 +34,7 @@
 
 import { db, investingMonitoringStatesTable, valueWatchlistTable, investingPortfoliosTable, investingHoldingsTable, investingSavedScreensTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
-import type { AlertCandidate, AlertSeverity } from "./notifications.js";
+import type { AlertCandidate, AlertSeverity } from "./alertTypes.js";
 import { resolveFundamentals, type FundamentalsProvider } from "./fundamentals.js";
 import { buildValueResearchReport } from "./valueReport.js";
 import { buildOpportunityRow, type OpportunityRow, scanOpportunities, applyScreenerFilters, rankOpportunities, type OpportunityScreenerFilters } from "./opportunityDiscovery.js";
