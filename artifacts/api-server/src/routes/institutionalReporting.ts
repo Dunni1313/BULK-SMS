@@ -69,6 +69,8 @@ import {
   GetRebalancingPlanningReportResponse,
   GetComplianceReportResponse,
   GetPolicyMonitoringReportResponse,
+  GetWatchlistSummaryReportResponse,
+  GetOpportunityDashboardReportResponse,
   SaveInstitutionalReportBody,
   SaveInstitutionalReportResponse,
   ListInstitutionalReportsResponse,
@@ -123,6 +125,8 @@ import {
   buildRebalancingPlanningReport,
   buildComplianceReport,
   buildPolicyMonitoringReport,
+  buildWatchlistSummaryReport,
+  buildOpportunityDashboardReport,
   type InstitutionalReport,
   type InstitutionalReportType,
   type WatchlistReportItem,
@@ -155,6 +159,7 @@ import { buildScenarioDashboard } from "../lib/scenarioEngine.js";
 import { buildDecisionSupportDashboard } from "../lib/decisionSupportEngine.js";
 import { buildRebalancingDashboard, buildProposedAllocationComparisonForPortfolio } from "../lib/rebalancingEngine.js";
 import { buildMonitoringComplianceDashboard } from "../lib/complianceEngine.js";
+import { buildWatchlistsDashboard } from "../lib/watchlistsEngine.js";
 
 const router: IRouter = Router();
 
@@ -663,6 +668,28 @@ router.get("/reporting/policy-monitoring-report", async (req, res): Promise<void
   res.json(GetPolicyMonitoringReportResponse.parse(built));
 });
 
+// ─── Institutional Watchlists & Opportunity Dashboard (Phase 43) — both
+// reuse lib/watchlistsEngine.ts's own buildWatchlistsDashboard() exactly
+// (the same function GET /investing/watchlists/dashboard itself calls),
+// then reformat the already-computed dashboard into the generic
+// ReportSection shape. Zero new scoring/aggregation math in this file.
+// Monitoring and organisation only — no trade recommendations, no
+// ranked/scored opportunity signal. ─────────────────────────────────────
+
+router.get("/reporting/watchlist-summary-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildWatchlistsDashboard(userId);
+  const built = buildWatchlistSummaryReport(dashboard);
+  res.json(GetWatchlistSummaryReportResponse.parse(built));
+});
+
+router.get("/reporting/opportunity-dashboard-report", async (req, res): Promise<void> => {
+  const userId = await getScopedUserId(req);
+  const dashboard = await buildWatchlistsDashboard(userId);
+  const built = buildOpportunityDashboardReport(dashboard);
+  res.json(GetOpportunityDashboardReportResponse.parse(built));
+});
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
 async function regenerate(
@@ -835,6 +862,14 @@ async function regenerate(
     case "policy-monitoring-report": {
       const dashboard = await buildMonitoringComplianceDashboard(userId);
       return buildPolicyMonitoringReport(dashboard);
+    }
+    case "watchlist-summary-report": {
+      const dashboard = await buildWatchlistsDashboard(userId);
+      return buildWatchlistSummaryReport(dashboard);
+    }
+    case "opportunity-dashboard-report": {
+      const dashboard = await buildWatchlistsDashboard(userId);
+      return buildOpportunityDashboardReport(dashboard);
     }
     default:
       return null;

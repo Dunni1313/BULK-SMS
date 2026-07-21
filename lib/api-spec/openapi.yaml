@@ -90,6 +90,8 @@ tags:
     description: Institutional Portfolio Rebalancing & Allocation Planning Engine (Phase 41) — deterministic Current vs. Target Allocation and Allocation Drift per Investing portfolio (reused verbatim from Portfolio Construction, Phase 2 Sprint 28), cross-engine Sector/Asset/Strategy/Capital Allocation and an Allocation Timeline (reused verbatim from the Risk & Exposure Engine, Phase 37), and a Rebalancing Planner comparing current allocation against a caller-supplied set of proposed target weights, including the dollar capital movement required to close each drift. Planning and analysis only — no trade recommendations, no buy/sell signals, no automatic portfolio optimisation, no automatic rebalancing, no auto execution, no AI predictions, no forecasting, no machine learning, no broker integration changes. Trading/Options positions honestly carry no target-weight concept in this codebase and are never approximated.
   - name: compliance-engine
     description: Institutional Portfolio Monitoring & Compliance Engine (Phase 42) — user-defined, editable policies (limits) evaluated against already-computed figures reused verbatim from the Risk & Exposure Engine (Phase 37), the Decision Support Engine's own Diversification Summary (Phase 40), and the Options Income Engine's own theta income (Phase 35). Every evaluation reports a current value, a policy limit, a difference, and a status (compliant/breach/unavailable — never fabricated). Monitoring only — no trade recommendations, no buy/sell signals, no portfolio optimisation, no auto rebalancing, no auto execution, no AI predictions, no forecasting, no machine learning, no broker integration changes.
+  - name: investing-watchlists
+    description: Institutional Watchlists & Opportunity Dashboard (Phase 43) — named, taggable, manually-orderable Personal and Institutional watchlists (a new, separate primitive from the existing flat value_watchlist table), with per-symbol analytics reused verbatim from the Risk & Exposure Engine (Phase 37), the Performance & Attribution Engine (Phase 38), the Scenario Engine (Phase 39), the Decision Support Engine's own Diversification Summary (Phase 40), and the Compliance Engine (Phase 42), plus a portfolio-wide Watchlist Health rollup and Cross-Engine Summary. Monitoring and organisation only — no trade recommendations, no buy/sell signals, no ranked/scored "opportunity" signal, no portfolio optimisation, no auto rebalancing, no auto execution, no auto watchlist generation, no AI predictions, no forecasting, no machine learning.
 
 paths:
   /healthz:
@@ -6287,6 +6289,351 @@ paths:
                   success: { type: boolean }
         "404":
           description: Report not found
+
+  # ─── Institutional Watchlists & Opportunity Dashboard (Phase 43) ───────────
+  /investing/watchlists:
+    get:
+      operationId: listInvestingWatchlists
+      tags: [investing-watchlists]
+      summary: The calling user's own watchlists (personal and institutional), manually ordered.
+      responses:
+        "200":
+          description: Every watchlist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvestingWatchlist"
+    post:
+      operationId: createInvestingWatchlist
+      tags: [investing-watchlists]
+      summary: Create a new watchlist. Nothing is ever auto-created — every list originates from an explicit user action.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvestingWatchlistInput"
+      responses:
+        "201":
+          description: The created watchlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestingWatchlist"
+        "400":
+          description: Invalid request body
+
+  /investing/watchlists/reorder:
+    post:
+      operationId: reorderInvestingWatchlists
+      tags: [investing-watchlists]
+      summary: Manually reorder the calling user's own watchlists.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistReorderInput"
+      responses:
+        "200":
+          description: Reordered
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+
+  /investing/watchlists/dashboard:
+    get:
+      operationId: getWatchlistsDashboard
+      tags: [investing-watchlists]
+      summary: The calling user's own full Watchlists & Opportunity Dashboard — every watchlist, every item's own per-symbol analytics (reused from the Risk & Exposure, Performance, Scenario, and Compliance engines), an Opportunity Overview across every distinct watched symbol, Watchlist Health, a Cross-Engine Summary, and a dashboard-level summary. Monitoring and organisation only — never a trade recommendation, buy/sell signal, or ranked opportunity score.
+      responses:
+        "200":
+          description: The Watchlists Dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistsDashboard"
+
+  /investing/watchlists/{id}:
+    get:
+      operationId: getInvestingWatchlist
+      tags: [investing-watchlists]
+      summary: One watchlist by id, with its own items.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: The watchlist and its items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestingWatchlistWithItems"
+        "404":
+          description: Watchlist not found
+    patch:
+      operationId: updateInvestingWatchlist
+      tags: [investing-watchlists]
+      summary: Rename, re-describe, re-label, archive/unarchive, or manually re-sort a watchlist.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInvestingWatchlistInput"
+      responses:
+        "200":
+          description: The updated watchlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestingWatchlist"
+        "400":
+          description: Invalid request body
+        "404":
+          description: Watchlist not found
+    delete:
+      operationId: deleteInvestingWatchlist
+      tags: [investing-watchlists]
+      summary: Delete a watchlist. Its own items are deleted with it (ON DELETE CASCADE) — a routine self-service cleanup of your own sub-resource.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+        "404":
+          description: Watchlist not found
+
+  /investing/watchlists/{id}/items:
+    post:
+      operationId: addInvestingWatchlistItem
+      tags: [investing-watchlists]
+      summary: Add a symbol to a watchlist, with an optional category/tags/notes.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvestingWatchlistItemInput"
+      responses:
+        "201":
+          description: The created item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestingWatchlistItemPlain"
+        "400":
+          description: Invalid request body, or the symbol is already on this watchlist
+        "404":
+          description: Watchlist not found
+
+  /investing/watchlists/{id}/items/reorder:
+    post:
+      operationId: reorderInvestingWatchlistItems
+      tags: [investing-watchlists]
+      summary: Manually reorder the symbols within a watchlist.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistReorderInput"
+      responses:
+        "200":
+          description: Reordered
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+
+  /investing/watchlists/{id}/items/{itemId}:
+    patch:
+      operationId: updateInvestingWatchlistItem
+      tags: [investing-watchlists]
+      summary: Update a watched symbol's own category/tags/notes/manual order.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: itemId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInvestingWatchlistItemInput"
+      responses:
+        "200":
+          description: The updated item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestingWatchlistItemPlain"
+        "400":
+          description: Invalid request body
+        "404":
+          description: Item not found
+    delete:
+      operationId: removeInvestingWatchlistItem
+      tags: [investing-watchlists]
+      summary: Remove a symbol from a watchlist.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: itemId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Removed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: { type: boolean }
+        "404":
+          description: Item not found
+
+  /investing/watchlists/coach:
+    get:
+      operationId: listWatchlistsCoachTopics
+      tags: [investing-watchlists]
+      summary: All 5 deterministic AI Coach explanations (watchlists, research workflow, institutional monitoring, portfolio organisation, asset tracking). Never a trade recommendation.
+      responses:
+        "200":
+          description: Every Watchlists coach explanation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WatchlistsCoachExplanation"
+
+  /investing/watchlists/coach/{topic}:
+    get:
+      operationId: getWatchlistsCoachTopic
+      tags: [investing-watchlists]
+      summary: One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: The coach explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistsCoachExplanation"
+        "404":
+          description: Unknown topic key
+
+  /investing/watchlists/learning:
+    get:
+      operationId: listWatchlistsLearning
+      tags: [investing-watchlists]
+      summary: Every Watchlists topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+      responses:
+        "200":
+          description: Every topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WatchlistsTopicLearning"
+
+  /investing/watchlists/learning/{topic}:
+    get:
+      operationId: getWatchlistsLearning
+      tags: [investing-watchlists]
+      summary: One Watchlists topic's own bundle of relevant EXISTING Learning Centre links.
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: The topic's own learning bundle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistsTopicLearning"
+        "404":
+          description: Unknown topic key
+
+  /reporting/watchlist-summary-report:
+    get:
+      operationId: getWatchlistSummaryReport
+      tags: [reporting]
+      summary: Watchlist Summary Report (Phase 43) — the Watchlists Dashboard's own summary/health/cross-engine view, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations.
+      responses:
+        "200":
+          description: Watchlist Summary Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
+
+  /reporting/opportunity-dashboard-report:
+    get:
+      operationId: getOpportunityDashboardReport
+      tags: [reporting]
+      summary: Opportunity Dashboard Report (Phase 43) — the full per-symbol Opportunity Overview across every watched symbol, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations, no ranked/scored opportunity signal.
+      responses:
+        "200":
+          description: Opportunity Dashboard Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstitutionalReport"
 
 components:
   schemas:
@@ -16439,7 +16786,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report]
         label: { type: string }
         description: { type: string }
         requiresSymbol: { type: boolean }
@@ -16451,7 +16798,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report]
         title: { type: string }
         subtitle: { type: string }
         symbol: { type: string, nullable: true }
@@ -16469,7 +16816,7 @@ components:
       properties:
         reportType:
           type: string
-          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report]
+          enum: [investment-committee, company-research, portfolio-review, portfolio-health, watchlist, opportunity-discovery, monitoring-summary, ai-coach-summary, executive-summary, trade-planning-summary, strategy-framework-summary, trading-analytics-summary, executive-intelligence-summary, options-income-summary, options-portfolio-review, position-lifecycle-summary, risk-exposure-summary, portfolio-concentration-report, performance-summary, performance-attribution-report, scenario-analysis-report, stress-test-report, executive-decision-summary, institutional-health-report, portfolio-allocation-report, rebalancing-planning-report, compliance-report, policy-monitoring-report, watchlist-summary-report, opportunity-dashboard-report]
         symbol: { type: string }
         portfolioId: { type: integer }
 
@@ -19072,3 +19419,389 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ComplianceLearningLink"
+
+    InvestingWatchlist:
+      type: object
+      required: [id, name, kind, description, archived, sortOrder, itemCount, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        kind: { type: string }
+        description: { type: string }
+        archived: { type: boolean }
+        sortOrder: { type: integer }
+        itemCount: { type: integer }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    CreateInvestingWatchlistInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        kind: { type: string }
+        description: { type: string }
+        archived: { type: boolean }
+        sortOrder: { type: integer }
+
+    UpdateInvestingWatchlistInput:
+      type: object
+      properties:
+        name: { type: string }
+        kind: { type: string }
+        description: { type: string }
+        archived: { type: boolean }
+        sortOrder: { type: integer }
+
+    InvestingWatchlistItemPlain:
+      type: object
+      required: [id, watchlistId, symbol, category, tags, notes, sortOrder, addedAt]
+      properties:
+        id: { type: integer }
+        watchlistId: { type: integer }
+        symbol: { type: string }
+        category: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        notes: { type: string }
+        sortOrder: { type: integer }
+        addedAt: { type: string }
+
+    CreateInvestingWatchlistItemInput:
+      type: object
+      required: [symbol]
+      properties:
+        symbol: { type: string }
+        category: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        notes: { type: string }
+        sortOrder: { type: integer }
+
+    UpdateInvestingWatchlistItemInput:
+      type: object
+      properties:
+        symbol: { type: string }
+        category: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        notes: { type: string }
+        sortOrder: { type: integer }
+
+    WatchlistReorderInput:
+      type: object
+      required: [orderedIds]
+      properties:
+        orderedIds:
+          type: array
+          items: { type: integer }
+
+    WatchlistInvestingAnalytics:
+      type: object
+      required: [marketValue, weightPct, unrealizedPnl, unrealizedPnlPct, sector]
+      properties:
+        marketValue: { type: ["number", "null"] }
+        weightPct: { type: ["number", "null"] }
+        unrealizedPnl: { type: ["number", "null"] }
+        unrealizedPnlPct: { type: ["number", "null"] }
+        sector: { type: ["string", "null"] }
+
+    WatchlistTradingAnalytics:
+      type: object
+      required: [openPositionsCount, closedPositionsCount, totalRealizedPnl]
+      properties:
+        openPositionsCount: { type: integer }
+        closedPositionsCount: { type: integer }
+        totalRealizedPnl: { type: ["number", "null"] }
+
+    WatchlistOptionsAnalytics:
+      type: object
+      required: [weightPct, openPositionsCount, totalCurrentPnl, netDelta, netTheta]
+      properties:
+        weightPct: { type: ["number", "null"] }
+        openPositionsCount: { type: integer }
+        totalCurrentPnl: { type: ["number", "null"] }
+        netDelta: { type: ["number", "null"] }
+        netTheta: { type: ["number", "null"] }
+
+    WatchlistComplianceAnalytics:
+      type: object
+      required: [status, policyLabel, detail]
+      properties:
+        status:
+          type: string
+          enum: [compliant, breach, unavailable]
+        policyLabel: { type: string }
+        detail: { type: string }
+
+    WatchlistSymbolAnalytics:
+      type: object
+      required:
+        [
+          symbol,
+          heldInInvesting,
+          heldInTrading,
+          heldInOptions,
+          investing,
+          trading,
+          options,
+          compliance,
+          scenarioWorstCaseImpactDollars,
+          scenarioWorstCaseLabel,
+        ]
+      properties:
+        symbol: { type: string }
+        heldInInvesting: { type: boolean }
+        heldInTrading: { type: boolean }
+        heldInOptions: { type: boolean }
+        investing:
+          oneOf:
+            - $ref: "#/components/schemas/WatchlistInvestingAnalytics"
+            - type: "null"
+        trading:
+          oneOf:
+            - $ref: "#/components/schemas/WatchlistTradingAnalytics"
+            - type: "null"
+        options:
+          oneOf:
+            - $ref: "#/components/schemas/WatchlistOptionsAnalytics"
+            - type: "null"
+        compliance:
+          oneOf:
+            - $ref: "#/components/schemas/WatchlistComplianceAnalytics"
+            - type: "null"
+        scenarioWorstCaseImpactDollars: { type: ["number", "null"] }
+        scenarioWorstCaseLabel: { type: ["string", "null"] }
+
+    InvestingWatchlistItem:
+      type: object
+      required: [id, watchlistId, symbol, category, tags, notes, sortOrder, addedAt, analytics]
+      properties:
+        id: { type: integer }
+        watchlistId: { type: integer }
+        symbol: { type: string }
+        category: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        notes: { type: string }
+        sortOrder: { type: integer }
+        addedAt: { type: string }
+        analytics:
+          $ref: "#/components/schemas/WatchlistSymbolAnalytics"
+
+    InvestingWatchlistWithItems:
+      type: object
+      required: [id, name, kind, description, archived, sortOrder, itemCount, createdAt, updatedAt, items]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        kind: { type: string }
+        description: { type: string }
+        archived: { type: boolean }
+        sortOrder: { type: integer }
+        itemCount: { type: integer }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvestingWatchlistItemPlain"
+
+    WatchlistHealthEntry:
+      type: object
+      required: [watchlistId, name, kind, itemCount, heldCount, notHeldCount, breachCount, totalMarketValue, totalUnrealizedPnl]
+      properties:
+        watchlistId: { type: integer }
+        name: { type: string }
+        kind: { type: string }
+        itemCount: { type: integer }
+        heldCount: { type: integer }
+        notHeldCount: { type: integer }
+        breachCount: { type: integer }
+        totalMarketValue: { type: ["number", "null"] }
+        totalUnrealizedPnl: { type: ["number", "null"] }
+
+    WatchlistComplianceSummaryCounts:
+      type: object
+      required: [totalPolicies, enabledPolicies, compliantCount, breachCount, unavailableCount]
+      properties:
+        totalPolicies: { type: integer }
+        enabledPolicies: { type: integer }
+        compliantCount: { type: integer }
+        breachCount: { type: integer }
+        unavailableCount: { type: integer }
+
+    WatchlistExecutiveHealth:
+      type: object
+      required: [healthScore, overallRiskRating]
+      properties:
+        healthScore: { type: number }
+        overallRiskRating:
+          type: object
+          required: [code, label]
+          properties:
+            code: { type: string }
+            label: { type: string }
+
+    WatchlistsCrossEngineSummary:
+      type: object
+      required: [capitalAllocation, investingDiversification, optionsDiversification, complianceSummary, executiveHealth]
+      properties:
+        capitalAllocation:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskExposureCapitalAllocationEntry"
+        investingDiversification:
+          $ref: "#/components/schemas/DecisionSupportEngineDiversification"
+        optionsDiversification:
+          $ref: "#/components/schemas/DecisionSupportEngineDiversification"
+        complianceSummary:
+          $ref: "#/components/schemas/WatchlistComplianceSummaryCounts"
+        executiveHealth:
+          $ref: "#/components/schemas/WatchlistExecutiveHealth"
+
+    WatchlistExposureHighlight:
+      type: object
+      required: [symbol, weightPct, engine]
+      properties:
+        symbol: { type: string }
+        weightPct: { type: number }
+        engine:
+          type: string
+          enum: [investing, options]
+
+    WatchlistAllocationHighlight:
+      type: object
+      required: [symbol, marketValue, engine]
+      properties:
+        symbol: { type: string }
+        marketValue: { type: number }
+        engine:
+          type: string
+          enum: [investing]
+
+    WatchlistRiskHighlight:
+      type: object
+      required: [symbol, detail]
+      properties:
+        symbol: { type: string }
+        detail: { type: string }
+
+    WatchlistsDashboardSummary:
+      type: object
+      required:
+        [
+          watchlistCount,
+          itemCount,
+          distinctSymbolCount,
+          heldSymbolCount,
+          highestRisk,
+          highestExposure,
+          highestAllocation,
+          policyBreaches,
+          scenarioImpact,
+          performanceSummary,
+          outstandingIssues,
+        ]
+      properties:
+        watchlistCount: { type: integer }
+        itemCount: { type: integer }
+        distinctSymbolCount: { type: integer }
+        heldSymbolCount: { type: integer }
+        highestRisk:
+          oneOf:
+            - $ref: "#/components/schemas/WatchlistRiskHighlight"
+            - type: "null"
+        highestExposure:
+          oneOf:
+            - $ref: "#/components/schemas/WatchlistExposureHighlight"
+            - type: "null"
+        highestAllocation:
+          oneOf:
+            - $ref: "#/components/schemas/WatchlistAllocationHighlight"
+            - type: "null"
+        policyBreaches:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompliancePolicyEvaluation"
+        scenarioImpact:
+          type: object
+          required: [worstCaseTotalImpactDollars, detail]
+          properties:
+            worstCaseTotalImpactDollars: { type: ["number", "null"] }
+            detail: { type: string }
+        performanceSummary:
+          type: object
+          required: [totalUnrealizedPnl, totalRealizedPnl, detail]
+          properties:
+            totalUnrealizedPnl: { type: ["number", "null"] }
+            totalRealizedPnl: { type: ["number", "null"] }
+            detail: { type: string }
+        outstandingIssues:
+          type: array
+          items: { type: string }
+
+    WatchlistsDashboard:
+      type: object
+      required: [watchlists, items, opportunityOverview, watchlistHealth, crossEngineSummary, dashboardSummary, generatedAt]
+      properties:
+        watchlists:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvestingWatchlist"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvestingWatchlistItem"
+        opportunityOverview:
+          type: array
+          items:
+            $ref: "#/components/schemas/WatchlistSymbolAnalytics"
+        watchlistHealth:
+          type: array
+          items:
+            $ref: "#/components/schemas/WatchlistHealthEntry"
+        crossEngineSummary:
+          $ref: "#/components/schemas/WatchlistsCrossEngineSummary"
+        dashboardSummary:
+          $ref: "#/components/schemas/WatchlistsDashboardSummary"
+        generatedAt: { type: string }
+
+    WatchlistsCoachExplanation:
+      type: object
+      required: [topic, title, explanation, disclaimer]
+      properties:
+        topic:
+          type: string
+          enum: [watchlists, research_workflow, institutional_monitoring, portfolio_organisation, asset_tracking]
+        title: { type: string }
+        explanation:
+          type: array
+          items: { type: string }
+        disclaimer: { type: string }
+
+    WatchlistsLearningLink:
+      type: object
+      required: [pathKey, topicKey, title, summary, href]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        href: { type: string }
+
+    WatchlistsTopicLearning:
+      type: object
+      required: [topic, links]
+      properties:
+        topic:
+          type: string
+          enum: [watchlists, portfolio_monitoring, asset_research, institutional_workflows, diversification, capital_allocation]
+        links:
+          type: array
+          items:
+            $ref: "#/components/schemas/WatchlistsLearningLink"

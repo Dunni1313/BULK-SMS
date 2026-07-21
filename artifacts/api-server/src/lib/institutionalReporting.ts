@@ -53,6 +53,7 @@ import type { DecisionSupportDashboard } from "./decisionSupportEngine.js";
 import type { RebalancingDashboard, ProposedAllocationComparison } from "./rebalancingEngine.js";
 import { REBALANCE_DRIFT_THRESHOLD_PCT } from "./portfolioConstruction.js";
 import type { MonitoringComplianceDashboard, PolicyEvaluation } from "./complianceEngine.js";
+import type { WatchlistsDashboard, SymbolAnalytics } from "./watchlistsEngine.js";
 
 export type InstitutionalReportType =
   | "investment-committee"
@@ -82,7 +83,9 @@ export type InstitutionalReportType =
   | "portfolio-allocation-report"
   | "rebalancing-planning-report"
   | "compliance-report"
-  | "policy-monitoring-report";
+  | "policy-monitoring-report"
+  | "watchlist-summary-report"
+  | "opportunity-dashboard-report";
 
 export const REPORT_TYPES: InstitutionalReportType[] = [
   "investment-committee",
@@ -113,6 +116,8 @@ export const REPORT_TYPES: InstitutionalReportType[] = [
   "rebalancing-planning-report",
   "compliance-report",
   "policy-monitoring-report",
+  "watchlist-summary-report",
+  "opportunity-dashboard-report",
 ];
 
 export interface ReportTypeMeta {
@@ -317,6 +322,20 @@ export const REPORT_TYPE_META: ReportTypeMeta[] = [
     reportType: "policy-monitoring-report",
     label: "Policy Monitoring Report",
     description: "The calling user's own full Policy Monitoring detail (Phase 42) — every configured policy grouped by category (Allocation, Sector, Asset, Position, Strategy, Greeks, Buying Power, Income Stability, Diversification) with its current value, limit, difference, and status, plus the Compliance Timeline. Monitoring only — no trade recommendations, no portfolio optimisation.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "watchlist-summary-report",
+    label: "Watchlist Summary Report",
+    description: "The calling user's own Institutional Watchlists & Opportunity Dashboard (Phase 43) — every watchlist's own Watchlist Health, the Cross-Engine Summary, and the dashboard-level summary (Highest Risk, Highest Exposure, Highest Allocation, Policy Breaches, Scenario Impact, Performance Summary, Outstanding Issues). Distinct from the existing Watchlist Report, which covers the separate, single flat price/margin-of-safety watchlist. Monitoring and organisation only — no trade recommendations, no ranked/scored opportunity signal.",
+    requiresSymbol: false,
+    requiresPortfolio: false,
+  },
+  {
+    reportType: "opportunity-dashboard-report",
+    label: "Opportunity Dashboard Report",
+    description: "The calling user's own full per-symbol Opportunity Overview (Phase 43) — every distinct watched symbol's own allocation, performance, Greeks (where applicable), scenario impact, and compliance status, reused directly from the Risk & Exposure, Performance, Scenario, and Compliance engines. Distinct from the existing Opportunity Discovery Report, which is a universe-wide screening scan, not scoped to your own watchlists. Monitoring only — no trade recommendations, no ranked/scored opportunity signal.",
     requiresSymbol: false,
     requiresPortfolio: false,
   },
@@ -2205,6 +2224,128 @@ export function buildPolicyMonitoringReport(dashboard: MonitoringComplianceDashb
     reportType: "policy-monitoring-report",
     title: "Policy Monitoring Report",
     subtitle: complianceSummary.summary,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 30. Watchlist Summary Report (Phase 43) — reuses
+// lib/watchlistsEngine.ts's own buildWatchlistsDashboard() output directly
+// (the same function GET /investing/watchlists/dashboard itself calls).
+// Zero new scoring/aggregation math in this file — executive-summary
+// level only, the dashboard-level rollup (Watchlist Health per list, the
+// Cross-Engine Summary, and the dashboard-level Highest Risk/Exposure/
+// Allocation/Policy Breaches/Scenario Impact/Performance Summary/
+// Outstanding Issues), never the full per-symbol detail (that is the
+// Opportunity Dashboard Report's own job, below). Distinct from the
+// existing "watchlist" report type, which covers the separate, single
+// flat price/margin-of-safety value_watchlist system. Monitoring and
+// organisation only — no trade recommendations, no ranked/scored
+// opportunity signal. ─────────────────────────────────────────────────────
+
+export function buildWatchlistSummaryReport(dashboard: WatchlistsDashboard): InstitutionalReport {
+  const { watchlists, watchlistHealth, crossEngineSummary, dashboardSummary } = dashboard;
+
+  const sections: ReportSection[] = [
+    section(
+      "watchlist-overview",
+      "Watchlist Overview",
+      watchlists.length ? `${watchlists.length} watchlist(s), ${dashboardSummary.itemCount} watched symbol(s) (${dashboardSummary.distinctSymbolCount} distinct), ${dashboardSummary.heldSymbolCount} currently held somewhere.` : "No watchlists have been created yet.",
+      watchlists.map((w) => `${w.name} [${w.kind}]${w.archived ? " (archived)" : ""}: ${w.itemCount} symbol(s).`),
+    ),
+    section(
+      "watchlist-health",
+      "Watchlist Health",
+      watchlistHealth.length ? `${watchlistHealth.length} watchlist(s) evaluated.` : "No watchlists to evaluate yet.",
+      watchlistHealth.map(
+        (h) =>
+          `${h.name} [${h.kind}]: ${h.heldCount}/${h.itemCount} held, ${h.breachCount} breach(es)${h.totalMarketValue != null ? `, $${h.totalMarketValue.toLocaleString()} total market value` : ""}${h.totalUnrealizedPnl != null ? `, $${h.totalUnrealizedPnl.toLocaleString()} total unrealized P&L` : ""}.`,
+      ),
+    ),
+    section(
+      "cross-engine-summary",
+      "Cross-Engine Summary",
+      `Executive Health: ${crossEngineSummary.executiveHealth.healthScore}/100 (${crossEngineSummary.executiveHealth.overallRiskRating.label}). Compliance: ${crossEngineSummary.complianceSummary.compliantCount} compliant, ${crossEngineSummary.complianceSummary.breachCount} breach(es).`,
+      [
+        ...crossEngineSummary.capitalAllocation.map((c) => `${c.label}: ${c.value != null ? `$${c.value.toLocaleString()}` : "unavailable"}`),
+        `Investing diversification: ${crossEngineSummary.investingDiversification.available ? `${crossEngineSummary.investingDiversification.score}/100` : "unavailable"} — ${crossEngineSummary.investingDiversification.detail}`,
+        `Options diversification: ${crossEngineSummary.optionsDiversification.available ? `${crossEngineSummary.optionsDiversification.score}/100` : "unavailable"} — ${crossEngineSummary.optionsDiversification.detail}`,
+      ],
+    ),
+    section(
+      "watchlist-dashboard-summary",
+      "Dashboard Summary",
+      `${dashboardSummary.policyBreaches.length} enabled compliance policy(ies) currently in breach across watched symbols.`,
+      [
+        dashboardSummary.highestRisk ? `Highest Risk: ${dashboardSummary.highestRisk.symbol} — ${dashboardSummary.highestRisk.detail}` : "Highest Risk: unavailable (no watched symbol carries a resolvable scenario impact).",
+        dashboardSummary.highestExposure ? `Highest Exposure: ${dashboardSummary.highestExposure.symbol} at ${dashboardSummary.highestExposure.weightPct}% (${dashboardSummary.highestExposure.engine}).` : "Highest Exposure: unavailable.",
+        dashboardSummary.highestAllocation ? `Highest Allocation: ${dashboardSummary.highestAllocation.symbol} at $${dashboardSummary.highestAllocation.marketValue.toLocaleString()} (${dashboardSummary.highestAllocation.engine}).` : "Highest Allocation: unavailable.",
+        dashboardSummary.scenarioImpact.detail,
+        dashboardSummary.performanceSummary.detail,
+        ...dashboardSummary.outstandingIssues,
+      ],
+    ),
+  ];
+
+  return {
+    reportType: "watchlist-summary-report",
+    title: "Watchlist Summary Report",
+    subtitle: dashboardSummary.performanceSummary.detail,
+    symbol: null,
+    portfolioId: null,
+    generatedAt: dashboard.generatedAt,
+    dataSource: "MIXED",
+    sections,
+    disclaimer: REPORT_DISCLAIMER,
+  };
+}
+
+// ─── 31. Opportunity Dashboard Report (Phase 43) — reuses the same
+// WatchlistsDashboard's own opportunityOverview array directly. Zero new
+// scoring/aggregation math in this file — the full per-symbol detail
+// (allocation, performance, Greeks where applicable, scenario impact,
+// compliance status) for every distinct watched symbol. Distinct from the
+// existing "opportunity-discovery" report type, which is a universe-wide
+// screening scan, never scoped to a user's own watchlists. Monitoring
+// only — no trade recommendations, no ranked/scored opportunity signal:
+// every symbol is listed in the same deterministic order the dashboard
+// itself already produces (distinct-symbol discovery order), never sorted
+// by an implied "best opportunity first." ───────────────────────────────
+
+function symbolAnalyticsBullet(s: SymbolAnalytics): string {
+  const parts: string[] = [];
+  if (s.investing) parts.push(`Investing: $${s.investing.marketValue?.toLocaleString() ?? "?"} (${s.investing.weightPct ?? "?"}%)`);
+  if (s.trading) parts.push(`Trading: ${s.trading.openPositionsCount} open position(s)`);
+  if (s.options) parts.push(`Options: ${s.options.openPositionsCount} open position(s)${s.options.weightPct != null ? ` (${s.options.weightPct}%)` : ""}`);
+  if (s.compliance) parts.push(`Compliance: ${s.compliance.status}`);
+  if (s.scenarioWorstCaseImpactDollars != null) parts.push(`Worst-case scenario impact: $${s.scenarioWorstCaseImpactDollars.toLocaleString()}`);
+  const held = s.heldInInvesting || s.heldInTrading || s.heldInOptions;
+  return `${s.symbol}: ${held ? parts.join("; ") : "not currently held in any engine"}`;
+}
+
+export function buildOpportunityDashboardReport(dashboard: WatchlistsDashboard): InstitutionalReport {
+  const { opportunityOverview } = dashboard;
+  const heldCount = opportunityOverview.filter((s) => s.heldInInvesting || s.heldInTrading || s.heldInOptions).length;
+
+  const sections: ReportSection[] = [
+    section(
+      "opportunity-overview",
+      "Opportunity Overview",
+      opportunityOverview.length
+        ? `${opportunityOverview.length} distinct watched symbol(s), ${heldCount} currently held somewhere. Monitoring only — never a ranked or scored opportunity signal.`
+        : "No watched symbols yet.",
+      opportunityOverview.map(symbolAnalyticsBullet),
+    ),
+  ];
+
+  return {
+    reportType: "opportunity-dashboard-report",
+    title: "Opportunity Dashboard Report",
+    subtitle: opportunityOverview.length ? `${opportunityOverview.length} distinct watched symbol(s), ${heldCount} currently held somewhere.` : "No watched symbols yet.",
     symbol: null,
     portfolioId: null,
     generatedAt: dashboard.generatedAt,

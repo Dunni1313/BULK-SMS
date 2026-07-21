@@ -38,4 +38,6 @@ export const InstitutionalReportReportType = {
   'rebalancing-planning-report': 'rebalancing-planning-report',
   'compliance-report': 'compliance-report',
   'policy-monitoring-report': 'policy-monitoring-report',
+  'watchlist-summary-report': 'watchlist-summary-report',
+  'opportunity-dashboard-report': 'opportunity-dashboard-report',
 } as const;

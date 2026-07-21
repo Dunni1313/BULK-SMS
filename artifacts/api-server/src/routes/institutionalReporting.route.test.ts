@@ -48,11 +48,11 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     server.close();
   });
 
-  it("GET /reporting/types returns all 28 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report; Phase 38 adds performance-summary and performance-attribution-report; Phase 39 adds scenario-analysis-report and stress-test-report; Phase 40 adds executive-decision-summary and institutional-health-report; Phase 41 adds portfolio-allocation-report and rebalancing-planning-report; Phase 42 adds compliance-report and policy-monitoring-report)", async () => {
+  it("GET /reporting/types returns all 30 report types (Phase 37 adds risk-exposure-summary and portfolio-concentration-report; Phase 38 adds performance-summary and performance-attribution-report; Phase 39 adds scenario-analysis-report and stress-test-report; Phase 40 adds executive-decision-summary and institutional-health-report; Phase 41 adds portfolio-allocation-report and rebalancing-planning-report; Phase 42 adds compliance-report and policy-monitoring-report; Phase 43 adds watchlist-summary-report and opportunity-dashboard-report)", async () => {
     const res = await fetch(`${baseUrl}/api/reporting/types`);
     expect(res.status).toBe(200);
     const body = (await res.json()) as ReportTypeMeta[];
-    expect(body).toHaveLength(28);
+    expect(body).toHaveLength(30);
     expect(body.map((m) => m.reportType).sort()).toEqual(
       [
         "ai-coach-summary",
@@ -63,6 +63,7 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "investment-committee",
         "monitoring-summary",
         "opportunity-discovery",
+        "opportunity-dashboard-report",
         "options-income-summary",
         "options-portfolio-review",
         "policy-monitoring-report",
@@ -83,6 +84,7 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
         "trade-planning-summary",
         "trading-analytics-summary",
         "watchlist",
+        "watchlist-summary-report",
       ].sort(),
     );
   });
@@ -522,6 +524,45 @@ describe("Institutional Reporting & Client Presentation Engine routes (live, SIM
     const listRes = await fetch(`${baseUrl}/api/reporting/reports`);
     const list = (await listRes.json()) as { id: number; reportType: string }[];
     expect(list.some((r) => r.id === saved.id && r.reportType === "compliance-report")).toBe(true);
+
+    await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
+  });
+
+  it("GET /reporting/watchlist-summary-report resolves the Watchlist Summary Report (Phase 43)", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/watchlist-summary-report`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("watchlist-summary-report");
+    expect(body.symbol).toBeNull();
+    expect(body.portfolioId).toBeNull();
+    expect(body.sections.map((s) => s.id)).toEqual(["watchlist-overview", "watchlist-health", "cross-engine-summary", "watchlist-dashboard-summary"]);
+  });
+
+  it("GET /reporting/opportunity-dashboard-report resolves the Opportunity Dashboard Report (Phase 43), distinct from the existing Opportunity Discovery Report", async () => {
+    const res = await fetch(`${baseUrl}/api/reporting/opportunity-dashboard-report`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as InstitutionalReport;
+    expect(body.reportType).toBe("opportunity-dashboard-report");
+    expect(body.reportType).not.toBe("opportunity-discovery");
+    expect(body.symbol).toBeNull();
+    expect(body.portfolioId).toBeNull();
+    expect(body.sections.map((s) => s.id)).toEqual(["opportunity-overview"]);
+  });
+
+  it("full watchlist-summary-report save/persist flow via POST /reporting/reports", async () => {
+    const saveRes = await fetch(`${baseUrl}/api/reporting/reports`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ reportType: "watchlist-summary-report" }),
+    });
+    expect(saveRes.status).toBe(200);
+    const saved = (await saveRes.json()) as { id: number; reportType: string; report: InstitutionalReport };
+    expect(saved.reportType).toBe("watchlist-summary-report");
+    expect(saved.report.reportType).toBe("watchlist-summary-report");
+
+    const listRes = await fetch(`${baseUrl}/api/reporting/reports`);
+    const list = (await listRes.json()) as { id: number; reportType: string }[];
+    expect(list.some((r) => r.id === saved.id && r.reportType === "watchlist-summary-report")).toBe(true);
 
     await fetch(`${baseUrl}/api/reporting/reports/${saved.id}`, { method: "DELETE" });
   });

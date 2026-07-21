@@ -8053,6 +8053,8 @@ export const ReportTypeMetaReportType = {
   'rebalancing-planning-report': 'rebalancing-planning-report',
   'compliance-report': 'compliance-report',
   'policy-monitoring-report': 'policy-monitoring-report',
+  'watchlist-summary-report': 'watchlist-summary-report',
+  'opportunity-dashboard-report': 'opportunity-dashboard-report',
 } as const;
 
 export interface ReportTypeMeta {
@@ -8095,6 +8097,8 @@ export const InstitutionalReportReportType = {
   'rebalancing-planning-report': 'rebalancing-planning-report',
   'compliance-report': 'compliance-report',
   'policy-monitoring-report': 'policy-monitoring-report',
+  'watchlist-summary-report': 'watchlist-summary-report',
+  'opportunity-dashboard-report': 'opportunity-dashboard-report',
 } as const;
 
 export interface InstitutionalReport {
@@ -8141,6 +8145,8 @@ export const SaveInstitutionalReportInputReportType = {
   'rebalancing-planning-report': 'rebalancing-planning-report',
   'compliance-report': 'compliance-report',
   'policy-monitoring-report': 'policy-monitoring-report',
+  'watchlist-summary-report': 'watchlist-summary-report',
+  'opportunity-dashboard-report': 'opportunity-dashboard-report',
 } as const;
 
 export interface SaveInstitutionalReportInput {
@@ -10545,6 +10551,305 @@ export interface ComplianceTopicLearning {
   links: ComplianceLearningLink[];
 }
 
+export interface InvestingWatchlist {
+  id: number;
+  name: string;
+  kind: string;
+  description: string;
+  archived: boolean;
+  sortOrder: number;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateInvestingWatchlistInput {
+  name: string;
+  kind?: string;
+  description?: string;
+  archived?: boolean;
+  sortOrder?: number;
+}
+
+export interface UpdateInvestingWatchlistInput {
+  name?: string;
+  kind?: string;
+  description?: string;
+  archived?: boolean;
+  sortOrder?: number;
+}
+
+export interface InvestingWatchlistItemPlain {
+  id: number;
+  watchlistId: number;
+  symbol: string;
+  category: string;
+  tags: string[];
+  notes: string;
+  sortOrder: number;
+  addedAt: string;
+}
+
+export interface CreateInvestingWatchlistItemInput {
+  symbol: string;
+  category?: string;
+  tags?: string[];
+  notes?: string;
+  sortOrder?: number;
+}
+
+export interface UpdateInvestingWatchlistItemInput {
+  symbol?: string;
+  category?: string;
+  tags?: string[];
+  notes?: string;
+  sortOrder?: number;
+}
+
+export interface WatchlistReorderInput {
+  orderedIds: number[];
+}
+
+export interface WatchlistInvestingAnalytics {
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  weightPct: number | null;
+  /** @nullable */
+  unrealizedPnl: number | null;
+  /** @nullable */
+  unrealizedPnlPct: number | null;
+  /** @nullable */
+  sector: string | null;
+}
+
+export interface WatchlistTradingAnalytics {
+  openPositionsCount: number;
+  closedPositionsCount: number;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+}
+
+export interface WatchlistOptionsAnalytics {
+  /** @nullable */
+  weightPct: number | null;
+  openPositionsCount: number;
+  /** @nullable */
+  totalCurrentPnl: number | null;
+  /** @nullable */
+  netDelta: number | null;
+  /** @nullable */
+  netTheta: number | null;
+}
+
+export type WatchlistComplianceAnalyticsStatus = typeof WatchlistComplianceAnalyticsStatus[keyof typeof WatchlistComplianceAnalyticsStatus];
+
+
+export const WatchlistComplianceAnalyticsStatus = {
+  compliant: 'compliant',
+  breach: 'breach',
+  unavailable: 'unavailable',
+} as const;
+
+export interface WatchlistComplianceAnalytics {
+  status: WatchlistComplianceAnalyticsStatus;
+  policyLabel: string;
+  detail: string;
+}
+
+export interface WatchlistSymbolAnalytics {
+  symbol: string;
+  heldInInvesting: boolean;
+  heldInTrading: boolean;
+  heldInOptions: boolean;
+  investing: WatchlistInvestingAnalytics | null;
+  trading: WatchlistTradingAnalytics | null;
+  options: WatchlistOptionsAnalytics | null;
+  compliance: WatchlistComplianceAnalytics | null;
+  /** @nullable */
+  scenarioWorstCaseImpactDollars: number | null;
+  /** @nullable */
+  scenarioWorstCaseLabel: string | null;
+}
+
+export interface InvestingWatchlistItem {
+  id: number;
+  watchlistId: number;
+  symbol: string;
+  category: string;
+  tags: string[];
+  notes: string;
+  sortOrder: number;
+  addedAt: string;
+  analytics: WatchlistSymbolAnalytics;
+}
+
+export interface InvestingWatchlistWithItems {
+  id: number;
+  name: string;
+  kind: string;
+  description: string;
+  archived: boolean;
+  sortOrder: number;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+  items: InvestingWatchlistItemPlain[];
+}
+
+export interface WatchlistHealthEntry {
+  watchlistId: number;
+  name: string;
+  kind: string;
+  itemCount: number;
+  heldCount: number;
+  notHeldCount: number;
+  breachCount: number;
+  /** @nullable */
+  totalMarketValue: number | null;
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+}
+
+export interface WatchlistComplianceSummaryCounts {
+  totalPolicies: number;
+  enabledPolicies: number;
+  compliantCount: number;
+  breachCount: number;
+  unavailableCount: number;
+}
+
+export type WatchlistExecutiveHealthOverallRiskRating = {
+  code: string;
+  label: string;
+};
+
+export interface WatchlistExecutiveHealth {
+  healthScore: number;
+  overallRiskRating: WatchlistExecutiveHealthOverallRiskRating;
+}
+
+export interface WatchlistsCrossEngineSummary {
+  capitalAllocation: RiskExposureCapitalAllocationEntry[];
+  investingDiversification: DecisionSupportEngineDiversification;
+  optionsDiversification: DecisionSupportEngineDiversification;
+  complianceSummary: WatchlistComplianceSummaryCounts;
+  executiveHealth: WatchlistExecutiveHealth;
+}
+
+export type WatchlistExposureHighlightEngine = typeof WatchlistExposureHighlightEngine[keyof typeof WatchlistExposureHighlightEngine];
+
+
+export const WatchlistExposureHighlightEngine = {
+  investing: 'investing',
+  options: 'options',
+} as const;
+
+export interface WatchlistExposureHighlight {
+  symbol: string;
+  weightPct: number;
+  engine: WatchlistExposureHighlightEngine;
+}
+
+export type WatchlistAllocationHighlightEngine = typeof WatchlistAllocationHighlightEngine[keyof typeof WatchlistAllocationHighlightEngine];
+
+
+export const WatchlistAllocationHighlightEngine = {
+  investing: 'investing',
+} as const;
+
+export interface WatchlistAllocationHighlight {
+  symbol: string;
+  marketValue: number;
+  engine: WatchlistAllocationHighlightEngine;
+}
+
+export interface WatchlistRiskHighlight {
+  symbol: string;
+  detail: string;
+}
+
+export type WatchlistsDashboardSummaryScenarioImpact = {
+  /** @nullable */
+  worstCaseTotalImpactDollars: number | null;
+  detail: string;
+};
+
+export type WatchlistsDashboardSummaryPerformanceSummary = {
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  detail: string;
+};
+
+export interface WatchlistsDashboardSummary {
+  watchlistCount: number;
+  itemCount: number;
+  distinctSymbolCount: number;
+  heldSymbolCount: number;
+  highestRisk: WatchlistRiskHighlight | null;
+  highestExposure: WatchlistExposureHighlight | null;
+  highestAllocation: WatchlistAllocationHighlight | null;
+  policyBreaches: CompliancePolicyEvaluation[];
+  scenarioImpact: WatchlistsDashboardSummaryScenarioImpact;
+  performanceSummary: WatchlistsDashboardSummaryPerformanceSummary;
+  outstandingIssues: string[];
+}
+
+export interface WatchlistsDashboard {
+  watchlists: InvestingWatchlist[];
+  items: InvestingWatchlistItem[];
+  opportunityOverview: WatchlistSymbolAnalytics[];
+  watchlistHealth: WatchlistHealthEntry[];
+  crossEngineSummary: WatchlistsCrossEngineSummary;
+  dashboardSummary: WatchlistsDashboardSummary;
+  generatedAt: string;
+}
+
+export type WatchlistsCoachExplanationTopic = typeof WatchlistsCoachExplanationTopic[keyof typeof WatchlistsCoachExplanationTopic];
+
+
+export const WatchlistsCoachExplanationTopic = {
+  watchlists: 'watchlists',
+  research_workflow: 'research_workflow',
+  institutional_monitoring: 'institutional_monitoring',
+  portfolio_organisation: 'portfolio_organisation',
+  asset_tracking: 'asset_tracking',
+} as const;
+
+export interface WatchlistsCoachExplanation {
+  topic: WatchlistsCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface WatchlistsLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type WatchlistsTopicLearningTopic = typeof WatchlistsTopicLearningTopic[keyof typeof WatchlistsTopicLearningTopic];
+
+
+export const WatchlistsTopicLearningTopic = {
+  watchlists: 'watchlists',
+  portfolio_monitoring: 'portfolio_monitoring',
+  asset_research: 'asset_research',
+  institutional_workflows: 'institutional_workflows',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+} as const;
+
+export interface WatchlistsTopicLearning {
+  topic: WatchlistsTopicLearningTopic;
+  links: WatchlistsLearningLink[];
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -10720,6 +11025,22 @@ export type DeleteCompliancePolicy200 = {
 };
 
 export type DeleteInstitutionalReport200 = {
+  success: boolean;
+};
+
+export type ReorderInvestingWatchlists200 = {
+  success: boolean;
+};
+
+export type DeleteInvestingWatchlist200 = {
+  success: boolean;
+};
+
+export type ReorderInvestingWatchlistItems200 = {
+  success: boolean;
+};
+
+export type RemoveInvestingWatchlistItem200 = {
   success: boolean;
 };
 

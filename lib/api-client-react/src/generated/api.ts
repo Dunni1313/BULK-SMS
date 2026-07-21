@@ -65,6 +65,8 @@ import type {
   ConstructionRiskSnapshot,
   ConstructionWatchlistComparison,
   CreateCompliancePolicyInput,
+  CreateInvestingWatchlistInput,
+  CreateInvestingWatchlistItemInput,
   CrossEngineDailyReport,
   CrossEngineWorkspaceOverview,
   CrossEngineWorkspaceSearchResult,
@@ -83,6 +85,7 @@ import type {
   DecisionSupportTopicLearning,
   DeleteCompliancePolicy200,
   DeleteInstitutionalReport200,
+  DeleteInvestingWatchlist200,
   DeleteReportResult,
   DeleteResult,
   EarningsIntelligenceAnalysis,
@@ -122,6 +125,9 @@ import type {
   InstitutionalReport,
   InstitutionalReportListItem,
   InvestingAnalyticsDashboard,
+  InvestingWatchlist,
+  InvestingWatchlistItemPlain,
+  InvestingWatchlistWithItems,
   InvestmentMemo,
   InvestmentThesis,
   JournalEntry,
@@ -215,6 +221,9 @@ import type {
   ReconciliationResult,
   RecordLearningItemCompleted200,
   RecordLearningItemViewed200,
+  RemoveInvestingWatchlistItem200,
+  ReorderInvestingWatchlistItems200,
+  ReorderInvestingWatchlists200,
   ReportTypeMeta,
   ResearchNoteCreate,
   ResearchNoteItem,
@@ -284,6 +293,8 @@ import type {
   TradingWorkspaceNoteUpdate,
   UniverseSymbol,
   UpdateCompliancePolicyInput,
+  UpdateInvestingWatchlistInput,
+  UpdateInvestingWatchlistItemInput,
   ValueHistoryRow,
   ValueLessonsResponse,
   ValueMacroContext,
@@ -295,7 +306,11 @@ import type {
   ValueSummary,
   ValueWatchlistCreate,
   ValueWatchlistItem,
-  ValueWatchlistUpdate
+  ValueWatchlistUpdate,
+  WatchlistReorderInput,
+  WatchlistsCoachExplanation,
+  WatchlistsDashboard,
+  WatchlistsTopicLearning
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -24184,4 +24199,1271 @@ export const useDeleteInstitutionalReport = <TError = ErrorType<void>,
       > => {
       return useMutation(getDeleteInstitutionalReportMutationOptions(options));
     }
+
+export const getListInvestingWatchlistsUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists`
+}
+
+/**
+ * @summary The calling user's own watchlists (personal and institutional), manually ordered.
+ */
+export const listInvestingWatchlists = async ( options?: RequestInit): Promise<InvestingWatchlist[]> => {
+
+  return customFetch<InvestingWatchlist[]>(getListInvestingWatchlistsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInvestingWatchlistsQueryKey = () => {
+    return [
+    `/api/investing/watchlists`
+    ] as const;
+    }
+
+
+export const getListInvestingWatchlistsQueryOptions = <TData = Awaited<ReturnType<typeof listInvestingWatchlists>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInvestingWatchlists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInvestingWatchlistsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInvestingWatchlists>>> = ({ signal }) => listInvestingWatchlists({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInvestingWatchlists>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListInvestingWatchlistsQueryResult = NonNullable<Awaited<ReturnType<typeof listInvestingWatchlists>>>
+export type ListInvestingWatchlistsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own watchlists (personal and institutional), manually ordered.
+ */
+
+export function useListInvestingWatchlists<TData = Awaited<ReturnType<typeof listInvestingWatchlists>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInvestingWatchlists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListInvestingWatchlistsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateInvestingWatchlistUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists`
+}
+
+/**
+ * @summary Create a new watchlist. Nothing is ever auto-created — every list originates from an explicit user action.
+ */
+export const createInvestingWatchlist = async (createInvestingWatchlistInput: CreateInvestingWatchlistInput, options?: RequestInit): Promise<InvestingWatchlist> => {
+
+  return customFetch<InvestingWatchlist>(getCreateInvestingWatchlistUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createInvestingWatchlistInput,)
+  }
+);}
+
+
+
+
+export const getCreateInvestingWatchlistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInvestingWatchlist>>, TError,{data: BodyType<CreateInvestingWatchlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createInvestingWatchlist>>, TError,{data: BodyType<CreateInvestingWatchlistInput>}, TContext> => {
+
+const mutationKey = ['createInvestingWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createInvestingWatchlist>>, {data: BodyType<CreateInvestingWatchlistInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createInvestingWatchlist(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateInvestingWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof createInvestingWatchlist>>>
+    export type CreateInvestingWatchlistMutationBody = BodyType<CreateInvestingWatchlistInput>
+    export type CreateInvestingWatchlistMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a new watchlist. Nothing is ever auto-created — every list originates from an explicit user action.
+ */
+export const useCreateInvestingWatchlist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInvestingWatchlist>>, TError,{data: BodyType<CreateInvestingWatchlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createInvestingWatchlist>>,
+        TError,
+        {data: BodyType<CreateInvestingWatchlistInput>},
+        TContext
+      > => {
+      return useMutation(getCreateInvestingWatchlistMutationOptions(options));
+    }
+
+export const getReorderInvestingWatchlistsUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists/reorder`
+}
+
+/**
+ * @summary Manually reorder the calling user's own watchlists.
+ */
+export const reorderInvestingWatchlists = async (watchlistReorderInput: WatchlistReorderInput, options?: RequestInit): Promise<ReorderInvestingWatchlists200> => {
+
+  return customFetch<ReorderInvestingWatchlists200>(getReorderInvestingWatchlistsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      watchlistReorderInput,)
+  }
+);}
+
+
+
+
+export const getReorderInvestingWatchlistsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlists>>, TError,{data: BodyType<WatchlistReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlists>>, TError,{data: BodyType<WatchlistReorderInput>}, TContext> => {
+
+const mutationKey = ['reorderInvestingWatchlists'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderInvestingWatchlists>>, {data: BodyType<WatchlistReorderInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderInvestingWatchlists(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderInvestingWatchlistsMutationResult = NonNullable<Awaited<ReturnType<typeof reorderInvestingWatchlists>>>
+    export type ReorderInvestingWatchlistsMutationBody = BodyType<WatchlistReorderInput>
+    export type ReorderInvestingWatchlistsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually reorder the calling user's own watchlists.
+ */
+export const useReorderInvestingWatchlists = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlists>>, TError,{data: BodyType<WatchlistReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderInvestingWatchlists>>,
+        TError,
+        {data: BodyType<WatchlistReorderInput>},
+        TContext
+      > => {
+      return useMutation(getReorderInvestingWatchlistsMutationOptions(options));
+    }
+
+export const getGetWatchlistsDashboardUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists/dashboard`
+}
+
+/**
+ * @summary The calling user's own full Watchlists & Opportunity Dashboard — every watchlist, every item's own per-symbol analytics (reused from the Risk & Exposure, Performance, Scenario, and Compliance engines), an Opportunity Overview across every distinct watched symbol, Watchlist Health, a Cross-Engine Summary, and a dashboard-level summary. Monitoring and organisation only — never a trade recommendation, buy/sell signal, or ranked opportunity score.
+ */
+export const getWatchlistsDashboard = async ( options?: RequestInit): Promise<WatchlistsDashboard> => {
+
+  return customFetch<WatchlistsDashboard>(getGetWatchlistsDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistsDashboardQueryKey = () => {
+    return [
+    `/api/investing/watchlists/dashboard`
+    ] as const;
+    }
+
+
+export const getGetWatchlistsDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistsDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistsDashboard>>> = ({ signal }) => getWatchlistsDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistsDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistsDashboard>>>
+export type GetWatchlistsDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full Watchlists & Opportunity Dashboard — every watchlist, every item's own per-symbol analytics (reused from the Risk & Exposure, Performance, Scenario, and Compliance engines), an Opportunity Overview across every distinct watched symbol, Watchlist Health, a Cross-Engine Summary, and a dashboard-level summary. Monitoring and organisation only — never a trade recommendation, buy/sell signal, or ranked opportunity score.
+ */
+
+export function useGetWatchlistsDashboard<TData = Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistsDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestingWatchlistUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}`
+}
+
+/**
+ * @summary One watchlist by id, with its own items.
+ */
+export const getInvestingWatchlist = async (id: number, options?: RequestInit): Promise<InvestingWatchlistWithItems> => {
+
+  return customFetch<InvestingWatchlistWithItems>(getGetInvestingWatchlistUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestingWatchlistQueryKey = (id: number,) => {
+    return [
+    `/api/investing/watchlists/${id}`
+    ] as const;
+    }
+
+
+export const getGetInvestingWatchlistQueryOptions = <TData = Awaited<ReturnType<typeof getInvestingWatchlist>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestingWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestingWatchlistQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestingWatchlist>>> = ({ signal }) => getInvestingWatchlist(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestingWatchlist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestingWatchlistQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestingWatchlist>>>
+export type GetInvestingWatchlistQueryError = ErrorType<void>
+
+
+/**
+ * @summary One watchlist by id, with its own items.
+ */
+
+export function useGetInvestingWatchlist<TData = Awaited<ReturnType<typeof getInvestingWatchlist>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestingWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestingWatchlistQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateInvestingWatchlistUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}`
+}
+
+/**
+ * @summary Rename, re-describe, re-label, archive/unarchive, or manually re-sort a watchlist.
+ */
+export const updateInvestingWatchlist = async (id: number,
+    updateInvestingWatchlistInput: UpdateInvestingWatchlistInput, options?: RequestInit): Promise<InvestingWatchlist> => {
+
+  return customFetch<InvestingWatchlist>(getUpdateInvestingWatchlistUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateInvestingWatchlistInput,)
+  }
+);}
+
+
+
+
+export const getUpdateInvestingWatchlistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlist>>, TError,{id: number;data: BodyType<UpdateInvestingWatchlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlist>>, TError,{id: number;data: BodyType<UpdateInvestingWatchlistInput>}, TContext> => {
+
+const mutationKey = ['updateInvestingWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateInvestingWatchlist>>, {id: number;data: BodyType<UpdateInvestingWatchlistInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateInvestingWatchlist(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateInvestingWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof updateInvestingWatchlist>>>
+    export type UpdateInvestingWatchlistMutationBody = BodyType<UpdateInvestingWatchlistInput>
+    export type UpdateInvestingWatchlistMutationError = ErrorType<void>
+
+    /**
+ * @summary Rename, re-describe, re-label, archive/unarchive, or manually re-sort a watchlist.
+ */
+export const useUpdateInvestingWatchlist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlist>>, TError,{id: number;data: BodyType<UpdateInvestingWatchlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateInvestingWatchlist>>,
+        TError,
+        {id: number;data: BodyType<UpdateInvestingWatchlistInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateInvestingWatchlistMutationOptions(options));
+    }
+
+export const getDeleteInvestingWatchlistUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}`
+}
+
+/**
+ * @summary Delete a watchlist. Its own items are deleted with it (ON DELETE CASCADE) — a routine self-service cleanup of your own sub-resource.
+ */
+export const deleteInvestingWatchlist = async (id: number, options?: RequestInit): Promise<DeleteInvestingWatchlist200> => {
+
+  return customFetch<DeleteInvestingWatchlist200>(getDeleteInvestingWatchlistUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteInvestingWatchlistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInvestingWatchlist>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteInvestingWatchlist>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteInvestingWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteInvestingWatchlist>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteInvestingWatchlist(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteInvestingWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof deleteInvestingWatchlist>>>
+
+    export type DeleteInvestingWatchlistMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a watchlist. Its own items are deleted with it (ON DELETE CASCADE) — a routine self-service cleanup of your own sub-resource.
+ */
+export const useDeleteInvestingWatchlist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInvestingWatchlist>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteInvestingWatchlist>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteInvestingWatchlistMutationOptions(options));
+    }
+
+export const getAddInvestingWatchlistItemUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}/items`
+}
+
+/**
+ * @summary Add a symbol to a watchlist, with an optional category/tags/notes.
+ */
+export const addInvestingWatchlistItem = async (id: number,
+    createInvestingWatchlistItemInput: CreateInvestingWatchlistItemInput, options?: RequestInit): Promise<InvestingWatchlistItemPlain> => {
+
+  return customFetch<InvestingWatchlistItemPlain>(getAddInvestingWatchlistItemUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createInvestingWatchlistItemInput,)
+  }
+);}
+
+
+
+
+export const getAddInvestingWatchlistItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addInvestingWatchlistItem>>, TError,{id: number;data: BodyType<CreateInvestingWatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addInvestingWatchlistItem>>, TError,{id: number;data: BodyType<CreateInvestingWatchlistItemInput>}, TContext> => {
+
+const mutationKey = ['addInvestingWatchlistItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addInvestingWatchlistItem>>, {id: number;data: BodyType<CreateInvestingWatchlistItemInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addInvestingWatchlistItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddInvestingWatchlistItemMutationResult = NonNullable<Awaited<ReturnType<typeof addInvestingWatchlistItem>>>
+    export type AddInvestingWatchlistItemMutationBody = BodyType<CreateInvestingWatchlistItemInput>
+    export type AddInvestingWatchlistItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a symbol to a watchlist, with an optional category/tags/notes.
+ */
+export const useAddInvestingWatchlistItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addInvestingWatchlistItem>>, TError,{id: number;data: BodyType<CreateInvestingWatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addInvestingWatchlistItem>>,
+        TError,
+        {id: number;data: BodyType<CreateInvestingWatchlistItemInput>},
+        TContext
+      > => {
+      return useMutation(getAddInvestingWatchlistItemMutationOptions(options));
+    }
+
+export const getReorderInvestingWatchlistItemsUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}/items/reorder`
+}
+
+/**
+ * @summary Manually reorder the symbols within a watchlist.
+ */
+export const reorderInvestingWatchlistItems = async (id: number,
+    watchlistReorderInput: WatchlistReorderInput, options?: RequestInit): Promise<ReorderInvestingWatchlistItems200> => {
+
+  return customFetch<ReorderInvestingWatchlistItems200>(getReorderInvestingWatchlistItemsUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      watchlistReorderInput,)
+  }
+);}
+
+
+
+
+export const getReorderInvestingWatchlistItemsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>, TError,{id: number;data: BodyType<WatchlistReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>, TError,{id: number;data: BodyType<WatchlistReorderInput>}, TContext> => {
+
+const mutationKey = ['reorderInvestingWatchlistItems'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>, {id: number;data: BodyType<WatchlistReorderInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reorderInvestingWatchlistItems(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderInvestingWatchlistItemsMutationResult = NonNullable<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>>
+    export type ReorderInvestingWatchlistItemsMutationBody = BodyType<WatchlistReorderInput>
+    export type ReorderInvestingWatchlistItemsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually reorder the symbols within a watchlist.
+ */
+export const useReorderInvestingWatchlistItems = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>, TError,{id: number;data: BodyType<WatchlistReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>,
+        TError,
+        {id: number;data: BodyType<WatchlistReorderInput>},
+        TContext
+      > => {
+      return useMutation(getReorderInvestingWatchlistItemsMutationOptions(options));
+    }
+
+export const getUpdateInvestingWatchlistItemUrl = (id: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}/items/${itemId}`
+}
+
+/**
+ * @summary Update a watched symbol's own category/tags/notes/manual order.
+ */
+export const updateInvestingWatchlistItem = async (id: number,
+    itemId: number,
+    updateInvestingWatchlistItemInput: UpdateInvestingWatchlistItemInput, options?: RequestInit): Promise<InvestingWatchlistItemPlain> => {
+
+  return customFetch<InvestingWatchlistItemPlain>(getUpdateInvestingWatchlistItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateInvestingWatchlistItemInput,)
+  }
+);}
+
+
+
+
+export const getUpdateInvestingWatchlistItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>, TError,{id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>, TError,{id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>}, TContext> => {
+
+const mutationKey = ['updateInvestingWatchlistItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>, {id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>}> = (props) => {
+          const {id,itemId,data} = props ?? {};
+
+          return  updateInvestingWatchlistItem(id,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateInvestingWatchlistItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>>
+    export type UpdateInvestingWatchlistItemMutationBody = BodyType<UpdateInvestingWatchlistItemInput>
+    export type UpdateInvestingWatchlistItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a watched symbol's own category/tags/notes/manual order.
+ */
+export const useUpdateInvestingWatchlistItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>, TError,{id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateInvestingWatchlistItem>>,
+        TError,
+        {id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateInvestingWatchlistItemMutationOptions(options));
+    }
+
+export const getRemoveInvestingWatchlistItemUrl = (id: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}/items/${itemId}`
+}
+
+/**
+ * @summary Remove a symbol from a watchlist.
+ */
+export const removeInvestingWatchlistItem = async (id: number,
+    itemId: number, options?: RequestInit): Promise<RemoveInvestingWatchlistItem200> => {
+
+  return customFetch<RemoveInvestingWatchlistItem200>(getRemoveInvestingWatchlistItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRemoveInvestingWatchlistItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>, TError,{id: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>, TError,{id: number;itemId: number}, TContext> => {
+
+const mutationKey = ['removeInvestingWatchlistItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>, {id: number;itemId: number}> = (props) => {
+          const {id,itemId} = props ?? {};
+
+          return  removeInvestingWatchlistItem(id,itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveInvestingWatchlistItemMutationResult = NonNullable<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>>
+
+    export type RemoveInvestingWatchlistItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Remove a symbol from a watchlist.
+ */
+export const useRemoveInvestingWatchlistItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>, TError,{id: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeInvestingWatchlistItem>>,
+        TError,
+        {id: number;itemId: number},
+        TContext
+      > => {
+      return useMutation(getRemoveInvestingWatchlistItemMutationOptions(options));
+    }
+
+export const getListWatchlistsCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (watchlists, research workflow, institutional monitoring, portfolio organisation, asset tracking). Never a trade recommendation.
+ */
+export const listWatchlistsCoachTopics = async ( options?: RequestInit): Promise<WatchlistsCoachExplanation[]> => {
+
+  return customFetch<WatchlistsCoachExplanation[]>(getListWatchlistsCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWatchlistsCoachTopicsQueryKey = () => {
+    return [
+    `/api/investing/watchlists/coach`
+    ] as const;
+    }
+
+
+export const getListWatchlistsCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWatchlistsCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>> = ({ signal }) => listWatchlistsCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWatchlistsCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>>
+export type ListWatchlistsCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (watchlists, research workflow, institutional monitoring, portfolio organisation, asset tracking). Never a trade recommendation.
+ */
+
+export function useListWatchlistsCoachTopics<TData = Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWatchlistsCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchlistsCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/investing/watchlists/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getWatchlistsCoachTopic = async (topic: string, options?: RequestInit): Promise<WatchlistsCoachExplanation> => {
+
+  return customFetch<WatchlistsCoachExplanation>(getGetWatchlistsCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistsCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/investing/watchlists/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetWatchlistsCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistsCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>> = ({ signal }) => getWatchlistsCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistsCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>>
+export type GetWatchlistsCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetWatchlistsCoachTopic<TData = Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistsCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWatchlistsLearningUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists/learning`
+}
+
+/**
+ * @summary Every Watchlists topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listWatchlistsLearning = async ( options?: RequestInit): Promise<WatchlistsTopicLearning[]> => {
+
+  return customFetch<WatchlistsTopicLearning[]>(getListWatchlistsLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWatchlistsLearningQueryKey = () => {
+    return [
+    `/api/investing/watchlists/learning`
+    ] as const;
+    }
+
+
+export const getListWatchlistsLearningQueryOptions = <TData = Awaited<ReturnType<typeof listWatchlistsLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWatchlistsLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWatchlistsLearning>>> = ({ signal }) => listWatchlistsLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWatchlistsLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listWatchlistsLearning>>>
+export type ListWatchlistsLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Watchlists topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListWatchlistsLearning<TData = Awaited<ReturnType<typeof listWatchlistsLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWatchlistsLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchlistsLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/investing/watchlists/learning/${topic}`
+}
+
+/**
+ * @summary One Watchlists topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getWatchlistsLearning = async (topic: string, options?: RequestInit): Promise<WatchlistsTopicLearning> => {
+
+  return customFetch<WatchlistsTopicLearning>(getGetWatchlistsLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistsLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/investing/watchlists/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetWatchlistsLearningQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistsLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistsLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistsLearning>>> = ({ signal }) => getWatchlistsLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistsLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistsLearning>>>
+export type GetWatchlistsLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Watchlists topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetWatchlistsLearning<TData = Awaited<ReturnType<typeof getWatchlistsLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistsLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchlistSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/watchlist-summary-report`
+}
+
+/**
+ * @summary Watchlist Summary Report (Phase 43) — the Watchlists Dashboard's own summary/health/cross-engine view, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations.
+ */
+export const getWatchlistSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetWatchlistSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/watchlist-summary-report`
+    ] as const;
+    }
+
+
+export const getGetWatchlistSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistSummaryReport>>> = ({ signal }) => getWatchlistSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistSummaryReport>>>
+export type GetWatchlistSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Watchlist Summary Report (Phase 43) — the Watchlists Dashboard's own summary/health/cross-engine view, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations.
+ */
+
+export function useGetWatchlistSummaryReport<TData = Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOpportunityDashboardReportUrl = () => {
+
+
+
+
+  return `/api/reporting/opportunity-dashboard-report`
+}
+
+/**
+ * @summary Opportunity Dashboard Report (Phase 43) — the full per-symbol Opportunity Overview across every watched symbol, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations, no ranked/scored opportunity signal.
+ */
+export const getOpportunityDashboardReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetOpportunityDashboardReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOpportunityDashboardReportQueryKey = () => {
+    return [
+    `/api/reporting/opportunity-dashboard-report`
+    ] as const;
+    }
+
+
+export const getGetOpportunityDashboardReportQueryOptions = <TData = Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOpportunityDashboardReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOpportunityDashboardReport>>> = ({ signal }) => getOpportunityDashboardReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOpportunityDashboardReportQueryResult = NonNullable<Awaited<ReturnType<typeof getOpportunityDashboardReport>>>
+export type GetOpportunityDashboardReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Opportunity Dashboard Report (Phase 43) — the full per-symbol Opportunity Overview across every watched symbol, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations, no ranked/scored opportunity signal.
+ */
+
+export function useGetOpportunityDashboardReport<TData = Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOpportunityDashboardReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
