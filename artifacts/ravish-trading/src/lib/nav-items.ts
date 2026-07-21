@@ -74,6 +74,7 @@ import {
   Waves,
   GitBranch,
   AlertTriangle,
+  Eye,
 } from "lucide-react";
 
 export interface NavItem {
@@ -115,6 +116,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Decision Support Engine", href: "/decision-support-engine", icon: Gauge },
   { title: "Rebalancing Engine", href: "/rebalancing-engine", icon: Scale },
   { title: "Monitoring & Compliance Engine", href: "/monitoring-compliance-engine", icon: ShieldCheck },
+  { title: "Watchlists & Opportunity Dashboard", href: "/watchlists-engine", icon: Eye },
   { title: "Institutional Intelligence", href: "/institutional-intelligence", icon: Sparkles },
   { title: "AI Portfolio Analyst", href: "/portfolio-analyst", icon: FileBarChart },
   { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },

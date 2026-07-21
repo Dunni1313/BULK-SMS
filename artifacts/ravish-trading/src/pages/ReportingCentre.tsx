@@ -75,6 +75,10 @@ import {
   getGetComplianceReportQueryKey,
   useGetPolicyMonitoringReport,
   getGetPolicyMonitoringReportQueryKey,
+  useGetWatchlistSummaryReport,
+  getGetWatchlistSummaryReportQueryKey,
+  useGetOpportunityDashboardReport,
+  getGetOpportunityDashboardReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -124,7 +128,9 @@ type ReportType =
   | "portfolio-allocation-report"
   | "rebalancing-planning-report"
   | "compliance-report"
-  | "policy-monitoring-report";
+  | "policy-monitoring-report"
+  | "watchlist-summary-report"
+  | "opportunity-dashboard-report";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -163,6 +169,8 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "rebalancing-planning-report",
   "compliance-report",
   "policy-monitoring-report",
+  "watchlist-summary-report",
+  "opportunity-dashboard-report",
 ];
 
 export default function ReportingCentre() {
@@ -243,6 +251,8 @@ export default function ReportingCentre() {
   });
   const compReportRes = useGetComplianceReport({ query: { queryKey: getGetComplianceReportQueryKey(), enabled: generated?.type === "compliance-report" } });
   const pmrRes = useGetPolicyMonitoringReport({ query: { queryKey: getGetPolicyMonitoringReportQueryKey(), enabled: generated?.type === "policy-monitoring-report" } });
+  const wsrRes = useGetWatchlistSummaryReport({ query: { queryKey: getGetWatchlistSummaryReportQueryKey(), enabled: generated?.type === "watchlist-summary-report" } });
+  const odrRes = useGetOpportunityDashboardReport({ query: { queryKey: getGetOpportunityDashboardReportQueryKey(), enabled: generated?.type === "opportunity-dashboard-report" } });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -281,9 +291,11 @@ export default function ReportingCentre() {
       "rebalancing-planning-report": rprRes,
       "compliance-report": compReportRes,
       "policy-monitoring-report": pmrRes,
+      "watchlist-summary-report": wsrRes,
+      "opportunity-dashboard-report": odrRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes, edsRes, ihrRes, parReportRes, rprRes, compReportRes, pmrRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes, edsRes, ihrRes, parReportRes, rprRes, compReportRes, pmrRes, wsrRes, odrRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

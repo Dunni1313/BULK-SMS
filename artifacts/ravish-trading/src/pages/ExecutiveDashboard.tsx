@@ -76,6 +76,7 @@ import {
   Gauge,
   Scale,
   ShieldCheck,
+  Eye,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -305,6 +306,9 @@ export default function ExecutiveDashboard() {
             </Link>
             <Link href="/monitoring-compliance-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-monitoring-compliance-engine">
               <ShieldCheck className="w-3 h-3" /> Open the Monitoring & Compliance Engine →
+            </Link>
+            <Link href="/watchlists-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-watchlists-engine">
+              <Eye className="w-3 h-3" /> Open the Watchlists & Opportunity Dashboard →
             </Link>
           </div>
         </CardContent>

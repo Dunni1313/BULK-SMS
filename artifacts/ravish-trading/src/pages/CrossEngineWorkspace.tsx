@@ -65,6 +65,7 @@ import {
   Gauge,
   Scale,
   ShieldCheck,
+  Eye,
 } from "lucide-react";
 
 const VALID_TABS = ["overview", "search", "activity", "recent", "shortcuts"];
@@ -121,6 +122,7 @@ const WORKSPACE_SHORTCUTS: { label: string; href: string; icon: LucideIcon }[] =
   { label: "Decision Support Engine", href: "/decision-support-engine", icon: Gauge },
   { label: "Rebalancing Engine", href: "/rebalancing-engine", icon: Scale },
   { label: "Monitoring & Compliance Engine", href: "/monitoring-compliance-engine", icon: ShieldCheck },
+  { label: "Watchlists & Opportunity Dashboard", href: "/watchlists-engine", icon: Eye },
 ];
 
 export default function CrossEngineWorkspace() {
