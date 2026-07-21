@@ -69,6 +69,7 @@ import performanceAttributionRouter from "./performanceAttribution";
 import scenarioEngineRouter from "./scenarioEngine";
 import decisionSupportEngineRouter from "./decisionSupportEngine";
 import rebalancingEngineRouter from "./rebalancingEngine";
+import complianceEngineRouter from "./complianceEngine";
 
 const router: IRouter = Router();
 
@@ -142,5 +143,6 @@ router.use(performanceAttributionRouter);
 router.use(scenarioEngineRouter);
 router.use(decisionSupportEngineRouter);
 router.use(rebalancingEngineRouter);
+router.use(complianceEngineRouter);
 
 export default router;

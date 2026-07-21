@@ -202,7 +202,7 @@ export interface DiversificationSummary {
   concentrationTimeline: RiskExposureDashboard["combined"]["concentrationTimeline"];
 }
 
-function buildDiversificationSummary(risk: RiskExposureDashboard, optionsConcentration: PortfolioConcentrationResult): DiversificationSummary {
+export function buildDiversificationSummary(risk: RiskExposureDashboard, optionsConcentration: PortfolioConcentrationResult): DiversificationSummary {
   return {
     investing: {
       engine: "investing",

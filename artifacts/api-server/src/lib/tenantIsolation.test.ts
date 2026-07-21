@@ -60,6 +60,7 @@ import {
   investingOptimisationReviewsTable,
   tradingStrategiesTable,
   tradingStrategyChecklistsTable,
+  compliancePoliciesTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -148,6 +149,9 @@ afterAll(async () => {
     // this loop, not strictly required.
     tradingStrategyChecklistsTable,
     tradingStrategiesTable,
+    // Phase 42 — Institutional Portfolio Monitoring & Compliance Engine's
+    // own new table.
+    compliancePoliciesTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -595,6 +599,16 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       strategyId: userId === userA ? strategyA.id : strategyB.id,
       status: "in_progress",
       items: [{ id: "a", label: "A", required: true, completed: false, notes: "", evidenceLinks: [] }],
+    }));
+  });
+
+  it("compliance_policies: a userId-scoped query never crosses accounts (Phase 42)", async () => {
+    await assertTenantIsolation(compliancePoliciesTable, userA, userB, (userId) => ({
+      userId,
+      policyType: "portfolio_delta_max",
+      label: "Isolation Test Policy",
+      direction: "max",
+      limitValue: 100,
     }));
   });
 });
