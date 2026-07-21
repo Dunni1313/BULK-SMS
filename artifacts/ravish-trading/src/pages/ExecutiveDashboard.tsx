@@ -74,6 +74,7 @@ import {
   LineChart,
   AlertTriangle,
   Gauge,
+  Scale,
 } from "lucide-react";
 
 function ReportSummaryCard({
@@ -297,6 +298,9 @@ export default function ExecutiveDashboard() {
             </Link>
             <Link href="/decision-support-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-decision-support-engine">
               <Gauge className="w-3 h-3" /> Open the Decision Support Engine →
+            </Link>
+            <Link href="/rebalancing-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5" data-testid="link-open-rebalancing-engine">
+              <Scale className="w-3 h-3" /> Open the Rebalancing Engine →
             </Link>
           </div>
         </CardContent>

@@ -67,6 +67,10 @@ import {
   getGetExecutiveDecisionSummaryReportQueryKey,
   useGetInstitutionalHealthReport,
   getGetInstitutionalHealthReportQueryKey,
+  useGetPortfolioAllocationReport,
+  getGetPortfolioAllocationReportQueryKey,
+  useGetRebalancingPlanningReport,
+  getGetRebalancingPlanningReportQueryKey,
   useSaveInstitutionalReport,
   useListInstitutionalReports,
   getListInstitutionalReportsQueryKey,
@@ -112,7 +116,9 @@ type ReportType =
   | "scenario-analysis-report"
   | "stress-test-report"
   | "executive-decision-summary"
-  | "institutional-health-report";
+  | "institutional-health-report"
+  | "portfolio-allocation-report"
+  | "rebalancing-planning-report";
 
 type Density = "executive" | "detailed" | "presentation";
 
@@ -147,6 +153,8 @@ const REPORT_TYPE_VALUES: ReportType[] = [
   "stress-test-report",
   "executive-decision-summary",
   "institutional-health-report",
+  "portfolio-allocation-report",
+  "rebalancing-planning-report",
 ];
 
 export default function ReportingCentre() {
@@ -221,6 +229,10 @@ export default function ReportingCentre() {
   const strRes = useGetStressTestReport({ query: { queryKey: getGetStressTestReportQueryKey(), enabled: generated?.type === "stress-test-report" } });
   const edsRes = useGetExecutiveDecisionSummaryReport({ query: { queryKey: getGetExecutiveDecisionSummaryReportQueryKey(), enabled: generated?.type === "executive-decision-summary" } });
   const ihrRes = useGetInstitutionalHealthReport({ query: { queryKey: getGetInstitutionalHealthReportQueryKey(), enabled: generated?.type === "institutional-health-report" } });
+  const parReportRes = useGetPortfolioAllocationReport({ query: { queryKey: getGetPortfolioAllocationReportQueryKey(), enabled: generated?.type === "portfolio-allocation-report" } });
+  const rprRes = useGetRebalancingPlanningReport(generated?.portfolioId ?? 0, {
+    query: { queryKey: getGetRebalancingPlanningReportQueryKey(generated?.portfolioId ?? 0), enabled: generated?.type === "rebalancing-planning-report" && !!generated.portfolioId },
+  });
 
   interface SimpleQueryState {
     data?: InstitutionalReport;
@@ -255,9 +267,11 @@ export default function ReportingCentre() {
       "stress-test-report": strRes,
       "executive-decision-summary": edsRes,
       "institutional-health-report": ihrRes,
+      "portfolio-allocation-report": parReportRes,
+      "rebalancing-planning-report": rprRes,
     };
     return byType[generated.type];
-  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes, edsRes, ihrRes]);
+  }, [generated, icRes, crRes, prRes, phRes, wlRes, odRes, msRes, acRes, esRes, tpsRes, sfsRes, tasRes, eisRes, oisRes, oprRes, plsRes, resRes, pcrRes, psRes, parRes, sarRes, strRes, edsRes, ihrRes, parReportRes, rprRes]);
 
   const report = activeResult?.data as InstitutionalReport | undefined;
   const isLoading = activeResult?.isLoading ?? false;

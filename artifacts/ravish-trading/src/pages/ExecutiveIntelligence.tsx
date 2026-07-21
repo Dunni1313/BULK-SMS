@@ -44,6 +44,7 @@ import {
   GitBranch,
   AlertTriangle,
   Gauge,
+  Scale,
 } from "lucide-react";
 
 function KpiCard({ label, value, testId }: { label: string; value: string | number; testId: string }) {
@@ -165,6 +166,9 @@ export default function ExecutiveIntelligence() {
         </Link>
         <Link href="/decision-support-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-decision-support-engine">
           <Gauge className="w-3 h-3" /> Open Decision Support Engine →
+        </Link>
+        <Link href="/rebalancing-engine" className="text-xs text-primary hover:underline inline-flex items-center gap-1.5 mt-2" data-testid="link-open-rebalancing-engine">
+          <Scale className="w-3 h-3" /> Open Rebalancing Engine →
         </Link>
       </div>
 
