@@ -6,6 +6,70 @@ level. For the exhaustive, phase-by-phase build history (every one of the
 every test added), see `CLAUDE.md` — this file is the release-level
 summary, not a duplicate of it.
 
+## [v1.1.0] — Sidebar Navigation Redesign
+
+A bounded, frontend-only minor release built on top of the frozen
+`v1.0.0` baseline (`docs/Version-1-Freeze-Declaration.md`). `v1.0.0`
+itself is untouched; this release lives on its own
+`v1.1.0-sidebar-redesign` branch and is not merged or tagged
+automatically as part of this work.
+
+### Added
+
+- The single, continuous 82-item sidebar is now organized into 10 named,
+  collapsible groups (Home, Options Trading, Options Income Engine,
+  Portfolio Management, Institutional Investing, Value Investing, Trading
+  Workbench, AI & Decision Tools, Learning Centre, Administration), with
+  Home and Options Trading expanded by default. Every one of the original
+  82 routes is preserved — none removed, renamed, or made unreachable
+  (verified by a regression test asserting set-equality against the
+  pre-redesign route list).
+- A compact, icon-only sidebar mode with hover tooltips, toggled from the
+  main-content header.
+- A "Frequently Used" pinned strip (up to 6 routes), with pin/unpin,
+  reordering, and cross-session persistence.
+- The active route's parent group now auto-expands, and the active link
+  scrolls into view.
+- Sidebar preferences (expanded groups, compact mode, pinned routes)
+  persist under a new `dk-sidebar-navigation-state` localStorage key.
+- New files: `lib/nav-items.ts` (rewritten as the single canonical
+  `NAV_GROUPS` structure), `lib/sidebar-preferences.ts`,
+  `hooks/use-sidebar-preferences.ts`, `components/ui/collapsible.tsx`,
+  `components/layout/SidebarNav.tsx`.
+
+### Fixed
+
+- A genuine mobile-usability bug found during implementation: the
+  compact-mode toggle button was placed inside the sidebar's own header,
+  which — on mobile — only renders once the drawer is already open,
+  making it impossible to ever open the drawer in the first place. Fixed
+  by relocating the trigger to the always-rendered main-content header
+  (caught by this release's own new mobile test suite before merge).
+- The mobile drawer now closes automatically once a route is selected
+  (previously stayed open across navigation).
+
+### Explicitly out of scope
+
+Trading logic, options calculations, risk calculations, execution logic,
+broker integration logic, database schema, API business logic,
+authentication rules, and tenant isolation — none touched. Every
+protected file (`execution.ts`, `optionsMath.ts`, `risk.ts`,
+`autoExecution.ts`, `autoAdjustment.ts`, broker integrations) carries
+zero-line diff for this release, confirmed via `git diff --stat`.
+
+### Test results
+
+`pnpm run typecheck` clean. `pnpm --filter @workspace/ravish-trading run
+test` — 97 files / 1129 tests, all passing (was 94 files / 1092 tests
+before this release; +3 new files, +37 new tests). `PORT=5000
+BASE_PATH=/ pnpm run build` succeeds; the frontend main chunk grew from
+460.62 kB to 571.15 kB (`AppLayout` is eagerly loaded on every page, so
+the sidebar's added code lands in the main chunk) — the same disclosed
+chunk-size category as before, not a new one.
+
+See `docs/v1.1.0-Sidebar-Navigation-Redesign.md` and
+`docs/Release-Notes-v1.1.0.md` for the full record.
+
 ## [v1.0.0] — First stable release
 
 Version 1.0.0 Finalization pass over `v1.0.0-rc1`. No new functionality,
