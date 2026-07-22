@@ -8,9 +8,11 @@ procedures already exist and are not duplicated here:
   Engine second, Trading Engine last).
 - **Day-to-day operations once live**: `docs/Operations-Handbook.md`.
 - **Incident diagnosis/recovery**: `docs/Incident-Response-Runbook.md`.
-- **This release's own checklists**: `docs/RC1-Release-Checklists.md`
+- **This release's own checklists**: `docs/V1-Release-Checklists.md`
   (Known Issues, Migration Notes, Deployment Checklist, Production
-  Checklist, Rollback Checklist for v1.0.0-rc1 specifically).
+  Checklist, Rollback Checklist for `v1.0.0` specifically — building on
+  `docs/RC1-Release-Checklists.md`, which remains accurate for everything
+  it already covered).
 
 ## Runtime model
 

@@ -1,7 +1,7 @@
 # Version 1 Feature List
 
 Every feature below is real, shipped, tested, and reachable from the
-platform's own navigation as of v1.0.0-rc1 — this list was generated from
+platform's own navigation as of v1.0.0 — this list was generated from
 the actual navigation registry (`lib/nav-items.ts`), not written from
 memory. For the full build history behind each item, see `CLAUDE.md`.
 

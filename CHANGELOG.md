@@ -6,6 +6,47 @@ level. For the exhaustive, phase-by-phase build history (every one of the
 every test added), see `CLAUDE.md` — this file is the release-level
 summary, not a duplicate of it.
 
+## [v1.0.0] — First stable release
+
+Version 1.0.0 Finalization pass over `v1.0.0-rc1`. No new functionality,
+no new engines, no new dashboards, no new reports, no new AI features —
+strictly a hardening/documentation/test-quality pass, per the explicit
+scope of this release.
+
+### Fixed
+
+- `GET /executive/intelligence`'s `reporting.totalReports` field silently
+  capped at 50 once a user's real report count exceeded that number (the
+  query supplying it was reused, incorrectly, from a bounded
+  recent-activity fetch). Fixed with a genuine, separate `COUNT(*)` query;
+  `buildReportingSummary()`/`buildExecutiveIntelligenceHub()` both gained
+  an optional, backward-compatible override parameter. See
+  `docs/V1-Test-Resolution-Report.md` §2.
+- `notifications.test.ts`'s own `cleanupUser()` helper was missing a
+  delete for `investing_monitoring_states`, causing an intermittent
+  foreign-key-violation test failure. Fixed (test-file only).
+- 3 `portfolioEventRisk.test.ts` fixtures had drifted out of true as real
+  calendar time passed, since the underlying macro-event calendar is
+  genuinely date-driven (a legitimate feature, not a bug). Fixed by
+  freezing the test clock to a permanently-verified date for exactly the
+  3 affected describe blocks (test-file only).
+
+### Changed
+
+- One test timeout extended (not loosened) for an all-users orchestration
+  test whose real cost scales with this session's own accumulated test
+  database size.
+
+### Test results
+
+Backend test suite now passes at **100% deterministic pass rate — 242/242
+files, 2834/2834 tests, two consecutive fully clean runs** (was 238/242
+files, 2828/2834 tests, at RC1). Frontend: 94/94 files, 1092/1092 tests,
+unchanged.
+
+See `docs/Release-Notes-v1.0.0.md` and `docs/V1-Test-Resolution-Report.md`
+for the full record.
+
 ## [v1.0.0-rc1] — Version 1 Release Candidate
 
 The platform is considered **feature complete** as of this release. This
@@ -66,6 +107,7 @@ See `CLAUDE.md` for the full, exact phase-by-phase record.
 
 ## Versioning
 
-This project has not previously tagged a numbered release — v1.0.0-rc1 is
-the first. Prior work is tracked entirely through the phase history in
-`CLAUDE.md`, not through git tags or a prior changelog.
+This project has not previously tagged a numbered release — `v1.0.0` is
+the first stable tag (preceded by the `v1.0.0-rc1` release candidate).
+Prior work is tracked entirely through the phase history in `CLAUDE.md`,
+not through git tags or a prior changelog.

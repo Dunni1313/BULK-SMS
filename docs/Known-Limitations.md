@@ -1,4 +1,4 @@
-# Known Limitations (v1.0.0-rc1)
+# Known Limitations (v1.0.0)
 
 Every item here is a deliberate, disclosed scope boundary or deferral —
 never a silently-hidden gap. Consistent with this project's own unbroken

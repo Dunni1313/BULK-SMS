@@ -1,6 +1,6 @@
 # DK AI Institutional Investing & Trading OS
 
-**Version 1.0.0-rc1**
+**Version 1.0.0**
 
 A three-engine institutional platform for options income, systematic
 trading research, and investment decision support — built on top of the
@@ -18,6 +18,7 @@ This README is the entry point. For depth, see:
 - [`docs/API-Guide.md`](docs/API-Guide.md) — the REST API and how it's generated/consumed.
 - [`docs/Deployment-Guide.md`](docs/Deployment-Guide.md) — how to deploy and roll back.
 - [`docs/Version-1-Feature-List.md`](docs/Version-1-Feature-List.md) — everything shipped in v1.
+- [`docs/Release-Notes-v1.0.0.md`](docs/Release-Notes-v1.0.0.md) — the current release's own notes.
 - [`docs/Known-Limitations.md`](docs/Known-Limitations.md) — what's deliberately deferred or simulated, and why.
 - [`docs/RC1-Diagrams-And-Catalogues.md`](docs/RC1-Diagrams-And-Catalogues.md) — architecture/dependency/navigation diagrams, report/learning/coach catalogues.
 - [`CHANGELOG.md`](CHANGELOG.md) — what changed, release by release.
@@ -79,8 +80,8 @@ docs/                       All architecture, operations, and release documentat
 
 ## Status
 
-This is a **Release Candidate**. See
-[`docs/Release-Notes-v1.0.0-rc1.md`](docs/Release-Notes-v1.0.0-rc1.md) for
-what's in it, and [`docs/Known-Limitations.md`](docs/Known-Limitations.md)
-for what's explicitly deferred (live market-data providers, a formal
-external security audit, email/push notification delivery).
+This is the **first stable release, v1.0.0**. See
+[`docs/Release-Notes-v1.0.0.md`](docs/Release-Notes-v1.0.0.md) for what's
+in it, and [`docs/Known-Limitations.md`](docs/Known-Limitations.md) for
+what's explicitly deferred (live market-data providers, a formal external
+security audit, email/push notification delivery).
