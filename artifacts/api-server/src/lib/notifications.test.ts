@@ -22,6 +22,7 @@ import {
   tradingPositionsTable,
   settingsTable,
   platformNotificationsTable,
+  investingMonitoringStatesTable,
 } from "@workspace/db";
 import { getFundamentals } from "./fundamentals.js";
 import { getSettingsRow } from "./serverState.js";
@@ -44,6 +45,15 @@ async function cleanupUser(userId: string): Promise<void> {
   await db.delete(platformNotificationsTable).where(eq(platformNotificationsTable.userId, userId));
   await db.delete(valueWatchlistTable).where(eq(valueWatchlistTable.userId, userId));
   await db.delete(tradingPositionsTable).where(eq(tradingPositionsTable.userId, userId));
+  // Phase 16's Monitoring Engine (evaluateSymbolMonitoringAlerts /
+  // evaluatePortfolioMonitoringAlerts) persists a "last observed signal
+  // state" row here as a side effect of evaluation — this table's own FK
+  // is ON DELETE RESTRICT (like every other per-user table), so it must
+  // be cleaned up before the user row itself, same as every other table
+  // this helper already deletes from first. Missing this line was a
+  // genuine, previously-disclosed test-file bug (RC1's own Known Issues),
+  // not a production defect.
+  await db.delete(investingMonitoringStatesTable).where(eq(investingMonitoringStatesTable.userId, userId));
   await db.delete(settingsTable).where(eq(settingsTable.userId, userId));
   await db.delete(usersTable).where(eq(usersTable.id, userId));
 }
@@ -197,19 +207,34 @@ describe("evaluateAndPersistAlertsForAllUsers — background scheduler orchestra
     await cleanupUser(disabledUserId);
   });
 
-  it("generates alerts only for alertsEnabled users, skipping disabled users entirely", async () => {
-    await evaluateAndPersistAlertsForAllUsers();
+  // evaluateAndPersistAlertsForAllUsers() genuinely iterates every
+  // alertsEnabled user in the whole database, by design (it's the same
+  // orchestration wrapper the real background scheduler tick calls) — not
+  // scoped to just this describe block's own 2 fixture users. Over a long
+  // interactive session this shared test database accumulates many
+  // alertsEnabled users across all 336 test files' own fixtures, so this
+  // one test's real, honest cost genuinely scales with the database's
+  // current size. A generous explicit timeout (Version 1.0.0 Finalization
+  // hardening pass), not a change to what's being tested — matching the
+  // same precedent already established for other heavy all-users
+  // orchestration tests in this codebase (e.g. lib/schedulerLoad.test.ts).
+  it(
+    "generates alerts only for alertsEnabled users, skipping disabled users entirely",
+    async () => {
+      await evaluateAndPersistAlertsForAllUsers();
 
-    const enabledRows = await db
-      .select()
-      .from(platformNotificationsTable)
-      .where(eq(platformNotificationsTable.userId, enabledUserId));
-    const disabledRows = await db
-      .select()
-      .from(platformNotificationsTable)
-      .where(eq(platformNotificationsTable.userId, disabledUserId));
+      const enabledRows = await db
+        .select()
+        .from(platformNotificationsTable)
+        .where(eq(platformNotificationsTable.userId, enabledUserId));
+      const disabledRows = await db
+        .select()
+        .from(platformNotificationsTable)
+        .where(eq(platformNotificationsTable.userId, disabledUserId));
 
-    expect(enabledRows.length).toBeGreaterThan(0);
-    expect(disabledRows.length).toBe(0);
-  });
+      expect(enabledRows.length).toBeGreaterThan(0);
+      expect(disabledRows.length).toBe(0);
+    },
+    30_000,
+  );
 });

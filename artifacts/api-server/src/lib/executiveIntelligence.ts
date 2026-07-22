@@ -206,7 +206,19 @@ export interface ExecutiveReportingSummary {
 
 const RECENT_REPORTS_LIMIT = 10;
 
-export function buildReportingSummary(rows: MinimalReportRow[], limit: number = RECENT_REPORTS_LIMIT): ExecutiveReportingSummary {
+// Version 1.0.0 Finalization hardening — totalCount is an optional,
+// explicit override for the TRUE total row count. Genuine bug found and
+// fixed this pass: routes/executiveIntelligence.ts's own reportRows query
+// caps at RECENT_ROWS_LIMIT (50, for the recent-activity/byType-breakdown
+// use case, a legitimate and disclosed bound) BEFORE ever reaching this
+// function — so for any user with more than 50 reports, `rows.length`
+// silently stopped being the true total and got permanently stuck at 50,
+// never increasing again no matter how many more reports were generated.
+// Defaults to `rows.length` (unchanged, byte-identical behavior) when
+// omitted — lib/portfolioWorkspace.ts's own call site never hits this bug
+// in the first place, since its own query is genuinely unbounded, so it
+// intentionally does not pass this parameter.
+export function buildReportingSummary(rows: MinimalReportRow[], limit: number = RECENT_REPORTS_LIMIT, totalCount?: number): ExecutiveReportingSummary {
   const tally: Record<string, number> = {};
   for (const r of rows) tally[r.reportType] = (tally[r.reportType] ?? 0) + 1;
   const byType: ReportingSummaryTypeRow[] = Object.entries(tally)
@@ -219,7 +231,7 @@ export function buildReportingSummary(rows: MinimalReportRow[], limit: number = 
     .map((r) => ({ id: r.id, reportType: r.reportType, title: r.title, createdAt: new Date(r.createdAt).toISOString() }));
 
   return {
-    totalReports: rows.length,
+    totalReports: totalCount ?? rows.length,
     distinctReportTypesUsed: byType.length,
     byType,
     recentReports,
@@ -377,10 +389,15 @@ export function buildExecutiveIntelligenceHub(input: {
   investing: InvestingAnalyticsDashboard;
   trading: TradingAnalyticsDashboard;
   reportRows: MinimalReportRow[];
+  // Version 1.0.0 Finalization — the TRUE total report count for this
+  // user, when the caller's own reportRows query is itself bounded (see
+  // buildReportingSummary's own header comment). Optional, defaulting to
+  // reportRows.length, so every existing caller/test is unaffected.
+  totalReportsOverride?: number;
   activityInput: ActivityTimelineInput;
 }): ExecutiveIntelligenceHub {
   const { investing, trading } = input;
-  const reporting = buildReportingSummary(input.reportRows);
+  const reporting = buildReportingSummary(input.reportRows, undefined, input.totalReportsOverride);
   const coach = buildExecutiveCoachSummary(investing, trading);
   const overview = buildExecutiveOverview(investing, trading, trading.learning, coach.totalCoachViews, reporting.totalReports, reporting.distinctReportTypesUsed);
 

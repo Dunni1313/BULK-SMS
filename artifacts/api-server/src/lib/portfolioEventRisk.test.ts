@@ -18,7 +18,7 @@
 // a long expiration on a non-dividend symbol with no near-term earnings
 // reliably trips "medium" risk from macro events alone.
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, usersTable, tradesTable, settingsTable } from "@workspace/db";
@@ -45,6 +45,23 @@ async function cleanupUser(userId: string): Promise<void> {
 function isoDateInDays(days: number): string {
   return new Date(Date.now() + days * 86_400_000).toISOString().split("T")[0];
 }
+
+// Version 1.0.0 Finalization hardening. lib/eventRisk.ts's own macro
+// calendar (Nonfarm Payrolls/CPI/PCE/FOMC) is deterministically generated
+// from REAL calendar dates, not random — so a fixture like "TSLA at a
+// short expiration reliably has zero events" is only true on days that
+// happen to fall in a genuine gap between monthly macro-release dates.
+// The 3 describe blocks below rely on such gaps and drifted out of true
+// as real time passed since they were first "empirically verified" (their
+// own prior comments already disclosed this verification methodology).
+// Fixed by freezing the clock to 2026-10-15T00:00:00Z — a date verified,
+// via direct probing of the real, unmodified getEventRiskForSymbol(),
+// to reproduce every one of these 3 blocks' own original fixture
+// intentions permanently, regardless of which real date this suite is
+// actually run on. The other 2 describe blocks in this file ("portfolio
+// with multiple events...", "medium-risk macro-only events") are left on
+// the real clock since they were not failing and do not need this fix.
+const FROZEN_EVENT_CLOCK = new Date("2026-10-15T00:00:00.000Z");
 
 interface InsertedTrade {
   id: number;
@@ -142,12 +159,18 @@ describe("buildPortfolioEventRiskOverlay", () => {
     let trade: InsertedTrade;
 
     beforeAll(async () => {
+      // toFake: ["Date"] only — never fake setTimeout/setInterval/etc,
+      // which would risk hanging the real async Postgres driver calls
+      // this same beforeAll/it block makes.
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(FROZEN_EVENT_CLOCK);
       userId = await createUser("no-events");
       // TSLA, a short 3-day expiration, no dividend — empirically
-      // verified to produce zero events.
+      // verified (at the frozen clock above) to produce zero events.
       trade = await insertPosition(userId, "TSLA", 3);
     });
     afterAll(async () => {
+      vi.useRealTimers();
       await cleanupUser(userId);
     });
 
@@ -212,11 +235,14 @@ describe("buildPortfolioEventRiskOverlay", () => {
     let noEventsTrade: InsertedTrade;
 
     beforeAll(async () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(FROZEN_EVENT_CLOCK);
       userId = await createUser("high-risk");
       highRiskTrade = await insertPosition(userId, "AAPL", 45);
       noEventsTrade = await insertPosition(userId, "IBM", 3);
     });
     afterAll(async () => {
+      vi.useRealTimers();
       await cleanupUser(userId);
     });
 
@@ -281,12 +307,15 @@ describe("buildPortfolioEventRiskOverlay", () => {
     let trade: InsertedTrade;
 
     beforeAll(async () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(FROZEN_EVENT_CLOCK);
       userId = await createUser("dividend");
-      // SPY, 3 DTE — empirically verified to carry only a dividend
-      // event, level "low".
+      // SPY, 3 DTE — empirically verified (at the frozen clock above) to
+      // carry only a dividend event, level "low".
       trade = await insertPosition(userId, "SPY", 3);
     });
     afterAll(async () => {
+      vi.useRealTimers();
       await cleanupUser(userId);
     });
 
