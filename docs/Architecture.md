@@ -180,5 +180,10 @@ Income Engine execution path. See
   catalogues.
 - `docs/v1.1.0-Sidebar-Navigation-Redesign.md` — the post-RC1 navigation
   presentation change described in "Navigation" above.
+- `docs/v1.2.0-Trade-Execution-Center.md` — a worked example of the
+  reuse-first composition discipline described throughout this page:
+  a whole guided workflow page built with zero new backend routes,
+  composing Scanner, Order Preview, Risk Validation, Broker Health, and
+  Trade Monitor verbatim.
 - `CLAUDE.md` §3a–§3e — the reconciled Sprint/Phase numbering history
   behind every module named on this page.

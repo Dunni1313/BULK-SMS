@@ -1,6 +1,6 @@
 # DK AI Institutional Investing & Trading OS
 
-**Version 1.0.0**
+**Version 1.2.0**
 
 A three-engine institutional platform for options income, systematic
 trading research, and investment decision support — built on top of the
@@ -80,8 +80,15 @@ docs/                       All architecture, operations, and release documentat
 
 ## Status
 
-This is the **first stable release, v1.0.0**. See
-[`docs/Release-Notes-v1.0.0.md`](docs/Release-Notes-v1.0.0.md) for what's
-in it, and [`docs/Known-Limitations.md`](docs/Known-Limitations.md) for
-what's explicitly deferred (live market-data providers, a formal external
+The first stable release was **v1.0.0**. Since then: **v1.1.0** shipped a
+sidebar navigation redesign (`docs/v1.1.0-Sidebar-Navigation-Redesign.md`),
+and **v1.2.0** adds the Trade Execution Center — a guided, single-page
+workflow over the Options Income Engine's Scanner → Order Preview → Risk
+Review → Paper Order Submission → Trade Monitor pipeline, built entirely
+as a composition layer over already-shipped modules (see
+[`docs/v1.2.0-Trade-Execution-Center.md`](docs/v1.2.0-Trade-Execution-Center.md)).
+See [`docs/Release-Notes-v1.0.0.md`](docs/Release-Notes-v1.0.0.md) and
+`CHANGELOG.md` for full release history, and
+[`docs/Known-Limitations.md`](docs/Known-Limitations.md) for what's
+explicitly deferred (live market-data providers, a formal external
 security audit, email/push notification delivery).
