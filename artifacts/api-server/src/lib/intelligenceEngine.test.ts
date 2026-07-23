@@ -367,9 +367,19 @@ describe("buildInstitutionalIntelligence", () => {
     let userId: string;
     beforeAll(async () => {
       userId = await createUser("timeline");
-      // A healthy, balanced portfolio today...
-      for (const symbol of ["AAPL", "MSFT", "GOOGL"]) {
-        await insertPosition(userId, symbol, 60);
+      // A healthy, balanced portfolio today — 3 symbols on a staggered
+      // expiration ladder (30/60/90 days), not all 3 sharing one
+      // expiration date. A prior version of this fixture put all 3 on
+      // the same 60-day expiration, which fully concentrates
+      // portfolioDashboard.ts's own "expiration_distribution" health
+      // factor and leaves the overall healthScore sitting right at the
+      // DASHBOARD_ELEVATED_MIN=40 boundary (empirically confirmed: 39/100
+      // as of 2026-07-23, one point below the threshold needed to escape
+      // "high_risk") — a genuine, real portfolio-construction choice, not
+      // an artificial threshold nudge, that also happens to push the
+      // score comfortably clear of that boundary, day-independent.
+      for (const [symbol, daysOut] of [["AAPL", 30], ["MSFT", 60], ["GOOGL", 90]] as const) {
+        await insertPosition(userId, symbol, daysOut);
       }
       // ...compared against a manually recorded, genuinely worse prior
       // day (lower health score, lower buying power, lower theta) so the

@@ -6,6 +6,42 @@ level. For the exhaustive, phase-by-phase build history (every one of the
 every test added), see `CLAUDE.md` — this file is the release-level
 summary, not a duplicate of it.
 
+## [v1.2.0] — Trade Execution Center
+
+A bounded, frontend-only feature release built on top of `v1.1.0`. Zero
+new backend routes; zero new business logic; `execution.ts`/
+`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` all have
+a zero-line diff for this release (confirmed via `git diff --stat`).
+
+### Added
+
+- New page `/trade-execution-center` — a guided, single-page workflow
+  taking a scanner candidate all the way through AI Opportunity Score
+  review, strategy confirmation, Order Preview, Pre-Trade Risk
+  Validation, an explicit risk-acknowledgement + broker-connectivity gate,
+  Paper Order Submission, Order Status, and Trade Monitor, ending with
+  links to the existing Adjust/Close pages — without re-implementing any
+  step's own calculation. See
+  `docs/v1.2.0-Trade-Execution-Center.md` for the full dependency map.
+- New safeguards genuinely specific to this workflow, not present
+  elsewhere: an explicit risk-acknowledgement checkbox gating submission,
+  stale-preview detection (a preview older than 60 seconds must be
+  refreshed before it can be submitted), and duplicate-submission
+  protection.
+- A session-local activity timeline of the major actions taken during a
+  workflow visit (not a new audit log — the durable trades/journal write
+  is still the existing one).
+- One new sidebar entry ("Trade Execution Center," in the Options Trading
+  group).
+
+### Notes
+
+- Paper Trading only, unconditionally — no live-trading path exists in
+  this codebase for this page (or any other) to expose.
+- "Strategy Selection" is a review/confirm step, not a re-assignment
+  picker — no backend capability exists to change a scanner candidate's
+  assigned strategy, and none was fabricated for this release.
+
 ## [v1.1.0] — Sidebar Navigation Redesign
 
 A bounded, frontend-only minor release built on top of the frozen

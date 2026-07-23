@@ -7,7 +7,7 @@ near-term, project-status view: what's shipped, what v1.2 is prioritizing
 next, and what's further out. Nothing in this document has been
 implemented as part of producing it; it is a planning artifact only.
 
-## Completed (everything through v1.1.0)
+## Completed (everything through v1.2.0)
 
 - **Sprint 1–78** (`CLAUDE.md` §3) — the original 7-phase Blueprint
   buildout: platform foundation (auth, multi-tenancy, `lib/ai-core`, audit
@@ -50,18 +50,23 @@ implemented as part of producing it; it is a planning artifact only.
   palette unaffected (`CLAUDE.md` §3e,
   `docs/v1.1.0-Sidebar-Navigation-Redesign.md`). Tag/release publication
   likewise remains manual (`docs/GitHub-Release-v1.1.0.md`).
+- **Version 1.2.0** — the Trade Execution Center: a guided, single-page
+  workflow over the Options Income Engine's existing Scanner/Order
+  Preview/Risk Validation/Alpaca submission/Trade Monitor pipeline, built
+  as a pure composition layer with zero new backend routes and zero new
+  business logic (`docs/v1.2.0-Trade-Execution-Center.md`, `CHANGELOG.md`'s
+  `[v1.2.0]` entry).
 
 ## Current development — v1.2 priorities
 
-1. **Trade Execution Center.** A previously-scoped, step-by-step workflow
-   (Scanner → AI Opportunity Scoring → Strategy Selection → Order Preview
-   → Risk Engine → Confirm → Broker Execution → Trade Monitor → Position
-   Management) explicitly composing existing Engine 3 modules rather than
-   duplicating them. **Status: specified, not started.** The project owner
-   explicitly set this aside in favor of first auditing and documenting
-   existing Portfolio Intelligence functionality (this synchronization
-   pass is part of that audit's follow-through) — it remains available to
-   resume as a dedicated future sprint once prioritized.
+1. **Trade Execution Center.** A step-by-step workflow (Scanner → AI
+   Opportunity Scoring → Strategy Selection → Order Preview → Risk Review
+   → Confirm → Paper Order Submission → Order Status → Trade Monitor →
+   Adjust/Close), built explicitly as a composition layer over existing
+   Engine 3 modules rather than duplicating them. **Status: SHIPPED
+   (v1.2.0)** — see `docs/v1.2.0-Trade-Execution-Center.md` and
+   `CHANGELOG.md`'s `[v1.2.0]` entry. Zero new backend routes; zero new
+   business logic; the 5 protected files remain zero-line-diff.
 2. **Timeline visualization improvements.** `PortfolioConstruction.tsx`'s
    Timeline tab (Phase 13) exists and functions but is the one
    under-documented surface of that page — `docs/Institutional-Portfolio-Manager.md`
