@@ -104,6 +104,71 @@ recomputed." This is enforced by convention and spot-checked in
 `docs/RC1-Repository-Audit.md`, not by a build-time rule — but is
 consistently followed across all 44 phases of this project's history.
 
+## Portfolio intelligence
+
+Engine 1's own portfolio-level composition (`lib/portfolioIntelligence.ts`,
+Phase 13) is the platform's largest single reuse example: it composes
+`buildValueResearchReport()` (per-holding valuation/committee output) and
+`investingRisk.ts`'s already-shipped `computePortfolioRiskFromAllocation()`/
+`band()`/`gradeLabel()` (Phase 3 Sprint 29's concentration/sector/beta
+model) into one weighted-portfolio view — quality/capital-allocation/
+diversification scores, sector/market-cap/growth-value allocation, and a
+risk roll-up — without re-deriving any of the underlying math. Later
+phases (18 Portfolio Optimisation, 41 Rebalancing Engine, 44 Portfolio
+Workspace) each extend this same composition rather than forking it. See
+`docs/Institutional-Portfolio-Manager.md`, `docs/Portfolio-Scoring.md`,
+`docs/Portfolio-Risk-Framework.md`.
+
+## Monitoring
+
+Two distinct monitoring surfaces exist, for two distinct audiences, and
+are deliberately not merged:
+
+- **Operator/production monitoring** — `GET /api/monitoring/status`
+  (Phase 6, Sprint 74): database connectivity, background-job health
+  (auto-execution/auto-adjustment/alerts tick state), and audit-log-derived
+  alert signals (guardrail block rate, auth failure rate). This is the
+  surface named in `docs/Incident-Response-Runbook.md` and
+  `docs/Operations-Handbook.md`.
+- **User-facing portfolio/market monitoring** — Engine 1's Monitoring
+  Engine (`lib/monitoringEngine.ts`, Phase 16) and
+  `pages/MonitoringDashboard.tsx`: per-holding/per-watchlist alert states
+  and notes, surfaced through the same `platform_notifications` table the
+  Alerts & Notifications feature (Phase 4, Sprint 56) already writes to.
+  See `docs/Monitoring-Engine.md`, `docs/Alert-Framework.md`.
+
+## Navigation
+
+`lib/nav-items.ts` is the single source of truth for every route; see
+`docs/RC1-Diagrams-And-Catalogues.md` §5 for the full navigation map
+grouped by engine. As of **v1.1.0**, the sidebar itself
+(`components/layout/AppLayout.tsx`) presents that registry as 10
+collapsible, groupable, pinnable, compact-mode-capable groups rather than
+one flat list — a presentation-layer change only, preserving every one of
+the (by v1.1.0) 82 routes' own reachability, plus the global command
+palette (⌘K / Ctrl+K, Phase 10), which finds every route regardless of
+which group is collapsed. Sidebar layout preferences persist client-side
+only (`dk-sidebar-navigation-state` in `localStorage`), never server-side.
+See `docs/v1.1.0-Sidebar-Navigation-Redesign.md`.
+
+## Broker integration
+
+`lib/providers/alpacaBroker.ts` is the platform's only broker integration,
+**Paper Trading only by deliberate, unconditional design** — no live-
+trading code path exists anywhere in this codebase. It backs three
+layered surfaces, each read-only or preview-only until CLAUDE.md's own
+protected-file approval process is invoked for anything further:
+Broker Health (`routes/brokerHealth.ts`, a cached account/connectivity
+check feeding `Settings.tsx`'s "Check Connection" panel and `GET /settings`'s
+computed `alpacaConnected` field), Order Lifecycle & Reconciliation
+(`lib/brokerReconciliation.ts` + `lib/providers/alpacaOrderLifecycle.ts`,
+normalizing Alpaca's own order states against the local `trades` table),
+and the Paper Portfolio Dashboard (`pages/PaperPortfolio.tsx`, live
+broker positions, read-only). None of this touches `execution.ts` —
+order submission remains exclusively the existing, protected Options
+Income Engine execution path. See
+`docs/Alpaca-Paper-Trading-Architecture.md`, `docs/Broker-Reconciliation.md`.
+
 ## Related documents
 
 - `docs/DK-AI-OS-Architecture-Blueprint.md` — the original target
@@ -113,3 +178,7 @@ consistently followed across all 44 phases of this project's history.
 - `docs/RC1-Diagrams-And-Catalogues.md` — the engine/module dependency
   diagrams, database overview, navigation map, and report/learning/coach
   catalogues.
+- `docs/v1.1.0-Sidebar-Navigation-Redesign.md` — the post-RC1 navigation
+  presentation change described in "Navigation" above.
+- `CLAUDE.md` §3a–§3e — the reconciled Sprint/Phase numbering history
+  behind every module named on this page.

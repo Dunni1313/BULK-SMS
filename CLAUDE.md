@@ -119,6 +119,373 @@ These rules apply regardless of how a request is phrased, including requests tha
 - **Sprint 77 — COMPLETE.** Staged Production Rollout Plan — Documentation + Go-Live Checklist (approved Phase 6 plan, Sprint 77, run ahead of the still-blocked Sprints 75/76 per the project owner's own explicit instruction; see `docs/Phase-6-Master-Planning-Document.md`'s Sprint 77 as-built note). **A pure documentation sprint, per the project owner's own explicit instruction ("Do not modify production code") — confirmed by `git status --porcelain`/`git diff --stat` showing zero application source files (backend, frontend, or E2E) touched anywhere in this sprint; only `docs/` and `CLAUDE.md` changed.** No `AskUserQuestion` was needed — the 11 requested focus areas were all already-scoped documentation deliverables with no genuine implementation-choice ambiguity requiring the project owner's input; every design point (which existing systems to cross-reference, how to structure the go-live checklist) was resolved by direct application of this project's own already-established precedents (Sprint 74's monitoring architecture, the Blueprint's own staged-rollout-order mandate, CLAUDE.md's own protected-file rules) rather than a fresh decision. **Three new top-level documents, each with a distinct, non-overlapping purpose, explicitly cross-referenced rather than duplicated:** `docs/Production-Rollout-Plan.md` — the one-time go-live procedure itself: §0 restates CLAUDE.md's own non-negotiable protections verbatim (never silently assumed, always restated at the point of use); §1 a full pre/during/post-deployment checklist; §2 the Blueprint-mandated 3-stage rollout order (Options Income Engine first — most mature, protected code, already SIMULATED-safe today; Investing Engine second — a pure data-source swap behind the existing `getFundamentalsProvider()` seam, blocked on Sprint 75; Trading Engine last — newest, least tested, its own live-data provider explicitly deferred by the project owner at Phase 3's close and not reopened here), each stage's current real status (all three genuinely blocked/deferred today, honestly stated, never a fabricated "ready"); §3 environment validation across every one of the 20+ real env vars in `.env.example` (core runtime, auth/security, per-stage provider credentials, current database schema state — 17 manual migrations, `000` through `016`, per CLAUDE.md rule 7); §4 backup/recovery (a real, numbered 6-step recovery procedure, plus an explicit "what this plan does not cover" section naming exactly which managed-backup-service decisions remain the project owner's, never assumed); §5 the release process; §6 rollback procedures split by blast radius (code-only, migration-involving, live-data-stage-specific, and the kill switch as the fastest possible rollback for anything touching the automation engines — reusing, not re-deriving, Sprint 67's own already-verified kill-switch behavior); §7 monitoring verification (directly referencing Sprint 74's `GET /api/monitoring/status` endpoint and its 6 named alert categories, zero duplication of that document's own content); §8 the go-live checklist, including a dedicated §8.2 automation-kill-switch-specific checklist the Blueprint's own text explicitly calls for, and an explicit go/no-go decision point naming who actually makes that call (the project owner, always, never an automated gate); §9 post-launch validation (immediate/extended windows, explicit rollback-trigger criteria so "when do we roll back" is answered in advance, not improvised under pressure); §10 an 8-row risk register (risk/likelihood/impact/mitigation/owner); §11 cross-references. `docs/Operations-Handbook.md` — the ongoing day-to-day operational reference, distinct in purpose from the one-time rollout plan: daily/weekly/monthly operational checklists, a full credential-rotation procedure (general + `BETTER_AUTH_SECRET`-specific, since rotating it invalidates every live session + broker-credential-specific, recommending disarming the kill switch first per Sprint 67's own established safe-default), common operational tasks (§6.1 arming/disarming the kill switch — the fast, safe default action for any concern; §6.2 the manual scheduler-cycle trigger, explicitly noting per Sprint 67's own security review that this is *not* a kill-switch bypass; §6.3–6.4 using `auto_execution_log`/`platform_audit_log` to answer "why did/didn't X happen"; §6.5 honestly documenting that no role-based admin functionality exists today, not fabricating one), and a 5-step escalation ladder culminating in "anything touching a protected file requires the project owner's own explicit, separately-approved decision — no operator, however senior, may make this call unilaterally," restating CLAUDE.md rule 2 verbatim at the point where an operator would actually need it. `docs/Production-Readiness-Report.md` — the current-state assessment, explicit about the difference between "ready to deploy" (true today, in SIMULATED mode, for all three engines) and "ready to go live" (false today, for any engine, pending Sprints 75/76's credentials and the Trading Engine's own deliberately-deferred live-data provider) — a 14-row readiness scorecard citing real evidence per row (test counts, zero-diff confirmations, specific prior sprint numbers), a blockers-in-detail section naming each blocker's exact unblocking condition, a test-suite-state summary (backend 118 files/1,235 tests, frontend 31 files/236 tests, 5 E2E specs, 21 load/chaos tests, protected files confirmed zero-line-diff across the entire Sprint 32–74 range), a known-disclosed-gaps section (E2E suite is still a smoke-level subset of the full page surface, rate-limit/alert thresholds are generous defaults pending real production traffic per Sprint 52/74's own disclosed precedent, no formal external security audit has been performed, no managed backup service is configured), and a 5-item recommendation. **`docs/Phase-6-Master-Planning-Document.md` updated**: new §2h as-built section describing this sprint in the file's own established narrative style; the Sprint 77 table row marked SHIPPED; the M7 milestone ("Go-live-ready") marked **ACHIEVED** — explicitly, deliberately not conflated with M6 ("Live-data verified"), which remains unachieved and blocked on Sprints 75/76's own still-absent credentials, per the Production Readiness Report's own "ready to deploy" vs. "ready to go live" distinction; the Production-Readiness Strategy table's "Staged rollout plan" row updated from "❌ Does not exist" to "✅ Ready." **Validation, honestly scoped to what a documentation-only sprint actually requires:** no code was written or changed, so the standard test/build/E2E command suite was not re-run this sprint — Sprint 74's own most recent validation run (118 files / 1,235 backend tests, 31 files / 236 frontend tests, both fully clean; 5/5 E2E specs passing) remains the current, unaffected baseline, confirmed still accurate by `git diff --stat` showing zero application-source changes since that run. No database migration, no `openapi.yaml` change, no new dependency. No trading logic, options execution, scheduler behavior, guardrails, kill switches, authentication, tenant isolation, or audit logging were touched; `execution.ts`/`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` all remain zero-line diff across the entire Sprint 32–77 range.
 - **Current Sprint: none — Sprint 78 has not been approved for implementation.** Per the established per-sprint approval process, Sprint 78 requires its own explicit pre-implementation plan presentation and approval before any code is written. Sprints 75 and 76 (Live Provider Verification — Engine 1; Live Broker Verification — Options Income Engine) remain explicitly blocked pending `FMP_API_KEY`/`ALPHA_VANTAGE_API_KEY` and Alpaca credentials respectively, none present in this session. Per the project owner's own explicit final instruction for Sprint 77 ("Do not begin any further sprint afterwards"), no further sprint was started this session.
 
+## 3a. Reconciling two historical numbering schemes — read this before "Phase N" or "Sprint N" confuses you
+
+This file's §3 above documents **Sprint 1–78** end-to-end (the original 7-phase
+Blueprint numbering, where "Phase 1" = Sprints 1–10, "Phase 2" = Sprints
+11–31, "Phase 3" = Sprints 32–51, "Phase 4" = Sprints 52–64, "Phase 5" =
+Sprints 65–68, "Phase 6" = Sprints 69–78 minus the still-blocked 75/76).
+That work was merged to `main` via PR #1 ("DK AI Institutional Investing &
+Trading OS — Phase 6 Complete (Sprints 69–77)", merge commit `bfb5e86`).
+
+**A second, separate body of work happened after that merge and before the
+Version 1.0.0 freeze, but was never folded into this file until now.** It
+falls into three distinct waves, none of which reuses the "Sprint N"
+numbering above — verified directly against `git log`, not assumed:
+
+1. **An unnumbered "Alpaca Paper Trading Expansion" wave** (13 commits,
+   2026-07-16, commit range `e87e5a3`..`013e638`) — Broker Health, the
+   Broker Connection UI, Paper Order Lifecycle & Reconciliation, the Paper
+   Portfolio Dashboard, Trade History/Performance Analytics, Order Preview,
+   Position Sizing, Trade Adjustment Preview, Portfolio Stress Test, Event
+   Risk, Concentration Risk, the Portfolio Risk Dashboard, and the
+   Institutional Command Center. Documented in §3b below.
+2. **"Phase 8" (Sprints 1–5)** — 5 commits, 2026-07-16/17, explicitly
+   labeled `(Phase 8, Sprint N — ...)` in their own commit subjects:
+   Institutional Intelligence Engine, AI Teacher & Learning Centre, AI
+   Portfolio Analyst, AI Trade Journal, Institutional Mentor. Documented in
+   §3c below.
+3. **"Phase 9" through "Phase 44"** — 36 phases, 172 commits, 2026-07-17
+   through 2026-07-21, each commit subject prefixed `Phase N:` — the large
+   parallel institutional-engine buildout across all three engines plus a
+   shared Reporting/Executive layer. Documented in §3d below.
+
+All of the above — Sprint 78's own "no further sprint was started" close,
+through the last Phase 44 commit — chronologically **precedes** the
+`## Version 1.0.0 — Finalization, Tag, and Freeze` section immediately
+below, which covers the separate hardening/test-fixing pass run directly
+against this combined codebase to produce `v1.0.0-rc1` and then the frozen
+`v1.0.0` tag (commit `dc2a126`, 2026-07-22). **Nothing in §3 above, or in
+the Version 1.0.0 section below, has been altered by this reconciliation —
+every existing word is unchanged; §3a–§3e are new insertions only.**
+
+After the `v1.0.0` freeze, one further release shipped: **v1.1.0** (the
+sidebar navigation redesign), documented in §3e below.
+
+No commit anywhere in the repository's history is labeled "Phase 1" through
+"Phase 7" using the `Phase N:` prefix convention — those numbers refer only
+to the Blueprint's own phase grouping of Sprint 1–78 in §3 above. A future
+reader should treat "Phase" as ambiguous without a date or commit hash
+attached, and prefer "Sprint N" (§3) or "Phase N (2026-07-1x buildout)"
+(§3d) explicitly.
+
+### 3b. The Alpaca Paper Trading Expansion (unnumbered, 13 commits, 2026-07-16)
+
+All 13 items below are Paper-Trading-only, read/simulate-only where noted,
+and never modify `execution.ts`/`optionsMath.ts`/`risk.ts`/
+`autoExecution.ts`/`autoAdjustment.ts` — each commit's own message
+independently confirms a zero-line diff against those five protected files,
+consistent with CLAUDE.md rule 1/2 holding throughout this entire wave.
+
+- **Broker Health** (`e87e5a3`) — `lib/providers/alpacaBroker.ts` gained
+  real Alpaca account/positions/orders calls; a new health-check
+  orchestrator backs `routes/brokerHealth.ts`; `GET /settings`'s
+  `alpacaConnected` field became computed rather than a stored flag.
+- **Broker Connection UI** (`c4ffe37`) — a "Check Connection" panel added
+  to `Settings.tsx`, the frontend half of Broker Health.
+- **Paper Order Lifecycle & Reconciliation Foundation** (`ba1796a`) — new
+  `lib/brokerReconciliation.ts` and `lib/providers/alpacaOrderLifecycle.ts`
+  normalize Alpaca's own order states into this app's model; a read-only
+  `routes/brokerReconciliation.ts` route surfaces discrepancies between the
+  local `trades` table and the broker's own order/position records.
+- **Paper Portfolio Dashboard** (`a37c1f0`) — new `pages/PaperPortfolio.tsx`
+  plus a `GET /api/broker/positions`-style extension to
+  `brokerReconciliation.ts`, showing live broker positions read-only.
+- **Trade History, Performance Analytics & Trading Journal** (`03e73a3`) —
+  new `lib/tradeAnalytics.ts` (client-side), `pages/TradeHistory.tsx`,
+  `pages/TradePerformance.tsx`; `journal_entries` gained `thesis`/
+  `entryReasoning` columns.
+- **Paper Trading Order Preview & Risk Simulator** (`3945a6c`) — new
+  `lib/orderPreview.ts` (`POST /execution/order-preview`), pure computation
+  over already-resolved data, no broker call, no database write.
+- **Position Sizing & Portfolio Impact Calculator** (`c0d0273`) — new
+  `lib/positionSizing.ts` (510 lines) and `pages/PositionSizing.tsx`; a
+  read-only `POST /execution/position-sizing`.
+- **Trade Adjustment & Roll/Convert Preview Simulator** (`10a4bf0`) — new
+  `lib/tradeAdjustmentPreview.ts` (724 lines), reusing
+  `positionSizing.ts`'s own exported `TradeRow`/`currentOpenTrades()`
+  helpers rather than duplicating them.
+- **Portfolio Stress Test & Scenario Simulator** (`7077d0c`) — new
+  `lib/portfolioStressTest.ts` (525 lines), `pages/PortfolioStressTest.tsx`
+  with quick-preset scenario buttons.
+- **Earnings & Event Risk Portfolio Overlay** (`15d21ee`) — new
+  `lib/portfolioEventRisk.ts`, a positions-table overlay flagging
+  upcoming-earnings exposure per open position.
+- **Correlation & Concentration Risk Overlay** (`681d45b`) — new
+  `lib/portfolioConcentration.ts` (537 lines), `pages/PortfolioConcentration.tsx`
+  at `/concentration-risk`, reusing the categorical-sector-metadata pattern
+  already established for Engine 1's `industryPeers.ts`.
+- **Portfolio Risk Dashboard & Health Score** (`1d373a8`) — new
+  `lib/portfolioDashboard.ts` (585 lines), `pages/PortfolioDashboard.tsx`
+  at `/portfolio-dashboard`, an executive roll-up of the prior several
+  overlays' own scores.
+- **Institutional Command Center** (`013e638`) — new
+  `pages/CommandCenter.tsx` (529 lines), wired in as the new primary
+  landing page ahead of the prior `Dashboard.tsx`.
+
+### 3c. "Phase 8" (Sprints 1–5, 5 commits, 2026-07-16/17)
+
+- **Sprint 1 — Institutional Intelligence Engine** (`ecaba03`, "AI Coach
+  Foundation") — the first cross-cutting AI-coach composition layer,
+  predating and distinct from the later Engine-specific coaches built in
+  Phase 21/29 below.
+- **Sprint 2 — AI Teacher & Learning Centre** (`98a1cb3`, "Paper Trading,
+  educational only") — Learning Paths content model, an Explanation
+  Engine/Explain Mode, Portfolio Learning Mode, a Strategy Academy,
+  interactive-education simulations, a quiz system, learning-progress
+  tracking, and a Glossary.
+- **Sprint 3 — AI Portfolio Analyst** (`fdde65e`, "Paper Trading,
+  deterministic only") — an OpenAPI-backed analyst endpoint plus a
+  dedicated frontend page, explicitly deterministic (no free-form LLM
+  narration of portfolio state).
+- **Sprint 4 — AI Trade Journal** (`ad0f157`) — journal-analysis
+  functionality building on the Trading Journal work from §3b.
+- **Sprint 5 — Institutional Mentor** (`d9d2b38`) — new
+  `lib/institutionalMentor.ts` and `pages/InstitutionalMentor.tsx`, reusing
+  `portfolioConcentration.ts`'s own `diversificationScore` and the stress
+  test/trade-journal modules' own exports rather than recomputing them —
+  the first explicit "Institutional Mentor" surface that every later
+  Phase 9–44 module (§3d) goes on to integrate into.
+
+### 3d. "Phase 9" through "Phase 44" — the parallel institutional-engine buildout (172 commits, 2026-07-17 to 2026-07-21)
+
+Every phase below follows the same reuse-first discipline verified
+throughout Sprint 1–78: each new module composes an existing engine's
+already-computed output (`valueReport.ts`, `investingRisk.ts`,
+`portfolioConstruction.ts`, `tradingMarketStructure.ts`,
+`tradingLiquidity.ts`, `institutionalReporting.ts`, etc.) rather than
+duplicating its logic, confirmed by direct import-statement inspection
+during this documentation-synchronization audit. Every phase's own commits
+independently state a zero-line diff against `execution.ts`/
+`optionsMath.ts`/`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts`, matching
+the discipline enforced throughout §3. Grouped below by which platform
+layer or engine each phase primarily extends — not a formal renumbering,
+just a reading aid.
+
+**Cross-cutting platform foundation (Phase 9–11):**
+
+- **Phase 9 — Production Hardening & Cleanup.** Accessibility fixes
+  (headings/labels/aria/keyboard nav), database indexes + connection-pool
+  config + batched inserts (new migration `020_production_readiness_indexes.sql`),
+  security response-headers middleware, global error handling/crash
+  resilience, and removal of 27 confirmed-unused shadcn/ui scaffold
+  components. Six new `docs/Phase-9-*.md` reports (Deployment Checklist,
+  Performance Report, Production Readiness Report, Release Checklist,
+  Security Review, Technical Debt Report).
+- **Phase 10 — Institutional Workspace Platform Foundation.** New
+  `lib/dashboardWorkspaces.ts` + `routes/dashboardWorkspaces.ts` (migration
+  `021_dashboard_workspaces.sql`) back a Global Command Palette (search,
+  quick actions, a small workflow engine), a Notification Centre, and a new
+  `pages/Home.tsx` Institutional Home landing page — the shared navigation
+  substrate every later phase's own "N-surface integration" commits wire
+  into.
+- **Phase 11 — Live Market Validation & Broker Operations.** New
+  `lib/liveMarketValidation.ts` (cross-provider live data validation),
+  `lib/marketCalendar.ts` (US market calendar/clock), persisted broker
+  reconciliation reports (migration `022_broker_reconciliation_reports.sql`),
+  a `requireAdmin` authorization middleware, and an administrator-only
+  `pages/OperationsDashboard.tsx`.
+
+**Institutional Investing Engine expansion (Phase 12–23):**
+
+- **Phase 12 — Investment Thesis, Research Notes, Mentor Watchlist
+  Review.** New `lib/investmentThesisGenerator.ts` (deterministic), a
+  `investing_research_notes` table (migration `023`), and
+  `lib/institutionalMentor.ts`'s first extension since §3c.
+- **Phase 13 — Institutional Portfolio Manager (Portfolio Intelligence).**
+  New `lib/portfolioIntelligence.ts` (544 lines) composes
+  `buildValueResearchReport()` and `investingRisk.ts`'s
+  `computePortfolioRiskFromAllocation()`/`band`/`gradeLabel` — confirmed
+  reuse, not duplication, by direct import inspection. `Fundamentals`
+  gained `marketCap`; 3 new tables (migration `024`:
+  `investing_holdings`, `investing_portfolio_notes`,
+  `investing_portfolio_snapshots`). `PortfolioConstruction.tsx` became a
+  10-tab page (Overview/Holdings/Allocation/Quality/Risk/Performance/
+  Income/Snapshots/Timeline/Notes). Documented in
+  `docs/Institutional-Portfolio-Manager.md`, `docs/Portfolio-Scoring.md`,
+  `docs/Portfolio-Risk-Framework.md`.
+- **Phase 14 — Institutional Decision Engine.** New `lib/decisionEngine.ts`
+  + `pages/DecisionEngine.tsx`; 2 new tables (migration `025`:
+  `investing_decision_snapshots`, `investing_decision_notes`).
+- **Phase 15 — Opportunity Discovery.** New `lib/opportunityDiscovery.ts` +
+  `pages/OpportunityDiscovery.tsx`; a `investing_saved_screens` table
+  (migration `026`) — an institutional stock screener/ranking surface.
+- **Phase 16 — Monitoring Engine.** New `lib/monitoringEngine.ts` +
+  `lib/notifications.ts` extension + `pages/MonitoringDashboard.tsx`; 3
+  new tables (migration `027`: `investing_monitoring_states`,
+  `investing_alert_notes`, `platform_notifications`).
+- **Phase 17 — Institutional Workspace.** New
+  `pages/InstitutionalWorkspace.tsx` using a new `components/ui/resizable.tsx`
+  (`react-resizable-panels` wrapper) for a multi-pane research layout, plus
+  a cross-symbol `GET /stock-analyst/research-notes` list route.
+- **Phase 18 — Institutional Portfolio Optimisation Engine.** New
+  `lib/portfolioOptimisation.ts` + `pages/PortfolioOptimisation.tsx`; a
+  `investing_optimisation_reviews` table (migration `028`).
+- **Phase 19 — Investment Committee Workbench.** New
+  `lib/investmentMemo.ts`, a cross-symbol `GET /stock-analyst/decision/snapshots/recent`
+  route, and `pages/InvestmentCommitteeWorkbench.tsx` — a deterministic
+  memo generator over already-computed decision-engine/committee output.
+- **Phase 20 — Institutional Research Terminal.** New
+  `pages/ResearchTerminal.tsx`: single-symbol Analyse mode (9 tabs:
+  Overview/Statements/Decision/Committee/Memo/Portfolio Impact/
+  Monitoring/Evidence/Notes), an N-symbol Compare mode, a Split-screen
+  mode, and client-side Saved Layouts (localStorage only, no new table).
+- **Phase 21 — Institutional AI Coach (Investing).** New
+  `lib/investingCoach.ts` (8 deterministic coaches) +
+  `GET /stock-analyst/coach/:coach/:symbol`; a new 9-topic Institutional
+  Investing Learning Path; a reusable `CoachDrawer` component plus
+  `pages/InstitutionalAICoach.tsx`.
+- **Phase 22 — Institutional Reporting Engine.** New
+  `lib/institutionalReporting.ts` + `routes/institutionalReporting.ts`; a
+  `institutional_reports` table (migration `029`); new
+  `pages/ReportingCentre.tsx` — the shared reporting substrate every later
+  Trading/Options/cross-engine phase (23 onward) extends rather than
+  reimplements.
+- **Phase 23 — Executive Dashboard + Investing Engine consolidation.** A
+  dedicated audit-and-hardening pass across the whole Investing Engine: a
+  shared `investing-format` frontend lib, fixes to silent error states and
+  accessibility gaps, a unified header/badge-row layout and symbol-search
+  input across pages, a deduplicated Opportunity Discovery compare fetch,
+  and a new `pages/ExecutiveDashboard.tsx` — one landing page rolling up
+  the Investing Engine's own modules, closing out this expansion.
+
+**Institutional Trading Engine buildout (Phase 24–34):**
+
+- **Phase 24 — Institutional Trading Engine Foundation.** New
+  `lib/tradingDomainModel.ts` plus a `lib/trading/` service-boundary layer
+  (`alertService.ts`, `analysisService.ts`, `educationService.ts`,
+  `journalService.ts`, `marketDataService.ts`, `reportingService.ts`,
+  `strategyService.ts`, `tradePlanService.ts`) and a
+  `pages/TradeWorkspace.tsx` architecture-overview placeholder — the
+  Trading Engine's own equivalent of Phase 3 (Sprints 32–51)'s domain
+  model, reusing that engine's already-shipped analyzers underneath.
+- **Phase 25 — Institutional Trade Workspace.** New
+  `lib/trading/sessionService.ts`, `routes/tradingSession.ts`,
+  `routes/tradingTradePlans.ts`, `routes/tradingWorkspaceNotes.ts`; 2 new
+  tables (migrations `030`/`031`: `trading_trade_plans`,
+  `trading_workspace_notes`); `TradeWorkspace.tsx` became the real,
+  interactive workspace the Phase 24 placeholder anticipated.
+- **Phase 26 — Market Structure Workbench.** New
+  `lib/tradingStructureTimeline.ts` (a "Structure Shift Timeline" reusing
+  Sprint 33's `tradingMarketStructure.ts`), a `?timeframes=` override on
+  the existing multi-timeframe route, and `pages/MarketStructureWorkbench.tsx`.
+- **Phase 27 — Liquidity & Session Workbench.** New
+  `lib/trading/sessionWindows.ts` + `lib/tradingLiquidityTimeline.ts`
+  (reusing Sprint 35's `tradingLiquidity.ts`), and
+  `pages/LiquidityWorkbench.tsx`.
+- **Phase 28 — Trade Planning & Risk Studio.** New
+  `lib/tradingScenarioComparison.ts` plus a Trade Planning Summary report
+  type on `institutionalReporting.ts`; new `pages/TradePlanningStudio.tsx`.
+- **Phase 29 — Institutional Trading AI Coach.** New `lib/tradingCoach.ts` +
+  `routes/tradingCoach.ts` + `pages/TradingAICoach.tsx` — **a confirmed
+  naming collision, not a duplication of logic**, with the unrelated "AI
+  Trade Coach" already shipped in Sprint 47–48 (Phase 3); the two are
+  separate modules under similar names, flagged in §4 below.
+- **Phase 30 — Institutional Strategy Framework.** New
+  `lib/tradingStrategyFramework.ts`; 2 new tables (migration `032`:
+  `trading_strategies`, `trading_strategy_checklists`); new
+  `pages/StrategyFramework.tsx`.
+- **Phase 31 — Institutional Strategy Workbench.** Extends
+  `tradingStrategyFramework.ts` (comparison/orchestration, no new table);
+  new `pages/StrategyWorkbench.tsx`.
+- **Phase 32 — Institutional Trading Analytics Engine.** New
+  `lib/tradingAnalytics.ts` + a Trading Analytics Summary report on
+  `institutionalReporting.ts`; new `pages/TradingAnalyticsDashboard.tsx`.
+- **Phase 33 — Investing Analytics Engine + Executive Intelligence Hub.**
+  New `lib/investingAnalytics.ts` + `lib/executiveIntelligence.ts`; new
+  `pages/ExecutiveIntelligence.tsx` — the first module to roll up both
+  Engine 1 and Engine 2 analytics on one screen, ahead of Phase 34's
+  dedicated cross-engine page.
+- **Phase 34 — Cross-Engine Workspace.** New `lib/crossEngineWorkspace.ts` +
+  `routes/crossEngineWorkspace.ts`; new `pages/CrossEngineWorkspace.tsx` —
+  distinct from, and predating, Phase 4 Sprint 54's own "Cross-Engine
+  Command Center" (`InstitutionalDashboard.tsx`); the two surfaces overlap
+  in intent but not in code, flagged in §4 below.
+
+**Institutional Options Income Engine expansion (Phase 35–36):**
+
+- **Phase 35 — Options Income Engine (backend foundation).** New
+  `lib/optionsIncomeAnalytics.ts` + `lib/optionsStrategyLibrary.ts`; an
+  Options Income Summary report on `institutionalReporting.ts`; new
+  `pages/OptionsIncomeWorkspace.tsx` — an institutional-analytics layer
+  composed on top of the original, mature Options Income Engine
+  (`optionsMath.ts`/`execution.ts`), never modifying it.
+- **Phase 36 — Institutional Position Lifecycle Manager.** New
+  `lib/optionsLifecycle.ts` + `lib/optionsLifecycleChecklists.ts` +
+  `lib/optionsLifecycleCoach.ts` + `lib/optionsLifecycleLearning.ts`; 3
+  new tables (migration `033`: `options_lifecycle_events`,
+  `options_lifecycle_state`, `options_position_checklists`); new
+  `pages/OptionsLifecycleManager.tsx`.
+
+**Cross-engine institutional intelligence modules (Phase 37–44):**
+
+Each of these 8 phases follows an identical, repeating shape — a new
+`lib/<domain>Engine.ts` core, a matching `<domain>Coach.ts` and
+`<domain>Learning.ts`, a route, an extension to
+`institutionalReporting.ts`'s report catalogue, and a dedicated page
+surfaced from `CrossEngineWorkspace.tsx`/`ExecutiveDashboard.tsx`/
+`ExecutiveIntelligence.tsx`/`ReportingCentre.tsx` — the same "coach +
+learning + reporting" composition pattern established in Phase 21/22,
+applied to 8 further domains:
+
+- **Phase 37 — Institutional Risk & Exposure Intelligence Engine.** New
+  `lib/riskExposureEngine.ts` + `lib/riskExposureCoach.ts` +
+  `lib/riskExposureLearning.ts`; new `pages/RiskExposureEngine.tsx`.
+- **Phase 38 — Institutional Performance & Attribution Engine.** New
+  `lib/performanceAttribution.ts` + coach/learning pair; new
+  `pages/PerformanceAttributionEngine.tsx` — **a confirmed naming/data
+  collision, not a code duplication**, with the pre-existing, unrelated
+  `performanceAnalytics.ts` (synthetic data, from the Alpaca-expansion
+  wave's Trade Performance page, §3b); this module uses real portfolio
+  data. Flagged in §4 below.
+- **Phase 39 — Institutional Scenario & Stress Testing Engine.** New
+  `lib/scenarioEngine.ts` + coach/learning pair; new
+  `pages/ScenarioEngine.tsx` — an institutional-report-integrated scenario
+  engine, distinct from the Alpaca-expansion wave's own
+  `portfolioStressTest.ts` (§3b), which it does not replace.
+- **Phase 40 — Institutional Decision Support Engine.** New
+  `lib/decisionSupportEngine.ts` + coach/learning pair; new
+  `pages/DecisionSupportEngine.tsx`.
+- **Phase 41 — Institutional Rebalancing Engine.** New
+  `lib/rebalancingEngine.ts` (270 lines, reuses `portfolioConstruction.ts`'s
+  `buildPortfolioAllocation()` verbatim) + coach/learning pair; new
+  `pages/RebalancingEngine.tsx`.
+- **Phase 42 — Institutional Portfolio Monitoring & Compliance Engine.**
+  New `lib/complianceEngine.ts` + `lib/compliancePolicies.ts` + coach/
+  learning pair; a `compliance_policies` table (migration `034`); new
+  `pages/MonitoringComplianceEngine.tsx`.
+- **Phase 43 — Institutional Watchlists & Opportunity Dashboard.** New
+  `lib/watchlists.ts` + `lib/watchlistsEngine.ts` + coach/learning pair; a
+  `investing_watchlists` table (migration `035`); new
+  `pages/WatchlistsEngine.tsx`.
+- **Phase 44 — Institutional Portfolio Workspace & Workflow Center.** New
+  `lib/portfolioWorkspace.ts` + `lib/portfolioWorkflows.ts` +
+  `lib/workspacePins.ts` + coach/learning pair; a `portfolio_workspace`
+  table (migration `036`, the last of the 37 hand-reviewed manual
+  migrations shipped through v1.1.0); new `pages/PortfolioWorkspace.tsx` —
+  the closing phase of this entire 36-phase buildout.
+
+### 3e. Version 1.1.0 — Sidebar Navigation Redesign
+
+Shipped after the `v1.0.0` freeze, via PR #2
+("v1.1.0-sidebar-redesign", merge commit `1da32b2`). A single commit,
+`f7becaa`, reorganized `AppLayout.tsx`'s navigation — by this point the
+platform had accumulated 82 distinct routes across Sprint 1–78 plus
+§3b–§3d above — into 10 collapsible, groupable, pinnable, compact-mode
+sidebar groups, persisted client-side under the `dk-sidebar-navigation-state`
+localStorage key (no server/database involvement). Every one of the 82
+pre-existing routes remains reachable, either through its (possibly
+collapsed) group or via the global command palette (⌘K / Ctrl+K), which
+finds every route regardless of collapse state — a route-preservation
+proof documented in `docs/v1.1.0-Sidebar-Navigation-Redesign.md`. Release
+notes, changelog entry, and technical writeup landed in commit `9e7acf5`;
+`docs/GitHub-Release-v1.1.0.md` (commit `2d967b1`) holds the prepared
+GitHub Release content — the tag push itself remains a manual, human-only
+step (this session's git proxy accepts branch pushes but rejects tag
+pushes, and no release-creation tool is available in this session's
+GitHub MCP toolset).
+
+
 ## Version 1.0.0 — Finalization, Tag, and Freeze
 
 **Version 1.0.0 Finalization pass — COMPLETE.** A full repository audit,
