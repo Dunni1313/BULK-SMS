@@ -44,6 +44,12 @@ export interface PortfolioHoldingInput {
   targetWeightPct: number;
   shares: number | null;
   notes: string;
+  // Phase 13 — Institutional Portfolio Manager. Optional so every
+  // pre-existing 4-field call site (including this module's own Sprint 28
+  // unit tests) keeps compiling and behaving identically. Read only by
+  // lib/portfolioIntelligence.ts's Performance Analytics — never touched by
+  // computePortfolioAllocation()/buildPortfolioAllocation() themselves.
+  avgCostBasis?: number | null;
 }
 
 // Phase 2, Sprint 29 — sector/beta per symbol, sourced from the exact same
@@ -56,6 +62,13 @@ export interface PortfolioHoldingInput {
 export interface SymbolMeta {
   sector: string | null;
   beta: number | null;
+  // Phase 13 — Institutional Portfolio Manager. Sourced from the exact same
+  // Fundamentals resolution buildPortfolioAllocation() already performs (the
+  // same reuse precedent as sector/beta itself) — zero new provider calls.
+  // Optional so every pre-existing 2-field meta object literal (including
+  // Sprint 29's own unit tests) keeps compiling and behaving identically.
+  industry?: string | null;
+  marketCap?: number | null;
 }
 
 export interface PortfolioHoldingAllocation {
@@ -63,6 +76,7 @@ export interface PortfolioHoldingAllocation {
   symbol: string;
   targetWeightPct: number;
   shares: number | null;
+  avgCostBasis: number | null;
   notes: string;
   currentPrice: number | null;
   marketValue: number | null;
@@ -71,6 +85,10 @@ export interface PortfolioHoldingAllocation {
   rebalanceAction: RebalanceAction;
   sector: string | null;
   beta: number | null;
+  // Phase 13 — Institutional Portfolio Manager. Same honest-null-when-
+  // unresolvable discipline as every other field here.
+  industry: string | null;
+  marketCap: number | null;
 }
 
 export interface PortfolioAllocationResult {
@@ -91,14 +109,22 @@ export function computePortfolioAllocation(
     const currentPrice = prices.get(h.symbol) ?? null;
     const marketValue = h.shares != null && currentPrice != null ? h.shares * currentPrice : null;
     const m = meta.get(h.symbol);
-    return { h, currentPrice, marketValue, sector: m?.sector ?? null, beta: m?.beta ?? null };
+    return {
+      h,
+      currentPrice,
+      marketValue,
+      sector: m?.sector ?? null,
+      beta: m?.beta ?? null,
+      industry: m?.industry ?? null,
+      marketCap: m?.marketCap ?? null,
+    };
   });
 
   const totalMarketValue = withPrice.some((w) => w.marketValue != null)
     ? round(withPrice.reduce((a, w) => a + (w.marketValue ?? 0), 0))
     : null;
 
-  const resultHoldings: PortfolioHoldingAllocation[] = withPrice.map(({ h, currentPrice, marketValue, sector, beta }) => {
+  const resultHoldings: PortfolioHoldingAllocation[] = withPrice.map(({ h, currentPrice, marketValue, sector, beta, industry, marketCap }) => {
     const actualWeightPct =
       marketValue != null && totalMarketValue != null && totalMarketValue > 0
         ? round((marketValue / totalMarketValue) * 100)
@@ -117,6 +143,7 @@ export function computePortfolioAllocation(
       symbol: h.symbol,
       targetWeightPct: h.targetWeightPct,
       shares: h.shares,
+      avgCostBasis: h.avgCostBasis ?? null,
       notes: h.notes,
       currentPrice,
       marketValue,
@@ -125,6 +152,8 @@ export function computePortfolioAllocation(
       rebalanceAction,
       sector,
       beta,
+      industry,
+      marketCap,
     };
   });
 
@@ -155,13 +184,17 @@ export function computePortfolioAllocation(
   };
 }
 
-// Orchestration helper for the route: resolves a live/simulated price per
-// distinct symbol (deduped — a portfolio may list the same symbol only once
-// by design, but this stays defensive) and calls the pure engine above.
-export async function buildPortfolioAllocation(
+// Extracted (Phase 41 — Institutional Rebalancing & Allocation Planning
+// Engine) from buildPortfolioAllocation()'s own inline resolution loop, so a
+// caller that needs the SAME resolved prices/meta for more than one
+// computePortfolioAllocation() call (e.g. a "current vs. proposed target"
+// comparison) can resolve once and reuse — never a second, duplicate set of
+// provider calls for the same holdings. buildPortfolioAllocation() itself is
+// unchanged in behavior, confirmed by its own pre-existing tests.
+export async function resolvePricesAndMeta(
   holdings: PortfolioHoldingInput[],
   provider: FundamentalsProvider,
-): Promise<PortfolioAllocationResult> {
+): Promise<{ prices: Map<string, number | null>; meta: Map<string, SymbolMeta> }> {
   const prices = new Map<string, number | null>();
   const meta = new Map<string, SymbolMeta>();
   const distinctSymbols = [...new Set(holdings.map((h) => h.symbol))];
@@ -169,8 +202,24 @@ export async function buildPortfolioAllocation(
     distinctSymbols.map(async (symbol) => {
       const f = await resolveFundamentals(provider, symbol).catch(() => null);
       prices.set(symbol, f?.price ?? null);
-      meta.set(symbol, { sector: f?.sector ?? null, beta: f?.beta ?? null });
+      meta.set(symbol, {
+        sector: f?.sector ?? null,
+        beta: f?.beta ?? null,
+        industry: f?.industry ?? null,
+        marketCap: f?.marketCap ?? null,
+      });
     }),
   );
+  return { prices, meta };
+}
+
+// Orchestration helper for the route: resolves a live/simulated price per
+// distinct symbol (deduped — a portfolio may list the same symbol only once
+// by design, but this stays defensive) and calls the pure engine above.
+export async function buildPortfolioAllocation(
+  holdings: PortfolioHoldingInput[],
+  provider: FundamentalsProvider,
+): Promise<PortfolioAllocationResult> {
+  const { prices, meta } = await resolvePricesAndMeta(holdings, provider);
   return computePortfolioAllocation(holdings, prices, meta);
 }

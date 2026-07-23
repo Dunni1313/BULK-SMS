@@ -37,4 +37,9 @@ export interface Trade {
   exitReason?: string | null;
   /** @nullable */
   notes?: string | null;
+  /**
+     * The broker order id returned at submission time, or a "mock-<uuid>" id when no broker credentials were configured at submission (this trade was never actually sent to Alpaca). Added in the Trade History sprint — previously stored but not exposed via this API.
+     * @nullable
+     */
+  alpacaOrderId?: string | null;
 }

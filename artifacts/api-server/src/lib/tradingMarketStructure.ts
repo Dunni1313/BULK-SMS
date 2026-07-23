@@ -76,8 +76,13 @@ function detectSwingPoints(candles: Candle[]): SwingPoint[] {
 }
 
 // Swing prices within this fraction of each other are clustered into the
-// same support/resistance zone.
-const ZONE_TOLERANCE_PCT = 0.005;
+// same support/resistance zone. Exported (Phase 26 — Institutional Market
+// Structure Workbench) so lib/tradingStructureTimeline.ts's own "support
+// test"/"resistance test" event detection reuses the exact same tolerance
+// rather than inventing a second, subtly different threshold — the same
+// "export what's needed, reuse directly" precedent as classifyMoatRating()/
+// classifyMarginOfSafety() elsewhere in this codebase.
+export const ZONE_TOLERANCE_PCT = 0.005;
 // A cluster needs at least this many swing touches to be reported as a real
 // zone — a single, un-repeated swing is never surfaced as a "level".
 const MIN_ZONE_TOUCHES = 2;

@@ -13,6 +13,8 @@ export interface ConstructionHolding {
   targetWeightPct: number;
   /** @nullable */
   shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
   notes: string;
   createdAt: string;
   updatedAt: string;

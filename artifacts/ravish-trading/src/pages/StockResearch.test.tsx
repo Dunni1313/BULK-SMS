@@ -19,7 +19,15 @@ type HookResult = { data: unknown; isLoading?: boolean };
 const mockState = vi.hoisted(() => ({
   valueUniverse: { data: [] as unknown[], isLoading: false } as HookResult,
   settings: { data: { fundamentalsConnected: false } } as HookResult,
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  investmentThesis: { data: undefined, isLoading: false, isError: false } as HookResult & { isError?: boolean },
+  researchNotes: { data: [] as unknown[], isLoading: false } as HookResult,
+  // Phase 14 — Institutional Investment Decision Engine.
+  institutionalDecision: { data: undefined, isLoading: false, isError: false } as HookResult & { isError?: boolean },
 }));
+
+const addResearchNoteMock = vi.hoisted(() => vi.fn());
+const deleteResearchNoteMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@workspace/api-client-react", async () => {
   const actual = await vi.importActual<
@@ -33,10 +41,15 @@ vi.mock("@workspace/api-client-react", async () => {
     useAddValueWatchlist: () => ({ mutate: vi.fn(), isPending: false }),
     useDeleteValueWatchlist: () => ({ mutate: vi.fn(), isPending: false }),
     useGetSettings: () => mockState.settings,
+    useGetInvestmentThesis: () => mockState.investmentThesis,
+    useGetResearchNotes: () => mockState.researchNotes,
+    useAddResearchNote: () => ({ mutate: addResearchNoteMock, isPending: false }),
+    useDeleteResearchNote: () => ({ mutate: deleteResearchNoteMock, isPending: false }),
+    useGetInstitutionalDecision: () => mockState.institutionalDecision,
   };
 });
 
-import StockResearch, { ReportView } from "./StockResearch";
+import StockResearch, { ReportView, InvestmentThesisCard, DecisionSummaryCard, ResearchNotesCard } from "./StockResearch";
 
 describe("ReportView", () => {
   it("renders the valuation block when fair value is available", () => {
@@ -198,6 +211,11 @@ describe("StockResearch page (mocked hooks)", () => {
   beforeEach(() => {
     mockState.valueUniverse = { data: [], isLoading: false };
     mockState.settings = { data: { fundamentalsConnected: false } };
+    mockState.investmentThesis = { data: undefined, isLoading: false, isError: false };
+    mockState.researchNotes = { data: [], isLoading: false };
+    mockState.institutionalDecision = { data: undefined, isLoading: false, isError: false };
+    addResearchNoteMock.mockReset();
+    deleteResearchNoteMock.mockReset();
   });
 
   it("renders the coverage universe from a mocked query hook", async () => {
@@ -398,5 +416,148 @@ describe("StockResearch page (mocked hooks)", () => {
     expect(
       await screen.findByText("No research saved yet."),
     ).toBeInTheDocument();
+  });
+
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  it("always shows the permanent Institutional Investing Engine labels", async () => {
+    mockState.valueUniverse = { data: [], isLoading: false };
+    renderWithClient(<StockResearch />);
+    const labels = await screen.findByTestId("engine1-permanent-labels");
+    expect(labels).toHaveTextContent("Institutional Investing Engine");
+    expect(labels).toHaveTextContent("Educational");
+    expect(labels).toHaveTextContent("Deterministic");
+    expect(labels).toHaveTextContent("Data Driven");
+  });
+});
+
+describe("InvestmentThesisCard", () => {
+  beforeEach(() => {
+    mockState.investmentThesis = { data: undefined, isLoading: false, isError: false };
+  });
+
+  it("shows a Generate Thesis button before it has been requested — never fetches eagerly", () => {
+    renderWithClient(<InvestmentThesisCard symbol="AAPL" />);
+    expect(screen.getByTestId("generate-thesis")).toBeInTheDocument();
+    expect(screen.queryByTestId("investment-thesis-content")).not.toBeInTheDocument();
+  });
+
+  it("renders the deterministic thesis content once generated", async () => {
+    mockState.investmentThesis = {
+      data: {
+        symbol: "AAPL",
+        name: "Apple Inc.",
+        asOf: "2026-01-15",
+        dataSource: "SIMULATED",
+        generatedAt: "2026-01-15T00:00:00.000Z",
+        overview: "A deterministic thesis overview.",
+        sections: [
+          { heading: "Business Overview", paragraphs: ["Apple is a wonderful business."] },
+          { heading: "Conclusion", paragraphs: ["Summarizing the above, the platform reads HOLD."] },
+        ],
+        supportingPoints: ["Strong moat."],
+        riskFactors: ["[MEDIUM] Competitive pressure."],
+        disclaimer: "This Investment Thesis is a deterministic, template-based summary. Not written by an AI language model.",
+      },
+      isLoading: false,
+      isError: false,
+    };
+    renderWithClient(<InvestmentThesisCard symbol="AAPL" />);
+    await userEvent.click(screen.getByTestId("generate-thesis"));
+    expect(await screen.findByTestId("investment-thesis-content")).toBeInTheDocument();
+    expect(screen.getByText("A deterministic thesis overview.")).toBeInTheDocument();
+    expect(screen.getByText("Apple is a wonderful business.")).toBeInTheDocument();
+    expect(screen.getByText("Strong moat.")).toBeInTheDocument();
+    expect(screen.getByText("[MEDIUM] Competitive pressure.")).toBeInTheDocument();
+  });
+
+  it("shows an honest unavailable message rather than a fabricated thesis on error", async () => {
+    mockState.investmentThesis = { data: undefined, isLoading: false, isError: true };
+    renderWithClient(<InvestmentThesisCard symbol="ZZZZ" />);
+    await userEvent.click(screen.getByTestId("generate-thesis"));
+    expect(await screen.findByText("Unable to generate a thesis for this symbol.")).toBeInTheDocument();
+  });
+});
+
+describe("DecisionSummaryCard", () => {
+  beforeEach(() => {
+    mockState.institutionalDecision = { data: undefined, isLoading: false, isError: false };
+  });
+
+  it("shows a Get Decision button before it has been requested — never fetches eagerly", () => {
+    renderWithClient(<DecisionSummaryCard symbol="AAPL" />);
+    expect(screen.getByTestId("get-decision")).toBeInTheDocument();
+    expect(screen.queryByTestId("decision-summary-content")).not.toBeInTheDocument();
+  });
+
+  it("renders the recommendation, confidence, and summary once computed", async () => {
+    mockState.institutionalDecision = {
+      data: {
+        symbol: "AAPL",
+        recommendation: "Buy",
+        confidence: 82,
+        summary: "AAPL: Buy (confidence 82/100). Investment Committee votes Buy.",
+      },
+      isLoading: false,
+      isError: false,
+    };
+    renderWithClient(<DecisionSummaryCard symbol="AAPL" />);
+    await userEvent.click(screen.getByTestId("get-decision"));
+    expect(await screen.findByTestId("decision-summary-content")).toBeInTheDocument();
+    expect(screen.getByText("Buy")).toBeInTheDocument();
+    expect(screen.getByText("Confidence 82/100")).toBeInTheDocument();
+    expect(screen.getByText(/Investment Committee votes Buy/)).toBeInTheDocument();
+  });
+
+  it("shows an honest unavailable message rather than a fabricated decision on error", async () => {
+    mockState.institutionalDecision = { data: undefined, isLoading: false, isError: true };
+    renderWithClient(<DecisionSummaryCard symbol="ZZZZ" />);
+    await userEvent.click(screen.getByTestId("get-decision"));
+    expect(await screen.findByText("Unable to compute a decision for this symbol.")).toBeInTheDocument();
+  });
+});
+
+describe("ResearchNotesCard", () => {
+  beforeEach(() => {
+    mockState.researchNotes = { data: [], isLoading: false };
+    addResearchNoteMock.mockReset();
+    deleteResearchNoteMock.mockReset();
+  });
+
+  it("shows the honest empty state for a symbol with no notes", () => {
+    renderWithClient(<ResearchNotesCard symbol="AAPL" />);
+    expect(screen.getByText("No notes yet for AAPL.")).toBeInTheDocument();
+  });
+
+  it("renders existing notes verbatim, never AI-rewritten", () => {
+    mockState.researchNotes = {
+      data: [
+        { id: 1, symbol: "AAPL", note: "My own reasoning here.", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" },
+      ],
+      isLoading: false,
+    };
+    renderWithClient(<ResearchNotesCard symbol="AAPL" />);
+    expect(screen.getByText("My own reasoning here.")).toBeInTheDocument();
+  });
+
+  it("submits a new note with the correct symbol and text", async () => {
+    renderWithClient(<ResearchNotesCard symbol="AAPL" />);
+    await userEvent.type(screen.getByTestId("research-note-input"), "Add this note.");
+    await userEvent.click(screen.getByTestId("research-note-add"));
+    expect(addResearchNoteMock).toHaveBeenCalledWith(
+      { data: { symbol: "AAPL", note: "Add this note." } },
+      expect.anything(),
+    );
+  });
+
+  it("deletes a note by id", async () => {
+    mockState.researchNotes = {
+      data: [
+        { id: 7, symbol: "AAPL", note: "Delete me.", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" },
+      ],
+      isLoading: false,
+    };
+    renderWithClient(<ResearchNotesCard symbol="AAPL" />);
+    await userEvent.click(screen.getByTestId("research-note-delete-7"));
+    expect(deleteResearchNoteMock).toHaveBeenCalledWith({ id: 7 }, expect.anything());
   });
 });

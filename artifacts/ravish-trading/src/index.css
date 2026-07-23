@@ -150,6 +150,34 @@ html {
   font-family: var(--app-font-mono);
 }
 
+/* v1.1.0 — Sidebar Navigation Redesign. Smooth open/close animation for
+   collapsible sidebar groups (components/ui/collapsible.tsx), following
+   Radix's own documented pattern: the primitive exposes the content's
+   real measured height as --radix-collapsible-content-height, which these
+   keyframes animate to/from 0. */
+@keyframes collapsible-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+.animate-collapsible-down {
+  animation: collapsible-down 200ms ease-out;
+}
+.animate-collapsible-up {
+  animation: collapsible-up 200ms ease-out;
+}
+
 /* Scrollbar styling for density */
 ::-webkit-scrollbar {
   width: 6px;

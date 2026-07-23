@@ -12,4 +12,16 @@ export type PlatformNotificationType = typeof PlatformNotificationType[keyof typ
 export const PlatformNotificationType = {
   watchlist_target_crossed: 'watchlist_target_crossed',
   risk_cap_breached: 'risk_cap_breached',
+  decision_change: 'decision_change',
+  valuation_change: 'valuation_change',
+  quality_change: 'quality_change',
+  committee_change: 'committee_change',
+  tomnash_change: 'tomnash_change',
+  financial_deterioration: 'financial_deterioration',
+  dividend_change: 'dividend_change',
+  earnings_alert: 'earnings_alert',
+  portfolio_drift: 'portfolio_drift',
+  sector_concentration_breach: 'sector_concentration_breach',
+  position_sizing_breach: 'position_sizing_breach',
+  opportunity_match: 'opportunity_match',
 } as const;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useGetSettings, useUpdateSettings, getGetSettingsQueryKey, useGetFundamentalsProviderStatus, getGetFundamentalsProviderStatusQueryKey, SettingsUpdateExecutionMode, type FundamentalsProviderStatus } from "@workspace/api-client-react";
+import { useGetSettings, useUpdateSettings, getGetSettingsQueryKey, useGetFundamentalsProviderStatus, getGetFundamentalsProviderStatusQueryKey, useGetBrokerHealth, getGetBrokerHealthQueryKey, SettingsUpdateExecutionMode, type FundamentalsProviderStatus } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 // Relative-time label for when the live fundamentals provider was last reached,
 // falling back to an absolute timestamp for older data.
@@ -23,6 +23,14 @@ function fmtFetchedAt(iso: string): string {
   const hrs = Math.round(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return new Date(t).toLocaleString();
+}
+
+// Formats a broker-health dollar figure, honestly showing "—" (never a
+// fabricated $0) for a value the check couldn't resolve (e.g. null because
+// authentication failed or the platform hasn't been checked yet).
+function fmtCurrency(n: number | null | undefined): string {
+  if (n === null || n === undefined) return "—";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
 }
 
 // Live fundamentals older than the operator-configured threshold (hours) are
@@ -44,6 +52,33 @@ export default function SettingsPage() {
   const updateSettings = useUpdateSettings();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Broker Health is fetched on demand only (the "Check Connection" button),
+  // never automatically — mirrors the established enabled:false + manual
+  // refetch() pattern used for on-demand data elsewhere in this codebase.
+  // GET /api/broker/health always returns 200 (a broker-side failure is an
+  // honestly-reported *result*, not a request error) — isError here reflects
+  // a genuine failure of THIS platform's own request/response, not Alpaca's.
+  const {
+    data: brokerHealth,
+    isFetching: isCheckingBroker,
+    isError: brokerHealthRequestFailed,
+    refetch: refetchBrokerHealth,
+  } = useGetBrokerHealth({
+    query: { queryKey: getGetBrokerHealthQueryKey(), enabled: false },
+  });
+
+  const handleCheckConnection = async () => {
+    const result = await refetchBrokerHealth();
+    if (result.data) {
+      // The settings-level alpacaConnected field is computed from this same
+      // check server-side (see routes/settings.ts) — invalidate it so a
+      // fresh GET /settings (e.g. after a page reload) reflects this check
+      // too, even though the panel below already updates immediately from
+      // result.data without waiting for this round trip.
+      queryClient.invalidateQueries({ queryKey: getGetSettingsQueryKey() });
+    }
+  };
 
   const [local, setLocal] = useState({
     executionMode: "manual" as SettingsUpdateExecutionMode,
@@ -94,6 +129,11 @@ export default function SettingsPage() {
       });
     }
   }, [settings]);
+
+  // The connection indicator updates immediately from the Broker Health
+  // response the moment it resolves — falling back to the settings-loaded
+  // value only before any check has been performed this session.
+  const brokerConnected = brokerHealth ? brokerHealth.connected : local.alpacaConnected;
 
   const handleSave = () => {
     updateSettings.mutate(
@@ -150,9 +190,9 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Execution Mode</label>
+            <label className="text-sm font-medium" id="label-execution-mode">Execution Mode</label>
             <Select value={local.executionMode} onValueChange={(v: any) => setLocal({...local, executionMode: v})}>
-              <SelectTrigger className="bg-background">
+              <SelectTrigger className="bg-background" aria-labelledby="label-execution-mode">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -166,19 +206,21 @@ export default function SettingsPage() {
 
           <div className="pt-4 border-t border-border grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Max Risk Per Trade (%)</label>
-              <Input 
-                type="number" 
-                value={local.maxRiskPerTrade} 
+              <label className="text-sm font-medium" htmlFor="input-max-risk-per-trade">Max Risk Per Trade (%)</label>
+              <Input
+                id="input-max-risk-per-trade"
+                type="number"
+                value={local.maxRiskPerTrade}
                 onChange={e => setLocal({...local, maxRiskPerTrade: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Max Portfolio Risk (%)</label>
-              <Input 
-                type="number" 
-                value={local.maxPortfolioRisk} 
+              <label className="text-sm font-medium" htmlFor="input-max-portfolio-risk">Max Portfolio Risk (%)</label>
+              <Input
+                id="input-max-portfolio-risk"
+                type="number"
+                value={local.maxPortfolioRisk}
                 onChange={e => setLocal({...local, maxPortfolioRisk: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
@@ -187,19 +229,21 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Profit Target (%)</label>
-              <Input 
-                type="number" 
-                value={local.profitTarget50} 
+              <label className="text-sm font-medium" htmlFor="input-profit-target">Profit Target (%)</label>
+              <Input
+                id="input-profit-target"
+                type="number"
+                value={local.profitTarget50}
                 onChange={e => setLocal({...local, profitTarget50: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Stop Loss Multiplier (xCredit)</label>
-              <Input 
-                type="number" 
-                value={local.stopLossMultiplier} 
+              <label className="text-sm font-medium" htmlFor="input-stop-loss-multiplier">Stop Loss Multiplier (xCredit)</label>
+              <Input
+                id="input-stop-loss-multiplier"
+                type="number"
+                value={local.stopLossMultiplier}
                 onChange={e => setLocal({...local, stopLossMultiplier: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
@@ -208,20 +252,22 @@ export default function SettingsPage() {
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Default DTE</label>
-              <Input 
-                type="number" 
-                value={local.defaultDte} 
+              <label className="text-sm font-medium" htmlFor="input-default-dte">Default DTE</label>
+              <Input
+                id="input-default-dte"
+                type="number"
+                value={local.defaultDte}
                 onChange={e => setLocal({...local, defaultDte: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Short Delta Target</label>
-              <Input 
-                type="number" 
+              <label className="text-sm font-medium" htmlFor="input-short-delta">Short Delta Target</label>
+              <Input
+                id="input-short-delta"
+                type="number"
                 step="0.01"
-                value={local.shortDelta} 
+                value={local.shortDelta}
                 onChange={e => setLocal({...local, shortDelta: Number(e.target.value)})}
                 className="bg-background font-mono"
               />
@@ -238,9 +284,9 @@ export default function SettingsPage() {
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Scanner Mode</label>
+              <label className="text-sm font-medium" id="label-scanner-mode">Scanner Mode</label>
               <Select value={local.scannerMode} onValueChange={(v: any) => setLocal({...local, scannerMode: v})}>
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-labelledby="label-scanner-mode">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -250,9 +296,9 @@ export default function SettingsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Data Provider</label>
+              <label className="text-sm font-medium" id="label-data-provider">Data Provider</label>
               <Select value={local.marketDataProvider} onValueChange={(v: any) => setLocal({...local, marketDataProvider: v})}>
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background" aria-labelledby="label-data-provider">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -269,29 +315,154 @@ export default function SettingsPage() {
 
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle>Broker Connection</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Broker Connection
+            <span
+              className="text-[10px] font-semibold uppercase tracking-wider rounded px-1.5 py-0.5 bg-amber-500/15 text-amber-400 border border-amber-500/30"
+              data-testid="badge-paper-trading-environment"
+            >
+              Paper Trading Only
+            </span>
+          </CardTitle>
+          <CardDescription>
+            Connects exclusively to Alpaca's Paper Trading environment (<code>paper-api.alpaca.markets</code>).
+            This platform never places, modifies, or cancels a live order, and there is no live-trading
+            endpoint anywhere in this connection.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background">
             <div>
               <div className="font-medium">Alpaca Paper API</div>
-              <div className={`text-xs ${local.alpacaConnected ? 'text-success' : 'text-destructive'}`}>
-                {local.alpacaConnected ? 'Connected & Active' : 'Not Connected'}
+              <div
+                className={`text-xs flex items-center gap-1 ${brokerConnected ? 'text-success' : 'text-destructive'}`}
+                data-testid="text-broker-connection-status"
+              >
+                {brokerConnected ? <CheckCircle2 className="w-3 h-3 shrink-0" /> : <XCircle className="w-3 h-3 shrink-0" />}
+                {brokerConnected ? 'Connected & Active' : 'Not Connected'}
               </div>
             </div>
-            <Switch checked={local.alpacaConnected} disabled />
+            <Switch checked={brokerConnected} disabled />
           </div>
-          
+
           <div className="space-y-2">
-            <label className="text-sm font-medium">API Key</label>
-            <Input 
+            <label className="text-sm font-medium" htmlFor="input-alpaca-api-key">API Key</label>
+            <Input
+              id="input-alpaca-api-key"
               type="password"
               placeholder="PK..."
-              value={local.alpacaApiKey} 
+              value={local.alpacaApiKey}
               onChange={e => setLocal({...local, alpacaApiKey: e.target.value})}
               className="bg-background font-mono"
             />
+            <p className="text-xs text-muted-foreground">
+              The API secret is never stored here — it is read only from the <code>ALPACA_API_SECRET</code>{" "}
+              environment variable, and is never displayed or returned by any endpoint.
+            </p>
           </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleCheckConnection}
+            disabled={isCheckingBroker}
+            data-testid="button-check-broker-connection"
+          >
+            {isCheckingBroker ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Checking...
+              </>
+            ) : (
+              "Check Connection"
+            )}
+          </Button>
+
+          {brokerHealthRequestFailed && (
+            <p className="text-xs text-destructive" data-testid="text-broker-health-request-error">
+              Could not reach the broker health check endpoint. Try again in a moment.
+            </p>
+          )}
+
+          {brokerHealth && (
+            <div
+              className="space-y-3 p-4 border border-border rounded-lg bg-background"
+              data-testid="broker-health-results"
+            >
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                <div>
+                  <div className="text-xs text-muted-foreground">Authentication</div>
+                  <div
+                    className={brokerHealth.authenticationSuccessful ? "text-success" : "text-destructive"}
+                    data-testid="text-broker-auth-status"
+                  >
+                    {brokerHealth.authenticationSuccessful ? "Successful" : "Failed"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Account Status</div>
+                  <div className="font-mono" data-testid="text-broker-account-status">
+                    {brokerHealth.accountStatus ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Buying Power</div>
+                  <div className="font-mono" data-testid="text-broker-buying-power">
+                    {fmtCurrency(brokerHealth.buyingPower)}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Cash Balance</div>
+                  <div className="font-mono" data-testid="text-broker-cash-balance">
+                    {fmtCurrency(brokerHealth.cashBalance)}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Portfolio Value</div>
+                  <div className="font-mono" data-testid="text-broker-portfolio-value">
+                    {fmtCurrency(brokerHealth.portfolioValue)}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Open Positions</div>
+                  <div className="font-mono" data-testid="text-broker-open-positions">
+                    {brokerHealth.openPositionsCount ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Open Orders</div>
+                  <div className="font-mono" data-testid="text-broker-open-orders">
+                    {brokerHealth.openOrdersCount ?? "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Last Successful Check</div>
+                  <div className="font-mono" data-testid="text-broker-last-check">
+                    {brokerHealth.lastSuccessfulCheckAt ? fmtFetchedAt(brokerHealth.lastSuccessfulCheckAt) : "Never"}
+                  </div>
+                </div>
+              </div>
+
+              {!brokerHealth.connected && (
+                <div className="pt-3 border-t border-border space-y-2">
+                  <p
+                    className="text-xs text-destructive flex items-start gap-1"
+                    data-testid="text-broker-failure-reason"
+                  >
+                    <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5" /> {brokerHealth.reason}
+                  </p>
+                  {brokerHealth.reason.toLowerCase().includes("no alpaca credentials") && (
+                    <p className="text-xs text-muted-foreground" data-testid="text-broker-missing-credentials-help">
+                      Set the <code>ALPACA_API_KEY</code> and <code>ALPACA_API_SECRET</code> environment
+                      variables to connect to your Alpaca Paper Trading account. The API key may also be
+                      entered above and saved instead of set via <code>ALPACA_API_KEY</code> — the API
+                      secret must always come from the <code>ALPACA_API_SECRET</code> environment variable.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -318,12 +489,12 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Fundamentals Provider</label>
+            <label className="text-sm font-medium" id="label-fundamentals-provider">Fundamentals Provider</label>
             <Select
               value={local.fundamentalsProvider}
               onValueChange={(v: any) => setLocal({ ...local, fundamentalsProvider: v })}
             >
-              <SelectTrigger className="bg-background" data-testid="select-fundamentals-provider">
+              <SelectTrigger className="bg-background" aria-labelledby="label-fundamentals-provider" data-testid="select-fundamentals-provider">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -343,8 +514,9 @@ export default function SettingsPage() {
             </p>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Live Data Staleness Threshold (hours)</label>
+            <label className="text-sm font-medium" htmlFor="input-fundamentals-staleness-hours">Live Data Staleness Threshold (hours)</label>
             <Input
+              id="input-fundamentals-staleness-hours"
               type="number"
               min={1}
               value={local.fundamentalsStalenessHours}

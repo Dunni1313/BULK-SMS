@@ -37,6 +37,14 @@ export const tradesTable = pgTable("trades", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   index("trades_user_id_idx").on(table.userId),
+  // Phase 9 — Production Readiness. `and(eq(status, ...), eq(userId, ...))`
+  // is the single most common query shape against this table (Portfolio,
+  // Trades list, the daily report, the automation scheduler's own
+  // candidate/position lookups, position sizing, trade adjustment preview,
+  // getAccountValue's realized-P&L sum) — this composite lets Postgres
+  // satisfy all of them from the index alone instead of a user_id-only
+  // index lookup followed by a row-by-row status filter.
+  index("trades_user_id_status_idx").on(table.userId, table.status),
 ]);
 
 export const insertTradeSchema = createInsertSchema(tradesTable).omit({ id: true, createdAt: true });

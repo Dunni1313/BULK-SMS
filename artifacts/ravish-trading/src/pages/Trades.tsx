@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { XCircle, Bot, Wrench } from "lucide-react";
 import { TradeExplanationSheet } from "@/components/ui/trade-explanation-sheet";
 import { TradeAdjustmentSheet } from "@/components/ui/trade-adjustment-sheet";
+import { ExplainButton } from "@/components/learn/ExplainButton";
 
 export default function Trades() {
   const [status, setStatus] = useState<ListTradesStatus | "all">("open");
@@ -127,7 +128,13 @@ export default function Trades() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end items-center gap-2">
+                          <ExplainButton
+                            metrics={["probability_of_profit", "max_profit", "max_loss", "expected_move"]}
+                            tradeId={trade.id}
+                            label="Explain"
+                            align="end"
+                          />
                           <Button
                             size="icon"
                             variant="ghost"

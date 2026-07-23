@@ -37,17 +37,23 @@ import { getMarketDataProvider } from "./tradingMarketData.js";
 import { getSettingsRow } from "./serverState.js";
 import { logger } from "./logger.js";
 import { recordJobRun } from "./systemHealth.js";
+// Phase 16 — Institutional Monitoring & Alerts Engine's own two automatic,
+// bounded-scope evaluators (symbol-level + portfolio-level change
+// detection). evaluateOpportunityMonitoringAlerts() is deliberately NOT
+// imported here — it stays on-demand only, called directly from
+// routes/monitoringEngine.ts's own explicit check endpoint, never from the
+// automatic background tick (see that function's own header comment).
+import { evaluateSymbolMonitoringAlerts, evaluatePortfolioMonitoringAlerts } from "./monitoringEngine.js";
 
-export type AlertType = "watchlist_target_crossed" | "risk_cap_breached";
-
-export interface AlertCandidate {
-  type: AlertType;
-  title: string;
-  message: string;
-  dataSource: "SIMULATED" | "LIVE";
-  relatedSymbol: string | null;
-  dedupKey: string;
-}
+// AlertType/AlertSeverity/AlertCandidate moved to lib/alertTypes.ts during
+// the Version 1 Release Candidate (RC1) hardening pass, to break a
+// type-only circular dependency with lib/monitoringEngine.ts. Re-exported
+// here unchanged so every existing importer of these types from this file
+// (including routes/monitoringEngine.ts) keeps compiling with zero
+// changes of its own. See lib/alertTypes.ts's own header comment for the
+// full rationale.
+export type { AlertType, AlertSeverity, AlertCandidate } from "./alertTypes.js";
+import type { AlertCandidate } from "./alertTypes.js";
 
 function fmtUsd(n: number | null): string {
   return n == null ? "n/a" : `$${n.toFixed(2)}`;
@@ -73,6 +79,11 @@ export async function evaluateWatchlistAlerts(userId: string): Promise<AlertCand
         dataSource: provider.dataSource,
         relatedSymbol: row.symbol,
         dedupKey: `watchlist:${row.id}:price`,
+        severity: "info",
+        previousValue: fmtUsd(row.desiredBuyPrice),
+        currentValue: fmtUsd(check.currentPrice),
+        evidence: [`Desired buy price: ${fmtUsd(row.desiredBuyPrice)}`, `Current price: ${fmtUsd(check.currentPrice)}`],
+        recommendedAction: `Review ${row.symbol} on the Value Research or Institutional Decision Engine page.`,
       });
     }
     if (check.marginOfSafetyTargetCrossed === true) {
@@ -83,6 +94,11 @@ export async function evaluateWatchlistAlerts(userId: string): Promise<AlertCand
         dataSource: provider.dataSource,
         relatedSymbol: row.symbol,
         dedupKey: `watchlist:${row.id}:mos`,
+        severity: "info",
+        previousValue: `${row.marginOfSafetyTarget}% target`,
+        currentValue: fmtUsd(check.currentPrice),
+        evidence: [`Margin-of-safety target: ${row.marginOfSafetyTarget}%`, `Current price: ${fmtUsd(check.currentPrice)}`],
+        recommendedAction: `Review ${row.symbol} on the Value Research or Institutional Decision Engine page.`,
       });
     }
   }
@@ -122,6 +138,11 @@ export async function evaluateRiskAlerts(userId: string): Promise<AlertCandidate
       dataSource,
       relatedSymbol: analysis.positionSizing.largestPositionSymbol ?? null,
       dedupKey: `risk:position-sizing`,
+      severity: "warning",
+      previousValue: null,
+      currentValue: null,
+      evidence: [analysis.positionSizing.detail],
+      recommendedAction: "Review your open positions on the Trading Research page's Risk panel.",
     });
   }
   if (analysis.portfolioBudget.capBreached) {
@@ -132,26 +153,25 @@ export async function evaluateRiskAlerts(userId: string): Promise<AlertCandidate
       dataSource,
       relatedSymbol: null,
       dedupKey: `risk:portfolio-budget`,
+      severity: "warning",
+      previousValue: null,
+      currentValue: null,
+      evidence: [analysis.portfolioBudget.detail],
+      recommendedAction: "Review your open positions on the Trading Research page's Risk panel.",
     });
   }
   return candidates;
 }
 
-// Persists alert candidates for one user, honoring the alertsEnabled
-// settings toggle and the active-dedup-key uniqueness (a candidate is
-// skipped, never duplicated, if an unread notification with the same
-// dedupKey already exists for this user — see
+// Persists alert candidates for one user, honoring the active-dedup-key
+// uniqueness (a candidate is skipped, never duplicated, if an unread
+// notification with the same dedupKey already exists for this user — see
 // manual-migrations/014_platform_notifications.sql for the full dedup
-// design rationale).
-export async function evaluateAndPersistAlertsForUser(userId: string): Promise<PlatformNotificationRow[]> {
-  const settings = await getSettingsRow(userId);
-  if (!settings.alertsEnabled) return [];
-
-  const [watchlistCandidates, riskCandidates] = await Promise.all([
-    evaluateWatchlistAlerts(userId).catch(() => [] as AlertCandidate[]),
-    evaluateRiskAlerts(userId).catch(() => [] as AlertCandidate[]),
-  ]);
-  const candidates = [...watchlistCandidates, ...riskCandidates];
+// design rationale). Extracted (Phase 16) so both the automatic, bounded
+// evaluators below and routes/monitoringEngine.ts's own on-demand full-check
+// endpoint (which additionally includes Opportunity Alerts) share the exact
+// same persistence/dedup logic rather than a second, duplicated copy of it.
+export async function persistAlertCandidates(userId: string, candidates: AlertCandidate[]): Promise<PlatformNotificationRow[]> {
   if (candidates.length === 0) return [];
 
   const existingUnread = await db
@@ -174,6 +194,11 @@ export async function evaluateAndPersistAlertsForUser(userId: string): Promise<P
           dataSource: c.dataSource,
           relatedSymbol: c.relatedSymbol,
           dedupKey: c.dedupKey,
+          severity: c.severity ?? "info",
+          previousValue: c.previousValue ?? null,
+          currentValue: c.currentValue ?? null,
+          evidence: c.evidence ?? null,
+          recommendedAction: c.recommendedAction ?? null,
         })
         .returning();
       created.push(row);
@@ -186,6 +211,26 @@ export async function evaluateAndPersistAlertsForUser(userId: string): Promise<P
     }
   }
   return created;
+}
+
+// Honors the alertsEnabled settings toggle; runs only the automatic,
+// bounded-scope evaluators (Watchlist/Risk/Symbol/Portfolio) — never
+// Opportunity Alerts, which stay on-demand only (see
+// evaluateOpportunityMonitoringAlerts()'s own header comment in
+// lib/monitoringEngine.ts).
+export async function evaluateAndPersistAlertsForUser(userId: string): Promise<PlatformNotificationRow[]> {
+  const settings = await getSettingsRow(userId);
+  if (!settings.alertsEnabled) return [];
+
+  const provider = await getFundamentalsProvider(userId);
+  const [watchlistCandidates, riskCandidates, symbolCandidates, portfolioCandidates] = await Promise.all([
+    evaluateWatchlistAlerts(userId).catch(() => [] as AlertCandidate[]),
+    evaluateRiskAlerts(userId).catch(() => [] as AlertCandidate[]),
+    evaluateSymbolMonitoringAlerts(userId, provider).catch(() => [] as AlertCandidate[]),
+    evaluatePortfolioMonitoringAlerts(userId, provider).catch(() => [] as AlertCandidate[]),
+  ]);
+  const candidates = [...watchlistCandidates, ...riskCandidates, ...symbolCandidates, ...portfolioCandidates];
+  return persistAlertCandidates(userId, candidates);
 }
 
 // Phase 1 Sprint 8's own "armed users" query shape (autoExecution.ts's

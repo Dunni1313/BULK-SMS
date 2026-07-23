@@ -29,6 +29,27 @@ if (!window.matchMedia) {
   })) as unknown as typeof window.matchMedia;
 }
 
+// jsdom doesn't implement the Pointer Events capture API or scrollIntoView,
+// which Radix UI's <Select> (and other Radix primitives) call internally
+// during a real pointer-driven open/select interaction — first needed by
+// TradeHistory.test.tsx (Trade History, Performance Analytics & Trading
+// Journal sprint), the first test in this codebase to drive a Radix
+// <Select> dropdown via userEvent.click() rather than only asserting its
+// initial rendered value. No-op stubs, matching the same minimal
+// jsdom-gap-stub precedent as ResizeObserverStub/matchMedia above.
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false;
+}
+if (!Element.prototype.setPointerCapture) {
+  Element.prototype.setPointerCapture = () => {};
+}
+if (!Element.prototype.releasePointerCapture) {
+  Element.prototype.releasePointerCapture = () => {};
+}
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}
+
 afterEach(() => {
   cleanup();
 });

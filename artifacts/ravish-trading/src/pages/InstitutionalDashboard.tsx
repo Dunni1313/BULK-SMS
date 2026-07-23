@@ -159,6 +159,9 @@ import {
   Landmark,
   Briefcase,
   PieChart,
+  ExternalLink,
+  Command,
+  Grid3x3,
 } from "lucide-react";
 
 // Bounded — a fast-scan summary, not a full history dump. The full lists
@@ -547,6 +550,13 @@ export default function InstitutionalDashboard() {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{structure.summary}</p>
+                <a
+                  href={`/market-structure-workbench?symbol=${symbol}`}
+                  className="flex items-center gap-1 text-xs text-primary hover:underline"
+                  data-testid="link-open-market-structure-workbench"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open full Market Structure Workbench
+                </a>
               </CardContent>
             </Card>
           )}
@@ -686,6 +696,13 @@ export default function InstitutionalDashboard() {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{liquidity.summary}</p>
+                <a
+                  href={`/liquidity-workbench?symbol=${symbol}`}
+                  className="flex items-center gap-1 text-xs text-primary hover:underline"
+                  data-testid="link-open-liquidity-workbench"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open full Liquidity &amp; Session Workbench
+                </a>
               </CardContent>
             </Card>
           )}
@@ -792,6 +809,24 @@ export default function InstitutionalDashboard() {
             )}
             <Link href="/trading-research" className="text-xs text-primary hover:underline">
               Manage positions →
+            </Link>
+            <Link href="/trade-planning-studio" className="block text-xs text-primary hover:underline" data-testid="link-open-trade-planning-studio">
+              Open Trade Planning &amp; Risk Studio →
+            </Link>
+            <Link href="/trading-ai-coach" className="block text-xs text-primary hover:underline" data-testid="link-open-trading-ai-coach">
+              Open Institutional Trading AI Coach →
+            </Link>
+            {/* Phase 33 — Institutional Executive Intelligence & Reporting
+                Hub. Pure navigation, no fetch. Reachable from this Engine-2
+                dashboard for cross-engine convenience only — never a
+                duplicated feature. */}
+            <Link href="/executive-intelligence" className="flex items-center gap-1.5 text-xs text-primary hover:underline" data-testid="link-open-executive-intelligence">
+              <Command className="h-3 w-3" /> Open Executive Intelligence Hub →
+            </Link>
+            {/* Phase 34 — Cross-Engine Orchestration & Unified Workspace.
+                Pure navigation, no fetch. */}
+            <Link href="/cross-engine-workspace" className="flex items-center gap-1.5 text-xs text-primary hover:underline" data-testid="link-open-cross-engine-workspace">
+              <Grid3x3 className="h-3 w-3" /> Open Cross-Engine Workspace →
             </Link>
           </CardContent>
         </Card>

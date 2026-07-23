@@ -14,6 +14,8 @@ export interface JournalEntryInput {
   content: string;
   mood: JournalEntryInputMood;
   lessonLearned?: string;
+  thesis?: string;
+  entryReasoning?: string;
   tags?: string[];
   /** @nullable */
   strategy?: string | null;

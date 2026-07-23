@@ -34,8 +34,15 @@
 // order-flow, or execution data anywhere in this module.
 
 import { Router, type IRouter } from "express";
-import { db, tradingPositionsTable, tradingJournalEntriesTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import {
+  db,
+  tradingPositionsTable,
+  tradingJournalEntriesTable,
+  tradingTradePlansTable,
+  tradingStrategiesTable,
+  tradingStrategyChecklistsTable,
+} from "@workspace/db";
+import { eq, desc, and } from "drizzle-orm";
 import { buildProbabilityAnalysis, type ProbabilityAnalysis } from "../lib/tradingProbability.js";
 import {
   buildTradingRiskAnalysis,
@@ -43,10 +50,37 @@ import {
   type TradingRiskAnalysisWithContext,
 } from "../lib/tradingRisk.js";
 import { getMarketDataProvider, type MarketDataProvider } from "../lib/tradingMarketData.js";
+import {
+  TRADING_COACH_TYPES,
+  SYMBOL_SCOPED_TRADING_COACHES,
+  ACCOUNT_SCOPED_TRADING_COACHES,
+  type TradingCoachType,
+  explainStructureCoach,
+  explainLiquidityCoach,
+  explainSessionCoach,
+  explainRiskCoach,
+  explainTradePlanCoach,
+  explainJournalCoach,
+  explainPsychologyCoach,
+  explainScenarioCoach,
+  explainStrategyCoach,
+} from "../lib/tradingCoach.js";
+import type { StrategyChecklistItemState, StrategyCategory, EvidenceSourceType } from "../lib/tradingStrategyFramework.js";
+import type { Timeframe } from "../lib/tradingMarketData.js";
+import { computeScenarioComparison, MIN_SCENARIOS, MAX_SCENARIOS } from "../lib/tradingScenarioComparison.js";
+import {
+  GetTradingCoachExplanationResponse,
+  GetTradingCoachAccountExplanationResponse,
+  GetTradingCoachStrategyExplanationResponse,
+  ExplainTradingScenarioBody,
+  ExplainTradingScenarioResponse,
+} from "@workspace/api-zod";
 import { getScopedUserId } from "../lib/tenantScope.js";
 import { getSettingsRow } from "../lib/serverState.js";
 import { narrateTradeFreeform, narrateTradeFreeformStream, llmAvailable } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
+import { buildSessionData } from "../lib/trading/sessionService.js";
+import type { SessionData } from "../lib/tradingDomainModel.js";
 import { AskTradingCoachBody, AskTradingCoachResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -85,6 +119,7 @@ function buildTradeCoachContext(
   probability: ProbabilityAnalysis,
   risk: TradingRiskAnalysisWithContext,
   journalRows: (typeof tradingJournalEntriesTable.$inferSelect)[],
+  session: SessionData | null,
 ) {
   const regime = probability.regime;
   const multiTimeframe = regime.multiTimeframe;
@@ -93,6 +128,18 @@ function buildTradeCoachContext(
     symbol: probability.symbol,
     dataSource: probability.dataSource,
     currentPrice: probability.currentPrice,
+    // Phase 27 — Institutional Liquidity & Session Workbench. Reuses
+    // sessionService.ts's own buildSessionData() unmodified — the coach
+    // previously had no session-hours awareness at all. Honestly null
+    // when the symbol's own session data can't be resolved (never
+    // fabricated), matching every other honest-null field in this context.
+    session: session
+      ? {
+          activeSessions: session.activeSessions,
+          sessionHigh: session.sessionHigh,
+          sessionLow: session.sessionLow,
+        }
+      : null,
     structure: multiTimeframe.timeframes.map((tf) => ({
       interval: tf.interval,
       trend: tf.structure.trend,
@@ -182,7 +229,8 @@ router.post("/trading/coach/ask", async (req, res): Promise<void> => {
   }
 
   const { risk, journalRows } = await gatherUserContext(userId, provider);
-  const context = buildTradeCoachContext(probability, risk, journalRows);
+  const session = await buildSessionData(parsed.data.symbol);
+  const context = buildTradeCoachContext(probability, risk, journalRows, session);
   const fallback = tradeCoachFallback(probability, risk, parsed.data.question);
   const n = await narrateTradeFreeform(parsed.data.question, context, fallback);
   res.json(AskTradingCoachResponse.parse({ answer: n.text, answerSource: n.source }));
@@ -208,7 +256,8 @@ router.post("/trading/coach/ask/stream", async (req, res): Promise<void> => {
   }
 
   const { risk, journalRows } = await gatherUserContext(userId, provider);
-  const context = buildTradeCoachContext(probability, risk, journalRows);
+  const session = await buildSessionData(parsed.data.symbol);
+  const context = buildTradeCoachContext(probability, risk, journalRows, session);
   const fallback = tradeCoachFallback(probability, risk, parsed.data.question);
 
   const sse = openSse(res);
@@ -222,6 +271,223 @@ router.post("/trading/coach/ask/stream", async (req, res): Promise<void> => {
   } finally {
     sse.close();
   }
+});
+
+// ---------------------------------------------------------------------------
+// Phase 29 — Institutional Trading AI Coach. Deterministic (zero-LLM)
+// explanations, the exact same "compose, never compute" discipline as
+// Engine 1's GET /stock-analyst/coach/:coach/:symbol (lib/investingCoach.ts,
+// Phase 21) — never predicts price, never invents a probability, never
+// recommends buying or selling. Separate from the free-form LLM Q&A routes
+// above (POST /trading/coach/ask[/stream]), which are untouched.
+//
+// Account-wide coaches (journal, psychology) are registered on a shorter
+// path (no :symbol) than the symbol-scoped coaches below — Express
+// distinguishes them by segment count, so both can coexist safely.
+// ---------------------------------------------------------------------------
+
+async function gatherRecentJournalEntries(userId: string) {
+  return db
+    .select()
+    .from(tradingJournalEntriesTable)
+    .where(eq(tradingJournalEntriesTable.userId, userId))
+    .orderBy(desc(tradingJournalEntriesTable.createdAt))
+    .limit(RECENT_JOURNAL_ENTRIES_LIMIT);
+}
+
+function toJournalCoachInput(rows: (typeof tradingJournalEntriesTable.$inferSelect)[]) {
+  return rows.map((r) => ({
+    title: r.title,
+    mood: r.mood,
+    lessonLearned: r.lessonLearned ?? null,
+    rMultiple: r.rMultiple ?? null,
+    setupType: r.setupType ?? null,
+    createdAt: r.createdAt.toISOString(),
+  }));
+}
+
+router.get("/trading/coach/:coach", async (req, res): Promise<void> => {
+  const coach = req.params.coach as TradingCoachType;
+  if (!ACCOUNT_SCOPED_TRADING_COACHES.includes(coach)) {
+    res.status(400).json({
+      error: `Coach type "${req.params.coach}" requires a symbol. Account-wide coaches: ${ACCOUNT_SCOPED_TRADING_COACHES.join(", ")}`,
+    });
+    return;
+  }
+
+  const userId = await getScopedUserId(req);
+  const rows = await gatherRecentJournalEntries(userId);
+  const entries = toJournalCoachInput(rows);
+
+  const explanation = coach === "journal" ? explainJournalCoach(entries) : explainPsychologyCoach(entries);
+  res.json(GetTradingCoachAccountExplanationResponse.parse(explanation));
+});
+
+// Strategy Coach (Phase 30) — resolved by strategy id, not a market
+// symbol or the account-wide reads above. A literal "strategy" first
+// path segment, registered before the generic /:coach/:symbol route
+// below so Express matches this one first (both would otherwise
+// structurally match a 2-segment URL); "strategy" is intentionally
+// absent from both SYMBOL_SCOPED_TRADING_COACHES and
+// ACCOUNT_SCOPED_TRADING_COACHES so neither of those two general
+// handlers accidentally accepts it either.
+router.get("/trading/coach/strategy/:strategyId", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.strategyId) ? req.params.strategyId[0] : req.params.strategyId;
+  const strategyId = parseInt(raw, 10);
+  if (isNaN(strategyId)) {
+    res.status(400).json({ error: "Invalid strategy id" });
+    return;
+  }
+
+  const userId = await getScopedUserId(req);
+  const [strategyRow] = await db
+    .select()
+    .from(tradingStrategiesTable)
+    .where(and(eq(tradingStrategiesTable.id, strategyId), eq(tradingStrategiesTable.userId, userId)));
+
+  if (!strategyRow) {
+    res.status(404).json({ error: "Strategy not found" });
+    return;
+  }
+
+  const checklistIdRaw = typeof req.query.checklistId === "string" ? req.query.checklistId : undefined;
+  let checklistRow: typeof tradingStrategyChecklistsTable.$inferSelect | null = null;
+  if (checklistIdRaw !== undefined) {
+    const checklistId = parseInt(checklistIdRaw, 10);
+    if (isNaN(checklistId)) {
+      res.status(400).json({ error: "Invalid checklistId" });
+      return;
+    }
+    const [row] = await db
+      .select()
+      .from(tradingStrategyChecklistsTable)
+      .where(and(eq(tradingStrategyChecklistsTable.id, checklistId), eq(tradingStrategyChecklistsTable.userId, userId), eq(tradingStrategyChecklistsTable.strategyId, strategyId)));
+    checklistRow = row ?? null;
+  }
+
+  const explanation = explainStrategyCoach(
+    {
+      id: strategyRow.id,
+      name: strategyRow.name,
+      description: strategyRow.description,
+      category: strategyRow.category as StrategyCategory,
+      timeframes: strategyRow.timeframes as Timeframe[],
+      markets: strategyRow.markets as string[],
+      requiredEvidence: strategyRow.requiredEvidence as EvidenceSourceType[],
+      checklist: strategyRow.checklist,
+      educationalNotes: strategyRow.educationalNotes,
+      references: strategyRow.references as string[],
+      version: strategyRow.version,
+      createdAt: strategyRow.createdAt.toISOString(),
+      updatedAt: strategyRow.updatedAt.toISOString(),
+    },
+    checklistRow
+      ? {
+          id: checklistRow.id,
+          strategyId: checklistRow.strategyId,
+          symbol: checklistRow.symbol ?? null,
+          status: checklistRow.status as "in_progress" | "complete",
+          items: checklistRow.items as StrategyChecklistItemState[],
+          notes: checklistRow.notes,
+          createdAt: checklistRow.createdAt.toISOString(),
+          updatedAt: checklistRow.updatedAt.toISOString(),
+        }
+      : null,
+  );
+
+  res.json(GetTradingCoachStrategyExplanationResponse.parse(explanation));
+});
+
+router.get("/trading/coach/:coach/:symbol", async (req, res): Promise<void> => {
+  const coach = req.params.coach as TradingCoachType;
+  if (!TRADING_COACH_TYPES.includes(coach) || !SYMBOL_SCOPED_TRADING_COACHES.includes(coach)) {
+    res.status(400).json({
+      error: `Unknown or non-symbol-scoped coach type: ${req.params.coach}. Symbol-scoped coaches: ${SYMBOL_SCOPED_TRADING_COACHES.join(", ")}`,
+    });
+    return;
+  }
+
+  const symbol = req.params.symbol.toUpperCase();
+  const userId = await getScopedUserId(req);
+  const provider = await getMarketDataProvider(userId);
+  const probability = await buildProbabilityAnalysis(symbol, provider);
+  if (!probability) {
+    res.status(404).json({ error: `Unknown symbol: ${symbol}` });
+    return;
+  }
+  const regime = probability.regime;
+
+  let explanation;
+  if (coach === "structure") {
+    explanation = explainStructureCoach(symbol, regime.multiTimeframe);
+  } else if (coach === "liquidity") {
+    explanation = explainLiquidityCoach(symbol, regime.liquidity);
+  } else if (coach === "session") {
+    const session = await buildSessionData(symbol);
+    explanation = explainSessionCoach(symbol, session);
+  } else if (coach === "risk") {
+    const { risk } = await gatherUserContext(userId, provider);
+    explanation = explainRiskCoach(symbol, risk);
+  } else {
+    // trade-plan — explain the user's own most recent saved plan for this symbol
+    const plans = await db
+      .select()
+      .from(tradingTradePlansTable)
+      .where(and(eq(tradingTradePlansTable.userId, userId), eq(tradingTradePlansTable.symbol, symbol)))
+      .orderBy(desc(tradingTradePlansTable.createdAt))
+      .limit(1);
+    const p = plans[0] ?? null;
+    explanation = explainTradePlanCoach(
+      symbol,
+      p
+        ? {
+            id: p.id,
+            symbol: p.symbol,
+            direction: p.direction,
+            status: p.status,
+            thesis: p.thesis,
+            risk: {
+              accountRiskPct: p.accountRiskPct,
+              entryPrice: p.entryPrice,
+              stopPrice: p.stopPrice,
+              targetPrice: p.targetPrice,
+              positionSize: p.positionSize ?? null,
+              riskRewardRatio: p.riskRewardRatio ?? null,
+            },
+            createdAt: p.createdAt.toISOString(),
+          }
+        : null,
+    );
+  }
+
+  res.json(GetTradingCoachExplanationResponse.parse(explanation));
+});
+
+// Scenario Coach — stateless, mirrors POST /trading/trade-plans/scenarios/
+// compare's own request body exactly and reuses computeScenarioComparison()
+// (Phase 28, unmodified) to produce the same comparison, then explains it.
+router.post("/trading/coach/scenario", async (req, res): Promise<void> => {
+  const parsed = ExplainTradingScenarioBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const d = parsed.data;
+  if (d.scenarios.length < MIN_SCENARIOS || d.scenarios.length > MAX_SCENARIOS) {
+    res.status(400).json({ error: `Provide between ${MIN_SCENARIOS} and ${MAX_SCENARIOS} scenarios to compare.` });
+    return;
+  }
+
+  let accountValue: number | null = d.accountValue ?? null;
+  if (accountValue == null) {
+    const userId = await getScopedUserId(req);
+    const settings = await getSettingsRow(userId);
+    accountValue = settings.tradingAccountValue ?? null;
+  }
+
+  const comparison = computeScenarioComparison(d.symbol ? d.symbol.toUpperCase() : null, d.scenarios, accountValue);
+  const explanation = explainScenarioCoach(comparison);
+  res.json(ExplainTradingScenarioResponse.parse(explanation));
 });
 
 export default router;

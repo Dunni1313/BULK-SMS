@@ -125,26 +125,30 @@ export interface TradeExplanation {
 const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
 const pct = (n: number) => `${n.toFixed(1)}%`;
 
-function deltaPlain(d: number): string {
+// Exported (additive, AI Teacher & Learning Centre sprint) so
+// lib/metricExplainer.ts can reuse the exact same plain-English Greeks
+// wording Trade Explanations already use, rather than a second,
+// drifting copy — zero behavior change to explainQuote()'s own output.
+export function deltaPlain(d: number): string {
   const abs = Math.abs(d);
   if (abs < 0.05)
     return `Position delta ${d >= 0 ? "+" : ""}${d} — effectively direction-neutral. You profit from the underlying staying in a range, not from picking up or down.`;
   return `Position delta ${d >= 0 ? "+" : ""}${d} — a mild ${d > 0 ? "bullish" : "bearish"} lean. For each $1 the underlying moves ${d > 0 ? "up" : "down"}, the position gains roughly ${money(Math.abs(d) * 100)} from direction alone.`;
 }
 
-function thetaPlain(t: number): string {
+export function thetaPlain(t: number): string {
   if (t >= 0)
     return `Theta ${money(t)}/day — time decay works in your favor. As a net premium seller you collect about ${money(t)} per calendar day if everything else holds, ~${money(t * 7)}/week.`;
   return `Theta ${money(t)}/day — time decay works against you (this is a net-debit structure). You need movement or vol expansion to overcome the daily bleed.`;
 }
 
-function vegaPlain(v: number): string {
+export function vegaPlain(v: number): string {
   if (v <= 0)
     return `Vega ${v} — short volatility. Falling implied vol helps you; a 1-point IV drop adds about ${money(Math.abs(v))}. A vol spike is your main risk.`;
   return `Vega ${v} — long volatility. Rising implied vol helps you; a 1-point IV rise adds about ${money(Math.abs(v))}.`;
 }
 
-function gammaPlain(g: number): string {
+export function gammaPlain(g: number): string {
   if (g <= 0)
     return `Gamma ${g} — short gamma. Your delta moves against you as the underlying trends, so risk accelerates on a big, fast move. This is the trade-off for collecting theta.`;
   return `Gamma ${g} — long gamma. Your delta improves as the underlying moves, but you pay for it through theta.`;

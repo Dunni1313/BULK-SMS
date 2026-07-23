@@ -1105,6 +1105,125 @@ export interface ValueWatchlistUpdate {
   currentDecision?: string;
 }
 
+export interface ResearchNoteItem {
+  id: number;
+  symbol: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResearchNoteCreate {
+  symbol: string;
+  note: string;
+}
+
+export interface ResearchNoteUpdate {
+  note: string;
+}
+
+export interface InvestmentThesisSection {
+  heading: string;
+  paragraphs: string[];
+}
+
+export type InvestmentThesisDataSource = typeof InvestmentThesisDataSource[keyof typeof InvestmentThesisDataSource];
+
+
+export const InvestmentThesisDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export interface InvestmentThesis {
+  symbol: string;
+  name: string;
+  asOf: string;
+  dataSource: InvestmentThesisDataSource;
+  generatedAt: string;
+  overview: string;
+  sections: InvestmentThesisSection[];
+  supportingPoints: string[];
+  riskFactors: string[];
+  disclaimer: string;
+}
+
+export interface InvestmentMemoSection {
+  heading: string;
+  paragraphs: string[];
+}
+
+export type InvestmentMemoDataSource = typeof InvestmentMemoDataSource[keyof typeof InvestmentMemoDataSource];
+
+
+export const InvestmentMemoDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type InvestmentMemoRecommendation = typeof InvestmentMemoRecommendation[keyof typeof InvestmentMemoRecommendation];
+
+
+export const InvestmentMemoRecommendation = {
+  Buy: 'Buy',
+  Accumulate: 'Accumulate',
+  Hold: 'Hold',
+  Reduce: 'Reduce',
+  Sell: 'Sell',
+  Avoid: 'Avoid',
+} as const;
+
+export interface InvestmentMemo {
+  symbol: string;
+  name: string;
+  asOf: string;
+  dataSource: InvestmentMemoDataSource;
+  generatedAt: string;
+  recommendation: InvestmentMemoRecommendation;
+  confidence: number;
+  overview: string;
+  sections: InvestmentMemoSection[];
+  disclaimer: string;
+}
+
+export interface CoachEvidenceItem {
+  label: string;
+  detail: string;
+  source: string;
+}
+
+export type CoachExplanationCoach = typeof CoachExplanationCoach[keyof typeof CoachExplanationCoach];
+
+
+export const CoachExplanationCoach = {
+  investment: 'investment',
+  portfolio: 'portfolio',
+  decision: 'decision',
+  valuation: 'valuation',
+  risk: 'risk',
+  research: 'research',
+  monitoring: 'monitoring',
+  committee: 'committee',
+} as const;
+
+export interface CoachExplanation {
+  coach: CoachExplanationCoach;
+  coachLabel: string;
+  symbol: string;
+  headline: string;
+  whyThisExists: string;
+  metricsUsed: CoachEvidenceItem[];
+  supportingEvidence: CoachEvidenceItem[];
+  risksReducingConfidence: string[];
+  strengthsIncreasingConfidence: string[];
+  howToInterpret: string[];
+  commonMistakes: string[];
+  institutionalPerspective: string;
+  relatedGlossaryKeys: string[];
+  calculationSources: string[];
+  disclaimer: string;
+}
+
 export interface ConstructionPortfolioSummary {
   id: number;
   name: string;
@@ -1131,6 +1250,8 @@ export interface ConstructionHolding {
   targetWeightPct: number;
   /** @nullable */
   shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -1141,6 +1262,8 @@ export interface ConstructionHoldingCreate {
   targetWeightPct?: number;
   /** @nullable */
   shares?: number | null;
+  /** @nullable */
+  avgCostBasis?: number | null;
   notes?: string;
 }
 
@@ -1148,6 +1271,8 @@ export interface ConstructionHoldingUpdate {
   targetWeightPct?: number;
   /** @nullable */
   shares?: number | null;
+  /** @nullable */
+  avgCostBasis?: number | null;
   notes?: string;
 }
 
@@ -1167,6 +1292,8 @@ export interface ConstructionPortfolioHoldingAllocation {
   targetWeightPct: number;
   /** @nullable */
   shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
   notes: string;
   /** @nullable */
   currentPrice: number | null;
@@ -1177,6 +1304,14 @@ export interface ConstructionPortfolioHoldingAllocation {
   /** @nullable */
   driftPct: number | null;
   rebalanceAction: ConstructionPortfolioHoldingAllocationRebalanceAction;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  industry: string | null;
+  /** @nullable */
+  beta: number | null;
+  /** @nullable */
+  marketCap: number | null;
 }
 
 export interface ConstructionPortfolioAllocationResult {
@@ -1277,6 +1412,669 @@ export interface ConstructionRiskSnapshot {
   overallScore: number | null;
   analysis: ConstructionPortfolioRiskAnalysis;
   createdAt: string;
+}
+
+export interface ConstructionScoreCard {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+}
+
+export interface ConstructionAllocationSlice {
+  label: string;
+  weightPct: number;
+}
+
+export interface ConstructionUnavailableDimension {
+  available: false;
+  reason: string;
+}
+
+export interface ConstructionHoldingIntelligence {
+  symbol: string;
+  /** @nullable */
+  weightPct: number | null;
+  /** @nullable */
+  qualityScore: number | null;
+  /** @nullable */
+  capitalAllocationScore: number | null;
+  /** @nullable */
+  growthScore: number | null;
+  /** @nullable */
+  valuationRating: string | null;
+  /** @nullable */
+  committeeVerdict: string | null;
+  /** @nullable */
+  marketCapBand: string | null;
+  /** @nullable */
+  shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  costBasisValue: number | null;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  unrealizedPnl: number | null;
+  /** @nullable */
+  unrealizedPnlPct: number | null;
+  /** @nullable */
+  dividendYield: number | null;
+  /** @nullable */
+  dividendPerShare: number | null;
+  /** @nullable */
+  estAnnualDividendIncome: number | null;
+  /** @nullable */
+  suggestedShareDelta: number | null;
+}
+
+export type ConstructionPortfolioIntelligenceWeightedMetrics = {
+  /** @nullable */
+  roic: number | null;
+  /** @nullable */
+  roe: number | null;
+  /** @nullable */
+  grossMargin: number | null;
+  /** @nullable */
+  operatingMargin: number | null;
+  /** @nullable */
+  fcfYield: number | null;
+  /** @nullable */
+  dividendYield: number | null;
+  /** @nullable */
+  debtToEquity: number | null;
+};
+
+export type ConstructionPortfolioIntelligenceAllocation = {
+  bySector: ConstructionAllocationSlice[];
+  byIndustry: ConstructionAllocationSlice[];
+  byMarketCapBand: ConstructionAllocationSlice[];
+  byCountry: ConstructionUnavailableDimension;
+  byCurrency: ConstructionUnavailableDimension;
+  growthValueMix: ConstructionAllocationSlice[];
+  qualityMix: ConstructionAllocationSlice[];
+  /** @nullable */
+  largestPositionPct: number | null;
+  /** @nullable */
+  top10ExposurePct: number | null;
+  /** @nullable */
+  cashAllocationPct: number | null;
+  cashAllocationNote: string;
+};
+
+export type ConstructionPortfolioIntelligenceRiskOverall = {
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+};
+
+export type ConstructionPortfolioIntelligenceRisk = {
+  overall: ConstructionPortfolioIntelligenceRiskOverall;
+  concentration: ConstructionConcentrationRisk;
+  sectorExposure: ConstructionSectorExposureRisk;
+  cyclicality: ConstructionBetaEstimateRisk;
+  cashRisk: ConstructionScoreCard;
+  dividendDependence: ConstructionScoreCard;
+  leverageExposure: ConstructionScoreCard;
+  qualityDrift: ConstructionScoreCard;
+  portfolioStability: ConstructionScoreCard;
+};
+
+export type ConstructionPortfolioIntelligenceIncome = {
+  /** @nullable */
+  portfolioDividendYield: number | null;
+  /** @nullable */
+  estAnnualDividendIncome: number | null;
+};
+
+export type ConstructionPortfolioIntelligencePerformance = {
+  /** @nullable */
+  totalCostBasisValue: number | null;
+  /** @nullable */
+  totalMarketValue: number | null;
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+  /** @nullable */
+  totalUnrealizedPnlPct: number | null;
+  holdingsWithoutCostBasis: string[];
+};
+
+export interface ConstructionPortfolioIntelligence {
+  qualityScore: ConstructionScoreCard;
+  capitalAllocationScore: ConstructionScoreCard;
+  diversificationScore: ConstructionScoreCard;
+  weightedMetrics: ConstructionPortfolioIntelligenceWeightedMetrics;
+  allocation: ConstructionPortfolioIntelligenceAllocation;
+  risk: ConstructionPortfolioIntelligenceRisk;
+  income: ConstructionPortfolioIntelligenceIncome;
+  performance: ConstructionPortfolioIntelligencePerformance;
+  holdings: ConstructionHoldingIntelligence[];
+  unresolvedSymbols: string[];
+  summary: string;
+}
+
+export interface ConstructionWatchlistComparison {
+  inBoth: string[];
+  onlyInWatchlist: string[];
+  onlyInPortfolio: string[];
+  summary: string;
+}
+
+export interface ConstructionPortfolioSnapshot {
+  id: number;
+  portfolioId: number;
+  /** @nullable */
+  qualityScore: number | null;
+  /** @nullable */
+  riskScore: number | null;
+  /** @nullable */
+  diversificationScore: number | null;
+  /** @nullable */
+  totalMarketValue: number | null;
+  holdingsCount: number;
+  analysis: ConstructionPortfolioIntelligence;
+  createdAt: string;
+}
+
+export interface ConstructionPortfolioNote {
+  id: number;
+  portfolioId: number;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConstructionPortfolioNoteCreate {
+  note: string;
+}
+
+export interface ConstructionPortfolioNoteUpdate {
+  note: string;
+}
+
+export interface OptimisationEvidenceMetric {
+  label: string;
+  value: string;
+}
+
+export interface OptimisationEvidence {
+  metrics: OptimisationEvidenceMetric[];
+  decisionEngineRecommendation: string;
+  investmentCommitteeRecommendation: string;
+  rankExplanation: string;
+  portfolioImpact: string;
+  riskImpact: string;
+  diversificationImpact: string;
+}
+
+export type OptimisationPositionRowAction = typeof OptimisationPositionRowAction[keyof typeof OptimisationPositionRowAction];
+
+
+export const OptimisationPositionRowAction = {
+  exit: 'exit',
+  trim: 'trim',
+  upgrade: 'upgrade',
+  core: 'core',
+} as const;
+
+export interface OptimisationPositionRow {
+  symbol: string;
+  name: string;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  weightPct: number | null;
+  /** @nullable */
+  qualityScore: number | null;
+  valuationRating: string;
+  investmentCommitteeVerdict: string;
+  decisionRecommendation: string;
+  rankScore: number;
+  action: OptimisationPositionRowAction;
+  actionReason: string;
+}
+
+export type OptimisationCandidateAction = typeof OptimisationCandidateAction[keyof typeof OptimisationCandidateAction];
+
+
+export const OptimisationCandidateAction = {
+  exit: 'exit',
+  trim: 'trim',
+  upgrade: 'upgrade',
+  core: 'core',
+} as const;
+
+export interface OptimisationCandidate {
+  symbol: string;
+  name: string;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  weightPct: number | null;
+  action: OptimisationCandidateAction;
+  reason: string;
+  evidence: OptimisationEvidence;
+}
+
+export interface OptimisationReplacementOpportunity {
+  /** @nullable */
+  forSymbol: string | null;
+  symbol: string;
+  name: string;
+  /** @nullable */
+  sector: string | null;
+  evidence: OptimisationEvidence;
+}
+
+export interface OptimisationCapitalAllocationSuggestion {
+  action: string;
+  detail: string;
+}
+
+export type PortfolioOptimisationAnalysisHealth = {
+  /** @nullable */
+  qualityScore: number | null;
+  qualityLabel: string;
+  /** @nullable */
+  capitalAllocationScore: number | null;
+  /** @nullable */
+  diversificationScore: number | null;
+  diversificationLabel: string;
+  /** @nullable */
+  overallRiskScore: number | null;
+  overallRiskLabel: string;
+  summary: string;
+};
+
+export type PortfolioOptimisationAnalysisDiversification = {
+  bySector: ConstructionAllocationSlice[];
+  byIndustry: ConstructionAllocationSlice[];
+  growthValueMix: ConstructionAllocationSlice[];
+  qualityMix: ConstructionAllocationSlice[];
+  /** @nullable */
+  largestPositionPct: number | null;
+  /** @nullable */
+  top10ExposurePct: number | null;
+};
+
+export interface PortfolioOptimisationAnalysis {
+  portfolioId: number;
+  health: PortfolioOptimisationAnalysisHealth;
+  concentration: ConstructionConcentrationRisk;
+  diversification: PortfolioOptimisationAnalysisDiversification;
+  positionQualityRanking: OptimisationPositionRow[];
+  upgradeCandidates: OptimisationCandidate[];
+  trimCandidates: OptimisationCandidate[];
+  exitCandidates: OptimisationCandidate[];
+  capitalAllocationSuggestions: OptimisationCapitalAllocationSuggestion[];
+  replacementOpportunities: OptimisationReplacementOpportunity[];
+  cashDeploymentSuggestions: OptimisationReplacementOpportunity[];
+  summary: string;
+  disclaimer: string;
+}
+
+/**
+ * A snapshot of the evidence shown when this review was saved
+ */
+export type OptimisationReviewEvidence = { [key: string]: unknown };
+
+export interface OptimisationReview {
+  id: number;
+  portfolioId: number;
+  /** @nullable */
+  symbol: string | null;
+  action: string;
+  note: string;
+  /** A snapshot of the evidence shown when this review was saved */
+  evidence?: OptimisationReviewEvidence;
+  createdAt: string;
+}
+
+/**
+ * A snapshot of the evidence shown when this review was saved
+ */
+export type OptimisationReviewCreateEvidence = { [key: string]: unknown };
+
+export interface OptimisationReviewCreate {
+  /** @nullable */
+  symbol?: string | null;
+  action: string;
+  note: string;
+  /** A snapshot of the evidence shown when this review was saved */
+  evidence?: OptimisationReviewCreateEvidence;
+}
+
+export type DecisionChecklistItemStatus = typeof DecisionChecklistItemStatus[keyof typeof DecisionChecklistItemStatus];
+
+
+export const DecisionChecklistItemStatus = {
+  pass: 'pass',
+  warning: 'warning',
+  fail: 'fail',
+  unavailable: 'unavailable',
+} as const;
+
+export interface DecisionChecklistItem {
+  id: string;
+  label: string;
+  status: DecisionChecklistItemStatus;
+  explanation: string;
+}
+
+export interface DecisionEvidenceItem {
+  label: string;
+  detail: string;
+}
+
+export interface DecisionManagementQuality {
+  available: boolean;
+  /** @nullable */
+  score: number | null;
+  reason?: string;
+}
+
+export interface DecisionPortfolioFit {
+  available: boolean;
+  reason?: string;
+  portfolioId?: number;
+  alreadyHeld?: boolean;
+  /** @nullable */
+  currentWeightPct?: number | null;
+  /** @nullable */
+  sectorExposurePct?: number | null;
+}
+
+export type InstitutionalDecisionAnalysisRecommendation = typeof InstitutionalDecisionAnalysisRecommendation[keyof typeof InstitutionalDecisionAnalysisRecommendation];
+
+
+export const InstitutionalDecisionAnalysisRecommendation = {
+  Buy: 'Buy',
+  Accumulate: 'Accumulate',
+  Hold: 'Hold',
+  Reduce: 'Reduce',
+  Sell: 'Sell',
+  Avoid: 'Avoid',
+} as const;
+
+export interface InstitutionalDecisionAnalysis {
+  symbol: string;
+  asOf: string;
+  kind: string;
+  price: number;
+  recommendation: InstitutionalDecisionAnalysisRecommendation;
+  confidence: number;
+  summary: string;
+  explanation: string;
+  drivers: string[];
+  risks: string[];
+  supportingEvidence: DecisionEvidenceItem[];
+  contradictingEvidence: DecisionEvidenceItem[];
+  checklist: DecisionChecklistItem[];
+  strengths: string[];
+  weaknesses: string[];
+  catalysts: string[];
+  thingsToMonitor: string[];
+  whyBuy: string[];
+  whyWait: string[];
+  whySell: string[];
+  managementQuality: DecisionManagementQuality;
+  portfolioFit: DecisionPortfolioFit;
+  riskChecklistItem: DecisionChecklistItem;
+  diversificationChecklistItem: DecisionChecklistItem;
+  disclaimer: string;
+}
+
+export interface DecisionSnapshot {
+  id: number;
+  symbol: string;
+  recommendation: string;
+  confidence: number;
+  analysis: InstitutionalDecisionAnalysis;
+  createdAt: string;
+}
+
+export interface DecisionNote {
+  id: number;
+  symbol: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DecisionNoteCreate {
+  note: string;
+}
+
+export interface DecisionNoteUpdate {
+  note: string;
+}
+
+export type OpportunityRowMoatRating = typeof OpportunityRowMoatRating[keyof typeof OpportunityRowMoatRating];
+
+
+export const OpportunityRowMoatRating = {
+  Wide: 'Wide',
+  Medium: 'Medium',
+  Narrow: 'Narrow',
+  None: 'None',
+} as const;
+
+export type OpportunityRowFinancialStrengthRating = typeof OpportunityRowFinancialStrengthRating[keyof typeof OpportunityRowFinancialStrengthRating];
+
+
+export const OpportunityRowFinancialStrengthRating = {
+  Strong: 'Strong',
+  Acceptable: 'Acceptable',
+  Weak: 'Weak',
+  Risky: 'Risky',
+} as const;
+
+export type OpportunityRowValuationRating = typeof OpportunityRowValuationRating[keyof typeof OpportunityRowValuationRating];
+
+
+export const OpportunityRowValuationRating = {
+  Cheap: 'Cheap',
+  Fair: 'Fair',
+  Expensive: 'Expensive',
+  Very_Expensive: 'Very Expensive',
+  Unavailable: 'Unavailable',
+} as const;
+
+export type OpportunityRowInvestmentCommitteeVerdict = typeof OpportunityRowInvestmentCommitteeVerdict[keyof typeof OpportunityRowInvestmentCommitteeVerdict];
+
+
+export const OpportunityRowInvestmentCommitteeVerdict = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export type OpportunityRowTomNashVerdict = typeof OpportunityRowTomNashVerdict[keyof typeof OpportunityRowTomNashVerdict];
+
+
+export const OpportunityRowTomNashVerdict = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export type OpportunityRowDecisionRecommendation = typeof OpportunityRowDecisionRecommendation[keyof typeof OpportunityRowDecisionRecommendation];
+
+
+export const OpportunityRowDecisionRecommendation = {
+  Buy: 'Buy',
+  Accumulate: 'Accumulate',
+  Hold: 'Hold',
+  Reduce: 'Reduce',
+  Sell: 'Sell',
+  Avoid: 'Avoid',
+} as const;
+
+export interface OpportunityRow {
+  symbol: string;
+  name: string;
+  kind: string;
+  price: number;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  industry: string | null;
+  businessQualityScore: number;
+  businessQualityRating: string;
+  /** @nullable */
+  investmentQualityScore: number | null;
+  moatRating: OpportunityRowMoatRating;
+  moatScore: number;
+  /** @nullable */
+  competitiveAdvantageScore: number | null;
+  financialStrengthRating: OpportunityRowFinancialStrengthRating;
+  financialStrengthScore: number;
+  valuationRating: OpportunityRowValuationRating;
+  /** @nullable */
+  marginOfSafety: number | null;
+  /** @nullable */
+  marketCap: number | null;
+  revenueGrowth5y: number;
+  roic: number;
+  roe: number;
+  debtToEquity: number;
+  fcfMargin: number;
+  dividendYield: number;
+  investmentCommitteeVerdict: OpportunityRowInvestmentCommitteeVerdict;
+  investmentCommitteeConfidence: number;
+  tomNashConvictionScore: number;
+  tomNashVerdict: OpportunityRowTomNashVerdict;
+  decisionRecommendation: OpportunityRowDecisionRecommendation;
+  rankScore: number;
+  rankExplanation: string;
+  dataSource: string;
+  fetchedAt: string;
+  simulated: boolean;
+}
+
+export type OpportunityBucketCategory = typeof OpportunityBucketCategory[keyof typeof OpportunityBucketCategory];
+
+
+export const OpportunityBucketCategory = {
+  'top-opportunities': 'top-opportunities',
+  undervalued: 'undervalued',
+  'high-quality': 'high-quality',
+  'wide-moat': 'wide-moat',
+  dividend: 'dividend',
+  growth: 'growth',
+  'deep-value': 'deep-value',
+  turnaround: 'turnaround',
+  'watchlist-candidates': 'watchlist-candidates',
+  'portfolio-upgrade-candidates': 'portfolio-upgrade-candidates',
+} as const;
+
+export interface OpportunityBucket {
+  category: OpportunityBucketCategory;
+  label: string;
+  rule: string;
+  rows: OpportunityRow[];
+}
+
+export type OpportunityScreenerFiltersValuationRatingsItem = typeof OpportunityScreenerFiltersValuationRatingsItem[keyof typeof OpportunityScreenerFiltersValuationRatingsItem];
+
+
+export const OpportunityScreenerFiltersValuationRatingsItem = {
+  Cheap: 'Cheap',
+  Fair: 'Fair',
+  Expensive: 'Expensive',
+  Very_Expensive: 'Very Expensive',
+  Unavailable: 'Unavailable',
+} as const;
+
+export type OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem = typeof OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem[keyof typeof OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem];
+
+
+export const OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem = {
+  Buy: 'Buy',
+  Hold: 'Hold',
+  Wait: 'Wait',
+} as const;
+
+export type OpportunityScreenerFiltersDecisionRecommendationsItem = typeof OpportunityScreenerFiltersDecisionRecommendationsItem[keyof typeof OpportunityScreenerFiltersDecisionRecommendationsItem];
+
+
+export const OpportunityScreenerFiltersDecisionRecommendationsItem = {
+  Buy: 'Buy',
+  Accumulate: 'Accumulate',
+  Hold: 'Hold',
+  Reduce: 'Reduce',
+  Sell: 'Sell',
+  Avoid: 'Avoid',
+} as const;
+
+export interface OpportunityScreenerFilters {
+  /** Accepted but never applied — no provider surfaces a country field anywhere; supplying this always adds "country" to the response's unavailableFilters. */
+  country?: string;
+  sector?: string;
+  industry?: string;
+  minMarketCap?: number;
+  maxMarketCap?: number;
+  minRevenueGrowth?: number;
+  minRoic?: number;
+  minRoe?: number;
+  maxDebtToEquity?: number;
+  minFcfMargin?: number;
+  minDividendYield?: number;
+  valuationRatings?: OpportunityScreenerFiltersValuationRatingsItem[];
+  minMarginOfSafety?: number;
+  minBusinessQualityScore?: number;
+  investmentCommitteeVerdicts?: OpportunityScreenerFiltersInvestmentCommitteeVerdictsItem[];
+  decisionRecommendations?: OpportunityScreenerFiltersDecisionRecommendationsItem[];
+  minTomNashScore?: number;
+}
+
+export interface OpportunityScanRequest {
+  symbols?: string[];
+  filters?: OpportunityScreenerFilters;
+  forceRefresh?: boolean;
+  /** When true, resolves the calling user's own Watchlist symbols to populate the Watchlist Candidates bucket. */
+  watchlistAware?: boolean;
+  /** When supplied (and owned by the calling user), resolves that portfolio's own held symbols to populate the Portfolio Upgrade Candidates bucket. */
+  portfolioId?: number;
+}
+
+export interface OpportunityScanResult {
+  universeSize: number;
+  unresolvedSymbols: string[];
+  scannedAt: string;
+  unavailableFilters: string[];
+  totalBeforeFilter: number;
+  rows: OpportunityRow[];
+  buckets: OpportunityBucket[];
+}
+
+export type OpportunityComparisonResultBestBy = {[key: string]: string};
+
+export interface OpportunityComparisonResult {
+  rows: OpportunityRow[];
+  bestBy: OpportunityComparisonResultBestBy;
+}
+
+export interface OpportunitySavedScreen {
+  id: number;
+  name: string;
+  filters: OpportunityScreenerFilters;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OpportunitySavedScreenCreate {
+  name: string;
+  filters: OpportunityScreenerFilters;
+}
+
+export interface OpportunitySavedScreenUpdate {
+  name?: string;
+  filters?: OpportunityScreenerFilters;
 }
 
 export type ValueLessonLevel = typeof ValueLessonLevel[keyof typeof ValueLessonLevel];
@@ -1420,6 +2218,65 @@ export interface MonitoringAlert {
   category: string;
   severity: MonitoringAlertSeverity;
   message: string;
+}
+
+export type MarketDataSourceStatusEngine = typeof MarketDataSourceStatusEngine[keyof typeof MarketDataSourceStatusEngine];
+
+
+export const MarketDataSourceStatusEngine = {
+  options: 'options',
+  investing: 'investing',
+  trading: 'trading',
+} as const;
+
+export interface MarketDataSourceStatus {
+  engine: MarketDataSourceStatusEngine;
+  source: string;
+  connected: boolean;
+  /** @nullable */
+  keyPresent: boolean | null;
+  /** @nullable */
+  lastSuccessAt: string | null;
+  /** @nullable */
+  staleMinutes: number | null;
+  stale: boolean;
+  missingData: boolean;
+  message: string;
+}
+
+export type MarketClockStatusSource = typeof MarketClockStatusSource[keyof typeof MarketClockStatusSource];
+
+
+export const MarketClockStatusSource = {
+  alpaca: 'alpaca',
+  static_approximation: 'static_approximation',
+} as const;
+
+export interface MarketClockStatus {
+  source: MarketClockStatusSource;
+  isOpen: boolean;
+  currentTimeEt: string;
+  /** @nullable */
+  nextOpen: string | null;
+  /** @nullable */
+  nextClose: string | null;
+  reason: string;
+}
+
+export type LiveMarketValidationReportConflictingProviderDetection = {
+  applicable: false;
+  reason: string;
+};
+
+export interface LiveMarketValidationReport {
+  generatedAt: string;
+  marketClock: MarketClockStatus;
+  optionsEngine: MarketDataSourceStatus;
+  investingEngine: MarketDataSourceStatus[];
+  tradingEngine: MarketDataSourceStatus;
+  conflictingProviderDetection: LiveMarketValidationReportConflictingProviderDetection;
+  overallStale: boolean;
+  overallMissingData: boolean;
 }
 
 export type MonitoringStatusStatus = typeof MonitoringStatusStatus[keyof typeof MonitoringStatusStatus];
@@ -1854,6 +2711,11 @@ export interface Trade {
   exitReason?: string | null;
   /** @nullable */
   notes?: string | null;
+  /**
+     * The broker order id returned at submission time, or a "mock-<uuid>" id when no broker credentials were configured at submission (this trade was never actually sent to Alpaca). Added in the Trade History sprint — previously stored but not exposed via this API.
+     * @nullable
+     */
+  alpacaOrderId?: string | null;
 }
 
 export type TradeInputStrategy = typeof TradeInputStrategy[keyof typeof TradeInputStrategy];
@@ -2253,6 +3115,309 @@ export interface ExecutionSubmitResult {
   ticket: ExecutionTicket;
 }
 
+/**
+ * @nullable
+ */
+export type OrderPreviewInputStrategy = typeof OrderPreviewInputStrategy[keyof typeof OrderPreviewInputStrategy] | null;
+
+
+export const OrderPreviewInputStrategy = {
+  iron_condor: 'iron_condor',
+  iron_fly: 'iron_fly',
+  calendar_spread: 'calendar_spread',
+  earnings: 'earnings',
+} as const;
+
+export interface OrderPreviewInput {
+  /** @nullable */
+  symbol?: string | null;
+  /** @nullable */
+  strategy?: OrderPreviewInputStrategy;
+  /** @nullable */
+  quantity?: number | null;
+}
+
+export type OrderPreviewInputIssueField = typeof OrderPreviewInputIssueField[keyof typeof OrderPreviewInputIssueField];
+
+
+export const OrderPreviewInputIssueField = {
+  symbol: 'symbol',
+  strategy: 'strategy',
+  quantity: 'quantity',
+} as const;
+
+export interface OrderPreviewInputIssue {
+  field: OrderPreviewInputIssueField;
+  code: string;
+  message: string;
+}
+
+export type OrderPreviewValidationItemStatus = typeof OrderPreviewValidationItemStatus[keyof typeof OrderPreviewValidationItemStatus];
+
+
+export const OrderPreviewValidationItemStatus = {
+  ok: 'ok',
+  warning: 'warning',
+  blocked: 'blocked',
+} as const;
+
+export interface OrderPreviewValidationItem {
+  code: string;
+  label: string;
+  status: OrderPreviewValidationItemStatus;
+  detail: string;
+}
+
+export type OrderPreviewTicket = ExecutionTicket & ({
+  entryPricePerSpread: number;
+  notionalValue: number;
+  marginImpact: number;
+  /** @nullable */
+  riskRewardRatio: number | null;
+});
+
+export interface OrderPreviewResult {
+  available: boolean;
+  inputIssues: OrderPreviewInputIssue[];
+  ticket: OrderPreviewTicket | null;
+  preTradeChecklist: OrderPreviewValidationItem[];
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  accountValue: number;
+  generatedAt: string;
+}
+
+export type PositionSizingInput = OrderPreviewInput & ({
+  /** @nullable */
+  customQuantity?: number | null;
+});
+
+export interface BreakEvenPrice {
+  label: string;
+  price: number;
+}
+
+export interface PositionSizingFigures {
+  /** @nullable */
+  recommendedQuantity: number | null;
+  /** @nullable */
+  positionSizePctOfPortfolio: number | null;
+  /** @nullable */
+  buyingPowerUtilizationPct: number | null;
+  /** @nullable */
+  capitalAtRisk: number | null;
+  /** @nullable */
+  maxTheoreticalLoss: number | null;
+  /** @nullable */
+  maxTheoreticalGain: number | null;
+  breakEvens: BreakEvenPrice[];
+  /** @nullable */
+  breakEvenUnavailableReason: string | null;
+  /** @nullable */
+  riskRewardRatio: number | null;
+  /** @nullable */
+  concentrationBeforePct: number | null;
+  /** @nullable */
+  concentrationAfterPct: number | null;
+}
+
+export interface SymbolExposure {
+  symbol: string;
+  riskDollars: number;
+  pctOfAccount: number;
+}
+
+export interface PortfolioGreeksSnapshot {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export interface PortfolioSnapshot {
+  openPositionsCount: number;
+  totalRiskDollars: number;
+  totalRiskPct: number;
+  exposureBySymbol: SymbolExposure[];
+  longExposureDollars: number;
+  shortExposureDollars: number;
+  greeks: PortfolioGreeksSnapshot;
+}
+
+export interface SectorExposure {
+  available: false;
+  reason: string;
+}
+
+export interface PortfolioImpact {
+  current: PortfolioSnapshot;
+  hypothetical: PortfolioSnapshot | null;
+  sectorExposure: SectorExposure;
+  /** @nullable */
+  deltaImpact: number | null;
+  /** @nullable */
+  thetaImpact: number | null;
+  /** @nullable */
+  gammaImpact: number | null;
+  /** @nullable */
+  vegaImpact: number | null;
+}
+
+export type PositionSizingWarningStatus = typeof PositionSizingWarningStatus[keyof typeof PositionSizingWarningStatus];
+
+
+export const PositionSizingWarningStatus = {
+  ok: 'ok',
+  warning: 'warning',
+  blocked: 'blocked',
+} as const;
+
+export interface PositionSizingWarning {
+  code: string;
+  label: string;
+  status: PositionSizingWarningStatus;
+  detail: string;
+}
+
+export interface ScenarioResult {
+  label: string;
+  quantity: number;
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  /** @nullable */
+  capitalAtRisk: number | null;
+  /** @nullable */
+  buyingPowerRequired: number | null;
+  /** @nullable */
+  buyingPowerUtilizationPct: number | null;
+  /** @nullable */
+  concentrationAfterPct: number | null;
+  /** @nullable */
+  positionSizePctOfPortfolio: number | null;
+}
+
+export interface PositionSizingResult {
+  preview: OrderPreviewResult;
+  positionSizing: PositionSizingFigures | null;
+  portfolioImpact: PortfolioImpact;
+  riskWarnings: PositionSizingWarning[];
+  scenarios: ScenarioResult[];
+  generatedAt: string;
+}
+
+export type AdjustmentIntent = typeof AdjustmentIntent[keyof typeof AdjustmentIntent];
+
+
+export const AdjustmentIntent = {
+  roll_forward: 'roll_forward',
+  roll_out: 'roll_out',
+  roll_up: 'roll_up',
+  roll_down: 'roll_down',
+  roll_out_up: 'roll_out_up',
+  roll_out_down: 'roll_out_down',
+  convert: 'convert',
+  close_replace: 'close_replace',
+} as const;
+
+export interface TradeAdjustmentPreviewInput {
+  /** @nullable */
+  tradeId?: number | null;
+  intent?: AdjustmentIntent | null;
+  /** @nullable */
+  quantity?: number | null;
+}
+
+export type TradeAdjustmentInputIssueField = typeof TradeAdjustmentInputIssueField[keyof typeof TradeAdjustmentInputIssueField];
+
+
+export const TradeAdjustmentInputIssueField = {
+  tradeId: 'tradeId',
+  intent: 'intent',
+  quantity: 'quantity',
+} as const;
+
+export interface TradeAdjustmentInputIssue {
+  field: TradeAdjustmentInputIssueField;
+  code: string;
+  message: string;
+}
+
+export type TradeAdjustmentWarningStatus = typeof TradeAdjustmentWarningStatus[keyof typeof TradeAdjustmentWarningStatus];
+
+
+export const TradeAdjustmentWarningStatus = {
+  ok: 'ok',
+  warning: 'warning',
+  blocked: 'blocked',
+} as const;
+
+export interface TradeAdjustmentWarning {
+  code: string;
+  label: string;
+  status: TradeAdjustmentWarningStatus;
+  detail: string;
+}
+
+export type MetricComparisonDirection = typeof MetricComparisonDirection[keyof typeof MetricComparisonDirection];
+
+
+export const MetricComparisonDirection = {
+  improved: 'improved',
+  worse: 'worse',
+  neutral: 'neutral',
+  unknown: 'unknown',
+} as const;
+
+export interface MetricComparison {
+  code: string;
+  label: string;
+  /** @nullable */
+  before: number | null;
+  /** @nullable */
+  after: number | null;
+  /** @nullable */
+  change: number | null;
+  direction: MetricComparisonDirection;
+}
+
+export interface TradeAdjustmentPreviewResult {
+  available: boolean;
+  inputIssues: TradeAdjustmentInputIssue[];
+  intent: AdjustmentIntent | null;
+  /** @nullable */
+  intentLabel: string | null;
+  intentAvailable: boolean;
+  /** @nullable */
+  intentUnavailableReason: string | null;
+  existingPosition: AdjustmentSourcePosition | null;
+  proposedPosition: ExecutionTicket | null;
+  /** @nullable */
+  netCashflow: number | null;
+  greeksBefore: PortfolioGreeksSnapshot | null;
+  greeksAfter: PortfolioGreeksSnapshot | null;
+  breakEvenBefore: BreakEvenPrice[];
+  /** @nullable */
+  breakEvenBeforeUnavailableReason: string | null;
+  breakEvenAfter: BreakEvenPrice[];
+  /** @nullable */
+  breakEvenAfterUnavailableReason: string | null;
+  portfolioExposureBefore: PortfolioSnapshot;
+  portfolioExposureAfter: PortfolioSnapshot | null;
+  comparisons: MetricComparison[];
+  riskWarnings: TradeAdjustmentWarning[];
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  accountValue: number;
+  generatedAt: string;
+}
+
 export type AutoExecutionStatusExecutionMode = typeof AutoExecutionStatusExecutionMode[keyof typeof AutoExecutionStatusExecutionMode];
 
 
@@ -2509,6 +3674,16 @@ export interface JournalEntry {
   mood: JournalEntryMood;
   /** @nullable */
   lessonLearned?: string | null;
+  /**
+     * The case for taking the trade — distinct from the general-purpose `content` notes field.
+     * @nullable
+     */
+  thesis?: string | null;
+  /**
+     * What specifically triggered entry.
+     * @nullable
+     */
+  entryReasoning?: string | null;
   tags?: string[];
   /** @nullable */
   strategy?: string | null;
@@ -2550,6 +3725,8 @@ export interface JournalEntryInput {
   content: string;
   mood: JournalEntryInputMood;
   lessonLearned?: string;
+  thesis?: string;
+  entryReasoning?: string;
   tags?: string[];
   /** @nullable */
   strategy?: string | null;
@@ -2587,6 +3764,8 @@ export interface JournalEntryUpdate {
   content?: string;
   mood?: JournalEntryUpdateMood;
   lessonLearned?: string;
+  thesis?: string;
+  entryReasoning?: string;
   tags?: string[];
 }
 
@@ -2964,6 +4143,18 @@ export type PlatformNotificationType = typeof PlatformNotificationType[keyof typ
 export const PlatformNotificationType = {
   watchlist_target_crossed: 'watchlist_target_crossed',
   risk_cap_breached: 'risk_cap_breached',
+  decision_change: 'decision_change',
+  valuation_change: 'valuation_change',
+  quality_change: 'quality_change',
+  committee_change: 'committee_change',
+  tomnash_change: 'tomnash_change',
+  financial_deterioration: 'financial_deterioration',
+  dividend_change: 'dividend_change',
+  earnings_alert: 'earnings_alert',
+  portfolio_drift: 'portfolio_drift',
+  sector_concentration_breach: 'sector_concentration_breach',
+  position_sizing_breach: 'position_sizing_breach',
+  opportunity_match: 'opportunity_match',
 } as const;
 
 export type PlatformNotificationDataSource = typeof PlatformNotificationDataSource[keyof typeof PlatformNotificationDataSource];
@@ -2972,6 +4163,15 @@ export type PlatformNotificationDataSource = typeof PlatformNotificationDataSour
 export const PlatformNotificationDataSource = {
   SIMULATED: 'SIMULATED',
   LIVE: 'LIVE',
+} as const;
+
+export type PlatformNotificationSeverity = typeof PlatformNotificationSeverity[keyof typeof PlatformNotificationSeverity];
+
+
+export const PlatformNotificationSeverity = {
+  info: 'info',
+  warning: 'warning',
+  critical: 'critical',
 } as const;
 
 export interface PlatformNotification {
@@ -2983,11 +4183,93 @@ export interface PlatformNotification {
   /** @nullable */
   relatedSymbol: string | null;
   isRead: boolean;
+  severity: PlatformNotificationSeverity;
+  /** @nullable */
+  previousValue: string | null;
+  /** @nullable */
+  currentValue: string | null;
+  evidence: string[];
+  /** @nullable */
+  recommendedAction: string | null;
   createdAt: string;
 }
 
 export interface PlatformNotificationUpdate {
   isRead: boolean;
+}
+
+export interface MonitoringAlertNote {
+  id: number;
+  /** @nullable */
+  notificationId: number | null;
+  /** @nullable */
+  symbol: string | null;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MonitoringAlertNoteCreate {
+  /** @nullable */
+  notificationId?: number | null;
+  /** @nullable */
+  symbol?: string | null;
+  note: string;
+}
+
+export interface MonitoringAlertNoteUpdate {
+  note: string;
+}
+
+export type WorkspaceWidgetConfigEntrySize = typeof WorkspaceWidgetConfigEntrySize[keyof typeof WorkspaceWidgetConfigEntrySize];
+
+
+export const WorkspaceWidgetConfigEntrySize = {
+  normal: 'normal',
+  compact: 'compact',
+} as const;
+
+export interface WorkspaceWidgetConfigEntry {
+  id: string;
+  visible: boolean;
+  size: WorkspaceWidgetConfigEntrySize;
+  order: number;
+}
+
+export interface DashboardWorkspace {
+  id: number;
+  name: string;
+  isDefault: boolean;
+  isActive: boolean;
+  widgetConfig: WorkspaceWidgetConfigEntry[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DashboardWorkspaceCreate {
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  name: string;
+  widgetConfig?: WorkspaceWidgetConfigEntry[];
+}
+
+export interface DashboardWorkspaceUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  name?: string;
+  widgetConfig?: WorkspaceWidgetConfigEntry[];
+}
+
+export interface DashboardWorkspaceDuplicate {
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  name: string;
 }
 
 export interface ReportWatchlistCrossing {
@@ -3195,6 +4477,7 @@ export interface Settings {
   profitTarget90: number;
   /** Stop loss as multiple of credit received (default 2x) */
   stopLossMultiplier: number;
+  /** Whether the most recent Alpaca Paper Trading broker health check (GET /broker/health) authenticated successfully — computed, never client-settable, and honestly false until a check has actually been performed */
   alpacaConnected: boolean;
   /** @nullable */
   alpacaApiKey?: string | null;
@@ -3484,6 +4767,199 @@ export interface MarketDataHealth {
   /** @nullable */
   lastScannedAt?: string | null;
 }
+
+export interface BrokerHealth {
+  /** True only when Alpaca's own account endpoint was reached and authenticated successfully this check. */
+  connected: boolean;
+  /** True only when the configured credentials were accepted by Alpaca — currently always equal to `connected`, kept as a distinct field since a future check may reach Alpaca but fail some other way. */
+  authenticationSuccessful: boolean;
+  /**
+     * Alpaca's own account status string (e.g. ACTIVE), null when not connected.
+     * @nullable
+     */
+  accountStatus?: string | null;
+  /** @nullable */
+  buyingPower?: number | null;
+  /** @nullable */
+  cashBalance?: number | null;
+  /** @nullable */
+  portfolioValue?: number | null;
+  /** @nullable */
+  openPositionsCount?: number | null;
+  /** @nullable */
+  openOrdersCount?: number | null;
+  /**
+     * Timestamp of the most recent check that authenticated successfully — never updated by a failed check, so a broken connection never appears "recently successful."
+     * @nullable
+     */
+  lastSuccessfulCheckAt?: string | null;
+  /** Human-readable explanation of the current status (never connected/not connected/authentication failed). */
+  reason: string;
+  /** Timestamp of this specific check. */
+  checkedAt: string;
+}
+
+/**
+ * This platform's own normalized order-lifecycle bucket, mapped from Alpaca's larger raw status vocabulary — see lib/providers/alpacaOrderLifecycle.ts.
+ */
+export type NormalizedOrderStatus = typeof NormalizedOrderStatus[keyof typeof NormalizedOrderStatus];
+
+
+export const NormalizedOrderStatus = {
+  new: 'new',
+  accepted: 'accepted',
+  pending: 'pending',
+  partially_filled: 'partially_filled',
+  filled: 'filled',
+  cancelled: 'cancelled',
+  rejected: 'rejected',
+  expired: 'expired',
+  unknown: 'unknown',
+} as const;
+
+export interface BrokerOrder {
+  id: string;
+  symbol: string;
+  side: string;
+  qty: number;
+  type: string;
+  /** Alpaca's own raw status string, unmodified. */
+  status: string;
+  normalizedStatus: NormalizedOrderStatus;
+  filledQty: number;
+  /** @nullable */
+  filledAvgPrice: number | null;
+  /** @nullable */
+  submittedAt: string | null;
+}
+
+export interface BrokerOrdersResult {
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  orders: BrokerOrder[];
+  checkedAt: string;
+}
+
+export interface BrokerOrderResult {
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  order: BrokerOrder | null;
+  checkedAt: string;
+}
+
+export interface BrokerPosition {
+  symbol: string;
+  qty: number;
+  side: string;
+  marketValue: number;
+  avgEntryPrice: number;
+  unrealizedPl: number;
+}
+
+export interface BrokerPositionsResult {
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  positions: BrokerPosition[];
+  checkedAt: string;
+}
+
+/**
+ * The local trades table's own coarse status vocabulary, normalized for comparison against NormalizedOrderStatus.
+ */
+export type NormalizedLocalStatus = typeof NormalizedLocalStatus[keyof typeof NormalizedLocalStatus];
+
+
+export const NormalizedLocalStatus = {
+  pending: 'pending',
+  open: 'open',
+  closed: 'closed',
+  unknown: 'unknown',
+} as const;
+
+export type ReconciliationIssueType = typeof ReconciliationIssueType[keyof typeof ReconciliationIssueType];
+
+
+export const ReconciliationIssueType = {
+  missing_at_broker: 'missing_at_broker',
+  missing_locally: 'missing_locally',
+  status_mismatch: 'status_mismatch',
+  quantity_mismatch: 'quantity_mismatch',
+  symbol_mismatch: 'symbol_mismatch',
+} as const;
+
+export interface OrderReconciliationEntry {
+  /** @nullable */
+  tradeId: number | null;
+  /** @nullable */
+  alpacaOrderId: string | null;
+  /** @nullable */
+  localSymbol: string | null;
+  /** @nullable */
+  brokerSymbol: string | null;
+  localStatus: NormalizedLocalStatus | null;
+  brokerStatus: NormalizedOrderStatus | null;
+  /** @nullable */
+  brokerRawStatus: string | null;
+  /** @nullable */
+  localQuantity: number | null;
+  /** @nullable */
+  brokerQuantity: number | null;
+  /** @nullable */
+  filledQuantity: number | null;
+  /** @nullable */
+  averageFillPrice: number | null;
+  issues: ReconciliationIssueType[];
+}
+
+export interface PositionReconciliationEntry {
+  occSymbol: string;
+  /** @nullable */
+  tradeId: number | null;
+  /** @nullable */
+  localQuantity: number | null;
+  /** @nullable */
+  brokerQuantity: number | null;
+  mismatch: boolean;
+  detail: string;
+}
+
+export interface ReconciliationResult {
+  /** False when credentials are missing or Alpaca could not be reached/authenticated — never a fabricated reconciled result in that case. */
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  /** When this reconciliation was computed — the manual, on-demand "last reconciliation time." */
+  generatedAt: string;
+  /** Count of local, trackable (non-mock, non-closed) trade records compared. */
+  localOrdersConsidered: number;
+  brokerOrdersConsidered: number;
+  orders: OrderReconciliationEntry[];
+  positions: PositionReconciliationEntry[];
+  issueCount: number;
+  /** True only when available and zero issues were found across every order and position entry. */
+  fullyReconciled: boolean;
+}
+
+export interface ReconciliationReportSummary {
+  id: number;
+  generatedAt: string;
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  localOrdersConsidered: number;
+  brokerOrdersConsidered: number;
+  issueCount: number;
+  fullyReconciled: boolean;
+  /** When this snapshot was persisted (distinct from generatedAt, the moment the comparison itself ran). */
+  createdAt: string;
+}
+
+export type ReconciliationReportDetail = ReconciliationReportSummary & {
+  detail: ReconciliationResult;
+};
 
 export interface TickerStat {
   symbol: string;
@@ -3905,6 +5381,46 @@ export interface TradingSupportResistanceZone {
   strength: number;
 }
 
+export type TradingStructureShiftEventType = typeof TradingStructureShiftEventType[keyof typeof TradingStructureShiftEventType];
+
+
+export const TradingStructureShiftEventType = {
+  higher_high: 'higher_high',
+  higher_low: 'higher_low',
+  lower_high: 'lower_high',
+  lower_low: 'lower_low',
+  trend_change: 'trend_change',
+  range_entry: 'range_entry',
+  range_exit: 'range_exit',
+  support_test: 'support_test',
+  resistance_test: 'resistance_test',
+} as const;
+
+export interface TradingStructureShiftEvent {
+  time: string;
+  type: TradingStructureShiftEventType;
+  label: string;
+  price: number;
+  detail: string;
+}
+
+export type TradingStructureShiftTimelineDataSource = typeof TradingStructureShiftTimelineDataSource[keyof typeof TradingStructureShiftTimelineDataSource];
+
+
+export const TradingStructureShiftTimelineDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export interface TradingStructureShiftTimeline {
+  symbol: string;
+  interval: TradingTimeframe;
+  dataSource: TradingStructureShiftTimelineDataSource;
+  candleCount: number;
+  events: TradingStructureShiftEvent[];
+  summary: string;
+}
+
 export type TradingStructureAnalysisDataSource = typeof TradingStructureAnalysisDataSource[keyof typeof TradingStructureAnalysisDataSource];
 
 
@@ -4225,6 +5741,444 @@ export interface TradingPositionUpdate {
   notes?: string;
 }
 
+export interface TradingTradePlanRisk {
+  accountRiskPct: number;
+  entryPrice: number;
+  stopPrice: number;
+  targetPrice: number;
+  /** @nullable */
+  positionSize: number | null;
+  /** @nullable */
+  riskRewardRatio: number | null;
+}
+
+export type TradingTradePlanDirection = typeof TradingTradePlanDirection[keyof typeof TradingTradePlanDirection];
+
+
+export const TradingTradePlanDirection = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export type TradingTradePlanStatus = typeof TradingTradePlanStatus[keyof typeof TradingTradePlanStatus];
+
+
+export const TradingTradePlanStatus = {
+  draft: 'draft',
+  active: 'active',
+  closed: 'closed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface TradingTradePlan {
+  id: number;
+  symbol: string;
+  direction: TradingTradePlanDirection;
+  status: TradingTradePlanStatus;
+  thesis: string;
+  risk: TradingTradePlanRisk;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TradingTradePlanInputDirection = typeof TradingTradePlanInputDirection[keyof typeof TradingTradePlanInputDirection];
+
+
+export const TradingTradePlanInputDirection = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export interface TradingTradePlanInput {
+  symbol: string;
+  direction: TradingTradePlanInputDirection;
+  thesis: string;
+  accountRiskPct: number;
+  entryPrice: number;
+  stopPrice: number;
+  targetPrice: number;
+  /**
+     * The user's own current account value, used only to derive positionSize — honestly null (never fabricated) when not supplied
+     * @nullable
+     */
+  accountValue?: number | null;
+}
+
+export type TradingTradePlanUpdateStatus = typeof TradingTradePlanUpdateStatus[keyof typeof TradingTradePlanUpdateStatus];
+
+
+export const TradingTradePlanUpdateStatus = {
+  draft: 'draft',
+  active: 'active',
+  closed: 'closed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface TradingTradePlanUpdate {
+  thesis?: string;
+  status?: TradingTradePlanUpdateStatus;
+}
+
+export type TradingScenarioInputDirection = typeof TradingScenarioInputDirection[keyof typeof TradingScenarioInputDirection];
+
+
+export const TradingScenarioInputDirection = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export interface TradingScenarioInput {
+  name: string;
+  direction: TradingScenarioInputDirection;
+  accountRiskPct: number;
+  entryPrice: number;
+  stopPrice: number;
+  targetPrice: number;
+}
+
+export interface TradingCompareScenariosInput {
+  symbol?: string;
+  /**
+     * Falls back to the calling user's own tradingAccountValue setting when omitted.
+     * @nullable
+     */
+  accountValue?: number | null;
+  /**
+     * @minItems 2
+     * @maxItems 5
+     */
+  scenarios: TradingScenarioInput[];
+}
+
+export type TradingScenarioResultDirection = typeof TradingScenarioResultDirection[keyof typeof TradingScenarioResultDirection];
+
+
+export const TradingScenarioResultDirection = {
+  long: 'long',
+  short: 'short',
+} as const;
+
+export interface TradingScenarioResult {
+  name: string;
+  direction: TradingScenarioResultDirection;
+  risk: TradingTradePlanRisk;
+}
+
+export interface TradingScenarioComparisonResult {
+  symbol: string | null;
+  /** @nullable */
+  accountValue: number | null;
+  scenarios: TradingScenarioResult[];
+  bestRiskRewardName: string | null;
+  tightestRiskName: string | null;
+  summary: string;
+}
+
+export interface TradingStrategyChecklistItemDefinition {
+  id: string;
+  label: string;
+  required: boolean;
+}
+
+export type TradingStrategyEvidenceLinkSourceType = typeof TradingStrategyEvidenceLinkSourceType[keyof typeof TradingStrategyEvidenceLinkSourceType];
+
+
+export const TradingStrategyEvidenceLinkSourceType = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  coach: 'coach',
+} as const;
+
+export interface TradingStrategyEvidenceLink {
+  sourceType: TradingStrategyEvidenceLinkSourceType;
+  label: string;
+  detail: string;
+  url: string | null;
+}
+
+export interface TradingStrategyChecklistItemState {
+  id: string;
+  label: string;
+  required: boolean;
+  completed: boolean;
+  notes: string;
+  evidenceLinks: TradingStrategyEvidenceLink[];
+}
+
+export interface TradingStrategyValidationIssue {
+  field: string;
+  message: string;
+}
+
+export interface TradingStrategyValidation {
+  valid: boolean;
+  issues: TradingStrategyValidationIssue[];
+}
+
+export type TradingStrategyCategory = typeof TradingStrategyCategory[keyof typeof TradingStrategyCategory];
+
+
+export const TradingStrategyCategory = {
+  trend: 'trend',
+  reversal: 'reversal',
+  breakout: 'breakout',
+  range: 'range',
+  scalping: 'scalping',
+  swing: 'swing',
+  position: 'position',
+  other: 'other',
+} as const;
+
+export type TradingStrategyRequiredEvidenceItem = typeof TradingStrategyRequiredEvidenceItem[keyof typeof TradingStrategyRequiredEvidenceItem];
+
+
+export const TradingStrategyRequiredEvidenceItem = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  coach: 'coach',
+} as const;
+
+export interface TradingStrategy {
+  id: number;
+  name: string;
+  description: string;
+  category: TradingStrategyCategory;
+  timeframes: string[];
+  markets: string[];
+  requiredEvidence: TradingStrategyRequiredEvidenceItem[];
+  checklist: TradingStrategyChecklistItemDefinition[];
+  educationalNotes: string;
+  references: string[];
+  version: string;
+  validation: TradingStrategyValidation;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TradingStrategyInputCategory = typeof TradingStrategyInputCategory[keyof typeof TradingStrategyInputCategory];
+
+
+export const TradingStrategyInputCategory = {
+  trend: 'trend',
+  reversal: 'reversal',
+  breakout: 'breakout',
+  range: 'range',
+  scalping: 'scalping',
+  swing: 'swing',
+  position: 'position',
+  other: 'other',
+} as const;
+
+export type TradingStrategyInputRequiredEvidenceItem = typeof TradingStrategyInputRequiredEvidenceItem[keyof typeof TradingStrategyInputRequiredEvidenceItem];
+
+
+export const TradingStrategyInputRequiredEvidenceItem = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  coach: 'coach',
+} as const;
+
+export interface TradingStrategyInput {
+  name: string;
+  description: string;
+  category: TradingStrategyInputCategory;
+  timeframes: string[];
+  markets: string[];
+  requiredEvidence: TradingStrategyInputRequiredEvidenceItem[];
+  checklist: TradingStrategyChecklistItemDefinition[];
+  educationalNotes?: string;
+  references: string[];
+  version?: string;
+}
+
+export type TradingStrategyUpdateCategory = typeof TradingStrategyUpdateCategory[keyof typeof TradingStrategyUpdateCategory];
+
+
+export const TradingStrategyUpdateCategory = {
+  trend: 'trend',
+  reversal: 'reversal',
+  breakout: 'breakout',
+  range: 'range',
+  scalping: 'scalping',
+  swing: 'swing',
+  position: 'position',
+  other: 'other',
+} as const;
+
+export type TradingStrategyUpdateRequiredEvidenceItem = typeof TradingStrategyUpdateRequiredEvidenceItem[keyof typeof TradingStrategyUpdateRequiredEvidenceItem];
+
+
+export const TradingStrategyUpdateRequiredEvidenceItem = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  coach: 'coach',
+} as const;
+
+export interface TradingStrategyUpdate {
+  name?: string;
+  description?: string;
+  category?: TradingStrategyUpdateCategory;
+  timeframes?: string[];
+  markets?: string[];
+  requiredEvidence?: TradingStrategyUpdateRequiredEvidenceItem[];
+  checklist?: TradingStrategyChecklistItemDefinition[];
+  educationalNotes?: string;
+  references?: string[];
+  version?: string;
+}
+
+export type TradingStrategyChecklistStatus = typeof TradingStrategyChecklistStatus[keyof typeof TradingStrategyChecklistStatus];
+
+
+export const TradingStrategyChecklistStatus = {
+  in_progress: 'in_progress',
+  complete: 'complete',
+} as const;
+
+export interface TradingStrategyChecklist {
+  id: number;
+  strategyId: number;
+  symbol: string | null;
+  status: TradingStrategyChecklistStatus;
+  items: TradingStrategyChecklistItemState[];
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TradingStrategyChecklistInput {
+  symbol?: string | null;
+}
+
+export interface TradingStrategyChecklistUpdate {
+  items?: TradingStrategyChecklistItemState[];
+  notes?: string;
+}
+
+export interface TradingWorkspaceNote {
+  id: number;
+  symbol: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TradingWorkspaceNoteInput {
+  symbol: string;
+  note: string;
+}
+
+export interface TradingWorkspaceNoteUpdate {
+  note: string;
+}
+
+export type TradingSessionDataActiveSessionsItem = typeof TradingSessionDataActiveSessionsItem[keyof typeof TradingSessionDataActiveSessionsItem];
+
+
+export const TradingSessionDataActiveSessionsItem = {
+  sydney: 'sydney',
+  tokyo: 'tokyo',
+  london: 'london',
+  new_york: 'new_york',
+} as const;
+
+export interface TradingSessionData {
+  symbol: string;
+  asOf: string;
+  activeSessions: TradingSessionDataActiveSessionsItem[];
+  /** @nullable */
+  sessionHigh: number | null;
+  /** @nullable */
+  sessionLow: number | null;
+}
+
+export type TradingSessionWindowSummaryName = typeof TradingSessionWindowSummaryName[keyof typeof TradingSessionWindowSummaryName];
+
+
+export const TradingSessionWindowSummaryName = {
+  sydney: 'sydney',
+  tokyo: 'tokyo',
+  london: 'london',
+  new_york: 'new_york',
+} as const;
+
+export type TradingSessionWindowSummaryRole = typeof TradingSessionWindowSummaryRole[keyof typeof TradingSessionWindowSummaryRole];
+
+
+export const TradingSessionWindowSummaryRole = {
+  active: 'active',
+  previous: 'previous',
+  upcoming: 'upcoming',
+  other: 'other',
+} as const;
+
+export interface TradingSessionWindowSummary {
+  name: TradingSessionWindowSummaryName;
+  label: string;
+  role: TradingSessionWindowSummaryRole;
+  isActive: boolean;
+  startIso: string;
+  endIso: string;
+  nextStartIso: string;
+  durationHours: number;
+  /** @nullable */
+  high: number | null;
+  /** @nullable */
+  low: number | null;
+  /** @nullable */
+  range: number | null;
+  candleCount: number;
+  /** @nullable */
+  freshnessMinutes: number | null;
+}
+
+export type TradingSessionWindowsOverviewDataSource = typeof TradingSessionWindowsOverviewDataSource[keyof typeof TradingSessionWindowsOverviewDataSource];
+
+
+export const TradingSessionWindowsOverviewDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingSessionWindowsOverviewActiveSessionNamesItem = typeof TradingSessionWindowsOverviewActiveSessionNamesItem[keyof typeof TradingSessionWindowsOverviewActiveSessionNamesItem];
+
+
+export const TradingSessionWindowsOverviewActiveSessionNamesItem = {
+  sydney: 'sydney',
+  tokyo: 'tokyo',
+  london: 'london',
+  new_york: 'new_york',
+} as const;
+
+export interface TradingSessionWindowsOverview {
+  symbol: string;
+  asOf: string;
+  dataSource: TradingSessionWindowsOverviewDataSource;
+  activeSessionNames: TradingSessionWindowsOverviewActiveSessionNamesItem[];
+  overlap: boolean;
+  sessions: TradingSessionWindowSummary[];
+  activeSession: TradingSessionWindowSummary | null;
+  previousSession: TradingSessionWindowSummary | null;
+  upcomingSession: TradingSessionWindowSummary | null;
+  summary: string;
+}
+
 export interface TradingVolumeProfileLevel {
   price: number;
   volume: number;
@@ -4288,6 +6242,65 @@ export interface TradingLiquidityAnalysis {
   summary: string;
 }
 
+export type TradingLiquidityTimelinePointLiquidityBand = typeof TradingLiquidityTimelinePointLiquidityBand[keyof typeof TradingLiquidityTimelinePointLiquidityBand];
+
+
+export const TradingLiquidityTimelinePointLiquidityBand = {
+  High: 'High',
+  Moderate: 'Moderate',
+  Low: 'Low',
+} as const;
+
+export type TradingLiquidityTimelinePointBuySellDirection = typeof TradingLiquidityTimelinePointBuySellDirection[keyof typeof TradingLiquidityTimelinePointBuySellDirection];
+
+
+export const TradingLiquidityTimelinePointBuySellDirection = {
+  buying: 'buying',
+  selling: 'selling',
+  neutral: 'neutral',
+} as const;
+
+export interface TradingLiquidityTimelinePoint {
+  periodStart: string;
+  periodEnd: string;
+  liquidityBand: TradingLiquidityTimelinePointLiquidityBand;
+  liquidityScore: number;
+  avgDollarVolume: number;
+  buySellDirection: TradingLiquidityTimelinePointBuySellDirection;
+  candleCount: number;
+}
+
+export type TradingLiquidityTimelineDataSource = typeof TradingLiquidityTimelineDataSource[keyof typeof TradingLiquidityTimelineDataSource];
+
+
+export const TradingLiquidityTimelineDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type TradingLiquidityTimelineRelativeLiquidity = typeof TradingLiquidityTimelineRelativeLiquidity[keyof typeof TradingLiquidityTimelineRelativeLiquidity];
+
+
+export const TradingLiquidityTimelineRelativeLiquidity = {
+  Above_Average: 'Above Average',
+  Below_Average: 'Below Average',
+  Average: 'Average',
+  Insufficient_Data: 'Insufficient Data',
+} as const;
+
+export interface TradingLiquidityTimeline {
+  symbol: string;
+  interval: TradingTimeframe;
+  dataSource: TradingLiquidityTimelineDataSource;
+  candleCount: number;
+  points: TradingLiquidityTimelinePoint[];
+  relativeLiquidity: TradingLiquidityTimelineRelativeLiquidity;
+  /** @nullable */
+  averageLiquidityScore: number | null;
+  keyLiquidityZones: TradingVolumeProfileLevel[];
+  summary: string;
+}
+
 export interface TradingCoachAskInput {
   symbol: string;
   question: string;
@@ -4304,6 +6317,45 @@ export const TradingCoachAskResultAnswerSource = {
 export interface TradingCoachAskResult {
   answer: string;
   answerSource: TradingCoachAskResultAnswerSource;
+}
+
+export interface TradingCoachEvidenceItem {
+  label: string;
+  detail: string;
+  source: string;
+}
+
+export type TradingCoachExplanationCoach = typeof TradingCoachExplanationCoach[keyof typeof TradingCoachExplanationCoach];
+
+
+export const TradingCoachExplanationCoach = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  scenario: 'scenario',
+  psychology: 'psychology',
+  strategy: 'strategy',
+} as const;
+
+export interface TradingCoachExplanation {
+  coach: TradingCoachExplanationCoach;
+  coachLabel: string;
+  symbol: string | null;
+  headline: string;
+  whyThisExists: string;
+  metricsUsed: TradingCoachEvidenceItem[];
+  supportingEvidence: TradingCoachEvidenceItem[];
+  risksReducingConfidence: string[];
+  strengthsIncreasingConfidence: string[];
+  howToInterpret: string[];
+  commonMistakes: string[];
+  institutionalPerspective: string;
+  relatedGlossaryKeys: string[];
+  calculationSources: string[];
+  disclaimer: string;
 }
 
 export type TradingBacktestStrategy = typeof TradingBacktestStrategy[keyof typeof TradingBacktestStrategy];
@@ -4464,6 +6516,4589 @@ export interface OptionsBacktestResult {
   summary: string;
 }
 
+export interface ScenarioShockInput {
+  /** @nullable */
+  label?: string | null;
+  /** @nullable */
+  priceShockPct?: number | null;
+  /** @nullable */
+  ivShockPct?: number | null;
+  /** @nullable */
+  timeDecayDays?: number | null;
+}
+
+export interface PortfolioStressTestInput {
+  /** @nullable */
+  scenarios?: ScenarioShockInput[] | null;
+}
+
+export interface StressTestInputIssue {
+  /** @nullable */
+  index: number | null;
+  field: string;
+  code: string;
+  message: string;
+}
+
+export interface Shock {
+  priceShockPct: number;
+  ivShockPct: number;
+  timeDecayDays: number;
+}
+
+export interface PositionGreeksLike {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export interface PositionScenarioResult {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  greeks: PositionGreeksLike;
+  costToClose: number;
+  unrealizedPnl: number;
+  unrealizedPnlPercent: number;
+}
+
+export interface MarkExposureBySymbol {
+  symbol: string;
+  markValue: number;
+  pctOfAccount: number;
+}
+
+export interface MarkExposureByStrategy {
+  strategy: string;
+  markValue: number;
+  pctOfAccount: number;
+}
+
+export interface ScenarioEvaluation {
+  portfolioValue: number;
+  totalUnrealizedPnl: number;
+  greeks: PortfolioGreeksSnapshot;
+  exposureBySymbol: MarkExposureBySymbol[];
+  exposureByStrategy: MarkExposureByStrategy[];
+  totalRiskDollars: number;
+  totalRiskPct: number;
+  buyingPower: number;
+  positions: PositionScenarioResult[];
+}
+
+export interface RiskThresholdBreach {
+  tradeId: number;
+  symbol: string;
+  lossDollars: number;
+  lossPctOfAccount: number;
+  thresholdPct: number;
+}
+
+export interface ConcentrationChange {
+  symbol: string;
+  beforePct: number;
+  afterPct: number;
+  changePts: number;
+}
+
+export interface LargestPositionImpact {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  pnlImpact: number;
+}
+
+export interface ScenarioComparisonEntry {
+  label: string;
+  shock: Shock;
+  after: ScenarioEvaluation;
+  portfolioValueImpact: number;
+  unrealizedPnlImpact: number;
+  buyingPowerImpactDollars: number;
+  deltaChange: number;
+  gammaChange: number;
+  thetaChange: number;
+  vegaChange: number;
+  largestLosingPosition: LargestPositionImpact | null;
+  largestGainingPosition: LargestPositionImpact | null;
+  positionsBreachingThreshold: RiskThresholdBreach[];
+  concentrationChanges: ConcentrationChange[];
+  drawdownPct: number;
+  riskScoreAfter: number;
+}
+
+export interface PortfolioStressTestResult {
+  available: boolean;
+  inputIssues: StressTestInputIssue[];
+  accountValue: number;
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  sectorExposure: SectorExposure;
+  base: ScenarioEvaluation;
+  riskScoreBefore: number;
+  scenarios: ScenarioComparisonEntry[];
+  generatedAt: string;
+}
+
+export type PortfolioEventRiskPrimaryEvent = EventRiskEvent | null;
+
+export type PositionEventRiskEventStatus = typeof PositionEventRiskEventStatus[keyof typeof PositionEventRiskEventStatus];
+
+
+export const PositionEventRiskEventStatus = {
+  has_events: 'has_events',
+  no_events: 'no_events',
+  expiration_unknown: 'expiration_unknown',
+} as const;
+
+export type PositionEventRiskRiskLevel = typeof PositionEventRiskRiskLevel[keyof typeof PositionEventRiskRiskLevel];
+
+
+export const PositionEventRiskRiskLevel = {
+  none: 'none',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export type PositionEventRiskRiskGuidance = typeof PositionEventRiskRiskGuidance[keyof typeof PositionEventRiskRiskGuidance];
+
+
+export const PositionEventRiskRiskGuidance = {
+  monitor: 'monitor',
+  consider_review: 'consider_review',
+  consider_adjustment: 'consider_adjustment',
+  no_immediate_event_risk: 'no_immediate_event_risk',
+} as const;
+
+/**
+ * @nullable
+ */
+export type PositionEventRiskConfidence = typeof PositionEventRiskConfidence[keyof typeof PositionEventRiskConfidence] | null;
+
+
+export const PositionEventRiskConfidence = {
+  scheduled: 'scheduled',
+  simulated_estimate: 'simulated_estimate',
+} as const;
+
+export type PositionEventRiskEventSource = typeof PositionEventRiskEventSource[keyof typeof PositionEventRiskEventSource];
+
+
+export const PositionEventRiskEventSource = {
+  SIMULATED: 'SIMULATED',
+} as const;
+
+export interface PositionEventRisk {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  quantity: number;
+  portfolioWeightPct: number;
+  /** @nullable */
+  expiration: string | null;
+  eventStatus: PositionEventRiskEventStatus;
+  primaryEvent: PortfolioEventRiskPrimaryEvent;
+  events: EventRiskEvent[];
+  riskLevel: PositionEventRiskRiskLevel;
+  riskGuidance: PositionEventRiskRiskGuidance;
+  riskGuidanceLabel: string;
+  /** @nullable */
+  confidence: PositionEventRiskConfidence;
+  eventSource: PositionEventRiskEventSource;
+  lastUpdated: string;
+}
+
+export type HighestRiskPositionRiskLevel = typeof HighestRiskPositionRiskLevel[keyof typeof HighestRiskPositionRiskLevel];
+
+
+export const HighestRiskPositionRiskLevel = {
+  none: 'none',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface HighestRiskPosition {
+  tradeId: number;
+  symbol: string;
+  riskLevel: HighestRiskPositionRiskLevel;
+}
+
+export interface PortfolioEventRiskSummary {
+  totalPositions: number;
+  positionsWithEvents: number;
+  positionsWithoutEvents: number;
+  highRiskCount: number;
+  within1Day: number;
+  within3Days: number;
+  within7Days: number;
+  within14Days: number;
+  aggregateExposurePct: number;
+  highestRiskPosition: HighestRiskPosition | null;
+}
+
+export interface UnsupportedEventCategory {
+  category: string;
+  label: string;
+  reason: string;
+}
+
+export interface PortfolioEventRiskResult {
+  positions: PositionEventRisk[];
+  summary: PortfolioEventRiskSummary;
+  accountValue: number;
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  eventRiskEnabled: boolean;
+  unsupportedEventCategories: UnsupportedEventCategory[];
+  generatedAt: string;
+}
+
+export interface ConcentrationBucket {
+  key: string;
+  label: string;
+  positionCount: number;
+  weightPct: number;
+}
+
+export interface ConcentrationBreakdown {
+  dimension: string;
+  buckets: ConcentrationBucket[];
+  concentrationScore: number;
+  largestBucket: ConcentrationBucket | null;
+}
+
+export interface LongShortExposure {
+  longExposureDollars: number;
+  shortExposureDollars: number;
+  longPct: number;
+  shortPct: number;
+}
+
+export interface CallPutExposure {
+  callNotional: number;
+  putNotional: number;
+  callPct: number;
+  putPct: number;
+}
+
+export interface PositionGreeksContribution {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+  deltaSharePct: number;
+}
+
+export interface ClusterGroup {
+  dimension: string;
+  key: string;
+  label: string;
+  tradeIds: number[];
+  positionCount: number;
+}
+
+export interface DimensionScoreRef {
+  dimension: string;
+  label: string;
+  concentrationScore: number;
+}
+
+export type PortfolioSummaryHighlightsLargestConcentration = {
+  dimension: string;
+  bucket: ConcentrationBucket;
+} | null;
+
+export type PortfolioSummaryHighlightsHighestDirectionalExposure = {
+  direction: 'long' | 'short';
+  exposureDollars: number;
+  pct: number;
+} | null;
+
+export type PortfolioSummaryHighlightsHighestGreeksContributor = {
+  tradeId: number;
+  symbol: string;
+  delta: number;
+} | null;
+
+export interface PortfolioSummaryHighlights {
+  largestConcentration: PortfolioSummaryHighlightsLargestConcentration;
+  highestDirectionalExposure: PortfolioSummaryHighlightsHighestDirectionalExposure;
+  highestGreeksContributor: PortfolioSummaryHighlightsHighestGreeksContributor;
+  mostDiversifiedArea: DimensionScoreRef | null;
+  leastDiversifiedArea: DimensionScoreRef | null;
+  concentrationScore: number;
+  diversificationScore: number;
+  portfolioHealthLabel: string;
+}
+
+export interface RiskGuidanceAdvisory {
+  code: string;
+  label: string;
+  detail: string;
+}
+
+export type ConcentrationRiskGuidanceCode = typeof ConcentrationRiskGuidanceCode[keyof typeof ConcentrationRiskGuidanceCode];
+
+
+export const ConcentrationRiskGuidanceCode = {
+  well_diversified: 'well_diversified',
+  moderate_concentration: 'moderate_concentration',
+  high_concentration: 'high_concentration',
+  review_exposure: 'review_exposure',
+} as const;
+
+export interface ConcentrationRiskGuidance {
+  code: ConcentrationRiskGuidanceCode;
+  label: string;
+  advisories: RiskGuidanceAdvisory[];
+}
+
+export interface PortfolioConcentrationBreakdowns {
+  symbol: ConcentrationBreakdown;
+  underlying: ConcentrationBreakdown;
+  sector: ConcentrationBreakdown;
+  strategy: ConcentrationBreakdown;
+  expiration: ConcentrationBreakdown;
+  assetClass: ConcentrationBreakdown;
+  directionalBias: ConcentrationBreakdown;
+}
+
+export type PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel = typeof PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel[keyof typeof PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel];
+
+
+export const PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel = {
+  net_long: 'net_long',
+  net_short: 'net_short',
+  balanced: 'balanced',
+} as const;
+
+export type PortfolioConcentrationResultNetDirectionalExposure = {
+  longExposureDollars: number;
+  shortExposureDollars: number;
+  netExposureDollars: number;
+  netBiasLabel: PortfolioConcentrationResultNetDirectionalExposureNetBiasLabel;
+};
+
+export type PortfolioConcentrationResultSectorDataSource = typeof PortfolioConcentrationResultSectorDataSource[keyof typeof PortfolioConcentrationResultSectorDataSource];
+
+
+export const PortfolioConcentrationResultSectorDataSource = {
+  KNOWN_UNIVERSE_METADATA: 'KNOWN_UNIVERSE_METADATA',
+} as const;
+
+export interface PortfolioConcentrationResult {
+  totalPositions: number;
+  totalPortfolioValue: number;
+  accountValue: number;
+  netGreeks: PortfolioGreeksSnapshot;
+  /** @nullable */
+  netBeta: null;
+  netBetaUnavailableReason: string;
+  netDirectionalExposure: PortfolioConcentrationResultNetDirectionalExposure;
+  breakdowns: PortfolioConcentrationBreakdowns;
+  longShort: LongShortExposure;
+  callPut: CallPutExposure;
+  greeksContributions: PositionGreeksContribution[];
+  clusters: ClusterGroup[];
+  summary: PortfolioSummaryHighlights;
+  riskGuidance: ConcentrationRiskGuidance;
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  sectorDataSource: PortfolioConcentrationResultSectorDataSource;
+  generatedAt: string;
+}
+
+export type DashboardOverallRiskRatingCode = typeof DashboardOverallRiskRatingCode[keyof typeof DashboardOverallRiskRatingCode];
+
+
+export const DashboardOverallRiskRatingCode = {
+  healthy: 'healthy',
+  moderate_risk: 'moderate_risk',
+  elevated_risk: 'elevated_risk',
+  high_risk: 'high_risk',
+} as const;
+
+export interface DashboardOverallRiskRating {
+  code: DashboardOverallRiskRatingCode;
+  label: string;
+}
+
+export interface DashboardHealthScoreFactor {
+  code: string;
+  label: string;
+  score: number;
+  sourceModule: string;
+  detail: string;
+}
+
+export interface DashboardRiskContributor {
+  tradeId: number;
+  symbol: string;
+  delta: number;
+  deltaSharePct: number;
+}
+
+export interface DashboardWidgetSummary {
+  code: string;
+  label: string;
+  headline: string;
+  detail: string;
+  linkHref: string;
+}
+
+export type DashboardGuidanceAdvisoryCode = typeof DashboardGuidanceAdvisoryCode[keyof typeof DashboardGuidanceAdvisoryCode];
+
+
+export const DashboardGuidanceAdvisoryCode = {
+  healthy_portfolio: 'healthy_portfolio',
+  moderate_risk: 'moderate_risk',
+  elevated_risk: 'elevated_risk',
+  high_risk: 'high_risk',
+  elevated_concentration: 'elevated_concentration',
+  elevated_event_risk: 'elevated_event_risk',
+  diversification_recommended: 'diversification_recommended',
+  review_large_positions: 'review_large_positions',
+} as const;
+
+export interface DashboardGuidanceAdvisory {
+  code: DashboardGuidanceAdvisoryCode;
+  label: string;
+  detail: string;
+}
+
+export interface DashboardStressTestSummaryEntry {
+  label: string;
+  portfolioValueImpact: number;
+  riskScoreAfter: number;
+}
+
+export type PortfolioDashboardResultHighestConcentration = {
+  dimension: string;
+  bucket: ConcentrationBucket;
+} | null;
+
+export type PortfolioDashboardResultHighestDirectionalExposure = {
+  direction: 'long' | 'short';
+  exposureDollars: number;
+  pct: number;
+} | null;
+
+export interface PortfolioDashboardResult {
+  portfolioValue: number;
+  buyingPower: number;
+  totalRiskDollars: number;
+  totalRiskPct: number;
+  healthScore: number;
+  overallRiskRating: DashboardOverallRiskRating;
+  paperTradingMode: true;
+  credentialsConfigured: boolean;
+  /** @nullable */
+  brokerConnected: boolean | null;
+  /** @nullable */
+  lastBrokerCheckAt: string | null;
+  lastPortfolioUpdate: string;
+  openPositionsCount: number;
+  healthFactors: DashboardHealthScoreFactor[];
+  netGreeks: PortfolioGreeksSnapshot;
+  /** @nullable */
+  netBeta: null;
+  netBetaUnavailableReason: string;
+  largestPosition: SymbolExposure | null;
+  largestRiskContributor: DashboardRiskContributor | null;
+  highestEventRisk: HighestRiskPosition | null;
+  highestConcentration: PortfolioDashboardResultHighestConcentration;
+  highestDirectionalExposure: PortfolioDashboardResultHighestDirectionalExposure;
+  widgets: DashboardWidgetSummary[];
+  allocationBySymbol: ConcentrationBucket[];
+  allocationBySector: ConcentrationBucket[];
+  allocationByStrategy: ConcentrationBucket[];
+  expirationDistribution: ConcentrationBucket[];
+  eventTimelineSummary: PortfolioEventRiskSummary;
+  stressTestSummary: DashboardStressTestSummaryEntry[];
+  guidance: DashboardGuidanceAdvisory[];
+  generatedAt: string;
+}
+
+export interface IntelligenceObservationMetric {
+  label: string;
+  value: string;
+}
+
+export interface IntelligenceLearningLink {
+  label: string;
+  /** @nullable */
+  href: string | null;
+  comingSoon: boolean;
+}
+
+export type IntelligenceObservationSeverity = typeof IntelligenceObservationSeverity[keyof typeof IntelligenceObservationSeverity];
+
+
+export const IntelligenceObservationSeverity = {
+  info: 'info',
+  positive: 'positive',
+  watch: 'watch',
+  elevated: 'elevated',
+} as const;
+
+export type IntelligenceObservationConfidence = typeof IntelligenceObservationConfidence[keyof typeof IntelligenceObservationConfidence];
+
+
+export const IntelligenceObservationConfidence = {
+  high: 'high',
+  moderate: 'moderate',
+} as const;
+
+export interface IntelligenceObservation {
+  code: string;
+  category: string;
+  severity: IntelligenceObservationSeverity;
+  title: string;
+  explanation: string;
+  supportingMetrics: IntelligenceObservationMetric[];
+  sourceModule: string;
+  timestamp: string;
+  confidence: IntelligenceObservationConfidence;
+  confidenceReason: string;
+  learningLinks: IntelligenceLearningLink[];
+}
+
+export interface IntelligenceHealthDriver {
+  code: string;
+  label: string;
+  score: number;
+  detail: string;
+}
+
+export interface IntelligenceBrokerHealthSummary {
+  credentialsConfigured: boolean;
+  /** @nullable */
+  connected: boolean | null;
+  label: string;
+}
+
+export type IntelligenceHealthOverviewHealthTrend = typeof IntelligenceHealthOverviewHealthTrend[keyof typeof IntelligenceHealthOverviewHealthTrend];
+
+
+export const IntelligenceHealthOverviewHealthTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface IntelligenceHealthOverview {
+  overallHealthScore: number;
+  overallRiskRating: DashboardOverallRiskRating;
+  healthTrend: IntelligenceHealthOverviewHealthTrend;
+  healthTrendDetail: string;
+  healthDrivers: IntelligenceHealthDriver[];
+  brokerHealth: IntelligenceBrokerHealthSummary;
+  healthSummary: string;
+}
+
+export interface IntelligenceDailySummary {
+  headline: string;
+  bullets: string[];
+  generatedAt: string;
+}
+
+export type IntelligenceTimelineEntryStatus = typeof IntelligenceTimelineEntryStatus[keyof typeof IntelligenceTimelineEntryStatus];
+
+
+export const IntelligenceTimelineEntryStatus = {
+  new: 'new',
+  resolved: 'resolved',
+  persistent: 'persistent',
+} as const;
+
+export interface IntelligenceTimelineEntry {
+  code: string;
+  label: string;
+  category: string;
+  status: IntelligenceTimelineEntryStatus;
+}
+
+export type IntelligenceTimelineChangeDirection = typeof IntelligenceTimelineChangeDirection[keyof typeof IntelligenceTimelineChangeDirection];
+
+
+export const IntelligenceTimelineChangeDirection = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface IntelligenceTimelineChange {
+  label: string;
+  direction: IntelligenceTimelineChangeDirection;
+  detail: string;
+}
+
+export interface IntelligenceRiskRatingChange {
+  from: string;
+  to: string;
+}
+
+export interface IntelligenceTimeline {
+  entries: IntelligenceTimelineEntry[];
+  healthChange: IntelligenceTimelineChange | null;
+  riskRatingChange: IntelligenceRiskRatingChange | null;
+  incomeChange: IntelligenceTimelineChange | null;
+  asOf: string;
+  /** @nullable */
+  comparedTo: string | null;
+}
+
+export interface InstitutionalIntelligenceResult {
+  paperTradingMode: true;
+  deterministicAnalysis: true;
+  executiveSummary: IntelligenceDailySummary;
+  observations: IntelligenceObservation[];
+  highestPriority: IntelligenceObservation[];
+  health: IntelligenceHealthOverview;
+  timeline: IntelligenceTimeline;
+  learningLinks: IntelligenceLearningLink[];
+  portfolioInsights: IntelligenceObservation[];
+  incomeInsights: IntelligenceObservation[];
+  riskInsights: IntelligenceObservation[];
+  generatedAt: string;
+}
+
+export type LearningGlossaryTermCategory = typeof LearningGlossaryTermCategory[keyof typeof LearningGlossaryTermCategory];
+
+
+export const LearningGlossaryTermCategory = {
+  foundations: 'foundations',
+  greeks: 'greeks',
+  volatility: 'volatility',
+  strategies: 'strategies',
+  portfolio: 'portfolio',
+  performance: 'performance',
+  institutional: 'institutional',
+  'value-investing': 'value-investing',
+  trading: 'trading',
+} as const;
+
+export interface LearningGlossaryTerm {
+  key: string;
+  term: string;
+  category: LearningGlossaryTermCategory;
+  definition: string;
+  relatedTermKeys: string[];
+  relatedLessonKeys: string[];
+}
+
+export interface LearningTopic {
+  key: string;
+  title: string;
+  summary: string;
+  body: string[];
+  whyItMatters: string;
+  /** @nullable */
+  externalHref: string | null;
+  relatedGlossaryKeys: string[];
+  estimatedMinutes: number;
+}
+
+export type LearningPathGlossaryCategory = typeof LearningPathGlossaryCategory[keyof typeof LearningPathGlossaryCategory];
+
+
+export const LearningPathGlossaryCategory = {
+  foundations: 'foundations',
+  greeks: 'greeks',
+  volatility: 'volatility',
+  strategies: 'strategies',
+  portfolio: 'portfolio',
+  performance: 'performance',
+  institutional: 'institutional',
+  'value-investing': 'value-investing',
+  trading: 'trading',
+} as const;
+
+export interface LearningPath {
+  key: string;
+  title: string;
+  description: string;
+  glossaryCategory: LearningPathGlossaryCategory;
+  topics: LearningTopic[];
+}
+
+export interface LearningStrategyGreeks {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export interface LearningStrategyPaperExample {
+  available: boolean;
+  /** @nullable */
+  unavailableReason: string | null;
+  /** @nullable */
+  symbol: string | null;
+  /** @nullable */
+  detail: string | null;
+  greeks: LearningStrategyGreeks | null;
+}
+
+export interface LearningStrategyAcademyEntry {
+  key: string;
+  label: string;
+  builtByThisEngine: boolean;
+  construction: string;
+  idealMarket: string;
+  maxProfit: string;
+  maxLoss: string;
+  greeksProfile: string;
+  timeDecay: string;
+  volatilityBehavior: string;
+  assignmentRisk: string;
+  commonMistakes: string[];
+  institutionalPerspective: string;
+  paperExample: LearningStrategyPaperExample;
+}
+
+export interface LearningQuizProgressAttempt {
+  /** @nullable */
+  id: number | null;
+  topic: string;
+  score: number;
+  total: number;
+  percent: number;
+  createdAt: string;
+}
+
+export interface LearningQuizProgressTopicBest {
+  topic: string;
+  bestPercent: number;
+  attempts: number;
+}
+
+export interface LearningQuizProgressSummary {
+  attempts: LearningQuizProgressAttempt[];
+  bestByTopic: LearningQuizProgressTopicBest[];
+  totalAttempts: number;
+  averagePercent: number;
+  streak: number;
+  improvement: number;
+  firstPercent: number;
+  latestPercent: number;
+}
+
+export interface LearningPathCompletion {
+  pathKey: string;
+  title: string;
+  topicsTotal: number;
+  topicsCompleted: number;
+  percentComplete: number;
+}
+
+export type LearningHistoryEntryItemType = typeof LearningHistoryEntryItemType[keyof typeof LearningHistoryEntryItemType];
+
+
+export const LearningHistoryEntryItemType = {
+  lesson: 'lesson',
+  glossary: 'glossary',
+  path: 'path',
+  strategy: 'strategy',
+  coach: 'coach',
+} as const;
+
+export interface LearningHistoryEntry {
+  itemType: LearningHistoryEntryItemType;
+  itemKey: string;
+  viewedAt: string;
+  /** @nullable */
+  completedAt: string | null;
+}
+
+export interface LearningProgressSummary {
+  lessonsViewed: number;
+  lessonsCompleted: number;
+  glossaryTermsViewed: number;
+  strategiesViewed: number;
+  coachesViewed: number;
+  pathCompletion: LearningPathCompletion[];
+  greeksQuiz: LearningQuizProgressSummary;
+  valueQuiz: LearningQuizProgressSummary;
+  recentHistory: LearningHistoryEntry[];
+  completedLessonKeys: string[];
+  completedGlossaryKeys: string[];
+  completedStrategyKeys: string[];
+  completedCoachKeys: string[];
+  viewedStrategyKeys: string[];
+}
+
+export type LearningProgressActionItemType = typeof LearningProgressActionItemType[keyof typeof LearningProgressActionItemType];
+
+
+export const LearningProgressActionItemType = {
+  lesson: 'lesson',
+  glossary: 'glossary',
+  path: 'path',
+  strategy: 'strategy',
+  coach: 'coach',
+} as const;
+
+export interface LearningProgressAction {
+  itemType: LearningProgressActionItemType;
+  itemKey: string;
+}
+
+export type LearningSimulationInputType = typeof LearningSimulationInputType[keyof typeof LearningSimulationInputType];
+
+
+export const LearningSimulationInputType = {
+  delta: 'delta',
+  theta: 'theta',
+  expected_move: 'expected_move',
+  payoff: 'payoff',
+  concentration: 'concentration',
+} as const;
+
+export type LearningSimulationInputStrategy = typeof LearningSimulationInputStrategy[keyof typeof LearningSimulationInputStrategy];
+
+
+export const LearningSimulationInputStrategy = {
+  covered_call: 'covered_call',
+  cash_secured_put: 'cash_secured_put',
+  iron_condor: 'iron_condor',
+} as const;
+
+export interface LearningSimulationInput {
+  type: LearningSimulationInputType;
+  strike?: number;
+  iv?: number;
+  dte?: number;
+  price?: number;
+  strategy?: LearningSimulationInputStrategy;
+  stockCostBasis?: number;
+  callStrike?: number;
+  callPremium?: number;
+  putStrike?: number;
+  putPremium?: number;
+  longPutStrike?: number;
+  longCallStrike?: number;
+  netCredit?: number;
+  weights?: number[];
+}
+
+export interface LearningSimulationPoint {
+  x: number;
+  y: number;
+}
+
+export type LearningSimulationResultType = typeof LearningSimulationResultType[keyof typeof LearningSimulationResultType];
+
+
+export const LearningSimulationResultType = {
+  delta: 'delta',
+  theta: 'theta',
+  expected_move: 'expected_move',
+  payoff: 'payoff',
+  concentration: 'concentration',
+} as const;
+
+export interface LearningSimulationResult {
+  type: LearningSimulationResultType;
+  label: string;
+  xLabel: string;
+  yLabel: string;
+  points: LearningSimulationPoint[];
+  summary: string;
+  educationalSimulation: true;
+  notMarketData: true;
+  noTradeRecommendation: true;
+}
+
+export interface LearningMetricExplanation {
+  code: string;
+  label: string;
+  currentValue: string;
+  plainEnglish: string;
+  sourceCalculation: string;
+  whyItMatters: string;
+  /** @nullable */
+  relatedLessonHref: string | null;
+  relatedGlossaryKeys: string[];
+  reusedObservation: boolean;
+}
+
+export interface LearningPortfolioLesson {
+  items: LearningMetricExplanation[];
+  generatedAt: string;
+}
+
+export interface AnalystPortfolioSnapshot {
+  healthScore: number;
+  overallRiskRating: DashboardOverallRiskRating;
+  buyingPower: number;
+  openPositionsCount: number;
+  monthlyTheta: number;
+  dailyTheta: number;
+  totalRiskDollars: number;
+  totalRiskPct: number;
+  generatedAt: string;
+}
+
+export type AnalystHealthSummaryTrend = typeof AnalystHealthSummaryTrend[keyof typeof AnalystHealthSummaryTrend];
+
+
+export const AnalystHealthSummaryTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystHealthSummary {
+  overallHealthScore: number;
+  overallRiskRating: DashboardOverallRiskRating;
+  trend: AnalystHealthSummaryTrend;
+  trendDetail: string;
+  strengths: IntelligenceHealthDriver[];
+  weaknesses: IntelligenceHealthDriver[];
+  drivers: IntelligenceHealthDriver[];
+  summary: string;
+}
+
+export type AnalystRiskSummaryRiskTrend = typeof AnalystRiskSummaryRiskTrend[keyof typeof AnalystRiskSummaryRiskTrend];
+
+
+export const AnalystRiskSummaryRiskTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystRiskSummary {
+  highestRisk: string;
+  riskTrend: AnalystRiskSummaryRiskTrend;
+  largestExposure: string;
+  /** @nullable */
+  diversificationScore: number | null;
+  worstStressScenario: DashboardStressTestSummaryEntry | null;
+  guidance: DashboardGuidanceAdvisory[];
+}
+
+export type AnalystIncomeSummaryIncomeHealth = typeof AnalystIncomeSummaryIncomeHealth[keyof typeof AnalystIncomeSummaryIncomeHealth];
+
+
+export const AnalystIncomeSummaryIncomeHealth = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystIncomeSummary {
+  monthlyTheta: number;
+  weeklyTheta: number;
+  dailyTheta: number;
+  annualizedTheta: number;
+  incomeHealth: AnalystIncomeSummaryIncomeHealth;
+  incomeHealthDetail: string;
+  bySymbol: ThetaBreakdown[];
+  byStrategy: ThetaBreakdown[];
+}
+
+export type AnalystGreeksSummaryDeltaTrend = typeof AnalystGreeksSummaryDeltaTrend[keyof typeof AnalystGreeksSummaryDeltaTrend];
+
+
+export const AnalystGreeksSummaryDeltaTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystGreeksSummary {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+  largestContributor: DashboardRiskContributor | null;
+  deltaTrend: AnalystGreeksSummaryDeltaTrend;
+  deltaTrendDetail: string;
+  educationalLinks: IntelligenceLearningLink[];
+}
+
+export interface AnalystEventSummary {
+  upcomingEvents: PortfolioEventRiskSummary;
+  highestRiskEvent: HighestRiskPosition | null;
+  safePositionsCount: number;
+  atRiskPositionsCount: number;
+  expirationClusters: ConcentrationBucket[];
+}
+
+export interface AnalystLearningCrossLink {
+  category: string;
+  /** @nullable */
+  lessonHref: string | null;
+  /** @nullable */
+  lessonTitle: string | null;
+  /** @nullable */
+  glossaryHref: string | null;
+  /** @nullable */
+  glossaryTerm: string | null;
+  /** @nullable */
+  strategyHref: string | null;
+  /** @nullable */
+  strategyLabel: string | null;
+}
+
+export interface AnalystLearningSummary {
+  health: AnalystLearningCrossLink;
+  risk: AnalystLearningCrossLink;
+  income: AnalystLearningCrossLink;
+  greeks: AnalystLearningCrossLink;
+  event: AnalystLearningCrossLink;
+}
+
+export type AnalystWeeklyHealthSummaryTrend = typeof AnalystWeeklyHealthSummaryTrend[keyof typeof AnalystWeeklyHealthSummaryTrend];
+
+
+export const AnalystWeeklyHealthSummaryTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface AnalystWeeklyHealthSummary {
+  daysRecorded: number;
+  /** @nullable */
+  healthScoreMin: number | null;
+  /** @nullable */
+  healthScoreMax: number | null;
+  trend: AnalystWeeklyHealthSummaryTrend;
+}
+
+export interface AnalystTimelineSection {
+  asOf: string;
+  /** @nullable */
+  comparedTo: string | null;
+  newIssues: IntelligenceTimelineEntry[];
+  resolvedIssues: IntelligenceTimelineEntry[];
+  persistentIssues: IntelligenceTimelineEntry[];
+  healthChange: IntelligenceTimelineChange | null;
+  incomeChange: IntelligenceTimelineChange | null;
+  thisWeek: AnalystWeeklyHealthSummary;
+}
+
+export interface AnalystInstitutionalInsight {
+  text: string;
+  category: string;
+}
+
+export interface PortfolioAnalystResult {
+  paperTradingMode: true;
+  deterministicAnalysis: true;
+  executiveBriefing: IntelligenceDailySummary;
+  snapshot: AnalystPortfolioSnapshot;
+  healthSummary: AnalystHealthSummary;
+  riskSummary: AnalystRiskSummary;
+  incomeSummary: AnalystIncomeSummary;
+  greeksSummary: AnalystGreeksSummary;
+  eventSummary: AnalystEventSummary;
+  learningSummary: AnalystLearningSummary;
+  timeline: AnalystTimelineSection;
+  institutionalInsights: AnalystInstitutionalInsight[];
+  generatedAt: string;
+}
+
+export interface JournalGreeksSnapshot {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export type JournalEventRiskAtEntryLevel = typeof JournalEventRiskAtEntryLevel[keyof typeof JournalEventRiskAtEntryLevel];
+
+
+export const JournalEventRiskAtEntryLevel = {
+  none: 'none',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface JournalEventRiskAtEntry {
+  level: JournalEventRiskAtEntryLevel;
+  events: EventRiskEvent[];
+}
+
+export type JournalDecisionQualityTagCode = typeof JournalDecisionQualityTagCode[keyof typeof JournalDecisionQualityTagCode];
+
+
+export const JournalDecisionQualityTagCode = {
+  sizing_respected: 'sizing_respected',
+  sizing_exceeded: 'sizing_exceeded',
+  exit_stop_loss_rule: 'exit_stop_loss_rule',
+  exit_profit_target_rule: 'exit_profit_target_rule',
+  exit_manual: 'exit_manual',
+  winner_let_run: 'winner_let_run',
+  winner_closed_early: 'winner_closed_early',
+  loss_capped_appropriately: 'loss_capped_appropriately',
+  loss_ran_beyond_plan: 'loss_ran_beyond_plan',
+  held_through_earnings: 'held_through_earnings',
+} as const;
+
+export type JournalDecisionQualityTagSeverity = typeof JournalDecisionQualityTagSeverity[keyof typeof JournalDecisionQualityTagSeverity];
+
+
+export const JournalDecisionQualityTagSeverity = {
+  positive: 'positive',
+  info: 'info',
+  watch: 'watch',
+} as const;
+
+export interface JournalDecisionQualityTag {
+  code: JournalDecisionQualityTagCode;
+  label: string;
+  detail: string;
+  severity: JournalDecisionQualityTagSeverity;
+  ruleReference: string;
+}
+
+export interface JournalLinkedEntry {
+  id: number;
+  title: string;
+  content: string;
+}
+
+export interface JournalTradeReview {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  openDate: string;
+  /** @nullable */
+  closeDate: string | null;
+  holdingPeriodDays: number;
+  credit: number;
+  maxProfit: number;
+  maxLoss: number;
+  /** @nullable */
+  realizedPnl: number | null;
+  /** @nullable */
+  realizedPnlPercent: number | null;
+  positionSizeContracts: number;
+  positionSizePctOfAccount: number;
+  greeksAtEntry: JournalGreeksSnapshot;
+  greeksAtExit: JournalGreeksSnapshot | null;
+  eventRiskAtEntry: JournalEventRiskAtEntry;
+  /** @nullable */
+  exitReason: string | null;
+  decisionQuality: JournalDecisionQualityTag[];
+  linkedJournalEntry: JournalLinkedEntry | null;
+}
+
+export type JournalBehaviorPatternSeverity = typeof JournalBehaviorPatternSeverity[keyof typeof JournalBehaviorPatternSeverity];
+
+
+export const JournalBehaviorPatternSeverity = {
+  positive: 'positive',
+  watch: 'watch',
+  elevated: 'elevated',
+} as const;
+
+export interface JournalBehaviorPattern {
+  code: string;
+  label: string;
+  detail: string;
+  severity: JournalBehaviorPatternSeverity;
+  tradeCount: number;
+}
+
+export type JournalBehaviorTrendDirection = typeof JournalBehaviorTrendDirection[keyof typeof JournalBehaviorTrendDirection];
+
+
+export const JournalBehaviorTrendDirection = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface JournalBehaviorTrend {
+  direction: JournalBehaviorTrendDirection;
+  detail: string;
+  asOfTradeId: number;
+  asOfDate: string;
+}
+
+export interface JournalLearningCrossLink {
+  category: string;
+  /** @nullable */
+  lessonHref: string | null;
+  /** @nullable */
+  lessonTitle: string | null;
+  /** @nullable */
+  glossaryHref: string | null;
+  /** @nullable */
+  glossaryTerm: string | null;
+  /** @nullable */
+  strategyHref: string | null;
+  /** @nullable */
+  strategyLabel: string | null;
+}
+
+export type JournalTimelineEventType = typeof JournalTimelineEventType[keyof typeof JournalTimelineEventType];
+
+
+export const JournalTimelineEventType = {
+  trade_opened: 'trade_opened',
+  trade_closed: 'trade_closed',
+  learning_completed: 'learning_completed',
+  behaviour_change: 'behaviour_change',
+} as const;
+
+export interface JournalTimelineEvent {
+  type: JournalTimelineEventType;
+  label: string;
+  timestamp: string;
+  /** @nullable */
+  tradeId: number | null;
+}
+
+export interface JournalDecisionQualitySummary {
+  sizingRespectedRatePct: number;
+  ruleBasedExitRatePct: number;
+  averageDisciplineScore: number;
+}
+
+export interface AITradeJournalResult {
+  paperTradingMode: true;
+  deterministicAnalysis: true;
+  educationalOnly: true;
+  totalClosedTrades: number;
+  recentTrades: JournalTradeReview[];
+  behaviorPatterns: JournalBehaviorPattern[];
+  behaviorTrend: JournalBehaviorTrend | null;
+  disciplineScore: number;
+  decisionQualitySummary: JournalDecisionQualitySummary;
+  strengths: JournalBehaviorPattern[];
+  areasToImprove: JournalBehaviorPattern[];
+  learningRecommendations: JournalLearningCrossLink[];
+  timeline: JournalTimelineEvent[];
+  generatedAt: string;
+}
+
+export type MentorGrade = typeof MentorGrade[keyof typeof MentorGrade];
+
+
+export const MentorGrade = {
+  Excellent: 'Excellent',
+  Good: 'Good',
+  Fair: 'Fair',
+  Poor: 'Poor',
+} as const;
+
+export type MentorScorecardEntryCategory = typeof MentorScorecardEntryCategory[keyof typeof MentorScorecardEntryCategory];
+
+
+export const MentorScorecardEntryCategory = {
+  capital_allocation: 'capital_allocation',
+  risk_management: 'risk_management',
+  diversification: 'diversification',
+  discipline: 'discipline',
+  income_generation: 'income_generation',
+  position_sizing: 'position_sizing',
+  greeks_management: 'greeks_management',
+  event_preparation: 'event_preparation',
+  portfolio_health: 'portfolio_health',
+} as const;
+
+export interface MentorScorecardEntry {
+  category: MentorScorecardEntryCategory;
+  label: string;
+  score: number;
+  grade: MentorGrade;
+  sourceModule: string;
+  why: string;
+}
+
+export interface MentorProfessionalObservation {
+  text: string;
+  category: string;
+  sourceModule: string;
+}
+
+export type MentorDecisionReviewItemStatus = typeof MentorDecisionReviewItemStatus[keyof typeof MentorDecisionReviewItemStatus];
+
+
+export const MentorDecisionReviewItemStatus = {
+  followed: 'followed',
+  exceeded: 'exceeded',
+  improved: 'improved',
+  declined: 'declined',
+  neutral: 'neutral',
+} as const;
+
+export interface MentorDecisionReviewItem {
+  code: string;
+  text: string;
+  status: MentorDecisionReviewItemStatus;
+  sourceModule: string;
+  detail: string;
+}
+
+export interface MentorCapitalAllocationReview {
+  capitalEfficiencyScore: number;
+  capitalEfficiencyGrade: MentorGrade;
+  allocationByStrategy: ConcentrationBucket[];
+  positionDistribution: ConcentrationBucket[];
+  cashUtilizationPct: number;
+  buyingPower: number;
+  portfolioValue: number;
+  summary: string;
+}
+
+export type MentorRiskReviewRiskTrend = typeof MentorRiskReviewRiskTrend[keyof typeof MentorRiskReviewRiskTrend];
+
+
+export const MentorRiskReviewRiskTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export type MentorRiskReviewWorstStressScenario = {
+  label: string;
+  portfolioValueImpact: number;
+  riskScoreAfter: number;
+} | null;
+
+export type MentorRiskReviewHighestConcentration = {
+  dimension: string;
+  bucket: ConcentrationBucket;
+} | null;
+
+export interface MentorRiskReview {
+  largestPortfolioRisk: string;
+  primaryContributor: string;
+  riskTrend: MentorRiskReviewRiskTrend;
+  riskTrendDetail: string;
+  worstStressScenario: MentorRiskReviewWorstStressScenario;
+  highestConcentration: MentorRiskReviewHighestConcentration;
+  highestEventRisk: HighestRiskPosition | null;
+  guidance: DashboardGuidanceAdvisory[];
+  summary: string;
+}
+
+export type MentorIncomeReviewIncomeTrend = typeof MentorIncomeReviewIncomeTrend[keyof typeof MentorIncomeReviewIncomeTrend];
+
+
+export const MentorIncomeReviewIncomeTrend = {
+  improving: 'improving',
+  declining: 'declining',
+  stable: 'stable',
+  insufficient_history: 'insufficient_history',
+} as const;
+
+export interface MentorIncomeReview {
+  monthlyTheta: number;
+  weeklyTheta: number;
+  dailyTheta: number;
+  annualizedTheta: number;
+  incomeTrend: MentorIncomeReviewIncomeTrend;
+  incomeTrendDetail: string;
+  incomeSourceCount: number;
+  bySymbol: ThetaBreakdown[];
+  byStrategy: ThetaBreakdown[];
+  summary: string;
+}
+
+export interface MentorBehaviourReview {
+  disciplineScore: number;
+  decisionQualitySummary: JournalDecisionQualitySummary;
+  behaviorPatterns: JournalBehaviorPattern[];
+  behaviorTrend: JournalBehaviorTrend | null;
+  strengths: JournalBehaviorPattern[];
+  areasToImprove: JournalBehaviorPattern[];
+  totalClosedTrades: number;
+  summary: string;
+}
+
+export interface MentorLearningCrossLink {
+  category: string;
+  /** @nullable */
+  lessonHref: string | null;
+  /** @nullable */
+  lessonTitle: string | null;
+  /** @nullable */
+  glossaryHref: string | null;
+  /** @nullable */
+  glossaryTerm: string | null;
+  /** @nullable */
+  strategyHref: string | null;
+  /** @nullable */
+  strategyLabel: string | null;
+  /** @nullable */
+  explainModeHref: string | null;
+}
+
+export interface MentorLearningSummary {
+  scorecard: MentorLearningCrossLink;
+  capitalAllocation: MentorLearningCrossLink;
+  risk: MentorLearningCrossLink;
+  income: MentorLearningCrossLink;
+  diversification: MentorLearningCrossLink;
+  greeksManagement: MentorLearningCrossLink;
+  eventPreparation: MentorLearningCrossLink;
+  behaviour: MentorLearningCrossLink;
+}
+
+export interface MentorWatchlistReviewItem {
+  symbol: string;
+  category: string;
+  currentDecision: string;
+  marginOfSafetyTarget: number;
+  reason: string;
+  /** @nullable */
+  lastResearchedAt: string | null;
+}
+
+export interface MentorWatchlistReview {
+  itemCount: number;
+  items: MentorWatchlistReviewItem[];
+  summary: string;
+}
+
+export interface MentorPortfolioReview {
+  portfolioCount: number;
+  totalHoldingsCount: number;
+  summary: string;
+}
+
+export interface MentorDecisionEngineReview {
+  snapshotCount: number;
+  noteCount: number;
+  distinctSymbolCount: number;
+  summary: string;
+}
+
+export interface MentorOpportunityDiscoveryReview {
+  savedScreenCount: number;
+  summary: string;
+}
+
+export interface InstitutionalMentorResult {
+  paperTradingMode: true;
+  deterministicAnalysis: true;
+  educationalOnly: true;
+  scorecard: MentorScorecardEntry[];
+  professionalReview: MentorProfessionalObservation[];
+  decisionReview: MentorDecisionReviewItem[];
+  capitalAllocationReview: MentorCapitalAllocationReview;
+  riskReview: MentorRiskReview;
+  incomeReview: MentorIncomeReview;
+  behaviourReview: MentorBehaviourReview;
+  learningSummary: MentorLearningSummary;
+  watchlistReview: MentorWatchlistReview;
+  portfolioReview: MentorPortfolioReview;
+  decisionEngineReview: MentorDecisionEngineReview;
+  opportunityDiscoveryReview: MentorOpportunityDiscoveryReview;
+  generatedAt: string;
+}
+
+export type ReportTypeMetaReportType = typeof ReportTypeMetaReportType[keyof typeof ReportTypeMetaReportType];
+
+
+export const ReportTypeMetaReportType = {
+  'investment-committee': 'investment-committee',
+  'company-research': 'company-research',
+  'portfolio-review': 'portfolio-review',
+  'portfolio-health': 'portfolio-health',
+  watchlist: 'watchlist',
+  'opportunity-discovery': 'opportunity-discovery',
+  'monitoring-summary': 'monitoring-summary',
+  'ai-coach-summary': 'ai-coach-summary',
+  'executive-summary': 'executive-summary',
+  'trade-planning-summary': 'trade-planning-summary',
+  'strategy-framework-summary': 'strategy-framework-summary',
+  'trading-analytics-summary': 'trading-analytics-summary',
+  'executive-intelligence-summary': 'executive-intelligence-summary',
+  'options-income-summary': 'options-income-summary',
+  'options-portfolio-review': 'options-portfolio-review',
+  'position-lifecycle-summary': 'position-lifecycle-summary',
+  'risk-exposure-summary': 'risk-exposure-summary',
+  'portfolio-concentration-report': 'portfolio-concentration-report',
+  'performance-summary': 'performance-summary',
+  'performance-attribution-report': 'performance-attribution-report',
+  'scenario-analysis-report': 'scenario-analysis-report',
+  'stress-test-report': 'stress-test-report',
+  'executive-decision-summary': 'executive-decision-summary',
+  'institutional-health-report': 'institutional-health-report',
+  'portfolio-allocation-report': 'portfolio-allocation-report',
+  'rebalancing-planning-report': 'rebalancing-planning-report',
+  'compliance-report': 'compliance-report',
+  'policy-monitoring-report': 'policy-monitoring-report',
+  'watchlist-summary-report': 'watchlist-summary-report',
+  'opportunity-dashboard-report': 'opportunity-dashboard-report',
+  'portfolio-workspace-summary': 'portfolio-workspace-summary',
+  'institutional-review-report': 'institutional-review-report',
+} as const;
+
+export interface ReportTypeMeta {
+  reportType: ReportTypeMetaReportType;
+  label: string;
+  description: string;
+  requiresSymbol: boolean;
+  requiresPortfolio: boolean;
+}
+
+export type InstitutionalReportReportType = typeof InstitutionalReportReportType[keyof typeof InstitutionalReportReportType];
+
+
+export const InstitutionalReportReportType = {
+  'investment-committee': 'investment-committee',
+  'company-research': 'company-research',
+  'portfolio-review': 'portfolio-review',
+  'portfolio-health': 'portfolio-health',
+  watchlist: 'watchlist',
+  'opportunity-discovery': 'opportunity-discovery',
+  'monitoring-summary': 'monitoring-summary',
+  'ai-coach-summary': 'ai-coach-summary',
+  'executive-summary': 'executive-summary',
+  'trade-planning-summary': 'trade-planning-summary',
+  'strategy-framework-summary': 'strategy-framework-summary',
+  'trading-analytics-summary': 'trading-analytics-summary',
+  'executive-intelligence-summary': 'executive-intelligence-summary',
+  'options-income-summary': 'options-income-summary',
+  'options-portfolio-review': 'options-portfolio-review',
+  'position-lifecycle-summary': 'position-lifecycle-summary',
+  'risk-exposure-summary': 'risk-exposure-summary',
+  'portfolio-concentration-report': 'portfolio-concentration-report',
+  'performance-summary': 'performance-summary',
+  'performance-attribution-report': 'performance-attribution-report',
+  'scenario-analysis-report': 'scenario-analysis-report',
+  'stress-test-report': 'stress-test-report',
+  'executive-decision-summary': 'executive-decision-summary',
+  'institutional-health-report': 'institutional-health-report',
+  'portfolio-allocation-report': 'portfolio-allocation-report',
+  'rebalancing-planning-report': 'rebalancing-planning-report',
+  'compliance-report': 'compliance-report',
+  'policy-monitoring-report': 'policy-monitoring-report',
+  'watchlist-summary-report': 'watchlist-summary-report',
+  'opportunity-dashboard-report': 'opportunity-dashboard-report',
+  'portfolio-workspace-summary': 'portfolio-workspace-summary',
+  'institutional-review-report': 'institutional-review-report',
+} as const;
+
+export interface InstitutionalReport {
+  reportType: InstitutionalReportReportType;
+  title: string;
+  subtitle: string;
+  symbol: string | null;
+  portfolioId: number | null;
+  generatedAt: string;
+  dataSource: string;
+  sections: ValueReportSection[];
+  disclaimer: string;
+}
+
+export type SaveInstitutionalReportInputReportType = typeof SaveInstitutionalReportInputReportType[keyof typeof SaveInstitutionalReportInputReportType];
+
+
+export const SaveInstitutionalReportInputReportType = {
+  'investment-committee': 'investment-committee',
+  'company-research': 'company-research',
+  'portfolio-review': 'portfolio-review',
+  'portfolio-health': 'portfolio-health',
+  watchlist: 'watchlist',
+  'opportunity-discovery': 'opportunity-discovery',
+  'monitoring-summary': 'monitoring-summary',
+  'ai-coach-summary': 'ai-coach-summary',
+  'executive-summary': 'executive-summary',
+  'trade-planning-summary': 'trade-planning-summary',
+  'strategy-framework-summary': 'strategy-framework-summary',
+  'trading-analytics-summary': 'trading-analytics-summary',
+  'executive-intelligence-summary': 'executive-intelligence-summary',
+  'options-income-summary': 'options-income-summary',
+  'options-portfolio-review': 'options-portfolio-review',
+  'position-lifecycle-summary': 'position-lifecycle-summary',
+  'risk-exposure-summary': 'risk-exposure-summary',
+  'portfolio-concentration-report': 'portfolio-concentration-report',
+  'performance-summary': 'performance-summary',
+  'performance-attribution-report': 'performance-attribution-report',
+  'scenario-analysis-report': 'scenario-analysis-report',
+  'stress-test-report': 'stress-test-report',
+  'executive-decision-summary': 'executive-decision-summary',
+  'institutional-health-report': 'institutional-health-report',
+  'portfolio-allocation-report': 'portfolio-allocation-report',
+  'rebalancing-planning-report': 'rebalancing-planning-report',
+  'compliance-report': 'compliance-report',
+  'policy-monitoring-report': 'policy-monitoring-report',
+  'watchlist-summary-report': 'watchlist-summary-report',
+  'opportunity-dashboard-report': 'opportunity-dashboard-report',
+  'portfolio-workspace-summary': 'portfolio-workspace-summary',
+  'institutional-review-report': 'institutional-review-report',
+} as const;
+
+export interface SaveInstitutionalReportInput {
+  reportType: SaveInstitutionalReportInputReportType;
+  symbol?: string;
+  portfolioId?: number;
+}
+
+export interface SavedInstitutionalReport {
+  id: number;
+  reportType: string;
+  title: string;
+  symbol: string | null;
+  portfolioId: number | null;
+  dataSource: string;
+  createdAt: string;
+  report: InstitutionalReport;
+}
+
+export interface InstitutionalReportListItem {
+  id: number;
+  reportType: string;
+  title: string;
+  symbol: string | null;
+  portfolioId: number | null;
+  dataSource: string;
+  createdAt: string;
+}
+
+export interface TradingAnalyticsOverview {
+  tradesReviewed: number;
+  plansCreated: number;
+  journalEntries: number;
+  workspaceNotes: number;
+  strategiesRegistered: number;
+  checklistInstances: number;
+  generatedAt: string;
+}
+
+export interface TradingAnalyticsEvidenceTally {
+  structure: number;
+  liquidity: number;
+  session: number;
+  risk: number;
+  'trade-plan': number;
+  journal: number;
+  coach: number;
+}
+
+export interface TradingStrategyUsageAnalytics {
+  strategiesRegistered: number;
+  checklistInstances: number;
+  checklistsComplete: number;
+  checklistsInProgress: number;
+  overallChecklistCompletionPct: number;
+  requiredEvidenceByType: TradingAnalyticsEvidenceTally;
+  evidenceLinksAttachedByType: TradingAnalyticsEvidenceTally;
+}
+
+export interface TradingAnalyticsRMultipleBucket {
+  label: string;
+  /** @nullable */
+  min: number | null;
+  /** @nullable */
+  max: number | null;
+  count: number;
+}
+
+export type TradingJournalAnalyticsMoodTally = {[key: string]: number};
+
+export type TradingJournalAnalyticsSetupTypeTally = {[key: string]: number};
+
+export interface TradingJournalAnalytics {
+  entryCount: number;
+  moodTally: TradingJournalAnalyticsMoodTally;
+  setupTypeTally: TradingJournalAnalyticsSetupTypeTally;
+  lessonRecordedCount: number;
+  lessonRecordedPct: number;
+  rMultipleEntriesCount: number;
+  /** @nullable */
+  averageRMultiple: number | null;
+  rMultipleDistribution: TradingAnalyticsRMultipleBucket[];
+}
+
+export interface TradingRiskAnalyticsSummary {
+  plansWithRiskParams: number;
+  /** @nullable */
+  averageAccountRiskPct: number | null;
+  riskRewardDistribution: TradingAnalyticsRMultipleBucket[];
+  /** @nullable */
+  averageRiskRewardRatio: number | null;
+  positionsWithBothStopAndTarget: number;
+  positionsWithNeitherStopNorTarget: number;
+  openPositionsCount: number;
+  stopTargetDisciplinePct: number;
+}
+
+export interface TradingAnalyticsWeakTopicPath {
+  pathKey: string;
+  title: string;
+  percentComplete: number;
+}
+
+export interface TradingLearningAnalytics {
+  lessonsViewed: number;
+  lessonsCompleted: number;
+  glossaryTermsViewed: number;
+  strategiesViewed: number;
+  coachesViewed: number;
+  totalTopics: number;
+  completedTopics: number;
+  remainingTopics: number;
+  weakestPaths: TradingAnalyticsWeakTopicPath[];
+}
+
+export type TradingCoachUsageRowCoach = typeof TradingCoachUsageRowCoach[keyof typeof TradingCoachUsageRowCoach];
+
+
+export const TradingCoachUsageRowCoach = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  scenario: 'scenario',
+  psychology: 'psychology',
+  strategy: 'strategy',
+} as const;
+
+export interface TradingCoachUsageRow {
+  coach: TradingCoachUsageRowCoach;
+  label: string;
+  viewCount: number;
+}
+
+/**
+ * @nullable
+ */
+export type TradingCoachAnalyticsMostRecentCoach = typeof TradingCoachAnalyticsMostRecentCoach[keyof typeof TradingCoachAnalyticsMostRecentCoach] | null;
+
+
+export const TradingCoachAnalyticsMostRecentCoach = {
+  structure: 'structure',
+  liquidity: 'liquidity',
+  session: 'session',
+  risk: 'risk',
+  'trade-plan': 'trade-plan',
+  journal: 'journal',
+  scenario: 'scenario',
+  psychology: 'psychology',
+  strategy: 'strategy',
+} as const;
+
+export interface TradingCoachAnalytics {
+  totalCoachViews: number;
+  byType: TradingCoachUsageRow[];
+  /** @nullable */
+  mostRecentCoach: TradingCoachAnalyticsMostRecentCoach;
+  /** @nullable */
+  mostRecentScope: string | null;
+  /** @nullable */
+  mostRecentViewedAt: string | null;
+}
+
+export type TradingSessionActivityRowLabel = typeof TradingSessionActivityRowLabel[keyof typeof TradingSessionActivityRowLabel];
+
+
+export const TradingSessionActivityRowLabel = {
+  Asia: 'Asia',
+  London: 'London',
+  New_York: 'New York',
+  Overlap: 'Overlap',
+} as const;
+
+export interface TradingSessionActivityRow {
+  label: TradingSessionActivityRowLabel;
+  count: number;
+}
+
+export interface TradingAnalyticsRawSessionCounts {
+  sydney: number;
+  tokyo: number;
+  london: number;
+  new_york: number;
+}
+
+export interface TradingSessionAnalytics {
+  totalClassified: number;
+  activity: TradingSessionActivityRow[];
+  rawSessionCounts: TradingAnalyticsRawSessionCounts;
+}
+
+export interface TradingEngineUsageAnalytics {
+  coachViewCount: number;
+  strategiesRequiringAsEvidence: number;
+  evidenceLinksAttached: number;
+}
+
+export interface TradingChecklistAnalyticsRow {
+  strategyId: number;
+  strategyName: string;
+  instanceCount: number;
+  completeCount: number;
+  averagePercentComplete: number;
+}
+
+export interface TradingChecklistAnalytics {
+  totalInstances: number;
+  totalComplete: number;
+  totalInProgress: number;
+  overallCompletionPct: number;
+  byStrategy: TradingChecklistAnalyticsRow[];
+}
+
+export interface TradingAnalyticsDashboard {
+  overview: TradingAnalyticsOverview;
+  strategyUsage: TradingStrategyUsageAnalytics;
+  journal: TradingJournalAnalytics;
+  risk: TradingRiskAnalyticsSummary;
+  learning: TradingLearningAnalytics;
+  coach: TradingCoachAnalytics;
+  session: TradingSessionAnalytics;
+  structure: TradingEngineUsageAnalytics;
+  liquidity: TradingEngineUsageAnalytics;
+  checklist: TradingChecklistAnalytics;
+}
+
+export interface InvestingAnalyticsOverview {
+  portfoliosCreated: number;
+  holdingsTracked: number;
+  researchNotesWritten: number;
+  watchlistItems: number;
+  committeeSnapshotsSaved: number;
+  riskSnapshotsSaved: number;
+  optimisationReviewsSaved: number;
+  savedScreens: number;
+  generatedAt: string;
+}
+
+export interface InvestingPortfolioAnalytics {
+  portfolioCount: number;
+  totalHoldings: number;
+  averageHoldingsPerPortfolio: number;
+  distinctSymbolsHeld: number;
+}
+
+export interface InvestingResearchAnalytics {
+  noteCount: number;
+  distinctSymbolsResearched: number;
+  /** @nullable */
+  mostRecentNoteAt: string | null;
+}
+
+export type InvestingWatchlistAnalyticsCategoryTally = {[key: string]: number};
+
+export type InvestingWatchlistAnalyticsDecisionTally = {[key: string]: number};
+
+export interface InvestingWatchlistAnalytics {
+  itemCount: number;
+  categoryTally: InvestingWatchlistAnalyticsCategoryTally;
+  decisionTally: InvestingWatchlistAnalyticsDecisionTally;
+}
+
+export type InvestingCommitteeAnalyticsRecommendationTally = {[key: string]: number};
+
+export interface InvestingCommitteeAnalytics {
+  snapshotCount: number;
+  recommendationTally: InvestingCommitteeAnalyticsRecommendationTally;
+  /** @nullable */
+  mostRecentSymbol: string | null;
+  /** @nullable */
+  mostRecentRecommendation: string | null;
+  /** @nullable */
+  mostRecentConfidence: number | null;
+  /** @nullable */
+  mostRecentSavedAt: string | null;
+}
+
+export interface InvestingRiskAnalyticsSummary {
+  snapshotCount: number;
+  /** @nullable */
+  mostRecentOverallScore: number | null;
+  /** @nullable */
+  averageOverallScore: number | null;
+  /** @nullable */
+  mostRecentSavedAt: string | null;
+}
+
+export type InvestingOptimisationAnalyticsActionTally = {[key: string]: number};
+
+export interface InvestingOptimisationAnalytics {
+  reviewCount: number;
+  actionTally: InvestingOptimisationAnalyticsActionTally;
+  /** @nullable */
+  mostRecentAction: string | null;
+  /** @nullable */
+  mostRecentSavedAt: string | null;
+}
+
+export type InvestingCoachUsageRowCoach = typeof InvestingCoachUsageRowCoach[keyof typeof InvestingCoachUsageRowCoach];
+
+
+export const InvestingCoachUsageRowCoach = {
+  investment: 'investment',
+  portfolio: 'portfolio',
+  decision: 'decision',
+  valuation: 'valuation',
+  risk: 'risk',
+  research: 'research',
+  monitoring: 'monitoring',
+  committee: 'committee',
+} as const;
+
+export interface InvestingCoachUsageRow {
+  coach: InvestingCoachUsageRowCoach;
+  label: string;
+  viewCount: number;
+}
+
+/**
+ * @nullable
+ */
+export type InvestingCoachAnalyticsMostRecentCoach = typeof InvestingCoachAnalyticsMostRecentCoach[keyof typeof InvestingCoachAnalyticsMostRecentCoach] | null;
+
+
+export const InvestingCoachAnalyticsMostRecentCoach = {
+  investment: 'investment',
+  portfolio: 'portfolio',
+  decision: 'decision',
+  valuation: 'valuation',
+  risk: 'risk',
+  research: 'research',
+  monitoring: 'monitoring',
+  committee: 'committee',
+} as const;
+
+export interface InvestingCoachAnalytics {
+  totalCoachViews: number;
+  byType: InvestingCoachUsageRow[];
+  /** @nullable */
+  mostRecentCoach: InvestingCoachAnalyticsMostRecentCoach;
+  /** @nullable */
+  mostRecentScope: string | null;
+  /** @nullable */
+  mostRecentViewedAt: string | null;
+}
+
+export interface InvestingAnalyticsDashboard {
+  overview: InvestingAnalyticsOverview;
+  portfolio: InvestingPortfolioAnalytics;
+  research: InvestingResearchAnalytics;
+  watchlist: InvestingWatchlistAnalytics;
+  committee: InvestingCommitteeAnalytics;
+  risk: InvestingRiskAnalyticsSummary;
+  optimisation: InvestingOptimisationAnalytics;
+  coach: InvestingCoachAnalytics;
+}
+
+export interface ExecutiveOverview {
+  portfoliosCreated: number;
+  holdingsTracked: number;
+  researchNotesWritten: number;
+  watchlistItems: number;
+  committeeSnapshotsSaved: number;
+  tradesReviewed: number;
+  tradePlansCreated: number;
+  journalEntries: number;
+  strategiesRegistered: number;
+  checklistInstances: number;
+  learningTopicsCompleted: number;
+  learningTopicsTotal: number;
+  totalCoachViews: number;
+  reportsGenerated: number;
+  reportCategoriesUsed: number;
+  generatedAt: string;
+  summary: string;
+}
+
+export interface ExecutiveRiskSummary {
+  investingRiskSnapshotsSaved: number;
+  /** @nullable */
+  investingMostRecentRiskScore: number | null;
+  tradingOpenPositionsCount: number;
+  tradingStopTargetDisciplinePct: number;
+}
+
+/**
+ * @nullable
+ */
+export type ExecutiveCoachSummaryMostRecentEngine = typeof ExecutiveCoachSummaryMostRecentEngine[keyof typeof ExecutiveCoachSummaryMostRecentEngine] | null;
+
+
+export const ExecutiveCoachSummaryMostRecentEngine = {
+  investing: 'investing',
+  trading: 'trading',
+} as const;
+
+export interface ExecutiveCoachSummary {
+  investingCoachViews: number;
+  tradingCoachViews: number;
+  totalCoachViews: number;
+  /** @nullable */
+  mostRecentEngine: ExecutiveCoachSummaryMostRecentEngine;
+  /** @nullable */
+  mostRecentCoach: string | null;
+  /** @nullable */
+  mostRecentViewedAt: string | null;
+}
+
+export interface ExecutiveReportingSummaryTypeRow {
+  reportType: string;
+  count: number;
+}
+
+export interface ExecutiveRecentReportRef {
+  id: number;
+  reportType: string;
+  title: string;
+  createdAt: string;
+}
+
+export interface ExecutiveReportingSummary {
+  totalReports: number;
+  distinctReportTypesUsed: number;
+  byType: ExecutiveReportingSummaryTypeRow[];
+  recentReports: ExecutiveRecentReportRef[];
+}
+
+export type ExecutiveActivityEntryType = typeof ExecutiveActivityEntryType[keyof typeof ExecutiveActivityEntryType];
+
+
+export const ExecutiveActivityEntryType = {
+  'journal-entry': 'journal-entry',
+  'committee-snapshot': 'committee-snapshot',
+  'risk-snapshot': 'risk-snapshot',
+  'optimisation-review': 'optimisation-review',
+  'research-note': 'research-note',
+  'report-generated': 'report-generated',
+  notification: 'notification',
+} as const;
+
+export type ExecutiveActivityEntryEngine = typeof ExecutiveActivityEntryEngine[keyof typeof ExecutiveActivityEntryEngine];
+
+
+export const ExecutiveActivityEntryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  platform: 'platform',
+} as const;
+
+export interface ExecutiveActivityEntry {
+  type: ExecutiveActivityEntryType;
+  engine: ExecutiveActivityEntryEngine;
+  label: string;
+  detail: string;
+  occurredAt: string;
+  /** @nullable */
+  symbol: string | null;
+  /** @nullable */
+  linkPath: string | null;
+}
+
+export interface ExecutiveIntelligenceHub {
+  overview: ExecutiveOverview;
+  investing: InvestingAnalyticsDashboard;
+  trading: TradingAnalyticsDashboard;
+  strategy: TradingStrategyUsageAnalytics;
+  portfolio: InvestingPortfolioAnalytics;
+  risk: ExecutiveRiskSummary;
+  learning: TradingLearningAnalytics;
+  coach: ExecutiveCoachSummary;
+  reporting: ExecutiveReportingSummary;
+  activity: ExecutiveActivityEntry[];
+}
+
+export type WorkspaceActivityEntryType = typeof WorkspaceActivityEntryType[keyof typeof WorkspaceActivityEntryType];
+
+
+export const WorkspaceActivityEntryType = {
+  'journal-entry': 'journal-entry',
+  'committee-snapshot': 'committee-snapshot',
+  'risk-snapshot': 'risk-snapshot',
+  'optimisation-review': 'optimisation-review',
+  'research-note': 'research-note',
+  'report-generated': 'report-generated',
+  notification: 'notification',
+  'trade-plan-created': 'trade-plan-created',
+  'strategy-registered': 'strategy-registered',
+  'learning-topic-completed': 'learning-topic-completed',
+} as const;
+
+export type WorkspaceActivityEntryEngine = typeof WorkspaceActivityEntryEngine[keyof typeof WorkspaceActivityEntryEngine];
+
+
+export const WorkspaceActivityEntryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  platform: 'platform',
+} as const;
+
+export interface WorkspaceActivityEntry {
+  type: WorkspaceActivityEntryType;
+  engine: WorkspaceActivityEntryEngine;
+  label: string;
+  detail: string;
+  occurredAt: string;
+  /** @nullable */
+  symbol: string | null;
+  /** @nullable */
+  linkPath: string | null;
+}
+
+export type WorkspaceRecentItemCategory = typeof WorkspaceRecentItemCategory[keyof typeof WorkspaceRecentItemCategory];
+
+
+export const WorkspaceRecentItemCategory = {
+  portfolio: 'portfolio',
+  holding: 'holding',
+  'research-note': 'research-note',
+  'committee-snapshot': 'committee-snapshot',
+  'trade-plan': 'trade-plan',
+  'trading-journal': 'trading-journal',
+  strategy: 'strategy',
+  report: 'report',
+  'learning-topic': 'learning-topic',
+} as const;
+
+export interface WorkspaceRecentItem {
+  category: WorkspaceRecentItemCategory;
+  label: string;
+  detail: string;
+  occurredAt: string;
+  linkPath: string;
+}
+
+export type WorkspaceTaskCode = typeof WorkspaceTaskCode[keyof typeof WorkspaceTaskCode];
+
+
+export const WorkspaceTaskCode = {
+  'unread-notifications': 'unread-notifications',
+  'positions-missing-stop-or-target': 'positions-missing-stop-or-target',
+  'portfolios-without-holdings': 'portfolios-without-holdings',
+  'strategy-checklists-in-progress': 'strategy-checklists-in-progress',
+} as const;
+
+export interface WorkspaceTask {
+  code: WorkspaceTaskCode;
+  label: string;
+  count: number;
+  linkPath: string;
+}
+
+export interface CrossEngineWorkspaceOverview {
+  intelligence: ExecutiveIntelligenceHub;
+  recentActivity: WorkspaceActivityEntry[];
+  recentItems: WorkspaceRecentItem[];
+  tasks: WorkspaceTask[];
+  generatedAt: string;
+}
+
+export type CrossEngineWorkspaceSearchResultItemCategory = typeof CrossEngineWorkspaceSearchResultItemCategory[keyof typeof CrossEngineWorkspaceSearchResultItemCategory];
+
+
+export const CrossEngineWorkspaceSearchResultItemCategory = {
+  portfolio: 'portfolio',
+  holding: 'holding',
+  'research-note': 'research-note',
+  'committee-snapshot': 'committee-snapshot',
+  'trade-plan': 'trade-plan',
+  'trading-journal': 'trading-journal',
+  strategy: 'strategy',
+  report: 'report',
+  'learning-topic': 'learning-topic',
+} as const;
+
+export interface CrossEngineWorkspaceSearchResultItem {
+  category: CrossEngineWorkspaceSearchResultItemCategory;
+  id: string;
+  label: string;
+  detail: string;
+  /** @nullable */
+  occurredAt: string | null;
+  linkPath: string;
+}
+
+export interface CrossEngineWorkspaceSearchResult {
+  query: string;
+  results: CrossEngineWorkspaceSearchResultItem[];
+  totalMatches: number;
+}
+
+export interface OptionsIncomePositionNotesInput {
+  /** @nullable */
+  notes: string | null;
+}
+
+export interface OptionsPositionGreeks {
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}
+
+export type OptionsIncomePositionLifecycle = typeof OptionsIncomePositionLifecycle[keyof typeof OptionsIncomePositionLifecycle];
+
+
+export const OptionsIncomePositionLifecycle = {
+  open: 'open',
+  closed_expired: 'closed_expired',
+  closed_assigned: 'closed_assigned',
+  closed_rolled: 'closed_rolled',
+  closed_manual: 'closed_manual',
+  cancelled: 'cancelled',
+  rejected: 'rejected',
+  unknown: 'unknown',
+} as const;
+
+export interface OptionsIncomePosition {
+  id: number;
+  underlying: string;
+  strategy: string;
+  /** @nullable */
+  strategyLabel: string | null;
+  /** @nullable */
+  expiration: string | null;
+  premium: number;
+  collateral: number;
+  greeks: OptionsPositionGreeks;
+  status: string;
+  lifecycle: OptionsIncomePositionLifecycle;
+  /** @nullable */
+  notes: string | null;
+  openDate: string;
+  /** @nullable */
+  closeDate: string | null;
+  /** @nullable */
+  realizedPnl: number | null;
+}
+
+export interface OptionsIncomeOverview {
+  openPositionsCount: number;
+  closedPositionsCount: number;
+  totalCreditCollectedOpen: number;
+  totalRealizedPremium: number;
+  totalCapitalAllocated: number;
+  theta: ThetaIncome;
+  generatedAt: string;
+}
+
+export interface OptionsStrategyMixEntry {
+  strategy: string;
+  /** @nullable */
+  strategyLabel: string | null;
+  positionCount: number;
+  capitalAllocated: number;
+}
+
+export interface OptionsUpcomingExpirationPosition {
+  id: number;
+  symbol: string;
+  strategy: string;
+  credit: number;
+}
+
+export interface OptionsUpcomingExpirationGroup {
+  expiration: string;
+  daysToExpiry: number;
+  positions: OptionsUpcomingExpirationPosition[];
+}
+
+export interface OptionsIncomeDashboard {
+  overview: OptionsIncomeOverview;
+  strategyMix: OptionsStrategyMixEntry[];
+  upcomingExpirations: OptionsUpcomingExpirationGroup[];
+  generatedAt: string;
+}
+
+export type OptionsStrategyTemplateKey = typeof OptionsStrategyTemplateKey[keyof typeof OptionsStrategyTemplateKey];
+
+
+export const OptionsStrategyTemplateKey = {
+  covered_call: 'covered_call',
+  cash_secured_put: 'cash_secured_put',
+  wheel: 'wheel',
+  iron_condor: 'iron_condor',
+  iron_fly: 'iron_fly',
+  calendar: 'calendar',
+  diagonal: 'diagonal',
+  vertical_credit: 'vertical_credit',
+  vertical_debit: 'vertical_debit',
+} as const;
+
+export type OptionsStrategyTemplateIncomeType = typeof OptionsStrategyTemplateIncomeType[keyof typeof OptionsStrategyTemplateIncomeType];
+
+
+export const OptionsStrategyTemplateIncomeType = {
+  credit: 'credit',
+  debit: 'debit',
+} as const;
+
+export type OptionsStrategyTemplateCollateralType = typeof OptionsStrategyTemplateCollateralType[keyof typeof OptionsStrategyTemplateCollateralType];
+
+
+export const OptionsStrategyTemplateCollateralType = {
+  stock: 'stock',
+  cash: 'cash',
+  margin: 'margin',
+  defined_risk: 'defined_risk',
+  debit: 'debit',
+} as const;
+
+export interface OptionsStrategyTemplate {
+  key: OptionsStrategyTemplateKey;
+  label: string;
+  legCount: number;
+  incomeType: OptionsStrategyTemplateIncomeType;
+  collateralType: OptionsStrategyTemplateCollateralType;
+  collateralNote: string;
+  builtByThisEngine: boolean;
+  summary: string;
+  idealMarket: string;
+  assignmentRisk: string;
+  /** @nullable */
+  executionStrategyKey: string | null;
+}
+
+export type OptionsLifecycleStateStage = typeof OptionsLifecycleStateStage[keyof typeof OptionsLifecycleStateStage];
+
+
+export const OptionsLifecycleStateStage = {
+  draft: 'draft',
+  planned: 'planned',
+  open: 'open',
+  monitoring: 'monitoring',
+  near_expiration: 'near_expiration',
+  assignment_risk: 'assignment_risk',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export type OptionsLifecycleStateReviewCadence = typeof OptionsLifecycleStateReviewCadence[keyof typeof OptionsLifecycleStateReviewCadence];
+
+
+export const OptionsLifecycleStateReviewCadence = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  expiration: 'expiration',
+  manual: 'manual',
+} as const;
+
+export interface OptionsLifecycleState {
+  id: number;
+  tradeId: number;
+  stage: OptionsLifecycleStateStage;
+  reviewCadence: OptionsLifecycleStateReviewCadence;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OptionsLifecycleStateUpdateInputStage = typeof OptionsLifecycleStateUpdateInputStage[keyof typeof OptionsLifecycleStateUpdateInputStage];
+
+
+export const OptionsLifecycleStateUpdateInputStage = {
+  draft: 'draft',
+  planned: 'planned',
+  open: 'open',
+  monitoring: 'monitoring',
+  near_expiration: 'near_expiration',
+  assignment_risk: 'assignment_risk',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export type OptionsLifecycleStateUpdateInputReviewCadence = typeof OptionsLifecycleStateUpdateInputReviewCadence[keyof typeof OptionsLifecycleStateUpdateInputReviewCadence];
+
+
+export const OptionsLifecycleStateUpdateInputReviewCadence = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  expiration: 'expiration',
+  manual: 'manual',
+} as const;
+
+export interface OptionsLifecycleStateUpdateInput {
+  stage?: OptionsLifecycleStateUpdateInputStage;
+  reviewCadence?: OptionsLifecycleStateUpdateInputReviewCadence;
+}
+
+export type OptionsLifecycleEventEventType = typeof OptionsLifecycleEventEventType[keyof typeof OptionsLifecycleEventEventType];
+
+
+export const OptionsLifecycleEventEventType = {
+  stage_change: 'stage_change',
+  review: 'review',
+  adjustment_note: 'adjustment_note',
+  assignment_note: 'assignment_note',
+} as const;
+
+export interface OptionsLifecycleEvent {
+  id: number;
+  tradeId: number;
+  eventType: OptionsLifecycleEventEventType;
+  /** @nullable */
+  stage: string | null;
+  /** @nullable */
+  reviewType: string | null;
+  detail: string;
+  createdAt: string;
+}
+
+export type OptionsLifecycleEventInputEventType = typeof OptionsLifecycleEventInputEventType[keyof typeof OptionsLifecycleEventInputEventType];
+
+
+export const OptionsLifecycleEventInputEventType = {
+  review: 'review',
+  adjustment_note: 'adjustment_note',
+  assignment_note: 'assignment_note',
+} as const;
+
+export type OptionsLifecycleEventInputReviewType = typeof OptionsLifecycleEventInputReviewType[keyof typeof OptionsLifecycleEventInputReviewType];
+
+
+export const OptionsLifecycleEventInputReviewType = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  expiration: 'expiration',
+  manual: 'manual',
+} as const;
+
+export interface OptionsLifecycleEventInput {
+  eventType: OptionsLifecycleEventInputEventType;
+  reviewType?: OptionsLifecycleEventInputReviewType;
+  detail: string;
+}
+
+export interface OptionsPositionChecklistItem {
+  id: string;
+  label: string;
+  required: boolean;
+  checked: boolean;
+}
+
+export interface OptionsPositionChecklist {
+  id: number;
+  tradeId: number;
+  strategyKey: string;
+  items: OptionsPositionChecklistItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OptionsChecklistToggleInput {
+  itemId: string;
+  checked: boolean;
+}
+
+export type OptionsLifecycleCoachExplanationTopic = typeof OptionsLifecycleCoachExplanationTopic[keyof typeof OptionsLifecycleCoachExplanationTopic];
+
+
+export const OptionsLifecycleCoachExplanationTopic = {
+  lifecycle_stages: 'lifecycle_stages',
+  review_process: 'review_process',
+  assignment_mechanics: 'assignment_mechanics',
+  capital_allocation: 'capital_allocation',
+  portfolio_concentration: 'portfolio_concentration',
+} as const;
+
+export interface OptionsLifecycleCoachExplanation {
+  topic: OptionsLifecycleCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export type OptionsLifecycleLearningLinkCategory = typeof OptionsLifecycleLearningLinkCategory[keyof typeof OptionsLifecycleLearningLinkCategory];
+
+
+export const OptionsLifecycleLearningLinkCategory = {
+  lesson: 'lesson',
+  strategy: 'strategy',
+  risk: 'risk',
+  assignment: 'assignment',
+} as const;
+
+export interface OptionsLifecycleLearningLink {
+  pathKey: string;
+  topicKey: string;
+  category: OptionsLifecycleLearningLinkCategory;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type OptionsLifecycleStageLearningStage = typeof OptionsLifecycleStageLearningStage[keyof typeof OptionsLifecycleStageLearningStage];
+
+
+export const OptionsLifecycleStageLearningStage = {
+  draft: 'draft',
+  planned: 'planned',
+  open: 'open',
+  monitoring: 'monitoring',
+  near_expiration: 'near_expiration',
+  assignment_risk: 'assignment_risk',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export interface OptionsLifecycleStageLearning {
+  stage: OptionsLifecycleStageLearningStage;
+  links: OptionsLifecycleLearningLink[];
+}
+
+export type OptionsLifecycleSummaryEntryStage = typeof OptionsLifecycleSummaryEntryStage[keyof typeof OptionsLifecycleSummaryEntryStage];
+
+
+export const OptionsLifecycleSummaryEntryStage = {
+  draft: 'draft',
+  planned: 'planned',
+  open: 'open',
+  monitoring: 'monitoring',
+  near_expiration: 'near_expiration',
+  assignment_risk: 'assignment_risk',
+  closed: 'closed',
+  archived: 'archived',
+} as const;
+
+export interface OptionsLifecycleSummaryEntry {
+  stage: OptionsLifecycleSummaryEntryStage;
+  count: number;
+}
+
+export interface OptionsLifecycleSummary {
+  totalPositions: number;
+  byStage: OptionsLifecycleSummaryEntry[];
+  positionsAwaitingReview: number;
+}
+
+export interface OptionsExposureTimelineStrategyCount {
+  strategy: string;
+  count: number;
+}
+
+export interface OptionsExposureTimelinePoint {
+  monthEnd: string;
+  openPositionsCount: number;
+  byStrategy: OptionsExposureTimelineStrategyCount[];
+}
+
+export interface OptionsPortfolioIncomeAllocation {
+  bySymbol: ThetaBreakdown[];
+  byStrategy: ThetaBreakdown[];
+  strategyMix: OptionsStrategyMixEntry[];
+}
+
+export interface OptionsPortfolioCapitalUtilisation {
+  portfolioValue: number;
+  totalRiskDollars: number;
+  totalRiskPct: number;
+}
+
+export interface OptionsPortfolioBuyingPowerAllocation {
+  buyingPower: number;
+}
+
+export interface OptionsPortfolioManagementView {
+  positionConcentration: ConcentrationBucket[];
+  strategyAllocation: ConcentrationBucket[];
+  sectorAllocation: ConcentrationBucket[];
+  expirationLadder: ConcentrationBucket[];
+  capitalUtilisation: OptionsPortfolioCapitalUtilisation;
+  buyingPowerAllocation: OptionsPortfolioBuyingPowerAllocation;
+  incomeAllocation: OptionsPortfolioIncomeAllocation;
+  expirationTracker: OptionsUpcomingExpirationGroup[];
+  exposureTimeline: OptionsExposureTimelinePoint[];
+  lifecycleSummary: OptionsLifecycleSummary;
+  generatedAt: string;
+}
+
+export interface RiskExposureSymbolAllocation {
+  symbol: string;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  weightPct: number | null;
+}
+
+export interface RiskExposureInvestingView {
+  portfolioCount: number;
+  holdingsCount: number;
+  risk: ConstructionPortfolioRiskAnalysis;
+  allocationBySymbol: RiskExposureSymbolAllocation[];
+}
+
+export interface RiskExposureTradingView {
+  openPositionsCount: number;
+  /** @nullable */
+  accountValue: number | null;
+  risk: TradingRiskAnalysis;
+}
+
+export interface RiskExposureOptionsView {
+  dashboard: PortfolioDashboardResult;
+  portfolioManagement: OptionsPortfolioManagementView;
+}
+
+export type RiskExposureCapitalAllocationEntryEngine = typeof RiskExposureCapitalAllocationEntryEngine[keyof typeof RiskExposureCapitalAllocationEntryEngine];
+
+
+export const RiskExposureCapitalAllocationEntryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface RiskExposureCapitalAllocationEntry {
+  engine: RiskExposureCapitalAllocationEntryEngine;
+  label: string;
+  /** @nullable */
+  value: number | null;
+}
+
+export type RiskExposureBuyingPowerEntryEngine = typeof RiskExposureBuyingPowerEntryEngine[keyof typeof RiskExposureBuyingPowerEntryEngine];
+
+
+export const RiskExposureBuyingPowerEntryEngine = {
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface RiskExposureBuyingPowerEntry {
+  engine: RiskExposureBuyingPowerEntryEngine;
+  label: string;
+  /** @nullable */
+  value: number | null;
+}
+
+export type RiskExposureSectorConcentrationEntryEngine = typeof RiskExposureSectorConcentrationEntryEngine[keyof typeof RiskExposureSectorConcentrationEntryEngine];
+
+
+export const RiskExposureSectorConcentrationEntryEngine = {
+  investing: 'investing',
+  options: 'options',
+} as const;
+
+export interface RiskExposureSectorConcentrationEntry {
+  engine: RiskExposureSectorConcentrationEntryEngine;
+  sector: string;
+  weightPct: number;
+}
+
+export interface RiskExposureStrategyConcentrationEntry {
+  key: string;
+  /** @nullable */
+  label: string | null;
+  positionCount: number;
+  weightPct: number;
+}
+
+export interface RiskExposureAssetAllocationSummary {
+  investingHoldingsCount: number;
+  investingPortfolioCount: number;
+  tradingOpenPositionsCount: number;
+  optionsOpenPositionsCount: number;
+}
+
+export type RiskExposureCrossEngineOverlapEntryEnginesItem = typeof RiskExposureCrossEngineOverlapEntryEnginesItem[keyof typeof RiskExposureCrossEngineOverlapEntryEnginesItem];
+
+
+export const RiskExposureCrossEngineOverlapEntryEnginesItem = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface RiskExposureCrossEngineOverlapEntry {
+  symbol: string;
+  engines: RiskExposureCrossEngineOverlapEntryEnginesItem[];
+}
+
+export interface RiskExposureCorrelationOverview {
+  overlaps: RiskExposureCrossEngineOverlapEntry[];
+  overlapSymbolCount: number;
+  note: string;
+}
+
+export type RiskExposureConcentrationTimelinePointSource = typeof RiskExposureConcentrationTimelinePointSource[keyof typeof RiskExposureConcentrationTimelinePointSource];
+
+
+export const RiskExposureConcentrationTimelinePointSource = {
+  'options-exposure': 'options-exposure',
+  'investing-risk-snapshot': 'investing-risk-snapshot',
+} as const;
+
+export interface RiskExposureConcentrationTimelinePoint {
+  date: string;
+  source: RiskExposureConcentrationTimelinePointSource;
+  detail: string;
+  /** @nullable */
+  value: number | null;
+}
+
+export interface RiskExposureCombinedView {
+  capitalAllocation: RiskExposureCapitalAllocationEntry[];
+  buyingPowerOverview: RiskExposureBuyingPowerEntry[];
+  sectorConcentration: RiskExposureSectorConcentrationEntry[];
+  strategyConcentration: RiskExposureStrategyConcentrationEntry[];
+  assetAllocation: RiskExposureAssetAllocationSummary;
+  greeksSummary: PortfolioGreeksSnapshot;
+  correlationOverview: RiskExposureCorrelationOverview;
+  concentrationTimeline: RiskExposureConcentrationTimelinePoint[];
+}
+
+export interface RiskExposureDashboard {
+  investing: RiskExposureInvestingView;
+  trading: RiskExposureTradingView;
+  options: RiskExposureOptionsView;
+  combined: RiskExposureCombinedView;
+  generatedAt: string;
+}
+
+export type RiskExposureCoachExplanationTopic = typeof RiskExposureCoachExplanationTopic[keyof typeof RiskExposureCoachExplanationTopic];
+
+
+export const RiskExposureCoachExplanationTopic = {
+  risk: 'risk',
+  exposure: 'exposure',
+  diversification: 'diversification',
+  concentration: 'concentration',
+  position_sizing: 'position_sizing',
+  capital_allocation: 'capital_allocation',
+  greeks: 'greeks',
+} as const;
+
+export interface RiskExposureCoachExplanation {
+  topic: RiskExposureCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export type RiskExposureLearningLinkCategory = typeof RiskExposureLearningLinkCategory[keyof typeof RiskExposureLearningLinkCategory];
+
+
+export const RiskExposureLearningLinkCategory = {
+  risk: 'risk',
+  exposure: 'exposure',
+  diversification: 'diversification',
+  concentration: 'concentration',
+  sizing: 'sizing',
+  capital: 'capital',
+  greeks: 'greeks',
+} as const;
+
+export interface RiskExposureLearningLink {
+  pathKey: string;
+  topicKey: string;
+  category: RiskExposureLearningLinkCategory;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type RiskExposureTopicLearningTopic = typeof RiskExposureTopicLearningTopic[keyof typeof RiskExposureTopicLearningTopic];
+
+
+export const RiskExposureTopicLearningTopic = {
+  risk: 'risk',
+  exposure: 'exposure',
+  diversification: 'diversification',
+  concentration: 'concentration',
+  position_sizing: 'position_sizing',
+  capital_allocation: 'capital_allocation',
+  greeks: 'greeks',
+} as const;
+
+export interface RiskExposureTopicLearning {
+  topic: RiskExposureTopicLearningTopic;
+  links: RiskExposureLearningLink[];
+}
+
+export interface PerformanceRiskAdjusted {
+  available: boolean;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  sharpeRatio: number | null;
+  /** @nullable */
+  sortinoRatio: number | null;
+  tradeCount: number;
+  basis: string;
+}
+
+export interface PerformanceAttributionEntry {
+  key: string;
+  label: string;
+  pnl: number;
+  tradeCount: number;
+  /** @nullable */
+  weightPct: number | null;
+}
+
+export interface PerformanceInvestingHolding {
+  symbol: string;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  costBasisValue: number | null;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  unrealizedPnl: number | null;
+  /** @nullable */
+  unrealizedPnlPct: number | null;
+}
+
+export type PerformanceInvestingViewCapitalEfficiency = {
+  /** @nullable */
+  totalDeployed: number | null;
+  /** @nullable */
+  returnOnDeployedCapitalPct: number | null;
+  detail: string;
+};
+
+export interface PerformanceInvestingView {
+  portfolioCount: number;
+  holdingsCount: number;
+  /** @nullable */
+  totalCostBasisValue: number | null;
+  /** @nullable */
+  totalMarketValue: number | null;
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+  /** @nullable */
+  totalUnrealizedPnlPct: number | null;
+  holdings: PerformanceInvestingHolding[];
+  sectorAttribution: PerformanceAttributionEntry[];
+  assetAttribution: PerformanceAttributionEntry[];
+  riskAdjusted: PerformanceRiskAdjusted;
+  capitalEfficiency: PerformanceInvestingViewCapitalEfficiency;
+  unresolvedSymbols: string[];
+  summary: string;
+}
+
+export interface PerformanceTradingPosition {
+  id: number;
+  symbol: string;
+  side: string;
+  status: string;
+  quantity: number;
+  entryPrice: number;
+  /** @nullable */
+  exitPrice: number | null;
+  /** @nullable */
+  realizedPnl: number | null;
+  /** @nullable */
+  realizedPnlPct: number | null;
+  /** @nullable */
+  holdingDays: number | null;
+  /** @nullable */
+  setupType: string | null;
+}
+
+export type PerformanceTradingViewCapitalEfficiency = {
+  /** @nullable */
+  capitalCommitted: number | null;
+  /** @nullable */
+  returnOnCapitalPct: number | null;
+  detail: string;
+};
+
+export interface PerformanceTradingView {
+  totalPositions: number;
+  openPositionsCount: number;
+  closedPositionsCount: number;
+  winningTrades: number;
+  losingTrades: number;
+  /** @nullable */
+  winRate: number | null;
+  /** @nullable */
+  averageWin: number | null;
+  /** @nullable */
+  averageLoss: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  /** @nullable */
+  largestWinner: number | null;
+  /** @nullable */
+  largestLoser: number | null;
+  /** @nullable */
+  averageHoldingDays: number | null;
+  positions: PerformanceTradingPosition[];
+  strategyAttribution: PerformanceAttributionEntry[];
+  assetAttribution: PerformanceAttributionEntry[];
+  riskAdjusted: PerformanceRiskAdjusted;
+  capitalEfficiency: PerformanceTradingViewCapitalEfficiency;
+  summary: string;
+}
+
+export interface PerformanceOptionsTrade {
+  id: number;
+  symbol: string;
+  strategy: string;
+  status: string;
+  credit: number;
+  /** @nullable */
+  currentPnl: number | null;
+  /** @nullable */
+  currentPnlPercent: number | null;
+  /** @nullable */
+  holdingDays: number | null;
+}
+
+export type PerformanceOptionsViewCapitalEfficiency = {
+  /** @nullable */
+  capitalCommitted: number | null;
+  /** @nullable */
+  returnOnCapitalPct: number | null;
+  detail: string;
+};
+
+export interface PerformanceOptionsView {
+  openPositionsCount: number;
+  closedPositionsCount: number;
+  winningTrades: number;
+  losingTrades: number;
+  /** @nullable */
+  winRate: number | null;
+  /** @nullable */
+  averageWin: number | null;
+  /** @nullable */
+  averageLoss: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  income: OptionsIncomeOverview;
+  trades: PerformanceOptionsTrade[];
+  strategyAttribution: PerformanceAttributionEntry[];
+  assetAttribution: PerformanceAttributionEntry[];
+  incomeAttribution: OptionsStrategyMixEntry[];
+  riskAdjusted: PerformanceRiskAdjusted;
+  capitalEfficiency: PerformanceOptionsViewCapitalEfficiency;
+  summary: string;
+}
+
+export type PerformanceEngineSummaryEngine = typeof PerformanceEngineSummaryEngine[keyof typeof PerformanceEngineSummaryEngine];
+
+
+export const PerformanceEngineSummaryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceEngineSummary {
+  engine: PerformanceEngineSummaryEngine;
+  label: string;
+  /** @nullable */
+  totalPnl: number | null;
+  pnlLabel: string;
+}
+
+export type PerformanceCombinedSectorAttributionEngine = typeof PerformanceCombinedSectorAttributionEngine[keyof typeof PerformanceCombinedSectorAttributionEngine];
+
+
+export const PerformanceCombinedSectorAttributionEngine = {
+  investing: 'investing',
+} as const;
+
+export interface PerformanceCombinedSectorAttribution {
+  engine: PerformanceCombinedSectorAttributionEngine;
+  sector: string;
+  pnl: number;
+}
+
+export type PerformanceCombinedStrategyAttributionEngine = typeof PerformanceCombinedStrategyAttributionEngine[keyof typeof PerformanceCombinedStrategyAttributionEngine];
+
+
+export const PerformanceCombinedStrategyAttributionEngine = {
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceCombinedStrategyAttribution {
+  engine: PerformanceCombinedStrategyAttributionEngine;
+  key: string;
+  label: string;
+  pnl: number;
+}
+
+export type PerformanceCombinedAssetAttributionEngine = typeof PerformanceCombinedAssetAttributionEngine[keyof typeof PerformanceCombinedAssetAttributionEngine];
+
+
+export const PerformanceCombinedAssetAttributionEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceCombinedAssetAttribution {
+  engine: PerformanceCombinedAssetAttributionEngine;
+  symbol: string;
+  pnl: number;
+}
+
+export type PerformanceCombinedCapitalEfficiencyEngine = typeof PerformanceCombinedCapitalEfficiencyEngine[keyof typeof PerformanceCombinedCapitalEfficiencyEngine];
+
+
+export const PerformanceCombinedCapitalEfficiencyEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceCombinedCapitalEfficiency {
+  engine: PerformanceCombinedCapitalEfficiencyEngine;
+  label: string;
+  /** @nullable */
+  returnPct: number | null;
+}
+
+export type PerformanceCombinedRiskAdjustedEngine = typeof PerformanceCombinedRiskAdjustedEngine[keyof typeof PerformanceCombinedRiskAdjustedEngine];
+
+
+export const PerformanceCombinedRiskAdjustedEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface PerformanceCombinedRiskAdjusted {
+  engine: PerformanceCombinedRiskAdjustedEngine;
+  available: boolean;
+  /** @nullable */
+  sharpeRatio: number | null;
+  /** @nullable */
+  sortinoRatio: number | null;
+}
+
+export interface PerformanceCombinedView {
+  byEngine: PerformanceEngineSummary[];
+  sectorAttribution: PerformanceCombinedSectorAttribution[];
+  strategyAttribution: PerformanceCombinedStrategyAttribution[];
+  assetAttribution: PerformanceCombinedAssetAttribution[];
+  capitalEfficiency: PerformanceCombinedCapitalEfficiency[];
+  riskAdjusted: PerformanceCombinedRiskAdjusted[];
+}
+
+export type PerformanceTimelinePointSource = typeof PerformanceTimelinePointSource[keyof typeof PerformanceTimelinePointSource];
+
+
+export const PerformanceTimelinePointSource = {
+  'options-realized': 'options-realized',
+  'trading-realized': 'trading-realized',
+  'investing-market-value': 'investing-market-value',
+} as const;
+
+export interface PerformanceTimelinePoint {
+  monthEnd: string;
+  source: PerformanceTimelinePointSource;
+  detail: string;
+  /** @nullable */
+  value: number | null;
+}
+
+export interface PerformanceDashboard {
+  investing: PerformanceInvestingView;
+  trading: PerformanceTradingView;
+  options: PerformanceOptionsView;
+  combined: PerformanceCombinedView;
+  timeline: PerformanceTimelinePoint[];
+  generatedAt: string;
+}
+
+export type PerformanceAttributionCoachExplanationTopic = typeof PerformanceAttributionCoachExplanationTopic[keyof typeof PerformanceAttributionCoachExplanationTopic];
+
+
+export const PerformanceAttributionCoachExplanationTopic = {
+  performance_metrics: 'performance_metrics',
+  attribution: 'attribution',
+  capital_efficiency: 'capital_efficiency',
+  risk_adjusted_returns: 'risk_adjusted_returns',
+  portfolio_interpretation: 'portfolio_interpretation',
+} as const;
+
+export interface PerformanceAttributionCoachExplanation {
+  topic: PerformanceAttributionCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export type PerformanceAttributionLearningLinkCategory = typeof PerformanceAttributionLearningLinkCategory[keyof typeof PerformanceAttributionLearningLinkCategory];
+
+
+export const PerformanceAttributionLearningLinkCategory = {
+  metrics: 'metrics',
+  attribution: 'attribution',
+  capital: 'capital',
+  risk_adjusted: 'risk_adjusted',
+  interpretation: 'interpretation',
+} as const;
+
+export interface PerformanceAttributionLearningLink {
+  pathKey: string;
+  topicKey: string;
+  category: PerformanceAttributionLearningLinkCategory;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type PerformanceAttributionTopicLearningTopic = typeof PerformanceAttributionTopicLearningTopic[keyof typeof PerformanceAttributionTopicLearningTopic];
+
+
+export const PerformanceAttributionTopicLearningTopic = {
+  performance_metrics: 'performance_metrics',
+  attribution: 'attribution',
+  capital_efficiency: 'capital_efficiency',
+  risk_adjusted_returns: 'risk_adjusted_returns',
+  portfolio_interpretation: 'portfolio_interpretation',
+} as const;
+
+export interface PerformanceAttributionTopicLearning {
+  topic: PerformanceAttributionTopicLearningTopic;
+  links: PerformanceAttributionLearningLink[];
+}
+
+export type ScenarioDefinitionCategory = typeof ScenarioDefinitionCategory[keyof typeof ScenarioDefinitionCategory];
+
+
+export const ScenarioDefinitionCategory = {
+  price: 'price',
+  volatility: 'volatility',
+  rate: 'rate',
+} as const;
+
+export interface ScenarioDefinition {
+  key: string;
+  label: string;
+  category: ScenarioDefinitionCategory;
+  priceShockPct: number;
+  ivShockPct: number;
+  ratePointsShock: number;
+}
+
+export interface RunScenarioDashboardCustomScenario {
+  /** @nullable */
+  label?: string | null;
+  /** @nullable */
+  priceShockPct?: number | null;
+}
+
+export interface RunScenarioDashboardInput {
+  /** @nullable */
+  customScenarios?: RunScenarioDashboardCustomScenario[] | null;
+}
+
+export interface ScenarioAttributionEntry {
+  key: string;
+  label: string;
+  impactDollars: number;
+}
+
+export interface InvestingHoldingScenarioImpact {
+  symbol: string;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  shares: number | null;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  shockedPrice: number | null;
+  /** @nullable */
+  shockedMarketValue: number | null;
+  /** @nullable */
+  impactDollars: number | null;
+}
+
+export interface InvestingScenarioResult {
+  scenario: ScenarioDefinition;
+  available: boolean;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  totalMarketValueBefore: number | null;
+  /** @nullable */
+  totalMarketValueAfter: number | null;
+  /** @nullable */
+  totalImpactDollars: number | null;
+  /** @nullable */
+  totalImpactPct: number | null;
+  holdings: InvestingHoldingScenarioImpact[];
+  sectorImpact: ScenarioAttributionEntry[];
+  assetImpact: ScenarioAttributionEntry[];
+}
+
+export interface InvestingScenarioView {
+  portfolioCount: number;
+  holdingsCount: number;
+  /** @nullable */
+  baseMarketValue: number | null;
+  results: InvestingScenarioResult[];
+  summary: string;
+}
+
+export interface TradingPositionScenarioImpact {
+  id: number;
+  symbol: string;
+  side: string;
+  quantity: number;
+  entryPrice: number;
+  /** @nullable */
+  currentPrice: number | null;
+  /** @nullable */
+  shockedPrice: number | null;
+  /** @nullable */
+  impactDollars: number | null;
+  /** @nullable */
+  setupType: string | null;
+}
+
+export interface TradingScenarioShockResult {
+  scenario: ScenarioDefinition;
+  available: boolean;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  totalImpactDollars: number | null;
+  positions: TradingPositionScenarioImpact[];
+  strategyImpact: ScenarioAttributionEntry[];
+  assetImpact: ScenarioAttributionEntry[];
+}
+
+export interface TradingScenarioView {
+  openPositionsCount: number;
+  results: TradingScenarioShockResult[];
+  summary: string;
+}
+
+export interface OptionsRateScenarioPositionImpact {
+  tradeId: number;
+  symbol: string;
+  strategy: string;
+  costToClose: number;
+  unrealizedPnl: number;
+}
+
+export interface OptionsRateScenarioResult {
+  scenario: ScenarioDefinition;
+  available: boolean;
+  baseRiskFreeRate: number;
+  shockedRiskFreeRate: number;
+  totalImpactDollars: number;
+  positions: OptionsRateScenarioPositionImpact[];
+}
+
+export interface OptionsScenarioView {
+  stressTest: PortfolioStressTestResult;
+  rateScenarios: OptionsRateScenarioResult[];
+}
+
+export type EngineScenarioImpactEngine = typeof EngineScenarioImpactEngine[keyof typeof EngineScenarioImpactEngine];
+
+
+export const EngineScenarioImpactEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface EngineScenarioImpact {
+  engine: EngineScenarioImpactEngine;
+  scenarioKey: string;
+  scenarioLabel: string;
+  available: boolean;
+  /** @nullable */
+  impactDollars: number | null;
+}
+
+export interface CombinedScenarioSectorImpact {
+  scenarioKey: string;
+  sector: string;
+  impactDollars: number;
+}
+
+export type CombinedScenarioStrategyImpactEngine = typeof CombinedScenarioStrategyImpactEngine[keyof typeof CombinedScenarioStrategyImpactEngine];
+
+
+export const CombinedScenarioStrategyImpactEngine = {
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface CombinedScenarioStrategyImpact {
+  engine: CombinedScenarioStrategyImpactEngine;
+  scenarioKey: string;
+  key: string;
+  label: string;
+  impactDollars: number;
+}
+
+export type CombinedScenarioAssetImpactEngine = typeof CombinedScenarioAssetImpactEngine[keyof typeof CombinedScenarioAssetImpactEngine];
+
+
+export const CombinedScenarioAssetImpactEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface CombinedScenarioAssetImpact {
+  engine: CombinedScenarioAssetImpactEngine;
+  scenarioKey: string;
+  symbol: string;
+  impactDollars: number;
+}
+
+export interface CombinedScenarioView {
+  byEngine: EngineScenarioImpact[];
+  sectorImpact: CombinedScenarioSectorImpact[];
+  strategyImpact: CombinedScenarioStrategyImpact[];
+  assetImpact: CombinedScenarioAssetImpact[];
+}
+
+export interface ScenarioDashboard {
+  scenarios: ScenarioDefinition[];
+  investing: InvestingScenarioView;
+  trading: TradingScenarioView;
+  options: OptionsScenarioView;
+  combined: CombinedScenarioView;
+  generatedAt: string;
+}
+
+export type ScenarioCoachExplanationTopic = typeof ScenarioCoachExplanationTopic[keyof typeof ScenarioCoachExplanationTopic];
+
+
+export const ScenarioCoachExplanationTopic = {
+  scenario_analysis: 'scenario_analysis',
+  stress_testing: 'stress_testing',
+  portfolio_resilience: 'portfolio_resilience',
+  greeks_impact: 'greeks_impact',
+  capital_impact: 'capital_impact',
+} as const;
+
+export interface ScenarioCoachExplanation {
+  topic: ScenarioCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export type ScenarioLearningLinkCategory = typeof ScenarioLearningLinkCategory[keyof typeof ScenarioLearningLinkCategory];
+
+
+export const ScenarioLearningLinkCategory = {
+  scenario: 'scenario',
+  stress: 'stress',
+  resilience: 'resilience',
+  greeks: 'greeks',
+  capital: 'capital',
+} as const;
+
+export interface ScenarioLearningLink {
+  pathKey: string;
+  topicKey: string;
+  category: ScenarioLearningLinkCategory;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type ScenarioTopicLearningTopic = typeof ScenarioTopicLearningTopic[keyof typeof ScenarioTopicLearningTopic];
+
+
+export const ScenarioTopicLearningTopic = {
+  scenario_analysis: 'scenario_analysis',
+  stress_testing: 'stress_testing',
+  portfolio_resilience: 'portfolio_resilience',
+  greeks_impact: 'greeks_impact',
+  capital_impact: 'capital_impact',
+} as const;
+
+export interface ScenarioTopicLearning {
+  topic: ScenarioTopicLearningTopic;
+  links: ScenarioLearningLink[];
+}
+
+export interface DecisionSupportExecutiveSummary {
+  investingPortfolioCount: number;
+  investingHoldingsCount: number;
+  /** @nullable */
+  investingMarketValue: number | null;
+  tradingOpenPositionsCount: number;
+  /** @nullable */
+  tradingAccountValue: number | null;
+  optionsOpenPositionsCount: number;
+  /** @nullable */
+  optionsPortfolioValue: number | null;
+  /** @nullable */
+  optionsBuyingPower: number | null;
+  /** @nullable */
+  overallHealthScore: number | null;
+  alertCount: number;
+  outstandingIssueCount: number;
+  generatedAt: string;
+  summary: string;
+}
+
+export type DecisionSupportEnginePortfolioHealthEngine = typeof DecisionSupportEnginePortfolioHealthEngine[keyof typeof DecisionSupportEnginePortfolioHealthEngine];
+
+
+export const DecisionSupportEnginePortfolioHealthEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface DecisionSupportEnginePortfolioHealth {
+  engine: DecisionSupportEnginePortfolioHealthEngine;
+  available: boolean;
+  /** @nullable */
+  score: number | null;
+  label: string;
+  detail: string;
+}
+
+export interface DecisionSupportPortfolioHealthOverview {
+  investing: DecisionSupportEnginePortfolioHealth;
+  trading: DecisionSupportEnginePortfolioHealth;
+  options: DecisionSupportEnginePortfolioHealth;
+  /** @nullable */
+  overallScore: number | null;
+}
+
+export interface DecisionSupportRiskSummary {
+  combined: RiskExposureCombinedView;
+  /** @nullable */
+  investingRiskScore: number | null;
+  /** @nullable */
+  tradingRiskScore: number | null;
+  /** @nullable */
+  optionsRiskScoreBaseline: number | null;
+}
+
+export type DecisionSupportScenarioWorstCaseEntryEngine = typeof DecisionSupportScenarioWorstCaseEntryEngine[keyof typeof DecisionSupportScenarioWorstCaseEntryEngine];
+
+
+export const DecisionSupportScenarioWorstCaseEntryEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface DecisionSupportScenarioWorstCaseEntry {
+  engine: DecisionSupportScenarioWorstCaseEntryEngine;
+  scenarioLabel: string;
+  /** @nullable */
+  impactDollars: number | null;
+  /** @nullable */
+  impactPctOfValue: number | null;
+}
+
+export interface DecisionSupportScenarioSummary {
+  combined: CombinedScenarioView;
+  worstCaseByEngine: DecisionSupportScenarioWorstCaseEntry[];
+}
+
+export interface DecisionSupportCapitalAllocationSummary {
+  capitalAllocation: RiskExposureCapitalAllocationEntry[];
+  buyingPowerOverview: RiskExposureBuyingPowerEntry[];
+}
+
+export interface DecisionSupportExposureSummary {
+  sectorConcentration: RiskExposureSectorConcentrationEntry[];
+  strategyConcentration: RiskExposureStrategyConcentrationEntry[];
+  assetAllocation: RiskExposureAssetAllocationSummary;
+  greeksSummary: PortfolioGreeksSnapshot;
+}
+
+export type DecisionSupportEngineDiversificationEngine = typeof DecisionSupportEngineDiversificationEngine[keyof typeof DecisionSupportEngineDiversificationEngine];
+
+
+export const DecisionSupportEngineDiversificationEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface DecisionSupportEngineDiversification {
+  engine: DecisionSupportEngineDiversificationEngine;
+  available: boolean;
+  /** @nullable */
+  score: number | null;
+  detail: string;
+}
+
+export interface DecisionSupportDiversificationSummary {
+  investing: DecisionSupportEngineDiversification;
+  trading: DecisionSupportEngineDiversification;
+  options: DecisionSupportEngineDiversification;
+  correlationOverview: RiskExposureCorrelationOverview;
+  concentrationTimeline: RiskExposureConcentrationTimelinePoint[];
+}
+
+export type DecisionSupportExecutiveAlertEngine = typeof DecisionSupportExecutiveAlertEngine[keyof typeof DecisionSupportExecutiveAlertEngine];
+
+
+export const DecisionSupportExecutiveAlertEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+  'cross-engine': 'cross-engine',
+} as const;
+
+export type DecisionSupportExecutiveAlertSeverity = typeof DecisionSupportExecutiveAlertSeverity[keyof typeof DecisionSupportExecutiveAlertSeverity];
+
+
+export const DecisionSupportExecutiveAlertSeverity = {
+  info: 'info',
+  moderate: 'moderate',
+  elevated: 'elevated',
+} as const;
+
+export interface DecisionSupportExecutiveAlert {
+  code: string;
+  engine: DecisionSupportExecutiveAlertEngine;
+  severity: DecisionSupportExecutiveAlertSeverity;
+  label: string;
+  detail: string;
+}
+
+export type DecisionSupportOutstandingIssueEngine = typeof DecisionSupportOutstandingIssueEngine[keyof typeof DecisionSupportOutstandingIssueEngine];
+
+
+export const DecisionSupportOutstandingIssueEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface DecisionSupportOutstandingIssue {
+  code: string;
+  engine: DecisionSupportOutstandingIssueEngine;
+  label: string;
+  detail: string;
+}
+
+export type DecisionSupportKeyMetricEngine = typeof DecisionSupportKeyMetricEngine[keyof typeof DecisionSupportKeyMetricEngine];
+
+
+export const DecisionSupportKeyMetricEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+  'cross-engine': 'cross-engine',
+} as const;
+
+export type DecisionSupportKeyMetricUnit = typeof DecisionSupportKeyMetricUnit[keyof typeof DecisionSupportKeyMetricUnit];
+
+
+export const DecisionSupportKeyMetricUnit = {
+  usd: 'usd',
+  pct: 'pct',
+  score: 'score',
+  count: 'count',
+} as const;
+
+export interface DecisionSupportKeyMetric {
+  code: string;
+  engine: DecisionSupportKeyMetricEngine;
+  label: string;
+  /** @nullable */
+  value: number | null;
+  unit: DecisionSupportKeyMetricUnit;
+}
+
+export interface DecisionSupportExecutiveHealthDimension {
+  code: string;
+  label: string;
+  available: boolean;
+  /** @nullable */
+  score: number | null;
+  detail: string;
+  sourceModule: string;
+  includedInComposite: boolean;
+}
+
+export interface DecisionSupportExecutiveHealth {
+  dimensions: DecisionSupportExecutiveHealthDimension[];
+  /** @nullable */
+  compositeScore: number | null;
+}
+
+export interface DecisionSupportDashboard {
+  executiveSummary: DecisionSupportExecutiveSummary;
+  portfolioHealthOverview: DecisionSupportPortfolioHealthOverview;
+  riskSummary: DecisionSupportRiskSummary;
+  performanceSummary: PerformanceCombinedView;
+  scenarioSummary: DecisionSupportScenarioSummary;
+  capitalAllocationSummary: DecisionSupportCapitalAllocationSummary;
+  exposureSummary: DecisionSupportExposureSummary;
+  diversificationSummary: DecisionSupportDiversificationSummary;
+  executiveAlerts: DecisionSupportExecutiveAlert[];
+  outstandingIssues: DecisionSupportOutstandingIssue[];
+  keyMetrics: DecisionSupportKeyMetric[];
+  executiveHealth: DecisionSupportExecutiveHealth;
+  generatedAt: string;
+}
+
+export type DecisionSupportCoachExplanationTopic = typeof DecisionSupportCoachExplanationTopic[keyof typeof DecisionSupportCoachExplanationTopic];
+
+
+export const DecisionSupportCoachExplanationTopic = {
+  executive_dashboards: 'executive_dashboards',
+  institutional_decision_support: 'institutional_decision_support',
+  portfolio_interpretation: 'portfolio_interpretation',
+  risk: 'risk',
+  performance: 'performance',
+  scenario_analysis: 'scenario_analysis',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+} as const;
+
+export interface DecisionSupportCoachExplanation {
+  topic: DecisionSupportCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface DecisionSupportLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type DecisionSupportTopicLearningTopic = typeof DecisionSupportTopicLearningTopic[keyof typeof DecisionSupportTopicLearningTopic];
+
+
+export const DecisionSupportTopicLearningTopic = {
+  portfolio_management: 'portfolio_management',
+  risk_interpretation: 'risk_interpretation',
+  performance_interpretation: 'performance_interpretation',
+  scenario_analysis: 'scenario_analysis',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+  institutional_portfolio_management: 'institutional_portfolio_management',
+} as const;
+
+export interface DecisionSupportTopicLearning {
+  topic: DecisionSupportTopicLearningTopic;
+  links: DecisionSupportLearningLink[];
+}
+
+export interface RebalancingPortfolioSummary {
+  portfolioId: number;
+  portfolioName: string;
+  allocation: ConstructionPortfolioAllocationResult;
+}
+
+export type RebalancingTargetAllocationAvailabilityEngine = typeof RebalancingTargetAllocationAvailabilityEngine[keyof typeof RebalancingTargetAllocationAvailabilityEngine];
+
+
+export const RebalancingTargetAllocationAvailabilityEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+} as const;
+
+export interface RebalancingTargetAllocationAvailability {
+  engine: RebalancingTargetAllocationAvailabilityEngine;
+  available: boolean;
+  reason: string;
+}
+
+export interface RebalancingDashboard {
+  portfolios: RebalancingPortfolioSummary[];
+  crossEngineCapitalAllocation: RiskExposureCapitalAllocationEntry[];
+  crossEngineBuyingPowerOverview: RiskExposureBuyingPowerEntry[];
+  crossEngineSectorAllocation: RiskExposureSectorConcentrationEntry[];
+  crossEngineStrategyAllocation: RiskExposureStrategyConcentrationEntry[];
+  crossEngineAssetAllocation: RiskExposureAssetAllocationSummary;
+  allocationTimeline: RiskExposureConcentrationTimelinePoint[];
+  targetAllocationAvailability: RebalancingTargetAllocationAvailability[];
+  summary: string;
+  generatedAt: string;
+}
+
+export interface RebalancingProposedTargetInput {
+  symbol: string;
+  targetWeightPct: number;
+}
+
+export interface ProposeAllocationInput {
+  targets: RebalancingProposedTargetInput[];
+}
+
+export type RebalancingAllocationComparisonRowRebalanceActionVsProposed = typeof RebalancingAllocationComparisonRowRebalanceActionVsProposed[keyof typeof RebalancingAllocationComparisonRowRebalanceActionVsProposed];
+
+
+export const RebalancingAllocationComparisonRowRebalanceActionVsProposed = {
+  buy: 'buy',
+  sell: 'sell',
+  hold: 'hold',
+  unknown: 'unknown',
+} as const;
+
+export interface RebalancingAllocationComparisonRow {
+  symbol: string;
+  /** @nullable */
+  currentWeightPct: number | null;
+  storedTargetWeightPct: number;
+  proposedTargetWeightPct: number;
+  /** @nullable */
+  driftFromProposedPct: number | null;
+  /** @nullable */
+  capitalMovementDollars: number | null;
+  rebalanceActionVsProposed: RebalancingAllocationComparisonRowRebalanceActionVsProposed;
+}
+
+export interface RebalancingProposedAllocationComparison {
+  portfolioId: number;
+  current: ConstructionPortfolioAllocationResult;
+  proposed: ConstructionPortfolioAllocationResult;
+  rows: RebalancingAllocationComparisonRow[];
+  /** @nullable */
+  totalCapitalToDeployDollars: number | null;
+  /** @nullable */
+  totalCapitalToRaiseDollars: number | null;
+  summary: string;
+}
+
+export type RebalancingCoachExplanationTopic = typeof RebalancingCoachExplanationTopic[keyof typeof RebalancingCoachExplanationTopic];
+
+
+export const RebalancingCoachExplanationTopic = {
+  portfolio_allocation: 'portfolio_allocation',
+  rebalancing_concepts: 'rebalancing_concepts',
+  diversification: 'diversification',
+  capital_efficiency: 'capital_efficiency',
+  portfolio_construction: 'portfolio_construction',
+} as const;
+
+export interface RebalancingCoachExplanation {
+  topic: RebalancingCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface RebalancingLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type RebalancingTopicLearningTopic = typeof RebalancingTopicLearningTopic[keyof typeof RebalancingTopicLearningTopic];
+
+
+export const RebalancingTopicLearningTopic = {
+  asset_allocation: 'asset_allocation',
+  portfolio_construction: 'portfolio_construction',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+  institutional_rebalancing: 'institutional_rebalancing',
+  risk_management: 'risk_management',
+} as const;
+
+export interface RebalancingTopicLearning {
+  topic: RebalancingTopicLearningTopic;
+  links: RebalancingLearningLink[];
+}
+
+export type CompliancePolicyType = typeof CompliancePolicyType[keyof typeof CompliancePolicyType];
+
+
+export const CompliancePolicyType = {
+  sector_allocation_max: 'sector_allocation_max',
+  position_allocation_max: 'position_allocation_max',
+  strategy_allocation_max: 'strategy_allocation_max',
+  investing_capital_allocation_max: 'investing_capital_allocation_max',
+  trading_capital_allocation_max: 'trading_capital_allocation_max',
+  options_capital_allocation_max: 'options_capital_allocation_max',
+  trading_buying_power_utilization_max: 'trading_buying_power_utilization_max',
+  options_buying_power_utilization_max: 'options_buying_power_utilization_max',
+  portfolio_delta_max: 'portfolio_delta_max',
+  portfolio_gamma_max: 'portfolio_gamma_max',
+  portfolio_theta_exposure_max: 'portfolio_theta_exposure_max',
+  expiration_concentration_max: 'expiration_concentration_max',
+  investing_diversification_min: 'investing_diversification_min',
+  options_diversification_min: 'options_diversification_min',
+  options_income_stability_min: 'options_income_stability_min',
+} as const;
+
+export type CompliancePolicyCategory = typeof CompliancePolicyCategory[keyof typeof CompliancePolicyCategory];
+
+
+export const CompliancePolicyCategory = {
+  allocation: 'allocation',
+  sector: 'sector',
+  asset: 'asset',
+  position: 'position',
+  strategy: 'strategy',
+  greeks: 'greeks',
+  buying_power: 'buying_power',
+  income_stability: 'income_stability',
+  diversification: 'diversification',
+} as const;
+
+export type CompliancePolicyDirection = typeof CompliancePolicyDirection[keyof typeof CompliancePolicyDirection];
+
+
+export const CompliancePolicyDirection = {
+  max: 'max',
+  min: 'min',
+} as const;
+
+export type CompliancePolicyTypeMetaUnit = typeof CompliancePolicyTypeMetaUnit[keyof typeof CompliancePolicyTypeMetaUnit];
+
+
+export const CompliancePolicyTypeMetaUnit = {
+  pct: 'pct',
+  usd: 'usd',
+  score: 'score',
+  delta: 'delta',
+  gamma: 'gamma',
+  theta: 'theta',
+} as const;
+
+export type CompliancePolicyTypeMetaEngine = typeof CompliancePolicyTypeMetaEngine[keyof typeof CompliancePolicyTypeMetaEngine];
+
+
+export const CompliancePolicyTypeMetaEngine = {
+  investing: 'investing',
+  trading: 'trading',
+  options: 'options',
+  'cross-engine': 'cross-engine',
+} as const;
+
+export interface CompliancePolicyTypeMeta {
+  policyType: CompliancePolicyType;
+  category: CompliancePolicyCategory;
+  label: string;
+  description: string;
+  unit: CompliancePolicyTypeMetaUnit;
+  direction: CompliancePolicyDirection;
+  requiresTargetKey: boolean;
+  defaultLimitValue: number;
+  engine: CompliancePolicyTypeMetaEngine;
+}
+
+export interface CompliancePolicy {
+  id: number;
+  policyType: string;
+  label: string;
+  /** @nullable */
+  targetKey: string | null;
+  direction: string;
+  limitValue: number;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCompliancePolicyInput {
+  policyType: string;
+  label: string;
+  targetKey?: string;
+  direction: CompliancePolicyDirection;
+  limitValue: number;
+  enabled?: boolean;
+}
+
+export interface UpdateCompliancePolicyInput {
+  label?: string;
+  targetKey?: string;
+  direction?: CompliancePolicyDirection;
+  limitValue?: number;
+  enabled?: boolean;
+}
+
+export type CompliancePolicyEvaluationStatus = typeof CompliancePolicyEvaluationStatus[keyof typeof CompliancePolicyEvaluationStatus];
+
+
+export const CompliancePolicyEvaluationStatus = {
+  compliant: 'compliant',
+  breach: 'breach',
+  unavailable: 'unavailable',
+} as const;
+
+export interface CompliancePolicyEvaluation {
+  policyId: number;
+  policyType: CompliancePolicyType;
+  category: CompliancePolicyCategory;
+  label: string;
+  /** @nullable */
+  targetKey: string | null;
+  direction: CompliancePolicyDirection;
+  limitValue: number;
+  /** @nullable */
+  currentValue: number | null;
+  /** @nullable */
+  differenceValue: number | null;
+  status: CompliancePolicyEvaluationStatus;
+  detail: string;
+  enabled: boolean;
+}
+
+export type ComplianceSummaryOverallStatus = typeof ComplianceSummaryOverallStatus[keyof typeof ComplianceSummaryOverallStatus];
+
+
+export const ComplianceSummaryOverallStatus = {
+  compliant: 'compliant',
+  breach: 'breach',
+  no_policies: 'no_policies',
+} as const;
+
+export interface ComplianceSummary {
+  totalPolicies: number;
+  enabledPolicies: number;
+  compliantCount: number;
+  breachCount: number;
+  unavailableCount: number;
+  overallStatus: ComplianceSummaryOverallStatus;
+  summary: string;
+}
+
+export interface MonitoringComplianceDashboard {
+  complianceSummary: ComplianceSummary;
+  evaluations: CompliancePolicyEvaluation[];
+  allocationLimits: CompliancePolicyEvaluation[];
+  sectorLimits: CompliancePolicyEvaluation[];
+  assetLimits: CompliancePolicyEvaluation[];
+  positionLimits: CompliancePolicyEvaluation[];
+  strategyLimits: CompliancePolicyEvaluation[];
+  greeksLimits: CompliancePolicyEvaluation[];
+  buyingPowerLimits: CompliancePolicyEvaluation[];
+  incomeStabilityLimits: CompliancePolicyEvaluation[];
+  diversificationLimits: CompliancePolicyEvaluation[];
+  policyViolations: CompliancePolicyEvaluation[];
+  complianceTimeline: RiskExposureConcentrationTimelinePoint[];
+  complianceTimelineNote: string;
+  generatedAt: string;
+}
+
+export type ComplianceCoachExplanationTopic = typeof ComplianceCoachExplanationTopic[keyof typeof ComplianceCoachExplanationTopic];
+
+
+export const ComplianceCoachExplanationTopic = {
+  portfolio_monitoring: 'portfolio_monitoring',
+  compliance_concepts: 'compliance_concepts',
+  risk_limits: 'risk_limits',
+  capital_limits: 'capital_limits',
+  governance: 'governance',
+} as const;
+
+export interface ComplianceCoachExplanation {
+  topic: ComplianceCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface ComplianceLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type ComplianceTopicLearningTopic = typeof ComplianceTopicLearningTopic[keyof typeof ComplianceTopicLearningTopic];
+
+
+export const ComplianceTopicLearningTopic = {
+  portfolio_governance: 'portfolio_governance',
+  risk_policies: 'risk_policies',
+  institutional_compliance: 'institutional_compliance',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+  portfolio_monitoring: 'portfolio_monitoring',
+} as const;
+
+export interface ComplianceTopicLearning {
+  topic: ComplianceTopicLearningTopic;
+  links: ComplianceLearningLink[];
+}
+
+export interface InvestingWatchlist {
+  id: number;
+  name: string;
+  kind: string;
+  description: string;
+  archived: boolean;
+  sortOrder: number;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateInvestingWatchlistInput {
+  name: string;
+  kind?: string;
+  description?: string;
+  archived?: boolean;
+  sortOrder?: number;
+}
+
+export interface UpdateInvestingWatchlistInput {
+  name?: string;
+  kind?: string;
+  description?: string;
+  archived?: boolean;
+  sortOrder?: number;
+}
+
+export interface InvestingWatchlistItemPlain {
+  id: number;
+  watchlistId: number;
+  symbol: string;
+  category: string;
+  tags: string[];
+  notes: string;
+  sortOrder: number;
+  addedAt: string;
+}
+
+export interface CreateInvestingWatchlistItemInput {
+  symbol: string;
+  category?: string;
+  tags?: string[];
+  notes?: string;
+  sortOrder?: number;
+}
+
+export interface UpdateInvestingWatchlistItemInput {
+  symbol?: string;
+  category?: string;
+  tags?: string[];
+  notes?: string;
+  sortOrder?: number;
+}
+
+export interface WatchlistReorderInput {
+  orderedIds: number[];
+}
+
+export interface WatchlistInvestingAnalytics {
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  weightPct: number | null;
+  /** @nullable */
+  unrealizedPnl: number | null;
+  /** @nullable */
+  unrealizedPnlPct: number | null;
+  /** @nullable */
+  sector: string | null;
+}
+
+export interface WatchlistTradingAnalytics {
+  openPositionsCount: number;
+  closedPositionsCount: number;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+}
+
+export interface WatchlistOptionsAnalytics {
+  /** @nullable */
+  weightPct: number | null;
+  openPositionsCount: number;
+  /** @nullable */
+  totalCurrentPnl: number | null;
+  /** @nullable */
+  netDelta: number | null;
+  /** @nullable */
+  netTheta: number | null;
+}
+
+export type WatchlistComplianceAnalyticsStatus = typeof WatchlistComplianceAnalyticsStatus[keyof typeof WatchlistComplianceAnalyticsStatus];
+
+
+export const WatchlistComplianceAnalyticsStatus = {
+  compliant: 'compliant',
+  breach: 'breach',
+  unavailable: 'unavailable',
+} as const;
+
+export interface WatchlistComplianceAnalytics {
+  status: WatchlistComplianceAnalyticsStatus;
+  policyLabel: string;
+  detail: string;
+}
+
+export interface WatchlistSymbolAnalytics {
+  symbol: string;
+  heldInInvesting: boolean;
+  heldInTrading: boolean;
+  heldInOptions: boolean;
+  investing: WatchlistInvestingAnalytics | null;
+  trading: WatchlistTradingAnalytics | null;
+  options: WatchlistOptionsAnalytics | null;
+  compliance: WatchlistComplianceAnalytics | null;
+  /** @nullable */
+  scenarioWorstCaseImpactDollars: number | null;
+  /** @nullable */
+  scenarioWorstCaseLabel: string | null;
+}
+
+export interface InvestingWatchlistItem {
+  id: number;
+  watchlistId: number;
+  symbol: string;
+  category: string;
+  tags: string[];
+  notes: string;
+  sortOrder: number;
+  addedAt: string;
+  analytics: WatchlistSymbolAnalytics;
+}
+
+export interface InvestingWatchlistWithItems {
+  id: number;
+  name: string;
+  kind: string;
+  description: string;
+  archived: boolean;
+  sortOrder: number;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+  items: InvestingWatchlistItemPlain[];
+}
+
+export interface WatchlistHealthEntry {
+  watchlistId: number;
+  name: string;
+  kind: string;
+  itemCount: number;
+  heldCount: number;
+  notHeldCount: number;
+  breachCount: number;
+  /** @nullable */
+  totalMarketValue: number | null;
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+}
+
+export interface WatchlistComplianceSummaryCounts {
+  totalPolicies: number;
+  enabledPolicies: number;
+  compliantCount: number;
+  breachCount: number;
+  unavailableCount: number;
+}
+
+export type WatchlistExecutiveHealthOverallRiskRating = {
+  code: string;
+  label: string;
+};
+
+export interface WatchlistExecutiveHealth {
+  healthScore: number;
+  overallRiskRating: WatchlistExecutiveHealthOverallRiskRating;
+}
+
+export interface WatchlistsCrossEngineSummary {
+  capitalAllocation: RiskExposureCapitalAllocationEntry[];
+  investingDiversification: DecisionSupportEngineDiversification;
+  optionsDiversification: DecisionSupportEngineDiversification;
+  complianceSummary: WatchlistComplianceSummaryCounts;
+  executiveHealth: WatchlistExecutiveHealth;
+}
+
+export type WatchlistExposureHighlightEngine = typeof WatchlistExposureHighlightEngine[keyof typeof WatchlistExposureHighlightEngine];
+
+
+export const WatchlistExposureHighlightEngine = {
+  investing: 'investing',
+  options: 'options',
+} as const;
+
+export interface WatchlistExposureHighlight {
+  symbol: string;
+  weightPct: number;
+  engine: WatchlistExposureHighlightEngine;
+}
+
+export type WatchlistAllocationHighlightEngine = typeof WatchlistAllocationHighlightEngine[keyof typeof WatchlistAllocationHighlightEngine];
+
+
+export const WatchlistAllocationHighlightEngine = {
+  investing: 'investing',
+} as const;
+
+export interface WatchlistAllocationHighlight {
+  symbol: string;
+  marketValue: number;
+  engine: WatchlistAllocationHighlightEngine;
+}
+
+export interface WatchlistRiskHighlight {
+  symbol: string;
+  detail: string;
+}
+
+export type WatchlistsDashboardSummaryScenarioImpact = {
+  /** @nullable */
+  worstCaseTotalImpactDollars: number | null;
+  detail: string;
+};
+
+export type WatchlistsDashboardSummaryPerformanceSummary = {
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  detail: string;
+};
+
+export interface WatchlistsDashboardSummary {
+  watchlistCount: number;
+  itemCount: number;
+  distinctSymbolCount: number;
+  heldSymbolCount: number;
+  highestRisk: WatchlistRiskHighlight | null;
+  highestExposure: WatchlistExposureHighlight | null;
+  highestAllocation: WatchlistAllocationHighlight | null;
+  policyBreaches: CompliancePolicyEvaluation[];
+  scenarioImpact: WatchlistsDashboardSummaryScenarioImpact;
+  performanceSummary: WatchlistsDashboardSummaryPerformanceSummary;
+  outstandingIssues: string[];
+}
+
+export interface WatchlistsDashboard {
+  watchlists: InvestingWatchlist[];
+  items: InvestingWatchlistItem[];
+  opportunityOverview: WatchlistSymbolAnalytics[];
+  watchlistHealth: WatchlistHealthEntry[];
+  crossEngineSummary: WatchlistsCrossEngineSummary;
+  dashboardSummary: WatchlistsDashboardSummary;
+  generatedAt: string;
+}
+
+export type WatchlistsCoachExplanationTopic = typeof WatchlistsCoachExplanationTopic[keyof typeof WatchlistsCoachExplanationTopic];
+
+
+export const WatchlistsCoachExplanationTopic = {
+  watchlists: 'watchlists',
+  research_workflow: 'research_workflow',
+  institutional_monitoring: 'institutional_monitoring',
+  portfolio_organisation: 'portfolio_organisation',
+  asset_tracking: 'asset_tracking',
+} as const;
+
+export interface WatchlistsCoachExplanation {
+  topic: WatchlistsCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface WatchlistsLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type WatchlistsTopicLearningTopic = typeof WatchlistsTopicLearningTopic[keyof typeof WatchlistsTopicLearningTopic];
+
+
+export const WatchlistsTopicLearningTopic = {
+  watchlists: 'watchlists',
+  portfolio_monitoring: 'portfolio_monitoring',
+  asset_research: 'asset_research',
+  institutional_workflows: 'institutional_workflows',
+  diversification: 'diversification',
+  capital_allocation: 'capital_allocation',
+} as const;
+
+export interface WatchlistsTopicLearning {
+  topic: WatchlistsTopicLearningTopic;
+  links: WatchlistsLearningLink[];
+}
+
+export interface WorkspaceHoldingsAllocationHighlight {
+  symbol: string;
+  /** @nullable */
+  marketValue: number | null;
+  /** @nullable */
+  weightPct: number | null;
+}
+
+export interface WorkspaceHoldingsOverview {
+  portfoliosCount: number;
+  holdingsCount: number;
+  /** @nullable */
+  totalMarketValue: number | null;
+  /** @nullable */
+  totalUnrealizedPnl: number | null;
+  /** @nullable */
+  totalUnrealizedPnlPct: number | null;
+  topAllocations: WorkspaceHoldingsAllocationHighlight[];
+  driftedHoldingsCount: number;
+  summary: string;
+}
+
+export interface WorkspaceTradingOverview {
+  openPositionsCount: number;
+  /** @nullable */
+  accountValue: number | null;
+  /** @nullable */
+  stopTargetDisciplinePct: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  /** @nullable */
+  winRate: number | null;
+  summary: string;
+}
+
+export interface WorkspaceOptionsOverview {
+  openPositionsCount: number;
+  /** @nullable */
+  portfolioValue: number | null;
+  /** @nullable */
+  buyingPower: number | null;
+  /** @nullable */
+  totalRealizedPnl: number | null;
+  /** @nullable */
+  winRate: number | null;
+  summary: string;
+}
+
+export interface WorkspaceComplianceOverview {
+  complianceSummary: ComplianceSummary;
+  policyViolations: CompliancePolicyEvaluation[];
+  generatedAt: string;
+}
+
+export interface WorkspaceWatchlistsOverview {
+  watchlists: InvestingWatchlist[];
+  watchlistHealth: WatchlistHealthEntry[];
+  crossEngineSummary: WatchlistsCrossEngineSummary;
+  dashboardSummary: WatchlistsDashboardSummary;
+  generatedAt: string;
+}
+
+export type WorkspaceOutstandingIssueSource = typeof WorkspaceOutstandingIssueSource[keyof typeof WorkspaceOutstandingIssueSource];
+
+
+export const WorkspaceOutstandingIssueSource = {
+  'decision-support': 'decision-support',
+  watchlists: 'watchlists',
+  compliance: 'compliance',
+} as const;
+
+export interface WorkspaceOutstandingIssue {
+  source: WorkspaceOutstandingIssueSource;
+  code: string;
+  label: string;
+  detail: string;
+  linkPath: string;
+}
+
+export type WorkflowInstanceStatus = typeof WorkflowInstanceStatus[keyof typeof WorkflowInstanceStatus];
+
+
+export const WorkflowInstanceStatus = {
+  active: 'active',
+  completed: 'completed',
+  abandoned: 'abandoned',
+} as const;
+
+export interface WorkflowInstance {
+  id: number;
+  workflowKey: string;
+  title: string;
+  status: WorkflowInstanceStatus;
+  completedStepKeys: string[];
+  totalSteps: number;
+  startedAt: string;
+  /** @nullable */
+  completedAt: string | null;
+  updatedAt: string;
+}
+
+export interface PortfolioWorkspaceDashboard {
+  executiveHome: DecisionSupportExecutiveSummary;
+  portfolioSnapshot: DecisionSupportDashboard;
+  holdingsOverview: WorkspaceHoldingsOverview;
+  tradingOverview: WorkspaceTradingOverview;
+  optionsOverview: WorkspaceOptionsOverview;
+  riskOverview: RiskExposureDashboard;
+  performanceOverview: PerformanceDashboard;
+  complianceOverview: WorkspaceComplianceOverview;
+  watchlistsOverview: WorkspaceWatchlistsOverview;
+  recentReports: ExecutiveReportingSummary;
+  activeWorkflows: WorkflowInstance[];
+  outstandingIssues: WorkspaceOutstandingIssue[];
+  generatedAt: string;
+}
+
+export interface WorkflowStepDefinition {
+  key: string;
+  label: string;
+  detail: string;
+  linkPath: string;
+}
+
+export type WorkflowDefinitionCadence = typeof WorkflowDefinitionCadence[keyof typeof WorkflowDefinitionCadence];
+
+
+export const WorkflowDefinitionCadence = {
+  ad_hoc: 'ad_hoc',
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+  quarterly: 'quarterly',
+} as const;
+
+export interface WorkflowDefinition {
+  key: string;
+  title: string;
+  description: string;
+  cadence: WorkflowDefinitionCadence;
+  steps: WorkflowStepDefinition[];
+}
+
+export type UpdateWorkflowInstanceInputStatus = typeof UpdateWorkflowInstanceInputStatus[keyof typeof UpdateWorkflowInstanceInputStatus];
+
+
+export const UpdateWorkflowInstanceInputStatus = {
+  active: 'active',
+  abandoned: 'abandoned',
+} as const;
+
+export interface UpdateWorkflowInstanceInput {
+  stepKey?: string;
+  completed?: boolean;
+  status?: UpdateWorkflowInstanceInputStatus;
+}
+
+export interface PinnedResource {
+  id: number;
+  resourceType: string;
+  resourceKey: string;
+  label: string;
+  linkPath: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface PinResourceInput {
+  resourceType: string;
+  resourceKey: string;
+  label: string;
+  linkPath: string;
+}
+
+export interface ReorderWorkspaceItemsInput {
+  orderedIds: number[];
+}
+
+export interface RecentViewEntry {
+  id: number;
+  resourceType: string;
+  resourceKey: string;
+  label: string;
+  linkPath: string;
+  viewedAt: string;
+}
+
+export interface RecordRecentViewInput {
+  resourceType: string;
+  resourceKey: string;
+  label: string;
+  linkPath: string;
+}
+
+export interface QuickAction {
+  key: string;
+  label: string;
+  linkPath: string;
+}
+
+export type WorkspaceCoachExplanationTopic = typeof WorkspaceCoachExplanationTopic[keyof typeof WorkspaceCoachExplanationTopic];
+
+
+export const WorkspaceCoachExplanationTopic = {
+  portfolio_review_workflows: 'portfolio_review_workflows',
+  institutional_operating_processes: 'institutional_operating_processes',
+  review_cycles: 'review_cycles',
+  governance: 'governance',
+  reporting: 'reporting',
+} as const;
+
+export interface WorkspaceCoachExplanation {
+  topic: WorkspaceCoachExplanationTopic;
+  title: string;
+  explanation: string[];
+  disclaimer: string;
+}
+
+export interface WorkspaceLearningLink {
+  pathKey: string;
+  topicKey: string;
+  title: string;
+  summary: string;
+  href: string;
+}
+
+export type WorkspaceTopicLearningTopic = typeof WorkspaceTopicLearningTopic[keyof typeof WorkspaceTopicLearningTopic];
+
+
+export const WorkspaceTopicLearningTopic = {
+  portfolio_workflows: 'portfolio_workflows',
+  institutional_review_process: 'institutional_review_process',
+  governance: 'governance',
+  monitoring: 'monitoring',
+  performance_review: 'performance_review',
+  risk_review: 'risk_review',
+} as const;
+
+export interface WorkspaceTopicLearning {
+  topic: WorkspaceTopicLearningTopic;
+  links: WorkspaceLearningLink[];
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -4483,6 +11118,10 @@ export type GetUpcomingEventsParams = {
 horizonDays?: number;
 };
 
+export type ListReconciliationReports200 = {
+  reports: ReconciliationReportSummary[];
+};
+
 export type ListTradesParams = {
 status?: ListTradesStatus;
 strategy?: string;
@@ -4498,6 +11137,14 @@ export const ListTradesStatus = {
   pending: 'pending',
 } as const;
 
+export type RecordLearningItemViewed200 = {
+  success: boolean;
+};
+
+export type RecordLearningItemCompleted200 = {
+  success: boolean;
+};
+
 export type GetAutoAdjustmentLogParams = {
 decision?: GetAutoAdjustmentLogDecision;
 symbol?: string;
@@ -4512,6 +11159,11 @@ export const GetAutoAdjustmentLogDecision = {
   rejected: 'rejected',
   blocked: 'blocked',
 } as const;
+
+export type GetAlertNotesParams = {
+notificationId?: number;
+symbol?: string;
+};
 
 export type GetPerformanceAnalyticsParams = {
 period?: GetPerformanceAnalyticsPeriod;
@@ -4595,4 +11247,74 @@ export const GetValueWatchlistCheckTargets = {
   true: 'true',
   false: 'false',
 } as const;
+
+export type CompareOpportunitiesRouteParams = {
+symbols: string;
+};
+
+export type GetCrossEngineWorkspaceSearchParams = {
+q?: string;
+};
+
+export type ListOptionsIncomePositionsParams = {
+status?: ListOptionsIncomePositionsStatus;
+};
+
+export type ListOptionsIncomePositionsStatus = typeof ListOptionsIncomePositionsStatus[keyof typeof ListOptionsIncomePositionsStatus];
+
+
+export const ListOptionsIncomePositionsStatus = {
+  open: 'open',
+  closed: 'closed',
+  all: 'all',
+} as const;
+
+export type DeleteCompliancePolicy200 = {
+  success: boolean;
+};
+
+export type DeleteInstitutionalReport200 = {
+  success: boolean;
+};
+
+export type ReorderInvestingWatchlists200 = {
+  success: boolean;
+};
+
+export type DeleteInvestingWatchlist200 = {
+  success: boolean;
+};
+
+export type ReorderInvestingWatchlistItems200 = {
+  success: boolean;
+};
+
+export type RemoveInvestingWatchlistItem200 = {
+  success: boolean;
+};
+
+export type ListWorkflowInstancesParams = {
+status?: ListWorkflowInstancesStatus;
+};
+
+export type ListWorkflowInstancesStatus = typeof ListWorkflowInstancesStatus[keyof typeof ListWorkflowInstancesStatus];
+
+
+export const ListWorkflowInstancesStatus = {
+  active: 'active',
+  completed: 'completed',
+  abandoned: 'abandoned',
+} as const;
+
+export type DeleteWorkflowInstance200 = {
+  success: boolean;
+};
+
+export type UnpinResource200 = {
+  success: boolean;
+};
+
+export type ReorderPinnedResources200 = {
+  success: boolean;
+};
 

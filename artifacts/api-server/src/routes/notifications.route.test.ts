@@ -94,29 +94,41 @@ describe("Notifications routes (live, real Postgres, SIMULATED path)", () => {
     expect(res.status).toBe(400);
   });
 
-  it("PATCH /notifications/:id 400s for a missing required field", async () => {
-    // Create a real watchlist target-crossing condition first so there's a
-    // real notification id to attempt the malformed PATCH against.
-    const symbol = randomSymbol();
-    const f = (await getFundamentals(symbol))!;
-    await fetch(`${baseUrl}/api/stock-analyst/value-watchlist`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ symbol, desiredBuyPrice: f.price + 1000 }),
-    });
-    const created = await json<NotificationResponse[]>(await fetch(`${baseUrl}/api/notifications/check`, { method: "POST" }));
-    const symbolAlert = created.find((n) => n.relatedSymbol === symbol);
-    expect(symbolAlert).toBeTruthy();
+  // Phase 16 extended evaluateAndPersistAlertsForUser (called by every
+  // POST /notifications/check below) with two additional evaluators
+  // (symbol/portfolio monitoring) that now do real work per watchlist
+  // symbol/portfolio under the shared legacy-owner account — every test
+  // in this file that calls that route gets a generous, explicit timeout,
+  // matching Sprint 73's own precedent for heavier live-DB scenarios.
+  it(
+    "PATCH /notifications/:id 400s for a missing required field",
+    async () => {
+      // Create a real watchlist target-crossing condition first so there's a
+      // real notification id to attempt the malformed PATCH against.
+      const symbol = randomSymbol();
+      const f = (await getFundamentals(symbol))!;
+      await fetch(`${baseUrl}/api/stock-analyst/value-watchlist`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ symbol, desiredBuyPrice: f.price + 1000 }),
+      });
+      const created = await json<NotificationResponse[]>(await fetch(`${baseUrl}/api/notifications/check`, { method: "POST" }));
+      const symbolAlert = created.find((n) => n.relatedSymbol === symbol);
+      expect(symbolAlert).toBeTruthy();
 
-    const res = await fetch(`${baseUrl}/api/notifications/${symbolAlert!.id}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({}),
-    });
-    expect(res.status).toBe(400);
-  });
+      const res = await fetch(`${baseUrl}/api/notifications/${symbolAlert!.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      expect(res.status).toBe(400);
+    },
+    30_000,
+  );
 
-  it("POST /notifications/check creates a watchlist-target-crossed alert traceable to Sprint 27's own detection, then a repeat call never duplicates it while unread", async () => {
+  it(
+    "POST /notifications/check creates a watchlist-target-crossed alert traceable to Sprint 27's own detection, then a repeat call never duplicates it while unread",
+    async () => {
     const symbol = randomSymbol();
     const f = (await getFundamentals(symbol))!;
     await fetch(`${baseUrl}/api/stock-analyst/value-watchlist`, {
@@ -163,9 +175,13 @@ describe("Notifications routes (live, real Postgres, SIMULATED path)", () => {
     const thirdRes = await fetch(`${baseUrl}/api/notifications/check`, { method: "POST" });
     const thirdBody = await json<NotificationResponse[]>(thirdRes);
     expect(thirdBody.find((n) => n.relatedSymbol === symbol && n.title === alert!.title)).toBeTruthy();
-  });
+    },
+    30_000,
+  );
 
-  it("POST /notifications/check honestly returns nothing new when alertsEnabled is turned off, even for a genuinely crossed target", async () => {
+  it(
+    "POST /notifications/check honestly returns nothing new when alertsEnabled is turned off, even for a genuinely crossed target",
+    async () => {
     const patchSettings = await fetch(`${baseUrl}/api/settings`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -197,5 +213,7 @@ describe("Notifications routes (live, real Postgres, SIMULATED path)", () => {
         body: JSON.stringify({ alertsEnabled: true }),
       });
     }
-  });
+    },
+    30_000,
+  );
 });

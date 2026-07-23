@@ -1,0 +1,157 @@
+// Phase 10 — Institutional Platform Polish & Control Center. Tests for
+// the Global Command Palette / Global Search dialog.
+
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { renderWithClient } from "@/test/test-utils";
+
+const mockState = vi.hoisted(() => ({
+  openTrades: undefined as unknown,
+  journalEntries: undefined as unknown,
+  glossaryTerms: undefined as unknown,
+  strategies: undefined as unknown,
+  learningPaths: undefined as unknown,
+  intelligence: undefined as unknown,
+  watchlist: undefined as unknown,
+  portfolios: undefined as unknown,
+}));
+
+vi.mock("@workspace/api-client-react", async () => {
+  const actual = await vi.importActual<typeof import("@workspace/api-client-react")>(
+    "@workspace/api-client-react",
+  );
+  return {
+    ...actual,
+    useListTrades: () => ({ data: mockState.openTrades }),
+    useListJournalEntries: () => ({ data: mockState.journalEntries }),
+    useGetGlossary: () => ({ data: mockState.glossaryTerms }),
+    useGetStrategyAcademy: () => ({ data: mockState.strategies }),
+    useGetLearningPaths: () => ({ data: mockState.learningPaths }),
+    useGetInstitutionalIntelligence: () => ({ data: mockState.intelligence }),
+    useGetValueWatchlist: () => ({ data: mockState.watchlist }),
+    useGetPortfolios: () => ({ data: mockState.portfolios }),
+  };
+});
+
+vi.mock("@/lib/portfolio-export", () => ({ downloadPortfolioCsv: vi.fn() }));
+import { downloadPortfolioCsv } from "@/lib/portfolio-export";
+
+import { CommandPalette } from "./CommandPalette";
+import { Toaster } from "@/components/ui/toaster";
+
+beforeEach(() => {
+  mockState.openTrades = [];
+  mockState.journalEntries = [];
+  mockState.glossaryTerms = [];
+  mockState.strategies = [];
+  mockState.learningPaths = [];
+  mockState.intelligence = undefined;
+  mockState.watchlist = [];
+  mockState.portfolios = [];
+  window.history.pushState(null, "", "/");
+  vi.clearAllMocks();
+});
+
+describe("CommandPalette", () => {
+  it("renders nothing (the dialog content) when closed", () => {
+    renderWithClient(<CommandPalette open={false} onOpenChange={vi.fn()} />);
+    expect(screen.queryByTestId("command-palette-input")).not.toBeInTheDocument();
+  });
+
+  it("shows the input and every static group when open", () => {
+    renderWithClient(<CommandPalette open={true} onOpenChange={vi.fn()} />);
+    expect(screen.getByTestId("command-palette-input")).toBeInTheDocument();
+    expect(screen.getByText("Quick Actions")).toBeInTheDocument();
+    expect(screen.getByText("Navigate")).toBeInTheDocument();
+  });
+
+  it("navigating via a nav item calls onOpenChange(false) and updates the location", async () => {
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    fireEvent.click(screen.getByTestId("command-item-nav-/settings"));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(window.location.pathname).toBe("/settings");
+  });
+
+  it("typing filters the visible items (cmdk's own fuzzy search)", async () => {
+    const user = userEvent.setup();
+    renderWithClient(<CommandPalette open={true} onOpenChange={vi.fn()} />);
+    await user.type(screen.getByTestId("command-palette-input"), "Settings");
+    expect(screen.getByTestId("command-item-nav-/settings")).toBeInTheDocument();
+    expect(screen.queryByTestId("command-item-nav-/scanner")).not.toBeInTheDocument();
+  });
+
+  it("shows an open position once fetched, and selecting it navigates to its ticket", () => {
+    mockState.openTrades = [{ id: 42, symbol: "SPY", strategy: "iron_condor" }];
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    expect(screen.getByTestId("command-item-position-42")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("command-item-position-42"));
+    expect(window.location.pathname).toBe("/ticket/adjust/42");
+  });
+
+  // Phase 12 — Institutional Investing Engine Consolidation & Integration.
+  it("shows a watchlist entry once fetched, and selecting it navigates to Value Research pre-filled with the symbol", () => {
+    mockState.watchlist = [{ id: 5, symbol: "AAPL", category: "Researching", currentDecision: "LONG-TERM BUY" }];
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    expect(screen.getByTestId("command-item-watchlist-AAPL")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("command-item-watchlist-AAPL"));
+    expect(window.location.pathname + window.location.search).toBe("/stock-analyst?symbol=AAPL");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  // Phase 13 — Institutional Portfolio Manager.
+  it("shows a portfolio entry once fetched, and selecting it deep-links to the Portfolio Manager pre-selected", () => {
+    mockState.portfolios = [{ id: 7, name: "Core Value", description: "", holdingsCount: 3 }];
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    expect(screen.getByTestId("command-item-portfolio-7")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("command-item-portfolio-7"));
+    expect(window.location.pathname + window.location.search).toBe(
+      "/stock-analyst/portfolio-construction?portfolioId=7",
+    );
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("Export Portfolio downloads a CSV of open positions and never navigates", () => {
+    mockState.openTrades = [{ id: 1, symbol: "AAPL", strategy: "iron_fly" }];
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    fireEvent.click(screen.getByTestId("command-item-quick-export-portfolio"));
+    expect(downloadPortfolioCsv).toHaveBeenCalledWith(mockState.openTrades);
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("selecting a workflow navigates to its first step and closes the palette", () => {
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    expect(screen.getByText("Workflows")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("command-item-workflow-morning-review"));
+    expect(window.location.pathname).toBe("/");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("a workflow's toast 'Next' action advances to the following step", () => {
+    renderWithClient(
+      <>
+        <CommandPalette open={true} onOpenChange={vi.fn()} />
+        <Toaster />
+      </>,
+    );
+    fireEvent.click(screen.getByTestId("command-item-workflow-risk-management-check"));
+    expect(window.location.pathname).toBe("/portfolio-dashboard");
+    const next = screen.getByTestId("workflow-next-risk-management-check");
+    fireEvent.click(next);
+    expect(window.location.pathname).toBe("/concentration-risk");
+  });
+
+  it("shows AI observations once the Intelligence Engine result resolves", () => {
+    mockState.intelligence = {
+      observations: [{ code: "obs-1", title: "Diversification improving", explanation: "Sector spread widened." }],
+    };
+    renderWithClient(<CommandPalette open={true} onOpenChange={vi.fn()} />);
+    expect(screen.getByTestId("command-item-observation-obs-1")).toBeInTheDocument();
+  });
+});

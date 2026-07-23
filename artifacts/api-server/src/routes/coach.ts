@@ -40,6 +40,7 @@ import {
   type JournalReviewData,
 } from "../lib/coachLLM.js";
 import { canonicalQuote } from "../lib/execution.js";
+import { computeQuizProgress } from "../lib/quizProgress.js";
 import { openSse } from "../lib/sse.js";
 import { scannerResultsTable } from "@workspace/db";
 import { getScopedUserId } from "../lib/tenantScope.js";
@@ -329,40 +330,11 @@ router.post("/coach/quiz/grade", async (req, res): Promise<void> => {
   }
 });
 
-// A UTC day key (YYYY-MM-DD) for streak bucketing — deterministic across servers.
-function utcDayKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-// Count consecutive calendar days (UTC) with at least one attempt, walking back
-// from today. The streak is "alive" if the most recent attempt is today or
-// yesterday; otherwise it has lapsed and we return 0.
-function computeStreak(dayKeys: Set<string>, now: Date): number {
-  if (dayKeys.size === 0) return 0;
-  const DAY_MS = 24 * 60 * 60 * 1000;
-  const todayKey = utcDayKey(now);
-  const yesterdayKey = utcDayKey(new Date(now.getTime() - DAY_MS));
-
-  // Anchor on today if there's an attempt today, else yesterday, else lapsed.
-  let cursor: Date;
-  if (dayKeys.has(todayKey)) {
-    cursor = new Date(`${todayKey}T00:00:00.000Z`);
-  } else if (dayKeys.has(yesterdayKey)) {
-    cursor = new Date(`${yesterdayKey}T00:00:00.000Z`);
-  } else {
-    return 0;
-  }
-
-  let streak = 0;
-  while (dayKeys.has(utcDayKey(cursor))) {
-    streak += 1;
-    cursor = new Date(cursor.getTime() - DAY_MS);
-  }
-  return streak;
-}
-
 // GET /coach/quiz/progress — recent attempts, best score per topic, overall
 // stats, plus motivational aggregates (improvement vs. first attempt, day streak).
+// The aggregation itself is shared with the Value Investing quiz's own
+// progress endpoint via lib/quizProgress.ts's computeQuizProgress() —
+// extracted, behavior-preserving (see that file's own header comment).
 router.get("/coach/quiz/progress", async (req, res): Promise<void> => {
   const userId = await getScopedUserId(req);
   const rows = await db
@@ -372,36 +344,13 @@ router.get("/coach/quiz/progress", async (req, res): Promise<void> => {
     .orderBy(desc(greeksQuizResultsTable.createdAt))
     .limit(50);
 
-  const attempts = rows.map((r) => ({
-    id: r.id,
-    topic: r.topic,
-    score: r.score,
-    total: r.total,
-    percent: r.percent,
-    createdAt: r.createdAt.toISOString(),
-  }));
-
-  const bestMap = new Map<string, { bestPercent: number; attempts: number }>();
-  for (const r of rows) {
-    const cur = bestMap.get(r.topic) ?? { bestPercent: 0, attempts: 0 };
-    cur.attempts += 1;
-    if (r.percent > cur.bestPercent) cur.bestPercent = r.percent;
-    bestMap.set(r.topic, cur);
-  }
-  const bestByTopic = Array.from(bestMap.entries())
-    .map(([topic, v]) => ({ topic, bestPercent: v.bestPercent, attempts: v.attempts }))
-    .sort((a, b) => b.bestPercent - a.bestPercent);
-
-  const totalAttempts = rows.length;
-  const averagePercent =
-    totalAttempts === 0
-      ? 0
-      : rows.reduce((sum, r) => sum + r.percent, 0) / totalAttempts;
-
   // Streak + improvement need the FULL history, not just the latest 50 rows, so
   // pull a lightweight chronological projection of every attempt.
   const history = await db
     .select({
+      topic: greeksQuizResultsTable.topic,
+      score: greeksQuizResultsTable.score,
+      total: greeksQuizResultsTable.total,
       percent: greeksQuizResultsTable.percent,
       createdAt: greeksQuizResultsTable.createdAt,
     })
@@ -409,24 +358,7 @@ router.get("/coach/quiz/progress", async (req, res): Promise<void> => {
     .where(eq(greeksQuizResultsTable.userId, userId))
     .orderBy(asc(greeksQuizResultsTable.createdAt));
 
-  const firstPercent = history.length > 0 ? history[0].percent : 0;
-  const latestPercent =
-    history.length > 0 ? history[history.length - 1].percent : 0;
-  const improvement = latestPercent - firstPercent;
-
-  const dayKeys = new Set(history.map((h) => utcDayKey(h.createdAt)));
-  const streak = computeStreak(dayKeys, new Date());
-
-  res.json({
-    attempts,
-    bestByTopic,
-    totalAttempts,
-    averagePercent,
-    streak,
-    improvement,
-    firstPercent,
-    latestPercent,
-  });
+  res.json(computeQuizProgress(rows, history));
 });
 
 type ResolvedReview =

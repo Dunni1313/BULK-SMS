@@ -23,10 +23,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useEffect } from "react";
 
 // Pages
 const NotFound = lazy(() => import("@/pages/not-found"));
+const Home = lazy(() => import("./pages/Home"));
+const CommandCenter = lazy(() => import("./pages/CommandCenter"));
+const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
+const OperationsDashboard = lazy(() => import("./pages/OperationsDashboard"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Scanner = lazy(() => import("./pages/Scanner"));
 const OptionChain = lazy(() => import("./pages/OptionChain"));
@@ -46,12 +51,57 @@ const StockResearch = lazy(() => import("./pages/StockResearch"));
 const TradingResearch = lazy(() => import("./pages/TradingResearch"));
 const TradingJournal = lazy(() => import("./pages/TradingJournal"));
 const TradingBacktest = lazy(() => import("./pages/TradingBacktest"));
+const TradeWorkspace = lazy(() => import("./pages/TradeWorkspace"));
+const MarketStructureWorkbench = lazy(() => import("./pages/MarketStructureWorkbench"));
+const LiquidityWorkbench = lazy(() => import("./pages/LiquidityWorkbench"));
+const TradePlanningStudio = lazy(() => import("./pages/TradePlanningStudio"));
 const OptionsBacktest = lazy(() => import("./pages/OptionsBacktest"));
 const InstitutionalDashboard = lazy(() => import("./pages/InstitutionalDashboard"));
+const InstitutionalIntelligence = lazy(() => import("./pages/InstitutionalIntelligence"));
+const PortfolioAnalyst = lazy(() => import("./pages/PortfolioAnalyst"));
+const AITradeJournal = lazy(() => import("./pages/TradeJournal"));
+const InstitutionalMentor = lazy(() => import("./pages/InstitutionalMentor"));
 const CrossEngineDailyReport = lazy(() => import("./pages/CrossEngineDailyReport"));
 const StockScanner = lazy(() => import("./pages/StockScanner"));
 const PortfolioConstruction = lazy(() => import("./pages/PortfolioConstruction"));
+const InstitutionalWorkspace = lazy(() => import("./pages/InstitutionalWorkspace"));
+const PortfolioOptimisation = lazy(() => import("./pages/PortfolioOptimisation"));
+const InvestmentCommitteeWorkbench = lazy(() => import("./pages/InvestmentCommitteeWorkbench"));
+const ResearchTerminal = lazy(() => import("./pages/ResearchTerminal"));
+const InstitutionalAICoach = lazy(() => import("./pages/InstitutionalAICoach"));
+const TradingAICoach = lazy(() => import("./pages/TradingAICoach"));
+const StrategyFramework = lazy(() => import("./pages/StrategyFramework"));
+const StrategyWorkbench = lazy(() => import("./pages/StrategyWorkbench"));
+const TradingAnalyticsDashboard = lazy(() => import("./pages/TradingAnalyticsDashboard"));
+const ExecutiveIntelligence = lazy(() => import("./pages/ExecutiveIntelligence"));
+const CrossEngineWorkspace = lazy(() => import("./pages/CrossEngineWorkspace"));
+const OptionsIncomeWorkspace = lazy(() => import("./pages/OptionsIncomeWorkspace"));
+const OptionsLifecycleManager = lazy(() => import("./pages/OptionsLifecycleManager"));
+const RiskExposureEngine = lazy(() => import("./pages/RiskExposureEngine"));
+const PerformanceAttributionEngine = lazy(() => import("./pages/PerformanceAttributionEngine"));
+const ScenarioEngine = lazy(() => import("./pages/ScenarioEngine"));
+const DecisionSupportEngine = lazy(() => import("./pages/DecisionSupportEngine"));
+const RebalancingEngine = lazy(() => import("./pages/RebalancingEngine"));
+const MonitoringComplianceEngine = lazy(() => import("./pages/MonitoringComplianceEngine"));
+const WatchlistsEngine = lazy(() => import("./pages/WatchlistsEngine"));
+const PortfolioWorkspace = lazy(() => import("./pages/PortfolioWorkspace"));
+const ReportingCentre = lazy(() => import("./pages/ReportingCentre"));
+const ExecutiveDashboard = lazy(() => import("./pages/ExecutiveDashboard"));
+const DecisionEngine = lazy(() => import("./pages/DecisionEngine"));
+const OpportunityDiscovery = lazy(() => import("./pages/OpportunityDiscovery"));
+const MonitoringDashboard = lazy(() => import("./pages/MonitoringDashboard"));
 const ValueInvestingSchool = lazy(() => import("./pages/ValueInvestingSchool"));
+const PaperTradingReconciliation = lazy(() => import("./pages/PaperTradingReconciliation"));
+const PaperPortfolio = lazy(() => import("./pages/PaperPortfolio"));
+const TradeHistory = lazy(() => import("./pages/TradeHistory"));
+const TradePerformance = lazy(() => import("./pages/TradePerformance"));
+const OrderPreview = lazy(() => import("./pages/OrderPreview"));
+const PositionSizing = lazy(() => import("./pages/PositionSizing"));
+const TradeAdjustmentPreview = lazy(() => import("./pages/TradeAdjustmentPreview"));
+const PortfolioStressTest = lazy(() => import("./pages/PortfolioStressTest"));
+const PortfolioEventRisk = lazy(() => import("./pages/PortfolioEventRisk"));
+const PortfolioConcentration = lazy(() => import("./pages/PortfolioConcentration"));
+const PortfolioDashboard = lazy(() => import("./pages/PortfolioDashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Login = lazy(() => import("./pages/Login"));
 
@@ -60,12 +110,24 @@ const DeltaMasterclass = lazy(() => import("./pages/learn/DeltaMasterclass"));
 const GreeksTutor = lazy(() => import("./pages/learn/GreeksTutor"));
 const TradeLessons = lazy(() => import("./pages/learn/TradeLessons"));
 const Quiz = lazy(() => import("./pages/learn/Quiz"));
+const LearningCentre = lazy(() => import("./pages/learn/LearningCentre"));
+const LearningPaths = lazy(() => import("./pages/learn/LearningPaths"));
+const StrategyAcademy = lazy(() => import("./pages/learn/StrategyAcademy"));
+const Glossary = lazy(() => import("./pages/learn/Glossary"));
 
+// Phase 9 — a modest default staleTime avoids an immediate, redundant
+// refetch every time a component using an already-fresh query remounts
+// (e.g. navigating away and back within the window below), while staying
+// short enough that no page shows meaningfully outdated data. Any page
+// that needs tighter freshness already overrides this per-query (e.g.
+// NotificationBell's own 20s poll) — this is only the default floor.
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: false,
+      staleTime: 15_000,
+      gcTime: 5 * 60_000,
     },
   },
 });
@@ -86,7 +148,11 @@ function Router() {
       <Suspense fallback={<PageLoadingFallback />}>
         <Switch>
           <Route path="/login" component={Login} />
-          <Route path="/" component={Dashboard} />
+          <Route path="/" component={Home} />
+          <Route path="/command-center" component={CommandCenter} />
+          <Route path="/notifications" component={NotificationCentre} />
+          <Route path="/operations" component={OperationsDashboard} />
+          <Route path="/options-dashboard" component={Dashboard} />
           <Route path="/scanner" component={Scanner} />
           <Route path="/options/:symbol" component={OptionChain} />
           <Route path="/portfolio" component={Portfolio} />
@@ -103,19 +169,72 @@ function Router() {
           <Route path="/events" component={Events} />
           <Route path="/adjustments" component={Adjustments} />
           <Route path="/institutional-dashboard" component={InstitutionalDashboard} />
+          <Route path="/institutional-intelligence" component={InstitutionalIntelligence} />
+          <Route path="/portfolio-analyst" component={PortfolioAnalyst} />
+          <Route path="/trade-journal-ai" component={AITradeJournal} />
+          <Route path="/institutional-mentor" component={InstitutionalMentor} />
+          <Route path="/decision-engine" component={DecisionEngine} />
+          <Route path="/opportunity-discovery" component={OpportunityDiscovery} />
+          <Route path="/monitoring-dashboard" component={MonitoringDashboard} />
           <Route path="/daily-report" component={CrossEngineDailyReport} />
           <Route path="/trading-research" component={TradingResearch} />
           <Route path="/trading-journal" component={TradingJournal} />
           <Route path="/trading-backtest" component={TradingBacktest} />
+          <Route path="/trade-workspace" component={TradeWorkspace} />
+          <Route path="/market-structure-workbench" component={MarketStructureWorkbench} />
+          <Route path="/liquidity-workbench" component={LiquidityWorkbench} />
+          <Route path="/trade-planning-studio" component={TradePlanningStudio} />
+          <Route path="/trading-ai-coach" component={TradingAICoach} />
+          <Route path="/strategy-framework" component={StrategyFramework} />
+          <Route path="/strategy-workbench" component={StrategyWorkbench} />
+          <Route path="/trading-analytics" component={TradingAnalyticsDashboard} />
+          <Route path="/executive-intelligence" component={ExecutiveIntelligence} />
+          <Route path="/cross-engine-workspace" component={CrossEngineWorkspace} />
+          <Route path="/options-income-workspace" component={OptionsIncomeWorkspace} />
+          <Route path="/options-lifecycle-manager" component={OptionsLifecycleManager} />
+          <Route path="/risk-exposure-engine" component={RiskExposureEngine} />
+          <Route path="/performance-attribution-engine" component={PerformanceAttributionEngine} />
+          <Route path="/scenario-engine" component={ScenarioEngine} />
+          <Route path="/decision-support-engine" component={DecisionSupportEngine} />
+          <Route path="/rebalancing-engine" component={RebalancingEngine} />
+          <Route path="/monitoring-compliance-engine" component={MonitoringComplianceEngine} />
+          <Route path="/watchlists-engine" component={WatchlistsEngine} />
+          <Route path="/portfolio-workspace" component={PortfolioWorkspace} />
           <Route path="/options-backtest" component={OptionsBacktest} />
           <Route path="/stock-analyst/scanner" component={StockScanner} />
           <Route path="/stock-analyst/portfolio-construction" component={PortfolioConstruction} />
+          <Route path="/stock-analyst/portfolio-optimisation" component={PortfolioOptimisation} />
+          <Route path="/stock-analyst/investment-committee" component={InvestmentCommitteeWorkbench} />
+          <Route path="/research-terminal" component={ResearchTerminal} />
+          <Route path="/institutional-ai-coach" component={InstitutionalAICoach} />
+          <Route path="/reporting-centre" component={ReportingCentre} />
+          <Route path="/stock-analyst/executive-dashboard" component={ExecutiveDashboard} />
           <Route path="/stock-analyst" component={StockResearch} />
+          <Route path="/workspace" component={InstitutionalWorkspace} />
+          <Route path="/broker-reconciliation" component={PaperTradingReconciliation} />
+          <Route path="/paper-portfolio" component={PaperPortfolio} />
+          <Route path="/trade-history" component={TradeHistory} />
+          <Route path="/trade-performance" component={TradePerformance} />
+          <Route path="/order-preview" component={OrderPreview} />
+          <Route path="/position-sizing" component={PositionSizing} />
+          <Route path="/adjustment-preview" component={TradeAdjustmentPreview} />
+          <Route path="/stress-test" component={PortfolioStressTest} />
+          <Route path="/event-risk" component={PortfolioEventRisk} />
+          <Route path="/concentration-risk" component={PortfolioConcentration} />
+          <Route path="/portfolio-dashboard" component={PortfolioDashboard} />
           <Route path="/settings" component={Settings} />
           <Route path="/learn/delta" component={DeltaMasterclass} />
           <Route path="/learn/greeks" component={GreeksTutor} />
           <Route path="/lessons" component={TradeLessons} />
           <Route path="/learn/quiz" component={Quiz} />
+          <Route path="/learn/paths/:pathKey/:topicKey" component={LearningPaths} />
+          <Route path="/learn/paths/:pathKey" component={LearningPaths} />
+          <Route path="/learn/paths" component={LearningPaths} />
+          <Route path="/learn/strategy-academy/:strategy" component={StrategyAcademy} />
+          <Route path="/learn/strategy-academy" component={StrategyAcademy} />
+          <Route path="/learn/glossary/:key" component={Glossary} />
+          <Route path="/learn/glossary" component={Glossary} />
+          <Route path="/learn" component={LearningCentre} />
           <Route path="/stock-analyst/value-investing-school" component={ValueInvestingSchool} />
           <Route component={NotFound} />
         </Switch>
@@ -130,14 +249,16 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

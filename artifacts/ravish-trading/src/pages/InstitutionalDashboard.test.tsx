@@ -505,6 +505,12 @@ describe("InstitutionalDashboard page", () => {
     expect(screen.getByTestId("button-dashboard-open-coach").closest("a")).toHaveAttribute("href", "/trading-research");
   });
 
+  // Phase 33 — Institutional Executive Intelligence & Reporting Hub.
+  it("links out to the Executive Intelligence Hub for cross-engine convenience, never a duplicated feature", () => {
+    renderWithClient(<InstitutionalDashboard />);
+    expect(screen.getByTestId("link-open-executive-intelligence")).toHaveAttribute("href", "/executive-intelligence");
+  });
+
   // Phase 5, Sprint 66 — Unified Portfolio Dashboard (side-by-side view only).
   it("always shows the Portfolio Overview section with honest empty states, even with no symbol searched", () => {
     renderWithClient(<InstitutionalDashboard />);

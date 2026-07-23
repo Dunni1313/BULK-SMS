@@ -58,7 +58,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { NotebookPen, Pencil, Trash2, X } from "lucide-react";
+import { NotebookPen, Pencil, Trash2, X, ExternalLink } from "lucide-react";
 
 function moodBadgeClass(mood: string): string {
   switch (mood) {
@@ -335,6 +335,34 @@ export default function TradingJournal() {
           <p className="text-sm text-muted-foreground">
             Institutional Trading Engine (Engine 2) — reflections on your own trading positions. Never places an order.
           </p>
+          <a
+            href="/market-structure-workbench"
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-open-market-structure-workbench"
+          >
+            <ExternalLink className="h-3 w-3" /> Review structure in the Market Structure Workbench
+          </a>
+          <a
+            href="/liquidity-workbench"
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-open-liquidity-workbench"
+          >
+            <ExternalLink className="h-3 w-3" /> Review liquidity &amp; sessions in the Liquidity &amp; Session Workbench
+          </a>
+          <a
+            href="/trade-planning-studio"
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-open-trade-planning-studio"
+          >
+            <ExternalLink className="h-3 w-3" /> Plan trades &amp; review risk in the Trade Planning &amp; Risk Studio
+          </a>
+          <a
+            href="/trading-ai-coach?coach=journal"
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+            data-testid="link-open-trading-ai-coach"
+          >
+            <ExternalLink className="h-3 w-3" /> Review documentation habits with the Institutional Trading AI Coach
+          </a>
         </div>
 
         <div className="space-y-4">
@@ -376,6 +404,7 @@ export default function TradingJournal() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setEditingId(null)}
+                        aria-label="Cancel editing"
                         data-testid={`button-cancel-edit-${entry.id}`}
                       >
                         <X className="h-4 w-4" />

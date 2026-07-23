@@ -12,5 +12,7 @@ export interface JournalEntryUpdate {
   content?: string;
   mood?: JournalEntryUpdateMood;
   lessonLearned?: string;
+  thesis?: string;
+  entryReasoning?: string;
   tags?: string[];
 }

@@ -370,7 +370,7 @@ export default function Assistant() {
                 <Square className="w-4 h-4" />
               </Button>
             ) : (
-              <Button type="submit" disabled={!input.trim()} size="icon" className="bg-indigo-600 hover:bg-indigo-700" data-testid="assistant-submit">
+              <Button type="submit" disabled={!input.trim()} size="icon" className="bg-indigo-600 hover:bg-indigo-700" aria-label="Send message" data-testid="assistant-submit">
                 <Send className="w-4 h-4" />
               </Button>
             )}

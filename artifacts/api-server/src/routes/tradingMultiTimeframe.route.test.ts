@@ -70,4 +70,26 @@ describe("Multi-Timeframe routes (live, real Postgres, SIMULATED path)", () => {
     const b = await (await fetch(`${baseUrl}/api/trading/multi-timeframe/NVDA`)).json();
     expect(a).toEqual(b);
   });
+
+  // Phase 26 — Institutional Market Structure Workbench's own ?timeframes=
+  // override (backward compatible — every test above omits it and keeps
+  // getting the pre-Phase-26 default set).
+  it("respects an explicit ?timeframes= override, requesting exactly the caller-chosen subset", async () => {
+    const res = await fetch(`${baseUrl}/api/trading/multi-timeframe/AAPL?timeframes=5m,1h`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as MultiTimeframeResponse;
+    expect(body.timeframes.map((t) => t.interval)).toEqual(["5m", "1h"]);
+  });
+
+  it("supports all 5 real timeframes the Market Data Provider actually offers", async () => {
+    const res = await fetch(`${baseUrl}/api/trading/multi-timeframe/AAPL?timeframes=1m,5m,15m,1h,1D`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as MultiTimeframeResponse;
+    expect(body.timeframes.map((t) => t.interval)).toEqual(["1m", "5m", "15m", "1h", "1D"]);
+  });
+
+  it("returns 400 for an invalid timeframe in the ?timeframes= override, never silently dropping it", async () => {
+    const res = await fetch(`${baseUrl}/api/trading/multi-timeframe/AAPL?timeframes=15m,1W`);
+    expect(res.status).toBe(400);
+  });
 });

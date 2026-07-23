@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ExplainButton } from "@/components/learn/ExplainButton";
 
 export default function Portfolio() {
   const { data: greeks, isLoading: isLoadingGreeks } = useGetPortfolioGreeks();
@@ -15,7 +16,9 @@ export default function Portfolio() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground uppercase">Beta-Weighted Delta</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground uppercase flex items-center gap-1.5">
+              Beta-Weighted Delta <ExplainButton metrics={["delta"]} />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingGreeks ? <Skeleton className="h-8 w-24" /> : (
@@ -34,7 +37,9 @@ export default function Portfolio() {
         
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground uppercase">Theta (Daily Income)</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground uppercase flex items-center gap-1.5">
+              Theta (Daily Income) <ExplainButton metrics={["theta"]} />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingGreeks ? <Skeleton className="h-8 w-24" /> : (
@@ -47,7 +52,9 @@ export default function Portfolio() {
         
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground uppercase">Vega</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground uppercase flex items-center gap-1.5">
+              Vega <ExplainButton metrics={["vega"]} />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingGreeks ? <Skeleton className="h-8 w-24" /> : (
@@ -60,7 +67,9 @@ export default function Portfolio() {
         
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground uppercase">Gamma</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground uppercase flex items-center gap-1.5">
+              Gamma <ExplainButton metrics={["gamma"]} />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingGreeks ? <Skeleton className="h-8 w-24" /> : (

@@ -92,6 +92,27 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
+// Phase 9 — Production Readiness. A last-resort safety net: without
+// these, an error thrown outside any Express request handler (e.g. from
+// inside the auto-execution/monitoring timers' own `void tick()` calls,
+// though both already try/catch internally, or from a truly unexpected
+// source) would otherwise crash the process silently or with no log
+// line at all. Logs via the same pino logger every other line already
+// goes through, then exits — letting the process manager (systemd,
+// Docker, etc.) restart a clean instance rather than continuing to run
+// in a possibly-corrupted state. Registered only from this real
+// entrypoint, matching every other "real entrypoint only" timer above,
+// so importing app.js directly in the ~90+ existing test files never
+// registers a second, competing process-level handler.
+process.on("uncaughtException", (err) => {
+  logger.error({ err }, "Uncaught exception — exiting");
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  logger.error({ err: reason }, "Unhandled promise rejection — exiting");
+  process.exit(1);
+});
+
 app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");

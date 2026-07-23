@@ -42,6 +42,27 @@ function clamp(x: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, x));
 }
 
+// Exported (additive, AI Teacher & Learning Centre sprint) so
+// lib/metricExplainer.ts can reuse the exact same standard
+// expected-move formula (implied vol × sqrt(time)) this file's own
+// analyzeEarnings() already computes internally, for ANY open
+// position — not gated by the earnings-window/IV-rank thresholds
+// analyzeEarnings() applies for its own, narrower "should we run an
+// earnings play" purpose. A pure, behavior-preserving extraction:
+// analyzeEarnings() below now calls this instead of inlining the same
+// two lines, confirmed byte-identical by its own existing tests.
+export function computeExpectedMove(
+  price: number,
+  ivFrac: number,
+  days: number,
+): { pct: number; dollars: number } {
+  const expectedMoveFrac = ivFrac * Math.sqrt(Math.max(1, days) / 365);
+  return {
+    pct: round1(expectedMoveFrac * 100),
+    dollars: Math.round(price * expectedMoveFrac * 100) / 100,
+  };
+}
+
 // Deterministic, symbol-stable typical earnings move (does not vary day to day).
 function historicalMovePct(symbol: string): number {
   const rng = makeRng(`${symbol}|earnings-history`);
@@ -55,9 +76,11 @@ export function analyzeEarnings(input: EarningsInput): EarningsPlay | null {
   if (input.ivRank <= MIN_EARNINGS_IV_RANK) return null;
 
   const days = Math.max(1, input.earningsInDays);
-  const expectedMoveFrac = input.iv * Math.sqrt(days / 365);
-  const expectedMovePct = round1(expectedMoveFrac * 100);
-  const expectedMoveDollars = Math.round(input.price * expectedMoveFrac * 100) / 100;
+  const { pct: expectedMovePct, dollars: expectedMoveDollars } = computeExpectedMove(
+    input.price,
+    input.iv,
+    days,
+  );
   const histPct = historicalMovePct(input.symbol);
 
   // Estimated IV drop after the report: scales with IV rank and how far current IV

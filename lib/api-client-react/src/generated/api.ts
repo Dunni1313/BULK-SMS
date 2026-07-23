@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AITradeJournalResult,
   AdjustmentPreviewInput,
   AdjustmentSubmitInput,
   AdjustmentSubmitResult,
@@ -34,24 +35,60 @@ import type {
   AutoExecutionStatus,
   BacktestInput,
   BacktestResult,
+  BrokerHealth,
+  BrokerOrderResult,
+  BrokerOrdersResult,
+  BrokerPositionsResult,
   ClearReportsResult,
+  CoachExplanation,
   CoachLesson,
+  CompareOpportunitiesRouteParams,
   CompareReportsRequest,
   CompareReportsResponse,
+  ComplianceCoachExplanation,
+  CompliancePolicy,
+  CompliancePolicyTypeMeta,
+  ComplianceTopicLearning,
   ConstructionHolding,
   ConstructionHoldingCreate,
   ConstructionHoldingUpdate,
   ConstructionPortfolioCreate,
   ConstructionPortfolioDetail,
+  ConstructionPortfolioIntelligence,
+  ConstructionPortfolioNote,
+  ConstructionPortfolioNoteCreate,
+  ConstructionPortfolioNoteUpdate,
   ConstructionPortfolioRiskAnalysis,
+  ConstructionPortfolioSnapshot,
   ConstructionPortfolioSummary,
   ConstructionPortfolioUpdate,
   ConstructionRiskSnapshot,
+  ConstructionWatchlistComparison,
+  CreateCompliancePolicyInput,
+  CreateInvestingWatchlistInput,
+  CreateInvestingWatchlistItemInput,
   CrossEngineDailyReport,
+  CrossEngineWorkspaceOverview,
+  CrossEngineWorkspaceSearchResult,
   DailyReport,
   DailyReportSummary,
+  DashboardWorkspace,
+  DashboardWorkspaceCreate,
+  DashboardWorkspaceDuplicate,
+  DashboardWorkspaceUpdate,
+  DecisionNote,
+  DecisionNoteCreate,
+  DecisionNoteUpdate,
+  DecisionSnapshot,
+  DecisionSupportCoachExplanation,
+  DecisionSupportDashboard,
+  DecisionSupportTopicLearning,
+  DeleteCompliancePolicy200,
+  DeleteInstitutionalReport200,
+  DeleteInvestingWatchlist200,
   DeleteReportResult,
   DeleteResult,
+  DeleteWorkflowInstance200,
   EarningsIntelligenceAnalysis,
   EarningsPlay,
   EquityPoint,
@@ -60,6 +97,7 @@ import type {
   ExecutionSubmitInput,
   ExecutionSubmitResult,
   ExecutionTicket,
+  ExecutiveIntelligenceHub,
   ExpirationDate,
   ExplainTradeInput,
   ExplainTradeResult,
@@ -68,7 +106,9 @@ import type {
   FundamentalsProviderStatusResponse,
   GeneratedQuiz,
   GeneratedValueQuiz,
+  GetAlertNotesParams,
   GetAutoAdjustmentLogParams,
+  GetCrossEngineWorkspaceSearchParams,
   GetEquityCurveParams,
   GetPerformanceAnalyticsParams,
   GetPerformanceBreakdownParams,
@@ -80,42 +120,139 @@ import type {
   GradeValueQuizInput,
   HealthStatus,
   IndustryComparisonResult,
+  InstitutionalDecisionAnalysis,
+  InstitutionalIntelligenceResult,
+  InstitutionalMentorResult,
+  InstitutionalReport,
+  InstitutionalReportListItem,
+  InvestingAnalyticsDashboard,
+  InvestingWatchlist,
+  InvestingWatchlistItemPlain,
+  InvestingWatchlistWithItems,
+  InvestmentMemo,
+  InvestmentThesis,
   JournalEntry,
   JournalEntryInput,
   JournalEntryUpdate,
   JournalReviewInput,
   JournalReviewResult,
+  JournalTradeReview,
   LearnContent,
+  LearningGlossaryTerm,
+  LearningPath,
+  LearningPortfolioLesson,
+  LearningProgressAction,
+  LearningProgressSummary,
+  LearningSimulationInput,
+  LearningSimulationResult,
+  LearningStrategyAcademyEntry,
   ListDailyReportsParams,
+  ListOptionsIncomePositionsParams,
+  ListReconciliationReports200,
   ListTradesParams,
+  ListWorkflowInstancesParams,
+  LiveMarketValidationReport,
   ManagementQualityAnalysis,
   MarketBriefingResponse,
   MarketDataHealth,
+  MonitoringAlertNote,
+  MonitoringAlertNoteCreate,
+  MonitoringAlertNoteUpdate,
+  MonitoringComplianceDashboard,
   MonitoringStatus,
   NarrateCrossEngineDailyReportResult,
   NarrateInvestmentCommitteeInput,
   NarrateInvestmentCommitteeResult,
+  OpportunityComparisonResult,
+  OpportunitySavedScreen,
+  OpportunitySavedScreenCreate,
+  OpportunitySavedScreenUpdate,
+  OpportunityScanRequest,
+  OpportunityScanResult,
+  OptimisationReview,
+  OptimisationReviewCreate,
   OptionChain,
   OptionsBacktestResult,
+  OptionsChecklistToggleInput,
+  OptionsIncomeDashboard,
+  OptionsIncomePosition,
+  OptionsIncomePositionNotesInput,
+  OptionsLifecycleCoachExplanation,
+  OptionsLifecycleEvent,
+  OptionsLifecycleEventInput,
+  OptionsLifecycleStageLearning,
+  OptionsLifecycleState,
+  OptionsLifecycleStateUpdateInput,
+  OptionsPortfolioManagementView,
+  OptionsPositionChecklist,
   OptionsRunBacktestInput,
+  OptionsStrategyTemplate,
+  OrderPreviewInput,
+  OrderPreviewResult,
   PerformanceAnalytics,
+  PerformanceAttributionCoachExplanation,
+  PerformanceAttributionTopicLearning,
   PerformanceBreakdownBucket,
+  PerformanceDashboard,
+  PinResourceInput,
+  PinnedResource,
   PlatformNotification,
   PlatformNotificationUpdate,
+  PortfolioAnalystResult,
+  PortfolioConcentrationResult,
+  PortfolioDashboardResult,
+  PortfolioEventRiskResult,
   PortfolioGreeks,
   PortfolioHealth,
+  PortfolioOptimisationAnalysis,
+  PortfolioStressTestInput,
+  PortfolioStressTestResult,
   PortfolioSummary,
+  PortfolioWorkspaceDashboard,
   Position,
+  PositionSizingInput,
+  PositionSizingResult,
+  ProposeAllocationInput,
+  QuickAction,
   QuizGradeResult,
   QuizInput,
   QuizProgress,
   RavishScore,
+  RebalancingCoachExplanation,
+  RebalancingDashboard,
+  RebalancingProposedAllocationComparison,
+  RebalancingTopicLearning,
+  RecentViewEntry,
+  ReconciliationReportDetail,
+  ReconciliationReportSummary,
+  ReconciliationResult,
+  RecordLearningItemCompleted200,
+  RecordLearningItemViewed200,
+  RecordRecentViewInput,
+  RemoveInvestingWatchlistItem200,
+  ReorderInvestingWatchlistItems200,
+  ReorderInvestingWatchlists200,
+  ReorderPinnedResources200,
+  ReorderWorkspaceItemsInput,
+  ReportTypeMeta,
+  ResearchNoteCreate,
+  ResearchNoteItem,
+  ResearchNoteUpdate,
   RestoreReportsRequest,
   RestoreReportsResult,
+  RiskExposureCoachExplanation,
+  RiskExposureDashboard,
+  RiskExposureTopicLearning,
   RiskStatus,
+  RunScenarioDashboardInput,
+  SaveInstitutionalReportInput,
+  SavedInstitutionalReport,
   ScannerResult,
   ScannerRunInput,
   ScannerRunResponse,
+  ScenarioCoachExplanation,
+  ScenarioDashboard,
+  ScenarioTopicLearning,
   Settings,
   SettingsUpdate,
   TeachGreekInput,
@@ -124,15 +261,21 @@ import type {
   TopOpportunities,
   Trade,
   TradeAdjustment,
+  TradeAdjustmentPreviewInput,
+  TradeAdjustmentPreviewResult,
   TradeInput,
   TradeMonitor,
+  TradingAnalyticsDashboard,
   TradingBacktestResult,
   TradingCoachAskInput,
   TradingCoachAskResult,
+  TradingCoachExplanation,
+  TradingCompareScenariosInput,
   TradingJournalEntry,
   TradingJournalEntryInput,
   TradingJournalEntryUpdate,
   TradingLiquidityAnalysis,
+  TradingLiquidityTimeline,
   TradingMultiTimeframeAnalysis,
   TradingPosition,
   TradingPositionInput,
@@ -141,8 +284,29 @@ import type {
   TradingRegimeAnalysis,
   TradingRiskAnalysis,
   TradingRunBacktestInput,
+  TradingScenarioComparisonResult,
+  TradingSessionData,
+  TradingSessionWindowsOverview,
+  TradingStrategy,
+  TradingStrategyChecklist,
+  TradingStrategyChecklistInput,
+  TradingStrategyChecklistUpdate,
+  TradingStrategyInput,
+  TradingStrategyUpdate,
   TradingStructureAnalysis,
+  TradingStructureShiftTimeline,
+  TradingTradePlan,
+  TradingTradePlanInput,
+  TradingTradePlanUpdate,
+  TradingWorkspaceNote,
+  TradingWorkspaceNoteInput,
+  TradingWorkspaceNoteUpdate,
   UniverseSymbol,
+  UnpinResource200,
+  UpdateCompliancePolicyInput,
+  UpdateInvestingWatchlistInput,
+  UpdateInvestingWatchlistItemInput,
+  UpdateWorkflowInstanceInput,
   ValueHistoryRow,
   ValueLessonsResponse,
   ValueMacroContext,
@@ -154,7 +318,15 @@ import type {
   ValueSummary,
   ValueWatchlistCreate,
   ValueWatchlistItem,
-  ValueWatchlistUpdate
+  ValueWatchlistUpdate,
+  WatchlistReorderInput,
+  WatchlistsCoachExplanation,
+  WatchlistsDashboard,
+  WatchlistsTopicLearning,
+  WorkflowDefinition,
+  WorkflowInstance,
+  WorkspaceCoachExplanation,
+  WorkspaceTopicLearning
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -311,6 +483,84 @@ export function useGetMonitoringStatus<TData = Awaited<ReturnType<typeof getMoni
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMonitoringStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMarketDataValidationUrl = () => {
+
+
+
+
+  return `/api/ops/market-data-validation`
+}
+
+/**
+ * Consolidates the Options Engine's provider selection, Engine 1's per-provider fundamentals status, Engine 2's market data provider, and the US market clock/calendar into one report — staleness and missing-data are flagged in the context of whether the market is actually open right now. Requires the "admin" role.
+ * @summary Administrator-only cross-provider live market data validation report
+ */
+export const getMarketDataValidation = async ( options?: RequestInit): Promise<LiveMarketValidationReport> => {
+
+  return customFetch<LiveMarketValidationReport>(getGetMarketDataValidationUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMarketDataValidationQueryKey = () => {
+    return [
+    `/api/ops/market-data-validation`
+    ] as const;
+    }
+
+
+export const getGetMarketDataValidationQueryOptions = <TData = Awaited<ReturnType<typeof getMarketDataValidation>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketDataValidation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMarketDataValidationQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMarketDataValidation>>> = ({ signal }) => getMarketDataValidation({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMarketDataValidation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMarketDataValidationQueryResult = NonNullable<Awaited<ReturnType<typeof getMarketDataValidation>>>
+export type GetMarketDataValidationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Administrator-only cross-provider live market data validation report
+ */
+
+export function useGetMarketDataValidation<TData = Awaited<ReturnType<typeof getMarketDataValidation>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketDataValidation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMarketDataValidationQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -781,6 +1031,619 @@ export function useGetMarketDataHealth<TData = Awaited<ReturnType<typeof getMark
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMarketDataHealthQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerHealthUrl = () => {
+
+
+
+
+  return `/api/broker/health`
+}
+
+/**
+ * Performs a live, authenticated read-only round trip to Alpaca's Paper Trading API (GET /v2/account, /v2/positions, /v2/orders) and reports connection status, account balances, and open position/order counts. Never places, modifies, or cancels an order. Always targets Alpaca's Paper Trading endpoint — there is no live-trading equivalent.
+ * @summary Get Alpaca Paper Trading broker connection/account health (read-only)
+ */
+export const getBrokerHealth = async ( options?: RequestInit): Promise<BrokerHealth> => {
+
+  return customFetch<BrokerHealth>(getGetBrokerHealthUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerHealthQueryKey = () => {
+    return [
+    `/api/broker/health`
+    ] as const;
+    }
+
+
+export const getGetBrokerHealthQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerHealth>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerHealthQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerHealth>>> = ({ signal }) => getBrokerHealth({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerHealth>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerHealth>>>
+export type GetBrokerHealthQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get Alpaca Paper Trading broker connection/account health (read-only)
+ */
+
+export function useGetBrokerHealth<TData = Awaited<ReturnType<typeof getBrokerHealth>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerHealthQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerOrdersUrl = () => {
+
+
+
+
+  return `/api/broker/orders`
+}
+
+/**
+ * A thin, read-only pass-through to GET /v2/orders?status=all. Never places, modifies, or cancels an order. Bounded to Alpaca's own default page size (no further pagination this sprint).
+ * @summary List all Alpaca Paper Trading orders (any status), read-only
+ */
+export const getBrokerOrders = async ( options?: RequestInit): Promise<BrokerOrdersResult> => {
+
+  return customFetch<BrokerOrdersResult>(getGetBrokerOrdersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerOrdersQueryKey = () => {
+    return [
+    `/api/broker/orders`
+    ] as const;
+    }
+
+
+export const getGetBrokerOrdersQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerOrders>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerOrdersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerOrders>>> = ({ signal }) => getBrokerOrders({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrders>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerOrders>>>
+export type GetBrokerOrdersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all Alpaca Paper Trading orders (any status), read-only
+ */
+
+export function useGetBrokerOrders<TData = Awaited<ReturnType<typeof getBrokerOrders>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerOrdersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerOrderUrl = (orderId: string,) => {
+
+
+
+
+  return `/api/broker/orders/${orderId}`
+}
+
+/**
+ * @summary Get a single Alpaca Paper Trading order by id, read-only
+ */
+export const getBrokerOrder = async (orderId: string, options?: RequestInit): Promise<BrokerOrderResult> => {
+
+  return customFetch<BrokerOrderResult>(getGetBrokerOrderUrl(orderId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerOrderQueryKey = (orderId: string,) => {
+    return [
+    `/api/broker/orders/${orderId}`
+    ] as const;
+    }
+
+
+export const getGetBrokerOrderQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerOrder>>, TError = ErrorType<unknown>>(orderId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrder>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerOrderQueryKey(orderId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerOrder>>> = ({ signal }) => getBrokerOrder(orderId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(orderId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrder>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerOrder>>>
+export type GetBrokerOrderQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get a single Alpaca Paper Trading order by id, read-only
+ */
+
+export function useGetBrokerOrder<TData = Awaited<ReturnType<typeof getBrokerOrder>>, TError = ErrorType<unknown>>(
+ orderId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerOrder>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerOrderQueryOptions(orderId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerPositionsUrl = () => {
+
+
+
+
+  return `/api/broker/positions`
+}
+
+/**
+ * A thin, read-only pass-through to GET /v2/positions. Distinct from GET /broker/reconciliation's own positions array, which is a local-vs-broker comparison, not a plain display list — this route surfaces Alpaca's own position fields (average entry price, side, market value, unrealized P/L) directly. Never modifies or closes a position.
+ * @summary List all Alpaca Paper Trading positions, read-only
+ */
+export const getBrokerPositions = async ( options?: RequestInit): Promise<BrokerPositionsResult> => {
+
+  return customFetch<BrokerPositionsResult>(getGetBrokerPositionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerPositionsQueryKey = () => {
+    return [
+    `/api/broker/positions`
+    ] as const;
+    }
+
+
+export const getGetBrokerPositionsQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerPositions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerPositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerPositionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerPositions>>> = ({ signal }) => getBrokerPositions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerPositions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerPositionsQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerPositions>>>
+export type GetBrokerPositionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all Alpaca Paper Trading positions, read-only
+ */
+
+export function useGetBrokerPositions<TData = Awaited<ReturnType<typeof getBrokerPositions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerPositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerPositionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetBrokerReconciliationUrl = () => {
+
+
+
+
+  return `/api/broker/reconciliation`
+}
+
+/**
+ * Manual, on-demand only — never runs on a schedule or background timer. Read-only: identifies discrepancies (missing at broker, missing locally, status/quantity/symbol mismatches, open-position mismatches) without correcting, cancelling, or closing anything on either side.
+ * @summary Compare local trade/order records against Alpaca Paper Trading orders and positions, read-only
+ */
+export const getBrokerReconciliation = async ( options?: RequestInit): Promise<ReconciliationResult> => {
+
+  return customFetch<ReconciliationResult>(getGetBrokerReconciliationUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBrokerReconciliationQueryKey = () => {
+    return [
+    `/api/broker/reconciliation`
+    ] as const;
+    }
+
+
+export const getGetBrokerReconciliationQueryOptions = <TData = Awaited<ReturnType<typeof getBrokerReconciliation>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerReconciliation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBrokerReconciliationQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBrokerReconciliation>>> = ({ signal }) => getBrokerReconciliation({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBrokerReconciliation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBrokerReconciliationQueryResult = NonNullable<Awaited<ReturnType<typeof getBrokerReconciliation>>>
+export type GetBrokerReconciliationQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compare local trade/order records against Alpaca Paper Trading orders and positions, read-only
+ */
+
+export function useGetBrokerReconciliation<TData = Awaited<ReturnType<typeof getBrokerReconciliation>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBrokerReconciliation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBrokerReconciliationQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListReconciliationReportsUrl = () => {
+
+
+
+
+  return `/api/broker/reconciliation/reports`
+}
+
+/**
+ * @summary List the calling user's own persisted reconciliation report history, newest first
+ */
+export const listReconciliationReports = async ( options?: RequestInit): Promise<ListReconciliationReports200> => {
+
+  return customFetch<ListReconciliationReports200>(getListReconciliationReportsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReconciliationReportsQueryKey = () => {
+    return [
+    `/api/broker/reconciliation/reports`
+    ] as const;
+    }
+
+
+export const getListReconciliationReportsQueryOptions = <TData = Awaited<ReturnType<typeof listReconciliationReports>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReconciliationReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReconciliationReportsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReconciliationReports>>> = ({ signal }) => listReconciliationReports({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReconciliationReports>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListReconciliationReportsQueryResult = NonNullable<Awaited<ReturnType<typeof listReconciliationReports>>>
+export type ListReconciliationReportsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's own persisted reconciliation report history, newest first
+ */
+
+export function useListReconciliationReports<TData = Awaited<ReturnType<typeof listReconciliationReports>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReconciliationReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListReconciliationReportsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateReconciliationReportUrl = () => {
+
+
+
+
+  return `/api/broker/reconciliation/reports`
+}
+
+/**
+ * @summary Run a fresh reconciliation and persist a snapshot of it — explicit trigger only, never on a schedule
+ */
+export const createReconciliationReport = async ( options?: RequestInit): Promise<ReconciliationReportSummary> => {
+
+  return customFetch<ReconciliationReportSummary>(getCreateReconciliationReportUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateReconciliationReportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReconciliationReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createReconciliationReport>>, TError,void, TContext> => {
+
+const mutationKey = ['createReconciliationReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReconciliationReport>>, void> = () => {
+
+
+          return  createReconciliationReport(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateReconciliationReportMutationResult = NonNullable<Awaited<ReturnType<typeof createReconciliationReport>>>
+
+    export type CreateReconciliationReportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run a fresh reconciliation and persist a snapshot of it — explicit trigger only, never on a schedule
+ */
+export const useCreateReconciliationReport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReconciliationReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createReconciliationReport>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getCreateReconciliationReportMutationOptions(options));
+    }
+
+export const getGetReconciliationReportUrl = (id: number,) => {
+
+
+
+
+  return `/api/broker/reconciliation/reports/${id}`
+}
+
+/**
+ * @summary Get one persisted reconciliation report's full detail, by id
+ */
+export const getReconciliationReport = async (id: number, options?: RequestInit): Promise<ReconciliationReportDetail> => {
+
+  return customFetch<ReconciliationReportDetail>(getGetReconciliationReportUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReconciliationReportQueryKey = (id: number,) => {
+    return [
+    `/api/broker/reconciliation/reports/${id}`
+    ] as const;
+    }
+
+
+export const getGetReconciliationReportQueryOptions = <TData = Awaited<ReturnType<typeof getReconciliationReport>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReconciliationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReconciliationReportQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReconciliationReport>>> = ({ signal }) => getReconciliationReport(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReconciliationReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReconciliationReportQueryResult = NonNullable<Awaited<ReturnType<typeof getReconciliationReport>>>
+export type GetReconciliationReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get one persisted reconciliation report's full detail, by id
+ */
+
+export function useGetReconciliationReport<TData = Awaited<ReturnType<typeof getReconciliationReport>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReconciliationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReconciliationReportQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -2224,6 +3087,1658 @@ export const useSubmitAdjustmentExecution = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getSubmitAdjustmentExecutionMutationOptions(options));
+    }
+
+export const getPreviewOrderUrl = () => {
+
+
+
+
+  return `/api/execution/order-preview`
+}
+
+/**
+ * @summary Read-only dry-run order preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly sets available:false and populates inputIssues rather than fabricating a partial ticket.
+ */
+export const previewOrder = async (orderPreviewInput: OrderPreviewInput, options?: RequestInit): Promise<OrderPreviewResult> => {
+
+  return customFetch<OrderPreviewResult>(getPreviewOrderUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      orderPreviewInput,)
+  }
+);}
+
+
+
+
+export const getPreviewOrderMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewOrder>>, TError,{data: BodyType<OrderPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewOrder>>, TError,{data: BodyType<OrderPreviewInput>}, TContext> => {
+
+const mutationKey = ['previewOrder'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewOrder>>, {data: BodyType<OrderPreviewInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewOrder(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewOrderMutationResult = NonNullable<Awaited<ReturnType<typeof previewOrder>>>
+    export type PreviewOrderMutationBody = BodyType<OrderPreviewInput>
+    export type PreviewOrderMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Read-only dry-run order preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly sets available:false and populates inputIssues rather than fabricating a partial ticket.
+ */
+export const usePreviewOrder = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewOrder>>, TError,{data: BodyType<OrderPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewOrder>>,
+        TError,
+        {data: BodyType<OrderPreviewInput>},
+        TContext
+      > => {
+      return useMutation(getPreviewOrderMutationOptions(options));
+    }
+
+export const getPreviewPositionSizingUrl = () => {
+
+
+
+
+  return `/api/execution/position-sizing`
+}
+
+/**
+ * @summary Read-only position-sizing and portfolio-impact analysis, extending the Order Preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly reflects that in the nested preview.available field rather than fabricating figures.
+ */
+export const previewPositionSizing = async (positionSizingInput: PositionSizingInput, options?: RequestInit): Promise<PositionSizingResult> => {
+
+  return customFetch<PositionSizingResult>(getPreviewPositionSizingUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      positionSizingInput,)
+  }
+);}
+
+
+
+
+export const getPreviewPositionSizingMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPositionSizing>>, TError,{data: BodyType<PositionSizingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewPositionSizing>>, TError,{data: BodyType<PositionSizingInput>}, TContext> => {
+
+const mutationKey = ['previewPositionSizing'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewPositionSizing>>, {data: BodyType<PositionSizingInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewPositionSizing(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewPositionSizingMutationResult = NonNullable<Awaited<ReturnType<typeof previewPositionSizing>>>
+    export type PreviewPositionSizingMutationBody = BodyType<PositionSizingInput>
+    export type PreviewPositionSizingMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Read-only position-sizing and portfolio-impact analysis, extending the Order Preview: never routes to a broker, never creates an order, never mutates local state. Always returns 200 — an unresolvable/invalid input honestly reflects that in the nested preview.available field rather than fabricating figures.
+ */
+export const usePreviewPositionSizing = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPositionSizing>>, TError,{data: BodyType<PositionSizingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewPositionSizing>>,
+        TError,
+        {data: BodyType<PositionSizingInput>},
+        TContext
+      > => {
+      return useMutation(getPreviewPositionSizingMutationOptions(options));
+    }
+
+export const getPreviewTradeAdjustmentUrl = () => {
+
+
+
+
+  return `/api/execution/adjustment/preview-simulator`
+}
+
+/**
+ * @summary Read-only dry-run adjustment (roll/convert/close & replace) preview over an existing open position: never routes to a broker, never creates or closes an order, never mutates local state. Always returns 200 — a missing position or unavailable intent honestly sets available:false rather than fabricating a preview.
+ */
+export const previewTradeAdjustment = async (tradeAdjustmentPreviewInput: TradeAdjustmentPreviewInput, options?: RequestInit): Promise<TradeAdjustmentPreviewResult> => {
+
+  return customFetch<TradeAdjustmentPreviewResult>(getPreviewTradeAdjustmentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradeAdjustmentPreviewInput,)
+  }
+);}
+
+
+
+
+export const getPreviewTradeAdjustmentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewTradeAdjustment>>, TError,{data: BodyType<TradeAdjustmentPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof previewTradeAdjustment>>, TError,{data: BodyType<TradeAdjustmentPreviewInput>}, TContext> => {
+
+const mutationKey = ['previewTradeAdjustment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewTradeAdjustment>>, {data: BodyType<TradeAdjustmentPreviewInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewTradeAdjustment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewTradeAdjustmentMutationResult = NonNullable<Awaited<ReturnType<typeof previewTradeAdjustment>>>
+    export type PreviewTradeAdjustmentMutationBody = BodyType<TradeAdjustmentPreviewInput>
+    export type PreviewTradeAdjustmentMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Read-only dry-run adjustment (roll/convert/close & replace) preview over an existing open position: never routes to a broker, never creates or closes an order, never mutates local state. Always returns 200 — a missing position or unavailable intent honestly sets available:false rather than fabricating a preview.
+ */
+export const usePreviewTradeAdjustment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewTradeAdjustment>>, TError,{data: BodyType<TradeAdjustmentPreviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof previewTradeAdjustment>>,
+        TError,
+        {data: BodyType<TradeAdjustmentPreviewInput>},
+        TContext
+      > => {
+      return useMutation(getPreviewTradeAdjustmentMutationOptions(options));
+    }
+
+export const getRunPortfolioStressTestUrl = () => {
+
+
+
+
+  return `/api/execution/stress-test`
+}
+
+/**
+ * @summary Read-only What-If stress test applying hypothetical underlying price, implied-volatility, and time-decay shocks to the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+export const runPortfolioStressTest = async (portfolioStressTestInput: PortfolioStressTestInput, options?: RequestInit): Promise<PortfolioStressTestResult> => {
+
+  return customFetch<PortfolioStressTestResult>(getRunPortfolioStressTestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      portfolioStressTestInput,)
+  }
+);}
+
+
+
+
+export const getRunPortfolioStressTestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runPortfolioStressTest>>, TError,{data: BodyType<PortfolioStressTestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runPortfolioStressTest>>, TError,{data: BodyType<PortfolioStressTestInput>}, TContext> => {
+
+const mutationKey = ['runPortfolioStressTest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runPortfolioStressTest>>, {data: BodyType<PortfolioStressTestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runPortfolioStressTest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunPortfolioStressTestMutationResult = NonNullable<Awaited<ReturnType<typeof runPortfolioStressTest>>>
+    export type RunPortfolioStressTestMutationBody = BodyType<PortfolioStressTestInput>
+    export type RunPortfolioStressTestMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Read-only What-If stress test applying hypothetical underlying price, implied-volatility, and time-decay shocks to the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+export const useRunPortfolioStressTest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runPortfolioStressTest>>, TError,{data: BodyType<PortfolioStressTestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runPortfolioStressTest>>,
+        TError,
+        {data: BodyType<PortfolioStressTestInput>},
+        TContext
+      > => {
+      return useMutation(getRunPortfolioStressTestMutationOptions(options));
+    }
+
+export const getGetPortfolioEventRiskUrl = () => {
+
+
+
+
+  return `/api/portfolio/event-risk`
+}
+
+/**
+ * @summary Read-only overlay of upcoming earnings/dividend/macro event risk across the user's own current open portfolio, reusing eventRisk.ts's existing getEventRiskForSymbol() unmodified: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out summary figures rather than fabricating exposure.
+ */
+export const getPortfolioEventRisk = async ( options?: RequestInit): Promise<PortfolioEventRiskResult> => {
+
+  return customFetch<PortfolioEventRiskResult>(getGetPortfolioEventRiskUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioEventRiskQueryKey = () => {
+    return [
+    `/api/portfolio/event-risk`
+    ] as const;
+    }
+
+
+export const getGetPortfolioEventRiskQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioEventRiskQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioEventRisk>>> = ({ signal }) => getPortfolioEventRisk({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioEventRiskQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioEventRisk>>>
+export type GetPortfolioEventRiskQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only overlay of upcoming earnings/dividend/macro event risk across the user's own current open portfolio, reusing eventRisk.ts's existing getEventRiskForSymbol() unmodified: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out summary figures rather than fabricating exposure.
+ */
+
+export function useGetPortfolioEventRisk<TData = Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioEventRisk>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioEventRiskQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioConcentrationUrl = () => {
+
+
+
+
+  return `/api/portfolio/concentration`
+}
+
+/**
+ * @summary Read-only concentration, directional-exposure, net-Greeks, and correlation-cluster overlay across the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+export const getPortfolioConcentration = async ( options?: RequestInit): Promise<PortfolioConcentrationResult> => {
+
+  return customFetch<PortfolioConcentrationResult>(getGetPortfolioConcentrationUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioConcentrationQueryKey = () => {
+    return [
+    `/api/portfolio/concentration`
+    ] as const;
+    }
+
+
+export const getGetPortfolioConcentrationQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioConcentration>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentration>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioConcentrationQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioConcentration>>> = ({ signal }) => getPortfolioConcentration({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentration>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioConcentrationQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioConcentration>>>
+export type GetPortfolioConcentrationQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only concentration, directional-exposure, net-Greeks, and correlation-cluster overlay across the user's own current open portfolio: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns zeroed-out figures rather than fabricating exposure.
+ */
+
+export function useGetPortfolioConcentration<TData = Awaited<ReturnType<typeof getPortfolioConcentration>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentration>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioConcentrationQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioDashboardUrl = () => {
+
+
+
+
+  return `/api/portfolio/dashboard`
+}
+
+/**
+ * @summary Read-only executive dashboard unifying Position Sizing, the Portfolio Stress Test, the Earnings & Event Risk Portfolio Overlay, and the Correlation & Concentration Risk Overlay into one Portfolio Health Score and executive summary: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns a healthy-by-default score rather than fabricating risk.
+ */
+export const getPortfolioDashboard = async ( options?: RequestInit): Promise<PortfolioDashboardResult> => {
+
+  return customFetch<PortfolioDashboardResult>(getGetPortfolioDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioDashboardQueryKey = () => {
+    return [
+    `/api/portfolio/dashboard`
+    ] as const;
+    }
+
+
+export const getGetPortfolioDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioDashboard>>> = ({ signal }) => getPortfolioDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioDashboard>>>
+export type GetPortfolioDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only executive dashboard unifying Position Sizing, the Portfolio Stress Test, the Earnings & Event Risk Portfolio Overlay, and the Correlation & Concentration Risk Overlay into one Portfolio Health Score and executive summary: never routes to a broker, never creates or modifies an order or position, never mutates local state. Always returns 200 — an empty portfolio honestly returns a healthy-by-default score rather than fabricating risk.
+ */
+
+export function useGetPortfolioDashboard<TData = Awaited<ReturnType<typeof getPortfolioDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInstitutionalIntelligenceUrl = () => {
+
+
+
+
+  return `/api/intelligence`
+}
+
+/**
+ * @summary Read-only, deterministic Institutional Intelligence result: composes the existing Portfolio Dashboard and theta-income calculations into an Executive Summary, Observations (with Explanations), a Health Overview, a Timeline of new/resolved/ persistent observations, and Learning Links. This is NOT an LLM integration, NOT a chatbot, and NOT a statistical prediction engine — every field is either a direct pass-through of an already-computed value or a deterministic, disclosed rule (a threshold comparison, a template lookup, a set diff). No trade recommendation or execution suggestion is ever generated. Never routes to a broker, never creates or modifies an order or position, never mutates local state beyond an at-most-once-per- calendar-day intelligence snapshot row. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const getInstitutionalIntelligence = async ( options?: RequestInit): Promise<InstitutionalIntelligenceResult> => {
+
+  return customFetch<InstitutionalIntelligenceResult>(getGetInstitutionalIntelligenceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalIntelligenceQueryKey = () => {
+    return [
+    `/api/intelligence`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalIntelligenceQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalIntelligenceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalIntelligence>>> = ({ signal }) => getInstitutionalIntelligence({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalIntelligenceQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalIntelligence>>>
+export type GetInstitutionalIntelligenceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only, deterministic Institutional Intelligence result: composes the existing Portfolio Dashboard and theta-income calculations into an Executive Summary, Observations (with Explanations), a Health Overview, a Timeline of new/resolved/ persistent observations, and Learning Links. This is NOT an LLM integration, NOT a chatbot, and NOT a statistical prediction engine — every field is either a direct pass-through of an already-computed value or a deterministic, disclosed rule (a threshold comparison, a template lookup, a set diff). No trade recommendation or execution suggestion is ever generated. Never routes to a broker, never creates or modifies an order or position, never mutates local state beyond an at-most-once-per- calendar-day intelligence snapshot row. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+
+export function useGetInstitutionalIntelligence<TData = Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalIntelligenceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioAnalystUrl = () => {
+
+
+
+
+  return `/api/portfolio-analyst`
+}
+
+/**
+ * @summary Read-only, deterministic AI Portfolio Analyst result: the executive briefing layer composing the Institutional Intelligence Engine, Portfolio Dashboard, Portfolio Event Risk, and Theta Income into an Executive Briefing, Portfolio Snapshot, Health/ Risk/Income/Greeks/Event/Learning Summaries, a Portfolio Timeline (Yesterday/Today/This Week), and Institutional Insights. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const getPortfolioAnalyst = async ( options?: RequestInit): Promise<PortfolioAnalystResult> => {
+
+  return customFetch<PortfolioAnalystResult>(getGetPortfolioAnalystUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioAnalystQueryKey = () => {
+    return [
+    `/api/portfolio-analyst`
+    ] as const;
+    }
+
+
+export const getGetPortfolioAnalystQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioAnalystQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioAnalyst>>> = ({ signal }) => getPortfolioAnalyst({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioAnalystQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioAnalyst>>>
+export type GetPortfolioAnalystQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only, deterministic AI Portfolio Analyst result: the executive briefing layer composing the Institutional Intelligence Engine, Portfolio Dashboard, Portfolio Event Risk, and Theta Income into an Executive Briefing, Portfolio Snapshot, Health/ Risk/Income/Greeks/Event/Learning Summaries, a Portfolio Timeline (Yesterday/Today/This Week), and Institutional Insights. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+
+export function useGetPortfolioAnalyst<TData = Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAnalyst>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioAnalystQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAITradeJournalUrl = () => {
+
+
+
+
+  return `/api/trade-journal`
+}
+
+/**
+ * @summary Read-only, deterministic AI Trade Journal result: analyses every completed Paper Trading trade into a Trade Review (strategy, holding period, P/L, Greeks at entry/exit, Event Risk at entry, position size, Decision Quality tags), cross-trade Behaviour Analysis patterns, a Discipline Score, Learning Recommendations (education only, never a trade recommendation), and a chronological Journal Timeline. Always returns 200 — a user with no closed trades honestly returns empty arrays and a zero Discipline Score rather than fabricating history.
+ */
+export const getAITradeJournal = async ( options?: RequestInit): Promise<AITradeJournalResult> => {
+
+  return customFetch<AITradeJournalResult>(getGetAITradeJournalUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAITradeJournalQueryKey = () => {
+    return [
+    `/api/trade-journal`
+    ] as const;
+    }
+
+
+export const getGetAITradeJournalQueryOptions = <TData = Awaited<ReturnType<typeof getAITradeJournal>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAITradeJournal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAITradeJournalQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAITradeJournal>>> = ({ signal }) => getAITradeJournal({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAITradeJournal>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAITradeJournalQueryResult = NonNullable<Awaited<ReturnType<typeof getAITradeJournal>>>
+export type GetAITradeJournalQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only, deterministic AI Trade Journal result: analyses every completed Paper Trading trade into a Trade Review (strategy, holding period, P/L, Greeks at entry/exit, Event Risk at entry, position size, Decision Quality tags), cross-trade Behaviour Analysis patterns, a Discipline Score, Learning Recommendations (education only, never a trade recommendation), and a chronological Journal Timeline. Always returns 200 — a user with no closed trades honestly returns empty arrays and a zero Discipline Score rather than fabricating history.
+ */
+
+export function useGetAITradeJournal<TData = Awaited<ReturnType<typeof getAITradeJournal>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAITradeJournal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAITradeJournalQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradeReviewUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/trade-journal/${tradeId}`
+}
+
+/**
+ * @summary A single closed trade's own Trade Review — the same object returned inside GET /trade-journal's own recentTrades array, resolvable directly by trade id. 404s for a trade that doesn't exist, isn't the caller's own, or isn't yet closed (a Trade Review only exists for a completed trade).
+ */
+export const getTradeReview = async (tradeId: number, options?: RequestInit): Promise<JournalTradeReview> => {
+
+  return customFetch<JournalTradeReview>(getGetTradeReviewUrl(tradeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradeReviewQueryKey = (tradeId: number,) => {
+    return [
+    `/api/trade-journal/${tradeId}`
+    ] as const;
+    }
+
+
+export const getGetTradeReviewQueryOptions = <TData = Awaited<ReturnType<typeof getTradeReview>>, TError = ErrorType<void>>(tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradeReview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradeReviewQueryKey(tradeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradeReview>>> = ({ signal }) => getTradeReview(tradeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(tradeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradeReview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradeReviewQueryResult = NonNullable<Awaited<ReturnType<typeof getTradeReview>>>
+export type GetTradeReviewQueryError = ErrorType<void>
+
+
+/**
+ * @summary A single closed trade's own Trade Review — the same object returned inside GET /trade-journal's own recentTrades array, resolvable directly by trade id. 404s for a trade that doesn't exist, isn't the caller's own, or isn't yet closed (a Trade Review only exists for a completed trade).
+ */
+
+export function useGetTradeReview<TData = Awaited<ReturnType<typeof getTradeReview>>, TError = ErrorType<void>>(
+ tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradeReview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradeReviewQueryOptions(tradeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInstitutionalMentorUrl = () => {
+
+
+
+
+  return `/api/institutional-mentor`
+}
+
+/**
+ * @summary Read-only, deterministic Institutional Mentor result: teaches the user how a professional portfolio manager would evaluate their own existing Paper Trading portfolio. Composes a 9-category Portfolio Scorecard (Capital Allocation, Risk Management, Diversification, Discipline, Income Generation, Position Sizing, Greeks Management, Event Preparation, Portfolio Health), a Professional Review, a Decision Review, and narrative Capital Allocation/Risk/Income/Behaviour reviews, each cross-linked to Learning Centre lessons, Strategy Academy pages, Glossary entries, and Explain Mode. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+export const getInstitutionalMentor = async ( options?: RequestInit): Promise<InstitutionalMentorResult> => {
+
+  return customFetch<InstitutionalMentorResult>(getGetInstitutionalMentorUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalMentorQueryKey = () => {
+    return [
+    `/api/institutional-mentor`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalMentorQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalMentor>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalMentor>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalMentorQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalMentor>>> = ({ signal }) => getInstitutionalMentor({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalMentor>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalMentorQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalMentor>>>
+export type GetInstitutionalMentorQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read-only, deterministic Institutional Mentor result: teaches the user how a professional portfolio manager would evaluate their own existing Paper Trading portfolio. Composes a 9-category Portfolio Scorecard (Capital Allocation, Risk Management, Diversification, Discipline, Income Generation, Position Sizing, Greeks Management, Event Preparation, Portfolio Health), a Professional Review, a Decision Review, and narrative Capital Allocation/Risk/Income/Behaviour reviews, each cross-linked to Learning Centre lessons, Strategy Academy pages, Glossary entries, and Explain Mode. Always returns 200 — an empty portfolio honestly returns a healthy-by-default result rather than fabricating observations.
+ */
+
+export function useGetInstitutionalMentor<TData = Awaited<ReturnType<typeof getInstitutionalMentor>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalMentor>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalMentorQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetGlossaryUrl = () => {
+
+
+
+
+  return `/api/learning-centre/glossary`
+}
+
+/**
+ * @summary Searchable, filterable glossary of options/portfolio/institutional terms. Deterministic, version-controlled content — never LLM- generated. Optional ?q= free-text search and ?category= filter.
+ */
+export const getGlossary = async ( options?: RequestInit): Promise<LearningGlossaryTerm[]> => {
+
+  return customFetch<LearningGlossaryTerm[]>(getGetGlossaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetGlossaryQueryKey = () => {
+    return [
+    `/api/learning-centre/glossary`
+    ] as const;
+    }
+
+
+export const getGetGlossaryQueryOptions = <TData = Awaited<ReturnType<typeof getGlossary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGlossary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetGlossaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getGlossary>>> = ({ signal }) => getGlossary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getGlossary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetGlossaryQueryResult = NonNullable<Awaited<ReturnType<typeof getGlossary>>>
+export type GetGlossaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Searchable, filterable glossary of options/portfolio/institutional terms. Deterministic, version-controlled content — never LLM- generated. Optional ?q= free-text search and ?category= filter.
+ */
+
+export function useGetGlossary<TData = Awaited<ReturnType<typeof getGlossary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getGlossary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetGlossaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLearningPathsUrl = () => {
+
+
+
+
+  return `/api/learning-centre/paths`
+}
+
+/**
+ * @summary All 8 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking, Institutional Investing Engine), each with its own topics.
+ */
+export const getLearningPaths = async ( options?: RequestInit): Promise<LearningPath[]> => {
+
+  return customFetch<LearningPath[]>(getGetLearningPathsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLearningPathsQueryKey = () => {
+    return [
+    `/api/learning-centre/paths`
+    ] as const;
+    }
+
+
+export const getGetLearningPathsQueryOptions = <TData = Awaited<ReturnType<typeof getLearningPaths>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningPaths>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLearningPathsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLearningPaths>>> = ({ signal }) => getLearningPaths({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLearningPaths>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLearningPathsQueryResult = NonNullable<Awaited<ReturnType<typeof getLearningPaths>>>
+export type GetLearningPathsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 8 structured Learning Paths (Foundations, Options Greeks, Volatility, Options Strategies, Portfolio, Performance, Institutional Thinking, Institutional Investing Engine), each with its own topics.
+ */
+
+export function useGetLearningPaths<TData = Awaited<ReturnType<typeof getLearningPaths>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningPaths>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLearningPathsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLearningPathByKeyUrl = (pathKey: string,) => {
+
+
+
+
+  return `/api/learning-centre/paths/${pathKey}`
+}
+
+/**
+ * @summary A single Learning Path by key.
+ */
+export const getLearningPathByKey = async (pathKey: string, options?: RequestInit): Promise<LearningPath> => {
+
+  return customFetch<LearningPath>(getGetLearningPathByKeyUrl(pathKey),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLearningPathByKeyQueryKey = (pathKey: string,) => {
+    return [
+    `/api/learning-centre/paths/${pathKey}`
+    ] as const;
+    }
+
+
+export const getGetLearningPathByKeyQueryOptions = <TData = Awaited<ReturnType<typeof getLearningPathByKey>>, TError = ErrorType<void>>(pathKey: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningPathByKey>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLearningPathByKeyQueryKey(pathKey);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLearningPathByKey>>> = ({ signal }) => getLearningPathByKey(pathKey, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(pathKey), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLearningPathByKey>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLearningPathByKeyQueryResult = NonNullable<Awaited<ReturnType<typeof getLearningPathByKey>>>
+export type GetLearningPathByKeyQueryError = ErrorType<void>
+
+
+/**
+ * @summary A single Learning Path by key.
+ */
+
+export function useGetLearningPathByKey<TData = Awaited<ReturnType<typeof getLearningPathByKey>>, TError = ErrorType<void>>(
+ pathKey: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningPathByKey>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLearningPathByKeyQueryOptions(pathKey,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStrategyAcademyUrl = () => {
+
+
+
+
+  return `/api/learning-centre/strategy-academy`
+}
+
+/**
+ * @summary All 8 Strategy Academy entries. For iron_condor/iron_fly/ calendar_spread (strategies this platform's own scanner/execution engine actually builds) the paper example is a real, live worked example. For the other 5, the paper example is honestly disclosed as unavailable — never a fabricated live number for a strategy this engine doesn't trade.
+ */
+export const getStrategyAcademy = async ( options?: RequestInit): Promise<LearningStrategyAcademyEntry[]> => {
+
+  return customFetch<LearningStrategyAcademyEntry[]>(getGetStrategyAcademyUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyAcademyQueryKey = () => {
+    return [
+    `/api/learning-centre/strategy-academy`
+    ] as const;
+    }
+
+
+export const getGetStrategyAcademyQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyAcademy>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyAcademyQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyAcademy>>> = ({ signal }) => getStrategyAcademy({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyAcademyQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyAcademy>>>
+export type GetStrategyAcademyQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 8 Strategy Academy entries. For iron_condor/iron_fly/ calendar_spread (strategies this platform's own scanner/execution engine actually builds) the paper example is a real, live worked example. For the other 5, the paper example is honestly disclosed as unavailable — never a fabricated live number for a strategy this engine doesn't trade.
+ */
+
+export function useGetStrategyAcademy<TData = Awaited<ReturnType<typeof getStrategyAcademy>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyAcademyQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStrategyAcademyEntryByKeyUrl = (strategy: string,) => {
+
+
+
+
+  return `/api/learning-centre/strategy-academy/${strategy}`
+}
+
+/**
+ * @summary A single Strategy Academy entry by strategy key.
+ */
+export const getStrategyAcademyEntryByKey = async (strategy: string, options?: RequestInit): Promise<LearningStrategyAcademyEntry> => {
+
+  return customFetch<LearningStrategyAcademyEntry>(getGetStrategyAcademyEntryByKeyUrl(strategy),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyAcademyEntryByKeyQueryKey = (strategy: string,) => {
+    return [
+    `/api/learning-centre/strategy-academy/${strategy}`
+    ] as const;
+    }
+
+
+export const getGetStrategyAcademyEntryByKeyQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError = ErrorType<void>>(strategy: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyAcademyEntryByKeyQueryKey(strategy);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>> = ({ signal }) => getStrategyAcademyEntryByKey(strategy, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(strategy), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyAcademyEntryByKeyQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>>
+export type GetStrategyAcademyEntryByKeyQueryError = ErrorType<void>
+
+
+/**
+ * @summary A single Strategy Academy entry by strategy key.
+ */
+
+export function useGetStrategyAcademyEntryByKey<TData = Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError = ErrorType<void>>(
+ strategy: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyAcademyEntryByKey>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyAcademyEntryByKeyQueryOptions(strategy,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioLessonUrl = () => {
+
+
+
+
+  return `/api/learning-centre/portfolio-lesson`
+}
+
+/**
+ * @summary Portfolio Learning Mode: uses the calling user's real, current Paper Trading portfolio as an educational example, bundling Explain Mode explanations for Portfolio Health, Buying Power, Delta, Theta, Concentration, and Event Risk. Never recommends a trade.
+ */
+export const getPortfolioLesson = async ( options?: RequestInit): Promise<LearningPortfolioLesson> => {
+
+  return customFetch<LearningPortfolioLesson>(getGetPortfolioLessonUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioLessonQueryKey = () => {
+    return [
+    `/api/learning-centre/portfolio-lesson`
+    ] as const;
+    }
+
+
+export const getGetPortfolioLessonQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioLesson>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioLesson>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioLessonQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioLesson>>> = ({ signal }) => getPortfolioLesson({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioLesson>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioLessonQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioLesson>>>
+export type GetPortfolioLessonQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio Learning Mode: uses the calling user's real, current Paper Trading portfolio as an educational example, bundling Explain Mode explanations for Portfolio Health, Buying Power, Delta, Theta, Concentration, and Event Risk. Never recommends a trade.
+ */
+
+export function useGetPortfolioLesson<TData = Awaited<ReturnType<typeof getPortfolioLesson>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioLesson>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioLessonQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLearningProgressUrl = () => {
+
+
+
+
+  return `/api/learning-centre/progress`
+}
+
+/**
+ * @summary Unified learning progress: lessons viewed/completed, learning path completion, and quiz progress for BOTH the Greeks quiz and the Value Investing quiz (reusing the same shared aggregation for each, never a duplicated calculation).
+ */
+export const getLearningProgress = async ( options?: RequestInit): Promise<LearningProgressSummary> => {
+
+  return customFetch<LearningProgressSummary>(getGetLearningProgressUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLearningProgressQueryKey = () => {
+    return [
+    `/api/learning-centre/progress`
+    ] as const;
+    }
+
+
+export const getGetLearningProgressQueryOptions = <TData = Awaited<ReturnType<typeof getLearningProgress>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningProgress>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLearningProgressQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLearningProgress>>> = ({ signal }) => getLearningProgress({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLearningProgress>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLearningProgressQueryResult = NonNullable<Awaited<ReturnType<typeof getLearningProgress>>>
+export type GetLearningProgressQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Unified learning progress: lessons viewed/completed, learning path completion, and quiz progress for BOTH the Greeks quiz and the Value Investing quiz (reusing the same shared aggregation for each, never a duplicated calculation).
+ */
+
+export function useGetLearningProgress<TData = Awaited<ReturnType<typeof getLearningProgress>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLearningProgress>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLearningProgressQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRecordLearningItemViewedUrl = () => {
+
+
+
+
+  return `/api/learning-centre/progress/view`
+}
+
+/**
+ * @summary Record that the calling user viewed a lesson, glossary term, path, or strategy — the only mutation this sprint introduces.
+ */
+export const recordLearningItemViewed = async (learningProgressAction: LearningProgressAction, options?: RequestInit): Promise<RecordLearningItemViewed200> => {
+
+  return customFetch<RecordLearningItemViewed200>(getRecordLearningItemViewedUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      learningProgressAction,)
+  }
+);}
+
+
+
+
+export const getRecordLearningItemViewedMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemViewed>>, TError,{data: BodyType<LearningProgressAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemViewed>>, TError,{data: BodyType<LearningProgressAction>}, TContext> => {
+
+const mutationKey = ['recordLearningItemViewed'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordLearningItemViewed>>, {data: BodyType<LearningProgressAction>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordLearningItemViewed(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordLearningItemViewedMutationResult = NonNullable<Awaited<ReturnType<typeof recordLearningItemViewed>>>
+    export type RecordLearningItemViewedMutationBody = BodyType<LearningProgressAction>
+    export type RecordLearningItemViewedMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record that the calling user viewed a lesson, glossary term, path, or strategy — the only mutation this sprint introduces.
+ */
+export const useRecordLearningItemViewed = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemViewed>>, TError,{data: BodyType<LearningProgressAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordLearningItemViewed>>,
+        TError,
+        {data: BodyType<LearningProgressAction>},
+        TContext
+      > => {
+      return useMutation(getRecordLearningItemViewedMutationOptions(options));
+    }
+
+export const getRecordLearningItemCompletedUrl = () => {
+
+
+
+
+  return `/api/learning-centre/progress/complete`
+}
+
+/**
+ * @summary Record that the calling user completed a lesson, glossary term, path, or strategy.
+ */
+export const recordLearningItemCompleted = async (learningProgressAction: LearningProgressAction, options?: RequestInit): Promise<RecordLearningItemCompleted200> => {
+
+  return customFetch<RecordLearningItemCompleted200>(getRecordLearningItemCompletedUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      learningProgressAction,)
+  }
+);}
+
+
+
+
+export const getRecordLearningItemCompletedMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemCompleted>>, TError,{data: BodyType<LearningProgressAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemCompleted>>, TError,{data: BodyType<LearningProgressAction>}, TContext> => {
+
+const mutationKey = ['recordLearningItemCompleted'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordLearningItemCompleted>>, {data: BodyType<LearningProgressAction>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordLearningItemCompleted(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordLearningItemCompletedMutationResult = NonNullable<Awaited<ReturnType<typeof recordLearningItemCompleted>>>
+    export type RecordLearningItemCompletedMutationBody = BodyType<LearningProgressAction>
+    export type RecordLearningItemCompletedMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record that the calling user completed a lesson, glossary term, path, or strategy.
+ */
+export const useRecordLearningItemCompleted = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningItemCompleted>>, TError,{data: BodyType<LearningProgressAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordLearningItemCompleted>>,
+        TError,
+        {data: BodyType<LearningProgressAction>},
+        TContext
+      > => {
+      return useMutation(getRecordLearningItemCompletedMutationOptions(options));
+    }
+
+export const getRunLearningSimulationUrl = () => {
+
+
+
+
+  return `/api/learning-centre/simulate`
+}
+
+/**
+ * @summary Run a deterministic Interactive Education simulation (delta, theta, expected_move, payoff, or concentration). Always labeled Educational Simulation / Not Market Data / No Trade Recommendation in the response itself. Reuses this platform's own real Black-Scholes pricing function (bs()) for delta/theta, and the standard textbook payoff/HHI formulas for payoff/concentration — never randomness, never an LLM.
+ */
+export const runLearningSimulation = async (learningSimulationInput: LearningSimulationInput, options?: RequestInit): Promise<LearningSimulationResult> => {
+
+  return customFetch<LearningSimulationResult>(getRunLearningSimulationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      learningSimulationInput,)
+  }
+);}
+
+
+
+
+export const getRunLearningSimulationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runLearningSimulation>>, TError,{data: BodyType<LearningSimulationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runLearningSimulation>>, TError,{data: BodyType<LearningSimulationInput>}, TContext> => {
+
+const mutationKey = ['runLearningSimulation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runLearningSimulation>>, {data: BodyType<LearningSimulationInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runLearningSimulation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunLearningSimulationMutationResult = NonNullable<Awaited<ReturnType<typeof runLearningSimulation>>>
+    export type RunLearningSimulationMutationBody = BodyType<LearningSimulationInput>
+    export type RunLearningSimulationMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run a deterministic Interactive Education simulation (delta, theta, expected_move, payoff, or concentration). Always labeled Educational Simulation / Not Market Data / No Trade Recommendation in the response itself. Reuses this platform's own real Black-Scholes pricing function (bs()) for delta/theta, and the standard textbook payoff/HHI formulas for payoff/concentration — never randomness, never an LLM.
+ */
+export const useRunLearningSimulation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runLearningSimulation>>, TError,{data: BodyType<LearningSimulationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runLearningSimulation>>,
+        TError,
+        {data: BodyType<LearningSimulationInput>},
+        TContext
+      > => {
+      return useMutation(getRunLearningSimulationMutationOptions(options));
     }
 
 export const getGetAutoExecutionStatusUrl = () => {
@@ -4459,6 +6974,882 @@ export const useUpdateNotification = <TError = ErrorType<void>,
       return useMutation(getUpdateNotificationMutationOptions(options));
     }
 
+export const getFullMonitoringCheckUrl = () => {
+
+
+
+
+  return `/api/monitoring-engine/check`
+}
+
+/**
+ * @summary Evaluate every monitoring alert category on demand — watchlist targets, risk caps, symbol-level signal changes, portfolio drift/ concentration, and Opportunity Alerts (saved-screen matches) — and persist any newly-triggered alerts (never fabricated; a no-op honestly returns an empty array when nothing is newly triggered or alerts are disabled)
+ */
+export const fullMonitoringCheck = async ( options?: RequestInit): Promise<PlatformNotification[]> => {
+
+  return customFetch<PlatformNotification[]>(getFullMonitoringCheckUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getFullMonitoringCheckMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fullMonitoringCheck>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof fullMonitoringCheck>>, TError,void, TContext> => {
+
+const mutationKey = ['fullMonitoringCheck'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof fullMonitoringCheck>>, void> = () => {
+
+
+          return  fullMonitoringCheck(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FullMonitoringCheckMutationResult = NonNullable<Awaited<ReturnType<typeof fullMonitoringCheck>>>
+
+    export type FullMonitoringCheckMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Evaluate every monitoring alert category on demand — watchlist targets, risk caps, symbol-level signal changes, portfolio drift/ concentration, and Opportunity Alerts (saved-screen matches) — and persist any newly-triggered alerts (never fabricated; a no-op honestly returns an empty array when nothing is newly triggered or alerts are disabled)
+ */
+export const useFullMonitoringCheck = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fullMonitoringCheck>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof fullMonitoringCheck>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getFullMonitoringCheckMutationOptions(options));
+    }
+
+export const getGetAlertNotesUrl = (params?: GetAlertNotesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/monitoring-engine/alert-notes?${stringifiedParams}` : `/api/monitoring-engine/alert-notes`
+}
+
+/**
+ * @summary List the calling user's alert notes, newest first (optionally filtered by ?notificationId= or ?symbol=)
+ */
+export const getAlertNotes = async (params?: GetAlertNotesParams, options?: RequestInit): Promise<MonitoringAlertNote[]> => {
+
+  return customFetch<MonitoringAlertNote[]>(getGetAlertNotesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAlertNotesQueryKey = (params?: GetAlertNotesParams,) => {
+    return [
+    `/api/monitoring-engine/alert-notes`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetAlertNotesQueryOptions = <TData = Awaited<ReturnType<typeof getAlertNotes>>, TError = ErrorType<unknown>>(params?: GetAlertNotesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAlertNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAlertNotesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAlertNotes>>> = ({ signal }) => getAlertNotes(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAlertNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAlertNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getAlertNotes>>>
+export type GetAlertNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's alert notes, newest first (optionally filtered by ?notificationId= or ?symbol=)
+ */
+
+export function useGetAlertNotes<TData = Awaited<ReturnType<typeof getAlertNotes>>, TError = ErrorType<unknown>>(
+ params?: GetAlertNotesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAlertNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAlertNotesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddAlertNoteUrl = () => {
+
+
+
+
+  return `/api/monitoring-engine/alert-notes`
+}
+
+/**
+ * @summary Add a note on an alert (free text, never AI-generated)
+ */
+export const addAlertNote = async (monitoringAlertNoteCreate: MonitoringAlertNoteCreate, options?: RequestInit): Promise<MonitoringAlertNote> => {
+
+  return customFetch<MonitoringAlertNote>(getAddAlertNoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      monitoringAlertNoteCreate,)
+  }
+);}
+
+
+
+
+export const getAddAlertNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAlertNote>>, TError,{data: BodyType<MonitoringAlertNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addAlertNote>>, TError,{data: BodyType<MonitoringAlertNoteCreate>}, TContext> => {
+
+const mutationKey = ['addAlertNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addAlertNote>>, {data: BodyType<MonitoringAlertNoteCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addAlertNote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddAlertNoteMutationResult = NonNullable<Awaited<ReturnType<typeof addAlertNote>>>
+    export type AddAlertNoteMutationBody = BodyType<MonitoringAlertNoteCreate>
+    export type AddAlertNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add a note on an alert (free text, never AI-generated)
+ */
+export const useAddAlertNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAlertNote>>, TError,{data: BodyType<MonitoringAlertNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addAlertNote>>,
+        TError,
+        {data: BodyType<MonitoringAlertNoteCreate>},
+        TContext
+      > => {
+      return useMutation(getAddAlertNoteMutationOptions(options));
+    }
+
+export const getUpdateAlertNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/monitoring-engine/alert-notes/${id}`
+}
+
+/**
+ * @summary Update an alert note
+ */
+export const updateAlertNote = async (id: number,
+    monitoringAlertNoteUpdate: MonitoringAlertNoteUpdate, options?: RequestInit): Promise<MonitoringAlertNote> => {
+
+  return customFetch<MonitoringAlertNote>(getUpdateAlertNoteUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      monitoringAlertNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateAlertNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAlertNote>>, TError,{id: number;data: BodyType<MonitoringAlertNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAlertNote>>, TError,{id: number;data: BodyType<MonitoringAlertNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updateAlertNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAlertNote>>, {id: number;data: BodyType<MonitoringAlertNoteUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAlertNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAlertNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateAlertNote>>>
+    export type UpdateAlertNoteMutationBody = BodyType<MonitoringAlertNoteUpdate>
+    export type UpdateAlertNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update an alert note
+ */
+export const useUpdateAlertNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAlertNote>>, TError,{id: number;data: BodyType<MonitoringAlertNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAlertNote>>,
+        TError,
+        {id: number;data: BodyType<MonitoringAlertNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateAlertNoteMutationOptions(options));
+    }
+
+export const getDeleteAlertNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/monitoring-engine/alert-notes/${id}`
+}
+
+/**
+ * @summary Delete an alert note
+ */
+export const deleteAlertNote = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteAlertNoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAlertNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAlertNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAlertNote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteAlertNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAlertNote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAlertNote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAlertNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAlertNote>>>
+
+    export type DeleteAlertNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an alert note
+ */
+export const useDeleteAlertNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAlertNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAlertNote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteAlertNoteMutationOptions(options));
+    }
+
+export const getListWorkspacesUrl = () => {
+
+
+
+
+  return `/api/workspaces`
+}
+
+/**
+ * @summary List the calling user's saved dashboard workspaces (lazily creates a "Default" one if none exist)
+ */
+export const listWorkspaces = async ( options?: RequestInit): Promise<DashboardWorkspace[]> => {
+
+  return customFetch<DashboardWorkspace[]>(getListWorkspacesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkspacesQueryKey = () => {
+    return [
+    `/api/workspaces`
+    ] as const;
+    }
+
+
+export const getListWorkspacesQueryOptions = <TData = Awaited<ReturnType<typeof listWorkspaces>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaces>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkspacesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkspaces>>> = ({ signal }) => listWorkspaces({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkspaces>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkspacesQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkspaces>>>
+export type ListWorkspacesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's saved dashboard workspaces (lazily creates a "Default" one if none exist)
+ */
+
+export function useListWorkspaces<TData = Awaited<ReturnType<typeof listWorkspaces>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaces>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkspacesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateWorkspaceUrl = () => {
+
+
+
+
+  return `/api/workspaces`
+}
+
+/**
+ * @summary Save the current or a supplied widget layout as a new named workspace
+ */
+export const createWorkspace = async (dashboardWorkspaceCreate: DashboardWorkspaceCreate, options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getCreateWorkspaceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dashboardWorkspaceCreate,)
+  }
+);}
+
+
+
+
+export const getCreateWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWorkspace>>, TError,{data: BodyType<DashboardWorkspaceCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createWorkspace>>, TError,{data: BodyType<DashboardWorkspaceCreate>}, TContext> => {
+
+const mutationKey = ['createWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createWorkspace>>, {data: BodyType<DashboardWorkspaceCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createWorkspace(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof createWorkspace>>>
+    export type CreateWorkspaceMutationBody = BodyType<DashboardWorkspaceCreate>
+    export type CreateWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Save the current or a supplied widget layout as a new named workspace
+ */
+export const useCreateWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWorkspace>>, TError,{data: BodyType<DashboardWorkspaceCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createWorkspace>>,
+        TError,
+        {data: BodyType<DashboardWorkspaceCreate>},
+        TContext
+      > => {
+      return useMutation(getCreateWorkspaceMutationOptions(options));
+    }
+
+export const getGetActiveWorkspaceUrl = () => {
+
+
+
+
+  return `/api/workspaces/active`
+}
+
+/**
+ * @summary Get the calling user's currently-active workspace (their Personal Dashboard layout)
+ */
+export const getActiveWorkspace = async ( options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getGetActiveWorkspaceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetActiveWorkspaceQueryKey = () => {
+    return [
+    `/api/workspaces/active`
+    ] as const;
+    }
+
+
+export const getGetActiveWorkspaceQueryOptions = <TData = Awaited<ReturnType<typeof getActiveWorkspace>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActiveWorkspace>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetActiveWorkspaceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveWorkspace>>> = ({ signal }) => getActiveWorkspace({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getActiveWorkspace>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetActiveWorkspaceQueryResult = NonNullable<Awaited<ReturnType<typeof getActiveWorkspace>>>
+export type GetActiveWorkspaceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the calling user's currently-active workspace (their Personal Dashboard layout)
+ */
+
+export function useGetActiveWorkspace<TData = Awaited<ReturnType<typeof getActiveWorkspace>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActiveWorkspace>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetActiveWorkspaceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateWorkspaceUrl = (id: number,) => {
+
+
+
+
+  return `/api/workspaces/${id}`
+}
+
+/**
+ * @summary Rename a workspace and/or save its widget layout (pin/hide/reorder/resize)
+ */
+export const updateWorkspace = async (id: number,
+    dashboardWorkspaceUpdate: DashboardWorkspaceUpdate, options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getUpdateWorkspaceUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dashboardWorkspaceUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceUpdate>}, TContext> => {
+
+const mutationKey = ['updateWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateWorkspace>>, {id: number;data: BodyType<DashboardWorkspaceUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateWorkspace(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof updateWorkspace>>>
+    export type UpdateWorkspaceMutationBody = BodyType<DashboardWorkspaceUpdate>
+    export type UpdateWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Rename a workspace and/or save its widget layout (pin/hide/reorder/resize)
+ */
+export const useUpdateWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateWorkspace>>,
+        TError,
+        {id: number;data: BodyType<DashboardWorkspaceUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateWorkspaceMutationOptions(options));
+    }
+
+export const getDeleteWorkspaceUrl = (id: number,) => {
+
+
+
+
+  return `/api/workspaces/${id}`
+}
+
+/**
+ * @summary Delete a workspace (never the user's only remaining one)
+ */
+export const deleteWorkspace = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteWorkspaceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspace>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspace>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteWorkspace>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteWorkspace(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteWorkspace>>>
+
+    export type DeleteWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a workspace (never the user's only remaining one)
+ */
+export const useDeleteWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkspace>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteWorkspace>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteWorkspaceMutationOptions(options));
+    }
+
+export const getDuplicateWorkspaceUrl = (id: number,) => {
+
+
+
+
+  return `/api/workspaces/${id}/duplicate`
+}
+
+/**
+ * @summary Duplicate a workspace under a new name
+ */
+export const duplicateWorkspace = async (id: number,
+    dashboardWorkspaceDuplicate: DashboardWorkspaceDuplicate, options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getDuplicateWorkspaceUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      dashboardWorkspaceDuplicate,)
+  }
+);}
+
+
+
+
+export const getDuplicateWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof duplicateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceDuplicate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof duplicateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceDuplicate>}, TContext> => {
+
+const mutationKey = ['duplicateWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof duplicateWorkspace>>, {id: number;data: BodyType<DashboardWorkspaceDuplicate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  duplicateWorkspace(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DuplicateWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof duplicateWorkspace>>>
+    export type DuplicateWorkspaceMutationBody = BodyType<DashboardWorkspaceDuplicate>
+    export type DuplicateWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Duplicate a workspace under a new name
+ */
+export const useDuplicateWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof duplicateWorkspace>>, TError,{id: number;data: BodyType<DashboardWorkspaceDuplicate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof duplicateWorkspace>>,
+        TError,
+        {id: number;data: BodyType<DashboardWorkspaceDuplicate>},
+        TContext
+      > => {
+      return useMutation(getDuplicateWorkspaceMutationOptions(options));
+    }
+
+export const getActivateWorkspaceUrl = (id: number,) => {
+
+
+
+
+  return `/api/workspaces/${id}/activate`
+}
+
+/**
+ * @summary Switch to this workspace (deactivates every other one for this user)
+ */
+export const activateWorkspace = async (id: number, options?: RequestInit): Promise<DashboardWorkspace> => {
+
+  return customFetch<DashboardWorkspace>(getActivateWorkspaceUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getActivateWorkspaceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateWorkspace>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof activateWorkspace>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['activateWorkspace'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateWorkspace>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  activateWorkspace(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivateWorkspaceMutationResult = NonNullable<Awaited<ReturnType<typeof activateWorkspace>>>
+
+    export type ActivateWorkspaceMutationError = ErrorType<void>
+
+    /**
+ * @summary Switch to this workspace (deactivates every other one for this user)
+ */
+export const useActivateWorkspace = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateWorkspace>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof activateWorkspace>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getActivateWorkspaceMutationOptions(options));
+    }
+
 export const getGetCrossEngineDailyReportUrl = () => {
 
 
@@ -6273,6 +9664,1564 @@ export const useDeleteValueWatchlist = <TError = ErrorType<unknown>,
       return useMutation(getDeleteValueWatchlistMutationOptions(options));
     }
 
+export const getGetResearchNotesUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/research-notes/${symbol}`
+}
+
+/**
+ * @summary List the calling user's research notes for a symbol
+ */
+export const getResearchNotes = async (symbol: string, options?: RequestInit): Promise<ResearchNoteItem[]> => {
+
+  return customFetch<ResearchNoteItem[]>(getGetResearchNotesUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetResearchNotesQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/research-notes/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetResearchNotesQueryOptions = <TData = Awaited<ReturnType<typeof getResearchNotes>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getResearchNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetResearchNotesQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getResearchNotes>>> = ({ signal }) => getResearchNotes(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getResearchNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetResearchNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getResearchNotes>>>
+export type GetResearchNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's research notes for a symbol
+ */
+
+export function useGetResearchNotes<TData = Awaited<ReturnType<typeof getResearchNotes>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getResearchNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetResearchNotesQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAllResearchNotesUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/research-notes`
+}
+
+/**
+ * @summary List all of the calling user's research notes, across every symbol, newest first
+ */
+export const getAllResearchNotes = async ( options?: RequestInit): Promise<ResearchNoteItem[]> => {
+
+  return customFetch<ResearchNoteItem[]>(getGetAllResearchNotesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAllResearchNotesQueryKey = () => {
+    return [
+    `/api/stock-analyst/research-notes`
+    ] as const;
+    }
+
+
+export const getGetAllResearchNotesQueryOptions = <TData = Awaited<ReturnType<typeof getAllResearchNotes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllResearchNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAllResearchNotesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllResearchNotes>>> = ({ signal }) => getAllResearchNotes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllResearchNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAllResearchNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getAllResearchNotes>>>
+export type GetAllResearchNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all of the calling user's research notes, across every symbol, newest first
+ */
+
+export function useGetAllResearchNotes<TData = Awaited<ReturnType<typeof getAllResearchNotes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllResearchNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAllResearchNotesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddResearchNoteUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/research-notes`
+}
+
+/**
+ * @summary Add a research note for a symbol (free text, never AI-generated)
+ */
+export const addResearchNote = async (researchNoteCreate: ResearchNoteCreate, options?: RequestInit): Promise<ResearchNoteItem> => {
+
+  return customFetch<ResearchNoteItem>(getAddResearchNoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      researchNoteCreate,)
+  }
+);}
+
+
+
+
+export const getAddResearchNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addResearchNote>>, TError,{data: BodyType<ResearchNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addResearchNote>>, TError,{data: BodyType<ResearchNoteCreate>}, TContext> => {
+
+const mutationKey = ['addResearchNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addResearchNote>>, {data: BodyType<ResearchNoteCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addResearchNote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddResearchNoteMutationResult = NonNullable<Awaited<ReturnType<typeof addResearchNote>>>
+    export type AddResearchNoteMutationBody = BodyType<ResearchNoteCreate>
+    export type AddResearchNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add a research note for a symbol (free text, never AI-generated)
+ */
+export const useAddResearchNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addResearchNote>>, TError,{data: BodyType<ResearchNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addResearchNote>>,
+        TError,
+        {data: BodyType<ResearchNoteCreate>},
+        TContext
+      > => {
+      return useMutation(getAddResearchNoteMutationOptions(options));
+    }
+
+export const getUpdateResearchNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/stock-analyst/research-notes/${id}`
+}
+
+/**
+ * @summary Update a research note
+ */
+export const updateResearchNote = async (id: number,
+    researchNoteUpdate: ResearchNoteUpdate, options?: RequestInit): Promise<ResearchNoteItem> => {
+
+  return customFetch<ResearchNoteItem>(getUpdateResearchNoteUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      researchNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateResearchNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateResearchNote>>, TError,{id: number;data: BodyType<ResearchNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateResearchNote>>, TError,{id: number;data: BodyType<ResearchNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updateResearchNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateResearchNote>>, {id: number;data: BodyType<ResearchNoteUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateResearchNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateResearchNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateResearchNote>>>
+    export type UpdateResearchNoteMutationBody = BodyType<ResearchNoteUpdate>
+    export type UpdateResearchNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a research note
+ */
+export const useUpdateResearchNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateResearchNote>>, TError,{id: number;data: BodyType<ResearchNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateResearchNote>>,
+        TError,
+        {id: number;data: BodyType<ResearchNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateResearchNoteMutationOptions(options));
+    }
+
+export const getDeleteResearchNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/stock-analyst/research-notes/${id}`
+}
+
+/**
+ * @summary Delete a research note
+ */
+export const deleteResearchNote = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteResearchNoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteResearchNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteResearchNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteResearchNote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteResearchNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteResearchNote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteResearchNote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteResearchNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteResearchNote>>>
+
+    export type DeleteResearchNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a research note
+ */
+export const useDeleteResearchNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteResearchNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteResearchNote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteResearchNoteMutationOptions(options));
+    }
+
+export const getGetInstitutionalDecisionUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}`
+}
+
+/**
+ * @summary Deterministic Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation, checklist, and evidence for a symbol — pure composition over already-computed Business Quality/Competitive Advantage/Management Quality/Capital Allocation/Financial Strength/Valuation/Margin of Safety/Investment Committee/Tom Nash outputs. Optional ?portfolioId= supplies Portfolio Fit/Risk/Diversification context (undocumented query param — combining it with the path param in the formal spec triggers Orval's known duplicate-GetXParams-export collision, first disclosed at Sprint 40 for /trading/structure/:symbol's own ?interval=/?lookback=; the override is fully functional server-side, just outside the typed contract).
+ */
+export const getInstitutionalDecision = async (symbol: string, options?: RequestInit): Promise<InstitutionalDecisionAnalysis> => {
+
+  return customFetch<InstitutionalDecisionAnalysis>(getGetInstitutionalDecisionUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalDecisionQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/decision/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalDecisionQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalDecision>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalDecision>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalDecisionQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalDecision>>> = ({ signal }) => getInstitutionalDecision(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalDecision>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalDecisionQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalDecision>>>
+export type GetInstitutionalDecisionQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation, checklist, and evidence for a symbol — pure composition over already-computed Business Quality/Competitive Advantage/Management Quality/Capital Allocation/Financial Strength/Valuation/Margin of Safety/Investment Committee/Tom Nash outputs. Optional ?portfolioId= supplies Portfolio Fit/Risk/Diversification context (undocumented query param — combining it with the path param in the formal spec triggers Orval's known duplicate-GetXParams-export collision, first disclosed at Sprint 40 for /trading/structure/:symbol's own ?interval=/?lookback=; the override is fully functional server-side, just outside the typed contract).
+ */
+
+export function useGetInstitutionalDecision<TData = Awaited<ReturnType<typeof getInstitutionalDecision>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalDecision>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalDecisionQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDecisionSnapshotsUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}/snapshots`
+}
+
+/**
+ * @summary List the calling user's saved decision snapshots for a symbol, newest first
+ */
+export const getDecisionSnapshots = async (symbol: string, options?: RequestInit): Promise<DecisionSnapshot[]> => {
+
+  return customFetch<DecisionSnapshot[]>(getGetDecisionSnapshotsUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionSnapshotsQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/decision/${symbol}/snapshots`
+    ] as const;
+    }
+
+
+export const getGetDecisionSnapshotsQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionSnapshots>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionSnapshotsQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionSnapshots>>> = ({ signal }) => getDecisionSnapshots(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionSnapshots>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionSnapshotsQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionSnapshots>>>
+export type GetDecisionSnapshotsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's saved decision snapshots for a symbol, newest first
+ */
+
+export function useGetDecisionSnapshots<TData = Awaited<ReturnType<typeof getDecisionSnapshots>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionSnapshotsQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveDecisionSnapshotUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}/snapshots`
+}
+
+/**
+ * @summary Save the current decision analysis for a symbol as a point-in-time snapshot (explicit save only, never automatic)
+ */
+export const saveDecisionSnapshot = async (symbol: string, options?: RequestInit): Promise<DecisionSnapshot> => {
+
+  return customFetch<DecisionSnapshot>(getSaveDecisionSnapshotUrl(symbol),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSaveDecisionSnapshotMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDecisionSnapshot>>, TError,{symbol: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveDecisionSnapshot>>, TError,{symbol: string}, TContext> => {
+
+const mutationKey = ['saveDecisionSnapshot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveDecisionSnapshot>>, {symbol: string}> = (props) => {
+          const {symbol} = props ?? {};
+
+          return  saveDecisionSnapshot(symbol,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveDecisionSnapshotMutationResult = NonNullable<Awaited<ReturnType<typeof saveDecisionSnapshot>>>
+
+    export type SaveDecisionSnapshotMutationError = ErrorType<void>
+
+    /**
+ * @summary Save the current decision analysis for a symbol as a point-in-time snapshot (explicit save only, never automatic)
+ */
+export const useSaveDecisionSnapshot = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDecisionSnapshot>>, TError,{symbol: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveDecisionSnapshot>>,
+        TError,
+        {symbol: string},
+        TContext
+      > => {
+      return useMutation(getSaveDecisionSnapshotMutationOptions(options));
+    }
+
+export const getGetDecisionNotesUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}/notes`
+}
+
+/**
+ * @summary List the calling user's decision notes for a symbol
+ */
+export const getDecisionNotes = async (symbol: string, options?: RequestInit): Promise<DecisionNote[]> => {
+
+  return customFetch<DecisionNote[]>(getGetDecisionNotesUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionNotesQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/decision/${symbol}/notes`
+    ] as const;
+    }
+
+
+export const getGetDecisionNotesQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionNotes>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionNotesQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionNotes>>> = ({ signal }) => getDecisionNotes(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionNotes>>>
+export type GetDecisionNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's decision notes for a symbol
+ */
+
+export function useGetDecisionNotes<TData = Awaited<ReturnType<typeof getDecisionNotes>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionNotesQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddDecisionNoteUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/${symbol}/notes`
+}
+
+/**
+ * @summary Add a decision note for a symbol (free text, never AI-generated)
+ */
+export const addDecisionNote = async (symbol: string,
+    decisionNoteCreate: DecisionNoteCreate, options?: RequestInit): Promise<DecisionNote> => {
+
+  return customFetch<DecisionNote>(getAddDecisionNoteUrl(symbol),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      decisionNoteCreate,)
+  }
+);}
+
+
+
+
+export const getAddDecisionNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addDecisionNote>>, TError,{symbol: string;data: BodyType<DecisionNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addDecisionNote>>, TError,{symbol: string;data: BodyType<DecisionNoteCreate>}, TContext> => {
+
+const mutationKey = ['addDecisionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addDecisionNote>>, {symbol: string;data: BodyType<DecisionNoteCreate>}> = (props) => {
+          const {symbol,data} = props ?? {};
+
+          return  addDecisionNote(symbol,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddDecisionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof addDecisionNote>>>
+    export type AddDecisionNoteMutationBody = BodyType<DecisionNoteCreate>
+    export type AddDecisionNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add a decision note for a symbol (free text, never AI-generated)
+ */
+export const useAddDecisionNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addDecisionNote>>, TError,{symbol: string;data: BodyType<DecisionNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addDecisionNote>>,
+        TError,
+        {symbol: string;data: BodyType<DecisionNoteCreate>},
+        TContext
+      > => {
+      return useMutation(getAddDecisionNoteMutationOptions(options));
+    }
+
+export const getUpdateDecisionNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/notes/${id}`
+}
+
+/**
+ * @summary Update a decision note
+ */
+export const updateDecisionNote = async (id: number,
+    decisionNoteUpdate: DecisionNoteUpdate, options?: RequestInit): Promise<DecisionNote> => {
+
+  return customFetch<DecisionNote>(getUpdateDecisionNoteUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      decisionNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateDecisionNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDecisionNote>>, TError,{id: number;data: BodyType<DecisionNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateDecisionNote>>, TError,{id: number;data: BodyType<DecisionNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updateDecisionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateDecisionNote>>, {id: number;data: BodyType<DecisionNoteUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateDecisionNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateDecisionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateDecisionNote>>>
+    export type UpdateDecisionNoteMutationBody = BodyType<DecisionNoteUpdate>
+    export type UpdateDecisionNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a decision note
+ */
+export const useUpdateDecisionNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateDecisionNote>>, TError,{id: number;data: BodyType<DecisionNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateDecisionNote>>,
+        TError,
+        {id: number;data: BodyType<DecisionNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateDecisionNoteMutationOptions(options));
+    }
+
+export const getDeleteDecisionNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/stock-analyst/decision/notes/${id}`
+}
+
+/**
+ * @summary Delete a decision note
+ */
+export const deleteDecisionNote = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteDecisionNoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteDecisionNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDecisionNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteDecisionNote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteDecisionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDecisionNote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteDecisionNote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteDecisionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDecisionNote>>>
+
+    export type DeleteDecisionNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a decision note
+ */
+export const useDeleteDecisionNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteDecisionNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteDecisionNote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteDecisionNoteMutationOptions(options));
+    }
+
+export const getGetRecentDecisionSnapshotsUrl = () => {
+
+
+
+
+  return `/api/stock-analyst/decision/snapshots/recent`
+}
+
+/**
+ * @summary List the calling user's most recent saved decision snapshots across all symbols (newest first, capped at 20) — powers the Investment Committee Workbench's Committee Dashboard / Active Reviews. Reuses the same investing_decision_snapshots table as GET /decision/{symbol}/snapshots, symbol filter removed.
+ */
+export const getRecentDecisionSnapshots = async ( options?: RequestInit): Promise<DecisionSnapshot[]> => {
+
+  return customFetch<DecisionSnapshot[]>(getGetRecentDecisionSnapshotsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRecentDecisionSnapshotsQueryKey = () => {
+    return [
+    `/api/stock-analyst/decision/snapshots/recent`
+    ] as const;
+    }
+
+
+export const getGetRecentDecisionSnapshotsQueryOptions = <TData = Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRecentDecisionSnapshotsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>> = ({ signal }) => getRecentDecisionSnapshots({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRecentDecisionSnapshotsQueryResult = NonNullable<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>>
+export type GetRecentDecisionSnapshotsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's most recent saved decision snapshots across all symbols (newest first, capped at 20) — powers the Investment Committee Workbench's Committee Dashboard / Active Reviews. Reuses the same investing_decision_snapshots table as GET /decision/{symbol}/snapshots, symbol filter removed.
+ */
+
+export function useGetRecentDecisionSnapshots<TData = Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecentDecisionSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRecentDecisionSnapshotsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestmentMemoUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/investment-memo/${symbol}`
+}
+
+/**
+ * @summary Deterministic Investment Memo for a symbol — assembled entirely from already-computed Business Quality/Competitive Advantage/Financial Strength/Valuation/Margin of Safety/Decision Engine/Investment Committee outputs plus the user's own Research Notes and Monitoring alerts. No LLM, no new scoring, no price prediction. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Impact context.
+ */
+export const getInvestmentMemo = async (symbol: string, options?: RequestInit): Promise<InvestmentMemo> => {
+
+  return customFetch<InvestmentMemo>(getGetInvestmentMemoUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestmentMemoQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/investment-memo/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetInvestmentMemoQueryOptions = <TData = Awaited<ReturnType<typeof getInvestmentMemo>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentMemo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestmentMemoQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestmentMemo>>> = ({ signal }) => getInvestmentMemo(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestmentMemo>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestmentMemoQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestmentMemo>>>
+export type GetInvestmentMemoQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Investment Memo for a symbol — assembled entirely from already-computed Business Quality/Competitive Advantage/Financial Strength/Valuation/Margin of Safety/Decision Engine/Investment Committee outputs plus the user's own Research Notes and Monitoring alerts. No LLM, no new scoring, no price prediction. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Impact context.
+ */
+
+export function useGetInvestmentMemo<TData = Awaited<ReturnType<typeof getInvestmentMemo>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentMemo>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestmentMemoQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getScanOpportunitiesUrl = () => {
+
+
+
+
+  return `/api/opportunity-discovery/scan`
+}
+
+/**
+ * @summary Run a deterministic opportunity scan across the union of the Investing Engine's own known-symbol universes, apply the screener filters, rank by the Decision Engine's own synthesis score, and bucket into the 10 named opportunity categories — pure orchestration, zero new scoring.
+ */
+export const scanOpportunities = async (opportunityScanRequest?: OpportunityScanRequest, options?: RequestInit): Promise<OpportunityScanResult> => {
+
+  return customFetch<OpportunityScanResult>(getScanOpportunitiesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      opportunityScanRequest,)
+  }
+);}
+
+
+
+
+export const getScanOpportunitiesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof scanOpportunities>>, TError,{data?: BodyType<OpportunityScanRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof scanOpportunities>>, TError,{data?: BodyType<OpportunityScanRequest>}, TContext> => {
+
+const mutationKey = ['scanOpportunities'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof scanOpportunities>>, {data?: BodyType<OpportunityScanRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  scanOpportunities(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ScanOpportunitiesMutationResult = NonNullable<Awaited<ReturnType<typeof scanOpportunities>>>
+    export type ScanOpportunitiesMutationBody = BodyType<OpportunityScanRequest> | undefined
+    export type ScanOpportunitiesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run a deterministic opportunity scan across the union of the Investing Engine's own known-symbol universes, apply the screener filters, rank by the Decision Engine's own synthesis score, and bucket into the 10 named opportunity categories — pure orchestration, zero new scoring.
+ */
+export const useScanOpportunities = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof scanOpportunities>>, TError,{data?: BodyType<OpportunityScanRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof scanOpportunities>>,
+        TError,
+        {data?: BodyType<OpportunityScanRequest>},
+        TContext
+      > => {
+      return useMutation(getScanOpportunitiesMutationOptions(options));
+    }
+
+export const getCompareOpportunitiesRouteUrl = (params: CompareOpportunitiesRouteParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/opportunity-discovery/compare?${stringifiedParams}` : `/api/opportunity-discovery/compare`
+}
+
+/**
+ * @summary Compare a small, user-selected set of symbols side by side (?symbols=A,B,C) — highlights which symbol has the best already-computed value per dimension, no new scoring.
+ */
+export const compareOpportunitiesRoute = async (params: CompareOpportunitiesRouteParams, options?: RequestInit): Promise<OpportunityComparisonResult> => {
+
+  return customFetch<OpportunityComparisonResult>(getCompareOpportunitiesRouteUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCompareOpportunitiesRouteQueryKey = (params?: CompareOpportunitiesRouteParams,) => {
+    return [
+    `/api/opportunity-discovery/compare`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getCompareOpportunitiesRouteQueryOptions = <TData = Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError = ErrorType<unknown>>(params: CompareOpportunitiesRouteParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCompareOpportunitiesRouteQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof compareOpportunitiesRoute>>> = ({ signal }) => compareOpportunitiesRoute(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type CompareOpportunitiesRouteQueryResult = NonNullable<Awaited<ReturnType<typeof compareOpportunitiesRoute>>>
+export type CompareOpportunitiesRouteQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compare a small, user-selected set of symbols side by side (?symbols=A,B,C) — highlights which symbol has the best already-computed value per dimension, no new scoring.
+ */
+
+export function useCompareOpportunitiesRoute<TData = Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError = ErrorType<unknown>>(
+ params: CompareOpportunitiesRouteParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof compareOpportunitiesRoute>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getCompareOpportunitiesRouteQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSavedScreensUrl = () => {
+
+
+
+
+  return `/api/opportunity-discovery/saved-screens`
+}
+
+/**
+ * @summary List the calling user's saved Screener filter sets, newest first
+ */
+export const getSavedScreens = async ( options?: RequestInit): Promise<OpportunitySavedScreen[]> => {
+
+  return customFetch<OpportunitySavedScreen[]>(getGetSavedScreensUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSavedScreensQueryKey = () => {
+    return [
+    `/api/opportunity-discovery/saved-screens`
+    ] as const;
+    }
+
+
+export const getGetSavedScreensQueryOptions = <TData = Awaited<ReturnType<typeof getSavedScreens>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedScreens>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSavedScreensQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSavedScreens>>> = ({ signal }) => getSavedScreens({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSavedScreens>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSavedScreensQueryResult = NonNullable<Awaited<ReturnType<typeof getSavedScreens>>>
+export type GetSavedScreensQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's saved Screener filter sets, newest first
+ */
+
+export function useGetSavedScreens<TData = Awaited<ReturnType<typeof getSavedScreens>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedScreens>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSavedScreensQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateSavedScreenUrl = () => {
+
+
+
+
+  return `/api/opportunity-discovery/saved-screens`
+}
+
+/**
+ * @summary Save a named Screener filter set (criteria only — never persists scan results)
+ */
+export const createSavedScreen = async (opportunitySavedScreenCreate: OpportunitySavedScreenCreate, options?: RequestInit): Promise<OpportunitySavedScreen> => {
+
+  return customFetch<OpportunitySavedScreen>(getCreateSavedScreenUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      opportunitySavedScreenCreate,)
+  }
+);}
+
+
+
+
+export const getCreateSavedScreenMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSavedScreen>>, TError,{data: BodyType<OpportunitySavedScreenCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSavedScreen>>, TError,{data: BodyType<OpportunitySavedScreenCreate>}, TContext> => {
+
+const mutationKey = ['createSavedScreen'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSavedScreen>>, {data: BodyType<OpportunitySavedScreenCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSavedScreen(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSavedScreenMutationResult = NonNullable<Awaited<ReturnType<typeof createSavedScreen>>>
+    export type CreateSavedScreenMutationBody = BodyType<OpportunitySavedScreenCreate>
+    export type CreateSavedScreenMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save a named Screener filter set (criteria only — never persists scan results)
+ */
+export const useCreateSavedScreen = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSavedScreen>>, TError,{data: BodyType<OpportunitySavedScreenCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createSavedScreen>>,
+        TError,
+        {data: BodyType<OpportunitySavedScreenCreate>},
+        TContext
+      > => {
+      return useMutation(getCreateSavedScreenMutationOptions(options));
+    }
+
+export const getUpdateSavedScreenUrl = (id: number,) => {
+
+
+
+
+  return `/api/opportunity-discovery/saved-screens/${id}`
+}
+
+/**
+ * @summary Update a saved screen's name and/or filters
+ */
+export const updateSavedScreen = async (id: number,
+    opportunitySavedScreenUpdate: OpportunitySavedScreenUpdate, options?: RequestInit): Promise<OpportunitySavedScreen> => {
+
+  return customFetch<OpportunitySavedScreen>(getUpdateSavedScreenUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      opportunitySavedScreenUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateSavedScreenMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSavedScreen>>, TError,{id: number;data: BodyType<OpportunitySavedScreenUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSavedScreen>>, TError,{id: number;data: BodyType<OpportunitySavedScreenUpdate>}, TContext> => {
+
+const mutationKey = ['updateSavedScreen'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSavedScreen>>, {id: number;data: BodyType<OpportunitySavedScreenUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateSavedScreen(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSavedScreenMutationResult = NonNullable<Awaited<ReturnType<typeof updateSavedScreen>>>
+    export type UpdateSavedScreenMutationBody = BodyType<OpportunitySavedScreenUpdate>
+    export type UpdateSavedScreenMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a saved screen's name and/or filters
+ */
+export const useUpdateSavedScreen = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSavedScreen>>, TError,{id: number;data: BodyType<OpportunitySavedScreenUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateSavedScreen>>,
+        TError,
+        {id: number;data: BodyType<OpportunitySavedScreenUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateSavedScreenMutationOptions(options));
+    }
+
+export const getDeleteSavedScreenUrl = (id: number,) => {
+
+
+
+
+  return `/api/opportunity-discovery/saved-screens/${id}`
+}
+
+/**
+ * @summary Delete a saved screen
+ */
+export const deleteSavedScreen = async (id: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteSavedScreenUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteSavedScreenMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSavedScreen>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSavedScreen>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteSavedScreen'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSavedScreen>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteSavedScreen(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteSavedScreenMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSavedScreen>>>
+
+    export type DeleteSavedScreenMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a saved screen
+ */
+export const useDeleteSavedScreen = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSavedScreen>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSavedScreen>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteSavedScreenMutationOptions(options));
+    }
+
+export const getGetInvestmentThesisUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/investment-thesis/${symbol}`
+}
+
+/**
+ * @summary Deterministic, template-based Investment Thesis for a symbol (no LLM, no price prediction)
+ */
+export const getInvestmentThesis = async (symbol: string, options?: RequestInit): Promise<InvestmentThesis> => {
+
+  return customFetch<InvestmentThesis>(getGetInvestmentThesisUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestmentThesisQueryKey = (symbol: string,) => {
+    return [
+    `/api/stock-analyst/investment-thesis/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetInvestmentThesisQueryOptions = <TData = Awaited<ReturnType<typeof getInvestmentThesis>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentThesis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestmentThesisQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestmentThesis>>> = ({ signal }) => getInvestmentThesis(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestmentThesis>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestmentThesisQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestmentThesis>>>
+export type GetInvestmentThesisQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic, template-based Investment Thesis for a symbol (no LLM, no price prediction)
+ */
+
+export function useGetInvestmentThesis<TData = Awaited<ReturnType<typeof getInvestmentThesis>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentThesis>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestmentThesisQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetValueLessonsUrl = () => {
 
 
@@ -7763,6 +12712,910 @@ export const useSaveRiskSnapshot = <TError = ErrorType<void>,
       return useMutation(getSaveRiskSnapshotMutationOptions(options));
     }
 
+export const getGetPortfolioIntelligenceUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/intelligence`
+}
+
+/**
+ * @summary Compute the full Institutional Portfolio Manager analysis (quality, capital allocation, allocation breakdowns, extended risk, performance, income) on demand
+ */
+export const getPortfolioIntelligence = async (id: number, options?: RequestInit): Promise<ConstructionPortfolioIntelligence> => {
+
+  return customFetch<ConstructionPortfolioIntelligence>(getGetPortfolioIntelligenceUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioIntelligenceQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/intelligence`
+    ] as const;
+    }
+
+
+export const getGetPortfolioIntelligenceQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioIntelligence>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioIntelligenceQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioIntelligence>>> = ({ signal }) => getPortfolioIntelligence(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioIntelligence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioIntelligenceQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioIntelligence>>>
+export type GetPortfolioIntelligenceQueryError = ErrorType<void>
+
+
+/**
+ * @summary Compute the full Institutional Portfolio Manager analysis (quality, capital allocation, allocation breakdowns, extended risk, performance, income) on demand
+ */
+
+export function useGetPortfolioIntelligence<TData = Awaited<ReturnType<typeof getPortfolioIntelligence>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioIntelligence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioIntelligenceQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioWatchlistComparisonUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/watchlist-comparison`
+}
+
+/**
+ * @summary Compare this portfolio's holdings against the caller's Value Watchlist
+ */
+export const getPortfolioWatchlistComparison = async (id: number, options?: RequestInit): Promise<ConstructionWatchlistComparison> => {
+
+  return customFetch<ConstructionWatchlistComparison>(getGetPortfolioWatchlistComparisonUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioWatchlistComparisonQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/watchlist-comparison`
+    ] as const;
+    }
+
+
+export const getGetPortfolioWatchlistComparisonQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioWatchlistComparison>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWatchlistComparison>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioWatchlistComparisonQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioWatchlistComparison>>> = ({ signal }) => getPortfolioWatchlistComparison(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWatchlistComparison>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioWatchlistComparisonQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioWatchlistComparison>>>
+export type GetPortfolioWatchlistComparisonQueryError = ErrorType<void>
+
+
+/**
+ * @summary Compare this portfolio's holdings against the caller's Value Watchlist
+ */
+
+export function useGetPortfolioWatchlistComparison<TData = Awaited<ReturnType<typeof getPortfolioWatchlistComparison>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWatchlistComparison>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioWatchlistComparisonQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioSnapshotsUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/snapshots`
+}
+
+/**
+ * @summary List previously saved composite (quality/risk/diversification) snapshots for a portfolio, newest first
+ */
+export const getPortfolioSnapshots = async (id: number, options?: RequestInit): Promise<ConstructionPortfolioSnapshot[]> => {
+
+  return customFetch<ConstructionPortfolioSnapshot[]>(getGetPortfolioSnapshotsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioSnapshotsQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/snapshots`
+    ] as const;
+    }
+
+
+export const getGetPortfolioSnapshotsQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioSnapshots>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioSnapshotsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioSnapshots>>> = ({ signal }) => getPortfolioSnapshots(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioSnapshots>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioSnapshotsQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioSnapshots>>>
+export type GetPortfolioSnapshotsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List previously saved composite (quality/risk/diversification) snapshots for a portfolio, newest first
+ */
+
+export function useGetPortfolioSnapshots<TData = Awaited<ReturnType<typeof getPortfolioSnapshots>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioSnapshotsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSavePortfolioSnapshotUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/snapshots`
+}
+
+/**
+ * @summary Compute the portfolio intelligence analysis fresh and save it as a composite snapshot
+ */
+export const savePortfolioSnapshot = async (id: number, options?: RequestInit): Promise<ConstructionPortfolioSnapshot> => {
+
+  return customFetch<ConstructionPortfolioSnapshot>(getSavePortfolioSnapshotUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSavePortfolioSnapshotMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof savePortfolioSnapshot>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof savePortfolioSnapshot>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['savePortfolioSnapshot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof savePortfolioSnapshot>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  savePortfolioSnapshot(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SavePortfolioSnapshotMutationResult = NonNullable<Awaited<ReturnType<typeof savePortfolioSnapshot>>>
+
+    export type SavePortfolioSnapshotMutationError = ErrorType<void>
+
+    /**
+ * @summary Compute the portfolio intelligence analysis fresh and save it as a composite snapshot
+ */
+export const useSavePortfolioSnapshot = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof savePortfolioSnapshot>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof savePortfolioSnapshot>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getSavePortfolioSnapshotMutationOptions(options));
+    }
+
+export const getGetPortfolioNotesUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/notes`
+}
+
+/**
+ * @summary List free-text notes for a portfolio, newest first
+ */
+export const getPortfolioNotes = async (id: number, options?: RequestInit): Promise<ConstructionPortfolioNote[]> => {
+
+  return customFetch<ConstructionPortfolioNote[]>(getGetPortfolioNotesUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioNotesQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/notes`
+    ] as const;
+    }
+
+
+export const getGetPortfolioNotesQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioNotes>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioNotesQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioNotes>>> = ({ signal }) => getPortfolioNotes(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioNotesQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioNotes>>>
+export type GetPortfolioNotesQueryError = ErrorType<void>
+
+
+/**
+ * @summary List free-text notes for a portfolio, newest first
+ */
+
+export function useGetPortfolioNotes<TData = Awaited<ReturnType<typeof getPortfolioNotes>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioNotesQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddPortfolioNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/notes`
+}
+
+/**
+ * @summary Add a free-text note to a portfolio
+ */
+export const addPortfolioNote = async (id: number,
+    constructionPortfolioNoteCreate: ConstructionPortfolioNoteCreate, options?: RequestInit): Promise<ConstructionPortfolioNote> => {
+
+  return customFetch<ConstructionPortfolioNote>(getAddPortfolioNoteUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      constructionPortfolioNoteCreate,)
+  }
+);}
+
+
+
+
+export const getAddPortfolioNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPortfolioNote>>, TError,{id: number;data: BodyType<ConstructionPortfolioNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addPortfolioNote>>, TError,{id: number;data: BodyType<ConstructionPortfolioNoteCreate>}, TContext> => {
+
+const mutationKey = ['addPortfolioNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addPortfolioNote>>, {id: number;data: BodyType<ConstructionPortfolioNoteCreate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addPortfolioNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddPortfolioNoteMutationResult = NonNullable<Awaited<ReturnType<typeof addPortfolioNote>>>
+    export type AddPortfolioNoteMutationBody = BodyType<ConstructionPortfolioNoteCreate>
+    export type AddPortfolioNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a free-text note to a portfolio
+ */
+export const useAddPortfolioNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addPortfolioNote>>, TError,{id: number;data: BodyType<ConstructionPortfolioNoteCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addPortfolioNote>>,
+        TError,
+        {id: number;data: BodyType<ConstructionPortfolioNoteCreate>},
+        TContext
+      > => {
+      return useMutation(getAddPortfolioNoteMutationOptions(options));
+    }
+
+export const getUpdatePortfolioNoteUrl = (id: number,
+    noteId: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/notes/${noteId}`
+}
+
+/**
+ * @summary Update a portfolio note's text
+ */
+export const updatePortfolioNote = async (id: number,
+    noteId: number,
+    constructionPortfolioNoteUpdate: ConstructionPortfolioNoteUpdate, options?: RequestInit): Promise<ConstructionPortfolioNote> => {
+
+  return customFetch<ConstructionPortfolioNote>(getUpdatePortfolioNoteUrl(id,noteId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      constructionPortfolioNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdatePortfolioNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePortfolioNote>>, TError,{id: number;noteId: number;data: BodyType<ConstructionPortfolioNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePortfolioNote>>, TError,{id: number;noteId: number;data: BodyType<ConstructionPortfolioNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updatePortfolioNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePortfolioNote>>, {id: number;noteId: number;data: BodyType<ConstructionPortfolioNoteUpdate>}> = (props) => {
+          const {id,noteId,data} = props ?? {};
+
+          return  updatePortfolioNote(id,noteId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePortfolioNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updatePortfolioNote>>>
+    export type UpdatePortfolioNoteMutationBody = BodyType<ConstructionPortfolioNoteUpdate>
+    export type UpdatePortfolioNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a portfolio note's text
+ */
+export const useUpdatePortfolioNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePortfolioNote>>, TError,{id: number;noteId: number;data: BodyType<ConstructionPortfolioNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updatePortfolioNote>>,
+        TError,
+        {id: number;noteId: number;data: BodyType<ConstructionPortfolioNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdatePortfolioNoteMutationOptions(options));
+    }
+
+export const getDeletePortfolioNoteUrl = (id: number,
+    noteId: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/notes/${noteId}`
+}
+
+/**
+ * @summary Delete a portfolio note
+ */
+export const deletePortfolioNote = async (id: number,
+    noteId: number, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeletePortfolioNoteUrl(id,noteId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeletePortfolioNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePortfolioNote>>, TError,{id: number;noteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePortfolioNote>>, TError,{id: number;noteId: number}, TContext> => {
+
+const mutationKey = ['deletePortfolioNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePortfolioNote>>, {id: number;noteId: number}> = (props) => {
+          const {id,noteId} = props ?? {};
+
+          return  deletePortfolioNote(id,noteId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePortfolioNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deletePortfolioNote>>>
+
+    export type DeletePortfolioNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a portfolio note
+ */
+export const useDeletePortfolioNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePortfolioNote>>, TError,{id: number;noteId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deletePortfolioNote>>,
+        TError,
+        {id: number;noteId: number},
+        TContext
+      > => {
+      return useMutation(getDeletePortfolioNoteMutationOptions(options));
+    }
+
+export const getGetPortfolioOptimisationUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/optimisation`
+}
+
+/**
+ * @summary Compute Portfolio Optimisation (health, concentration, diversification, position quality ranking, upgrade/trim/exit candidates, capital allocation suggestions, replacement opportunities, cash deployment suggestions) on demand, reusing Portfolio Intelligence, the Decision Engine, and Opportunity Discovery
+ */
+export const getPortfolioOptimisation = async (id: number, options?: RequestInit): Promise<PortfolioOptimisationAnalysis> => {
+
+  return customFetch<PortfolioOptimisationAnalysis>(getGetPortfolioOptimisationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioOptimisationQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/optimisation`
+    ] as const;
+    }
+
+
+export const getGetPortfolioOptimisationQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioOptimisationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioOptimisation>>> = ({ signal }) => getPortfolioOptimisation(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioOptimisationQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioOptimisation>>>
+export type GetPortfolioOptimisationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Compute Portfolio Optimisation (health, concentration, diversification, position quality ranking, upgrade/trim/exit candidates, capital allocation suggestions, replacement opportunities, cash deployment suggestions) on demand, reusing Portfolio Intelligence, the Decision Engine, and Opportunity Discovery
+ */
+
+export function useGetPortfolioOptimisation<TData = Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioOptimisation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioOptimisationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptimisationReviewsUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/optimisation/reviews`
+}
+
+/**
+ * @summary List saved optimisation reviews for a portfolio, newest first
+ */
+export const getOptimisationReviews = async (id: number, options?: RequestInit): Promise<OptimisationReview[]> => {
+
+  return customFetch<OptimisationReview[]>(getGetOptimisationReviewsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptimisationReviewsQueryKey = (id: number,) => {
+    return [
+    `/api/portfolio-construction/portfolios/${id}/optimisation/reviews`
+    ] as const;
+    }
+
+
+export const getGetOptimisationReviewsQueryOptions = <TData = Awaited<ReturnType<typeof getOptimisationReviews>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptimisationReviews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptimisationReviewsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptimisationReviews>>> = ({ signal }) => getOptimisationReviews(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptimisationReviews>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptimisationReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof getOptimisationReviews>>>
+export type GetOptimisationReviewsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List saved optimisation reviews for a portfolio, newest first
+ */
+
+export function useGetOptimisationReviews<TData = Awaited<ReturnType<typeof getOptimisationReviews>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptimisationReviews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptimisationReviewsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddOptimisationReviewUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-construction/portfolios/${id}/optimisation/reviews`
+}
+
+/**
+ * @summary Save an optimisation review (upgrade/trim/exit/replace/note) for a symbol within a portfolio, with its evidence snapshot
+ */
+export const addOptimisationReview = async (id: number,
+    optimisationReviewCreate: OptimisationReviewCreate, options?: RequestInit): Promise<OptimisationReview> => {
+
+  return customFetch<OptimisationReview>(getAddOptimisationReviewUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optimisationReviewCreate,)
+  }
+);}
+
+
+
+
+export const getAddOptimisationReviewMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addOptimisationReview>>, TError,{id: number;data: BodyType<OptimisationReviewCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addOptimisationReview>>, TError,{id: number;data: BodyType<OptimisationReviewCreate>}, TContext> => {
+
+const mutationKey = ['addOptimisationReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addOptimisationReview>>, {id: number;data: BodyType<OptimisationReviewCreate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addOptimisationReview(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddOptimisationReviewMutationResult = NonNullable<Awaited<ReturnType<typeof addOptimisationReview>>>
+    export type AddOptimisationReviewMutationBody = BodyType<OptimisationReviewCreate>
+    export type AddOptimisationReviewMutationError = ErrorType<void>
+
+    /**
+ * @summary Save an optimisation review (upgrade/trim/exit/replace/note) for a symbol within a portfolio, with its evidence snapshot
+ */
+export const useAddOptimisationReview = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addOptimisationReview>>, TError,{id: number;data: BodyType<OptimisationReviewCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addOptimisationReview>>,
+        TError,
+        {id: number;data: BodyType<OptimisationReviewCreate>},
+        TContext
+      > => {
+      return useMutation(getAddOptimisationReviewMutationOptions(options));
+    }
+
+export const getGetCoachExplanationUrl = (coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string,) => {
+
+
+
+
+  return `/api/stock-analyst/coach/${coach}/${symbol}`
+}
+
+/**
+ * @summary Deterministic Institutional AI Coach explanation for a symbol — one of 8 coaches (investment, portfolio, decision, valuation, risk, research, monitoring, committee), each explaining an already-computed engine output (Decision Engine, the 4 valuation models + Consolidated Margin of Safety, Business/Investment Quality + Competitive Advantage, Monitoring alerts, the Investment Committee). No LLM, no new scoring, never a new recommendation — pure orchestration and static educational copy over lib/investingCoach.ts. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Coach context.
+ */
+export const getCoachExplanation = async (coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string, options?: RequestInit): Promise<CoachExplanation> => {
+
+  return customFetch<CoachExplanation>(getGetCoachExplanationUrl(coach,symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCoachExplanationQueryKey = (coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string,) => {
+    return [
+    `/api/stock-analyst/coach/${coach}/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetCoachExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getCoachExplanation>>, TError = ErrorType<void>>(coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCoachExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCoachExplanationQueryKey(coach,symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCoachExplanation>>> = ({ signal }) => getCoachExplanation(coach,symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(coach && symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCoachExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCoachExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getCoachExplanation>>>
+export type GetCoachExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Institutional AI Coach explanation for a symbol — one of 8 coaches (investment, portfolio, decision, valuation, risk, research, monitoring, committee), each explaining an already-computed engine output (Decision Engine, the 4 valuation models + Consolidated Margin of Safety, Business/Investment Quality + Competitive Advantage, Monitoring alerts, the Investment Committee). No LLM, no new scoring, never a new recommendation — pure orchestration and static educational copy over lib/investingCoach.ts. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies Portfolio Coach context.
+ */
+
+export function useGetCoachExplanation<TData = Awaited<ReturnType<typeof getCoachExplanation>>, TError = ErrorType<void>>(
+ coach: 'investment' | 'portfolio' | 'decision' | 'valuation' | 'risk' | 'research' | 'monitoring' | 'committee',
+    symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCoachExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCoachExplanationQueryOptions(coach,symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTradingJournalEntriesUrl = () => {
 
 
@@ -8207,6 +14060,83 @@ export function useGetTradingStructure<TData = Awaited<ReturnType<typeof getTrad
 
 
 
+export const getGetTradingStructureTimelineUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/structure-timeline/${symbol}`
+}
+
+/**
+ * @summary A deterministic timeline of structure shift events (new higher high/low, new lower high/low, trend change, range entry/exit, support/resistance test) for a symbol — reuses the existing Market Structure scorer repeatedly over an expanding candle window, zero new scoring. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only.
+ */
+export const getTradingStructureTimeline = async (symbol: string, options?: RequestInit): Promise<TradingStructureShiftTimeline> => {
+
+  return customFetch<TradingStructureShiftTimeline>(getGetTradingStructureTimelineUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingStructureTimelineQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/structure-timeline/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingStructureTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingStructureTimelineQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingStructureTimeline>>> = ({ signal }) => getTradingStructureTimeline(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingStructureTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingStructureTimeline>>>
+export type GetTradingStructureTimelineQueryError = ErrorType<void>
+
+
+/**
+ * @summary A deterministic timeline of structure shift events (new higher high/low, new lower high/low, trend change, range entry/exit, support/resistance test) for a symbol — reuses the existing Market Structure scorer repeatedly over an expanding candle window, zero new scoring. Accepts optional ?interval= and ?lookback= query overrides, handled server-side only.
+ */
+
+export function useGetTradingStructureTimeline<TData = Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStructureTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingStructureTimelineQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetTradingMultiTimeframeUrl = (symbol: string,) => {
 
 
@@ -8216,7 +14146,7 @@ export const getGetTradingMultiTimeframeUrl = (symbol: string,) => {
 }
 
 /**
- * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+ * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D by default; Phase 26 added an optional ?timeframes= override for a caller-chosen subset of the 5 real timeframes, handled server-side only), SIMULATED-first, honestly labelled dataSource
  */
 export const getTradingMultiTimeframe = async (symbol: string, options?: RequestInit): Promise<TradingMultiTimeframeAnalysis> => {
 
@@ -8263,7 +14193,7 @@ export type GetTradingMultiTimeframeQueryError = ErrorType<void>
 
 
 /**
- * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D), SIMULATED-first, honestly labelled dataSource
+ * @summary Multi-timeframe trend confluence analysis for a symbol — composes the Market Structure scorer across multiple timeframes (15m/1h/1D by default; Phase 26 added an optional ?timeframes= override for a caller-chosen subset of the 5 real timeframes, handled server-side only), SIMULATED-first, honestly labelled dataSource
  */
 
 export function useGetTradingMultiTimeframe<TData = Awaited<ReturnType<typeof getTradingMultiTimeframe>>, TError = ErrorType<void>>(
@@ -8805,6 +14735,7517 @@ export const useDeleteTradingPosition = <TError = ErrorType<void>,
       return useMutation(getDeleteTradingPositionMutationOptions(options));
     }
 
+export const getListTradingTradePlansUrl = () => {
+
+
+
+
+  return `/api/trading/trade-plans`
+}
+
+/**
+ * @summary List the calling user's trade plans, newest first
+ */
+export const listTradingTradePlans = async ( options?: RequestInit): Promise<TradingTradePlan[]> => {
+
+  return customFetch<TradingTradePlan[]>(getListTradingTradePlansUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingTradePlansQueryKey = () => {
+    return [
+    `/api/trading/trade-plans`
+    ] as const;
+    }
+
+
+export const getListTradingTradePlansQueryOptions = <TData = Awaited<ReturnType<typeof listTradingTradePlans>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlans>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingTradePlansQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingTradePlans>>> = ({ signal }) => listTradingTradePlans({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlans>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingTradePlansQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingTradePlans>>>
+export type ListTradingTradePlansQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's trade plans, newest first
+ */
+
+export function useListTradingTradePlans<TData = Awaited<ReturnType<typeof listTradingTradePlans>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlans>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingTradePlansQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingTradePlanUrl = () => {
+
+
+
+
+  return `/api/trading/trade-plans`
+}
+
+/**
+ * @summary Create a trade plan (status always starts at draft)
+ */
+export const createTradingTradePlan = async (tradingTradePlanInput: TradingTradePlanInput, options?: RequestInit): Promise<TradingTradePlan> => {
+
+  return customFetch<TradingTradePlan>(getCreateTradingTradePlanUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingTradePlanInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingTradePlanMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingTradePlan>>, TError,{data: BodyType<TradingTradePlanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingTradePlan>>, TError,{data: BodyType<TradingTradePlanInput>}, TContext> => {
+
+const mutationKey = ['createTradingTradePlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingTradePlan>>, {data: BodyType<TradingTradePlanInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTradingTradePlan(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingTradePlanMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingTradePlan>>>
+    export type CreateTradingTradePlanMutationBody = BodyType<TradingTradePlanInput>
+    export type CreateTradingTradePlanMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a trade plan (status always starts at draft)
+ */
+export const useCreateTradingTradePlan = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingTradePlan>>, TError,{data: BodyType<TradingTradePlanInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingTradePlan>>,
+        TError,
+        {data: BodyType<TradingTradePlanInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingTradePlanMutationOptions(options));
+    }
+
+export const getListTradingTradePlansForSymbolUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/trade-plans/${symbol}`
+}
+
+/**
+ * @summary List the calling user's trade plans for one symbol, newest first
+ */
+export const listTradingTradePlansForSymbol = async (symbol: string, options?: RequestInit): Promise<TradingTradePlan[]> => {
+
+  return customFetch<TradingTradePlan[]>(getListTradingTradePlansForSymbolUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingTradePlansForSymbolQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/trade-plans/${symbol}`
+    ] as const;
+    }
+
+
+export const getListTradingTradePlansForSymbolQueryOptions = <TData = Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingTradePlansForSymbolQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>> = ({ signal }) => listTradingTradePlansForSymbol(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingTradePlansForSymbolQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>>
+export type ListTradingTradePlansForSymbolQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's trade plans for one symbol, newest first
+ */
+
+export function useListTradingTradePlansForSymbol<TData = Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingTradePlansForSymbol>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingTradePlansForSymbolQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingTradePlanUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/trade-plans/${id}`
+}
+
+/**
+ * @summary Update a trade plan's thesis and/or status (status changes are validated against the allowed draft/active/closed/cancelled transition rules)
+ */
+export const updateTradingTradePlan = async (id: number,
+    tradingTradePlanUpdate: TradingTradePlanUpdate, options?: RequestInit): Promise<TradingTradePlan> => {
+
+  return customFetch<TradingTradePlan>(getUpdateTradingTradePlanUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingTradePlanUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingTradePlanMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingTradePlan>>, TError,{id: number;data: BodyType<TradingTradePlanUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingTradePlan>>, TError,{id: number;data: BodyType<TradingTradePlanUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingTradePlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingTradePlan>>, {id: number;data: BodyType<TradingTradePlanUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingTradePlan(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingTradePlanMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingTradePlan>>>
+    export type UpdateTradingTradePlanMutationBody = BodyType<TradingTradePlanUpdate>
+    export type UpdateTradingTradePlanMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a trade plan's thesis and/or status (status changes are validated against the allowed draft/active/closed/cancelled transition rules)
+ */
+export const useUpdateTradingTradePlan = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingTradePlan>>, TError,{id: number;data: BodyType<TradingTradePlanUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingTradePlan>>,
+        TError,
+        {id: number;data: BodyType<TradingTradePlanUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingTradePlanMutationOptions(options));
+    }
+
+export const getDeleteTradingTradePlanUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/trade-plans/${id}`
+}
+
+/**
+ * @summary Delete a trade plan
+ */
+export const deleteTradingTradePlan = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingTradePlanUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingTradePlanMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingTradePlan>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingTradePlan>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingTradePlan'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingTradePlan>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingTradePlan(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingTradePlanMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingTradePlan>>>
+
+    export type DeleteTradingTradePlanMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a trade plan
+ */
+export const useDeleteTradingTradePlan = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingTradePlan>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingTradePlan>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingTradePlanMutationOptions(options));
+    }
+
+export const getCompareTradingScenariosUrl = () => {
+
+
+
+
+  return `/api/trading/trade-plans/scenarios/compare`
+}
+
+/**
+ * @summary Compare 2-5 candidate trade scenarios (pure computeRiskParameters() arithmetic per scenario, never persisted)
+ */
+export const compareTradingScenarios = async (tradingCompareScenariosInput: TradingCompareScenariosInput, options?: RequestInit): Promise<TradingScenarioComparisonResult> => {
+
+  return customFetch<TradingScenarioComparisonResult>(getCompareTradingScenariosUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingCompareScenariosInput,)
+  }
+);}
+
+
+
+
+export const getCompareTradingScenariosMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof compareTradingScenarios>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof compareTradingScenarios>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext> => {
+
+const mutationKey = ['compareTradingScenarios'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof compareTradingScenarios>>, {data: BodyType<TradingCompareScenariosInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  compareTradingScenarios(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompareTradingScenariosMutationResult = NonNullable<Awaited<ReturnType<typeof compareTradingScenarios>>>
+    export type CompareTradingScenariosMutationBody = BodyType<TradingCompareScenariosInput>
+    export type CompareTradingScenariosMutationError = ErrorType<void>
+
+    /**
+ * @summary Compare 2-5 candidate trade scenarios (pure computeRiskParameters() arithmetic per scenario, never persisted)
+ */
+export const useCompareTradingScenarios = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof compareTradingScenarios>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof compareTradingScenarios>>,
+        TError,
+        {data: BodyType<TradingCompareScenariosInput>},
+        TContext
+      > => {
+      return useMutation(getCompareTradingScenariosMutationOptions(options));
+    }
+
+export const getListTradingStrategiesUrl = () => {
+
+
+
+
+  return `/api/trading/strategies`
+}
+
+/**
+ * @summary List the calling user's registered strategies, newest first
+ */
+export const listTradingStrategies = async ( options?: RequestInit): Promise<TradingStrategy[]> => {
+
+  return customFetch<TradingStrategy[]>(getListTradingStrategiesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingStrategiesQueryKey = () => {
+    return [
+    `/api/trading/strategies`
+    ] as const;
+    }
+
+
+export const getListTradingStrategiesQueryOptions = <TData = Awaited<ReturnType<typeof listTradingStrategies>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingStrategiesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingStrategies>>> = ({ signal }) => listTradingStrategies({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategies>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingStrategiesQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingStrategies>>>
+export type ListTradingStrategiesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's registered strategies, newest first
+ */
+
+export function useListTradingStrategies<TData = Awaited<ReturnType<typeof listTradingStrategies>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingStrategiesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingStrategyUrl = () => {
+
+
+
+
+  return `/api/trading/strategies`
+}
+
+/**
+ * @summary Register a new strategy (metadata only)
+ */
+export const createTradingStrategy = async (tradingStrategyInput: TradingStrategyInput, options?: RequestInit): Promise<TradingStrategy> => {
+
+  return customFetch<TradingStrategy>(getCreateTradingStrategyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingStrategyInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingStrategyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategy>>, TError,{data: BodyType<TradingStrategyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategy>>, TError,{data: BodyType<TradingStrategyInput>}, TContext> => {
+
+const mutationKey = ['createTradingStrategy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingStrategy>>, {data: BodyType<TradingStrategyInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTradingStrategy(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingStrategyMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingStrategy>>>
+    export type CreateTradingStrategyMutationBody = BodyType<TradingStrategyInput>
+    export type CreateTradingStrategyMutationError = ErrorType<void>
+
+    /**
+ * @summary Register a new strategy (metadata only)
+ */
+export const useCreateTradingStrategy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategy>>, TError,{data: BodyType<TradingStrategyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingStrategy>>,
+        TError,
+        {data: BodyType<TradingStrategyInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingStrategyMutationOptions(options));
+    }
+
+export const getGetTradingStrategyUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${id}`
+}
+
+/**
+ * @summary Get one strategy by id
+ */
+export const getTradingStrategy = async (id: number, options?: RequestInit): Promise<TradingStrategy> => {
+
+  return customFetch<TradingStrategy>(getGetTradingStrategyUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingStrategyQueryKey = (id: number,) => {
+    return [
+    `/api/trading/strategies/${id}`
+    ] as const;
+    }
+
+
+export const getGetTradingStrategyQueryOptions = <TData = Awaited<ReturnType<typeof getTradingStrategy>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingStrategyQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingStrategy>>> = ({ signal }) => getTradingStrategy(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingStrategyQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingStrategy>>>
+export type GetTradingStrategyQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get one strategy by id
+ */
+
+export function useGetTradingStrategy<TData = Awaited<ReturnType<typeof getTradingStrategy>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingStrategyQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingStrategyUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${id}`
+}
+
+/**
+ * @summary Update a strategy's metadata
+ */
+export const updateTradingStrategy = async (id: number,
+    tradingStrategyUpdate: TradingStrategyUpdate, options?: RequestInit): Promise<TradingStrategy> => {
+
+  return customFetch<TradingStrategy>(getUpdateTradingStrategyUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingStrategyUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingStrategyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategy>>, TError,{id: number;data: BodyType<TradingStrategyUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategy>>, TError,{id: number;data: BodyType<TradingStrategyUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingStrategy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingStrategy>>, {id: number;data: BodyType<TradingStrategyUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingStrategy(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingStrategyMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingStrategy>>>
+    export type UpdateTradingStrategyMutationBody = BodyType<TradingStrategyUpdate>
+    export type UpdateTradingStrategyMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a strategy's metadata
+ */
+export const useUpdateTradingStrategy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategy>>, TError,{id: number;data: BodyType<TradingStrategyUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingStrategy>>,
+        TError,
+        {id: number;data: BodyType<TradingStrategyUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingStrategyMutationOptions(options));
+    }
+
+export const getDeleteTradingStrategyUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${id}`
+}
+
+/**
+ * @summary Delete a strategy (cascades to its own checklist instances)
+ */
+export const deleteTradingStrategy = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingStrategyUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingStrategyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategy>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategy>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingStrategy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingStrategy>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingStrategy(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingStrategyMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingStrategy>>>
+
+    export type DeleteTradingStrategyMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a strategy (cascades to its own checklist instances)
+ */
+export const useDeleteTradingStrategy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategy>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingStrategy>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingStrategyMutationOptions(options));
+    }
+
+export const getListTradingStrategyChecklistsUrl = (strategyId: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${strategyId}/checklists`
+}
+
+/**
+ * @summary List a strategy's own checklist instances, newest first
+ */
+export const listTradingStrategyChecklists = async (strategyId: number, options?: RequestInit): Promise<TradingStrategyChecklist[]> => {
+
+  return customFetch<TradingStrategyChecklist[]>(getListTradingStrategyChecklistsUrl(strategyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingStrategyChecklistsQueryKey = (strategyId: number,) => {
+    return [
+    `/api/trading/strategies/${strategyId}/checklists`
+    ] as const;
+    }
+
+
+export const getListTradingStrategyChecklistsQueryOptions = <TData = Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError = ErrorType<void>>(strategyId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingStrategyChecklistsQueryKey(strategyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingStrategyChecklists>>> = ({ signal }) => listTradingStrategyChecklists(strategyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(strategyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingStrategyChecklistsQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingStrategyChecklists>>>
+export type ListTradingStrategyChecklistsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List a strategy's own checklist instances, newest first
+ */
+
+export function useListTradingStrategyChecklists<TData = Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError = ErrorType<void>>(
+ strategyId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingStrategyChecklists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingStrategyChecklistsQueryOptions(strategyId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingStrategyChecklistUrl = (strategyId: number,) => {
+
+
+
+
+  return `/api/trading/strategies/${strategyId}/checklists`
+}
+
+/**
+ * @summary Instantiate a fresh checklist from the strategy's own template
+ */
+export const createTradingStrategyChecklist = async (strategyId: number,
+    tradingStrategyChecklistInput: TradingStrategyChecklistInput, options?: RequestInit): Promise<TradingStrategyChecklist> => {
+
+  return customFetch<TradingStrategyChecklist>(getCreateTradingStrategyChecklistUrl(strategyId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingStrategyChecklistInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingStrategyChecklistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategyChecklist>>, TError,{strategyId: number;data: BodyType<TradingStrategyChecklistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategyChecklist>>, TError,{strategyId: number;data: BodyType<TradingStrategyChecklistInput>}, TContext> => {
+
+const mutationKey = ['createTradingStrategyChecklist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingStrategyChecklist>>, {strategyId: number;data: BodyType<TradingStrategyChecklistInput>}> = (props) => {
+          const {strategyId,data} = props ?? {};
+
+          return  createTradingStrategyChecklist(strategyId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingStrategyChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingStrategyChecklist>>>
+    export type CreateTradingStrategyChecklistMutationBody = BodyType<TradingStrategyChecklistInput>
+    export type CreateTradingStrategyChecklistMutationError = ErrorType<void>
+
+    /**
+ * @summary Instantiate a fresh checklist from the strategy's own template
+ */
+export const useCreateTradingStrategyChecklist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingStrategyChecklist>>, TError,{strategyId: number;data: BodyType<TradingStrategyChecklistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingStrategyChecklist>>,
+        TError,
+        {strategyId: number;data: BodyType<TradingStrategyChecklistInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingStrategyChecklistMutationOptions(options));
+    }
+
+export const getGetTradingStrategyChecklistUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategy-checklists/${id}`
+}
+
+/**
+ * @summary Get one checklist instance by id
+ */
+export const getTradingStrategyChecklist = async (id: number, options?: RequestInit): Promise<TradingStrategyChecklist> => {
+
+  return customFetch<TradingStrategyChecklist>(getGetTradingStrategyChecklistUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingStrategyChecklistQueryKey = (id: number,) => {
+    return [
+    `/api/trading/strategy-checklists/${id}`
+    ] as const;
+    }
+
+
+export const getGetTradingStrategyChecklistQueryOptions = <TData = Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingStrategyChecklistQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingStrategyChecklist>>> = ({ signal }) => getTradingStrategyChecklist(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingStrategyChecklistQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingStrategyChecklist>>>
+export type GetTradingStrategyChecklistQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get one checklist instance by id
+ */
+
+export function useGetTradingStrategyChecklist<TData = Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingStrategyChecklist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingStrategyChecklistQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingStrategyChecklistUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategy-checklists/${id}`
+}
+
+/**
+ * @summary Update a checklist instance's items/notes (status is re-derived, never client-set)
+ */
+export const updateTradingStrategyChecklist = async (id: number,
+    tradingStrategyChecklistUpdate: TradingStrategyChecklistUpdate, options?: RequestInit): Promise<TradingStrategyChecklist> => {
+
+  return customFetch<TradingStrategyChecklist>(getUpdateTradingStrategyChecklistUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingStrategyChecklistUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingStrategyChecklistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>, TError,{id: number;data: BodyType<TradingStrategyChecklistUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>, TError,{id: number;data: BodyType<TradingStrategyChecklistUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingStrategyChecklist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>, {id: number;data: BodyType<TradingStrategyChecklistUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingStrategyChecklist(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingStrategyChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>>
+    export type UpdateTradingStrategyChecklistMutationBody = BodyType<TradingStrategyChecklistUpdate>
+    export type UpdateTradingStrategyChecklistMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a checklist instance's items/notes (status is re-derived, never client-set)
+ */
+export const useUpdateTradingStrategyChecklist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingStrategyChecklist>>, TError,{id: number;data: BodyType<TradingStrategyChecklistUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingStrategyChecklist>>,
+        TError,
+        {id: number;data: BodyType<TradingStrategyChecklistUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingStrategyChecklistMutationOptions(options));
+    }
+
+export const getDeleteTradingStrategyChecklistUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/strategy-checklists/${id}`
+}
+
+/**
+ * @summary Delete a checklist instance
+ */
+export const deleteTradingStrategyChecklist = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingStrategyChecklistUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingStrategyChecklistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingStrategyChecklist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingStrategyChecklist(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingStrategyChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>>
+
+    export type DeleteTradingStrategyChecklistMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a checklist instance
+ */
+export const useDeleteTradingStrategyChecklist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingStrategyChecklist>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingStrategyChecklistMutationOptions(options));
+    }
+
+export const getGetTradingCoachStrategyExplanationUrl = (strategyId: number,) => {
+
+
+
+
+  return `/api/trading/coach/strategy/${strategyId}`
+}
+
+/**
+ * @summary Deterministic Strategy Coach explanation for one registered strategy (optionally grounded in one of its own checklist instances via ?checklistId=)
+ */
+export const getTradingCoachStrategyExplanation = async (strategyId: number, options?: RequestInit): Promise<TradingCoachExplanation> => {
+
+  return customFetch<TradingCoachExplanation>(getGetTradingCoachStrategyExplanationUrl(strategyId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingCoachStrategyExplanationQueryKey = (strategyId: number,) => {
+    return [
+    `/api/trading/coach/strategy/${strategyId}`
+    ] as const;
+    }
+
+
+export const getGetTradingCoachStrategyExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError = ErrorType<void>>(strategyId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingCoachStrategyExplanationQueryKey(strategyId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>> = ({ signal }) => getTradingCoachStrategyExplanation(strategyId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(strategyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingCoachStrategyExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>>
+export type GetTradingCoachStrategyExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Strategy Coach explanation for one registered strategy (optionally grounded in one of its own checklist instances via ?checklistId=)
+ */
+
+export function useGetTradingCoachStrategyExplanation<TData = Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError = ErrorType<void>>(
+ strategyId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachStrategyExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingCoachStrategyExplanationQueryOptions(strategyId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStrategyFrameworkSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/strategy-framework-summary`
+}
+
+/**
+ * @summary Strategy Framework Summary Report — the calling user's own registered strategies and checklist-instance completion
+ */
+export const getStrategyFrameworkSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetStrategyFrameworkSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyFrameworkSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/strategy-framework-summary`
+    ] as const;
+    }
+
+
+export const getGetStrategyFrameworkSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyFrameworkSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>> = ({ signal }) => getStrategyFrameworkSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyFrameworkSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>>
+export type GetStrategyFrameworkSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Strategy Framework Summary Report — the calling user's own registered strategies and checklist-instance completion
+ */
+
+export function useGetStrategyFrameworkSummaryReport<TData = Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyFrameworkSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyFrameworkSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingAnalyticsSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/trading-analytics-summary`
+}
+
+/**
+ * @summary Trading Analytics Summary Report — the calling user's own aggregated Trading Engine analytics (trades reviewed, strategy usage, journal, risk, learning, coach, session activity)
+ */
+export const getTradingAnalyticsSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetTradingAnalyticsSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingAnalyticsSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/trading-analytics-summary`
+    ] as const;
+    }
+
+
+export const getGetTradingAnalyticsSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingAnalyticsSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>> = ({ signal }) => getTradingAnalyticsSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingAnalyticsSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>>
+export type GetTradingAnalyticsSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Trading Analytics Summary Report — the calling user's own aggregated Trading Engine analytics (trades reviewed, strategy usage, journal, risk, learning, coach, session activity)
+ */
+
+export function useGetTradingAnalyticsSummaryReport<TData = Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingAnalyticsSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetExecutiveIntelligenceSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/executive-intelligence-summary`
+}
+
+/**
+ * @summary Executive Intelligence Summary Report — the calling user's own unified cross-engine executive view (overview, investing, trading, strategy, portfolio, risk, learning, coach, reporting, activity)
+ */
+export const getExecutiveIntelligenceSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetExecutiveIntelligenceSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutiveIntelligenceSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/executive-intelligence-summary`
+    ] as const;
+    }
+
+
+export const getGetExecutiveIntelligenceSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutiveIntelligenceSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>> = ({ signal }) => getExecutiveIntelligenceSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutiveIntelligenceSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>>
+export type GetExecutiveIntelligenceSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Executive Intelligence Summary Report — the calling user's own unified cross-engine executive view (overview, investing, trading, strategy, portfolio, risk, learning, coach, reporting, activity)
+ */
+
+export function useGetExecutiveIntelligenceSummaryReport<TData = Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutiveIntelligenceSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsIncomeSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/options-income-summary`
+}
+
+/**
+ * @summary Options Income Summary Report — the calling user's own Options Income Engine (open/closed positions, capital allocated, theta income, strategy mix, upcoming expirations)
+ */
+export const getOptionsIncomeSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetOptionsIncomeSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsIncomeSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/options-income-summary`
+    ] as const;
+    }
+
+
+export const getGetOptionsIncomeSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsIncomeSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>> = ({ signal }) => getOptionsIncomeSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsIncomeSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>>
+export type GetOptionsIncomeSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Options Income Summary Report — the calling user's own Options Income Engine (open/closed positions, capital allocated, theta income, strategy mix, upcoming expirations)
+ */
+
+export function useGetOptionsIncomeSummaryReport<TData = Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsIncomeSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsPortfolioReviewReportUrl = () => {
+
+
+
+
+  return `/api/reporting/options-portfolio-review`
+}
+
+/**
+ * @summary Options Portfolio Review — the calling user's own Options Portfolio Management view (position concentration, strategy/sector allocation, expiration ladder, capital/buying-power utilisation, income allocation)
+ */
+export const getOptionsPortfolioReviewReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetOptionsPortfolioReviewReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsPortfolioReviewReportQueryKey = () => {
+    return [
+    `/api/reporting/options-portfolio-review`
+    ] as const;
+    }
+
+
+export const getGetOptionsPortfolioReviewReportQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsPortfolioReviewReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>> = ({ signal }) => getOptionsPortfolioReviewReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsPortfolioReviewReportQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>>
+export type GetOptionsPortfolioReviewReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Options Portfolio Review — the calling user's own Options Portfolio Management view (position concentration, strategy/sector allocation, expiration ladder, capital/buying-power utilisation, income allocation)
+ */
+
+export function useGetOptionsPortfolioReviewReport<TData = Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsPortfolioReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsPortfolioReviewReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPositionLifecycleSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/position-lifecycle-summary`
+}
+
+/**
+ * @summary Position Lifecycle Summary — the calling user's own positions tallied by their real lifecycle stage
+ */
+export const getPositionLifecycleSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPositionLifecycleSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPositionLifecycleSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/position-lifecycle-summary`
+    ] as const;
+    }
+
+
+export const getGetPositionLifecycleSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPositionLifecycleSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>> = ({ signal }) => getPositionLifecycleSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPositionLifecycleSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>>
+export type GetPositionLifecycleSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Position Lifecycle Summary — the calling user's own positions tallied by their real lifecycle stage
+ */
+
+export function useGetPositionLifecycleSummaryReport<TData = Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPositionLifecycleSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPositionLifecycleSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRiskExposureSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/risk-exposure-summary`
+}
+
+/**
+ * @summary Risk & Exposure Summary (Phase 37) — capital allocation, buying power, Greeks summary, and the disclosed cross-engine symbol overlap, reused directly from the Institutional Risk & Exposure Intelligence Engine
+ */
+export const getRiskExposureSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetRiskExposureSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRiskExposureSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/risk-exposure-summary`
+    ] as const;
+    }
+
+
+export const getGetRiskExposureSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRiskExposureSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>> = ({ signal }) => getRiskExposureSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRiskExposureSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>>
+export type GetRiskExposureSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Risk & Exposure Summary (Phase 37) — capital allocation, buying power, Greeks summary, and the disclosed cross-engine symbol overlap, reused directly from the Institutional Risk & Exposure Intelligence Engine
+ */
+
+export function useGetRiskExposureSummaryReport<TData = Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRiskExposureSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioConcentrationReportUrl = () => {
+
+
+
+
+  return `/api/reporting/portfolio-concentration-report`
+}
+
+/**
+ * @summary Portfolio Concentration Report (Phase 37) — sector/strategy concentration, asset allocation, and a real concentration timeline, reused directly from the Institutional Risk & Exposure Intelligence Engine
+ */
+export const getPortfolioConcentrationReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioConcentrationReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioConcentrationReportQueryKey = () => {
+    return [
+    `/api/reporting/portfolio-concentration-report`
+    ] as const;
+    }
+
+
+export const getGetPortfolioConcentrationReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioConcentrationReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>> = ({ signal }) => getPortfolioConcentrationReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioConcentrationReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>>
+export type GetPortfolioConcentrationReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio Concentration Report (Phase 37) — sector/strategy concentration, asset allocation, and a real concentration timeline, reused directly from the Institutional Risk & Exposure Intelligence Engine
+ */
+
+export function useGetPortfolioConcentrationReport<TData = Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioConcentrationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioConcentrationReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/performance-summary`
+}
+
+/**
+ * @summary Performance Summary Report (Phase 38) — real Investing unrealized P&L, Trading/Options realized P&L, win rate, and capital efficiency, reused directly from the Institutional Performance & Attribution Engine
+ */
+export const getPerformanceSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPerformanceSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/performance-summary`
+    ] as const;
+    }
+
+
+export const getGetPerformanceSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceSummaryReport>>> = ({ signal }) => getPerformanceSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceSummaryReport>>>
+export type GetPerformanceSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Performance Summary Report (Phase 38) — real Investing unrealized P&L, Trading/Options realized P&L, win rate, and capital efficiency, reused directly from the Institutional Performance & Attribution Engine
+ */
+
+export function useGetPerformanceSummaryReport<TData = Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceAttributionReportUrl = () => {
+
+
+
+
+  return `/api/reporting/performance-attribution-report`
+}
+
+/**
+ * @summary Performance Attribution Report (Phase 38) — sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline, reused directly from the Institutional Performance & Attribution Engine
+ */
+export const getPerformanceAttributionReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPerformanceAttributionReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceAttributionReportQueryKey = () => {
+    return [
+    `/api/reporting/performance-attribution-report`
+    ] as const;
+    }
+
+
+export const getGetPerformanceAttributionReportQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceAttributionReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceAttributionReport>>> = ({ signal }) => getPerformanceAttributionReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceAttributionReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceAttributionReport>>>
+export type GetPerformanceAttributionReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Performance Attribution Report (Phase 38) — sector/strategy/asset attribution, risk-adjusted performance, capital efficiency, and a real Historical Performance Timeline, reused directly from the Institutional Performance & Attribution Engine
+ */
+
+export function useGetPerformanceAttributionReport<TData = Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceAttributionReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetScenarioAnalysisReportUrl = () => {
+
+
+
+
+  return `/api/reporting/scenario-analysis-report`
+}
+
+/**
+ * @summary Scenario Analysis Report (Phase 39) — every default deterministic scenario evaluated as a hypothetical repricing across Investing, Trading, and Options, with Portfolio/Asset/Sector/Strategy Impact and a Scenario Comparison, reused directly from the Institutional Scenario & Stress Testing Engine
+ */
+export const getScenarioAnalysisReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetScenarioAnalysisReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetScenarioAnalysisReportQueryKey = () => {
+    return [
+    `/api/reporting/scenario-analysis-report`
+    ] as const;
+    }
+
+
+export const getGetScenarioAnalysisReportQueryOptions = <TData = Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetScenarioAnalysisReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScenarioAnalysisReport>>> = ({ signal }) => getScenarioAnalysisReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetScenarioAnalysisReportQueryResult = NonNullable<Awaited<ReturnType<typeof getScenarioAnalysisReport>>>
+export type GetScenarioAnalysisReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Scenario Analysis Report (Phase 39) — every default deterministic scenario evaluated as a hypothetical repricing across Investing, Trading, and Options, with Portfolio/Asset/Sector/Strategy Impact and a Scenario Comparison, reused directly from the Institutional Scenario & Stress Testing Engine
+ */
+
+export function useGetScenarioAnalysisReport<TData = Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioAnalysisReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetScenarioAnalysisReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStressTestReportUrl = () => {
+
+
+
+
+  return `/api/reporting/stress-test-report`
+}
+
+/**
+ * @summary Stress Test Report (Phase 39) — the Options portfolio evaluated under the platform's named severe scenarios via the existing What-If Stress Test engine, with Greeks/Buying Power/Capital Impact under stress
+ */
+export const getStressTestReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetStressTestReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStressTestReportQueryKey = () => {
+    return [
+    `/api/reporting/stress-test-report`
+    ] as const;
+    }
+
+
+export const getGetStressTestReportQueryOptions = <TData = Awaited<ReturnType<typeof getStressTestReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStressTestReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStressTestReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStressTestReport>>> = ({ signal }) => getStressTestReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStressTestReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStressTestReportQueryResult = NonNullable<Awaited<ReturnType<typeof getStressTestReport>>>
+export type GetStressTestReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Stress Test Report (Phase 39) — the Options portfolio evaluated under the platform's named severe scenarios via the existing What-If Stress Test engine, with Greeks/Buying Power/Capital Impact under stress
+ */
+
+export function useGetStressTestReport<TData = Awaited<ReturnType<typeof getStressTestReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStressTestReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStressTestReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetExecutiveDecisionSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/executive-decision-summary`
+}
+
+/**
+ * @summary Executive Decision Summary (Phase 40) — Executive Summary, Portfolio Health Overview, deterministic Executive Alerts, Outstanding Issues, and the Key Metrics Dashboard, reused directly from the Institutional Decision Support & Executive Insights Engine
+ */
+export const getExecutiveDecisionSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetExecutiveDecisionSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutiveDecisionSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/executive-decision-summary`
+    ] as const;
+    }
+
+
+export const getGetExecutiveDecisionSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutiveDecisionSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>> = ({ signal }) => getExecutiveDecisionSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutiveDecisionSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>>
+export type GetExecutiveDecisionSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Executive Decision Summary (Phase 40) — Executive Summary, Portfolio Health Overview, deterministic Executive Alerts, Outstanding Issues, and the Key Metrics Dashboard, reused directly from the Institutional Decision Support & Executive Insights Engine
+ */
+
+export function useGetExecutiveDecisionSummaryReport<TData = Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveDecisionSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutiveDecisionSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInstitutionalHealthReportUrl = () => {
+
+
+
+
+  return `/api/reporting/institutional-health-report`
+}
+
+/**
+ * @summary Institutional Health Report (Phase 40) — Portfolio Health Overview, Risk Summary, Diversification Summary, and the 11-dimension Executive Health scorecard, reused directly from the Institutional Decision Support & Executive Insights Engine
+ */
+export const getInstitutionalHealthReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetInstitutionalHealthReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalHealthReportQueryKey = () => {
+    return [
+    `/api/reporting/institutional-health-report`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalHealthReportQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalHealthReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalHealthReport>>> = ({ signal }) => getInstitutionalHealthReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalHealthReportQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalHealthReport>>>
+export type GetInstitutionalHealthReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Institutional Health Report (Phase 40) — Portfolio Health Overview, Risk Summary, Diversification Summary, and the 11-dimension Executive Health scorecard, reused directly from the Institutional Decision Support & Executive Insights Engine
+ */
+
+export function useGetInstitutionalHealthReport<TData = Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalHealthReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalHealthReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioAllocationReportUrl = () => {
+
+
+
+
+  return `/api/reporting/portfolio-allocation-report`
+}
+
+/**
+ * @summary Portfolio Allocation Report (Phase 41) — Current vs. Target Allocation and Drift per Investing portfolio, plus cross-engine Sector/Asset/Strategy/Capital Allocation and the Allocation Timeline, reused directly from the Institutional Rebalancing & Allocation Planning Engine. Planning and analysis only — no trade recommendations, no automatic rebalancing.
+ */
+export const getPortfolioAllocationReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioAllocationReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioAllocationReportQueryKey = () => {
+    return [
+    `/api/reporting/portfolio-allocation-report`
+    ] as const;
+    }
+
+
+export const getGetPortfolioAllocationReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioAllocationReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioAllocationReport>>> = ({ signal }) => getPortfolioAllocationReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioAllocationReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioAllocationReport>>>
+export type GetPortfolioAllocationReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio Allocation Report (Phase 41) — Current vs. Target Allocation and Drift per Investing portfolio, plus cross-engine Sector/Asset/Strategy/Capital Allocation and the Allocation Timeline, reused directly from the Institutional Rebalancing & Allocation Planning Engine. Planning and analysis only — no trade recommendations, no automatic rebalancing.
+ */
+
+export function useGetPortfolioAllocationReport<TData = Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioAllocationReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioAllocationReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRebalancingPlanningReportUrl = (portfolioId: number,) => {
+
+
+
+
+  return `/api/reporting/rebalancing-planning-report/${portfolioId}`
+}
+
+/**
+ * @summary Rebalancing Planning Report (Phase 41) — current allocation for a selected Investing portfolio compared against its own stored target weights (via the Rebalancing Planner), including the dollar capital movement required to close each drift. Planning and analysis only — never a suggested trade or share count.
+ */
+export const getRebalancingPlanningReport = async (portfolioId: number, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetRebalancingPlanningReportUrl(portfolioId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRebalancingPlanningReportQueryKey = (portfolioId: number,) => {
+    return [
+    `/api/reporting/rebalancing-planning-report/${portfolioId}`
+    ] as const;
+    }
+
+
+export const getGetRebalancingPlanningReportQueryOptions = <TData = Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError = ErrorType<void>>(portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRebalancingPlanningReportQueryKey(portfolioId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRebalancingPlanningReport>>> = ({ signal }) => getRebalancingPlanningReport(portfolioId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(portfolioId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRebalancingPlanningReportQueryResult = NonNullable<Awaited<ReturnType<typeof getRebalancingPlanningReport>>>
+export type GetRebalancingPlanningReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Rebalancing Planning Report (Phase 41) — current allocation for a selected Investing portfolio compared against its own stored target weights (via the Rebalancing Planner), including the dollar capital movement required to close each drift. Planning and analysis only — never a suggested trade or share count.
+ */
+
+export function useGetRebalancingPlanningReport<TData = Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError = ErrorType<void>>(
+ portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingPlanningReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRebalancingPlanningReportQueryOptions(portfolioId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetComplianceReportUrl = () => {
+
+
+
+
+  return `/api/reporting/compliance-report`
+}
+
+/**
+ * @summary Compliance Report (Phase 42) — the Compliance Summary and every current Policy Violation, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no auto-remediation.
+ */
+export const getComplianceReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetComplianceReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComplianceReportQueryKey = () => {
+    return [
+    `/api/reporting/compliance-report`
+    ] as const;
+    }
+
+
+export const getGetComplianceReportQueryOptions = <TData = Awaited<ReturnType<typeof getComplianceReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComplianceReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComplianceReport>>> = ({ signal }) => getComplianceReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComplianceReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComplianceReportQueryResult = NonNullable<Awaited<ReturnType<typeof getComplianceReport>>>
+export type GetComplianceReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compliance Report (Phase 42) — the Compliance Summary and every current Policy Violation, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no auto-remediation.
+ */
+
+export function useGetComplianceReport<TData = Awaited<ReturnType<typeof getComplianceReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComplianceReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPolicyMonitoringReportUrl = () => {
+
+
+
+
+  return `/api/reporting/policy-monitoring-report`
+}
+
+/**
+ * @summary Policy Monitoring Report (Phase 42) — every configured policy grouped by category with its current value, limit, difference, and status, plus the Compliance Timeline, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no portfolio optimisation.
+ */
+export const getPolicyMonitoringReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPolicyMonitoringReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPolicyMonitoringReportQueryKey = () => {
+    return [
+    `/api/reporting/policy-monitoring-report`
+    ] as const;
+    }
+
+
+export const getGetPolicyMonitoringReportQueryOptions = <TData = Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPolicyMonitoringReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPolicyMonitoringReport>>> = ({ signal }) => getPolicyMonitoringReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPolicyMonitoringReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPolicyMonitoringReport>>>
+export type GetPolicyMonitoringReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Policy Monitoring Report (Phase 42) — every configured policy grouped by category with its current value, limit, difference, and status, plus the Compliance Timeline, reused directly from the Institutional Portfolio Monitoring & Compliance Engine. Monitoring only — no trade recommendations, no portfolio optimisation.
+ */
+
+export function useGetPolicyMonitoringReport<TData = Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPolicyMonitoringReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPolicyMonitoringReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListTradingWorkspaceNotesUrl = () => {
+
+
+
+
+  return `/api/trading/workspace-notes`
+}
+
+/**
+ * @summary List the calling user's workspace notes, newest first
+ */
+export const listTradingWorkspaceNotes = async ( options?: RequestInit): Promise<TradingWorkspaceNote[]> => {
+
+  return customFetch<TradingWorkspaceNote[]>(getListTradingWorkspaceNotesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingWorkspaceNotesQueryKey = () => {
+    return [
+    `/api/trading/workspace-notes`
+    ] as const;
+    }
+
+
+export const getListTradingWorkspaceNotesQueryOptions = <TData = Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingWorkspaceNotesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>> = ({ signal }) => listTradingWorkspaceNotes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingWorkspaceNotesQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>>
+export type ListTradingWorkspaceNotesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's workspace notes, newest first
+ */
+
+export function useListTradingWorkspaceNotes<TData = Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingWorkspaceNotesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTradingWorkspaceNoteUrl = () => {
+
+
+
+
+  return `/api/trading/workspace-notes`
+}
+
+/**
+ * @summary Create a workspace note
+ */
+export const createTradingWorkspaceNote = async (tradingWorkspaceNoteInput: TradingWorkspaceNoteInput, options?: RequestInit): Promise<TradingWorkspaceNote> => {
+
+  return customFetch<TradingWorkspaceNote>(getCreateTradingWorkspaceNoteUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingWorkspaceNoteInput,)
+  }
+);}
+
+
+
+
+export const getCreateTradingWorkspaceNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingWorkspaceNote>>, TError,{data: BodyType<TradingWorkspaceNoteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTradingWorkspaceNote>>, TError,{data: BodyType<TradingWorkspaceNoteInput>}, TContext> => {
+
+const mutationKey = ['createTradingWorkspaceNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTradingWorkspaceNote>>, {data: BodyType<TradingWorkspaceNoteInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTradingWorkspaceNote(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTradingWorkspaceNoteMutationResult = NonNullable<Awaited<ReturnType<typeof createTradingWorkspaceNote>>>
+    export type CreateTradingWorkspaceNoteMutationBody = BodyType<TradingWorkspaceNoteInput>
+    export type CreateTradingWorkspaceNoteMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a workspace note
+ */
+export const useCreateTradingWorkspaceNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTradingWorkspaceNote>>, TError,{data: BodyType<TradingWorkspaceNoteInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTradingWorkspaceNote>>,
+        TError,
+        {data: BodyType<TradingWorkspaceNoteInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTradingWorkspaceNoteMutationOptions(options));
+    }
+
+export const getListTradingWorkspaceNotesForSymbolUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/workspace-notes/${symbol}`
+}
+
+/**
+ * @summary List the calling user's workspace notes for one symbol, newest first
+ */
+export const listTradingWorkspaceNotesForSymbol = async (symbol: string, options?: RequestInit): Promise<TradingWorkspaceNote[]> => {
+
+  return customFetch<TradingWorkspaceNote[]>(getListTradingWorkspaceNotesForSymbolUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTradingWorkspaceNotesForSymbolQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/workspace-notes/${symbol}`
+    ] as const;
+    }
+
+
+export const getListTradingWorkspaceNotesForSymbolQueryOptions = <TData = Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError = ErrorType<unknown>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTradingWorkspaceNotesForSymbolQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>> = ({ signal }) => listTradingWorkspaceNotesForSymbol(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTradingWorkspaceNotesForSymbolQueryResult = NonNullable<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>>
+export type ListTradingWorkspaceNotesForSymbolQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's workspace notes for one symbol, newest first
+ */
+
+export function useListTradingWorkspaceNotesForSymbol<TData = Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError = ErrorType<unknown>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTradingWorkspaceNotesForSymbol>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTradingWorkspaceNotesForSymbolQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTradingWorkspaceNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/workspace-notes/${id}`
+}
+
+/**
+ * @summary Update a workspace note's text
+ */
+export const updateTradingWorkspaceNote = async (id: number,
+    tradingWorkspaceNoteUpdate: TradingWorkspaceNoteUpdate, options?: RequestInit): Promise<TradingWorkspaceNote> => {
+
+  return customFetch<TradingWorkspaceNote>(getUpdateTradingWorkspaceNoteUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingWorkspaceNoteUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateTradingWorkspaceNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>, TError,{id: number;data: BodyType<TradingWorkspaceNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>, TError,{id: number;data: BodyType<TradingWorkspaceNoteUpdate>}, TContext> => {
+
+const mutationKey = ['updateTradingWorkspaceNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>, {id: number;data: BodyType<TradingWorkspaceNoteUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTradingWorkspaceNote(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTradingWorkspaceNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>>
+    export type UpdateTradingWorkspaceNoteMutationBody = BodyType<TradingWorkspaceNoteUpdate>
+    export type UpdateTradingWorkspaceNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a workspace note's text
+ */
+export const useUpdateTradingWorkspaceNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTradingWorkspaceNote>>, TError,{id: number;data: BodyType<TradingWorkspaceNoteUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTradingWorkspaceNote>>,
+        TError,
+        {id: number;data: BodyType<TradingWorkspaceNoteUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateTradingWorkspaceNoteMutationOptions(options));
+    }
+
+export const getDeleteTradingWorkspaceNoteUrl = (id: number,) => {
+
+
+
+
+  return `/api/trading/workspace-notes/${id}`
+}
+
+/**
+ * @summary Delete a workspace note
+ */
+export const deleteTradingWorkspaceNote = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteTradingWorkspaceNoteUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteTradingWorkspaceNoteMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteTradingWorkspaceNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteTradingWorkspaceNote(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTradingWorkspaceNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>>
+
+    export type DeleteTradingWorkspaceNoteMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a workspace note
+ */
+export const useDeleteTradingWorkspaceNote = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTradingWorkspaceNote>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteTradingWorkspaceNoteMutationOptions(options));
+    }
+
+export const getGetTradingSessionUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/session/${symbol}`
+}
+
+/**
+ * @summary Which named trading sessions (Sydney/Tokyo/London/New York) are currently open, plus today's realized session high/low — descriptive only, never predictive
+ */
+export const getTradingSession = async (symbol: string, options?: RequestInit): Promise<TradingSessionData> => {
+
+  return customFetch<TradingSessionData>(getGetTradingSessionUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingSessionQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/session/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingSessionQueryOptions = <TData = Awaited<ReturnType<typeof getTradingSession>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingSessionQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingSession>>> = ({ signal }) => getTradingSession(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingSession>>>
+export type GetTradingSessionQueryError = ErrorType<void>
+
+
+/**
+ * @summary Which named trading sessions (Sydney/Tokyo/London/New York) are currently open, plus today's realized session high/low — descriptive only, never predictive
+ */
+
+export function useGetTradingSession<TData = Awaited<ReturnType<typeof getTradingSession>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingSessionQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingSessionWindowsUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/session-windows/${symbol}`
+}
+
+/**
+ * @summary For each of the 4 real named trading sessions (Sydney/Tokyo/London/New York) — its own most recent window's start/end/high/low/range/duration/data-freshness, which is currently active, which most recently closed (previous), and which opens next (upcoming). Descriptive only, never predictive; no synthetic sessions.
+ */
+export const getTradingSessionWindows = async (symbol: string, options?: RequestInit): Promise<TradingSessionWindowsOverview> => {
+
+  return customFetch<TradingSessionWindowsOverview>(getGetTradingSessionWindowsUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingSessionWindowsQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/session-windows/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingSessionWindowsQueryOptions = <TData = Awaited<ReturnType<typeof getTradingSessionWindows>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingSessionWindows>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingSessionWindowsQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingSessionWindows>>> = ({ signal }) => getTradingSessionWindows(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingSessionWindows>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingSessionWindowsQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingSessionWindows>>>
+export type GetTradingSessionWindowsQueryError = ErrorType<void>
+
+
+/**
+ * @summary For each of the 4 real named trading sessions (Sydney/Tokyo/London/New York) — its own most recent window's start/end/high/low/range/duration/data-freshness, which is currently active, which most recently closed (previous), and which opens next (upcoming). Descriptive only, never predictive; no synthetic sessions.
+ */
+
+export function useGetTradingSessionWindows<TData = Awaited<ReturnType<typeof getTradingSessionWindows>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingSessionWindows>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingSessionWindowsQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingAnalyticsDashboardUrl = () => {
+
+
+
+
+  return `/api/trading/analytics`
+}
+
+/**
+ * @summary Deterministic aggregation of the calling user's own already-persisted Trading Engine data — trades reviewed, plans created, journal entries, strategy/checklist usage, learning progress, coach usage, session activity. Never a new signal or prediction.
+ */
+export const getTradingAnalyticsDashboard = async ( options?: RequestInit): Promise<TradingAnalyticsDashboard> => {
+
+  return customFetch<TradingAnalyticsDashboard>(getGetTradingAnalyticsDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingAnalyticsDashboardQueryKey = () => {
+    return [
+    `/api/trading/analytics`
+    ] as const;
+    }
+
+
+export const getGetTradingAnalyticsDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingAnalyticsDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>> = ({ signal }) => getTradingAnalyticsDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingAnalyticsDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>>
+export type GetTradingAnalyticsDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Deterministic aggregation of the calling user's own already-persisted Trading Engine data — trades reviewed, plans created, journal entries, strategy/checklist usage, learning progress, coach usage, session activity. Never a new signal or prediction.
+ */
+
+export function useGetTradingAnalyticsDashboard<TData = Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingAnalyticsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingAnalyticsDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestingAnalyticsDashboardUrl = () => {
+
+
+
+
+  return `/api/investing/analytics`
+}
+
+/**
+ * @summary Deterministic aggregation of the calling user's own already-persisted Investing Engine data — portfolios, holdings, research notes, watchlist, saved Investment Committee decision snapshots, saved risk snapshots, saved optimisation reviews, saved screens, AI Coach usage. Never a new signal or prediction.
+ */
+export const getInvestingAnalyticsDashboard = async ( options?: RequestInit): Promise<InvestingAnalyticsDashboard> => {
+
+  return customFetch<InvestingAnalyticsDashboard>(getGetInvestingAnalyticsDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestingAnalyticsDashboardQueryKey = () => {
+    return [
+    `/api/investing/analytics`
+    ] as const;
+    }
+
+
+export const getGetInvestingAnalyticsDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestingAnalyticsDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>> = ({ signal }) => getInvestingAnalyticsDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestingAnalyticsDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>>
+export type GetInvestingAnalyticsDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Deterministic aggregation of the calling user's own already-persisted Investing Engine data — portfolios, holdings, research notes, watchlist, saved Investment Committee decision snapshots, saved risk snapshots, saved optimisation reviews, saved screens, AI Coach usage. Never a new signal or prediction.
+ */
+
+export function useGetInvestingAnalyticsDashboard<TData = Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestingAnalyticsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestingAnalyticsDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetExecutiveIntelligenceHubUrl = () => {
+
+
+
+
+  return `/api/executive/intelligence`
+}
+
+/**
+ * @summary The calling user's own unified Executive Intelligence Hub — overview KPIs, the full Investing and Trading analytics dashboards, cross-engine strategy/portfolio/risk/learning/AI-coach rollups, a Reporting Centre tally, and a chronological Activity Timeline. Pure aggregation of already-persisted, already-computed data.
+ */
+export const getExecutiveIntelligenceHub = async ( options?: RequestInit): Promise<ExecutiveIntelligenceHub> => {
+
+  return customFetch<ExecutiveIntelligenceHub>(getGetExecutiveIntelligenceHubUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutiveIntelligenceHubQueryKey = () => {
+    return [
+    `/api/executive/intelligence`
+    ] as const;
+    }
+
+
+export const getGetExecutiveIntelligenceHubQueryOptions = <TData = Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutiveIntelligenceHubQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>> = ({ signal }) => getExecutiveIntelligenceHub({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutiveIntelligenceHubQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>>
+export type GetExecutiveIntelligenceHubQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own unified Executive Intelligence Hub — overview KPIs, the full Investing and Trading analytics dashboards, cross-engine strategy/portfolio/risk/learning/AI-coach rollups, a Reporting Centre tally, and a chronological Activity Timeline. Pure aggregation of already-persisted, already-computed data.
+ */
+
+export function useGetExecutiveIntelligenceHub<TData = Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveIntelligenceHub>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutiveIntelligenceHubQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCrossEngineWorkspaceOverviewUrl = () => {
+
+
+
+
+  return `/api/workspace/overview`
+}
+
+/**
+ * @summary The calling user's own Unified Workspace payload — the full Phase 33 Executive Intelligence Hub, plus an extended Recent Activity timeline (Trade Plans/Strategies/Learning completions merged in), Cross-Engine Recent Items (most-recently-touched per category), and Cross-Engine Tasks (already-flagged "needs attention" counts). Pure aggregation of already-persisted, already-computed data.
+ */
+export const getCrossEngineWorkspaceOverview = async ( options?: RequestInit): Promise<CrossEngineWorkspaceOverview> => {
+
+  return customFetch<CrossEngineWorkspaceOverview>(getGetCrossEngineWorkspaceOverviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCrossEngineWorkspaceOverviewQueryKey = () => {
+    return [
+    `/api/workspace/overview`
+    ] as const;
+    }
+
+
+export const getGetCrossEngineWorkspaceOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCrossEngineWorkspaceOverviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>> = ({ signal }) => getCrossEngineWorkspaceOverview({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCrossEngineWorkspaceOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>>
+export type GetCrossEngineWorkspaceOverviewQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own Unified Workspace payload — the full Phase 33 Executive Intelligence Hub, plus an extended Recent Activity timeline (Trade Plans/Strategies/Learning completions merged in), Cross-Engine Recent Items (most-recently-touched per category), and Cross-Engine Tasks (already-flagged "needs attention" counts). Pure aggregation of already-persisted, already-computed data.
+ */
+
+export function useGetCrossEngineWorkspaceOverview<TData = Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCrossEngineWorkspaceOverviewQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCrossEngineWorkspaceSearchUrl = (params?: GetCrossEngineWorkspaceSearchParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/workspace/search?${stringifiedParams}` : `/api/workspace/search`
+}
+
+/**
+ * @summary Deterministic, case-insensitive substring Global Search over the calling user's own Portfolios, Holdings, Research Notes, Committee Snapshots, Trade Plans, Trading Journal entries, Strategies, Reports, and Learning Topics. Never semantic/AI search. An empty query returns no results.
+ */
+export const getCrossEngineWorkspaceSearch = async (params?: GetCrossEngineWorkspaceSearchParams, options?: RequestInit): Promise<CrossEngineWorkspaceSearchResult> => {
+
+  return customFetch<CrossEngineWorkspaceSearchResult>(getGetCrossEngineWorkspaceSearchUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCrossEngineWorkspaceSearchQueryKey = (params?: GetCrossEngineWorkspaceSearchParams,) => {
+    return [
+    `/api/workspace/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetCrossEngineWorkspaceSearchQueryOptions = <TData = Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError = ErrorType<unknown>>(params?: GetCrossEngineWorkspaceSearchParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCrossEngineWorkspaceSearchQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>> = ({ signal }) => getCrossEngineWorkspaceSearch(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCrossEngineWorkspaceSearchQueryResult = NonNullable<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>>
+export type GetCrossEngineWorkspaceSearchQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Deterministic, case-insensitive substring Global Search over the calling user's own Portfolios, Holdings, Research Notes, Committee Snapshots, Trade Plans, Trading Journal entries, Strategies, Reports, and Learning Topics. Never semantic/AI search. An empty query returns no results.
+ */
+
+export function useGetCrossEngineWorkspaceSearch<TData = Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError = ErrorType<unknown>>(
+ params?: GetCrossEngineWorkspaceSearchParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCrossEngineWorkspaceSearch>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCrossEngineWorkspaceSearchQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsIncomeDashboardUrl = () => {
+
+
+
+
+  return `/api/options-income/dashboard`
+}
+
+/**
+ * @summary The calling user's own Options Income Dashboard — Income Overview (real credit collected, real capital allocated, projected theta income), Strategy Mix, and Upcoming Expirations. Pure aggregation over already-persisted trades rows. No P/L prediction, no forecasting.
+ */
+export const getOptionsIncomeDashboard = async ( options?: RequestInit): Promise<OptionsIncomeDashboard> => {
+
+  return customFetch<OptionsIncomeDashboard>(getGetOptionsIncomeDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsIncomeDashboardQueryKey = () => {
+    return [
+    `/api/options-income/dashboard`
+    ] as const;
+    }
+
+
+export const getGetOptionsIncomeDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsIncomeDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>> = ({ signal }) => getOptionsIncomeDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsIncomeDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>>
+export type GetOptionsIncomeDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own Options Income Dashboard — Income Overview (real credit collected, real capital allocated, projected theta income), Strategy Mix, and Upcoming Expirations. Pure aggregation over already-persisted trades rows. No P/L prediction, no forecasting.
+ */
+
+export function useGetOptionsIncomeDashboard<TData = Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsIncomeDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsIncomeDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListOptionsIncomePositionsUrl = (params?: ListOptionsIncomePositionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/options-income/positions?${stringifiedParams}` : `/api/options-income/positions`
+}
+
+/**
+ * @summary The calling user's own options positions as a deterministic Position Model — Underlying, Strategy, Expiration, Premium, Collateral, live Greeks, Status, Lifecycle, and Notes. Never a new trade or a fabricated position.
+ */
+export const listOptionsIncomePositions = async (params?: ListOptionsIncomePositionsParams, options?: RequestInit): Promise<OptionsIncomePosition[]> => {
+
+  return customFetch<OptionsIncomePosition[]>(getListOptionsIncomePositionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOptionsIncomePositionsQueryKey = (params?: ListOptionsIncomePositionsParams,) => {
+    return [
+    `/api/options-income/positions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListOptionsIncomePositionsQueryOptions = <TData = Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError = ErrorType<unknown>>(params?: ListOptionsIncomePositionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOptionsIncomePositionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOptionsIncomePositions>>> = ({ signal }) => listOptionsIncomePositions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOptionsIncomePositionsQueryResult = NonNullable<Awaited<ReturnType<typeof listOptionsIncomePositions>>>
+export type ListOptionsIncomePositionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own options positions as a deterministic Position Model — Underlying, Strategy, Expiration, Premium, Collateral, live Greeks, Status, Lifecycle, and Notes. Never a new trade or a fabricated position.
+ */
+
+export function useListOptionsIncomePositions<TData = Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError = ErrorType<unknown>>(
+ params?: ListOptionsIncomePositionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsIncomePositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOptionsIncomePositionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateOptionsIncomePositionNotesUrl = (id: number,) => {
+
+
+
+
+  return `/api/options-income/positions/${id}/notes`
+}
+
+/**
+ * @summary Updates the calling user's own position's notes field only — never touches status, legs, pricing, or execution.
+ */
+export const updateOptionsIncomePositionNotes = async (id: number,
+    optionsIncomePositionNotesInput: OptionsIncomePositionNotesInput, options?: RequestInit): Promise<OptionsIncomePosition> => {
+
+  return customFetch<OptionsIncomePosition>(getUpdateOptionsIncomePositionNotesUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsIncomePositionNotesInput,)
+  }
+);}
+
+
+
+
+export const getUpdateOptionsIncomePositionNotesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>, TError,{id: number;data: BodyType<OptionsIncomePositionNotesInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>, TError,{id: number;data: BodyType<OptionsIncomePositionNotesInput>}, TContext> => {
+
+const mutationKey = ['updateOptionsIncomePositionNotes'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>, {id: number;data: BodyType<OptionsIncomePositionNotesInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateOptionsIncomePositionNotes(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateOptionsIncomePositionNotesMutationResult = NonNullable<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>>
+    export type UpdateOptionsIncomePositionNotesMutationBody = BodyType<OptionsIncomePositionNotesInput>
+    export type UpdateOptionsIncomePositionNotesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Updates the calling user's own position's notes field only — never touches status, legs, pricing, or execution.
+ */
+export const useUpdateOptionsIncomePositionNotes = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>, TError,{id: number;data: BodyType<OptionsIncomePositionNotesInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateOptionsIncomePositionNotes>>,
+        TError,
+        {id: number;data: BodyType<OptionsIncomePositionNotesInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateOptionsIncomePositionNotesMutationOptions(options));
+    }
+
+export const getGetOptionsStrategyLibraryUrl = () => {
+
+
+
+
+  return `/api/options-income/strategy-library`
+}
+
+/**
+ * @summary The static, deterministic Options Strategy Library — 9 reusable strategy templates (metadata only, never a generated trade), reusing lib/strategyAcademy.ts's own already-authored content for 8 of the 9.
+ */
+export const getOptionsStrategyLibrary = async ( options?: RequestInit): Promise<OptionsStrategyTemplate[]> => {
+
+  return customFetch<OptionsStrategyTemplate[]>(getGetOptionsStrategyLibraryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsStrategyLibraryQueryKey = () => {
+    return [
+    `/api/options-income/strategy-library`
+    ] as const;
+    }
+
+
+export const getGetOptionsStrategyLibraryQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsStrategyLibraryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>> = ({ signal }) => getOptionsStrategyLibrary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsStrategyLibraryQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>>
+export type GetOptionsStrategyLibraryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The static, deterministic Options Strategy Library — 9 reusable strategy templates (metadata only, never a generated trade), reusing lib/strategyAcademy.ts's own already-authored content for 8 of the 9.
+ */
+
+export function useGetOptionsStrategyLibrary<TData = Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsStrategyLibrary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsStrategyLibraryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsLifecyclePortfolioUrl = () => {
+
+
+
+
+  return `/api/options-lifecycle/portfolio`
+}
+
+/**
+ * @summary The calling user's own Options Portfolio Management view — position concentration, strategy/sector allocation, expiration ladder, capital utilisation, buying power allocation, and income allocation, all reused directly from the existing Portfolio Risk Dashboard and Options Income Engine, plus a deterministic Portfolio Exposure Timeline and Position Lifecycle Summary.
+ */
+export const getOptionsLifecyclePortfolio = async ( options?: RequestInit): Promise<OptionsPortfolioManagementView> => {
+
+  return customFetch<OptionsPortfolioManagementView>(getGetOptionsLifecyclePortfolioUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecyclePortfolioQueryKey = () => {
+    return [
+    `/api/options-lifecycle/portfolio`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecyclePortfolioQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecyclePortfolioQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>> = ({ signal }) => getOptionsLifecyclePortfolio({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecyclePortfolioQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>>
+export type GetOptionsLifecyclePortfolioQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own Options Portfolio Management view — position concentration, strategy/sector allocation, expiration ladder, capital utilisation, buying power allocation, and income allocation, all reused directly from the existing Portfolio Risk Dashboard and Options Income Engine, plus a deterministic Portfolio Exposure Timeline and Position Lifecycle Summary.
+ */
+
+export function useGetOptionsLifecyclePortfolio<TData = Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecyclePortfolio>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecyclePortfolioQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListOptionsLifecycleCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/options-lifecycle/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (lifecycle stages, review process, assignment mechanics, capital allocation, portfolio concentration). Never a trade recommendation.
+ */
+export const listOptionsLifecycleCoachTopics = async ( options?: RequestInit): Promise<OptionsLifecycleCoachExplanation[]> => {
+
+  return customFetch<OptionsLifecycleCoachExplanation[]>(getListOptionsLifecycleCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOptionsLifecycleCoachTopicsQueryKey = () => {
+    return [
+    `/api/options-lifecycle/coach`
+    ] as const;
+    }
+
+
+export const getListOptionsLifecycleCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOptionsLifecycleCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>> = ({ signal }) => listOptionsLifecycleCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOptionsLifecycleCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>>
+export type ListOptionsLifecycleCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (lifecycle stages, review process, assignment mechanics, capital allocation, portfolio concentration). Never a trade recommendation.
+ */
+
+export function useListOptionsLifecycleCoachTopics<TData = Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOptionsLifecycleCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsLifecycleCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/options-lifecycle/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getOptionsLifecycleCoachTopic = async (topic: string, options?: RequestInit): Promise<OptionsLifecycleCoachExplanation> => {
+
+  return customFetch<OptionsLifecycleCoachExplanation>(getGetOptionsLifecycleCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/options-lifecycle/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>> = ({ signal }) => getOptionsLifecycleCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>>
+export type GetOptionsLifecycleCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetOptionsLifecycleCoachTopic<TData = Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListOptionsLifecycleLearningUrl = () => {
+
+
+
+
+  return `/api/options-lifecycle/learning`
+}
+
+/**
+ * @summary Every lifecycle stage connected to relevant EXISTING Learning Centre content (lessons, strategy explanations, risk concepts, assignment concepts) — reused, never duplicated.
+ */
+export const listOptionsLifecycleLearning = async ( options?: RequestInit): Promise<OptionsLifecycleStageLearning[]> => {
+
+  return customFetch<OptionsLifecycleStageLearning[]>(getListOptionsLifecycleLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOptionsLifecycleLearningQueryKey = () => {
+    return [
+    `/api/options-lifecycle/learning`
+    ] as const;
+    }
+
+
+export const getListOptionsLifecycleLearningQueryOptions = <TData = Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOptionsLifecycleLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>> = ({ signal }) => listOptionsLifecycleLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOptionsLifecycleLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>>
+export type ListOptionsLifecycleLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every lifecycle stage connected to relevant EXISTING Learning Centre content (lessons, strategy explanations, risk concepts, assignment concepts) — reused, never duplicated.
+ */
+
+export function useListOptionsLifecycleLearning<TData = Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOptionsLifecycleLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOptionsLifecycleLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsLifecycleLearningUrl = (stage: string,) => {
+
+
+
+
+  return `/api/options-lifecycle/learning/${stage}`
+}
+
+/**
+ * @summary One lifecycle stage's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getOptionsLifecycleLearning = async (stage: string, options?: RequestInit): Promise<OptionsLifecycleStageLearning> => {
+
+  return customFetch<OptionsLifecycleStageLearning>(getGetOptionsLifecycleLearningUrl(stage),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleLearningQueryKey = (stage: string,) => {
+    return [
+    `/api/options-lifecycle/learning/${stage}`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleLearningQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError = ErrorType<void>>(stage: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleLearningQueryKey(stage);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>> = ({ signal }) => getOptionsLifecycleLearning(stage, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(stage), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>>
+export type GetOptionsLifecycleLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One lifecycle stage's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetOptionsLifecycleLearning<TData = Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError = ErrorType<void>>(
+ stage: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleLearningQueryOptions(stage,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOptionsLifecycleStateUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/state`
+}
+
+/**
+ * @summary The calling user's own position's current lifecycle stage and review cadence — creates an honest default (derived from the trade's own real status) on first read, never a fabricated stage.
+ */
+export const getOptionsLifecycleState = async (tradeId: number, options?: RequestInit): Promise<OptionsLifecycleState> => {
+
+  return customFetch<OptionsLifecycleState>(getGetOptionsLifecycleStateUrl(tradeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleStateQueryKey = (tradeId: number,) => {
+    return [
+    `/api/options-lifecycle/${tradeId}/state`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleStateQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError = ErrorType<void>>(tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleStateQueryKey(tradeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleState>>> = ({ signal }) => getOptionsLifecycleState(tradeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(tradeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleStateQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleState>>>
+export type GetOptionsLifecycleStateQueryError = ErrorType<void>
+
+
+/**
+ * @summary The calling user's own position's current lifecycle stage and review cadence — creates an honest default (derived from the trade's own real status) on first read, never a fabricated stage.
+ */
+
+export function useGetOptionsLifecycleState<TData = Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError = ErrorType<void>>(
+ tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleStateQueryOptions(tradeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateOptionsLifecycleStateUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/state`
+}
+
+/**
+ * @summary Sets the position's lifecycle stage and/or review cadence — an explicit user action, never an automatic transition. A stage change is recorded to the position's own Position Timeline.
+ */
+export const updateOptionsLifecycleState = async (tradeId: number,
+    optionsLifecycleStateUpdateInput: OptionsLifecycleStateUpdateInput, options?: RequestInit): Promise<OptionsLifecycleState> => {
+
+  return customFetch<OptionsLifecycleState>(getUpdateOptionsLifecycleStateUrl(tradeId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsLifecycleStateUpdateInput,)
+  }
+);}
+
+
+
+
+export const getUpdateOptionsLifecycleStateMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleState>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleState>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>}, TContext> => {
+
+const mutationKey = ['updateOptionsLifecycleState'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOptionsLifecycleState>>, {tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>}> = (props) => {
+          const {tradeId,data} = props ?? {};
+
+          return  updateOptionsLifecycleState(tradeId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateOptionsLifecycleStateMutationResult = NonNullable<Awaited<ReturnType<typeof updateOptionsLifecycleState>>>
+    export type UpdateOptionsLifecycleStateMutationBody = BodyType<OptionsLifecycleStateUpdateInput>
+    export type UpdateOptionsLifecycleStateMutationError = ErrorType<void>
+
+    /**
+ * @summary Sets the position's lifecycle stage and/or review cadence — an explicit user action, never an automatic transition. A stage change is recorded to the position's own Position Timeline.
+ */
+export const useUpdateOptionsLifecycleState = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleState>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateOptionsLifecycleState>>,
+        TError,
+        {tradeId: number;data: BodyType<OptionsLifecycleStateUpdateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateOptionsLifecycleStateMutationOptions(options));
+    }
+
+export const getGetOptionsLifecycleTimelineUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/timeline`
+}
+
+/**
+ * @summary The calling user's own position's full event log (Position Timeline / Position History) — every stage change, review, adjustment journal entry, and assignment note, newest first. The Adjustment Journal and Assignment Tracker are this same data filtered by eventType.
+ */
+export const getOptionsLifecycleTimeline = async (tradeId: number, options?: RequestInit): Promise<OptionsLifecycleEvent[]> => {
+
+  return customFetch<OptionsLifecycleEvent[]>(getGetOptionsLifecycleTimelineUrl(tradeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleTimelineQueryKey = (tradeId: number,) => {
+    return [
+    `/api/options-lifecycle/${tradeId}/timeline`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError = ErrorType<void>>(tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleTimelineQueryKey(tradeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>> = ({ signal }) => getOptionsLifecycleTimeline(tradeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(tradeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>>
+export type GetOptionsLifecycleTimelineQueryError = ErrorType<void>
+
+
+/**
+ * @summary The calling user's own position's full event log (Position Timeline / Position History) — every stage change, review, adjustment journal entry, and assignment note, newest first. The Adjustment Journal and Assignment Tracker are this same data filtered by eventType.
+ */
+
+export function useGetOptionsLifecycleTimeline<TData = Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError = ErrorType<void>>(
+ tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleTimelineQueryOptions(tradeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateOptionsLifecycleEventUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/events`
+}
+
+/**
+ * @summary Records a review, adjustment journal entry, or assignment note against the calling user's own position. Never a stage_change event directly — use PATCH .../state for that, which records its own event automatically.
+ */
+export const createOptionsLifecycleEvent = async (tradeId: number,
+    optionsLifecycleEventInput: OptionsLifecycleEventInput, options?: RequestInit): Promise<OptionsLifecycleEvent> => {
+
+  return customFetch<OptionsLifecycleEvent>(getCreateOptionsLifecycleEventUrl(tradeId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsLifecycleEventInput,)
+  }
+);}
+
+
+
+
+export const getCreateOptionsLifecycleEventMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleEventInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleEventInput>}, TContext> => {
+
+const mutationKey = ['createOptionsLifecycleEvent'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>, {tradeId: number;data: BodyType<OptionsLifecycleEventInput>}> = (props) => {
+          const {tradeId,data} = props ?? {};
+
+          return  createOptionsLifecycleEvent(tradeId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateOptionsLifecycleEventMutationResult = NonNullable<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>>
+    export type CreateOptionsLifecycleEventMutationBody = BodyType<OptionsLifecycleEventInput>
+    export type CreateOptionsLifecycleEventMutationError = ErrorType<void>
+
+    /**
+ * @summary Records a review, adjustment journal entry, or assignment note against the calling user's own position. Never a stage_change event directly — use PATCH .../state for that, which records its own event automatically.
+ */
+export const useCreateOptionsLifecycleEvent = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOptionsLifecycleEvent>>, TError,{tradeId: number;data: BodyType<OptionsLifecycleEventInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createOptionsLifecycleEvent>>,
+        TError,
+        {tradeId: number;data: BodyType<OptionsLifecycleEventInput>},
+        TContext
+      > => {
+      return useMutation(getCreateOptionsLifecycleEventMutationOptions(options));
+    }
+
+export const getGetOptionsLifecycleChecklistUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/checklist`
+}
+
+/**
+ * @summary The calling user's own position's institutional checklist instance — instantiated from the position's own strategy's static template on first read (pass ?strategyKey= the first time; server-side only, outside the typed contract, matching this codebase's own established path+query Orval-collision workaround).
+ */
+export const getOptionsLifecycleChecklist = async (tradeId: number, options?: RequestInit): Promise<OptionsPositionChecklist> => {
+
+  return customFetch<OptionsPositionChecklist>(getGetOptionsLifecycleChecklistUrl(tradeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOptionsLifecycleChecklistQueryKey = (tradeId: number,) => {
+    return [
+    `/api/options-lifecycle/${tradeId}/checklist`
+    ] as const;
+    }
+
+
+export const getGetOptionsLifecycleChecklistQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError = ErrorType<void>>(tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOptionsLifecycleChecklistQueryKey(tradeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>> = ({ signal }) => getOptionsLifecycleChecklist(tradeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(tradeId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOptionsLifecycleChecklistQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>>
+export type GetOptionsLifecycleChecklistQueryError = ErrorType<void>
+
+
+/**
+ * @summary The calling user's own position's institutional checklist instance — instantiated from the position's own strategy's static template on first read (pass ?strategyKey= the first time; server-side only, outside the typed contract, matching this codebase's own established path+query Orval-collision workaround).
+ */
+
+export function useGetOptionsLifecycleChecklist<TData = Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError = ErrorType<void>>(
+ tradeId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOptionsLifecycleChecklist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOptionsLifecycleChecklistQueryOptions(tradeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateOptionsLifecycleChecklistItemUrl = (tradeId: number,) => {
+
+
+
+
+  return `/api/options-lifecycle/${tradeId}/checklist`
+}
+
+/**
+ * @summary Toggles one checklist item's checked state. Checklist data only — never submits an order, never triggers an adjustment, never changes the position's lifecycle stage.
+ */
+export const updateOptionsLifecycleChecklistItem = async (tradeId: number,
+    optionsChecklistToggleInput: OptionsChecklistToggleInput, options?: RequestInit): Promise<OptionsPositionChecklist> => {
+
+  return customFetch<OptionsPositionChecklist>(getUpdateOptionsLifecycleChecklistItemUrl(tradeId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      optionsChecklistToggleInput,)
+  }
+);}
+
+
+
+
+export const getUpdateOptionsLifecycleChecklistItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>, TError,{tradeId: number;data: BodyType<OptionsChecklistToggleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>, TError,{tradeId: number;data: BodyType<OptionsChecklistToggleInput>}, TContext> => {
+
+const mutationKey = ['updateOptionsLifecycleChecklistItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>, {tradeId: number;data: BodyType<OptionsChecklistToggleInput>}> = (props) => {
+          const {tradeId,data} = props ?? {};
+
+          return  updateOptionsLifecycleChecklistItem(tradeId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateOptionsLifecycleChecklistItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>>
+    export type UpdateOptionsLifecycleChecklistItemMutationBody = BodyType<OptionsChecklistToggleInput>
+    export type UpdateOptionsLifecycleChecklistItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Toggles one checklist item's checked state. Checklist data only — never submits an order, never triggers an adjustment, never changes the position's lifecycle stage.
+ */
+export const useUpdateOptionsLifecycleChecklistItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>, TError,{tradeId: number;data: BodyType<OptionsChecklistToggleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateOptionsLifecycleChecklistItem>>,
+        TError,
+        {tradeId: number;data: BodyType<OptionsChecklistToggleInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateOptionsLifecycleChecklistItemMutationOptions(options));
+    }
+
+export const getGetRiskExposureDashboardUrl = () => {
+
+
+
+
+  return `/api/risk-exposure/dashboard`
+}
+
+/**
+ * @summary The calling user's own full cross-platform Risk & Exposure dashboard — Investing, Trading, Options, and a Combined cross-engine view. Every figure is reused directly from an existing engine or a pure aggregation over them. Analytics and visibility only.
+ */
+export const getRiskExposureDashboard = async ( options?: RequestInit): Promise<RiskExposureDashboard> => {
+
+  return customFetch<RiskExposureDashboard>(getGetRiskExposureDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRiskExposureDashboardQueryKey = () => {
+    return [
+    `/api/risk-exposure/dashboard`
+    ] as const;
+    }
+
+
+export const getGetRiskExposureDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRiskExposureDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRiskExposureDashboard>>> = ({ signal }) => getRiskExposureDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRiskExposureDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getRiskExposureDashboard>>>
+export type GetRiskExposureDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full cross-platform Risk & Exposure dashboard — Investing, Trading, Options, and a Combined cross-engine view. Every figure is reused directly from an existing engine or a pure aggregation over them. Analytics and visibility only.
+ */
+
+export function useGetRiskExposureDashboard<TData = Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRiskExposureDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListRiskExposureCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/risk-exposure/coach`
+}
+
+/**
+ * @summary All 7 deterministic AI Coach explanations (risk, exposure, diversification, concentration, position sizing, capital allocation, Greeks). Never a trade or hedging recommendation.
+ */
+export const listRiskExposureCoachTopics = async ( options?: RequestInit): Promise<RiskExposureCoachExplanation[]> => {
+
+  return customFetch<RiskExposureCoachExplanation[]>(getListRiskExposureCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRiskExposureCoachTopicsQueryKey = () => {
+    return [
+    `/api/risk-exposure/coach`
+    ] as const;
+    }
+
+
+export const getListRiskExposureCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRiskExposureCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>> = ({ signal }) => listRiskExposureCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRiskExposureCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>>
+export type ListRiskExposureCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 7 deterministic AI Coach explanations (risk, exposure, diversification, concentration, position sizing, capital allocation, Greeks). Never a trade or hedging recommendation.
+ */
+
+export function useListRiskExposureCoachTopics<TData = Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRiskExposureCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRiskExposureCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/risk-exposure/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade or hedging recommendation.
+ */
+export const getRiskExposureCoachTopic = async (topic: string, options?: RequestInit): Promise<RiskExposureCoachExplanation> => {
+
+  return customFetch<RiskExposureCoachExplanation>(getGetRiskExposureCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRiskExposureCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/risk-exposure/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetRiskExposureCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRiskExposureCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>> = ({ signal }) => getRiskExposureCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRiskExposureCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>>
+export type GetRiskExposureCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade or hedging recommendation.
+ */
+
+export function useGetRiskExposureCoachTopic<TData = Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRiskExposureCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListRiskExposureLearningUrl = () => {
+
+
+
+
+  return `/api/risk-exposure/learning`
+}
+
+/**
+ * @summary Every Risk & Exposure Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listRiskExposureLearning = async ( options?: RequestInit): Promise<RiskExposureTopicLearning[]> => {
+
+  return customFetch<RiskExposureTopicLearning[]>(getListRiskExposureLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRiskExposureLearningQueryKey = () => {
+    return [
+    `/api/risk-exposure/learning`
+    ] as const;
+    }
+
+
+export const getListRiskExposureLearningQueryOptions = <TData = Awaited<ReturnType<typeof listRiskExposureLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRiskExposureLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRiskExposureLearning>>> = ({ signal }) => listRiskExposureLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRiskExposureLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listRiskExposureLearning>>>
+export type ListRiskExposureLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Risk & Exposure Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListRiskExposureLearning<TData = Awaited<ReturnType<typeof listRiskExposureLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRiskExposureLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRiskExposureLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRiskExposureLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/risk-exposure/learning/${topic}`
+}
+
+/**
+ * @summary One Risk & Exposure Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getRiskExposureLearning = async (topic: string, options?: RequestInit): Promise<RiskExposureTopicLearning> => {
+
+  return customFetch<RiskExposureTopicLearning>(getGetRiskExposureLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRiskExposureLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/risk-exposure/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetRiskExposureLearningQueryOptions = <TData = Awaited<ReturnType<typeof getRiskExposureLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRiskExposureLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRiskExposureLearning>>> = ({ signal }) => getRiskExposureLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRiskExposureLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getRiskExposureLearning>>>
+export type GetRiskExposureLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Risk & Exposure Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetRiskExposureLearning<TData = Awaited<ReturnType<typeof getRiskExposureLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRiskExposureLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRiskExposureLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceDashboardUrl = () => {
+
+
+
+
+  return `/api/performance-attribution/dashboard`
+}
+
+/**
+ * @summary The calling user's own full cross-platform Performance & Attribution dashboard — Investing, Trading, Options, a Combined cross-engine view, and a real Historical Performance Timeline. Every figure is reused directly from an existing engine, or computed from real, already-persisted columns. Analytical only.
+ */
+export const getPerformanceDashboard = async ( options?: RequestInit): Promise<PerformanceDashboard> => {
+
+  return customFetch<PerformanceDashboard>(getGetPerformanceDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceDashboardQueryKey = () => {
+    return [
+    `/api/performance-attribution/dashboard`
+    ] as const;
+    }
+
+
+export const getGetPerformanceDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceDashboard>>> = ({ signal }) => getPerformanceDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceDashboard>>>
+export type GetPerformanceDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full cross-platform Performance & Attribution dashboard — Investing, Trading, Options, a Combined cross-engine view, and a real Historical Performance Timeline. Every figure is reused directly from an existing engine, or computed from real, already-persisted columns. Analytical only.
+ */
+
+export function useGetPerformanceDashboard<TData = Awaited<ReturnType<typeof getPerformanceDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListPerformanceAttributionCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/performance-attribution/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (performance metrics, attribution, capital efficiency, risk-adjusted returns, portfolio interpretation). Never a trade recommendation.
+ */
+export const listPerformanceAttributionCoachTopics = async ( options?: RequestInit): Promise<PerformanceAttributionCoachExplanation[]> => {
+
+  return customFetch<PerformanceAttributionCoachExplanation[]>(getListPerformanceAttributionCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPerformanceAttributionCoachTopicsQueryKey = () => {
+    return [
+    `/api/performance-attribution/coach`
+    ] as const;
+    }
+
+
+export const getListPerformanceAttributionCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPerformanceAttributionCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>> = ({ signal }) => listPerformanceAttributionCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPerformanceAttributionCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>>
+export type ListPerformanceAttributionCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (performance metrics, attribution, capital efficiency, risk-adjusted returns, portfolio interpretation). Never a trade recommendation.
+ */
+
+export function useListPerformanceAttributionCoachTopics<TData = Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPerformanceAttributionCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceAttributionCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/performance-attribution/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getPerformanceAttributionCoachTopic = async (topic: string, options?: RequestInit): Promise<PerformanceAttributionCoachExplanation> => {
+
+  return customFetch<PerformanceAttributionCoachExplanation>(getGetPerformanceAttributionCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceAttributionCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/performance-attribution/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetPerformanceAttributionCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceAttributionCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>> = ({ signal }) => getPerformanceAttributionCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceAttributionCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>>
+export type GetPerformanceAttributionCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetPerformanceAttributionCoachTopic<TData = Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceAttributionCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListPerformanceAttributionLearningUrl = () => {
+
+
+
+
+  return `/api/performance-attribution/learning`
+}
+
+/**
+ * @summary Every Performance & Attribution Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listPerformanceAttributionLearning = async ( options?: RequestInit): Promise<PerformanceAttributionTopicLearning[]> => {
+
+  return customFetch<PerformanceAttributionTopicLearning[]>(getListPerformanceAttributionLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPerformanceAttributionLearningQueryKey = () => {
+    return [
+    `/api/performance-attribution/learning`
+    ] as const;
+    }
+
+
+export const getListPerformanceAttributionLearningQueryOptions = <TData = Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPerformanceAttributionLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>> = ({ signal }) => listPerformanceAttributionLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPerformanceAttributionLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>>
+export type ListPerformanceAttributionLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Performance & Attribution Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListPerformanceAttributionLearning<TData = Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPerformanceAttributionLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPerformanceAttributionLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPerformanceAttributionLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/performance-attribution/learning/${topic}`
+}
+
+/**
+ * @summary One Performance & Attribution Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getPerformanceAttributionLearning = async (topic: string, options?: RequestInit): Promise<PerformanceAttributionTopicLearning> => {
+
+  return customFetch<PerformanceAttributionTopicLearning>(getGetPerformanceAttributionLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPerformanceAttributionLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/performance-attribution/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetPerformanceAttributionLearningQueryOptions = <TData = Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPerformanceAttributionLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>> = ({ signal }) => getPerformanceAttributionLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPerformanceAttributionLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>>
+export type GetPerformanceAttributionLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Performance & Attribution Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetPerformanceAttributionLearning<TData = Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPerformanceAttributionLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPerformanceAttributionLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunScenarioDashboardUrl = () => {
+
+
+
+
+  return `/api/scenario-engine/dashboard`
+}
+
+/**
+ * @summary The calling user's own full cross-platform Scenario & Stress Testing dashboard — Investing, Trading, Options, and a Combined cross-engine view, evaluated across the 8 named default scenarios plus any caller-supplied custom percentage-move scenarios. Every figure is reused directly from an existing engine or a deterministic linear/Black-Scholes repricing. Analytical only.
+ */
+export const runScenarioDashboard = async (runScenarioDashboardInput?: RunScenarioDashboardInput, options?: RequestInit): Promise<ScenarioDashboard> => {
+
+  return customFetch<ScenarioDashboard>(getRunScenarioDashboardUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      runScenarioDashboardInput,)
+  }
+);}
+
+
+
+
+export const getRunScenarioDashboardMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runScenarioDashboard>>, TError,{data?: BodyType<RunScenarioDashboardInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runScenarioDashboard>>, TError,{data?: BodyType<RunScenarioDashboardInput>}, TContext> => {
+
+const mutationKey = ['runScenarioDashboard'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runScenarioDashboard>>, {data?: BodyType<RunScenarioDashboardInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runScenarioDashboard(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunScenarioDashboardMutationResult = NonNullable<Awaited<ReturnType<typeof runScenarioDashboard>>>
+    export type RunScenarioDashboardMutationBody = BodyType<RunScenarioDashboardInput> | undefined
+    export type RunScenarioDashboardMutationError = ErrorType<void>
+
+    /**
+ * @summary The calling user's own full cross-platform Scenario & Stress Testing dashboard — Investing, Trading, Options, and a Combined cross-engine view, evaluated across the 8 named default scenarios plus any caller-supplied custom percentage-move scenarios. Every figure is reused directly from an existing engine or a deterministic linear/Black-Scholes repricing. Analytical only.
+ */
+export const useRunScenarioDashboard = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runScenarioDashboard>>, TError,{data?: BodyType<RunScenarioDashboardInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runScenarioDashboard>>,
+        TError,
+        {data?: BodyType<RunScenarioDashboardInput>},
+        TContext
+      > => {
+      return useMutation(getRunScenarioDashboardMutationOptions(options));
+    }
+
+export const getListScenarioCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/scenario-engine/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (scenario analysis, stress testing, portfolio resilience, Greeks impact, capital impact). Never a trade recommendation.
+ */
+export const listScenarioCoachTopics = async ( options?: RequestInit): Promise<ScenarioCoachExplanation[]> => {
+
+  return customFetch<ScenarioCoachExplanation[]>(getListScenarioCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListScenarioCoachTopicsQueryKey = () => {
+    return [
+    `/api/scenario-engine/coach`
+    ] as const;
+    }
+
+
+export const getListScenarioCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListScenarioCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listScenarioCoachTopics>>> = ({ signal }) => listScenarioCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListScenarioCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listScenarioCoachTopics>>>
+export type ListScenarioCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (scenario analysis, stress testing, portfolio resilience, Greeks impact, capital impact). Never a trade recommendation.
+ */
+
+export function useListScenarioCoachTopics<TData = Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScenarioCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListScenarioCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetScenarioCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/scenario-engine/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getScenarioCoachTopic = async (topic: string, options?: RequestInit): Promise<ScenarioCoachExplanation> => {
+
+  return customFetch<ScenarioCoachExplanation>(getGetScenarioCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetScenarioCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/scenario-engine/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetScenarioCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetScenarioCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScenarioCoachTopic>>> = ({ signal }) => getScenarioCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetScenarioCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getScenarioCoachTopic>>>
+export type GetScenarioCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetScenarioCoachTopic<TData = Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetScenarioCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListScenarioLearningUrl = () => {
+
+
+
+
+  return `/api/scenario-engine/learning`
+}
+
+/**
+ * @summary Every Scenario Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listScenarioLearning = async ( options?: RequestInit): Promise<ScenarioTopicLearning[]> => {
+
+  return customFetch<ScenarioTopicLearning[]>(getListScenarioLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListScenarioLearningQueryKey = () => {
+    return [
+    `/api/scenario-engine/learning`
+    ] as const;
+    }
+
+
+export const getListScenarioLearningQueryOptions = <TData = Awaited<ReturnType<typeof listScenarioLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScenarioLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListScenarioLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listScenarioLearning>>> = ({ signal }) => listScenarioLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listScenarioLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListScenarioLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listScenarioLearning>>>
+export type ListScenarioLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Scenario Coach topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListScenarioLearning<TData = Awaited<ReturnType<typeof listScenarioLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listScenarioLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListScenarioLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetScenarioLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/scenario-engine/learning/${topic}`
+}
+
+/**
+ * @summary One Scenario Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getScenarioLearning = async (topic: string, options?: RequestInit): Promise<ScenarioTopicLearning> => {
+
+  return customFetch<ScenarioTopicLearning>(getGetScenarioLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetScenarioLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/scenario-engine/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetScenarioLearningQueryOptions = <TData = Awaited<ReturnType<typeof getScenarioLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetScenarioLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScenarioLearning>>> = ({ signal }) => getScenarioLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getScenarioLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetScenarioLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getScenarioLearning>>>
+export type GetScenarioLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Scenario Coach topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetScenarioLearning<TData = Awaited<ReturnType<typeof getScenarioLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetScenarioLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDecisionSupportDashboardUrl = () => {
+
+
+
+
+  return `/api/decision-support/dashboard`
+}
+
+/**
+ * @summary The calling user's own full Institutional Decision Support dashboard — Executive Summary, Portfolio Health Overview, Risk/Performance/Scenario/Capital Allocation/Exposure/Diversification Summary, deterministic Executive Alerts, Outstanding Issues, Key Metrics, and an 11-dimension Executive Health scorecard. Every figure is reused directly from the Risk & Exposure, Performance & Attribution, Scenario & Stress Testing, and Portfolio Concentration engines. Interpretation only — never a trade recommendation or forecast.
+ */
+export const getDecisionSupportDashboard = async ( options?: RequestInit): Promise<DecisionSupportDashboard> => {
+
+  return customFetch<DecisionSupportDashboard>(getGetDecisionSupportDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionSupportDashboardQueryKey = () => {
+    return [
+    `/api/decision-support/dashboard`
+    ] as const;
+    }
+
+
+export const getGetDecisionSupportDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionSupportDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionSupportDashboard>>> = ({ signal }) => getDecisionSupportDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionSupportDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionSupportDashboard>>>
+export type GetDecisionSupportDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full Institutional Decision Support dashboard — Executive Summary, Portfolio Health Overview, Risk/Performance/Scenario/Capital Allocation/Exposure/Diversification Summary, deterministic Executive Alerts, Outstanding Issues, Key Metrics, and an 11-dimension Executive Health scorecard. Every figure is reused directly from the Risk & Exposure, Performance & Attribution, Scenario & Stress Testing, and Portfolio Concentration engines. Interpretation only — never a trade recommendation or forecast.
+ */
+
+export function useGetDecisionSupportDashboard<TData = Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionSupportDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListDecisionSupportCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/decision-support/coach`
+}
+
+/**
+ * @summary All 8 deterministic AI Coach explanations (executive dashboards, institutional decision support, portfolio interpretation, risk, performance, scenario analysis, diversification, capital allocation). Never a trade recommendation.
+ */
+export const listDecisionSupportCoachTopics = async ( options?: RequestInit): Promise<DecisionSupportCoachExplanation[]> => {
+
+  return customFetch<DecisionSupportCoachExplanation[]>(getListDecisionSupportCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDecisionSupportCoachTopicsQueryKey = () => {
+    return [
+    `/api/decision-support/coach`
+    ] as const;
+    }
+
+
+export const getListDecisionSupportCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDecisionSupportCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>> = ({ signal }) => listDecisionSupportCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDecisionSupportCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>>
+export type ListDecisionSupportCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 8 deterministic AI Coach explanations (executive dashboards, institutional decision support, portfolio interpretation, risk, performance, scenario analysis, diversification, capital allocation). Never a trade recommendation.
+ */
+
+export function useListDecisionSupportCoachTopics<TData = Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDecisionSupportCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDecisionSupportCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/decision-support/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getDecisionSupportCoachTopic = async (topic: string, options?: RequestInit): Promise<DecisionSupportCoachExplanation> => {
+
+  return customFetch<DecisionSupportCoachExplanation>(getGetDecisionSupportCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionSupportCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/decision-support/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetDecisionSupportCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionSupportCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>> = ({ signal }) => getDecisionSupportCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionSupportCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>>
+export type GetDecisionSupportCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetDecisionSupportCoachTopic<TData = Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionSupportCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListDecisionSupportLearningUrl = () => {
+
+
+
+
+  return `/api/decision-support/learning`
+}
+
+/**
+ * @summary Every Decision Support topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listDecisionSupportLearning = async ( options?: RequestInit): Promise<DecisionSupportTopicLearning[]> => {
+
+  return customFetch<DecisionSupportTopicLearning[]>(getListDecisionSupportLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListDecisionSupportLearningQueryKey = () => {
+    return [
+    `/api/decision-support/learning`
+    ] as const;
+    }
+
+
+export const getListDecisionSupportLearningQueryOptions = <TData = Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListDecisionSupportLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listDecisionSupportLearning>>> = ({ signal }) => listDecisionSupportLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListDecisionSupportLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listDecisionSupportLearning>>>
+export type ListDecisionSupportLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Decision Support topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListDecisionSupportLearning<TData = Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listDecisionSupportLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListDecisionSupportLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDecisionSupportLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/decision-support/learning/${topic}`
+}
+
+/**
+ * @summary One Decision Support topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getDecisionSupportLearning = async (topic: string, options?: RequestInit): Promise<DecisionSupportTopicLearning> => {
+
+  return customFetch<DecisionSupportTopicLearning>(getGetDecisionSupportLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDecisionSupportLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/decision-support/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetDecisionSupportLearningQueryOptions = <TData = Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDecisionSupportLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDecisionSupportLearning>>> = ({ signal }) => getDecisionSupportLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDecisionSupportLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getDecisionSupportLearning>>>
+export type GetDecisionSupportLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Decision Support topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetDecisionSupportLearning<TData = Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDecisionSupportLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDecisionSupportLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRebalancingDashboardUrl = () => {
+
+
+
+
+  return `/api/rebalancing/dashboard`
+}
+
+/**
+ * @summary The calling user's own full Rebalancing & Allocation Planning dashboard — Current vs. Target Allocation and Drift per Investing portfolio, cross-engine Sector/Asset/Strategy/Capital Allocation, and an Allocation Timeline. Every figure is reused directly from Portfolio Construction and the Risk & Exposure Engine. Planning and analysis only — never a trade recommendation or forecast.
+ */
+export const getRebalancingDashboard = async ( options?: RequestInit): Promise<RebalancingDashboard> => {
+
+  return customFetch<RebalancingDashboard>(getGetRebalancingDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRebalancingDashboardQueryKey = () => {
+    return [
+    `/api/rebalancing/dashboard`
+    ] as const;
+    }
+
+
+export const getGetRebalancingDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getRebalancingDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRebalancingDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRebalancingDashboard>>> = ({ signal }) => getRebalancingDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRebalancingDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRebalancingDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getRebalancingDashboard>>>
+export type GetRebalancingDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full Rebalancing & Allocation Planning dashboard — Current vs. Target Allocation and Drift per Investing portfolio, cross-engine Sector/Asset/Strategy/Capital Allocation, and an Allocation Timeline. Every figure is reused directly from Portfolio Construction and the Risk & Exposure Engine. Planning and analysis only — never a trade recommendation or forecast.
+ */
+
+export function useGetRebalancingDashboard<TData = Awaited<ReturnType<typeof getRebalancingDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRebalancingDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getProposeAllocationUrl = (id: number,) => {
+
+
+
+
+  return `/api/rebalancing/portfolios/${id}/propose`
+}
+
+/**
+ * @summary Compares an Investing portfolio's current allocation against a caller-supplied set of proposed target weights (the Rebalancing Planner) — the same deterministic drift engine used for stored targets, applied to a hypothetical "what if" target set. Never persists the proposed targets, never suggests a trade, never a share count to execute.
+ */
+export const proposeAllocation = async (id: number,
+    proposeAllocationInput: ProposeAllocationInput, options?: RequestInit): Promise<RebalancingProposedAllocationComparison> => {
+
+  return customFetch<RebalancingProposedAllocationComparison>(getProposeAllocationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      proposeAllocationInput,)
+  }
+);}
+
+
+
+
+export const getProposeAllocationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof proposeAllocation>>, TError,{id: number;data: BodyType<ProposeAllocationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof proposeAllocation>>, TError,{id: number;data: BodyType<ProposeAllocationInput>}, TContext> => {
+
+const mutationKey = ['proposeAllocation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof proposeAllocation>>, {id: number;data: BodyType<ProposeAllocationInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  proposeAllocation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProposeAllocationMutationResult = NonNullable<Awaited<ReturnType<typeof proposeAllocation>>>
+    export type ProposeAllocationMutationBody = BodyType<ProposeAllocationInput>
+    export type ProposeAllocationMutationError = ErrorType<void>
+
+    /**
+ * @summary Compares an Investing portfolio's current allocation against a caller-supplied set of proposed target weights (the Rebalancing Planner) — the same deterministic drift engine used for stored targets, applied to a hypothetical "what if" target set. Never persists the proposed targets, never suggests a trade, never a share count to execute.
+ */
+export const useProposeAllocation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof proposeAllocation>>, TError,{id: number;data: BodyType<ProposeAllocationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof proposeAllocation>>,
+        TError,
+        {id: number;data: BodyType<ProposeAllocationInput>},
+        TContext
+      > => {
+      return useMutation(getProposeAllocationMutationOptions(options));
+    }
+
+export const getListRebalancingCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/rebalancing/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio allocation, rebalancing concepts, diversification, capital efficiency, portfolio construction). Never a trade recommendation.
+ */
+export const listRebalancingCoachTopics = async ( options?: RequestInit): Promise<RebalancingCoachExplanation[]> => {
+
+  return customFetch<RebalancingCoachExplanation[]>(getListRebalancingCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRebalancingCoachTopicsQueryKey = () => {
+    return [
+    `/api/rebalancing/coach`
+    ] as const;
+    }
+
+
+export const getListRebalancingCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRebalancingCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRebalancingCoachTopics>>> = ({ signal }) => listRebalancingCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRebalancingCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listRebalancingCoachTopics>>>
+export type ListRebalancingCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio allocation, rebalancing concepts, diversification, capital efficiency, portfolio construction). Never a trade recommendation.
+ */
+
+export function useListRebalancingCoachTopics<TData = Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRebalancingCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRebalancingCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRebalancingCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/rebalancing/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getRebalancingCoachTopic = async (topic: string, options?: RequestInit): Promise<RebalancingCoachExplanation> => {
+
+  return customFetch<RebalancingCoachExplanation>(getGetRebalancingCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRebalancingCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/rebalancing/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetRebalancingCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRebalancingCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRebalancingCoachTopic>>> = ({ signal }) => getRebalancingCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRebalancingCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getRebalancingCoachTopic>>>
+export type GetRebalancingCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetRebalancingCoachTopic<TData = Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRebalancingCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListRebalancingLearningUrl = () => {
+
+
+
+
+  return `/api/rebalancing/learning`
+}
+
+/**
+ * @summary Every Rebalancing topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listRebalancingLearning = async ( options?: RequestInit): Promise<RebalancingTopicLearning[]> => {
+
+  return customFetch<RebalancingTopicLearning[]>(getListRebalancingLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRebalancingLearningQueryKey = () => {
+    return [
+    `/api/rebalancing/learning`
+    ] as const;
+    }
+
+
+export const getListRebalancingLearningQueryOptions = <TData = Awaited<ReturnType<typeof listRebalancingLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRebalancingLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRebalancingLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRebalancingLearning>>> = ({ signal }) => listRebalancingLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRebalancingLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRebalancingLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listRebalancingLearning>>>
+export type ListRebalancingLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Rebalancing topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListRebalancingLearning<TData = Awaited<ReturnType<typeof listRebalancingLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRebalancingLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRebalancingLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRebalancingLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/rebalancing/learning/${topic}`
+}
+
+/**
+ * @summary One Rebalancing topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getRebalancingLearning = async (topic: string, options?: RequestInit): Promise<RebalancingTopicLearning> => {
+
+  return customFetch<RebalancingTopicLearning>(getGetRebalancingLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRebalancingLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/rebalancing/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetRebalancingLearningQueryOptions = <TData = Awaited<ReturnType<typeof getRebalancingLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRebalancingLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRebalancingLearning>>> = ({ signal }) => getRebalancingLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRebalancingLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRebalancingLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getRebalancingLearning>>>
+export type GetRebalancingLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Rebalancing topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetRebalancingLearning<TData = Awaited<ReturnType<typeof getRebalancingLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRebalancingLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRebalancingLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMonitoringComplianceDashboardUrl = () => {
+
+
+
+
+  return `/api/compliance/dashboard`
+}
+
+/**
+ * @summary The calling user's own full Monitoring & Compliance dashboard — every configured policy evaluated against its own already-computed current value, grouped by category, plus a Compliance Summary, Policy Violations, and a Compliance Timeline. Monitoring only — never a trade recommendation.
+ */
+export const getMonitoringComplianceDashboard = async ( options?: RequestInit): Promise<MonitoringComplianceDashboard> => {
+
+  return customFetch<MonitoringComplianceDashboard>(getGetMonitoringComplianceDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMonitoringComplianceDashboardQueryKey = () => {
+    return [
+    `/api/compliance/dashboard`
+    ] as const;
+    }
+
+
+export const getGetMonitoringComplianceDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMonitoringComplianceDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>> = ({ signal }) => getMonitoringComplianceDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMonitoringComplianceDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>>
+export type GetMonitoringComplianceDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full Monitoring & Compliance dashboard — every configured policy evaluated against its own already-computed current value, grouped by category, plus a Compliance Summary, Policy Violations, and a Compliance Timeline. Monitoring only — never a trade recommendation.
+ */
+
+export function useGetMonitoringComplianceDashboard<TData = Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringComplianceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMonitoringComplianceDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListCompliancePolicyTypesUrl = () => {
+
+
+
+
+  return `/api/compliance/policy-types`
+}
+
+/**
+ * @summary The fixed, documented set of 15 policy types this engine implements, including each type's own suggested default limit value (reused from named caps already used elsewhere in this codebase).
+ */
+export const listCompliancePolicyTypes = async ( options?: RequestInit): Promise<CompliancePolicyTypeMeta[]> => {
+
+  return customFetch<CompliancePolicyTypeMeta[]>(getListCompliancePolicyTypesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCompliancePolicyTypesQueryKey = () => {
+    return [
+    `/api/compliance/policy-types`
+    ] as const;
+    }
+
+
+export const getListCompliancePolicyTypesQueryOptions = <TData = Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCompliancePolicyTypesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCompliancePolicyTypes>>> = ({ signal }) => listCompliancePolicyTypes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCompliancePolicyTypesQueryResult = NonNullable<Awaited<ReturnType<typeof listCompliancePolicyTypes>>>
+export type ListCompliancePolicyTypesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The fixed, documented set of 15 policy types this engine implements, including each type's own suggested default limit value (reused from named caps already used elsewhere in this codebase).
+ */
+
+export function useListCompliancePolicyTypes<TData = Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicyTypes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCompliancePolicyTypesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListCompliancePoliciesUrl = () => {
+
+
+
+
+  return `/api/compliance/policies`
+}
+
+/**
+ * @summary The calling user's own configured compliance policies.
+ */
+export const listCompliancePolicies = async ( options?: RequestInit): Promise<CompliancePolicy[]> => {
+
+  return customFetch<CompliancePolicy[]>(getListCompliancePoliciesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCompliancePoliciesQueryKey = () => {
+    return [
+    `/api/compliance/policies`
+    ] as const;
+    }
+
+
+export const getListCompliancePoliciesQueryOptions = <TData = Awaited<ReturnType<typeof listCompliancePolicies>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCompliancePoliciesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCompliancePolicies>>> = ({ signal }) => listCompliancePolicies({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicies>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCompliancePoliciesQueryResult = NonNullable<Awaited<ReturnType<typeof listCompliancePolicies>>>
+export type ListCompliancePoliciesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own configured compliance policies.
+ */
+
+export function useListCompliancePolicies<TData = Awaited<ReturnType<typeof listCompliancePolicies>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCompliancePolicies>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCompliancePoliciesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateCompliancePolicyUrl = () => {
+
+
+
+
+  return `/api/compliance/policies`
+}
+
+/**
+ * @summary Create a new compliance policy.
+ */
+export const createCompliancePolicy = async (createCompliancePolicyInput: CreateCompliancePolicyInput, options?: RequestInit): Promise<CompliancePolicy> => {
+
+  return customFetch<CompliancePolicy>(getCreateCompliancePolicyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createCompliancePolicyInput,)
+  }
+);}
+
+
+
+
+export const getCreateCompliancePolicyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCompliancePolicy>>, TError,{data: BodyType<CreateCompliancePolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCompliancePolicy>>, TError,{data: BodyType<CreateCompliancePolicyInput>}, TContext> => {
+
+const mutationKey = ['createCompliancePolicy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCompliancePolicy>>, {data: BodyType<CreateCompliancePolicyInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCompliancePolicy(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCompliancePolicyMutationResult = NonNullable<Awaited<ReturnType<typeof createCompliancePolicy>>>
+    export type CreateCompliancePolicyMutationBody = BodyType<CreateCompliancePolicyInput>
+    export type CreateCompliancePolicyMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a new compliance policy.
+ */
+export const useCreateCompliancePolicy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCompliancePolicy>>, TError,{data: BodyType<CreateCompliancePolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCompliancePolicy>>,
+        TError,
+        {data: BodyType<CreateCompliancePolicyInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCompliancePolicyMutationOptions(options));
+    }
+
+export const getGetCompliancePolicyUrl = (id: number,) => {
+
+
+
+
+  return `/api/compliance/policies/${id}`
+}
+
+/**
+ * @summary One compliance policy by id.
+ */
+export const getCompliancePolicy = async (id: number, options?: RequestInit): Promise<CompliancePolicy> => {
+
+  return customFetch<CompliancePolicy>(getGetCompliancePolicyUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompliancePolicyQueryKey = (id: number,) => {
+    return [
+    `/api/compliance/policies/${id}`
+    ] as const;
+    }
+
+
+export const getGetCompliancePolicyQueryOptions = <TData = Awaited<ReturnType<typeof getCompliancePolicy>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompliancePolicy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompliancePolicyQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompliancePolicy>>> = ({ signal }) => getCompliancePolicy(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompliancePolicy>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompliancePolicyQueryResult = NonNullable<Awaited<ReturnType<typeof getCompliancePolicy>>>
+export type GetCompliancePolicyQueryError = ErrorType<void>
+
+
+/**
+ * @summary One compliance policy by id.
+ */
+
+export function useGetCompliancePolicy<TData = Awaited<ReturnType<typeof getCompliancePolicy>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompliancePolicy>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompliancePolicyQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateCompliancePolicyUrl = (id: number,) => {
+
+
+
+
+  return `/api/compliance/policies/${id}`
+}
+
+/**
+ * @summary Update a compliance policy (label, targetKey, direction, limitValue, enabled).
+ */
+export const updateCompliancePolicy = async (id: number,
+    updateCompliancePolicyInput: UpdateCompliancePolicyInput, options?: RequestInit): Promise<CompliancePolicy> => {
+
+  return customFetch<CompliancePolicy>(getUpdateCompliancePolicyUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateCompliancePolicyInput,)
+  }
+);}
+
+
+
+
+export const getUpdateCompliancePolicyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCompliancePolicy>>, TError,{id: number;data: BodyType<UpdateCompliancePolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCompliancePolicy>>, TError,{id: number;data: BodyType<UpdateCompliancePolicyInput>}, TContext> => {
+
+const mutationKey = ['updateCompliancePolicy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCompliancePolicy>>, {id: number;data: BodyType<UpdateCompliancePolicyInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCompliancePolicy(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCompliancePolicyMutationResult = NonNullable<Awaited<ReturnType<typeof updateCompliancePolicy>>>
+    export type UpdateCompliancePolicyMutationBody = BodyType<UpdateCompliancePolicyInput>
+    export type UpdateCompliancePolicyMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a compliance policy (label, targetKey, direction, limitValue, enabled).
+ */
+export const useUpdateCompliancePolicy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCompliancePolicy>>, TError,{id: number;data: BodyType<UpdateCompliancePolicyInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCompliancePolicy>>,
+        TError,
+        {id: number;data: BodyType<UpdateCompliancePolicyInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCompliancePolicyMutationOptions(options));
+    }
+
+export const getDeleteCompliancePolicyUrl = (id: number,) => {
+
+
+
+
+  return `/api/compliance/policies/${id}`
+}
+
+/**
+ * @summary Delete a compliance policy.
+ */
+export const deleteCompliancePolicy = async (id: number, options?: RequestInit): Promise<DeleteCompliancePolicy200> => {
+
+  return customFetch<DeleteCompliancePolicy200>(getDeleteCompliancePolicyUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteCompliancePolicyMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCompliancePolicy>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCompliancePolicy>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCompliancePolicy'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCompliancePolicy>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCompliancePolicy(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCompliancePolicyMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCompliancePolicy>>>
+
+    export type DeleteCompliancePolicyMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a compliance policy.
+ */
+export const useDeleteCompliancePolicy = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCompliancePolicy>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCompliancePolicy>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCompliancePolicyMutationOptions(options));
+    }
+
+export const getListComplianceCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/compliance/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio monitoring, compliance concepts, risk limits, capital limits, governance). Never a trade recommendation.
+ */
+export const listComplianceCoachTopics = async ( options?: RequestInit): Promise<ComplianceCoachExplanation[]> => {
+
+  return customFetch<ComplianceCoachExplanation[]>(getListComplianceCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListComplianceCoachTopicsQueryKey = () => {
+    return [
+    `/api/compliance/coach`
+    ] as const;
+    }
+
+
+export const getListComplianceCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListComplianceCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listComplianceCoachTopics>>> = ({ signal }) => listComplianceCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListComplianceCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listComplianceCoachTopics>>>
+export type ListComplianceCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio monitoring, compliance concepts, risk limits, capital limits, governance). Never a trade recommendation.
+ */
+
+export function useListComplianceCoachTopics<TData = Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComplianceCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListComplianceCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetComplianceCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/compliance/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getComplianceCoachTopic = async (topic: string, options?: RequestInit): Promise<ComplianceCoachExplanation> => {
+
+  return customFetch<ComplianceCoachExplanation>(getGetComplianceCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComplianceCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/compliance/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetComplianceCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComplianceCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComplianceCoachTopic>>> = ({ signal }) => getComplianceCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComplianceCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getComplianceCoachTopic>>>
+export type GetComplianceCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetComplianceCoachTopic<TData = Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComplianceCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListComplianceLearningUrl = () => {
+
+
+
+
+  return `/api/compliance/learning`
+}
+
+/**
+ * @summary Every Compliance topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listComplianceLearning = async ( options?: RequestInit): Promise<ComplianceTopicLearning[]> => {
+
+  return customFetch<ComplianceTopicLearning[]>(getListComplianceLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListComplianceLearningQueryKey = () => {
+    return [
+    `/api/compliance/learning`
+    ] as const;
+    }
+
+
+export const getListComplianceLearningQueryOptions = <TData = Awaited<ReturnType<typeof listComplianceLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComplianceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListComplianceLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listComplianceLearning>>> = ({ signal }) => listComplianceLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listComplianceLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListComplianceLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listComplianceLearning>>>
+export type ListComplianceLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Compliance topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListComplianceLearning<TData = Awaited<ReturnType<typeof listComplianceLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listComplianceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListComplianceLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetComplianceLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/compliance/learning/${topic}`
+}
+
+/**
+ * @summary One Compliance topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getComplianceLearning = async (topic: string, options?: RequestInit): Promise<ComplianceTopicLearning> => {
+
+  return customFetch<ComplianceTopicLearning>(getGetComplianceLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComplianceLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/compliance/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetComplianceLearningQueryOptions = <TData = Awaited<ReturnType<typeof getComplianceLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComplianceLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComplianceLearning>>> = ({ signal }) => getComplianceLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComplianceLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComplianceLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getComplianceLearning>>>
+export type GetComplianceLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Compliance topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetComplianceLearning<TData = Awaited<ReturnType<typeof getComplianceLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComplianceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComplianceLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetTradingRiskUrl = () => {
 
 
@@ -8959,6 +22400,83 @@ export function useGetTradingLiquidity<TData = Awaited<ReturnType<typeof getTrad
 
 
 
+export const getGetTradingLiquidityTimelineUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/trading/liquidity-timeline/${symbol}`
+}
+
+/**
+ * @summary A deterministic, chronological liquidity timeline for a symbol — replays the existing Liquidity Engine over rolling candle windows (zero new scoring), plus a relative-liquidity comparison (latest window vs. the average of the others) and the full-sample volume profile as Key Liquidity Zones.
+ */
+export const getTradingLiquidityTimeline = async (symbol: string, options?: RequestInit): Promise<TradingLiquidityTimeline> => {
+
+  return customFetch<TradingLiquidityTimeline>(getGetTradingLiquidityTimelineUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingLiquidityTimelineQueryKey = (symbol: string,) => {
+    return [
+    `/api/trading/liquidity-timeline/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingLiquidityTimelineQueryOptions = <TData = Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingLiquidityTimelineQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>> = ({ signal }) => getTradingLiquidityTimeline(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingLiquidityTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>>
+export type GetTradingLiquidityTimelineQueryError = ErrorType<void>
+
+
+/**
+ * @summary A deterministic, chronological liquidity timeline for a symbol — replays the existing Liquidity Engine over rolling candle windows (zero new scoring), plus a relative-liquidity comparison (latest window vs. the average of the others) and the full-sample volume profile as Key Liquidity Zones.
+ */
+
+export function useGetTradingLiquidityTimeline<TData = Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingLiquidityTimeline>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingLiquidityTimelineQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getAskTradingCoachUrl = () => {
 
 
@@ -9028,6 +22546,236 @@ export const useAskTradingCoach = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getAskTradingCoachMutationOptions(options));
+    }
+
+export const getGetTradingCoachAccountExplanationUrl = (coach: 'journal' | 'psychology',) => {
+
+
+
+
+  return `/api/trading/coach/${coach}`
+}
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for an account-wide coach (journal, psychology) — reuses the calling user's own recent Trading Journal entries verbatim
+ */
+export const getTradingCoachAccountExplanation = async (coach: 'journal' | 'psychology', options?: RequestInit): Promise<TradingCoachExplanation> => {
+
+  return customFetch<TradingCoachExplanation>(getGetTradingCoachAccountExplanationUrl(coach),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingCoachAccountExplanationQueryKey = (coach: 'journal' | 'psychology',) => {
+    return [
+    `/api/trading/coach/${coach}`
+    ] as const;
+    }
+
+
+export const getGetTradingCoachAccountExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError = ErrorType<void>>(coach: 'journal' | 'psychology', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingCoachAccountExplanationQueryKey(coach);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>> = ({ signal }) => getTradingCoachAccountExplanation(coach, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(coach), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingCoachAccountExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>>
+export type GetTradingCoachAccountExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for an account-wide coach (journal, psychology) — reuses the calling user's own recent Trading Journal entries verbatim
+ */
+
+export function useGetTradingCoachAccountExplanation<TData = Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError = ErrorType<void>>(
+ coach: 'journal' | 'psychology', options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachAccountExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingCoachAccountExplanationQueryOptions(coach,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradingCoachExplanationUrl = (coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string,) => {
+
+
+
+
+  return `/api/trading/coach/${coach}/${symbol}`
+}
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for a per-symbol coach (structure, liquidity, session, risk, trade-plan) — reuses Structure/Multi-Timeframe/Liquidity/Session/Risk/Trade Plans verbatim
+ */
+export const getTradingCoachExplanation = async (coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string, options?: RequestInit): Promise<TradingCoachExplanation> => {
+
+  return customFetch<TradingCoachExplanation>(getGetTradingCoachExplanationUrl(coach,symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradingCoachExplanationQueryKey = (coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string,) => {
+    return [
+    `/api/trading/coach/${coach}/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetTradingCoachExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError = ErrorType<void>>(coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradingCoachExplanationQueryKey(coach,symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradingCoachExplanation>>> = ({ signal }) => getTradingCoachExplanation(coach,symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(coach && symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradingCoachExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getTradingCoachExplanation>>>
+export type GetTradingCoachExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Deterministic Trading AI Coach explanation for a per-symbol coach (structure, liquidity, session, risk, trade-plan) — reuses Structure/Multi-Timeframe/Liquidity/Session/Risk/Trade Plans verbatim
+ */
+
+export function useGetTradingCoachExplanation<TData = Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError = ErrorType<void>>(
+ coach: 'structure' | 'liquidity' | 'session' | 'risk' | 'trade-plan',
+    symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradingCoachExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradingCoachExplanationQueryOptions(coach,symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getExplainTradingScenarioUrl = () => {
+
+
+
+
+  return `/api/trading/coach/scenario`
+}
+
+/**
+ * @summary Deterministic Scenario Coach explanation — reuses computeScenarioComparison() (Phase 28) over the same scenario inputs, never persisted
+ */
+export const explainTradingScenario = async (tradingCompareScenariosInput: TradingCompareScenariosInput, options?: RequestInit): Promise<TradingCoachExplanation> => {
+
+  return customFetch<TradingCoachExplanation>(getExplainTradingScenarioUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tradingCompareScenariosInput,)
+  }
+);}
+
+
+
+
+export const getExplainTradingScenarioMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof explainTradingScenario>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof explainTradingScenario>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext> => {
+
+const mutationKey = ['explainTradingScenario'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof explainTradingScenario>>, {data: BodyType<TradingCompareScenariosInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  explainTradingScenario(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExplainTradingScenarioMutationResult = NonNullable<Awaited<ReturnType<typeof explainTradingScenario>>>
+    export type ExplainTradingScenarioMutationBody = BodyType<TradingCompareScenariosInput>
+    export type ExplainTradingScenarioMutationError = ErrorType<void>
+
+    /**
+ * @summary Deterministic Scenario Coach explanation — reuses computeScenarioComparison() (Phase 28) over the same scenario inputs, never persisted
+ */
+export const useExplainTradingScenario = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof explainTradingScenario>>, TError,{data: BodyType<TradingCompareScenariosInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof explainTradingScenario>>,
+        TError,
+        {data: BodyType<TradingCompareScenariosInput>},
+        TContext
+      > => {
+      return useMutation(getExplainTradingScenarioMutationOptions(options));
     }
 
 export const getRunTradingBacktestUrl = () => {
@@ -9314,6 +23062,3841 @@ export function useListOptionsBacktestResults<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListOptionsBacktestResultsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetReportTypesUrl = () => {
+
+
+
+
+  return `/api/reporting/types`
+}
+
+/**
+ * @summary The 9 available Institutional Report types, their labels, descriptions, and whether each requires a symbol/portfolio
+ */
+export const getReportTypes = async ( options?: RequestInit): Promise<ReportTypeMeta[]> => {
+
+  return customFetch<ReportTypeMeta[]>(getGetReportTypesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReportTypesQueryKey = () => {
+    return [
+    `/api/reporting/types`
+    ] as const;
+    }
+
+
+export const getGetReportTypesQueryOptions = <TData = Awaited<ReturnType<typeof getReportTypes>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReportTypes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReportTypesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReportTypes>>> = ({ signal }) => getReportTypes({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReportTypes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReportTypesQueryResult = NonNullable<Awaited<ReturnType<typeof getReportTypes>>>
+export type GetReportTypesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The 9 available Institutional Report types, their labels, descriptions, and whether each requires a symbol/portfolio
+ */
+
+export function useGetReportTypes<TData = Awaited<ReturnType<typeof getReportTypes>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReportTypes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReportTypesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestmentCommitteeReportUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/reporting/investment-committee/${symbol}`
+}
+
+/**
+ * @summary Investment Committee Report — the Investment Committee's consolidated verdict, the Decision Engine's synthesis, evidence, and portfolio impact for a single security. Pure composition, zero new analysis. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies portfolio context.
+ */
+export const getInvestmentCommitteeReport = async (symbol: string, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetInvestmentCommitteeReportUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestmentCommitteeReportQueryKey = (symbol: string,) => {
+    return [
+    `/api/reporting/investment-committee/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetInvestmentCommitteeReportQueryOptions = <TData = Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestmentCommitteeReportQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>> = ({ signal }) => getInvestmentCommitteeReport(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestmentCommitteeReportQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>>
+export type GetInvestmentCommitteeReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Investment Committee Report — the Investment Committee's consolidated verdict, the Decision Engine's synthesis, evidence, and portfolio impact for a single security. Pure composition, zero new analysis. Optional ?portfolioId= (undocumented query param, same Orval-collision precedent as GET /decision/{symbol}) supplies portfolio context.
+ */
+
+export function useGetInvestmentCommitteeReport<TData = Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestmentCommitteeReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestmentCommitteeReportQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCompanyResearchReportUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/reporting/company-research/${symbol}`
+}
+
+/**
+ * @summary Single Company Research Report — the full institutional research picture for one security (Business Quality, Financial Strength, Valuation, Margin of Safety, Decision Engine, Investment Committee, Portfolio Impact, Evidence, Monitoring, Research Notes, the full Investment Memo, and optionally AI Coach explanations). Optional ?portfolioId=/?includeCoach= (undocumented query params, same Orval-collision precedent).
+ */
+export const getCompanyResearchReport = async (symbol: string, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetCompanyResearchReportUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCompanyResearchReportQueryKey = (symbol: string,) => {
+    return [
+    `/api/reporting/company-research/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetCompanyResearchReportQueryOptions = <TData = Awaited<ReturnType<typeof getCompanyResearchReport>>, TError = ErrorType<void>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompanyResearchReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCompanyResearchReportQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCompanyResearchReport>>> = ({ signal }) => getCompanyResearchReport(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCompanyResearchReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCompanyResearchReportQueryResult = NonNullable<Awaited<ReturnType<typeof getCompanyResearchReport>>>
+export type GetCompanyResearchReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Single Company Research Report — the full institutional research picture for one security (Business Quality, Financial Strength, Valuation, Margin of Safety, Decision Engine, Investment Committee, Portfolio Impact, Evidence, Monitoring, Research Notes, the full Investment Memo, and optionally AI Coach explanations). Optional ?portfolioId=/?includeCoach= (undocumented query params, same Orval-collision precedent).
+ */
+
+export function useGetCompanyResearchReport<TData = Awaited<ReturnType<typeof getCompanyResearchReport>>, TError = ErrorType<void>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCompanyResearchReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCompanyResearchReportQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioReviewReportUrl = (portfolioId: number,) => {
+
+
+
+
+  return `/api/reporting/portfolio-review/${portfolioId}`
+}
+
+/**
+ * @summary Portfolio Review Report — Portfolio Optimisation's own health, diversification, position-quality ranking, and upgrade/trim/exit candidates for a selected portfolio. Pure composition, zero new analysis.
+ */
+export const getPortfolioReviewReport = async (portfolioId: number, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioReviewReportUrl(portfolioId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioReviewReportQueryKey = (portfolioId: number,) => {
+    return [
+    `/api/reporting/portfolio-review/${portfolioId}`
+    ] as const;
+    }
+
+
+export const getGetPortfolioReviewReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError = ErrorType<void>>(portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioReviewReportQueryKey(portfolioId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioReviewReport>>> = ({ signal }) => getPortfolioReviewReport(portfolioId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(portfolioId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioReviewReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioReviewReport>>>
+export type GetPortfolioReviewReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Portfolio Review Report — Portfolio Optimisation's own health, diversification, position-quality ranking, and upgrade/trim/exit candidates for a selected portfolio. Pure composition, zero new analysis.
+ */
+
+export function useGetPortfolioReviewReport<TData = Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError = ErrorType<void>>(
+ portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioReviewReportQueryOptions(portfolioId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioHealthReportUrl = (portfolioId: number,) => {
+
+
+
+
+  return `/api/reporting/portfolio-health/${portfolioId}`
+}
+
+/**
+ * @summary Portfolio Health Report — Portfolio Intelligence's own quality/capital-allocation/diversification scores, allocation mix, risk, income, and performance for a selected portfolio. Pure composition, zero new analysis.
+ */
+export const getPortfolioHealthReport = async (portfolioId: number, options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioHealthReportUrl(portfolioId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioHealthReportQueryKey = (portfolioId: number,) => {
+    return [
+    `/api/reporting/portfolio-health/${portfolioId}`
+    ] as const;
+    }
+
+
+export const getGetPortfolioHealthReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError = ErrorType<void>>(portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioHealthReportQueryKey(portfolioId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioHealthReport>>> = ({ signal }) => getPortfolioHealthReport(portfolioId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(portfolioId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioHealthReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioHealthReport>>>
+export type GetPortfolioHealthReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Portfolio Health Report — Portfolio Intelligence's own quality/capital-allocation/diversification scores, allocation mix, risk, income, and performance for a selected portfolio. Pure composition, zero new analysis.
+ */
+
+export function useGetPortfolioHealthReport<TData = Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError = ErrorType<void>>(
+ portfolioId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioHealthReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioHealthReportQueryOptions(portfolioId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchlistReportUrl = () => {
+
+
+
+
+  return `/api/reporting/watchlist`
+}
+
+/**
+ * @summary Watchlist Report — every Watchlist item's own price/margin-of-safety target status, reused directly from computeWatchlistTargets().
+ */
+export const getWatchlistReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetWatchlistReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistReportQueryKey = () => {
+    return [
+    `/api/reporting/watchlist`
+    ] as const;
+    }
+
+
+export const getGetWatchlistReportQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistReport>>> = ({ signal }) => getWatchlistReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistReportQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistReport>>>
+export type GetWatchlistReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Watchlist Report — every Watchlist item's own price/margin-of-safety target status, reused directly from computeWatchlistTargets().
+ */
+
+export function useGetWatchlistReport<TData = Awaited<ReturnType<typeof getWatchlistReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOpportunityDiscoveryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/opportunity-discovery`
+}
+
+/**
+ * @summary Opportunity Discovery Report — the Opportunity Discovery scan's own buckets, reused directly.
+ */
+export const getOpportunityDiscoveryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetOpportunityDiscoveryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOpportunityDiscoveryReportQueryKey = () => {
+    return [
+    `/api/reporting/opportunity-discovery`
+    ] as const;
+    }
+
+
+export const getGetOpportunityDiscoveryReportQueryOptions = <TData = Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOpportunityDiscoveryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>> = ({ signal }) => getOpportunityDiscoveryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOpportunityDiscoveryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>>
+export type GetOpportunityDiscoveryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Opportunity Discovery Report — the Opportunity Discovery scan's own buckets, reused directly.
+ */
+
+export function useGetOpportunityDiscoveryReport<TData = Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDiscoveryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOpportunityDiscoveryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMonitoringSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/monitoring-summary`
+}
+
+/**
+ * @summary Monitoring Summary Report — the user's own recorded monitoring alerts across every symbol.
+ */
+export const getMonitoringSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetMonitoringSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMonitoringSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/monitoring-summary`
+    ] as const;
+    }
+
+
+export const getGetMonitoringSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMonitoringSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMonitoringSummaryReport>>> = ({ signal }) => getMonitoringSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMonitoringSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getMonitoringSummaryReport>>>
+export type GetMonitoringSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Monitoring Summary Report — the user's own recorded monitoring alerts across every symbol.
+ */
+
+export function useGetMonitoringSummaryReport<TData = Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMonitoringSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMonitoringSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetAiCoachLearningSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/ai-coach-summary`
+}
+
+/**
+ * @summary AI Coach Learning Summary — the Learning Centre's own progress tracker (lessons, glossary, strategies, coach explanations viewed, path completion, quiz performance).
+ */
+export const getAiCoachLearningSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetAiCoachLearningSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAiCoachLearningSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/ai-coach-summary`
+    ] as const;
+    }
+
+
+export const getGetAiCoachLearningSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAiCoachLearningSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>> = ({ signal }) => getAiCoachLearningSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAiCoachLearningSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>>
+export type GetAiCoachLearningSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary AI Coach Learning Summary — the Learning Centre's own progress tracker (lessons, glossary, strategies, coach explanations viewed, path completion, quiz performance).
+ */
+
+export function useGetAiCoachLearningSummaryReport<TData = Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAiCoachLearningSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAiCoachLearningSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetExecutiveSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/executive-summary`
+}
+
+/**
+ * @summary Executive Summary — the Cross-Engine Daily Report's own one-pager, reused directly.
+ */
+export const getExecutiveSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetExecutiveSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutiveSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/executive-summary`
+    ] as const;
+    }
+
+
+export const getGetExecutiveSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutiveSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutiveSummaryReport>>> = ({ signal }) => getExecutiveSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutiveSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutiveSummaryReport>>>
+export type GetExecutiveSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Executive Summary — the Cross-Engine Daily Report's own one-pager, reused directly.
+ */
+
+export function useGetExecutiveSummaryReport<TData = Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutiveSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutiveSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradePlanningSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/trade-planning-summary`
+}
+
+/**
+ * @summary Trade Planning Summary Report (Phase 28) — the calling user's own Trade Plans (trading_trade_plans) and Trading Risk analysis (lib/tradingRisk.ts), reused directly. Pure composition, zero new analysis.
+ */
+export const getTradePlanningSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetTradePlanningSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradePlanningSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/trade-planning-summary`
+    ] as const;
+    }
+
+
+export const getGetTradePlanningSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradePlanningSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>> = ({ signal }) => getTradePlanningSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradePlanningSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>>
+export type GetTradePlanningSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Trade Planning Summary Report (Phase 28) — the calling user's own Trade Plans (trading_trade_plans) and Trading Risk analysis (lib/tradingRisk.ts), reused directly. Pure composition, zero new analysis.
+ */
+
+export function useGetTradePlanningSummaryReport<TData = Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradePlanningSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradePlanningSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveInstitutionalReportUrl = () => {
+
+
+
+
+  return `/api/reporting/reports`
+}
+
+/**
+ * @summary Regenerate the given report type server-side and persist it to the calling user's own history (never trusts a client-supplied report body)
+ */
+export const saveInstitutionalReport = async (saveInstitutionalReportInput: SaveInstitutionalReportInput, options?: RequestInit): Promise<SavedInstitutionalReport> => {
+
+  return customFetch<SavedInstitutionalReport>(getSaveInstitutionalReportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      saveInstitutionalReportInput,)
+  }
+);}
+
+
+
+
+export const getSaveInstitutionalReportMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveInstitutionalReport>>, TError,{data: BodyType<SaveInstitutionalReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveInstitutionalReport>>, TError,{data: BodyType<SaveInstitutionalReportInput>}, TContext> => {
+
+const mutationKey = ['saveInstitutionalReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveInstitutionalReport>>, {data: BodyType<SaveInstitutionalReportInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveInstitutionalReport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveInstitutionalReportMutationResult = NonNullable<Awaited<ReturnType<typeof saveInstitutionalReport>>>
+    export type SaveInstitutionalReportMutationBody = BodyType<SaveInstitutionalReportInput>
+    export type SaveInstitutionalReportMutationError = ErrorType<void>
+
+    /**
+ * @summary Regenerate the given report type server-side and persist it to the calling user's own history (never trusts a client-supplied report body)
+ */
+export const useSaveInstitutionalReport = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveInstitutionalReport>>, TError,{data: BodyType<SaveInstitutionalReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveInstitutionalReport>>,
+        TError,
+        {data: BodyType<SaveInstitutionalReportInput>},
+        TContext
+      > => {
+      return useMutation(getSaveInstitutionalReportMutationOptions(options));
+    }
+
+export const getListInstitutionalReportsUrl = () => {
+
+
+
+
+  return `/api/reporting/reports`
+}
+
+/**
+ * @summary List the calling user's own persisted Institutional Reports, newest first
+ */
+export const listInstitutionalReports = async ( options?: RequestInit): Promise<InstitutionalReportListItem[]> => {
+
+  return customFetch<InstitutionalReportListItem[]>(getListInstitutionalReportsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInstitutionalReportsQueryKey = () => {
+    return [
+    `/api/reporting/reports`
+    ] as const;
+    }
+
+
+export const getListInstitutionalReportsQueryOptions = <TData = Awaited<ReturnType<typeof listInstitutionalReports>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInstitutionalReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInstitutionalReportsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInstitutionalReports>>> = ({ signal }) => listInstitutionalReports({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInstitutionalReports>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListInstitutionalReportsQueryResult = NonNullable<Awaited<ReturnType<typeof listInstitutionalReports>>>
+export type ListInstitutionalReportsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's own persisted Institutional Reports, newest first
+ */
+
+export function useListInstitutionalReports<TData = Awaited<ReturnType<typeof listInstitutionalReports>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInstitutionalReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListInstitutionalReportsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSavedInstitutionalReportUrl = (id: number,) => {
+
+
+
+
+  return `/api/reporting/reports/${id}`
+}
+
+/**
+ * @summary Fetch one persisted Institutional Report by id (ownership-scoped)
+ */
+export const getSavedInstitutionalReport = async (id: number, options?: RequestInit): Promise<SavedInstitutionalReport> => {
+
+  return customFetch<SavedInstitutionalReport>(getGetSavedInstitutionalReportUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSavedInstitutionalReportQueryKey = (id: number,) => {
+    return [
+    `/api/reporting/reports/${id}`
+    ] as const;
+    }
+
+
+export const getGetSavedInstitutionalReportQueryOptions = <TData = Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSavedInstitutionalReportQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSavedInstitutionalReport>>> = ({ signal }) => getSavedInstitutionalReport(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSavedInstitutionalReportQueryResult = NonNullable<Awaited<ReturnType<typeof getSavedInstitutionalReport>>>
+export type GetSavedInstitutionalReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Fetch one persisted Institutional Report by id (ownership-scoped)
+ */
+
+export function useGetSavedInstitutionalReport<TData = Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSavedInstitutionalReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSavedInstitutionalReportQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getDeleteInstitutionalReportUrl = (id: number,) => {
+
+
+
+
+  return `/api/reporting/reports/${id}`
+}
+
+/**
+ * @summary Delete one persisted Institutional Report by id (ownership-scoped)
+ */
+export const deleteInstitutionalReport = async (id: number, options?: RequestInit): Promise<DeleteInstitutionalReport200> => {
+
+  return customFetch<DeleteInstitutionalReport200>(getDeleteInstitutionalReportUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteInstitutionalReportMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInstitutionalReport>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteInstitutionalReport>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteInstitutionalReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteInstitutionalReport>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteInstitutionalReport(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteInstitutionalReportMutationResult = NonNullable<Awaited<ReturnType<typeof deleteInstitutionalReport>>>
+
+    export type DeleteInstitutionalReportMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete one persisted Institutional Report by id (ownership-scoped)
+ */
+export const useDeleteInstitutionalReport = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInstitutionalReport>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteInstitutionalReport>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteInstitutionalReportMutationOptions(options));
+    }
+
+export const getListInvestingWatchlistsUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists`
+}
+
+/**
+ * @summary The calling user's own watchlists (personal and institutional), manually ordered.
+ */
+export const listInvestingWatchlists = async ( options?: RequestInit): Promise<InvestingWatchlist[]> => {
+
+  return customFetch<InvestingWatchlist[]>(getListInvestingWatchlistsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListInvestingWatchlistsQueryKey = () => {
+    return [
+    `/api/investing/watchlists`
+    ] as const;
+    }
+
+
+export const getListInvestingWatchlistsQueryOptions = <TData = Awaited<ReturnType<typeof listInvestingWatchlists>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInvestingWatchlists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListInvestingWatchlistsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listInvestingWatchlists>>> = ({ signal }) => listInvestingWatchlists({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listInvestingWatchlists>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListInvestingWatchlistsQueryResult = NonNullable<Awaited<ReturnType<typeof listInvestingWatchlists>>>
+export type ListInvestingWatchlistsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own watchlists (personal and institutional), manually ordered.
+ */
+
+export function useListInvestingWatchlists<TData = Awaited<ReturnType<typeof listInvestingWatchlists>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listInvestingWatchlists>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListInvestingWatchlistsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateInvestingWatchlistUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists`
+}
+
+/**
+ * @summary Create a new watchlist. Nothing is ever auto-created — every list originates from an explicit user action.
+ */
+export const createInvestingWatchlist = async (createInvestingWatchlistInput: CreateInvestingWatchlistInput, options?: RequestInit): Promise<InvestingWatchlist> => {
+
+  return customFetch<InvestingWatchlist>(getCreateInvestingWatchlistUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createInvestingWatchlistInput,)
+  }
+);}
+
+
+
+
+export const getCreateInvestingWatchlistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInvestingWatchlist>>, TError,{data: BodyType<CreateInvestingWatchlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createInvestingWatchlist>>, TError,{data: BodyType<CreateInvestingWatchlistInput>}, TContext> => {
+
+const mutationKey = ['createInvestingWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createInvestingWatchlist>>, {data: BodyType<CreateInvestingWatchlistInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createInvestingWatchlist(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateInvestingWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof createInvestingWatchlist>>>
+    export type CreateInvestingWatchlistMutationBody = BodyType<CreateInvestingWatchlistInput>
+    export type CreateInvestingWatchlistMutationError = ErrorType<void>
+
+    /**
+ * @summary Create a new watchlist. Nothing is ever auto-created — every list originates from an explicit user action.
+ */
+export const useCreateInvestingWatchlist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createInvestingWatchlist>>, TError,{data: BodyType<CreateInvestingWatchlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createInvestingWatchlist>>,
+        TError,
+        {data: BodyType<CreateInvestingWatchlistInput>},
+        TContext
+      > => {
+      return useMutation(getCreateInvestingWatchlistMutationOptions(options));
+    }
+
+export const getReorderInvestingWatchlistsUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists/reorder`
+}
+
+/**
+ * @summary Manually reorder the calling user's own watchlists.
+ */
+export const reorderInvestingWatchlists = async (watchlistReorderInput: WatchlistReorderInput, options?: RequestInit): Promise<ReorderInvestingWatchlists200> => {
+
+  return customFetch<ReorderInvestingWatchlists200>(getReorderInvestingWatchlistsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      watchlistReorderInput,)
+  }
+);}
+
+
+
+
+export const getReorderInvestingWatchlistsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlists>>, TError,{data: BodyType<WatchlistReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlists>>, TError,{data: BodyType<WatchlistReorderInput>}, TContext> => {
+
+const mutationKey = ['reorderInvestingWatchlists'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderInvestingWatchlists>>, {data: BodyType<WatchlistReorderInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderInvestingWatchlists(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderInvestingWatchlistsMutationResult = NonNullable<Awaited<ReturnType<typeof reorderInvestingWatchlists>>>
+    export type ReorderInvestingWatchlistsMutationBody = BodyType<WatchlistReorderInput>
+    export type ReorderInvestingWatchlistsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually reorder the calling user's own watchlists.
+ */
+export const useReorderInvestingWatchlists = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlists>>, TError,{data: BodyType<WatchlistReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderInvestingWatchlists>>,
+        TError,
+        {data: BodyType<WatchlistReorderInput>},
+        TContext
+      > => {
+      return useMutation(getReorderInvestingWatchlistsMutationOptions(options));
+    }
+
+export const getGetWatchlistsDashboardUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists/dashboard`
+}
+
+/**
+ * @summary The calling user's own full Watchlists & Opportunity Dashboard — every watchlist, every item's own per-symbol analytics (reused from the Risk & Exposure, Performance, Scenario, and Compliance engines), an Opportunity Overview across every distinct watched symbol, Watchlist Health, a Cross-Engine Summary, and a dashboard-level summary. Monitoring and organisation only — never a trade recommendation, buy/sell signal, or ranked opportunity score.
+ */
+export const getWatchlistsDashboard = async ( options?: RequestInit): Promise<WatchlistsDashboard> => {
+
+  return customFetch<WatchlistsDashboard>(getGetWatchlistsDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistsDashboardQueryKey = () => {
+    return [
+    `/api/investing/watchlists/dashboard`
+    ] as const;
+    }
+
+
+export const getGetWatchlistsDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistsDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistsDashboard>>> = ({ signal }) => getWatchlistsDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistsDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistsDashboard>>>
+export type GetWatchlistsDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own full Watchlists & Opportunity Dashboard — every watchlist, every item's own per-symbol analytics (reused from the Risk & Exposure, Performance, Scenario, and Compliance engines), an Opportunity Overview across every distinct watched symbol, Watchlist Health, a Cross-Engine Summary, and a dashboard-level summary. Monitoring and organisation only — never a trade recommendation, buy/sell signal, or ranked opportunity score.
+ */
+
+export function useGetWatchlistsDashboard<TData = Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistsDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInvestingWatchlistUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}`
+}
+
+/**
+ * @summary One watchlist by id, with its own items.
+ */
+export const getInvestingWatchlist = async (id: number, options?: RequestInit): Promise<InvestingWatchlistWithItems> => {
+
+  return customFetch<InvestingWatchlistWithItems>(getGetInvestingWatchlistUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInvestingWatchlistQueryKey = (id: number,) => {
+    return [
+    `/api/investing/watchlists/${id}`
+    ] as const;
+    }
+
+
+export const getGetInvestingWatchlistQueryOptions = <TData = Awaited<ReturnType<typeof getInvestingWatchlist>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestingWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInvestingWatchlistQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInvestingWatchlist>>> = ({ signal }) => getInvestingWatchlist(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInvestingWatchlist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInvestingWatchlistQueryResult = NonNullable<Awaited<ReturnType<typeof getInvestingWatchlist>>>
+export type GetInvestingWatchlistQueryError = ErrorType<void>
+
+
+/**
+ * @summary One watchlist by id, with its own items.
+ */
+
+export function useGetInvestingWatchlist<TData = Awaited<ReturnType<typeof getInvestingWatchlist>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInvestingWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInvestingWatchlistQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateInvestingWatchlistUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}`
+}
+
+/**
+ * @summary Rename, re-describe, re-label, archive/unarchive, or manually re-sort a watchlist.
+ */
+export const updateInvestingWatchlist = async (id: number,
+    updateInvestingWatchlistInput: UpdateInvestingWatchlistInput, options?: RequestInit): Promise<InvestingWatchlist> => {
+
+  return customFetch<InvestingWatchlist>(getUpdateInvestingWatchlistUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateInvestingWatchlistInput,)
+  }
+);}
+
+
+
+
+export const getUpdateInvestingWatchlistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlist>>, TError,{id: number;data: BodyType<UpdateInvestingWatchlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlist>>, TError,{id: number;data: BodyType<UpdateInvestingWatchlistInput>}, TContext> => {
+
+const mutationKey = ['updateInvestingWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateInvestingWatchlist>>, {id: number;data: BodyType<UpdateInvestingWatchlistInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateInvestingWatchlist(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateInvestingWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof updateInvestingWatchlist>>>
+    export type UpdateInvestingWatchlistMutationBody = BodyType<UpdateInvestingWatchlistInput>
+    export type UpdateInvestingWatchlistMutationError = ErrorType<void>
+
+    /**
+ * @summary Rename, re-describe, re-label, archive/unarchive, or manually re-sort a watchlist.
+ */
+export const useUpdateInvestingWatchlist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlist>>, TError,{id: number;data: BodyType<UpdateInvestingWatchlistInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateInvestingWatchlist>>,
+        TError,
+        {id: number;data: BodyType<UpdateInvestingWatchlistInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateInvestingWatchlistMutationOptions(options));
+    }
+
+export const getDeleteInvestingWatchlistUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}`
+}
+
+/**
+ * @summary Delete a watchlist. Its own items are deleted with it (ON DELETE CASCADE) — a routine self-service cleanup of your own sub-resource.
+ */
+export const deleteInvestingWatchlist = async (id: number, options?: RequestInit): Promise<DeleteInvestingWatchlist200> => {
+
+  return customFetch<DeleteInvestingWatchlist200>(getDeleteInvestingWatchlistUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteInvestingWatchlistMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInvestingWatchlist>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteInvestingWatchlist>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteInvestingWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteInvestingWatchlist>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteInvestingWatchlist(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteInvestingWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof deleteInvestingWatchlist>>>
+
+    export type DeleteInvestingWatchlistMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a watchlist. Its own items are deleted with it (ON DELETE CASCADE) — a routine self-service cleanup of your own sub-resource.
+ */
+export const useDeleteInvestingWatchlist = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInvestingWatchlist>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteInvestingWatchlist>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteInvestingWatchlistMutationOptions(options));
+    }
+
+export const getAddInvestingWatchlistItemUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}/items`
+}
+
+/**
+ * @summary Add a symbol to a watchlist, with an optional category/tags/notes.
+ */
+export const addInvestingWatchlistItem = async (id: number,
+    createInvestingWatchlistItemInput: CreateInvestingWatchlistItemInput, options?: RequestInit): Promise<InvestingWatchlistItemPlain> => {
+
+  return customFetch<InvestingWatchlistItemPlain>(getAddInvestingWatchlistItemUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createInvestingWatchlistItemInput,)
+  }
+);}
+
+
+
+
+export const getAddInvestingWatchlistItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addInvestingWatchlistItem>>, TError,{id: number;data: BodyType<CreateInvestingWatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addInvestingWatchlistItem>>, TError,{id: number;data: BodyType<CreateInvestingWatchlistItemInput>}, TContext> => {
+
+const mutationKey = ['addInvestingWatchlistItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addInvestingWatchlistItem>>, {id: number;data: BodyType<CreateInvestingWatchlistItemInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addInvestingWatchlistItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddInvestingWatchlistItemMutationResult = NonNullable<Awaited<ReturnType<typeof addInvestingWatchlistItem>>>
+    export type AddInvestingWatchlistItemMutationBody = BodyType<CreateInvestingWatchlistItemInput>
+    export type AddInvestingWatchlistItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Add a symbol to a watchlist, with an optional category/tags/notes.
+ */
+export const useAddInvestingWatchlistItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addInvestingWatchlistItem>>, TError,{id: number;data: BodyType<CreateInvestingWatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addInvestingWatchlistItem>>,
+        TError,
+        {id: number;data: BodyType<CreateInvestingWatchlistItemInput>},
+        TContext
+      > => {
+      return useMutation(getAddInvestingWatchlistItemMutationOptions(options));
+    }
+
+export const getReorderInvestingWatchlistItemsUrl = (id: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}/items/reorder`
+}
+
+/**
+ * @summary Manually reorder the symbols within a watchlist.
+ */
+export const reorderInvestingWatchlistItems = async (id: number,
+    watchlistReorderInput: WatchlistReorderInput, options?: RequestInit): Promise<ReorderInvestingWatchlistItems200> => {
+
+  return customFetch<ReorderInvestingWatchlistItems200>(getReorderInvestingWatchlistItemsUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      watchlistReorderInput,)
+  }
+);}
+
+
+
+
+export const getReorderInvestingWatchlistItemsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>, TError,{id: number;data: BodyType<WatchlistReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>, TError,{id: number;data: BodyType<WatchlistReorderInput>}, TContext> => {
+
+const mutationKey = ['reorderInvestingWatchlistItems'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>, {id: number;data: BodyType<WatchlistReorderInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reorderInvestingWatchlistItems(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderInvestingWatchlistItemsMutationResult = NonNullable<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>>
+    export type ReorderInvestingWatchlistItemsMutationBody = BodyType<WatchlistReorderInput>
+    export type ReorderInvestingWatchlistItemsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually reorder the symbols within a watchlist.
+ */
+export const useReorderInvestingWatchlistItems = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>, TError,{id: number;data: BodyType<WatchlistReorderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderInvestingWatchlistItems>>,
+        TError,
+        {id: number;data: BodyType<WatchlistReorderInput>},
+        TContext
+      > => {
+      return useMutation(getReorderInvestingWatchlistItemsMutationOptions(options));
+    }
+
+export const getUpdateInvestingWatchlistItemUrl = (id: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}/items/${itemId}`
+}
+
+/**
+ * @summary Update a watched symbol's own category/tags/notes/manual order.
+ */
+export const updateInvestingWatchlistItem = async (id: number,
+    itemId: number,
+    updateInvestingWatchlistItemInput: UpdateInvestingWatchlistItemInput, options?: RequestInit): Promise<InvestingWatchlistItemPlain> => {
+
+  return customFetch<InvestingWatchlistItemPlain>(getUpdateInvestingWatchlistItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateInvestingWatchlistItemInput,)
+  }
+);}
+
+
+
+
+export const getUpdateInvestingWatchlistItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>, TError,{id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>, TError,{id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>}, TContext> => {
+
+const mutationKey = ['updateInvestingWatchlistItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>, {id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>}> = (props) => {
+          const {id,itemId,data} = props ?? {};
+
+          return  updateInvestingWatchlistItem(id,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateInvestingWatchlistItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>>
+    export type UpdateInvestingWatchlistItemMutationBody = BodyType<UpdateInvestingWatchlistItemInput>
+    export type UpdateInvestingWatchlistItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a watched symbol's own category/tags/notes/manual order.
+ */
+export const useUpdateInvestingWatchlistItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateInvestingWatchlistItem>>, TError,{id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateInvestingWatchlistItem>>,
+        TError,
+        {id: number;itemId: number;data: BodyType<UpdateInvestingWatchlistItemInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateInvestingWatchlistItemMutationOptions(options));
+    }
+
+export const getRemoveInvestingWatchlistItemUrl = (id: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/investing/watchlists/${id}/items/${itemId}`
+}
+
+/**
+ * @summary Remove a symbol from a watchlist.
+ */
+export const removeInvestingWatchlistItem = async (id: number,
+    itemId: number, options?: RequestInit): Promise<RemoveInvestingWatchlistItem200> => {
+
+  return customFetch<RemoveInvestingWatchlistItem200>(getRemoveInvestingWatchlistItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRemoveInvestingWatchlistItemMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>, TError,{id: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>, TError,{id: number;itemId: number}, TContext> => {
+
+const mutationKey = ['removeInvestingWatchlistItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>, {id: number;itemId: number}> = (props) => {
+          const {id,itemId} = props ?? {};
+
+          return  removeInvestingWatchlistItem(id,itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveInvestingWatchlistItemMutationResult = NonNullable<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>>
+
+    export type RemoveInvestingWatchlistItemMutationError = ErrorType<void>
+
+    /**
+ * @summary Remove a symbol from a watchlist.
+ */
+export const useRemoveInvestingWatchlistItem = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeInvestingWatchlistItem>>, TError,{id: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeInvestingWatchlistItem>>,
+        TError,
+        {id: number;itemId: number},
+        TContext
+      > => {
+      return useMutation(getRemoveInvestingWatchlistItemMutationOptions(options));
+    }
+
+export const getListWatchlistsCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (watchlists, research workflow, institutional monitoring, portfolio organisation, asset tracking). Never a trade recommendation.
+ */
+export const listWatchlistsCoachTopics = async ( options?: RequestInit): Promise<WatchlistsCoachExplanation[]> => {
+
+  return customFetch<WatchlistsCoachExplanation[]>(getListWatchlistsCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWatchlistsCoachTopicsQueryKey = () => {
+    return [
+    `/api/investing/watchlists/coach`
+    ] as const;
+    }
+
+
+export const getListWatchlistsCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWatchlistsCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>> = ({ signal }) => listWatchlistsCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWatchlistsCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>>
+export type ListWatchlistsCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (watchlists, research workflow, institutional monitoring, portfolio organisation, asset tracking). Never a trade recommendation.
+ */
+
+export function useListWatchlistsCoachTopics<TData = Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWatchlistsCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchlistsCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/investing/watchlists/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getWatchlistsCoachTopic = async (topic: string, options?: RequestInit): Promise<WatchlistsCoachExplanation> => {
+
+  return customFetch<WatchlistsCoachExplanation>(getGetWatchlistsCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistsCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/investing/watchlists/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetWatchlistsCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistsCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>> = ({ signal }) => getWatchlistsCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistsCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>>
+export type GetWatchlistsCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetWatchlistsCoachTopic<TData = Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistsCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWatchlistsLearningUrl = () => {
+
+
+
+
+  return `/api/investing/watchlists/learning`
+}
+
+/**
+ * @summary Every Watchlists topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listWatchlistsLearning = async ( options?: RequestInit): Promise<WatchlistsTopicLearning[]> => {
+
+  return customFetch<WatchlistsTopicLearning[]>(getListWatchlistsLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWatchlistsLearningQueryKey = () => {
+    return [
+    `/api/investing/watchlists/learning`
+    ] as const;
+    }
+
+
+export const getListWatchlistsLearningQueryOptions = <TData = Awaited<ReturnType<typeof listWatchlistsLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWatchlistsLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWatchlistsLearning>>> = ({ signal }) => listWatchlistsLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWatchlistsLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listWatchlistsLearning>>>
+export type ListWatchlistsLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Watchlists topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListWatchlistsLearning<TData = Awaited<ReturnType<typeof listWatchlistsLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWatchlistsLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWatchlistsLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchlistsLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/investing/watchlists/learning/${topic}`
+}
+
+/**
+ * @summary One Watchlists topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getWatchlistsLearning = async (topic: string, options?: RequestInit): Promise<WatchlistsTopicLearning> => {
+
+  return customFetch<WatchlistsTopicLearning>(getGetWatchlistsLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistsLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/investing/watchlists/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetWatchlistsLearningQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistsLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistsLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistsLearning>>> = ({ signal }) => getWatchlistsLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistsLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistsLearning>>>
+export type GetWatchlistsLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Watchlists topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetWatchlistsLearning<TData = Awaited<ReturnType<typeof getWatchlistsLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistsLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistsLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchlistSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/watchlist-summary-report`
+}
+
+/**
+ * @summary Watchlist Summary Report (Phase 43) — the Watchlists Dashboard's own summary/health/cross-engine view, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations.
+ */
+export const getWatchlistSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetWatchlistSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/watchlist-summary-report`
+    ] as const;
+    }
+
+
+export const getGetWatchlistSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlistSummaryReport>>> = ({ signal }) => getWatchlistSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlistSummaryReport>>>
+export type GetWatchlistSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Watchlist Summary Report (Phase 43) — the Watchlists Dashboard's own summary/health/cross-engine view, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations.
+ */
+
+export function useGetWatchlistSummaryReport<TData = Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlistSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOpportunityDashboardReportUrl = () => {
+
+
+
+
+  return `/api/reporting/opportunity-dashboard-report`
+}
+
+/**
+ * @summary Opportunity Dashboard Report (Phase 43) — the full per-symbol Opportunity Overview across every watched symbol, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations, no ranked/scored opportunity signal.
+ */
+export const getOpportunityDashboardReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetOpportunityDashboardReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOpportunityDashboardReportQueryKey = () => {
+    return [
+    `/api/reporting/opportunity-dashboard-report`
+    ] as const;
+    }
+
+
+export const getGetOpportunityDashboardReportQueryOptions = <TData = Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOpportunityDashboardReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOpportunityDashboardReport>>> = ({ signal }) => getOpportunityDashboardReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOpportunityDashboardReportQueryResult = NonNullable<Awaited<ReturnType<typeof getOpportunityDashboardReport>>>
+export type GetOpportunityDashboardReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Opportunity Dashboard Report (Phase 43) — the full per-symbol Opportunity Overview across every watched symbol, reused directly from the Institutional Watchlists & Opportunity Dashboard. Monitoring only — no trade recommendations, no ranked/scored opportunity signal.
+ */
+
+export function useGetOpportunityDashboardReport<TData = Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOpportunityDashboardReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOpportunityDashboardReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioWorkspaceDashboardUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/dashboard`
+}
+
+/**
+ * @summary The full Institutional Portfolio Workspace dashboard — Executive Home, Portfolio Snapshot (reused wholesale from the Decision Support Engine), Holdings/Trading/Options/Risk/Performance/Compliance/Watchlists Overview, Recent Reports, Active Workflows, and a merged Outstanding Issues list. Orchestration only — no trade recommendations, no AI predictions.
+ */
+export const getPortfolioWorkspaceDashboard = async ( options?: RequestInit): Promise<PortfolioWorkspaceDashboard> => {
+
+  return customFetch<PortfolioWorkspaceDashboard>(getGetPortfolioWorkspaceDashboardUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioWorkspaceDashboardQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/dashboard`
+    ] as const;
+    }
+
+
+export const getGetPortfolioWorkspaceDashboardQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioWorkspaceDashboardQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>> = ({ signal }) => getPortfolioWorkspaceDashboard({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioWorkspaceDashboardQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>>
+export type GetPortfolioWorkspaceDashboardQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The full Institutional Portfolio Workspace dashboard — Executive Home, Portfolio Snapshot (reused wholesale from the Decision Support Engine), Holdings/Trading/Options/Risk/Performance/Compliance/Watchlists Overview, Recent Reports, Active Workflows, and a merged Outstanding Issues list. Orchestration only — no trade recommendations, no AI predictions.
+ */
+
+export function useGetPortfolioWorkspaceDashboard<TData = Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceDashboard>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioWorkspaceDashboardQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWorkflowDefinitionsUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/workflows`
+}
+
+/**
+ * @summary The static Workflow Center catalog (Morning/Weekly/Monthly/Quarterly/Portfolio/Risk/Compliance/Performance/Scenario Review) — every step is a deep link into an already-shipped page. Never automation.
+ */
+export const listWorkflowDefinitions = async ( options?: RequestInit): Promise<WorkflowDefinition[]> => {
+
+  return customFetch<WorkflowDefinition[]>(getListWorkflowDefinitionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkflowDefinitionsQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/workflows`
+    ] as const;
+    }
+
+
+export const getListWorkflowDefinitionsQueryOptions = <TData = Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkflowDefinitionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkflowDefinitions>>> = ({ signal }) => listWorkflowDefinitions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkflowDefinitionsQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkflowDefinitions>>>
+export type ListWorkflowDefinitionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The static Workflow Center catalog (Morning/Weekly/Monthly/Quarterly/Portfolio/Risk/Compliance/Performance/Scenario Review) — every step is a deep link into an already-shipped page. Never automation.
+ */
+
+export function useListWorkflowDefinitions<TData = Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkflowDefinitions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkflowDefinitionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWorkflowInstancesUrl = (params?: ListWorkflowInstancesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/portfolio-workspace/workflows/instances?${stringifiedParams}` : `/api/portfolio-workspace/workflows/instances`
+}
+
+/**
+ * @summary The calling user's own started workflow instances, optionally filtered by status.
+ */
+export const listWorkflowInstances = async (params?: ListWorkflowInstancesParams, options?: RequestInit): Promise<WorkflowInstance[]> => {
+
+  return customFetch<WorkflowInstance[]>(getListWorkflowInstancesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkflowInstancesQueryKey = (params?: ListWorkflowInstancesParams,) => {
+    return [
+    `/api/portfolio-workspace/workflows/instances`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListWorkflowInstancesQueryOptions = <TData = Awaited<ReturnType<typeof listWorkflowInstances>>, TError = ErrorType<unknown>>(params?: ListWorkflowInstancesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkflowInstances>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkflowInstancesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkflowInstances>>> = ({ signal }) => listWorkflowInstances(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkflowInstances>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkflowInstancesQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkflowInstances>>>
+export type ListWorkflowInstancesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own started workflow instances, optionally filtered by status.
+ */
+
+export function useListWorkflowInstances<TData = Awaited<ReturnType<typeof listWorkflowInstances>>, TError = ErrorType<unknown>>(
+ params?: ListWorkflowInstancesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkflowInstances>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkflowInstancesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getStartWorkflowInstanceUrl = (key: string,) => {
+
+
+
+
+  return `/api/portfolio-workspace/workflows/${key}/start`
+}
+
+/**
+ * @summary Start a new instance of a catalog workflow.
+ */
+export const startWorkflowInstance = async (key: string, options?: RequestInit): Promise<WorkflowInstance> => {
+
+  return customFetch<WorkflowInstance>(getStartWorkflowInstanceUrl(key),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getStartWorkflowInstanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startWorkflowInstance>>, TError,{key: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startWorkflowInstance>>, TError,{key: string}, TContext> => {
+
+const mutationKey = ['startWorkflowInstance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startWorkflowInstance>>, {key: string}> = (props) => {
+          const {key} = props ?? {};
+
+          return  startWorkflowInstance(key,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartWorkflowInstanceMutationResult = NonNullable<Awaited<ReturnType<typeof startWorkflowInstance>>>
+
+    export type StartWorkflowInstanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Start a new instance of a catalog workflow.
+ */
+export const useStartWorkflowInstance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startWorkflowInstance>>, TError,{key: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startWorkflowInstance>>,
+        TError,
+        {key: string},
+        TContext
+      > => {
+      return useMutation(getStartWorkflowInstanceMutationOptions(options));
+    }
+
+export const getUpdateWorkflowInstanceUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-workspace/workflows/instances/${id}`
+}
+
+/**
+ * @summary Toggle one step's completion, or set the instance's own status (active/abandoned). A step-completion update never changes anything about the user's portfolio, positions, or trades — it only records that the user reviewed that step.
+ */
+export const updateWorkflowInstance = async (id: number,
+    updateWorkflowInstanceInput: UpdateWorkflowInstanceInput, options?: RequestInit): Promise<WorkflowInstance> => {
+
+  return customFetch<WorkflowInstance>(getUpdateWorkflowInstanceUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateWorkflowInstanceInput,)
+  }
+);}
+
+
+
+
+export const getUpdateWorkflowInstanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkflowInstance>>, TError,{id: number;data: BodyType<UpdateWorkflowInstanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateWorkflowInstance>>, TError,{id: number;data: BodyType<UpdateWorkflowInstanceInput>}, TContext> => {
+
+const mutationKey = ['updateWorkflowInstance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateWorkflowInstance>>, {id: number;data: BodyType<UpdateWorkflowInstanceInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateWorkflowInstance(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateWorkflowInstanceMutationResult = NonNullable<Awaited<ReturnType<typeof updateWorkflowInstance>>>
+    export type UpdateWorkflowInstanceMutationBody = BodyType<UpdateWorkflowInstanceInput>
+    export type UpdateWorkflowInstanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Toggle one step's completion, or set the instance's own status (active/abandoned). A step-completion update never changes anything about the user's portfolio, positions, or trades — it only records that the user reviewed that step.
+ */
+export const useUpdateWorkflowInstance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateWorkflowInstance>>, TError,{id: number;data: BodyType<UpdateWorkflowInstanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateWorkflowInstance>>,
+        TError,
+        {id: number;data: BodyType<UpdateWorkflowInstanceInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateWorkflowInstanceMutationOptions(options));
+    }
+
+export const getDeleteWorkflowInstanceUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-workspace/workflows/instances/${id}`
+}
+
+/**
+ * @summary Delete a workflow instance (its own tracked progress only — never touches the static catalog definition).
+ */
+export const deleteWorkflowInstance = async (id: number, options?: RequestInit): Promise<DeleteWorkflowInstance200> => {
+
+  return customFetch<DeleteWorkflowInstance200>(getDeleteWorkflowInstanceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteWorkflowInstanceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkflowInstance>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteWorkflowInstance>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteWorkflowInstance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteWorkflowInstance>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteWorkflowInstance(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteWorkflowInstanceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteWorkflowInstance>>>
+
+    export type DeleteWorkflowInstanceMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a workflow instance (its own tracked progress only — never touches the static catalog definition).
+ */
+export const useDeleteWorkflowInstance = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteWorkflowInstance>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteWorkflowInstance>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteWorkflowInstanceMutationOptions(options));
+    }
+
+export const getListPinnedResourcesUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/pins`
+}
+
+/**
+ * @summary The calling user's own pinned resources (Favorites) — dashboards, reports, watchlists, strategies, learning topics, or a plain page.
+ */
+export const listPinnedResources = async ( options?: RequestInit): Promise<PinnedResource[]> => {
+
+  return customFetch<PinnedResource[]>(getListPinnedResourcesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPinnedResourcesQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/pins`
+    ] as const;
+    }
+
+
+export const getListPinnedResourcesQueryOptions = <TData = Awaited<ReturnType<typeof listPinnedResources>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPinnedResources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPinnedResourcesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPinnedResources>>> = ({ signal }) => listPinnedResources({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPinnedResources>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPinnedResourcesQueryResult = NonNullable<Awaited<ReturnType<typeof listPinnedResources>>>
+export type ListPinnedResourcesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own pinned resources (Favorites) — dashboards, reports, watchlists, strategies, learning topics, or a plain page.
+ */
+
+export function useListPinnedResources<TData = Awaited<ReturnType<typeof listPinnedResources>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPinnedResources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPinnedResourcesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getPinResourceUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/pins`
+}
+
+/**
+ * @summary Pin a resource. Never auto-pinned — every pin originates from this explicit call.
+ */
+export const pinResource = async (pinResourceInput: PinResourceInput, options?: RequestInit): Promise<PinnedResource> => {
+
+  return customFetch<PinnedResource>(getPinResourceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      pinResourceInput,)
+  }
+);}
+
+
+
+
+export const getPinResourceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pinResource>>, TError,{data: BodyType<PinResourceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pinResource>>, TError,{data: BodyType<PinResourceInput>}, TContext> => {
+
+const mutationKey = ['pinResource'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pinResource>>, {data: BodyType<PinResourceInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  pinResource(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PinResourceMutationResult = NonNullable<Awaited<ReturnType<typeof pinResource>>>
+    export type PinResourceMutationBody = BodyType<PinResourceInput>
+    export type PinResourceMutationError = ErrorType<void>
+
+    /**
+ * @summary Pin a resource. Never auto-pinned — every pin originates from this explicit call.
+ */
+export const usePinResource = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pinResource>>, TError,{data: BodyType<PinResourceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pinResource>>,
+        TError,
+        {data: BodyType<PinResourceInput>},
+        TContext
+      > => {
+      return useMutation(getPinResourceMutationOptions(options));
+    }
+
+export const getUnpinResourceUrl = (id: number,) => {
+
+
+
+
+  return `/api/portfolio-workspace/pins/${id}`
+}
+
+/**
+ * @summary Unpin a resource.
+ */
+export const unpinResource = async (id: number, options?: RequestInit): Promise<UnpinResource200> => {
+
+  return customFetch<UnpinResource200>(getUnpinResourceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getUnpinResourceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpinResource>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unpinResource>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['unpinResource'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unpinResource>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  unpinResource(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnpinResourceMutationResult = NonNullable<Awaited<ReturnType<typeof unpinResource>>>
+
+    export type UnpinResourceMutationError = ErrorType<void>
+
+    /**
+ * @summary Unpin a resource.
+ */
+export const useUnpinResource = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpinResource>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof unpinResource>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getUnpinResourceMutationOptions(options));
+    }
+
+export const getReorderPinnedResourcesUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/pins/reorder`
+}
+
+/**
+ * @summary Manually reorder the calling user's own pinned resources.
+ */
+export const reorderPinnedResources = async (reorderWorkspaceItemsInput: ReorderWorkspaceItemsInput, options?: RequestInit): Promise<ReorderPinnedResources200> => {
+
+  return customFetch<ReorderPinnedResources200>(getReorderPinnedResourcesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      reorderWorkspaceItemsInput,)
+  }
+);}
+
+
+
+
+export const getReorderPinnedResourcesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderPinnedResources>>, TError,{data: BodyType<ReorderWorkspaceItemsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderPinnedResources>>, TError,{data: BodyType<ReorderWorkspaceItemsInput>}, TContext> => {
+
+const mutationKey = ['reorderPinnedResources'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderPinnedResources>>, {data: BodyType<ReorderWorkspaceItemsInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  reorderPinnedResources(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderPinnedResourcesMutationResult = NonNullable<Awaited<ReturnType<typeof reorderPinnedResources>>>
+    export type ReorderPinnedResourcesMutationBody = BodyType<ReorderWorkspaceItemsInput>
+    export type ReorderPinnedResourcesMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually reorder the calling user's own pinned resources.
+ */
+export const useReorderPinnedResources = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderPinnedResources>>, TError,{data: BodyType<ReorderWorkspaceItemsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderPinnedResources>>,
+        TError,
+        {data: BodyType<ReorderWorkspaceItemsInput>},
+        TContext
+      > => {
+      return useMutation(getReorderPinnedResourcesMutationOptions(options));
+    }
+
+export const getListRecentViewsUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/recent-views`
+}
+
+/**
+ * @summary The calling user's own most-recently-viewed resources, opened from within the Portfolio Workspace itself — never a global, every-page view tracker.
+ */
+export const listRecentViews = async ( options?: RequestInit): Promise<RecentViewEntry[]> => {
+
+  return customFetch<RecentViewEntry[]>(getListRecentViewsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRecentViewsQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/recent-views`
+    ] as const;
+    }
+
+
+export const getListRecentViewsQueryOptions = <TData = Awaited<ReturnType<typeof listRecentViews>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRecentViews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRecentViewsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRecentViews>>> = ({ signal }) => listRecentViews({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRecentViews>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRecentViewsQueryResult = NonNullable<Awaited<ReturnType<typeof listRecentViews>>>
+export type ListRecentViewsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own most-recently-viewed resources, opened from within the Portfolio Workspace itself — never a global, every-page view tracker.
+ */
+
+export function useListRecentViews<TData = Awaited<ReturnType<typeof listRecentViews>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRecentViews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRecentViewsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRecordRecentViewUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/recent-views`
+}
+
+/**
+ * @summary Record that the calling user just opened a resource from the Portfolio Workspace.
+ */
+export const recordRecentView = async (recordRecentViewInput: RecordRecentViewInput, options?: RequestInit): Promise<RecentViewEntry> => {
+
+  return customFetch<RecentViewEntry>(getRecordRecentViewUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      recordRecentViewInput,)
+  }
+);}
+
+
+
+
+export const getRecordRecentViewMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordRecentView>>, TError,{data: BodyType<RecordRecentViewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordRecentView>>, TError,{data: BodyType<RecordRecentViewInput>}, TContext> => {
+
+const mutationKey = ['recordRecentView'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordRecentView>>, {data: BodyType<RecordRecentViewInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordRecentView(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordRecentViewMutationResult = NonNullable<Awaited<ReturnType<typeof recordRecentView>>>
+    export type RecordRecentViewMutationBody = BodyType<RecordRecentViewInput>
+    export type RecordRecentViewMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Record that the calling user just opened a resource from the Portfolio Workspace.
+ */
+export const useRecordRecentView = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordRecentView>>, TError,{data: BodyType<RecordRecentViewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordRecentView>>,
+        TError,
+        {data: BodyType<RecordRecentViewInput>},
+        TContext
+      > => {
+      return useMutation(getRecordRecentViewMutationOptions(options));
+    }
+
+export const getListQuickActionsUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/quick-actions`
+}
+
+/**
+ * @summary A fixed, curated list of navigation shortcuts into already-shipped surfaces — never persisted, never user-configurable.
+ */
+export const listQuickActions = async ( options?: RequestInit): Promise<QuickAction[]> => {
+
+  return customFetch<QuickAction[]>(getListQuickActionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuickActionsQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/quick-actions`
+    ] as const;
+    }
+
+
+export const getListQuickActionsQueryOptions = <TData = Awaited<ReturnType<typeof listQuickActions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuickActions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuickActionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuickActions>>> = ({ signal }) => listQuickActions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuickActions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListQuickActionsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuickActions>>>
+export type ListQuickActionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary A fixed, curated list of navigation shortcuts into already-shipped surfaces — never persisted, never user-configurable.
+ */
+
+export function useListQuickActions<TData = Awaited<ReturnType<typeof listQuickActions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listQuickActions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListQuickActionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWorkspaceCoachTopicsUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/coach`
+}
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio review workflows, institutional operating processes, review cycles, governance, reporting). Never a trade recommendation.
+ */
+export const listWorkspaceCoachTopics = async ( options?: RequestInit): Promise<WorkspaceCoachExplanation[]> => {
+
+  return customFetch<WorkspaceCoachExplanation[]>(getListWorkspaceCoachTopicsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkspaceCoachTopicsQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/coach`
+    ] as const;
+    }
+
+
+export const getListWorkspaceCoachTopicsQueryOptions = <TData = Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkspaceCoachTopicsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>> = ({ signal }) => listWorkspaceCoachTopics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkspaceCoachTopicsQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>>
+export type ListWorkspaceCoachTopicsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary All 5 deterministic AI Coach explanations (portfolio review workflows, institutional operating processes, review cycles, governance, reporting). Never a trade recommendation.
+ */
+
+export function useListWorkspaceCoachTopics<TData = Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceCoachTopics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkspaceCoachTopicsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWorkspaceCoachTopicUrl = (topic: string,) => {
+
+
+
+
+  return `/api/portfolio-workspace/coach/${topic}`
+}
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+export const getWorkspaceCoachTopic = async (topic: string, options?: RequestInit): Promise<WorkspaceCoachExplanation> => {
+
+  return customFetch<WorkspaceCoachExplanation>(getGetWorkspaceCoachTopicUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWorkspaceCoachTopicQueryKey = (topic: string,) => {
+    return [
+    `/api/portfolio-workspace/coach/${topic}`
+    ] as const;
+    }
+
+
+export const getGetWorkspaceCoachTopicQueryOptions = <TData = Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorkspaceCoachTopicQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>> = ({ signal }) => getWorkspaceCoachTopic(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWorkspaceCoachTopicQueryResult = NonNullable<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>>
+export type GetWorkspaceCoachTopicQueryError = ErrorType<void>
+
+
+/**
+ * @summary One deterministic AI Coach explanation by topic key. Never a trade recommendation.
+ */
+
+export function useGetWorkspaceCoachTopic<TData = Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceCoachTopic>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWorkspaceCoachTopicQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListWorkspaceLearningUrl = () => {
+
+
+
+
+  return `/api/portfolio-workspace/learning`
+}
+
+/**
+ * @summary Every Portfolio Workspace topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+export const listWorkspaceLearning = async ( options?: RequestInit): Promise<WorkspaceTopicLearning[]> => {
+
+  return customFetch<WorkspaceTopicLearning[]>(getListWorkspaceLearningUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListWorkspaceLearningQueryKey = () => {
+    return [
+    `/api/portfolio-workspace/learning`
+    ] as const;
+    }
+
+
+export const getListWorkspaceLearningQueryOptions = <TData = Awaited<ReturnType<typeof listWorkspaceLearning>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListWorkspaceLearningQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listWorkspaceLearning>>> = ({ signal }) => listWorkspaceLearning({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListWorkspaceLearningQueryResult = NonNullable<Awaited<ReturnType<typeof listWorkspaceLearning>>>
+export type ListWorkspaceLearningQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Every Portfolio Workspace topic connected to relevant EXISTING Learning Centre content — reused, never duplicated.
+ */
+
+export function useListWorkspaceLearning<TData = Awaited<ReturnType<typeof listWorkspaceLearning>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listWorkspaceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListWorkspaceLearningQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWorkspaceLearningUrl = (topic: string,) => {
+
+
+
+
+  return `/api/portfolio-workspace/learning/${topic}`
+}
+
+/**
+ * @summary One Portfolio Workspace topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+export const getWorkspaceLearning = async (topic: string, options?: RequestInit): Promise<WorkspaceTopicLearning> => {
+
+  return customFetch<WorkspaceTopicLearning>(getGetWorkspaceLearningUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWorkspaceLearningQueryKey = (topic: string,) => {
+    return [
+    `/api/portfolio-workspace/learning/${topic}`
+    ] as const;
+    }
+
+
+export const getGetWorkspaceLearningQueryOptions = <TData = Awaited<ReturnType<typeof getWorkspaceLearning>>, TError = ErrorType<void>>(topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorkspaceLearningQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkspaceLearning>>> = ({ signal }) => getWorkspaceLearning(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(topic), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceLearning>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWorkspaceLearningQueryResult = NonNullable<Awaited<ReturnType<typeof getWorkspaceLearning>>>
+export type GetWorkspaceLearningQueryError = ErrorType<void>
+
+
+/**
+ * @summary One Portfolio Workspace topic's own bundle of relevant EXISTING Learning Centre links.
+ */
+
+export function useGetWorkspaceLearning<TData = Awaited<ReturnType<typeof getWorkspaceLearning>>, TError = ErrorType<void>>(
+ topic: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceLearning>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWorkspaceLearningQueryOptions(topic,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPortfolioWorkspaceSummaryReportUrl = () => {
+
+
+
+
+  return `/api/reporting/portfolio-workspace-summary`
+}
+
+/**
+ * @summary Portfolio Workspace Summary Report (Phase 44) — the concise headline reformat of the full Portfolio Workspace dashboard. Orchestration only — no trade recommendations.
+ */
+export const getPortfolioWorkspaceSummaryReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetPortfolioWorkspaceSummaryReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPortfolioWorkspaceSummaryReportQueryKey = () => {
+    return [
+    `/api/reporting/portfolio-workspace-summary`
+    ] as const;
+    }
+
+
+export const getGetPortfolioWorkspaceSummaryReportQueryOptions = <TData = Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPortfolioWorkspaceSummaryReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>> = ({ signal }) => getPortfolioWorkspaceSummaryReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPortfolioWorkspaceSummaryReportQueryResult = NonNullable<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>>
+export type GetPortfolioWorkspaceSummaryReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Portfolio Workspace Summary Report (Phase 44) — the concise headline reformat of the full Portfolio Workspace dashboard. Orchestration only — no trade recommendations.
+ */
+
+export function useGetPortfolioWorkspaceSummaryReport<TData = Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPortfolioWorkspaceSummaryReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPortfolioWorkspaceSummaryReportQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetInstitutionalReviewReportUrl = () => {
+
+
+
+
+  return `/api/reporting/institutional-review-report`
+}
+
+/**
+ * @summary Institutional Review Report (Phase 44) — a deeper review record, the report a portfolio manager would generate and archive at the end of a completed Workflow Center review cycle. Orchestration only — no trade recommendations.
+ */
+export const getInstitutionalReviewReport = async ( options?: RequestInit): Promise<InstitutionalReport> => {
+
+  return customFetch<InstitutionalReport>(getGetInstitutionalReviewReportUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetInstitutionalReviewReportQueryKey = () => {
+    return [
+    `/api/reporting/institutional-review-report`
+    ] as const;
+    }
+
+
+export const getGetInstitutionalReviewReportQueryOptions = <TData = Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetInstitutionalReviewReportQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getInstitutionalReviewReport>>> = ({ signal }) => getInstitutionalReviewReport({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetInstitutionalReviewReportQueryResult = NonNullable<Awaited<ReturnType<typeof getInstitutionalReviewReport>>>
+export type GetInstitutionalReviewReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Institutional Review Report (Phase 44) — a deeper review record, the report a portfolio manager would generate and archive at the end of a completed Workflow Center review cycle. Orchestration only — no trade recommendations.
+ */
+
+export function useGetInstitutionalReviewReport<TData = Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getInstitutionalReviewReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetInstitutionalReviewReportQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

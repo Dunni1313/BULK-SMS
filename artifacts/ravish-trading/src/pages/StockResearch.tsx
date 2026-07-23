@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useSearch } from "wouter";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useSearch, Link } from "wouter";
 import {
   useGetValueUniverse,
   useGetValueHistory,
@@ -12,6 +12,11 @@ import {
   useGetFilingAnalysis,
   useGetManagementQualityAnalysis,
   useGetEarningsIntelligence,
+  useGetInvestmentThesis,
+  useGetResearchNotes,
+  useAddResearchNote,
+  useDeleteResearchNote,
+  useGetInstitutionalDecision,
   getValueUniverse,
   getGetValueUniverseQueryKey,
   getGetValueWatchlistQueryKey,
@@ -21,6 +26,9 @@ import {
   getGetFilingAnalysisQueryKey,
   getGetManagementQualityAnalysisQueryKey,
   getGetEarningsIntelligenceQueryKey,
+  getGetInvestmentThesisQueryKey,
+  getGetResearchNotesQueryKey,
+  getGetInstitutionalDecisionQueryKey,
   ValueResearchReport,
   ValueResearchInputLevel,
 } from "@workspace/api-client-react";
@@ -36,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Markdown } from "@/components/ui/markdown";
 import { useToast } from "@/hooks/use-toast";
 import { streamCoach } from "@/lib/coach-stream";
+import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
   TrendingUp,
@@ -65,6 +74,9 @@ import {
   MessageCircle,
   Send,
   Sparkles,
+  ScrollText,
+  NotebookPen,
+  Gavel,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -77,9 +89,6 @@ import {
 } from "recharts";
 
 type Level = ValueResearchInputLevel;
-
-const fmtUsd = (n: number) =>
-  n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
 
 // Compact formatter for absolute statement figures (billions/millions), used by
 // the Financial Statements tab (Phase 2, Sprint 19) — statement line items are
@@ -228,6 +237,229 @@ function RatioTrendChart({ label, history }: { label: string; history: number[] 
         </ResponsiveContainer>
       </div>
     </div>
+  );
+}
+
+// Phase 12 — Institutional Investing Engine Consolidation & Integration.
+// Deterministic, template-based, zero LLM calls: fetched only on demand
+// (the user clicks "Generate Thesis"), reusing GET /investment-thesis/:symbol
+// which itself composes an already-built ValueResearchReport — no new
+// scoring, no new provider call beyond what /value/:symbol already made.
+export function InvestmentThesisCard({ symbol }: { symbol: string }) {
+  const [requested, setRequested] = useState(false);
+  const { data: thesis, isLoading, isError } = useGetInvestmentThesis(symbol, {
+    query: { queryKey: getGetInvestmentThesisQueryKey(symbol), enabled: requested },
+  });
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <ScrollText className="w-4 h-4 text-indigo-400" /> Investment Thesis
+          <Badge variant="outline" className="ml-auto text-[10px] border-border">
+            Deterministic
+          </Badge>
+        </CardTitle>
+        <CardDescription className="text-[11px]">
+          A structured, template-based summary of the analysis above — no AI narration, no new score, no price prediction.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!requested ? (
+          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setRequested(true)} data-testid="generate-thesis">
+            Generate Thesis
+          </Button>
+        ) : isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+        ) : isError || !thesis ? (
+          <p className="text-sm text-muted-foreground">Unable to generate a thesis for this symbol.</p>
+        ) : (
+          <div className="space-y-4" data-testid="investment-thesis-content">
+            <p className="text-sm text-foreground/90">{thesis.overview}</p>
+            {thesis.sections.map((s) => (
+              <div key={s.heading}>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">{s.heading}</h4>
+                {s.paragraphs.map((p, i) => (
+                  <p key={i} className="text-sm text-foreground/80 mb-1.5">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            ))}
+            {thesis.supportingPoints.length > 0 && (
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Supporting Points</h4>
+                <ul className="list-disc list-inside text-sm text-foreground/80 space-y-0.5">
+                  {thesis.supportingPoints.map((p, i) => (
+                    <li key={i}>{p}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {thesis.riskFactors.length > 0 && (
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Risk Factors</h4>
+                <ul className="list-disc list-inside text-sm text-foreground/80 space-y-0.5">
+                  {thesis.riskFactors.map((r, i) => (
+                    <li key={i}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p className="text-[11px] text-muted-foreground/70 italic">{thesis.disclaimer}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function decisionBadgeClass(rec: string): string {
+  if (rec === "Buy" || rec === "Accumulate") return "border-emerald-500/40 text-emerald-400";
+  if (rec === "Hold") return "border-border text-muted-foreground";
+  if (rec === "Reduce") return "border-amber-500/40 text-amber-400";
+  return "border-rose-500/40 text-rose-400"; // Sell, Avoid
+}
+
+// Phase 14 — Institutional Investment Decision Engine. Button-gated (never
+// eager), mirroring the Investment Thesis card's own on-demand discipline
+// above — the full checklist/evidence experience lives on its own page.
+export function DecisionSummaryCard({ symbol }: { symbol: string }) {
+  const [requested, setRequested] = useState(false);
+  const { data: decision, isLoading, isError } = useGetInstitutionalDecision(symbol, {
+    query: { queryKey: getGetInstitutionalDecisionQueryKey(symbol), enabled: requested },
+  });
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Gavel className="w-4 h-4 text-indigo-400" /> Institutional Decision Engine
+          <Badge variant="outline" className="ml-auto text-[10px] border-border">
+            Deterministic
+          </Badge>
+        </CardTitle>
+        <CardDescription className="text-[11px]">
+          A synthesized Buy/Accumulate/Hold/Reduce/Sell/Avoid recommendation from the Business Quality, Valuation,
+          Margin of Safety, Investment Committee, and Tom Nash signals already computed above.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!requested ? (
+          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setRequested(true)} data-testid="get-decision">
+            Get Decision
+          </Button>
+        ) : isLoading ? (
+          <Skeleton className="h-16 w-full" />
+        ) : isError || !decision ? (
+          <p className="text-sm text-muted-foreground">Unable to compute a decision for this symbol.</p>
+        ) : (
+          <div className="space-y-2" data-testid="decision-summary-content">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className={decisionBadgeClass(decision.recommendation)}>{decision.recommendation}</Badge>
+              <span className="text-xs text-muted-foreground">Confidence {decision.confidence}/100</span>
+            </div>
+            <p className="text-sm text-foreground/90">{decision.summary}</p>
+            <Link href={`/decision-engine?symbol=${decision.symbol}`} className="text-xs font-medium text-primary hover:underline">
+              Open full Decision Engine →
+            </Link>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Phase 12 — Free-text, per-user, per-symbol research notes. Never AI-
+// generated, never tied to the watchlist by foreign key — the user's own
+// durable record for a symbol.
+export function ResearchNotesCard({ symbol }: { symbol: string }) {
+  const [draft, setDraft] = useState("");
+  const queryClient = useQueryClient();
+  const { data: notes, isLoading } = useGetResearchNotes(symbol, {
+    query: { queryKey: getGetResearchNotesQueryKey(symbol) },
+  });
+  const addNote = useAddResearchNote();
+  const deleteNote = useDeleteResearchNote();
+
+  function handleAdd() {
+    const note = draft.trim();
+    if (!note) return;
+    addNote.mutate(
+      { data: { symbol, note } },
+      {
+        onSuccess: () => {
+          setDraft("");
+          queryClient.invalidateQueries({ queryKey: getGetResearchNotesQueryKey(symbol) });
+        },
+      },
+    );
+  }
+
+  function handleDelete(id: number) {
+    deleteNote.mutate(
+      { id },
+      { onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetResearchNotesQueryKey(symbol) }) },
+    );
+  }
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <NotebookPen className="w-4 h-4 text-indigo-400" /> Research Notes
+        </CardTitle>
+        <CardDescription className="text-[11px]">Your own free-text notes for {symbol} — never AI-generated.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex gap-2">
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Add a note…"
+            className="h-8 text-xs"
+            data-testid="research-note-input"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs shrink-0"
+            disabled={!draft.trim() || addNote.isPending}
+            onClick={handleAdd}
+            data-testid="research-note-add"
+          >
+            Add
+          </Button>
+        </div>
+        {isLoading ? (
+          <Skeleton className="h-10 w-full" />
+        ) : !notes || notes.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">No notes yet for {symbol}.</p>
+        ) : (
+          <div className="space-y-2">
+            {notes.map((n) => (
+              <div key={n.id} className="flex items-start justify-between gap-2 rounded-md border border-border/60 bg-background/40 px-3 py-2">
+                <p className="text-sm text-foreground/90 whitespace-pre-wrap">{n.note}</p>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 shrink-0 text-muted-foreground hover:text-rose-400"
+                  onClick={() => handleDelete(n.id)}
+                  aria-label={`Delete note`}
+                  data-testid={`research-note-delete-${n.id}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -1489,7 +1721,7 @@ export default function StockResearch() {
     );
   };
 
-  const watchedSymbols = new Set((watchlist ?? []).map((w) => w.symbol));
+  const watchedSymbols = useMemo(() => new Set((watchlist ?? []).map((w) => w.symbol)), [watchlist]);
 
   // Most recent live fetch across the universe (live data only), for the
   // sidebar's "is this current?" freshness indicator.
@@ -1554,6 +1786,20 @@ export default function StockResearch() {
             Long-term, business-first research in the spirit of value investing. Education &amp; advisory only —
             this tool never places trades and never claims to be any specific investor.
           </p>
+          <div className="flex flex-wrap gap-1.5 mt-2" data-testid="engine1-permanent-labels">
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border">
+              Institutional Investing Engine
+            </Badge>
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border">
+              Educational
+            </Badge>
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border">
+              Deterministic
+            </Badge>
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border">
+              Data Driven
+            </Badge>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Depth</span>
@@ -1589,6 +1835,7 @@ export default function StockResearch() {
                   onClick={() => refreshUniverse()}
                   disabled={universeRefreshing}
                   title="Refresh live fundamentals"
+                  aria-label="Refresh live fundamentals"
                   data-testid="refresh-universe"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${universeRefreshing ? "animate-spin" : ""}`} />
@@ -1729,6 +1976,9 @@ export default function StockResearch() {
                     onRefresh={() => runResearch(report.symbol, false, true)}
                     refreshing={refreshing}
                   />
+                  <InvestmentThesisCard symbol={report.symbol} />
+                  <DecisionSummaryCard symbol={report.symbol} />
+                  <ResearchNotesCard symbol={report.symbol} />
                 </div>
               )}
             </TabsContent>
@@ -1805,12 +2055,33 @@ export default function StockResearch() {
                                 Researched {fmtFetchedAt(w.lastResearchedAt)}
                               </p>
                             )}
+                            {/* Phase 12 — reuses the already-fetched Research
+                                History array (stock_analysis_history), filtered
+                                to this symbol, so watchlisted names show how
+                                their quality/valuation/decision has changed
+                                over time — zero new backend logic. */}
+                            {(() => {
+                              const symbolHistory = (history ?? [])
+                                .filter((h) => h.symbol === w.symbol)
+                                .slice(0, 3);
+                              if (symbolHistory.length === 0) return null;
+                              return (
+                                <div className="mt-1 flex flex-wrap gap-1" data-testid={`watchlist-history-${w.symbol}`}>
+                                  {symbolHistory.map((h) => (
+                                    <Badge key={h.id} variant="outline" className={`text-[9px] ${verdictColor(h.valueInvestorDecision)}`}>
+                                      {new Date(h.analysisDate).toLocaleDateString()}: {h.marginOfSafety}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </div>
                           <Button
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7 text-muted-foreground hover:text-rose-400"
                             onClick={() => handleRemoveWatchlist(w.id, w.symbol)}
+                            aria-label={`Remove ${w.symbol} from watchlist`}
                             data-testid={`remove-watchlist-${w.symbol}`}
                           >
                             <Trash2 className="w-3.5 h-3.5" />

@@ -11,5 +11,7 @@ export interface ConstructionHoldingCreate {
   targetWeightPct?: number;
   /** @nullable */
   shares?: number | null;
+  /** @nullable */
+  avgCostBasis?: number | null;
   notes?: string;
 }

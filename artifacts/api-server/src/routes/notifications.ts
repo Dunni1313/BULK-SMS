@@ -25,7 +25,11 @@ import { getScopedUserId } from "../lib/tenantScope.js";
 
 const router: IRouter = Router();
 
-function formatNotification(n: typeof platformNotificationsTable.$inferSelect) {
+// Exported (Phase 19 — Investment Committee Workbench) so the new
+// Investment Memo composition (routes/stockAnalyst.ts's own
+// /investment-memo/:symbol) can reuse this exact field mapping for its
+// symbol-filtered Monitoring Summary section, instead of duplicating it.
+export function formatNotification(n: typeof platformNotificationsTable.$inferSelect) {
   return {
     id: n.id,
     type: n.type,
@@ -34,6 +38,11 @@ function formatNotification(n: typeof platformNotificationsTable.$inferSelect) {
     dataSource: n.dataSource,
     relatedSymbol: n.relatedSymbol,
     isRead: n.isRead,
+    severity: n.severity,
+    previousValue: n.previousValue,
+    currentValue: n.currentValue,
+    evidence: (n.evidence as string[] | null) ?? [],
+    recommendedAction: n.recommendedAction,
     createdAt: n.createdAt.toISOString(),
   };
 }

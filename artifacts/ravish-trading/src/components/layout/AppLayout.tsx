@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { Link, useLocation } from "wouter";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Link } from "wouter";
 import {
   useListTradeAdjustments,
   getListTradeAdjustmentsQueryKey,
@@ -7,47 +7,27 @@ import {
 } from "@workspace/api-client-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { NotificationBell } from "./NotificationBell";
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarGroup, 
-  SidebarGroupContent, 
-  SidebarGroupLabel, 
-  SidebarMenu, 
-  SidebarMenuButton, 
-  SidebarMenuItem,
-  SidebarProvider
+import { SidebarNav } from "./SidebarNav";
+// Lazy-loaded, not statically imported: the Command Palette (cmdk, its own
+// several generated-hook imports, lib/workflows.ts, lib/quick-actions.ts,
+// lib/portfolio-export.ts) is only needed once a user actually opens it
+// (⌘K/Ctrl+K or the header button) — keeping it out of AppLayout's own
+// eagerly-loaded chunk, which every single page renders through, is what
+// keeps the main bundle chunk under Sprint 53's own 500 kB threshold.
+const CommandPalette = lazy(() =>
+  import("@/components/command/CommandPalette").then((m) => ({ default: m.CommandPalette })),
+);
+import {
+  Sidebar,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarProvider,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  LayoutDashboard, 
-  Search, 
-  LineChart, 
-  PieChart, 
-  List, 
-  FlaskConical, 
-  Trophy, 
-  BookOpen, 
-  MessageSquare, 
-  TrendingUp, 
-  Bot,
-  Settings,
-  GraduationCap,
-  BrainCircuit,
-  Library,
-  CalendarClock,
-  Wrench,
-  Building2,
-  Radar,
-  Briefcase,
-  Activity,
-  NotebookPen,
-  History,
-  LayoutGrid,
-  TestTube2,
-  Newspaper
-} from "lucide-react";
+import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
+import { Search } from "lucide-react";
 
 // A position "needs attention" when the deterministic engine recommends something
 // other than holding/doing nothing.
@@ -56,9 +36,14 @@ function needsAttention(a: TradeAdjustment): boolean {
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
   const { toast } = useToast();
   const { data: session } = useSession();
+  // Owned once, here, and passed down to SidebarNav — see that file's own
+  // header comment on why two independent useSidebarPreferences() calls
+  // would desync (the compact toggle button lives in this header, outside
+  // SidebarNav itself, so both need the same live state).
+  const preferences = useSidebarPreferences();
+  const { compact, setCompact } = preferences;
 
   // Poll adjustments globally so the nav badge + live alerts work from any page.
   // Shares the query key with the Adjustments/Trades pages so it is deduped.
@@ -93,121 +78,84 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adjustments]);
 
-  const navItems = [
-    { title: "Dashboard", href: "/", icon: LayoutDashboard },
-    { title: "Portfolio AI", href: "/portfolio-ai", icon: BrainCircuit },
-    { title: "Scanner", href: "/scanner", icon: Search },
-    { title: "Option Chain", href: "/options/SPY", icon: LineChart },
-    { title: "Portfolio", href: "/portfolio", icon: PieChart },
-    { title: "Trades", href: "/trades", icon: List },
-    { title: "Backtest", href: "/backtest", icon: FlaskConical },
-    { title: "Leaderboard", href: "/scoring", icon: Trophy },
-    { title: "Journal", href: "/journal", icon: BookOpen },
-    { title: "AI Assistant", href: "/assistant", icon: MessageSquare },
-    { title: "Performance", href: "/performance", icon: TrendingUp },
-    { title: "AutoPilot", href: "/autopilot", icon: Bot },
-    { title: "Event Calendar", href: "/events", icon: CalendarClock },
-    { title: "Adjustments", href: "/adjustments", icon: Wrench, badge: attentionCount },
-    { title: "Institutional Dashboard", href: "/institutional-dashboard", icon: LayoutGrid },
-    { title: "Daily Report", href: "/daily-report", icon: Newspaper },
-    { title: "Trading Research", href: "/trading-research", icon: Activity },
-    { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
-    { title: "Trading Backtest", href: "/trading-backtest", icon: History },
-    { title: "Options Backtest", href: "/options-backtest", icon: TestTube2 },
-    { title: "Value Research", href: "/stock-analyst", icon: Building2 },
-    { title: "Stock Scanner", href: "/stock-analyst/scanner", icon: Radar },
-    { title: "Portfolio Construction", href: "/stock-analyst/portfolio-construction", icon: Briefcase },
-    { title: "Settings", href: "/settings", icon: Settings },
-  ];
+  // Phase 10 — the nav item list itself lives in lib/nav-items.ts (now
+  // NAV_GROUPS, since the v1.1.0 sidebar redesign), the single, real
+  // navigation index the Command Palette also reads from. Only the
+  // "Adjustments" item's own live attentionCount badge is computed here
+  // (AppLayout is the only place already polling useListTradeAdjustments
+  // for it) and passed down to SidebarNav to merge in at render time.
 
-  const learnItems = [
-    { title: "Delta Masterclass", href: "/learn/delta", icon: GraduationCap },
-    { title: "Greeks Tutor", href: "/learn/greeks", icon: Library },
-    { title: "Trading Quiz", href: "/learn/quiz", icon: BrainCircuit },
-    { title: "Trade Lessons", href: "/lessons", icon: BookOpen },
-    { title: "Value Investing School", href: "/stock-analyst/value-investing-school", icon: GraduationCap },
-  ];
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider open={!compact} onOpenChange={(open) => setCompact(!open)}>
       <div className="flex min-h-screen w-full bg-background overflow-hidden text-foreground">
-        <Sidebar className="border-r border-border bg-sidebar">
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-primary font-bold tracking-wider px-4 py-4 text-sm uppercase">DK OPTION ENGINE</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {navItems.map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton asChild isActive={location === item.href}>
-                        <Link href={item.href} className="flex items-center gap-3 px-4 py-2 text-sm font-medium">
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
-                          {"badge" in item && item.badge ? (
-                            <Badge
-                              variant="outline"
-                              className="ml-auto h-5 min-w-5 justify-center border-amber-500/40 bg-amber-500/15 px-1.5 text-xs text-amber-400"
-                            >
-                              {item.badge}
-                            </Badge>
-                          ) : null}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-indigo-400 font-bold tracking-wider px-4 py-4 text-xs uppercase flex items-center gap-2">
-                <Bot className="w-4 h-4" /> Coach & Learn
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {learnItems.map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton asChild isActive={location === item.href}>
-                        <Link href={item.href} className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:text-indigo-300">
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            {/* Phase 1, Sprint 6 — session status. Signing in does not gate
-                any other page yet (Sprint 7's job); this only demonstrates
-                that a real Better-Auth session works end-to-end. */}
-            <SidebarGroup className="mt-auto">
-              <SidebarGroupContent>
-                <div className="px-4 py-3 text-xs text-muted-foreground">
-                  {session ? (
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="truncate">Signed in as {session.user.email}</span>
-                      <button
-                        type="button"
-                        onClick={() => void signOut()}
-                        className="shrink-0 font-medium text-primary hover:underline"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  ) : (
-                    <Link href="/login" className="font-medium text-primary hover:underline">
-                      Sign in
-                    </Link>
-                  )}
+        <Sidebar collapsible="icon" className="border-r border-border bg-sidebar">
+          <SidebarHeader className="flex flex-row items-center gap-2 border-b border-sidebar-border px-4 py-3">
+            <span className="text-primary min-w-0 truncate text-sm font-bold tracking-wider uppercase group-data-[collapsible=icon]:hidden">
+              DK OPTION ENGINE
+            </span>
+          </SidebarHeader>
+          <SidebarNav attentionCount={attentionCount} preferences={preferences} />
+          {/* Phase 1, Sprint 6 — session status. Signing in does not gate
+              any other page yet (Sprint 7's job); this only demonstrates
+              that a real Better-Auth session works end-to-end. */}
+          <SidebarFooter className="border-t border-sidebar-border group-data-[collapsible=icon]:hidden">
+            <div className="px-2 py-1 text-xs text-muted-foreground">
+              {session ? (
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate">Signed in as {session.user.email}</span>
+                  <button
+                    type="button"
+                    onClick={() => void signOut()}
+                    className="shrink-0 font-medium text-primary hover:underline"
+                  >
+                    Sign out
+                  </button>
                 </div>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
+              ) : (
+                <Link href="/login" className="font-medium text-primary hover:underline">
+                  Sign in
+                </Link>
+              )}
+            </div>
+          </SidebarFooter>
         </Sidebar>
         <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-          <div className="flex items-center justify-end border-b border-border px-4 py-2">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2">
+            <div className="flex items-center gap-2">
+              {/* Lives here, not inside <Sidebar>, deliberately: on mobile
+                  the whole Sidebar subtree only renders once its own Sheet
+                  is open (components/ui/sidebar.tsx's own isMobile branch)
+                  — a trigger placed inside it could never be clicked to
+                  open the drawer in the first place. This same trigger
+                  also toggles full/compact mode on desktop. */}
+              <SidebarTrigger data-testid="button-toggle-compact-sidebar" aria-label="Toggle sidebar" />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 gap-2 text-xs text-muted-foreground"
+                onClick={() => setPaletteOpen(true)}
+                data-testid="button-open-command-palette"
+              >
+                <Search className="h-3.5 w-3.5" />
+                Search or jump to…
+                <kbd className="ml-2 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium">
+                  {typeof navigator !== "undefined" && /Mac/i.test(navigator.platform ?? "") ? "⌘K" : "Ctrl+K"}
+                </kbd>
+              </Button>
+            </div>
             <NotificationBell />
           </div>
           <div className="flex-1 overflow-auto p-6">
@@ -215,6 +163,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      <Suspense fallback={null}>
+        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      </Suspense>
     </SidebarProvider>
   );
 }

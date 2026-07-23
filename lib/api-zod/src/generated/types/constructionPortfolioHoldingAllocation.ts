@@ -13,6 +13,8 @@ export interface ConstructionPortfolioHoldingAllocation {
   targetWeightPct: number;
   /** @nullable */
   shares: number | null;
+  /** @nullable */
+  avgCostBasis: number | null;
   notes: string;
   /** @nullable */
   currentPrice: number | null;
@@ -23,4 +25,12 @@ export interface ConstructionPortfolioHoldingAllocation {
   /** @nullable */
   driftPct: number | null;
   rebalanceAction: ConstructionPortfolioHoldingAllocationRebalanceAction;
+  /** @nullable */
+  sector: string | null;
+  /** @nullable */
+  industry: string | null;
+  /** @nullable */
+  beta: number | null;
+  /** @nullable */
+  marketCap: number | null;
 }
