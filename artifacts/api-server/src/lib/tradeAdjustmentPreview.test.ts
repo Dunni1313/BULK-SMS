@@ -69,9 +69,20 @@ async function insertConvertEligiblePosition(userId: string, symbol = "AMZN"): P
   const snap = getSnapshot(symbol)!;
   const quote = buildIronCondor(snap, { shortDelta: 0.2, dte: 45 });
   const legs = quote.legs.map((l) => ({ side: l.side, optionType: l.optionType, strike: l.strike, expiration: l.expiration, openPrice: l.openPrice, quantity: l.quantity }));
+  // entryIv is deliberately a fixed 0.7x multiple of today's snapshot IV,
+  // not null. lib/adjustment.ts's evaluateTradeAdjustment() only computes
+  // a real, proportional ivChangePct when entryIv is set; with entryIv:
+  // null it falls back to comparing the CURRENT day-seeded ivRank against
+  // a hardcoded 70 threshold, which is not guaranteed to hold on every
+  // calendar day (confirmed empirically: AMZN's ivRank drifted to 65 as of
+  // 2026-07-23, breaking this fixture). A 0.7x entryIv always yields
+  // ivChangePct = ((iv - 0.7*iv) / (0.7*iv)) * 100 ~= 42.9%, comfortably
+  // above the real adjIvExpansionTrigger (25% default) regardless of what
+  // today's actual snapshot IV is — day-independent by construction.
+  const entryIv = snap.iv * 0.7;
   const [row] = await db
     .insert(tradesTable)
-    .values({ userId, symbol, strategy: "iron_condor", status: "open", legs, credit: quote.credit, maxProfit: quote.maxProfit, maxLoss: quote.maxLoss, pop: Math.min(99, quote.pop + 25), expiration: quote.expiration, entryIv: null })
+    .values({ userId, symbol, strategy: "iron_condor", status: "open", legs, credit: quote.credit, maxProfit: quote.maxProfit, maxLoss: quote.maxLoss, pop: Math.min(99, quote.pop + 25), expiration: quote.expiration, entryIv })
     .returning({ id: tradesTable.id });
   return row;
 }

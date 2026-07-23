@@ -129,8 +129,27 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # Run serially, not with vitest's default file-level parallelism.
+      # Root-caused on PR #4 (2026-07-23): this step has been failing on
+      # every one of the last 4 CI runs on main, across entirely unrelated
+      # commits (including a docs-only merge), always with the same
+      # signature — duplicate-key/FK-violation races against shared tables
+      # (workspace_pinned_resources, investing_watchlist_items,
+      # platform_audit_log, dashboard_workspaces, autoExecutionLog) that
+      # several *.route.test.ts/*.test.ts files read/write via the shared
+      # legacy-owner account or via row-count assertions against tables
+      # other concurrently-running test files also touch. This exact
+      # category is already extensively disclosed throughout CLAUDE.md's
+      # own sprint history, where the established, repeatedly-proven fix
+      # is a serial re-run (`vitest run --no-file-parallelism`) — applied
+      # here as CI's own default rather than a manual confirmation step,
+      # since CI only gets one shot per commit and cannot "just re-run
+      # locally until clean" the way local development has been doing.
+      # Deliberately scoped to this CI step only (not this package's own
+      # `test` script in package.json), so local development keeps its
+      # existing fast parallel default.
       - name: Test — api-server
-        run: pnpm --filter @workspace/api-server run test
+        run: pnpm --filter @workspace/api-server exec vitest run --no-file-parallelism
 
       - name: Test — ravish-trading (frontend)
         run: pnpm --filter @workspace/ravish-trading run test
