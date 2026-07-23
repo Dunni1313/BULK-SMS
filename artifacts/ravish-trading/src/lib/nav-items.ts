@@ -87,6 +87,7 @@ import {
   Waves,
   GitBranch,
   AlertTriangle,
+  ListChecks,
   Eye,
   Workflow,
   Command,
@@ -134,6 +135,12 @@ export const NAV_GROUPS: NavigationGroup[] = [
     items: [
       { title: "Options Dashboard", href: "/options-dashboard", icon: BarChart3 },
       { title: "Scanner", href: "/scanner", icon: Search },
+      // v1.2.0 — Trade Execution Center. Placed here (Options Trading), not
+      // in the "Trading Workbench" group (Engine 2's own technical-analysis
+      // group), since this page's entire workflow composes THIS group's own
+      // Scanner/Order Preview/Position Sizing/Adjustments/Trades routes —
+      // see docs/v1.2.0-Trade-Execution-Center.md for the disclosed reasoning.
+      { title: "Trade Execution Center", href: "/trade-execution-center", icon: ListChecks },
       { title: "Option Chain", href: "/options/SPY", icon: LineChart },
       { title: "Portfolio", href: "/portfolio", icon: PieChart },
       { title: "Trades", href: "/trades", icon: List },

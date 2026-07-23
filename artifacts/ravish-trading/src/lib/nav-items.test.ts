@@ -96,6 +96,16 @@ const PRE_REDESIGN_ROUTES = [
   "/settings",
 ];
 
+// Routes deliberately added to the sidebar since the v1.1.0 redesign
+// (each disclosed in its own release's own docs — never a silent
+// addition). This list, not PRE_REDESIGN_ROUTES itself, is what grows
+// over time; PRE_REDESIGN_ROUTES stays frozen as the original "nothing
+// was removed" fixture.
+const ADDED_SINCE_REDESIGN_ROUTES = [
+  // v1.2.0 — Trade Execution Center (docs/v1.2.0-Trade-Execution-Center.md).
+  "/trade-execution-center",
+];
+
 describe("nav-items — the single canonical navigation configuration", () => {
   it("defines exactly 10 top-level groups", () => {
     expect(NAV_GROUPS).toHaveLength(10);
@@ -117,8 +127,9 @@ describe("nav-items — the single canonical navigation configuration", () => {
     for (const href of PRE_REDESIGN_ROUTES) {
       expect(currentHrefs).toContain(href);
     }
-    expect(currentHrefs).toHaveLength(PRE_REDESIGN_ROUTES.length);
-    expect(new Set(currentHrefs)).toEqual(new Set(PRE_REDESIGN_ROUTES));
+    const expectedHrefs = [...PRE_REDESIGN_ROUTES, ...ADDED_SINCE_REDESIGN_ROUTES];
+    expect(currentHrefs).toHaveLength(expectedHrefs.length);
+    expect(new Set(currentHrefs)).toEqual(new Set(expectedHrefs));
   });
 
   it("never lists the same href in two different groups", () => {

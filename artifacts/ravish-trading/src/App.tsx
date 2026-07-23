@@ -39,6 +39,7 @@ const Portfolio = lazy(() => import("./pages/Portfolio"));
 const PortfolioAI = lazy(() => import("./pages/PortfolioAI"));
 const Trades = lazy(() => import("./pages/Trades"));
 const TradeTicket = lazy(() => import("./pages/TradeTicket"));
+const TradeExecutionCenter = lazy(() => import("./pages/TradeExecutionCenter"));
 const Backtest = lazy(() => import("./pages/Backtest"));
 const Scoring = lazy(() => import("./pages/Scoring"));
 const Journal = lazy(() => import("./pages/Journal"));
@@ -160,6 +161,7 @@ function Router() {
           <Route path="/trades" component={Trades} />
           <Route path="/ticket/adjust/:tradeId" component={TradeTicket} />
           <Route path="/ticket/:scannerId" component={TradeTicket} />
+          <Route path="/trade-execution-center" component={TradeExecutionCenter} />
           <Route path="/backtest" component={Backtest} />
           <Route path="/scoring" component={Scoring} />
           <Route path="/journal" component={Journal} />
