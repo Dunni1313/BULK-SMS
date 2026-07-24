@@ -3833,6 +3833,44 @@ export interface AiMessage {
   createdAt: string;
 }
 
+export interface UnifiedTradingCoachAskInput {
+  question: string;
+  /** A specific symbol in focus (e.g. from a Workbench page or Scanner row); grounds the answer in Market Structure/Multi-Timeframe/Liquidity/Regime/Probability for that symbol */
+  symbol?: string;
+  /** A specific scanner_results row id owned by the calling user (Scanner / Trade Execution Center "candidate in focus") */
+  scannerCandidateId?: number;
+  /** A specific trading_positions row id owned by the calling user, for a question about one particular Engine 2 position */
+  tradingPositionId?: number;
+}
+
+export type UnifiedTradingCoachAskResultAnswerSource = typeof UnifiedTradingCoachAskResultAnswerSource[keyof typeof UnifiedTradingCoachAskResultAnswerSource];
+
+
+export const UnifiedTradingCoachAskResultAnswerSource = {
+  llm: 'llm',
+  template: 'template',
+} as const;
+
+export interface UnifiedTradingCoachAskResult {
+  answer: string;
+  answerSource: UnifiedTradingCoachAskResultAnswerSource;
+}
+
+export type UnifiedTradingCoachMessageRole = typeof UnifiedTradingCoachMessageRole[keyof typeof UnifiedTradingCoachMessageRole];
+
+
+export const UnifiedTradingCoachMessageRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface UnifiedTradingCoachMessage {
+  id: number;
+  role: UnifiedTradingCoachMessageRole;
+  message: string;
+  createdAt: string;
+}
+
 export type ExplainTradeInputStrategy = typeof ExplainTradeInputStrategy[keyof typeof ExplainTradeInputStrategy];
 
 
