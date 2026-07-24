@@ -66,6 +66,7 @@ import {
   portfolioWorkflowInstancesTable,
   workspacePinnedResourcesTable,
   workspaceRecentViewsTable,
+  tradingCoachMessagesTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -168,6 +169,8 @@ afterAll(async () => {
     portfolioWorkflowInstancesTable,
     workspacePinnedResourcesTable,
     workspaceRecentViewsTable,
+    // v1.3.0, Sprint 1 — AI Trading Coach's own new table.
+    tradingCoachMessagesTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -671,6 +674,14 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       resourceKey: "isolation-test-resource",
       label: "Isolation Test Resource",
       linkPath: "/watchlists-engine",
+    }));
+  });
+
+  it("trading_coach_messages: a userId-scoped query never crosses accounts (v1.3.0, Sprint 1)", async () => {
+    await assertTenantIsolation(tradingCoachMessagesTable, userA, userB, (userId) => ({
+      userId,
+      role: "user",
+      message: "isolation test message",
     }));
   });
 });
