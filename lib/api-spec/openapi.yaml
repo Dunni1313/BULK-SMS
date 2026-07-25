@@ -54,6 +54,8 @@ tags:
     description: Engine 2 Liquidity / Order Flow analysis (volume profile, dollar-volume liquidity score, buy/sell pressure proxy) — a sibling engine to Market Structure, not built on top of it, SIMULATED-first, advisory only, never places an order
   - name: trading-coach
     description: Engine 2 AI Trade Coach — free-form Q&A grounded in Structure/Multi-Timeframe/Liquidity/Regime/Probability, the calling user's own portfolio Risk analysis, and recent Trading Journal reflections, SIMULATED-first, educational only, never places an order
+  - name: ai-trading-coach
+    description: v1.3.0 AI Trading Coach (Sprint 1, Backend Foundation) — a persistent, cross-engine-aware free-form Q&A coach composing Engine 2's Structure/Multi-Timeframe/Liquidity/Regime/Probability, the user's own Trading Positions risk, and the options-income Portfolio/Dashboard/Scanner/AI Opportunity Score (Engine 3, via assembleDailyReport()) into one grounding context, with server-persisted conversation history. Read-only over all of it; never places, adjusts, or cancels an order
   - name: trading-backtest
     description: Engine 2 Backtesting — a genuine walk-forward price-action backtest replaying SIMULATED candles through a named entry/exit rule set (trend-following, mean-reversion, structure-breakout), producing a real trade log and equity curve, SIMULATED-first, advisory only, never places an order
   - name: trading-trade-plans
@@ -5956,6 +5958,46 @@ paths:
         "400":
           description: Invalid scenario count or shape
 
+  # ─── AI Trading Coach (v1.3.0, Sprint 1 — Backend Foundation) ───────────────
+  # SSE variant at /trading-coach/ask/stream is not modeled here, matching
+  # /trading/coach/ask's own precedent — orval only models single-shot JSON
+  # responses.
+  /trading-coach/ask:
+    post:
+      operationId: askUnifiedTradingCoach
+      tags: [ai-trading-coach]
+      summary: Ask a free-form question grounded in Market Structure/Multi-Timeframe/Liquidity/Regime/Probability (Engine 2), the calling user's own Trading Positions risk, the options-income Portfolio/Dashboard/Scanner/AI Opportunity Score (Engine 3), and recent Trading Journal reflections; persists both turns (read-only; never executes; SSE variant at /trading-coach/ask/stream is not modeled here)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnifiedTradingCoachAskInput"
+      responses:
+        "200":
+          description: Grounded answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnifiedTradingCoachAskResult"
+        "400":
+          description: Missing or invalid question/context fields
+
+  /trading-coach/messages:
+    get:
+      operationId: getUnifiedTradingCoachMessages
+      tags: [ai-trading-coach]
+      summary: The calling user's own persisted AI Trading Coach conversation history, oldest-first, bounded to the 50 most recent turns
+      responses:
+        "200":
+          description: Conversation history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UnifiedTradingCoachMessage"
+
   # ─── Backtesting (Engine 2, Phase 3 Sprint 49) ──────────────────────────────
   /trading/backtest/run:
     post:
@@ -11063,6 +11105,47 @@ components:
           type: string
 
     AiMessage:
+      type: object
+      required: [id, role, message, createdAt]
+      properties:
+        id:
+          type: integer
+        role:
+          type: string
+          enum: [user, assistant]
+        message:
+          type: string
+        createdAt:
+          type: string
+
+    # ─── v1.3.0 AI Trading Coach (Sprint 1 — Backend Foundation) ──────────────
+    UnifiedTradingCoachAskInput:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+        symbol:
+          type: string
+          description: A specific symbol in focus (e.g. from a Workbench page or Scanner row); grounds the answer in Market Structure/Multi-Timeframe/Liquidity/Regime/Probability for that symbol
+        scannerCandidateId:
+          type: integer
+          description: A specific scanner_results row id owned by the calling user (Scanner / Trade Execution Center "candidate in focus")
+        tradingPositionId:
+          type: integer
+          description: A specific trading_positions row id owned by the calling user, for a question about one particular Engine 2 position
+
+    UnifiedTradingCoachAskResult:
+      type: object
+      required: [answer, answerSource]
+      properties:
+        answer:
+          type: string
+        answerSource:
+          type: string
+          enum: [llm, template]
+
+    UnifiedTradingCoachMessage:
       type: object
       required: [id, role, message, createdAt]
       properties:

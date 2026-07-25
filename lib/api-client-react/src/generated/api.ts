@@ -301,6 +301,9 @@ import type {
   TradingWorkspaceNote,
   TradingWorkspaceNoteInput,
   TradingWorkspaceNoteUpdate,
+  UnifiedTradingCoachAskInput,
+  UnifiedTradingCoachAskResult,
+  UnifiedTradingCoachMessage,
   UniverseSymbol,
   UnpinResource200,
   UpdateCompliancePolicyInput,
@@ -22777,6 +22780,154 @@ export const useExplainTradingScenario = <TError = ErrorType<void>,
       > => {
       return useMutation(getExplainTradingScenarioMutationOptions(options));
     }
+
+export const getAskUnifiedTradingCoachUrl = () => {
+
+
+
+
+  return `/api/trading-coach/ask`
+}
+
+/**
+ * @summary Ask a free-form question grounded in Market Structure/Multi-Timeframe/Liquidity/Regime/Probability (Engine 2), the calling user's own Trading Positions risk, the options-income Portfolio/Dashboard/Scanner/AI Opportunity Score (Engine 3), and recent Trading Journal reflections; persists both turns (read-only; never executes; SSE variant at /trading-coach/ask/stream is not modeled here)
+ */
+export const askUnifiedTradingCoach = async (unifiedTradingCoachAskInput: UnifiedTradingCoachAskInput, options?: RequestInit): Promise<UnifiedTradingCoachAskResult> => {
+
+  return customFetch<UnifiedTradingCoachAskResult>(getAskUnifiedTradingCoachUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      unifiedTradingCoachAskInput,)
+  }
+);}
+
+
+
+
+export const getAskUnifiedTradingCoachMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askUnifiedTradingCoach>>, TError,{data: BodyType<UnifiedTradingCoachAskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof askUnifiedTradingCoach>>, TError,{data: BodyType<UnifiedTradingCoachAskInput>}, TContext> => {
+
+const mutationKey = ['askUnifiedTradingCoach'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askUnifiedTradingCoach>>, {data: BodyType<UnifiedTradingCoachAskInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  askUnifiedTradingCoach(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskUnifiedTradingCoachMutationResult = NonNullable<Awaited<ReturnType<typeof askUnifiedTradingCoach>>>
+    export type AskUnifiedTradingCoachMutationBody = BodyType<UnifiedTradingCoachAskInput>
+    export type AskUnifiedTradingCoachMutationError = ErrorType<void>
+
+    /**
+ * @summary Ask a free-form question grounded in Market Structure/Multi-Timeframe/Liquidity/Regime/Probability (Engine 2), the calling user's own Trading Positions risk, the options-income Portfolio/Dashboard/Scanner/AI Opportunity Score (Engine 3), and recent Trading Journal reflections; persists both turns (read-only; never executes; SSE variant at /trading-coach/ask/stream is not modeled here)
+ */
+export const useAskUnifiedTradingCoach = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askUnifiedTradingCoach>>, TError,{data: BodyType<UnifiedTradingCoachAskInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof askUnifiedTradingCoach>>,
+        TError,
+        {data: BodyType<UnifiedTradingCoachAskInput>},
+        TContext
+      > => {
+      return useMutation(getAskUnifiedTradingCoachMutationOptions(options));
+    }
+
+export const getGetUnifiedTradingCoachMessagesUrl = () => {
+
+
+
+
+  return `/api/trading-coach/messages`
+}
+
+/**
+ * @summary The calling user's own persisted AI Trading Coach conversation history, oldest-first, bounded to the 50 most recent turns
+ */
+export const getUnifiedTradingCoachMessages = async ( options?: RequestInit): Promise<UnifiedTradingCoachMessage[]> => {
+
+  return customFetch<UnifiedTradingCoachMessage[]>(getGetUnifiedTradingCoachMessagesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetUnifiedTradingCoachMessagesQueryKey = () => {
+    return [
+    `/api/trading-coach/messages`
+    ] as const;
+    }
+
+
+export const getGetUnifiedTradingCoachMessagesQueryOptions = <TData = Awaited<ReturnType<typeof getUnifiedTradingCoachMessages>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUnifiedTradingCoachMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUnifiedTradingCoachMessagesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUnifiedTradingCoachMessages>>> = ({ signal }) => getUnifiedTradingCoachMessages({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUnifiedTradingCoachMessages>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetUnifiedTradingCoachMessagesQueryResult = NonNullable<Awaited<ReturnType<typeof getUnifiedTradingCoachMessages>>>
+export type GetUnifiedTradingCoachMessagesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary The calling user's own persisted AI Trading Coach conversation history, oldest-first, bounded to the 50 most recent turns
+ */
+
+export function useGetUnifiedTradingCoachMessages<TData = Awaited<ReturnType<typeof getUnifiedTradingCoachMessages>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getUnifiedTradingCoachMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetUnifiedTradingCoachMessagesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getRunTradingBacktestUrl = () => {
 

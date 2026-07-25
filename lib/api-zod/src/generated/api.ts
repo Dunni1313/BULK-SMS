@@ -13068,6 +13068,34 @@ export const ExplainTradingScenarioResponse = zod.object({
 
 
 /**
+ * @summary Ask a free-form question grounded in Market Structure/Multi-Timeframe/Liquidity/Regime/Probability (Engine 2), the calling user's own Trading Positions risk, the options-income Portfolio/Dashboard/Scanner/AI Opportunity Score (Engine 3), and recent Trading Journal reflections; persists both turns (read-only; never executes; SSE variant at /trading-coach/ask/stream is not modeled here)
+ */
+export const AskUnifiedTradingCoachBody = zod.object({
+  "question": zod.string(),
+  "symbol": zod.string().optional().describe('A specific symbol in focus (e.g. from a Workbench page or Scanner row); grounds the answer in Market Structure\/Multi-Timeframe\/Liquidity\/Regime\/Probability for that symbol'),
+  "scannerCandidateId": zod.number().optional().describe('A specific scanner_results row id owned by the calling user (Scanner \/ Trade Execution Center \"candidate in focus\")'),
+  "tradingPositionId": zod.number().optional().describe('A specific trading_positions row id owned by the calling user, for a question about one particular Engine 2 position')
+})
+
+export const AskUnifiedTradingCoachResponse = zod.object({
+  "answer": zod.string(),
+  "answerSource": zod.enum(['llm', 'template'])
+})
+
+
+/**
+ * @summary The calling user's own persisted AI Trading Coach conversation history, oldest-first, bounded to the 50 most recent turns
+ */
+export const GetUnifiedTradingCoachMessagesResponseItem = zod.object({
+  "id": zod.number(),
+  "role": zod.enum(['user', 'assistant']),
+  "message": zod.string(),
+  "createdAt": zod.string()
+})
+export const GetUnifiedTradingCoachMessagesResponse = zod.array(GetUnifiedTradingCoachMessagesResponseItem)
+
+
+/**
  * @summary Run a genuine walk-forward price-action backtest for a symbol against a named strategy, persisting the result to the calling user's own history (read-only over historical candles; never places an order)
  */
 export const RunTradingBacktestBody = zod.object({

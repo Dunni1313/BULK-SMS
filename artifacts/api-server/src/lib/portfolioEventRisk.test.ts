@@ -334,11 +334,20 @@ describe("buildPortfolioEventRiskOverlay", () => {
     let userId: string;
 
     beforeAll(async () => {
+      // Freezes the clock, matching the "dividend events" block above —
+      // the "SPY dividend within 3 days" / "IBM macro soonest ~7 days out"
+      // assumptions below were empirically verified at this exact frozen
+      // clock and drift with the passage of real time otherwise (a
+      // pre-existing bug caught during v1.3.0 Sprint 1 CI validation,
+      // unrelated to that sprint's own changes).
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(FROZEN_EVENT_CLOCK);
       userId = await createUser("buckets");
       await insertPosition(userId, "SPY", 3); // dividend within 3 days
       await insertPosition(userId, "IBM", 45); // macro events, soonest ~7 days out
     });
     afterAll(async () => {
+      vi.useRealTimers();
       await cleanupUser(userId);
     });
 

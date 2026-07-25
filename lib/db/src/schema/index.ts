@@ -50,3 +50,4 @@ export * from "./optionsPositionChecklists";
 export * from "./compliancePolicies";
 export * from "./investingWatchlists";
 export * from "./portfolioWorkspace";
+export * from "./tradingCoachMessages";
