@@ -8,16 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Play, FileSignature, Bot } from "lucide-react";
+import { Play, FileSignature, Bot, MessageCircle } from "lucide-react";
 import { TradeExplanationSheet } from "@/components/ui/trade-explanation-sheet";
 import { EventRiskBadge } from "@/components/ui/event-risk-badge";
+import { useTradingCoach } from "@/hooks/use-trading-coach";
+import { focusFromScannerCandidate } from "@/lib/trading-coach-context";
 
 export default function Scanner() {
   const [strategy, setStrategy] = useState<GetScannerResultsStrategy | "all">("all");
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [explainScannerId, setExplainScannerId] = useState<number>();
-  
+  const { openWithFocus } = useTradingCoach();
+
   const { data: results, isLoading } = useGetScannerResults(
     strategy === "all" ? undefined : { strategy }
   );
@@ -152,6 +155,16 @@ export default function Scanner() {
                           title="Explain with AI Coach"
                         >
                           <Bot className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
+                          onClick={() => openWithFocus(focusFromScannerCandidate(result))}
+                          title="Ask the AI Trading Coach about this"
+                          data-testid={`button-ask-trading-coach-${result.id}`}
+                        >
+                          <MessageCircle className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"

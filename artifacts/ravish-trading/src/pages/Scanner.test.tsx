@@ -33,6 +33,20 @@ vi.mock("wouter", async () => {
 });
 
 import Scanner from "./Scanner";
+import { useTradingCoach } from "@/hooks/use-trading-coach";
+
+// v1.3.1 — AI Trading Coach. A minimal debug consumer proving the
+// Scanner row's "Ask AI Trading Coach" trigger sets the shared
+// TradingCoachProvider focus correctly — full Coach panel/workspace
+// behavior is already covered by TradingCoachWorkspace.test.tsx.
+function FocusProbe() {
+  const { open, focus } = useTradingCoach();
+  return (
+    <div data-testid="focus-probe">
+      {String(open)}|{focus.symbol ?? ""}|{focus.scannerCandidateLabel ?? ""}
+    </div>
+  );
+}
 
 function scannerResult(over: Record<string, unknown> = {}) {
   return {
@@ -96,5 +110,17 @@ describe("Scanner page", () => {
     renderWithClient(<Scanner />);
     await userEvent.click(screen.getByRole("button", { name: /run scan/i }));
     expect(runScannerMock.mutate).toHaveBeenCalledWith({ data: {} }, expect.anything());
+  });
+
+  it("opens the AI Trading Coach with this candidate's symbol/strategy in focus", async () => {
+    mockState.results = [scannerResult()];
+    renderWithClient(
+      <>
+        <Scanner />
+        <FocusProbe />
+      </>,
+    );
+    await userEvent.click(screen.getByTestId("button-ask-trading-coach-42"));
+    expect(screen.getByTestId("focus-probe")).toHaveTextContent("true|AAPL|AAPL iron condor");
   });
 });

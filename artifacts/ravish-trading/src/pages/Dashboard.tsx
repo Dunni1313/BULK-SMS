@@ -7,7 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, RadialBarChart, RadialBar
 } from "recharts";
-import { TrendingUp, TrendingDown, Zap, Activity, Target, DollarSign, Clock, Database, ShieldCheck, ShieldAlert } from "lucide-react";
+import { TrendingUp, TrendingDown, Zap, Activity, Target, DollarSign, Clock, Database, ShieldCheck, ShieldAlert, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTradingCoach } from "@/hooks/use-trading-coach";
 
 const SYMBOLS = ["SPY", "QQQ", "IWM", "NVDA", "META", "AAPL", "AMZN", "MSFT", "GOOGL", "TSLA"];
 
@@ -276,6 +278,7 @@ function TopPickHero({ opp, onReview }: { opp: { id: number; symbol: string; rav
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
+  const { openWithFocus } = useTradingCoach();
   const { data: summary, isLoading: isLoadingSummary } = useGetPortfolioSummary();
   const { data: topOpps, isLoading: isLoadingOpps } = useGetTopOpportunities();
   const { data: scannerData } = useGetScannerResults();
@@ -322,6 +325,17 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/10"
+            onClick={() => openWithFocus({})}
+            data-testid="button-ask-trading-coach-dashboard"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Ask AI Trading Coach
+          </Button>
           <div
             className="h-2 w-2 rounded-full bg-emerald-500"
             style={{ animation: "pulse-glow 2s ease-in-out infinite" }}

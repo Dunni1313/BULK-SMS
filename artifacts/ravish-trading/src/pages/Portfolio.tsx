@@ -2,16 +2,33 @@ import { useGetPortfolioGreeks, useGetPortfolioPositions } from "@workspace/api-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExplainButton } from "@/components/learn/ExplainButton";
+import { MessageCircle } from "lucide-react";
+import { useTradingCoach } from "@/hooks/use-trading-coach";
 
 export default function Portfolio() {
   const { data: greeks, isLoading: isLoadingGreeks } = useGetPortfolioGreeks();
   const { data: positions, isLoading: isLoadingPositions } = useGetPortfolioPositions();
+  const { openWithFocus } = useTradingCoach();
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Portfolio Greeks</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">Portfolio Greeks</h1>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/10"
+          onClick={() => openWithFocus({})}
+          data-testid="button-ask-trading-coach-portfolio"
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          Ask AI Trading Coach
+        </Button>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-card border-border">

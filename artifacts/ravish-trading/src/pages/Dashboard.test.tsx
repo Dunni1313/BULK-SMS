@@ -204,4 +204,15 @@ describe("Dashboard page", () => {
     expect(screen.getByText("±7.2%")).toBeInTheDocument();
     expect(screen.getByText("Elevated IV ahead of earnings with strong historical crush.")).toBeInTheDocument();
   });
+
+  // v1.3.1 — AI Trading Coach.
+  it("shows an always-available Ask AI Trading Coach trigger, unrelated to any specific opportunity", async () => {
+    const user = userEvent.setup();
+    renderWithClient(<Dashboard />);
+    const trigger = screen.getByTestId("button-ask-trading-coach-dashboard");
+    expect(trigger).toBeInTheDocument();
+    // Never throws / never requires any specific piece of dashboard data to
+    // have resolved first.
+    await user.click(trigger);
+  });
 });
