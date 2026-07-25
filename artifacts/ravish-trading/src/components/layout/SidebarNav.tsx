@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
-import { ChevronRight, Star, Pin, PinOff, ArrowUp, ArrowDown } from "lucide-react";
+import { Star, Pin, PinOff, ArrowUp, ArrowDown } from "lucide-react";
 import {
   SidebarContent,
   SidebarGroup,
@@ -26,9 +26,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { SidebarSectionHeader } from "@/components/layout/SidebarSectionHeader";
 import { NAV_GROUPS, findNavItem, findGroupIdForHref, type NavigationItem } from "@/lib/nav-items";
 import type { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
-import { cn } from "@/lib/utils";
 
 // Preferences are owned once, by AppLayout (the compact toggle button
 // lives in its header, outside this component) — passed down here rather
@@ -43,9 +43,6 @@ export interface SidebarNavProps {
   attentionCount: number;
   preferences: SidebarPreferences;
 }
-
-const GROUP_HEADER_CLASS =
-  "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 w-full shrink-0 items-center gap-2 rounded-md px-2 text-xs font-semibold uppercase tracking-wider outline-hidden transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2";
 
 export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
   const [location] = useLocation();
@@ -123,10 +120,13 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
     <SidebarContent>
       {pinnedItems.length > 0 && (
         <SidebarGroup>
-          <div className={cn(GROUP_HEADER_CLASS, "group-data-[collapsible=icon]:hidden")}>
-            <Star className="h-3.5 w-3.5 shrink-0" />
-            <span className="flex-1 text-left">Frequently Used</span>
-          </div>
+          <SidebarSectionHeader
+            label="Frequently Used"
+            icon={Star}
+            theme="neutral"
+            interactive={false}
+            data-testid="sidebar-group-header-pinned"
+          />
           <SidebarGroupContent>
             <SidebarMenu>
               {pinnedItems.map((item, idx) => (
@@ -205,17 +205,13 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
           <Collapsible key={group.id} open={open} onOpenChange={(next) => setGroupExpanded(group.id, next)}>
             <SidebarGroup>
               <CollapsibleTrigger asChild>
-                <button
-                  type="button"
-                  className={GROUP_HEADER_CLASS}
+                <SidebarSectionHeader
+                  label={group.label}
+                  icon={group.icon}
+                  theme={group.theme}
+                  open={open}
                   data-testid={`sidebar-group-trigger-${group.id}`}
-                >
-                  <group.icon className="h-3.5 w-3.5 shrink-0" />
-                  <span className="flex-1 truncate text-left">{group.label}</span>
-                  <ChevronRight
-                    className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-200", open && "rotate-90")}
-                  />
-                </button>
+                />
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <SidebarGroupContent>
