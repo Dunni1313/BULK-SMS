@@ -24,6 +24,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { TradingCoachProvider } from "@/hooks/use-trading-coach";
 import { useEffect } from "react";
 
 // Pages
@@ -71,6 +72,7 @@ const InvestmentCommitteeWorkbench = lazy(() => import("./pages/InvestmentCommit
 const ResearchTerminal = lazy(() => import("./pages/ResearchTerminal"));
 const InstitutionalAICoach = lazy(() => import("./pages/InstitutionalAICoach"));
 const TradingAICoach = lazy(() => import("./pages/TradingAICoach"));
+const AITradingCoach = lazy(() => import("./pages/AITradingCoach"));
 const StrategyFramework = lazy(() => import("./pages/StrategyFramework"));
 const StrategyWorkbench = lazy(() => import("./pages/StrategyWorkbench"));
 const TradingAnalyticsDashboard = lazy(() => import("./pages/TradingAnalyticsDashboard"));
@@ -145,9 +147,10 @@ function PageLoadingFallback() {
 
 function Router() {
   return (
-    <AppLayout>
-      <Suspense fallback={<PageLoadingFallback />}>
-        <Switch>
+    <TradingCoachProvider>
+      <AppLayout>
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Switch>
           <Route path="/login" component={Login} />
           <Route path="/" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
@@ -187,6 +190,7 @@ function Router() {
           <Route path="/liquidity-workbench" component={LiquidityWorkbench} />
           <Route path="/trade-planning-studio" component={TradePlanningStudio} />
           <Route path="/trading-ai-coach" component={TradingAICoach} />
+          <Route path="/ai-trading-coach" component={AITradingCoach} />
           <Route path="/strategy-framework" component={StrategyFramework} />
           <Route path="/strategy-workbench" component={StrategyWorkbench} />
           <Route path="/trading-analytics" component={TradingAnalyticsDashboard} />
@@ -239,9 +243,10 @@ function Router() {
           <Route path="/learn" component={LearningCentre} />
           <Route path="/stock-analyst/value-investing-school" component={ValueInvestingSchool} />
           <Route component={NotFound} />
-        </Switch>
-      </Suspense>
-    </AppLayout>
+          </Switch>
+        </Suspense>
+      </AppLayout>
+    </TradingCoachProvider>
   );
 }
 

@@ -92,6 +92,7 @@ import {
   Eye,
   Workflow,
   Command,
+  MessageCircle,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -265,6 +266,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     theme: "neutral",
     items: [
       { title: "AI Assistant", href: "/assistant", icon: MessageSquare },
+      { title: "AI Trading Coach", href: "/ai-trading-coach", icon: MessageCircle },
       { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },
       { title: "Cross-Engine Workspace", href: "/cross-engine-workspace", icon: Grid3x3 },
     ],

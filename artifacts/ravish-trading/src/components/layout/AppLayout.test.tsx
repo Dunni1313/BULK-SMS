@@ -359,3 +359,54 @@ describe("AppLayout — sidebar section headers (v1.3.1)", () => {
     expect(screen.getByRole("button", { name: "Institutional Investing" })).toBeInTheDocument();
   });
 });
+
+describe("AppLayout — AI Trading Coach launcher and sidebar navigation (v1.3.1)", () => {
+  it("shows a clear, accessible header launcher for the AI Trading Coach", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    const launcher = screen.getByTestId("button-trading-coach-launcher");
+    expect(launcher).toBeInTheDocument();
+    expect(launcher).toHaveAccessibleName("Open AI Trading Coach");
+  });
+
+  it("keeps the launcher reachable in both expanded and collapsed (compact) sidebar modes", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("button-trading-coach-launcher")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("button-toggle-compact-sidebar"));
+    await waitFor(() =>
+      expect(screen.queryByTestId("sidebar-group-trigger-options-trading")).not.toBeInTheDocument(),
+    );
+    // The launcher lives in the header, not the sidebar, so compact mode
+    // never affects it — it's still reachable exactly as before.
+    expect(screen.getByTestId("button-trading-coach-launcher")).toBeInTheDocument();
+  });
+
+  it("reaches the AI Trading Coach sidebar-nav entry once its (non-default-expanded) group is opened", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.queryByTestId("sidebar-link-/ai-trading-coach")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("sidebar-group-trigger-ai-decision-tools"));
+    await waitFor(() => expect(screen.getByTestId("sidebar-link-/ai-trading-coach")).toBeInTheDocument());
+    expect(screen.getByTestId("sidebar-link-/ai-trading-coach")).toHaveAttribute("href", "/ai-trading-coach");
+  });
+
+  it("keeps the AI Trading Coach sidebar-nav entry reachable in compact (icon-only) mode too", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    fireEvent.click(screen.getByTestId("button-toggle-compact-sidebar"));
+    await waitFor(() => expect(screen.getByTestId("sidebar-link-/ai-trading-coach")).toBeInTheDocument());
+  });
+});
