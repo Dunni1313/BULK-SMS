@@ -118,7 +118,7 @@ export default function OptionChain() {
                       <TableRow key={strike} className="border-border hover:bg-secondary/30 font-mono text-sm">
                         <TableCell className={`text-right ${isItmCall ? 'bg-primary/10' : ''}`}>{call?.delta.toFixed(2)}</TableCell>
                         <TableCell className={`text-right ${isItmCall ? 'bg-primary/10' : ''}`}>{call?.theta.toFixed(3)}</TableCell>
-                        <TableCell className={`text-right ${isItmCall ? 'bg-primary/10' : ''}`}>{(call?.iv || 0 * 100).toFixed(1)}%</TableCell>
+                        <TableCell className={`text-right ${isItmCall ? 'bg-primary/10' : ''}`}>{((call?.iv || 0) * 100).toFixed(1)}%</TableCell>
                         <TableCell className={`text-right ${isItmCall ? 'bg-primary/10' : ''}`}>{call?.bid.toFixed(2)}</TableCell>
                         <TableCell className={`text-right font-bold ${isItmCall ? 'bg-primary/10' : ''}`}>{call?.mid?.toFixed(2) || ((call?.bid||0) + (call?.ask||0))/2}</TableCell>
                         <TableCell className={`text-right border-r border-border ${isItmCall ? 'bg-primary/10' : ''}`}>{call?.ask.toFixed(2)}</TableCell>
@@ -128,7 +128,7 @@ export default function OptionChain() {
                         <TableCell className={`text-left border-l border-border ${isItmPut ? 'bg-primary/10' : ''}`}>{put?.bid.toFixed(2)}</TableCell>
                         <TableCell className={`text-left font-bold ${isItmPut ? 'bg-primary/10' : ''}`}>{put?.mid?.toFixed(2) || ((put?.bid||0) + (put?.ask||0))/2}</TableCell>
                         <TableCell className={`text-left ${isItmPut ? 'bg-primary/10' : ''}`}>{put?.ask.toFixed(2)}</TableCell>
-                        <TableCell className={`text-left ${isItmPut ? 'bg-primary/10' : ''}`}>{(put?.iv || 0 * 100).toFixed(1)}%</TableCell>
+                        <TableCell className={`text-left ${isItmPut ? 'bg-primary/10' : ''}`}>{((put?.iv || 0) * 100).toFixed(1)}%</TableCell>
                         <TableCell className={`text-left ${isItmPut ? 'bg-primary/10' : ''}`}>{put?.theta.toFixed(3)}</TableCell>
                         <TableCell className={`text-left ${isItmPut ? 'bg-primary/10' : ''}`}>{put?.delta.toFixed(2)}</TableCell>
                       </TableRow>

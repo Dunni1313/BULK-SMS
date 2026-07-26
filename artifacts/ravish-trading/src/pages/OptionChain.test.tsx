@@ -72,4 +72,33 @@ describe("OptionChain page", () => {
     expect(screen.queryByText("LAST:")).not.toBeInTheDocument();
     expect(document.querySelectorAll("tbody tr").length).toBe(0);
   });
+
+  // v1.3.2 — regression test for a real operator-precedence bug: the IV
+  // column previously rendered `(call?.iv || 0 * 100).toFixed(1)`, which
+  // due to operator precedence evaluated as `(call?.iv || 0).toFixed(1)` —
+  // the `* 100` never applied. A 0.28 (28%) IV silently rendered as "0.3%"
+  // instead of "28.0%". Fixed to `((call?.iv || 0) * 100).toFixed(1)`.
+  it("renders implied volatility as a correct percentage, not a raw decimal fraction", () => {
+    mockState.chain = chain({
+      calls: [{ ...optionLeg({ iv: 0.28 }), strike: 190 }],
+      puts: [{ ...optionLeg({ iv: 0.41 }), strike: 190 }],
+    });
+    renderWithClient(<OptionChain />);
+    // 0.28 -> "28.0%", not the pre-fix "0.3%".
+    expect(screen.getByText("28.0%")).toBeInTheDocument();
+    // 0.41 -> "41.0%", not the pre-fix "0.4%".
+    expect(screen.getByText("41.0%")).toBeInTheDocument();
+    expect(screen.queryByText("0.3%")).not.toBeInTheDocument();
+    expect(screen.queryByText("0.4%")).not.toBeInTheDocument();
+  });
+
+  it("honestly shows 0.0% implied volatility when a leg's iv is genuinely zero, not a fabricated value", () => {
+    mockState.chain = chain({
+      calls: [{ ...optionLeg({ iv: 0 }), strike: 190 }],
+      puts: [{ ...optionLeg({ iv: 0 }), strike: 190 }],
+    });
+    renderWithClient(<OptionChain />);
+    const zeroIv = screen.getAllByText("0.0%");
+    expect(zeroIv.length).toBe(2);
+  });
 });

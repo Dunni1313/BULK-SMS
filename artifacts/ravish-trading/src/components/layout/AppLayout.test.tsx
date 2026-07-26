@@ -254,6 +254,74 @@ describe("AppLayout — sidebar navigation redesign (v1.1.0)", () => {
   });
 });
 
+describe("AppLayout — sidebar accessibility (v1.3.2, Version 1 Polish Sprint)", () => {
+  it("exposes the sidebar as a navigation landmark with an accessible name", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
+  });
+
+  it("marks the active route's sidebar link with aria-current=\"page\"", () => {
+    // beforeEach already navigates to "/" (Institutional Home).
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("sidebar-link-/")).toHaveAttribute("aria-current", "page");
+  });
+
+  it("does not mark an inactive route's sidebar link with aria-current", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("sidebar-link-/trades")).not.toHaveAttribute("aria-current");
+  });
+
+  it("moves aria-current to whichever link matches the current route", () => {
+    window.history.pushState(null, "", "/trades");
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("sidebar-link-/trades")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("sidebar-link-/")).not.toHaveAttribute("aria-current");
+  });
+
+  it("also marks a Frequently Used pinned link's aria-current when it matches the active route", () => {
+    // Command Center is one of the redesign's own suggested default pins
+    // (confirmed by the pre-existing "reordering a pinned item" test above),
+    // so it renders both as a group item and as a Frequently Used pin.
+    window.history.pushState(null, "", "/command-center");
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("sidebar-pinned-link-/command-center")).toHaveAttribute("aria-current", "page");
+  });
+
+  it("preserves every pre-existing sidebar behaviour alongside the new accessibility attributes", async () => {
+    // A compact regression check that the a11y additions are additive only:
+    // group expand/collapse, pin/unpin, and compact mode all still work
+    // exactly as the v1.1.0 suite above already proves in full detail.
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.queryByTestId("sidebar-link-/trading-journal")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("sidebar-group-trigger-trading-workbench"));
+    await waitFor(() => expect(screen.getByTestId("sidebar-link-/trading-journal")).toBeInTheDocument());
+  });
+});
+
 describe("AppLayout — sidebar section headers (v1.3.1)", () => {
   it("renders each group's header as a full-width coloured bar with its own theme, per the requested colour mapping", () => {
     renderWithClient(
