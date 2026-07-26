@@ -557,30 +557,55 @@ describe("TradingResearch page", () => {
     expect(await screen.findByText(/Could not resolve liquidity data for "NOTATICKER"/i)).toBeInTheDocument();
   });
 
-  it("renders the AI Trade Coach panel with an honest empty-state once a symbol is searched", async () => {
+  it("renders the legacy inline assistant collapsed by default, with an honest empty-state once opened", async () => {
     renderWithClient(<TradingResearch />);
 
     await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
     await userEvent.click(screen.getByTestId("button-trading-research-search"));
 
     expect(await screen.findByTestId("card-trade-coach")).toBeInTheDocument();
+    // v1.3.2 — collapsed by default; the chat body isn't in the DOM yet.
+    expect(screen.queryByTestId("trade-coach-empty")).not.toBeInTheDocument();
+    expect(screen.getByTestId("button-toggle-legacy-trade-coach")).toHaveTextContent(
+      "Show legacy inline assistant",
+    );
+
+    await userEvent.click(screen.getByTestId("button-toggle-legacy-trade-coach"));
+
     expect(screen.getByTestId("trade-coach-empty")).toBeInTheDocument();
     expect(screen.queryByTestId("trade-coach-history")).not.toBeInTheDocument();
+    expect(screen.getByTestId("button-toggle-legacy-trade-coach")).toHaveTextContent(
+      "Hide legacy inline assistant",
+    );
   });
 
-  it("does not render the AI Trade Coach panel before any symbol is searched", () => {
+  it("does not render the legacy inline assistant card before any symbol is searched", () => {
     renderWithClient(<TradingResearch />);
     expect(screen.queryByTestId("card-trade-coach")).not.toBeInTheDocument();
   });
 
-  it("submits a free-form question to the trade coach ask/stream endpoint", async () => {
+  // v1.3.2 — Version 1 Polish Sprint: the legacy card's own description now
+  // points users at the unified AI Trading Coach via a second trigger of
+  // the same openWithFocus() call the header button already uses.
+  it("guides the user toward the unified AI Trading Coach from the legacy card's own description", async () => {
     renderWithClient(<TradingResearch />);
 
     await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
     await userEvent.click(screen.getByTestId("button-trading-research-search"));
 
+    expect(await screen.findByTestId("button-ask-trading-coach-from-legacy-panel")).toBeInTheDocument();
+    expect(screen.getByText(/kept for continuity and still fully works/i)).toBeInTheDocument();
+  });
+
+  it("submits a free-form question to the trade coach ask/stream endpoint once the legacy panel is opened", async () => {
+    renderWithClient(<TradingResearch />);
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+    await userEvent.click(await screen.findByTestId("button-toggle-legacy-trade-coach"));
+
     await userEvent.type(
-      await screen.findByTestId("trade-coach-input"),
+      screen.getByTestId("trade-coach-input"),
       "Is now a good time to look at AAPL given my risk profile?",
     );
     await userEvent.click(screen.getByTestId("trade-coach-submit"));
@@ -600,7 +625,8 @@ describe("TradingResearch page", () => {
 
     await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
     await userEvent.click(screen.getByTestId("button-trading-research-search"));
-    await userEvent.type(await screen.findByTestId("trade-coach-input"), "What is the regime?");
+    await userEvent.click(await screen.findByTestId("button-toggle-legacy-trade-coach"));
+    await userEvent.type(screen.getByTestId("trade-coach-input"), "What is the regime?");
     await userEvent.click(screen.getByTestId("trade-coach-submit"));
 
     expect(await screen.findByText(/trending-bullish regime with High liquidity/i)).toBeInTheDocument();
@@ -615,7 +641,8 @@ describe("TradingResearch page", () => {
 
     await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
     await userEvent.click(screen.getByTestId("button-trading-research-search"));
-    await userEvent.type(await screen.findByTestId("trade-coach-input"), "What is the regime?");
+    await userEvent.click(await screen.findByTestId("button-toggle-legacy-trade-coach"));
+    await userEvent.type(screen.getByTestId("trade-coach-input"), "What is the regime?");
     await userEvent.click(screen.getByTestId("trade-coach-submit"));
 
     expect(await screen.findByText(/Failed to get an answer/i)).toBeInTheDocument();

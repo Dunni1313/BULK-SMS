@@ -82,6 +82,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   fmtUsd,
   trendBadgeClass,
@@ -106,6 +107,8 @@ import {
   MessageCircle,
   Send,
   ExternalLink,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 export default function TradingResearch() {
@@ -237,6 +240,16 @@ export default function TradingResearch() {
   const [coachHistory, setCoachHistory] = useState<{ question: string; answer: string }[]>([]);
   const [coachStreamingAnswer, setCoachStreamingAnswer] = useState("");
   const [coachAsking, setCoachAsking] = useState(false);
+  // v1.3.2 — Version 1 Polish Sprint: this inline panel and the "Ask AI
+  // Trading Coach" button above both answer free-form questions grounded
+  // in this same symbol's data, which real-user review found confusing —
+  // two live chat surfaces on one page with no explanation of either. The
+  // unified AI Trading Coach (button above, dockable panel, persisted
+  // history) is the recommended surface going forward; this legacy inline
+  // panel is collapsed by default rather than removed, so its existing,
+  // still-fully-functional backend capability (POST
+  // /trading/coach/ask/stream, unchanged) stays reachable for continuity.
+  const [legacyCoachOpen, setLegacyCoachOpen] = useState(false);
 
   function handleAskCoach(e: React.FormEvent) {
     e.preventDefault();
@@ -620,55 +633,82 @@ export default function TradingResearch() {
       {symbol && (
         <Card data-testid="card-trade-coach">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              Ask the AI Trade Coach
+            <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MessageCircle className="h-4 w-4" />
+              Legacy Inline Assistant
             </CardTitle>
             <CardDescription>
-              Ask anything about {symbol}'s structure, liquidity, regime, and probability cone, plus your own
-              portfolio risk and recent journal reflections. Grounded in the data above only — education, not
-              investment advice. Never places an order.
+              This inline assistant is kept for continuity and still fully works. For the fuller experience —
+              persisted conversation history and richer cross-engine context — use{" "}
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto gap-1 p-0 text-indigo-400"
+                onClick={() => openWithFocus(focusFromSymbol(symbol))}
+                data-testid="button-ask-trading-coach-from-legacy-panel"
+              >
+                Ask AI Trading Coach
+                <ExternalLink className="h-3 w-3" />
+              </Button>{" "}
+              instead, which opens the same underlying capability in a dedicated panel.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {coachHistory.length === 0 && !coachStreamingAnswer && (
-              <p className="text-sm text-muted-foreground" data-testid="trade-coach-empty">
-                No questions yet — ask something like "What does my portfolio risk look like for {symbol}?"
-              </p>
-            )}
+          <CardContent>
+            <Collapsible open={legacyCoachOpen} onOpenChange={setLegacyCoachOpen}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-muted-foreground"
+                  data-testid="button-toggle-legacy-trade-coach"
+                >
+                  {legacyCoachOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  {legacyCoachOpen ? "Hide legacy inline assistant" : "Show legacy inline assistant"}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 pt-3">
+                {coachHistory.length === 0 && !coachStreamingAnswer && (
+                  <p className="text-sm text-muted-foreground" data-testid="trade-coach-empty">
+                    No questions yet — ask something like "What does my portfolio risk look like for {symbol}?"
+                  </p>
+                )}
 
-            {(coachHistory.length > 0 || coachStreamingAnswer) && (
-              <div className="max-h-72 space-y-3 overflow-y-auto pr-1" data-testid="trade-coach-history">
-                {coachHistory.map((turn, i) => (
-                  <div key={i} className="space-y-1">
-                    <p className="text-xs font-medium text-foreground/90">Q: {turn.question}</p>
-                    <div className="border-l border-border pl-3 text-xs text-muted-foreground">
-                      <Markdown className="inline text-xs">{turn.answer}</Markdown>
-                    </div>
-                  </div>
-                ))}
-                {coachAsking && (
-                  <div className="space-y-1" data-testid="trade-coach-loading">
-                    <p className="border-l border-border pl-3 text-xs text-muted-foreground">
-                      {coachStreamingAnswer || "thinking…"}
-                    </p>
+                {(coachHistory.length > 0 || coachStreamingAnswer) && (
+                  <div className="max-h-72 space-y-3 overflow-y-auto pr-1" data-testid="trade-coach-history">
+                    {coachHistory.map((turn, i) => (
+                      <div key={i} className="space-y-1">
+                        <p className="text-xs font-medium text-foreground/90">Q: {turn.question}</p>
+                        <div className="border-l border-border pl-3 text-xs text-muted-foreground">
+                          <Markdown className="inline text-xs">{turn.answer}</Markdown>
+                        </div>
+                      </div>
+                    ))}
+                    {coachAsking && (
+                      <div className="space-y-1" data-testid="trade-coach-loading">
+                        <p className="border-l border-border pl-3 text-xs text-muted-foreground">
+                          {coachStreamingAnswer || "thinking…"}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
 
-            <form onSubmit={handleAskCoach} className="flex gap-2">
-              <Input
-                value={coachQuestion}
-                onChange={(e) => setCoachQuestion(e.target.value)}
-                placeholder="e.g. Is now a good time to look at AAPL given my risk profile?"
-                disabled={coachAsking}
-                data-testid="trade-coach-input"
-              />
-              <Button type="submit" size="sm" disabled={!coachQuestion.trim() || coachAsking} data-testid="trade-coach-submit">
-                <Send className="h-3.5 w-3.5" />
-              </Button>
-            </form>
+                <form onSubmit={handleAskCoach} className="flex gap-2">
+                  <Input
+                    value={coachQuestion}
+                    onChange={(e) => setCoachQuestion(e.target.value)}
+                    placeholder="e.g. Is now a good time to look at AAPL given my risk profile?"
+                    disabled={coachAsking}
+                    data-testid="trade-coach-input"
+                  />
+                  <Button type="submit" size="sm" disabled={!coachQuestion.trim() || coachAsking} data-testid="trade-coach-submit">
+                    <Send className="h-3.5 w-3.5" />
+                  </Button>
+                </form>
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
       )}
