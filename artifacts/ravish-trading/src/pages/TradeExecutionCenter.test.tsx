@@ -374,4 +374,15 @@ describe("TradeExecutionCenter page", () => {
     expect(timeline.textContent).toContain("Selected AAPL iron condor");
     expect(timeline.textContent).toContain("Paper order submitted: ORD-3");
   });
+
+  // v1.3.1 — AI Trading Coach.
+  it("shows an Ask AI Trading Coach trigger only once a candidate is selected, in focus of that candidate", async () => {
+    const user = userEvent.setup();
+    renderWithClient(<TradeExecutionCenter />);
+    expect(screen.queryByTestId("button-ask-trading-coach-execution-center")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("button-select-42"));
+    const trigger = screen.getByTestId("button-ask-trading-coach-execution-center");
+    expect(trigger).toHaveTextContent(/AAPL/);
+  });
 });

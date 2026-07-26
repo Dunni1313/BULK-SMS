@@ -99,4 +99,10 @@ describe("Portfolio page", () => {
     renderWithClient(<Portfolio />);
     expect(screen.queryByText("AI Portfolio Recommendations")).not.toBeInTheDocument();
   });
+
+  // v1.3.1 — AI Trading Coach.
+  it("shows an Ask AI Trading Coach trigger", () => {
+    renderWithClient(<Portfolio />);
+    expect(screen.getByTestId("button-ask-trading-coach-portfolio")).toBeInTheDocument();
+  });
 });

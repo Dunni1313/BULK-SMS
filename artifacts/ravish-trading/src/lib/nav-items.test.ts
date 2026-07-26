@@ -104,6 +104,8 @@ const PRE_REDESIGN_ROUTES = [
 const ADDED_SINCE_REDESIGN_ROUTES = [
   // v1.2.0 — Trade Execution Center (docs/v1.2.0-Trade-Execution-Center.md).
   "/trade-execution-center",
+  // v1.3.1 — AI Trading Coach (docs/v1.3.0-AI-Trading-Coach-Design.md).
+  "/ai-trading-coach",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {

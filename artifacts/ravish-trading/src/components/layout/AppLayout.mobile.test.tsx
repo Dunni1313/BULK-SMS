@@ -76,4 +76,30 @@ describe("AppLayout — sidebar mobile drawer (v1.1.0)", () => {
     // The global search trigger lives in the header, outside the Sheet.
     expect(screen.getByTestId("button-open-command-palette")).toBeInTheDocument();
   });
+
+  // v1.3.1 — AI Trading Coach. The header launcher lives in the same
+  // header row as the search trigger and NotificationBell (outside the
+  // mobile drawer's own Sheet), so it must stay reachable regardless of
+  // whether the drawer is open or closed — exactly like search above.
+  it("keeps the AI Trading Coach launcher available regardless of the drawer's open/closed state", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("button-trading-coach-launcher")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("button-toggle-compact-sidebar"));
+    expect(screen.getByTestId("button-trading-coach-launcher")).toBeInTheDocument();
+  });
+
+  it("reaches the AI Trading Coach sidebar-nav entry once the mobile drawer is opened", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    fireEvent.click(screen.getByTestId("button-toggle-compact-sidebar"));
+    fireEvent.click(screen.getByTestId("sidebar-group-trigger-ai-decision-tools"));
+    await waitFor(() => expect(screen.getByTestId("sidebar-link-/ai-trading-coach")).toBeInTheDocument());
+  });
 });

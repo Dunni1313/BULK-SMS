@@ -22,6 +22,7 @@
 // docs/v1.1.0-Sidebar-Redesign.md for the full duplicate-resolution table.
 
 import type { LucideIcon } from "lucide-react";
+import type { SidebarSectionTheme } from "@/components/layout/SidebarSectionHeader";
 import {
   LayoutDashboard,
   Search,
@@ -91,6 +92,7 @@ import {
   Eye,
   Workflow,
   Command,
+  MessageCircle,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -111,6 +113,14 @@ export interface NavigationGroup {
    * preference yet. Ignored once the user has an explicit saved state
    * for this group (see lib/sidebar-preferences.ts). */
   defaultExpanded?: boolean;
+  /** v1.3.1 — Sidebar Section Headers. Which coloured header-bar theme
+   * SidebarNav.tsx's SidebarSectionHeader renders this group with. The 4
+   * named engine themes (options/portfolio/investing/trading) are used by
+   * their own primary group plus that engine's closest sibling group;
+   * every other group (including "Frequently Used") uses the neutral
+   * premium theme — see docs/v1.3.1-Sidebar-Section-Headers.md for the
+   * full, disclosed rationale. */
+  theme: SidebarSectionTheme;
   items: NavigationItem[];
 }
 
@@ -120,6 +130,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     label: "Home",
     icon: Home,
     defaultExpanded: true,
+    theme: "neutral",
     items: [
       { title: "Institutional Home", href: "/", icon: Home },
       { title: "Command Center", href: "/command-center", icon: LayoutDashboard },
@@ -132,6 +143,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     label: "Options Trading",
     icon: BarChart3,
     defaultExpanded: true,
+    theme: "options",
     items: [
       { title: "Options Dashboard", href: "/options-dashboard", icon: BarChart3 },
       { title: "Scanner", href: "/scanner", icon: Search },
@@ -161,6 +173,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     id: "options-income-engine",
     label: "Options Income Engine",
     icon: Waves,
+    theme: "options",
     items: [
       { title: "Options Income Workspace", href: "/options-income-workspace", icon: Waves },
       { title: "Position Lifecycle Manager", href: "/options-lifecycle-manager", icon: GitBranch },
@@ -178,6 +191,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     id: "portfolio-management",
     label: "Portfolio Management",
     icon: PieChart,
+    theme: "portfolio",
     items: [
       { title: "Portfolio AI", href: "/portfolio-ai", icon: BrainCircuit },
       { title: "Portfolio Dashboard", href: "/portfolio-dashboard", icon: Gauge },
@@ -197,6 +211,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     id: "institutional-investing",
     label: "Institutional Investing",
     icon: Building2,
+    theme: "investing",
     items: [
       { title: "Institutional Dashboard", href: "/institutional-dashboard", icon: LayoutGrid },
       { title: "Executive Intelligence", href: "/executive-intelligence", icon: Command },
@@ -216,6 +231,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     id: "value-investing",
     label: "Value Investing",
     icon: Landmark,
+    theme: "investing",
     items: [
       { title: "Investing Executive Dashboard", href: "/stock-analyst/executive-dashboard", icon: LayoutList },
       { title: "Value Research", href: "/stock-analyst", icon: Building2 },
@@ -228,6 +244,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     id: "trading-workbench",
     label: "Trading Workbench",
     icon: Activity,
+    theme: "trading",
     items: [
       { title: "Trading Research", href: "/trading-research", icon: Activity },
       { title: "Trading Journal", href: "/trading-journal", icon: NotebookPen },
@@ -246,8 +263,10 @@ export const NAV_GROUPS: NavigationGroup[] = [
     id: "ai-decision-tools",
     label: "AI & Decision Tools",
     icon: BrainCircuit,
+    theme: "neutral",
     items: [
       { title: "AI Assistant", href: "/assistant", icon: MessageSquare },
+      { title: "AI Trading Coach", href: "/ai-trading-coach", icon: MessageCircle },
       { title: "AI Trade Journal", href: "/trade-journal-ai", icon: BookMarked },
       { title: "Cross-Engine Workspace", href: "/cross-engine-workspace", icon: Grid3x3 },
     ],
@@ -256,6 +275,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     id: "learning-centre",
     label: "Learning Centre",
     icon: GraduationCap,
+    theme: "neutral",
     items: [
       { title: "AI Teacher & Learning Centre", href: "/learn", icon: Sparkles },
       { title: "Learning Paths", href: "/learn/paths", icon: BookOpen },
@@ -272,6 +292,7 @@ export const NAV_GROUPS: NavigationGroup[] = [
     id: "administration",
     label: "Administration",
     icon: Settings,
+    theme: "neutral",
     items: [
       { title: "AutoPilot", href: "/autopilot", icon: Bot },
       { title: "Settings", href: "/settings", icon: Settings },

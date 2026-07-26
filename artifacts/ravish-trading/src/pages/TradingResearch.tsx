@@ -74,6 +74,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { streamCoach } from "@/lib/coach-stream";
 import { Markdown } from "@/components/ui/markdown";
+import { useTradingCoach } from "@/hooks/use-trading-coach";
+import { focusFromSymbol, focusFromTradingPosition } from "@/lib/trading-coach-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,6 +112,7 @@ export default function TradingResearch() {
   const [inputValue, setInputValue] = useState("");
   const [symbol, setSymbol] = useState("");
   const [tab, setTab] = useState("research");
+  const { openWithFocus } = useTradingCoach();
 
   const { data: structure, isLoading, isError } = useGetTradingStructure(symbol, {
     query: { queryKey: getGetTradingStructureQueryKey(symbol), enabled: !!symbol },
@@ -283,6 +286,18 @@ export default function TradingResearch() {
           <Search className="mr-2 h-4 w-4" />
           Search
         </Button>
+        {symbol && (
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-1.5 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/10"
+            onClick={() => openWithFocus(focusFromSymbol(symbol))}
+            data-testid="button-ask-trading-coach-research"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Ask AI Trading Coach
+          </Button>
+        )}
       </form>
 
       <Tabs value={tab} onValueChange={setTab}>
@@ -864,15 +879,28 @@ export default function TradingResearch() {
                       {p.stopPrice != null ? ` · stop ${fmtUsd(p.stopPrice)}` : ""}
                       {p.targetPrice != null ? ` · target ${fmtUsd(p.targetPrice)}` : ""}
                     </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeletePosition(p.id)}
-                      data-testid={`button-delete-position-${p.id}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <span className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
+                        onClick={() => openWithFocus(focusFromTradingPosition(p))}
+                        title="Ask the AI Trading Coach about this position"
+                        data-testid={`button-ask-trading-coach-position-${p.id}`}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeletePosition(p.id)}
+                        data-testid={`button-delete-position-${p.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </span>
                   </li>
                 ))}
               </ul>

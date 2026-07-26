@@ -297,6 +297,18 @@ describe("TradingResearch page", () => {
     expect(screen.getByText("3 touches")).toBeInTheDocument();
   });
 
+  // v1.3.1 — AI Trading Coach.
+  it("shows an Ask AI Trading Coach trigger only once a symbol has been searched", async () => {
+    mockState.structure = structureAnalysis();
+    renderWithClient(<TradingResearch />);
+    expect(screen.queryByTestId("button-ask-trading-coach-research")).not.toBeInTheDocument();
+
+    await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "aapl");
+    await userEvent.click(screen.getByTestId("button-trading-research-search"));
+
+    expect(await screen.findByTestId("button-ask-trading-coach-research")).toBeInTheDocument();
+  });
+
   it("shows an honest empty-zones message when no support/resistance zone was detected", async () => {
     mockState.structure = structureAnalysis({ zones: [] });
     renderWithClient(<TradingResearch />);
@@ -466,6 +478,13 @@ describe("TradingResearch page", () => {
     await userEvent.click(screen.getByTestId("button-delete-position-1"));
 
     expect(deletePositionMutate).toHaveBeenCalledWith({ id: 1 }, expect.anything());
+  });
+
+  // v1.3.1 — AI Trading Coach.
+  it("shows an Ask AI Trading Coach trigger on each position row", () => {
+    mockState.positions = [tradingPosition()];
+    renderWithClient(<TradingResearch />);
+    expect(screen.getByTestId("button-ask-trading-coach-position-1")).toBeInTheDocument();
   });
 
   it("submits the account value form with the entered value", async () => {

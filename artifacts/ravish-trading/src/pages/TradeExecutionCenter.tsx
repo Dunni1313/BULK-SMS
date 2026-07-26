@@ -72,6 +72,8 @@ import {
 import { EventRiskBadge } from "@/components/ui/event-risk-badge";
 import { TradeExplanationSheet } from "@/components/ui/trade-explanation-sheet";
 import { useToast } from "@/hooks/use-toast";
+import { useTradingCoach } from "@/hooks/use-trading-coach";
+import { focusFromScannerCandidate } from "@/lib/trading-coach-context";
 import {
   Play,
   Bot,
@@ -88,6 +90,7 @@ import {
   RefreshCw,
   Radio,
   ClipboardCheck,
+  MessageCircle,
 } from "lucide-react";
 
 const STEPS = [
@@ -185,6 +188,7 @@ export default function TradeExecutionCenter() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { openWithFocus } = useTradingCoach();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [furthestReached, setFurthestReached] = useState(0);
@@ -335,6 +339,19 @@ export default function TradeExecutionCenter() {
             </Badge>
           </p>
         </div>
+        {selected && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/10"
+            onClick={() => openWithFocus(focusFromScannerCandidate(selected))}
+            data-testid="button-ask-trading-coach-execution-center"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Ask AI Trading Coach about {selected.symbol}
+          </Button>
+        )}
       </div>
 
       <Card className="bg-card border-border">

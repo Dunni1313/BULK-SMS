@@ -253,3 +253,160 @@ describe("AppLayout — sidebar navigation redesign (v1.1.0)", () => {
     );
   });
 });
+
+describe("AppLayout — sidebar section headers (v1.3.1)", () => {
+  it("renders each group's header as a full-width coloured bar with its own theme, per the requested colour mapping", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    // Options Trading and Options Income Engine — green.
+    expect(screen.getByTestId("sidebar-group-trigger-options-trading").className).toContain(
+      "bg-sidebar-section-options",
+    );
+    expect(screen.getByTestId("sidebar-group-trigger-options-income-engine").className).toContain(
+      "bg-sidebar-section-options",
+    );
+    // Portfolio Management — blue.
+    expect(screen.getByTestId("sidebar-group-trigger-portfolio-management").className).toContain(
+      "bg-sidebar-section-portfolio",
+    );
+    // Institutional Investing and Value Investing — purple.
+    expect(screen.getByTestId("sidebar-group-trigger-institutional-investing").className).toContain(
+      "bg-sidebar-section-investing",
+    );
+    expect(screen.getByTestId("sidebar-group-trigger-value-investing").className).toContain(
+      "bg-sidebar-section-investing",
+    );
+    // Trading Workbench (Institutional Trading Engine) — its own distinct colour.
+    expect(screen.getByTestId("sidebar-group-trigger-trading-workbench").className).toContain(
+      "bg-sidebar-section-trading",
+    );
+    // Administration — neutral.
+    expect(screen.getByTestId("sidebar-group-trigger-administration").className).toContain(
+      "bg-sidebar-section-neutral",
+    );
+    // Every header bar spans the sidebar's full available width (the
+    // negative-margin bleed technique, not an explicit width utility).
+    expect(screen.getByTestId("sidebar-group-trigger-options-trading").className).toContain("-mx-2");
+    // Bold, uppercase text, rounded corners within the requested 8-12px range.
+    expect(screen.getByTestId("sidebar-group-trigger-options-trading").className).toMatch(/font-bold/);
+    expect(screen.getByTestId("sidebar-group-trigger-options-trading").className).toMatch(/uppercase/);
+    expect(screen.getByTestId("sidebar-group-trigger-options-trading").className).toMatch(/rounded-\[1?0px\]/);
+  });
+
+  it("gives the static Frequently Used header the neutral theme, matching its non-interactive, non-collapsible nature", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    const pinnedHeader = screen.getByTestId("sidebar-group-header-pinned");
+    expect(pinnedHeader.className).toContain("bg-sidebar-section-neutral");
+    // Non-interactive: no aria-expanded, not a button.
+    expect(pinnedHeader.tagName).toBe("DIV");
+    expect(pinnedHeader).not.toHaveAttribute("aria-expanded");
+  });
+
+  it("reflects each collapsible group's own expand/collapse state via aria-expanded on its coloured header", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    const tradingHeader = screen.getByTestId("sidebar-group-trigger-trading-workbench");
+    expect(tradingHeader).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(tradingHeader);
+    await waitFor(() => expect(tradingHeader).toHaveAttribute("aria-expanded", "true"));
+    fireEvent.click(tradingHeader);
+    await waitFor(() => expect(tradingHeader).toHaveAttribute("aria-expanded", "false"));
+  });
+
+  it("shows the active route's parent group's coloured header already expanded (aria-expanded=true)", () => {
+    window.history.pushState(null, "", "/trading-journal");
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("sidebar-group-trigger-trading-workbench")).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("hides every coloured section header in compact (icon-only) mode while its own child links stay reachable", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("sidebar-group-trigger-options-trading")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("button-toggle-compact-sidebar"));
+    await waitFor(() =>
+      expect(screen.queryByTestId("sidebar-group-trigger-options-trading")).not.toBeInTheDocument(),
+    );
+    // Compact mode hides group header chrome, not the links themselves.
+    expect(screen.getByTestId("sidebar-link-/trades")).toBeInTheDocument();
+  });
+
+  it("gives every group's header an accessible name combining its icon-adjacent label, reachable via role=button", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByRole("button", { name: "Options Trading" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Portfolio Management" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Institutional Investing" })).toBeInTheDocument();
+  });
+});
+
+describe("AppLayout — AI Trading Coach launcher and sidebar navigation (v1.3.1)", () => {
+  it("shows a clear, accessible header launcher for the AI Trading Coach", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    const launcher = screen.getByTestId("button-trading-coach-launcher");
+    expect(launcher).toBeInTheDocument();
+    expect(launcher).toHaveAccessibleName("Open AI Trading Coach");
+  });
+
+  it("keeps the launcher reachable in both expanded and collapsed (compact) sidebar modes", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("button-trading-coach-launcher")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("button-toggle-compact-sidebar"));
+    await waitFor(() =>
+      expect(screen.queryByTestId("sidebar-group-trigger-options-trading")).not.toBeInTheDocument(),
+    );
+    // The launcher lives in the header, not the sidebar, so compact mode
+    // never affects it — it's still reachable exactly as before.
+    expect(screen.getByTestId("button-trading-coach-launcher")).toBeInTheDocument();
+  });
+
+  it("reaches the AI Trading Coach sidebar-nav entry once its (non-default-expanded) group is opened", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.queryByTestId("sidebar-link-/ai-trading-coach")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("sidebar-group-trigger-ai-decision-tools"));
+    await waitFor(() => expect(screen.getByTestId("sidebar-link-/ai-trading-coach")).toBeInTheDocument());
+    expect(screen.getByTestId("sidebar-link-/ai-trading-coach")).toHaveAttribute("href", "/ai-trading-coach");
+  });
+
+  it("keeps the AI Trading Coach sidebar-nav entry reachable in compact (icon-only) mode too", async () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    fireEvent.click(screen.getByTestId("button-toggle-compact-sidebar"));
+    await waitFor(() => expect(screen.getByTestId("sidebar-link-/ai-trading-coach")).toBeInTheDocument());
+  });
+});

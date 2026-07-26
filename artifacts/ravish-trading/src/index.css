@@ -56,6 +56,23 @@
   --color-sidebar-accent-border: hsl(var(--sidebar-accent-border));
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
+  /* v1.3.1 — Sidebar Section Headers. Same hue families as the existing
+     chart-1..5 / success tokens, but deliberately darker/more saturated:
+     those tokens are tuned for a small accent used AS the foreground
+     against the dark sidebar background, not as a bar background that
+     itself needs to host readable white text. Each value below was
+     picked to clear WCAG AA's 4.5:1 contrast ratio against white. */
+  --color-sidebar-section-options: hsl(var(--sidebar-section-options));
+  --color-sidebar-section-options-foreground: hsl(var(--sidebar-section-options-foreground));
+  --color-sidebar-section-portfolio: hsl(var(--sidebar-section-portfolio));
+  --color-sidebar-section-portfolio-foreground: hsl(var(--sidebar-section-portfolio-foreground));
+  --color-sidebar-section-investing: hsl(var(--sidebar-section-investing));
+  --color-sidebar-section-investing-foreground: hsl(var(--sidebar-section-investing-foreground));
+  --color-sidebar-section-trading: hsl(var(--sidebar-section-trading));
+  --color-sidebar-section-trading-foreground: hsl(var(--sidebar-section-trading-foreground));
+  --color-sidebar-section-neutral: hsl(var(--sidebar-section-neutral));
+  --color-sidebar-section-neutral-foreground: hsl(var(--sidebar-section-neutral-foreground));
+
   --color-success: hsl(var(--success));
   --color-success-foreground: hsl(var(--success-foreground));
 
@@ -124,6 +141,20 @@
   --sidebar-accent-foreground: 210 20% 85%;
   --sidebar-accent-border: 220 15% 10%;
   --sidebar-ring: 210 100% 60%;
+
+  /* v1.3.1 — Sidebar Section Headers (Options/Portfolio/Investing/Trading/
+     Neutral). See docs/v1.3.1-Sidebar-Section-Headers.md for the full
+     per-group colour-mapping rationale and contrast-ratio derivation. */
+  --sidebar-section-options: 140 70% 28%; /* forest green — Options Trading / Options Income Engine */
+  --sidebar-section-options-foreground: 0 0% 100%;
+  --sidebar-section-portfolio: 210 90% 32%; /* deep blue — Portfolio Management */
+  --sidebar-section-portfolio-foreground: 0 0% 100%;
+  --sidebar-section-investing: 280 60% 35%; /* deep violet — Institutional Investing / Value Investing */
+  --sidebar-section-investing-foreground: 0 0% 100%;
+  --sidebar-section-trading: 30 85% 30%; /* bronze/amber — Trading Workbench (Institutional Trading Engine) */
+  --sidebar-section-trading-foreground: 0 0% 100%;
+  --sidebar-section-neutral: 220 15% 22%; /* graphite — Administration/System + every other group */
+  --sidebar-section-neutral-foreground: 0 0% 100%;
 
   --app-font-sans: 'Inter', system-ui, sans-serif;
   --app-font-serif: Georgia, serif;
