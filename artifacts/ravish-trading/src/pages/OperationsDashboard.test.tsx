@@ -110,4 +110,25 @@ describe("OperationsDashboard", () => {
     fireEvent.click(screen.getByTestId("button-run-reconciliation"));
     expect(mockState.createReportMutate).toHaveBeenCalled();
   });
+
+  // v1.3.2 — Version 1 Polish Sprint: the heading was a bare, unstyled
+  // <h1> with no className, visually inconsistent with every other page's
+  // "text-2xl font-bold text-foreground flex items-center gap-2" + icon
+  // convention. Now matches it, for both the admin-only page and the
+  // real dashboard.
+  it("renders the heading with the platform's standard page-header styling", () => {
+    renderWithClient(<OperationsDashboard />);
+    const heading = screen.getByRole("heading", { level: 1, name: /Operations Dashboard/ });
+    expect(heading.className).toContain("text-2xl");
+    expect(heading.className).toContain("font-bold");
+    expect(heading.className).toContain("text-foreground");
+  });
+
+  it("also applies the standard heading styling on the admin-gated empty state", () => {
+    mockState.session = userSession;
+    renderWithClient(<OperationsDashboard />);
+    const heading = screen.getByRole("heading", { level: 1, name: /Operations Dashboard/ });
+    expect(heading.className).toContain("text-2xl");
+    expect(heading.className).toContain("font-bold");
+  });
 });

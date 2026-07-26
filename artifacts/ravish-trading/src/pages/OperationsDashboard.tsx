@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { Server } from "lucide-react";
 
 function statusBadgeClass(status: string): string {
   if (status === "ok") return "bg-green-500/15 text-green-600 dark:text-green-400";
@@ -82,7 +83,9 @@ export default function OperationsDashboard() {
   if (!isAdmin) {
     return (
       <div className="space-y-4 max-w-3xl">
-        <h1>Operations Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Server className="w-6 h-6 text-indigo-400" /> Operations Dashboard
+        </h1>
         <p className="text-sm text-muted-foreground" data-testid="text-ops-admin-only">
           Administrators only. Sign in with an administrator account to view platform operations.
         </p>
@@ -93,7 +96,9 @@ export default function OperationsDashboard() {
   return (
     <div className="space-y-6 max-w-7xl">
       <div>
-        <h1>Operations Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Server className="w-6 h-6 text-indigo-400" /> Operations Dashboard
+        </h1>
         <p className="text-sm text-muted-foreground">
           Live Market Operations & Production Validation — API health, broker health, background-job scheduler health,
           market data freshness, and reconciliation history.
