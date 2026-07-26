@@ -89,6 +89,7 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
             className="flex items-center gap-3 px-4 py-2 text-sm font-medium"
             data-testid={`sidebar-link-${item.href}`}
             data-active={active || undefined}
+            aria-current={active ? "page" : undefined}
           >
             <item.icon className="h-4 w-4 shrink-0" />
             <span className="truncate">{item.title}</span>
@@ -117,7 +118,7 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
   }
 
   return (
-    <SidebarContent>
+    <SidebarContent role="navigation" aria-label="Main navigation">
       {pinnedItems.length > 0 && (
         <SidebarGroup>
           <SidebarSectionHeader
@@ -137,6 +138,7 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
                       onClick={handleNavigate}
                       className="flex items-center gap-3 px-4 py-2 text-sm font-medium"
                       data-testid={`sidebar-pinned-link-${item.href}`}
+                      aria-current={location === item.href ? "page" : undefined}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span className="truncate">{item.title}</span>
