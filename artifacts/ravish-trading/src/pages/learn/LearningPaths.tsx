@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
 import { LessonRenderer, hasRichLessonContent } from "@/components/learn/LessonRenderer";
+import { RelatedGlossaryBadges } from "@/components/learn/RelatedGlossaryBadges";
 
 function PathsList() {
   const { data: paths, isLoading } = useGetLearningPaths();
@@ -183,17 +184,7 @@ function PathDetail({ pathKey, topicKey }: { pathKey: string; topicKey?: string 
                           Open the dedicated tool/page →
                         </Link>
                       )}
-                      {t.relatedGlossaryKeys.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {t.relatedGlossaryKeys.map((k) => (
-                            <Link key={k} href={`/learn/glossary/${k}`} data-testid={`link-glossary-${k}`}>
-                              <Badge variant="outline" className="text-[9px] cursor-pointer hover:border-indigo-500/40">
-                                {k}
-                              </Badge>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
+                      <RelatedGlossaryBadges keys={t.relatedGlossaryKeys} />
                       <Button
                         size="sm"
                         variant={completed ? "outline" : "default"}

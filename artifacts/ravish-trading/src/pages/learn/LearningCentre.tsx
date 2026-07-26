@@ -182,7 +182,7 @@ function ExploreTab() {
             <Skeleton className="h-32 w-full rounded-lg" />
           ) : progress && progress.bookmarks.length > 0 ? (
             <ul className="space-y-1.5" data-testid="list-bookmarks">
-              {progress.bookmarks.map((b, i) => {
+              {progress.bookmarks.slice(0, 8).map((b, i) => {
                 const href = resolveItemHref(b.itemType, b.itemKey, paths);
                 const row = (
                   <div className="flex items-center gap-1.5 text-xs py-1.5">

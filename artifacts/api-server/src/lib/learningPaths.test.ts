@@ -58,7 +58,7 @@ describe("learning path content", () => {
     }
   });
 
-  it("an externalHref, when present, is a real, existing platform route — never a fabricated URL", () => {
+  it("an externalHref or relatedModuleHrefs entry, when present, is a real, existing platform route — never a fabricated URL", () => {
     // Every existing route this sprint's own topics point to, confirmed
     // by direct inspection of App.tsx before this content was written.
     const knownRoutes = new Set([
@@ -103,13 +103,24 @@ describe("learning path content", () => {
       "/strategy-framework",
       // v1.4.0, Sprint L1 — Learning Centre Foundation's own
       // platform-basics path, confirmed by direct inspection of App.tsx
-      // before this content was written.
+      // before this content was written. Includes every relatedModuleHrefs
+      // target the 3 new foundation topics reference, not just externalHref.
       "/command-center",
       "/learn",
+      "/",
+      "/settings",
+      "/notifications",
+      "/executive-intelligence",
+      "/institutional-dashboard",
+      "/learn/paths",
+      "/learn/glossary",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
         expect(knownRoutes.has(topic.externalHref)).toBe(true);
+      }
+      for (const href of topic.relatedModuleHrefs ?? []) {
+        expect(knownRoutes.has(href)).toBe(true);
       }
     }
   });

@@ -16,6 +16,12 @@
 // per this sprint's explicit "do not create dozens of prompts yet"
 // scope, wiring a real prefill-and-send flow into the panel is deferred
 // to a later sprint once more lessons actually need it.
+//
+// Opens via openWithFocus({}) — the exact call Dashboard.tsx's/
+// Portfolio.tsx's own generic "Ask AI Coach" buttons already use — rather
+// than a bare setOpen(true), so a stale symbol/position focus left over
+// from whatever page the user was on before navigating here is cleared to
+// a neutral context, appropriate for a platform-basics question.
 
 import { Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,7 +34,7 @@ export function AskCoachLauncher({
   suggestedQuestion?: string;
   label?: string;
 }) {
-  const { setOpen } = useTradingCoach();
+  const { openWithFocus } = useTradingCoach();
 
   return (
     <div className="space-y-1">
@@ -37,7 +43,7 @@ export function AskCoachLauncher({
         variant="outline"
         size="sm"
         className="h-7 text-xs gap-1.5"
-        onClick={() => setOpen(true)}
+        onClick={() => openWithFocus({})}
         data-testid="button-ask-coach-launcher"
       >
         <Bot className="w-3.5 h-3.5 text-indigo-400" /> {label}

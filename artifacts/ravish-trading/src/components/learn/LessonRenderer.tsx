@@ -10,11 +10,13 @@
 // rendering whenever a topic has no rich content, so nothing about the
 // existing 68 topics' display changes.
 //
-// Composes, rather than duplicates, three other new-this-sprint shared
-// components: BookmarkButton (learning_progress upsert), AskCoachLauncher
-// (the existing global Trading Coach panel), and the existing glossary
-// Badge/Link pattern already established in LearningPaths.tsx/
-// ExplainButton.tsx (relatedGlossaryKeys -> /learn/glossary/:key).
+// Composes, rather than duplicates, three other shared components:
+// BookmarkButton (learning_progress upsert), AskCoachLauncher (the
+// existing global Trading Coach panel), and RelatedGlossaryBadges — the
+// relatedGlossaryKeys -> /learn/glossary/:key Badge/Link pattern that used
+// to be copy-pasted identically here, in LearningPaths.tsx's plain
+// fallback, and (in a slightly-renamed-testid form) in ExplainButton.tsx,
+// now extracted to one shared component all three render from.
 
 import type { ReactNode } from "react";
 import { Link } from "wouter";
@@ -23,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "./BookmarkButton";
 import { AskCoachLauncher } from "./AskCoachLauncher";
+import { RelatedGlossaryBadges } from "./RelatedGlossaryBadges";
 import { ArrowRight, Clock } from "lucide-react";
 
 const DIFFICULTY_BADGE_CLASS: Record<string, string> = {
@@ -224,17 +227,7 @@ export function LessonRenderer({
         </LessonSection>
       )}
 
-      {topic.relatedGlossaryKeys.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {topic.relatedGlossaryKeys.map((k) => (
-            <Link key={k} href={`/learn/glossary/${k}`} data-testid={`link-glossary-${k}`}>
-              <Badge variant="outline" className="text-[9px] cursor-pointer hover:border-indigo-500/40">
-                {k}
-              </Badge>
-            </Link>
-          ))}
-        </div>
-      )}
+      <RelatedGlossaryBadges keys={topic.relatedGlossaryKeys} />
 
       {topic.aiCoachPrompts && topic.aiCoachPrompts.length > 0 && (
         <LessonSection title="Ask the AI Coach">
