@@ -31,6 +31,7 @@ Whoever holds day-to-day operational responsibility for a running deployment of 
 - [ ] Reconcile the manual migration file count in `lib/db/manual-migrations/` against what's actually applied to the production database — confirm no migration was ever skipped.
 - [ ] Rotate any credential nearing its own provider's recommended rotation window (§5 below).
 - [ ] Re-read `docs/Incident-Response-Runbook.md` in full — confirm nothing about the described architecture has silently drifted from reality; update it if it has.
+- [ ] Delete any merged feature branch still lingering on `origin` that this session's own tooling couldn't remove (§6.25 below) — check `git branch -a` / the repository's branch list for anything already merged into `main`.
 
 ---
 
@@ -659,6 +660,15 @@ Full detail: `docs/Institutional-Control-Center.md`.
 There is no self-service way to become an administrator — see `docs/Operations-Runbook.md` §2 for the manual database action required.
 
 Full detail: `docs/Operations-Runbook.md`, `docs/Live-Market-Validation.md`, `docs/Broker-Reconciliation.md`.
+
+### 6.25 Repository / Git housekeeping (manual, human-only)
+
+This development environment's git proxy accepts pushes to branches (including merges) but rejects certain other ref operations — confirmed for remote tag pushes (`docs/GitHub-Release-v1.0.0.md`, `docs/GitHub-Release-v1.1.0.md`) and now also for remote branch deletion. When a feature branch is merged via Pull Request from this environment, the local copy of that branch is deleted automatically, but **the remote copy on `origin` is not** — it must be removed manually, either via:
+
+- the "Delete branch" button GitHub shows on a merged PR's own page, or
+- `git push origin --delete <branch-name>` run from a machine with real, non-proxied push credentials.
+
+**Currently pending:** `v1.3.1-ai-trading-coach-ui` (merged into `main` via PR #6, commit `621ff40`, on 2026-07-26). This is purely cosmetic housekeeping — the branch is fully merged, `main` already contains every one of its commits, and its continued existence on `origin` has no functional effect on the running platform. Remove it the next time a maintainer has direct (non-proxied) push access, or during the next Monthly Operations pass (§4).
 
 ---
 

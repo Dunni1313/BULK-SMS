@@ -1,13 +1,14 @@
 # Repository Roadmap
 
 Produced by the Documentation Synchronization pass (branch
-`docs/repository-baseline-sync`). Distinct from `docs/Version-2-Roadmap.md`
-(deep, feature-by-feature Version 2 planning) — this document is the
-near-term, project-status view: what's shipped, what v1.2 is prioritizing
-next, and what's further out. Nothing in this document has been
-implemented as part of producing it; it is a planning artifact only.
+`docs/repository-baseline-sync`), updated 2026-07-26 following the merge
+of PR #6 (`v1.3.1`). Distinct from `docs/Version-2-Roadmap.md` (deep,
+feature-by-feature Version 2 planning) — this document is the near-term,
+project-status view: what's shipped, what's prioritized next, and what's
+further out. Nothing in this document has been implemented as part of
+producing or updating it; it is a planning artifact only.
 
-## Completed (everything through v1.2.0)
+## Completed (everything through v1.3.1)
 
 - **Sprint 1–78** (`CLAUDE.md` §3) — the original 7-phase Blueprint
   buildout: platform foundation (auth, multi-tenancy, `lib/ai-core`, audit
@@ -56,53 +57,77 @@ implemented as part of producing it; it is a planning artifact only.
   as a pure composition layer with zero new backend routes and zero new
   business logic (`docs/v1.2.0-Trade-Execution-Center.md`, `CHANGELOG.md`'s
   `[v1.2.0]` entry).
+- **Version 1.3.0** — the AI Trading Coach's backend foundation:
+  `buildUnifiedCoachContext()`, a pure composition layer assembling
+  Engine 2's Structure/Multi-Timeframe/Liquidity/Regime/Probability +
+  Trading Positions risk, Engine 3's options-income Portfolio/Dashboard/
+  Scanner/AI Opportunity Score, and the user's own recent Trading Journal
+  reflections — zero new trading/scoring calculations, routed through the
+  existing, unmodified `narrateTradeFreeform()` LLM narration path. Merged
+  as PR #5 (`docs/v1.3.0-AI-Trading-Coach-Design.md`'s Sprint 1 as-built
+  section, `CHANGELOG.md`'s `[v1.3.0]` entry).
+- **Version 1.3.1** — the AI Trading Coach's full frontend UI (a dockable
+  panel and a permanent `/ai-trading-coach` page sharing one
+  `TradingCoachWorkspace`; 12 new Coach components; context-aware
+  triggers on Scanner, Trade Execution Center, Options Dashboard,
+  Portfolio, and Trading Research) plus coloured, full-width, engine-
+  themed sidebar section headers. Merged as PR #6, merge commit `621ff40`,
+  2026-07-26 (`docs/v1.3.0-AI-Trading-Coach-Design.md`'s Sprints 2–5
+  as-built section, `docs/v1.3.1-Sidebar-Section-Headers.md`,
+  `CHANGELOG.md`'s `[v1.3.1]` entry). Zero backend files touched; the 5
+  protected files remain zero-line-diff.
 
-## Current development — v1.2 priorities
+## Current development
 
-1. **Trade Execution Center.** A step-by-step workflow (Scanner → AI
-   Opportunity Scoring → Strategy Selection → Order Preview → Risk Review
-   → Confirm → Paper Order Submission → Order Status → Trade Monitor →
-   Adjust/Close), built explicitly as a composition layer over existing
-   Engine 3 modules rather than duplicating them. **Status: SHIPPED
-   (v1.2.0)** — see `docs/v1.2.0-Trade-Execution-Center.md` and
-   `CHANGELOG.md`'s `[v1.2.0]` entry. Zero new backend routes; zero new
-   business logic; the 5 protected files remain zero-line-diff.
-2. **Timeline visualization improvements.** `PortfolioConstruction.tsx`'s
+No branch is currently in active development as of this update
+(2026-07-26) — `v1.3.1-ai-trading-coach-ui` was merged and its local copy
+deleted; `main` is the sole active branch pending a new, explicitly
+approved milestone. The former "v1.2 priorities" list below is retained
+for its still-relevant items and status:
+
+1. ~~**Trade Execution Center.**~~ **Status: SHIPPED (v1.2.0).**
+2. ~~**AI Trading Coach (backend + UI).**~~ **Status: SHIPPED (v1.3.0 +
+   v1.3.1).**
+3. **Timeline visualization improvements.** `PortfolioConstruction.tsx`'s
    Timeline tab (Phase 13) exists and functions but is the one
    under-documented surface of that page — `docs/Institutional-Portfolio-Manager.md`
    names it as a tab without the same depth of treatment given to
-   Quality/Risk/Performance. **Status: functioning, documentation-light.**
-   Candidate work: a dedicated Timeline section in that doc, plus a review
-   of whether the visualization itself (not just its documentation)
-   warrants enhancement.
-3. **Portfolio Intelligence polish.** General upkeep across
+   Quality/Risk/Performance. **Status: functioning, documentation-light,
+   unchanged since the last update.** Candidate work: a dedicated Timeline
+   section in that doc, plus a review of whether the visualization itself
+   (not just its documentation) warrants enhancement.
+4. **Portfolio Intelligence polish.** General upkeep across
    `lib/portfolioIntelligence.ts` and its consuming pages/reports —
    accessibility, error-state, and layout consistency passes of the kind
    Phase 23 already ran for the Investing Engine broadly, scoped
    specifically to the Portfolio Intelligence surfaces this time.
-   **Status: not started; no specific defect currently on file** (this
-   synchronization pass found none during its own read-only inspection).
-4. **Documentation alignment.** This synchronization pass itself —
-   `CLAUDE.md` §3a–§3e, `docs/Architecture.md`'s new sections, this
-   roadmap, and `docs/Technical-Debt-Register.md`. **Status: in progress
-   as of this branch** (`docs/repository-baseline-sync`).
+   **Status: not started; no specific defect currently on file.**
+5. **Documentation alignment.** The original synchronization pass
+   (`CLAUDE.md` §3a–§3e, `docs/Architecture.md`'s new sections, this
+   roadmap, `docs/Technical-Debt-Register.md`) plus this update reflecting
+   v1.3.0/v1.3.1 into `CHANGELOG.md`, `README.md`, and this document.
+   **Status: current as of this update.**
+6. **Remote branch housekeeping.** `v1.3.1-ai-trading-coach-ui` remains on
+   `origin` after merge — this environment's git proxy rejects remote
+   branch deletion, so removal is a manual, human-only action. **Status:
+   recorded in `docs/Operations-Handbook.md` §6.25 as a pending
+   maintenance item; not a release blocker** (the branch is fully merged
+   and has no functional effect).
 
 ## Future
 
-- **v1.3** — candidates from the Phase 6 "unscheduled" list that were
-  never picked up: a broader frontend E2E coverage sweep beyond the
-  smoke-level suite that exists today, and any residual Route+UI backlog
-  items from Phase 3 that were superseded by the Phase 9–44 buildout's own
-  equivalent surfaces (e.g. Market Structure/Liquidity/Multi-Timeframe now
-  have dedicated Workbenches from Phase 26/27 — worth confirming the
-  original Phase 3 pages aren't now redundant with them, rather than
-  building anything new).
-- **v1.4** — the two still-blocked live-data/live-broker verification
-  sprints (Phase 6 Sprints 75/76: Live FMP/Alpha Vantage, Live Alpaca
-  Broker Verification) whenever real credentials become available; at
-  that point each becomes a pure verification pass over already-built,
-  already-tested provider code, per their own established precedent — no
-  new logic.
+- **Frontend E2E coverage expansion.** A broader end-to-end coverage
+  sweep beyond the smoke-level suite that exists today (Phase 6's own
+  "unscheduled" list item, never picked up).
+- **Phase 3 Route+UI redundancy review.** Confirm whether the original
+  Phase 3 Market Structure/Liquidity/Multi-Timeframe pages are now
+  redundant with the Phase 26/27 Workbenches that superseded them, rather
+  than building anything new on top of either.
+- **Live-data/live-broker verification** (Phase 6 Sprints 75/76: Live
+  FMP/Alpha Vantage, Live Alpaca Broker Verification) whenever real
+  credentials become available; at that point each becomes a pure
+  verification pass over already-built, already-tested provider code, per
+  their own established precedent — no new logic.
 - **v2.0** — see `docs/Version-2-Roadmap.md` in full. Confirmed-still-open
   items at v1.1.0 time: a second broker integration (pending a formal
   `BrokerProvider` seam extraction — itself a protected-file-adjacent

@@ -6,6 +6,92 @@ level. For the exhaustive, phase-by-phase build history (every one of the
 every test added), see `CLAUDE.md` — this file is the release-level
 summary, not a duplicate of it.
 
+## [v1.3.1] — AI Trading Coach UI & Sidebar Section Headers
+
+A bounded, frontend-only feature release built on top of `v1.3.0`. Zero
+backend files changed; `execution.ts`/`optionsMath.ts`/`risk.ts`/
+`autoExecution.ts`/`autoAdjustment.ts` all have a zero-line diff for this
+release (confirmed via `git diff --stat`, merge commit `621ff40`, PR #6).
+
+### Added
+
+- The full frontend UI for the AI Trading Coach: a dockable `Sheet` panel
+  (`TradingCoachPanel`) and a permanent sidebar-nav page (`/ai-trading-coach`)
+  both rendering the same `TradingCoachWorkspace`, backed by the `v1.3.0`
+  Sprint 1 backend (`POST /trading-coach/ask[/stream]`,
+  `GET /trading-coach/messages`).
+- 12 new, small, reusable Coach components (Launcher, Panel, Workspace,
+  Header, ContextPanel, Messages, SuggestedPrompts, SuggestedActions,
+  Composer, Disclaimer, EmptyState, ErrorState) plus a
+  `TradingCoachProvider`/`useTradingCoach()` context and a shared
+  `lib/trading-coach-context.ts` adapter module (context builders +
+  static, auditable suggested-prompt/action rule tables — never a second
+  AI call).
+- Context-aware "Ask AI Trading Coach" triggers on Scanner (per row),
+  Trade Execution Center (header, once a candidate is selected), Options
+  Dashboard, Portfolio, and Trading Research (header once a symbol is
+  searched, plus per open position).
+- Coloured, full-width sidebar section headers, themed per engine
+  (green/Options, blue/Portfolio, purple/Investing, bronze/Trading,
+  graphite/neutral) — see `docs/v1.3.1-Sidebar-Section-Headers.md`.
+
+### Notes
+
+- Educational/advisory only, same as every other AI surface in this
+  codebase — no component in this release calls a mutation hook of any
+  kind; `TradingCoachSuggestedActions` renders `wouter` links exclusively.
+- "Clear conversation" is an honestly-disclosed local-view-only reset
+  (confirmation dialog states this explicitly) — the `v1.3.0` backend has
+  no delete/clear endpoint, and none was added here.
+- No Institutional Investing (Engine 1) Coach integration this release —
+  the backend context builder (`buildUnifiedCoachContext()`) has no
+  Engine 1 read path, so no trigger was added there rather than implying
+  context the Coach cannot actually see.
+- Frontend suite: 109 files / 1,246 tests, all passing. Backend suite
+  (re-run post-merge, since this release touched zero backend files):
+  244 files / 2,853 tests, all passing.
+
+## [v1.3.0] — AI Trading Coach: Backend Foundation
+
+A bounded backend-only release (no UI — see `v1.3.1` above for the
+frontend), built on top of `v1.2.0`. `execution.ts`/`optionsMath.ts`/
+`risk.ts`/`autoExecution.ts`/`autoAdjustment.ts` all have a zero-line
+diff for this release (PR #5).
+
+### Added
+
+- New table `trading_coach_messages`, mirroring `ai_messages`' own
+  established shape.
+- `buildUnifiedCoachContext()` (`artifacts/api-server/src/lib/tradingCoachUnified.ts`)
+  — a pure composition layer with zero new scoring/trading calculations,
+  assembling Engine 2's Market Structure/Multi-Timeframe/Liquidity/Regime/
+  Probability and the user's own Trading Positions risk (both via the
+  existing, unmodified `buildProbabilityAnalysis()`/`buildTradingRiskAnalysis()`),
+  Engine 3's options-income Portfolio/Dashboard/Scanner/AI Opportunity
+  Score (via the existing, unmodified `assembleDailyReport()`), the
+  user's own 5 most recent Trading Journal reflections, and an optional
+  focus scanner candidate / trading position.
+- `POST /trading-coach/ask[/stream]` and `GET /trading-coach/messages`,
+  routing through the existing, completely unmodified
+  `narrateTradeFreeform()`/`narrateTradeFreeformStream()` (Sprint 47) for
+  LLM narration and the shared `COACH_DISCLAIMER` guarantee.
+
+### Fixed (this release)
+
+- A genuine, self-introduced concurrency bug in `buildUnifiedCoachContext()`'s
+  first draft (two branches racing `getSettingsRow()`'s pre-existing
+  check-then-insert for a brand-new user) — fixed by sequencing the
+  settings-row resolution before the concurrent branches run. See
+  `docs/v1.3.0-AI-Trading-Coach-Design.md`'s Sprint 1 as-built section for
+  the full detail; `serverState.ts` itself was not modified.
+
+### Notes
+
+- Backend suite: 243/244 files, 2,852/2,853 tests passing at the time of
+  this release (one pre-existing, unrelated date-drift test flake,
+  confirmed untouched by this sprint). Frontend suite unchanged (backend-
+  only release).
+
 ## [v1.2.0] — Trade Execution Center
 
 A bounded, frontend-only feature release built on top of `v1.1.0`. Zero

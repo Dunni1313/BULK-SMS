@@ -82,11 +82,20 @@ docs/                       All architecture, operations, and release documentat
 
 The first stable release was **v1.0.0**. Since then: **v1.1.0** shipped a
 sidebar navigation redesign (`docs/v1.1.0-Sidebar-Navigation-Redesign.md`),
-and **v1.2.0** adds the Trade Execution Center — a guided, single-page
+**v1.2.0** added the Trade Execution Center — a guided, single-page
 workflow over the Options Income Engine's Scanner → Order Preview → Risk
 Review → Paper Order Submission → Trade Monitor pipeline, built entirely
 as a composition layer over already-shipped modules (see
-[`docs/v1.2.0-Trade-Execution-Center.md`](docs/v1.2.0-Trade-Execution-Center.md)).
+[`docs/v1.2.0-Trade-Execution-Center.md`](docs/v1.2.0-Trade-Execution-Center.md)),
+**v1.3.0** added the AI Trading Coach's backend foundation (a unified,
+cross-engine coaching context composed from already-shipped Engine 1/2/3
+modules, with zero new trading/scoring logic — see
+[`docs/v1.3.0-AI-Trading-Coach-Design.md`](docs/v1.3.0-AI-Trading-Coach-Design.md)),
+and **v1.3.1** shipped that Coach's full frontend UI (a dockable panel and
+a permanent page, context-aware triggers across Scanner/Trade Execution
+Center/Options Dashboard/Portfolio/Trading Research) plus coloured,
+engine-themed sidebar section headers (see
+[`docs/v1.3.1-Sidebar-Section-Headers.md`](docs/v1.3.1-Sidebar-Section-Headers.md)).
 See [`docs/Release-Notes-v1.0.0.md`](docs/Release-Notes-v1.0.0.md) and
 `CHANGELOG.md` for full release history, and
 [`docs/Known-Limitations.md`](docs/Known-Limitations.md) for what's
