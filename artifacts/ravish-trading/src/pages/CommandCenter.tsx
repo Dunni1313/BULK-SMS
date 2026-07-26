@@ -1,9 +1,26 @@
 // Institutional Command Center sprint.
 //
-// The application's primary landing page (mounted at "/") — a single
-// executive workspace consolidating every existing dashboard this
-// codebase already has into 8 sections, entirely by composing
-// already-existing generated hooks. This sprint adds ZERO new backend
+// Mounted at "/command-center" — a single, comprehensive executive
+// workspace consolidating every existing dashboard this codebase already
+// has into 8 sections, entirely by composing already-existing generated
+// hooks.
+//
+// v1.3.2 — Version 1 Polish Sprint: corrected a stale claim in this
+// comment. Phase 10 (Institutional Platform Polish & Control Center)
+// introduced Home.tsx as the real landing page at "/" and this page moved
+// to its own "/command-center" route at that time, but this file's own
+// header comment was never updated to say so — confirmed as a genuine,
+// disclosed documentation gap by the Version 1 Release Candidate Review.
+// Home.tsx is the condensed, personalized, at-a-glance landing page; this
+// page remains the fuller, detail-oriented executive view — the same
+// "distinct-but-related surfaces, deliberately not merged" precedent this
+// platform already uses elsewhere (Home.tsx's own header comment
+// describes the same relationship from its side). Nothing about either
+// page's actual design or behavior changed — only this comment and each
+// page's own visible intro copy (see the "See Institutional Home" /
+// "See Command Center" cross-links below) were corrected.
+//
+// This sprint adds ZERO new backend
 // routes, ZERO new database queries, and ZERO new calculations of any
 // kind — every figure on this page is a direct, unmodified reuse of a
 // GET request another page in this codebase already makes:
@@ -219,9 +236,16 @@ export default function CommandCenter() {
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
-          A single executive view consolidating every existing dashboard in this platform. Informational
-          only — nothing here places, closes, or modifies a real order, and no execution recommendation
-          is ever generated.
+          The full, comprehensive executive view consolidating every existing dashboard in this platform.
+          Informational only — nothing here places, closes, or modifies a real order, and no execution
+          recommendation is ever generated.{" "}
+          <Link
+            href="/"
+            className="text-indigo-400 underline-offset-2 hover:underline"
+            data-testid="link-to-institutional-home"
+          >
+            Looking for your own personalized, at-a-glance dashboard? See Institutional Home.
+          </Link>
         </p>
       </div>
 

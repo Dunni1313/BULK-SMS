@@ -104,6 +104,15 @@ describe("Home (Institutional Home / Personal Dashboard)", () => {
     expect(screen.getByTestId("home-loading")).toBeInTheDocument();
   });
 
+  // v1.3.2 — Version 1 Polish Sprint: clarify Home vs. Command Center.
+  it("links to Command Center for users looking for the full, comprehensive executive view", () => {
+    mockState.activeWorkspace = makeWorkspace();
+    renderWithClient(<Home />);
+    const link = screen.getByTestId("link-to-command-center");
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/command-center");
+  });
+
   it("renders only the visible widgets from the active workspace's own config, honoring order", () => {
     mockState.activeWorkspace = makeWorkspace();
     mockState.dashboard = { healthScore: 88, overallRiskRating: { code: "healthy", label: "Healthy" }, guidance: [], buyingPower: 50000 };

@@ -857,7 +857,14 @@ export default function Home() {
           </div>
           <p className="text-sm text-muted-foreground mt-1">
             Your own, personalized landing page — pin, hide, reorder, and resize widgets, and save the
-            arrangement as a named workspace.
+            arrangement as a named workspace.{" "}
+            <Link
+              href="/command-center"
+              className="text-indigo-400 underline-offset-2 hover:underline"
+              data-testid="link-to-command-center"
+            >
+              Looking for the full, comprehensive executive view? See Command Center.
+            </Link>
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">

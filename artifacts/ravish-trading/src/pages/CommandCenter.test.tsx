@@ -125,6 +125,16 @@ describe("CommandCenter page", () => {
     mockState.dashboardError = false;
   });
 
+  // v1.3.2 — Version 1 Polish Sprint: clarify Home vs. Command Center.
+  it("links to Institutional Home for users looking for their own personalized dashboard", () => {
+    mockState.dashboard = dashboardFixture();
+    renderWithClient(<CommandCenter />);
+    const link = screen.getByTestId("link-to-institutional-home");
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/");
+    mockState.dashboard = undefined;
+  });
+
   it("renders the Executive Overview with Portfolio Health Score, Overall Risk Rating, and broker/paper status", () => {
     mockState.dashboard = dashboardFixture();
     renderWithClient(<CommandCenter />);
