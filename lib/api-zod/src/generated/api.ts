@@ -3145,7 +3145,7 @@ export const GetInstitutionalMentorResponse = zod.object({
 export const GetGlossaryResponseItem = zod.object({
   "key": zod.string(),
   "term": zod.string(),
-  "category": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading']),
+  "category": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading', 'platform']),
   "definition": zod.string(),
   "relatedTermKeys": zod.array(zod.string()),
   "relatedLessonKeys": zod.array(zod.string())
@@ -3160,7 +3160,7 @@ export const GetLearningPathsResponseItem = zod.object({
   "key": zod.string(),
   "title": zod.string(),
   "description": zod.string(),
-  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading']),
+  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading', 'platform']),
   "topics": zod.array(zod.object({
   "key": zod.string(),
   "title": zod.string(),
@@ -3169,7 +3169,28 @@ export const GetLearningPathsResponseItem = zod.object({
   "whyItMatters": zod.string(),
   "externalHref": zod.string().nullable(),
   "relatedGlossaryKeys": zod.array(zod.string()),
-  "estimatedMinutes": zod.number()
+  "estimatedMinutes": zod.number(),
+  "difficulty": zod.enum(['beginner', 'intermediate', 'advanced', 'institutional']).optional(),
+  "whyItExists": zod.string().optional(),
+  "institutionalThinking": zod.string().optional(),
+  "workflowSteps": zod.array(zod.string()).optional(),
+  "screenWalkthrough": zod.array(zod.string()).optional(),
+  "metricsExplained": zod.array(zod.object({
+  "term": zod.string(),
+  "explanation": zod.string()
+})).optional(),
+  "workedExample": zod.object({
+  "title": zod.string(),
+  "steps": zod.array(zod.string()),
+  "note": zod.string().optional()
+}).optional(),
+  "commonMistakes": zod.array(zod.string()).optional(),
+  "riskWarnings": zod.array(zod.string()).optional(),
+  "bestPractices": zod.array(zod.string()).optional(),
+  "relatedModuleHrefs": zod.array(zod.string()).optional(),
+  "aiCoachPrompts": zod.array(zod.string()).optional(),
+  "nextStepKeys": zod.array(zod.string()).optional(),
+  "guidedTourRequired": zod.boolean().optional()
 }))
 })
 export const GetLearningPathsResponse = zod.array(GetLearningPathsResponseItem)
@@ -3186,7 +3207,7 @@ export const GetLearningPathByKeyResponse = zod.object({
   "key": zod.string(),
   "title": zod.string(),
   "description": zod.string(),
-  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading']),
+  "glossaryCategory": zod.enum(['foundations', 'greeks', 'volatility', 'strategies', 'portfolio', 'performance', 'institutional', 'value-investing', 'trading', 'platform']),
   "topics": zod.array(zod.object({
   "key": zod.string(),
   "title": zod.string(),
@@ -3195,7 +3216,28 @@ export const GetLearningPathByKeyResponse = zod.object({
   "whyItMatters": zod.string(),
   "externalHref": zod.string().nullable(),
   "relatedGlossaryKeys": zod.array(zod.string()),
-  "estimatedMinutes": zod.number()
+  "estimatedMinutes": zod.number(),
+  "difficulty": zod.enum(['beginner', 'intermediate', 'advanced', 'institutional']).optional(),
+  "whyItExists": zod.string().optional(),
+  "institutionalThinking": zod.string().optional(),
+  "workflowSteps": zod.array(zod.string()).optional(),
+  "screenWalkthrough": zod.array(zod.string()).optional(),
+  "metricsExplained": zod.array(zod.object({
+  "term": zod.string(),
+  "explanation": zod.string()
+})).optional(),
+  "workedExample": zod.object({
+  "title": zod.string(),
+  "steps": zod.array(zod.string()),
+  "note": zod.string().optional()
+}).optional(),
+  "commonMistakes": zod.array(zod.string()).optional(),
+  "riskWarnings": zod.array(zod.string()).optional(),
+  "bestPractices": zod.array(zod.string()).optional(),
+  "relatedModuleHrefs": zod.array(zod.string()).optional(),
+  "aiCoachPrompts": zod.array(zod.string()).optional(),
+  "nextStepKeys": zod.array(zod.string()).optional(),
+  "guidedTourRequired": zod.boolean().optional()
 }))
 })
 
@@ -3356,7 +3398,12 @@ export const GetLearningProgressResponse = zod.object({
   "completedGlossaryKeys": zod.array(zod.string()),
   "completedStrategyKeys": zod.array(zod.string()),
   "completedCoachKeys": zod.array(zod.string()),
-  "viewedStrategyKeys": zod.array(zod.string())
+  "viewedStrategyKeys": zod.array(zod.string()),
+  "bookmarks": zod.array(zod.object({
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
+  "itemKey": zod.string(),
+  "bookmarkedAt": zod.string()
+}))
 })
 
 
@@ -3382,6 +3429,20 @@ export const RecordLearningItemCompletedBody = zod.object({
 })
 
 export const RecordLearningItemCompletedResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary v1.4.0, Sprint L1 — Learning Centre Foundation. Set or clear a bookmark on a lesson, glossary term, path, strategy, or coach explanation. Reuses the existing learning_progress upsert shape — a bookmark is an attribute of an existing progress row, never a new table or item type.
+ */
+export const RecordLearningBookmarkBody = zod.object({
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
+  "itemKey": zod.string(),
+  "bookmarked": zod.boolean()
+})
+
+export const RecordLearningBookmarkResponse = zod.object({
   "success": zod.boolean()
 })
 

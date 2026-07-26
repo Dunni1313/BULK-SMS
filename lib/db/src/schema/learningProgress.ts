@@ -24,6 +24,10 @@ export const learningProgressTable = pgTable(
     itemKey: text("item_key").notNull(),
     viewedAt: timestamp("viewed_at", { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    // v1.4.0, Sprint L1 — Learning Centre Foundation. Bookmarking is an
+    // attribute of an existing progress row, not a new item type or table
+    // — set/cleared independently of viewedAt/completedAt.
+    bookmarkedAt: timestamp("bookmarked_at", { withTimezone: true }),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

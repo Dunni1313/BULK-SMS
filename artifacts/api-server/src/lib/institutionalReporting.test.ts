@@ -388,6 +388,7 @@ describe("institutionalReporting.ts — buildAiCoachLearningSummaryReport", () =
       completedStrategyKeys: [],
       completedCoachKeys: [],
       viewedStrategyKeys: [],
+      bookmarks: [],
     };
     const built = buildAiCoachLearningSummaryReport(progress);
     expect(built.reportType).toBe("ai-coach-summary");

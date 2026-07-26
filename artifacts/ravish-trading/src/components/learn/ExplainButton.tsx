@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchMetricExplanation, type MetricExplanation, ExplainFetchError } from "@/lib/explain-fetch";
+import { RelatedGlossaryBadges } from "./RelatedGlossaryBadges";
 import { HelpCircle } from "lucide-react";
 
 export type ExplainMetricCode =
@@ -164,14 +165,8 @@ export function ExplainButton({
               </Link>
             )}
             {data.relatedGlossaryKeys.length > 0 && (
-              <div className="flex flex-wrap gap-1 pt-1">
-                {data.relatedGlossaryKeys.map((k) => (
-                  <Link key={k} href={`/learn/glossary/${k}`} data-testid={`link-explain-glossary-${k}`}>
-                    <Badge variant="outline" className="text-[9px] cursor-pointer hover:border-indigo-500/40">
-                      {k}
-                    </Badge>
-                  </Link>
-                ))}
+              <div className="pt-1">
+                <RelatedGlossaryBadges keys={data.relatedGlossaryKeys} testIdPrefix="link-explain-glossary" />
               </div>
             )}
           </div>

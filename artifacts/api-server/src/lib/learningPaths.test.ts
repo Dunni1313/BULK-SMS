@@ -8,7 +8,7 @@ import { LEARNING_PATHS, getLearningPath, getLearningTopic, allLearningTopics } 
 import { getGlossaryTerm } from "./glossary.js";
 
 describe("learning path content", () => {
-  it("has exactly the 10 requested paths, in the requested order (Phase 30 adds strategy-framework)", () => {
+  it("has exactly the 11 requested paths, in the requested order (v1.4.0 Sprint L1 adds platform-basics)", () => {
     expect(LEARNING_PATHS.map((p) => p.key)).toEqual([
       "foundations",
       "greeks",
@@ -28,6 +28,10 @@ describe("learning path content", () => {
       // the FRAMEWORK itself (registering metadata, the Checklist Engine,
       // evidence citations), never a real trading methodology's own rules.
       "strategy-framework",
+      // v1.4.0, Sprint L1 — Learning Centre Foundation. A 12th path
+      // teaching platform mechanics (navigation, Command Centre, the
+      // Learning Centre itself) — never an investing/trading concept.
+      "platform-basics",
     ]);
   });
 
@@ -54,7 +58,7 @@ describe("learning path content", () => {
     }
   });
 
-  it("an externalHref, when present, is a real, existing platform route — never a fabricated URL", () => {
+  it("an externalHref or relatedModuleHrefs entry, when present, is a real, existing platform route — never a fabricated URL", () => {
     // Every existing route this sprint's own topics point to, confirmed
     // by direct inspection of App.tsx before this content was written.
     const knownRoutes = new Set([
@@ -97,11 +101,75 @@ describe("learning path content", () => {
       // Phase 30 — Institutional Strategy Framework's own path, confirmed
       // by direct inspection of App.tsx before this content was written.
       "/strategy-framework",
+      // v1.4.0, Sprint L1 — Learning Centre Foundation's own
+      // platform-basics path, confirmed by direct inspection of App.tsx
+      // before this content was written. Includes every relatedModuleHrefs
+      // target the 3 new foundation topics reference, not just externalHref.
+      "/command-center",
+      "/learn",
+      "/",
+      "/settings",
+      "/notifications",
+      "/executive-intelligence",
+      "/institutional-dashboard",
+      "/learn/paths",
+      "/learn/glossary",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
         expect(knownRoutes.has(topic.externalHref)).toBe(true);
       }
+      for (const href of topic.relatedModuleHrefs ?? []) {
+        expect(knownRoutes.has(href)).toBe(true);
+      }
+    }
+  });
+});
+
+// v1.4.0, Sprint L1 — Learning Centre Foundation.
+describe("platform-basics path — the first 3 foundation lessons, and the template for future rich lessons", () => {
+  const path = getLearningPath("platform-basics")!;
+
+  it("exists with exactly the 3 approved foundation topics, in curriculum order", () => {
+    expect(path).not.toBeNull();
+    expect(path.topics.map((t) => t.key)).toEqual([
+      "platform-basics-navigation",
+      "command-centre-overview",
+      "learning-centre-overview",
+    ]);
+  });
+
+  it("every topic populates the new optional rich fields — the template every future lesson follows", () => {
+    for (const topic of path.topics) {
+      expect(topic.difficulty).toBe("beginner");
+      expect(topic.whyItExists!.length).toBeGreaterThan(10);
+      expect(topic.institutionalThinking!.length).toBeGreaterThan(10);
+      expect(topic.workflowSteps!.length).toBeGreaterThan(0);
+      expect(topic.bestPractices!.length).toBeGreaterThan(0);
+      expect(topic.aiCoachPrompts!.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("every topic's nextStepKeys, when present, resolves to a real topic within this same path", () => {
+    for (const topic of path.topics) {
+      for (const nextKey of topic.nextStepKeys ?? []) {
+        expect(path.topics.some((t) => t.key === nextKey)).toBe(true);
+      }
+    }
+  });
+
+  it("chains correctly: navigation -> command centre -> learning centre overview -> end", () => {
+    expect(getLearningTopic("platform-basics", "platform-basics-navigation")!.nextStepKeys).toEqual(["command-centre-overview"]);
+    expect(getLearningTopic("platform-basics", "command-centre-overview")!.nextStepKeys).toEqual(["learning-centre-overview"]);
+    expect(getLearningTopic("platform-basics", "learning-centre-overview")!.nextStepKeys).toEqual([]);
+  });
+
+  it("the pre-existing 68 topics remain untouched — none of them acquired a rich field this sprint", () => {
+    const preExistingTopics = allLearningTopics().filter(({ pathKey }) => pathKey !== "platform-basics");
+    expect(preExistingTopics.length).toBe(68);
+    for (const { topic } of preExistingTopics) {
+      expect(topic.difficulty).toBeUndefined();
+      expect(topic.workflowSteps).toBeUndefined();
     }
   });
 });

@@ -19,13 +19,21 @@ import {
   RecordLearningItemViewedResponse,
   RecordLearningItemCompletedBody,
   RecordLearningItemCompletedResponse,
+  RecordLearningBookmarkBody,
+  RecordLearningBookmarkResponse,
   RunLearningSimulationBody,
   RunLearningSimulationResponse,
 } from "@workspace/api-zod";
 import { searchGlossary, getGlossaryTerm, type GlossaryCategory } from "../lib/glossary.js";
 import { LEARNING_PATHS, getLearningPath } from "../lib/learningPaths.js";
 import { allStrategyAcademyEntries, getStrategyAcademyEntry } from "../lib/strategyAcademy.js";
-import { getLearningProgress, recordViewed, recordCompleted, type LearningItemType } from "../lib/learningProgress.js";
+import {
+  getLearningProgress,
+  recordViewed,
+  recordCompleted,
+  setBookmarked,
+  type LearningItemType,
+} from "../lib/learningProgress.js";
 import { explainMetric, MetricExplainerError, METRIC_CODES } from "../lib/metricExplainer.js";
 import {
   simulateDelta,
@@ -169,6 +177,26 @@ router.post("/learning-centre/progress/complete", async (req, res): Promise<void
   const userId = await getScopedUserId(req);
   await recordCompleted(userId, parsed.data.itemType as LearningItemType, parsed.data.itemKey);
   res.json(RecordLearningItemCompletedResponse.parse({ success: true }));
+});
+
+// POST /learning-centre/progress/bookmark — v1.4.0, Sprint L1. Set or clear
+// a bookmark on a lesson, glossary term, path, strategy, or coach
+// explanation. Reuses the exact same upsert-on-(userId, itemType, itemKey)
+// shape as the view/complete mutations above — a bookmark is an attribute
+// of an existing progress row, never a new table or item type.
+router.post("/learning-centre/progress/bookmark", async (req, res): Promise<void> => {
+  const parsed = RecordLearningBookmarkBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  if (!VALID_ITEM_TYPES.includes(parsed.data.itemType as LearningItemType)) {
+    res.status(400).json({ error: "Invalid itemType" });
+    return;
+  }
+  const userId = await getScopedUserId(req);
+  await setBookmarked(userId, parsed.data.itemType as LearningItemType, parsed.data.itemKey, parsed.data.bookmarked);
+  res.json(RecordLearningBookmarkResponse.parse({ success: true }));
 });
 
 // POST /learning-centre/simulate — Interactive Education. Deterministic,

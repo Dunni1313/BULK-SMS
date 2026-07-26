@@ -5,6 +5,7 @@
  * DK Option Engine
  * OpenAPI spec version: 0.1.0
  */
+import type { LearningBookmarkEntry } from './learningBookmarkEntry';
 import type { LearningHistoryEntry } from './learningHistoryEntry';
 import type { LearningPathCompletion } from './learningPathCompletion';
 import type { LearningQuizProgressSummary } from './learningQuizProgressSummary';
@@ -24,4 +25,5 @@ export interface LearningProgressSummary {
   completedStrategyKeys: string[];
   completedCoachKeys: string[];
   viewedStrategyKeys: string[];
+  bookmarks: LearningBookmarkEntry[];
 }

@@ -13,6 +13,20 @@
 
 import type { GlossaryCategory } from "./glossary.js";
 
+// v1.4.0, Sprint L1 — Learning Centre Foundation.
+export type LearningDifficulty = "beginner" | "intermediate" | "advanced" | "institutional";
+
+export interface LearningTopicMetricExplained {
+  term: string;
+  explanation: string;
+}
+
+export interface LearningTopicWorkedExample {
+  title: string;
+  steps: string[];
+  note?: string;
+}
+
 export interface LearningTopic {
   key: string;
   title: string;
@@ -22,6 +36,28 @@ export interface LearningTopic {
   externalHref: string | null;
   relatedGlossaryKeys: string[];
   estimatedMinutes: number;
+  // v1.4.0, Sprint L1 — Learning Centre Foundation. Optional, richer
+  // fields following the approved 13-part Learning Framework (Learning
+  // Content Master Plan). All optional and undefined for every one of the
+  // pre-existing 68 topics — this sprint populates them for exactly 3 new
+  // foundation topics, establishing the template future sprints fill in
+  // for everything else. The shared LessonRenderer component (see
+  // components/learn/LessonRenderer.tsx) falls back to the plain
+  // summary/body/whyItMatters rendering whenever these are absent.
+  difficulty?: LearningDifficulty;
+  whyItExists?: string;
+  institutionalThinking?: string;
+  workflowSteps?: string[];
+  screenWalkthrough?: string[];
+  metricsExplained?: LearningTopicMetricExplained[];
+  workedExample?: LearningTopicWorkedExample;
+  commonMistakes?: string[];
+  riskWarnings?: string[];
+  bestPractices?: string[];
+  relatedModuleHrefs?: string[];
+  aiCoachPrompts?: string[];
+  nextStepKeys?: string[];
+  guidedTourRequired?: boolean;
 }
 
 export interface LearningPath {
@@ -945,6 +981,115 @@ const STRATEGY_FRAMEWORK_PATH: LearningPath = {
   ],
 };
 
+// v1.4.0, Sprint L1 — Learning Centre Foundation. The first of the 5
+// curriculum categories named in the approved Learning Content Master
+// Plan ("Platform Basics") — how to use the software itself, never an
+// investing/trading concept. Exactly the 3 foundation lessons approved
+// for this sprint (Platform Basics & Navigation, Command Centre, Learning
+// Centre Overview); every other module's own lesson content is deferred
+// to a later, separately-approved sprint per the Master Plan's own
+// phasing. These 3 topics are the first to populate the new optional,
+// richer LearningTopic fields (difficulty/workflowSteps/etc.) — the
+// template every future lesson follows.
+const PLATFORM_BASICS_PATH: LearningPath = {
+  key: "platform-basics",
+  title: "Platform Basics",
+  description: "How to navigate and use the software itself — sidebar, search, dashboards, and settings. No investing or trading concepts live here.",
+  glossaryCategory: "platform",
+  topics: [
+    topic({
+      key: "platform-basics-navigation",
+      title: "Platform Basics & Navigation",
+      summary: "The sidebar, the Command Palette, and what a session/tenant is.",
+      body: [
+        "The sidebar groups every page in the platform into named, collapsible sections; a small 'Frequently Used' strip at the top lets you pin any page you visit often. Pinned items and collapse state are saved per-user.",
+        "The Command Palette (⌘K / Ctrl+K) is the platform's single global search — it finds pages, open positions, watchlist entries, portfolios, lessons, strategies, and glossary terms all in one place, without needing a separate search per page.",
+        "Every page you visit belongs to your own session and tenant — your data is never visible to another user, and the automation engines have a master kill switch in Settings you can flip off at any time as the fastest available safety action.",
+      ],
+      whyItMatters: "Knowing where things live and how to search for them is the prerequisite for everything else in the curriculum — every later lesson assumes you can navigate the platform confidently.",
+      difficulty: "beginner",
+      whyItExists: "A platform with 80+ distinct pages across three engines needs a genuinely fast way to find anything — the sidebar and Command Palette are that answer, built once and reused everywhere rather than each page inventing its own navigation.",
+      institutionalThinking: "Institutional users expect a single, fast way to reach any tool without memorizing a menu tree — this is the same expectation a Bloomberg Terminal or an internal ops console sets.",
+      workflowSteps: [
+        "Open the sidebar and pin one page you expect to visit often.",
+        "Open the Command Palette (⌘K / Ctrl+K) and search for a symbol or page by name.",
+        "Open the Notification Centre (the bell icon) to see what it aggregates.",
+        "Open Settings and locate the automation kill switch — you don't need to flip it, just find it.",
+      ],
+      commonMistakes: [
+        "Not realizing pinned items and the Command Palette are two different, complementary ways to reach the same pages.",
+        "Missing the Notification Centre entirely because it isn't in the main sidebar list.",
+      ],
+      bestPractices: [
+        "Pin the 3-5 pages you use daily rather than scrolling the full sidebar every time.",
+        "Use the Command Palette for anything you don't have pinned — it's almost always faster than clicking through groups.",
+      ],
+      relatedModuleHrefs: ["/command-center", "/settings", "/notifications"],
+      aiCoachPrompts: ["Where do I find my settings?", "What does the kill switch do?"],
+      relatedGlossaryKeys: ["session", "tenant", "kill-switch", "guardrail", "command-palette"],
+      nextStepKeys: ["command-centre-overview"],
+      guidedTourRequired: true,
+      estimatedMinutes: 5,
+    }),
+    topic({
+      key: "command-centre-overview",
+      title: "Command Centre",
+      summary: "One executive screen aggregating every engine's own dashboards.",
+      body: [
+        "Command Centre pulls together summary cards from every major module across all three engines into one screen — it computes nothing new itself, it only re-displays whatever each source module has already computed.",
+        "Every card is a jumping-off point: click through to reach that module's own full detail page rather than trying to do everything from Command Centre itself.",
+      ],
+      whyItMatters: "A single at-a-glance screen saves you from visiting a dozen pages just to get oriented at the start of a session.",
+      difficulty: "beginner",
+      whyItExists: "As the platform grew to dozens of modules across three engines, no single existing dashboard could show all of them at once — Command Centre is a pure composition layer solving exactly that, reusing every source module's own already-computed output.",
+      institutionalThinking: "A trading desk's own morning read is usually one consolidated screen, not a dozen separate systems — Command Centre mirrors that expectation.",
+      workflowSteps: [
+        "Open Command Centre from the sidebar's Home group.",
+        "Scan each section top to bottom.",
+        "Click into any card whose figure you want to investigate further.",
+      ],
+      commonMistakes: ["Treating Command Centre as a place to take action, rather than a jumping-off point to the module that actually owns that action."],
+      bestPractices: ["Use it as your first screen of the day, then drill into whichever section looks like it needs attention."],
+      relatedModuleHrefs: ["/", "/executive-intelligence", "/institutional-dashboard"],
+      aiCoachPrompts: ["What does this Command Centre section show me?"],
+      relatedGlossaryKeys: [],
+      nextStepKeys: ["learning-centre-overview"],
+      guidedTourRequired: false,
+      externalHref: "/command-center",
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "learning-centre-overview",
+      title: "Learning Centre Overview",
+      summary: "How lessons, glossary, quizzes, progress, and bookmarks fit together.",
+      body: [
+        "The Learning Centre (/learn) is one hub for every piece of educational content on the platform: structured Learning Paths (like this one), a searchable Glossary, the Strategy Academy, quizzes, deterministic interactive simulations, and your own progress and bookmarks.",
+        "Every lesson can be bookmarked for later and marked complete as you go — your progress is saved per-user and shows up on the Explore tab's Continue Learning and Recently Viewed sections.",
+        "Nothing in the Learning Centre is an LLM-generated claim about real market conditions — every lesson is deterministic, version-controlled content, and every 'Ask AI Coach' answer is grounded in your own already-computed platform data, never a fabricated fact.",
+      ],
+      whyItMatters: "Understanding the Learning Centre's own shape — paths, glossary, progress, bookmarks — makes every future lesson in this curriculum easier to navigate.",
+      difficulty: "beginner",
+      whyItExists: "A platform this deep needs a genuine teaching layer, not just tooltips — the Learning Centre is that layer, built once and extended path-by-path rather than each module inventing its own separate help system.",
+      institutionalThinking: "Institutional onboarding usually separates 'how to use the tool' from 'how to think about the domain' — Platform Basics and this lesson cover the former; every other Learning Path covers the latter.",
+      workflowSteps: [
+        "Open the Learning Centre from the sidebar's Learning Centre group.",
+        "Open the Explore tab and look at Continue Learning and Recently Viewed.",
+        "Bookmark this lesson using the bookmark button.",
+        "Mark this lesson complete once you've read it.",
+      ],
+      commonMistakes: ["Assuming the Learning Centre only covers options trading — it now spans all three engines plus platform basics."],
+      bestPractices: ["Bookmark lessons you want to revisit rather than trying to remember where they were."],
+      relatedModuleHrefs: ["/learn/paths", "/learn/glossary"],
+      aiCoachPrompts: ["What can I learn about here?", "How do bookmarks work?"],
+      relatedGlossaryKeys: ["simulated-vs-live"],
+      nextStepKeys: [],
+      guidedTourRequired: false,
+      externalHref: "/learn",
+      estimatedMinutes: 4,
+    }),
+  ],
+};
+
 export const LEARNING_PATHS: LearningPath[] = [
   FOUNDATIONS_PATH,
   GREEKS_PATH,
@@ -956,6 +1101,7 @@ export const LEARNING_PATHS: LearningPath[] = [
   INSTITUTIONAL_INVESTING_PATH,
   TRADING_ENGINE_PATH,
   STRATEGY_FRAMEWORK_PATH,
+  PLATFORM_BASICS_PATH,
 ];
 
 export function getLearningPath(key: string): LearningPath | null {

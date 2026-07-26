@@ -5,6 +5,9 @@
  * DK Option Engine
  * OpenAPI spec version: 0.1.0
  */
+import type { LearningTopicDifficulty } from './learningTopicDifficulty';
+import type { LearningTopicMetricExplained } from './learningTopicMetricExplained';
+import type { LearningTopicWorkedExample } from './learningTopicWorkedExample';
 
 export interface LearningTopic {
   key: string;
@@ -16,4 +19,18 @@ export interface LearningTopic {
   externalHref: string | null;
   relatedGlossaryKeys: string[];
   estimatedMinutes: number;
+  difficulty?: LearningTopicDifficulty;
+  whyItExists?: string;
+  institutionalThinking?: string;
+  workflowSteps?: string[];
+  screenWalkthrough?: string[];
+  metricsExplained?: LearningTopicMetricExplained[];
+  workedExample?: LearningTopicWorkedExample;
+  commonMistakes?: string[];
+  riskWarnings?: string[];
+  bestPractices?: string[];
+  relatedModuleHrefs?: string[];
+  aiCoachPrompts?: string[];
+  nextStepKeys?: string[];
+  guidedTourRequired?: boolean;
 }

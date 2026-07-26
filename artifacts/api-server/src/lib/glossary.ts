@@ -18,7 +18,12 @@ export type GlossaryCategory =
   | "performance"
   | "institutional"
   | "value-investing"
-  | "trading";
+  | "trading"
+  // v1.4.0, Sprint L1 — Learning Centre Foundation. Platform-mechanics
+  // vocabulary (navigation, sessions, kill switches) — distinct from every
+  // other category above, which teaches investing/trading/options
+  // concepts, never how to operate the software itself.
+  | "platform";
 
 export interface GlossaryTerm {
   key: string;
@@ -961,6 +966,56 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: ["trading-strategy-framework", "strategy-checklist"],
     relatedLessonKeys: [],
   },
+
+  // ─── Platform Basics (v1.4.0, Sprint L1 — Learning Centre Foundation) ──
+  {
+    key: "session",
+    term: "Session",
+    category: "platform",
+    definition: "Your authenticated, signed-in state with the platform. Every page you visit and every action you take is scoped to your own session — no data from another user's session is ever visible to you.",
+    relatedTermKeys: ["tenant"],
+    relatedLessonKeys: ["platform-basics-navigation"],
+  },
+  {
+    key: "tenant",
+    term: "Tenant",
+    category: "platform",
+    definition: "The account-level boundary every piece of your data (trades, journal entries, portfolios, settings) is scoped to. Every route in this platform is tenant-isolated — one user's data is never readable by another.",
+    relatedTermKeys: ["session"],
+    relatedLessonKeys: ["platform-basics-navigation"],
+  },
+  {
+    key: "kill-switch",
+    term: "Kill Switch",
+    category: "platform",
+    definition: "A master on/off toggle (in Settings) that instantly disables the automation engines (Full-Auto trade opening and Auto-Adjustment) for your account. Flipping it off is the fastest safety action available if you're ever unsure whether automation should keep running.",
+    relatedTermKeys: ["guardrail"],
+    relatedLessonKeys: ["platform-basics-navigation"],
+  },
+  {
+    key: "guardrail",
+    term: "Guardrail",
+    category: "platform",
+    definition: "A hard, deterministic limit (a daily trade cap, a concurrent-position cap, a score floor, a daily-loss circuit breaker) that the automation engines check before taking any action — never a suggestion, always enforced.",
+    relatedTermKeys: ["kill-switch"],
+    relatedLessonKeys: ["platform-basics-navigation"],
+  },
+  {
+    key: "command-palette",
+    term: "Command Palette",
+    category: "platform",
+    definition: "The global search dialog (⌘K / Ctrl+K) that finds any page, position, watchlist entry, portfolio, lesson, strategy, or glossary term across the whole platform — one search surface for everything, not a separate search per page.",
+    relatedTermKeys: [],
+    relatedLessonKeys: ["platform-basics-navigation"],
+  },
+  {
+    key: "simulated-vs-live",
+    term: "SIMULATED vs. LIVE",
+    category: "platform",
+    definition: "A data-source label every engine attaches to its own figures. SIMULATED means the number was deterministically generated for demonstration/testing, never a real market quote or brokerage fill. LIVE means it came from a real, connected data or broker provider. This platform runs SIMULATED by default; Live Trading remains disabled.",
+    relatedTermKeys: [],
+    relatedLessonKeys: ["platform-basics-navigation"],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {
@@ -982,5 +1037,5 @@ export function getGlossaryTerm(key: string): GlossaryTerm | null {
 }
 
 export function glossaryCategories(): GlossaryCategory[] {
-  return ["foundations", "greeks", "volatility", "strategies", "portfolio", "performance", "institutional", "value-investing", "trading"];
+  return ["foundations", "greeks", "volatility", "strategies", "portfolio", "performance", "institutional", "value-investing", "trading", "platform"];
 }

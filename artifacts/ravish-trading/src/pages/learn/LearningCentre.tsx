@@ -49,7 +49,172 @@ import {
   BarChart3,
   ShieldAlert,
   Sparkles,
+  Building2,
+  Activity,
+  Waves,
+  Grid3x3,
+  Settings as SettingsIcon,
+  Bookmark,
+  History,
+  ArrowRight,
 } from "lucide-react";
+import { resolveItemHref } from "@/lib/learning-item-href";
+
+// v1.4.0, Sprint L1 — Learning Centre Foundation.
+const CATEGORY_CARDS: { label: string; description: string; href: string; icon: typeof Building2 }[] = [
+  { label: "Institutional Investing", description: "Company research, valuation, and decision engines", href: "/stock-analyst/executive-dashboard", icon: Building2 },
+  { label: "Institutional Trading", description: "Market structure, liquidity, risk, and trade planning", href: "/trading-research", icon: Activity },
+  { label: "Options Income & Paper Trading", description: "Scanner, execution, and portfolio management", href: "/options-dashboard", icon: Waves },
+  { label: "Cross-Engine & Executive", description: "Consolidated views spanning all three engines", href: "/executive-intelligence", icon: Grid3x3 },
+  { label: "Platform Basics", description: "Navigation, Command Centre, and the Learning Centre itself", href: "/learn/paths/platform-basics", icon: SettingsIcon },
+];
+
+function ExploreTab() {
+  const { data: paths, isLoading: pathsLoading } = useGetLearningPaths();
+  const { data: progress, isLoading: progressLoading } = useGetLearningProgress();
+
+  // Continue Learning — the first path with genuine partial progress
+  // (0% < complete < 100%), and within it, the first not-yet-completed
+  // topic. Purely a deterministic rule over already-fetched data — never
+  // a machine-learned recommendation.
+  const inProgressPath = progress?.pathCompletion.find((p) => p.percentComplete > 0 && p.percentComplete < 100);
+  const inProgressPathTopics = inProgressPath ? paths?.find((p) => p.key === inProgressPath.pathKey)?.topics : undefined;
+  const completedKeys = new Set(progress?.completedLessonKeys ?? []);
+  const nextTopic = inProgressPathTopics?.find((t) => !completedKeys.has(t.key));
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-3">Browse by Category</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" data-testid="grid-explore-categories">
+          {CATEGORY_CARDS.map((c) => (
+            <Link key={c.href} href={c.href} data-testid={`link-explore-category-${c.label.toLowerCase().replace(/\s+/g, "-")}`}>
+              <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer h-full">
+                <CardContent className="pt-4 flex items-start gap-3">
+                  <c.icon className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-semibold">{c.label}</div>
+                    <div className="text-xs text-muted-foreground">{c.description}</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-3">Continue Learning</h2>
+        {pathsLoading || progressLoading ? (
+          <Skeleton className="h-20 w-full rounded-lg" />
+        ) : inProgressPath && nextTopic ? (
+          <Link href={`/learn/paths/${inProgressPath.pathKey}/${nextTopic.key}`} data-testid="link-continue-learning">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold">{nextTopic.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {inProgressPath.title} — {inProgressPath.topicsCompleted}/{inProgressPath.topicsTotal} completed
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-indigo-400 shrink-0" />
+              </CardContent>
+            </Card>
+          </Link>
+        ) : (
+          <Link href="/learn/paths/platform-basics" data-testid="link-continue-learning-start">
+            <Card className="bg-card border-border hover:border-indigo-500/40 transition-colors cursor-pointer">
+              <CardContent className="pt-4 text-sm text-muted-foreground">
+                No lessons in progress yet — start with{" "}
+                <span className="text-indigo-400 font-medium">Platform Basics</span>.
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-1.5">
+            <History className="w-4 h-4" /> Recently Viewed
+          </h2>
+          {progressLoading ? (
+            <Skeleton className="h-32 w-full rounded-lg" />
+          ) : progress && progress.recentHistory.length > 0 ? (
+            <ul className="space-y-1.5" data-testid="list-recently-viewed">
+              {progress.recentHistory.slice(0, 8).map((h, i) => {
+                const href = resolveItemHref(h.itemType, h.itemKey, paths);
+                const row = (
+                  <div className="flex items-center justify-between text-xs py-1.5">
+                    <span className="capitalize truncate">
+                      {h.itemType}: {h.itemKey}
+                    </span>
+                    <Badge variant="outline" className="text-[9px] shrink-0 ml-2">
+                      {h.completedAt ? "Completed" : "Viewed"}
+                    </Badge>
+                  </div>
+                );
+                return (
+                  <li key={i} data-testid={`recently-viewed-${i}`}>
+                    {href ? (
+                      <Link href={href} className="block hover:bg-secondary/30 rounded px-1 -mx-1">
+                        {row}
+                      </Link>
+                    ) : (
+                      row
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-xs text-muted-foreground" data-testid="text-recently-viewed-empty">
+              Nothing viewed yet — start with a Learning Path or the Glossary.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-1.5">
+            <Bookmark className="w-4 h-4" /> Bookmarks
+          </h2>
+          {progressLoading ? (
+            <Skeleton className="h-32 w-full rounded-lg" />
+          ) : progress && progress.bookmarks.length > 0 ? (
+            <ul className="space-y-1.5" data-testid="list-bookmarks">
+              {progress.bookmarks.slice(0, 8).map((b, i) => {
+                const href = resolveItemHref(b.itemType, b.itemKey, paths);
+                const row = (
+                  <div className="flex items-center gap-1.5 text-xs py-1.5">
+                    <Bookmark className="w-3 h-3 text-indigo-400 shrink-0" />
+                    <span className="capitalize truncate">
+                      {b.itemType}: {b.itemKey}
+                    </span>
+                  </div>
+                );
+                return (
+                  <li key={i} data-testid={`bookmark-${i}`}>
+                    {href ? (
+                      <Link href={href} className="block hover:bg-secondary/30 rounded px-1 -mx-1">
+                        {row}
+                      </Link>
+                    ) : (
+                      row
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-xs text-muted-foreground" data-testid="text-bookmarks-empty">
+              No bookmarks yet — bookmark a lesson to save it for later.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SimulationChart({ result }: { result: LearningSimulationResult }) {
   return (
@@ -587,18 +752,22 @@ function OverviewTab() {
   );
 }
 
-const VALID_TABS = ["overview", "simulations", "portfolio", "progress"] as const;
+// v1.4.0, Sprint L1 — Learning Centre Foundation. "explore" is the new
+// Learning Home Dashboard (category navigation, Continue Learning,
+// Recently Viewed, Bookmarks) and becomes the new default tab — every
+// existing explicit ?tab= deep link (e.g. from the Institutional
+// Intelligence Engine's own links to "portfolio"/"progress") is completely
+// unaffected, since the fallback below only changes what renders when NO
+// tab is requested at all.
+const VALID_TABS = ["explore", "overview", "simulations", "portfolio", "progress"] as const;
 type LearningCentreTab = (typeof VALID_TABS)[number];
 
 export default function LearningCentre() {
-  // Supports a ?tab= deep link (e.g. from the Institutional Intelligence
-  // Engine's own learning links, which point here for "Portfolio,
-  // Explained" and Progress) without adding any routing complexity.
   const search = useSearch();
   const requestedTab = new URLSearchParams(search).get("tab");
   const initialTab: LearningCentreTab = (VALID_TABS as readonly string[]).includes(requestedTab ?? "")
     ? (requestedTab as LearningCentreTab)
-    : "overview";
+    : "explore";
 
   return (
     <div className="space-y-6">
@@ -622,6 +791,9 @@ export default function LearningCentre() {
 
       <Tabs defaultValue={initialTab}>
         <TabsList className="bg-card border border-border flex-wrap h-auto">
+          <TabsTrigger value="explore" className="text-xs">
+            <Sparkles className="w-3.5 h-3.5 mr-1" /> Explore
+          </TabsTrigger>
           <TabsTrigger value="overview" className="text-xs">
             <BookOpen className="w-3.5 h-3.5 mr-1" /> Overview
           </TabsTrigger>
@@ -635,6 +807,9 @@ export default function LearningCentre() {
             <BarChart3 className="w-3.5 h-3.5 mr-1" /> Progress
           </TabsTrigger>
         </TabsList>
+        <TabsContent value="explore" className="mt-4">
+          <ExploreTab />
+        </TabsContent>
         <TabsContent value="overview" className="mt-4">
           <OverviewTab />
         </TabsContent>

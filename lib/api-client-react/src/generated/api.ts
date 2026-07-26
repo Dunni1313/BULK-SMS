@@ -138,6 +138,7 @@ import type {
   JournalReviewResult,
   JournalTradeReview,
   LearnContent,
+  LearningBookmarkAction,
   LearningGlossaryTerm,
   LearningPath,
   LearningPortfolioLesson,
@@ -226,6 +227,7 @@ import type {
   ReconciliationReportDetail,
   ReconciliationReportSummary,
   ReconciliationResult,
+  RecordLearningBookmark200,
   RecordLearningItemCompleted200,
   RecordLearningItemViewed200,
   RecordRecentViewInput,
@@ -4671,6 +4673,77 @@ export const useRecordLearningItemCompleted = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRecordLearningItemCompletedMutationOptions(options));
+    }
+
+export const getRecordLearningBookmarkUrl = () => {
+
+
+
+
+  return `/api/learning-centre/progress/bookmark`
+}
+
+/**
+ * @summary v1.4.0, Sprint L1 — Learning Centre Foundation. Set or clear a bookmark on a lesson, glossary term, path, strategy, or coach explanation. Reuses the existing learning_progress upsert shape — a bookmark is an attribute of an existing progress row, never a new table or item type.
+ */
+export const recordLearningBookmark = async (learningBookmarkAction: LearningBookmarkAction, options?: RequestInit): Promise<RecordLearningBookmark200> => {
+
+  return customFetch<RecordLearningBookmark200>(getRecordLearningBookmarkUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      learningBookmarkAction,)
+  }
+);}
+
+
+
+
+export const getRecordLearningBookmarkMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningBookmark>>, TError,{data: BodyType<LearningBookmarkAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordLearningBookmark>>, TError,{data: BodyType<LearningBookmarkAction>}, TContext> => {
+
+const mutationKey = ['recordLearningBookmark'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordLearningBookmark>>, {data: BodyType<LearningBookmarkAction>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  recordLearningBookmark(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordLearningBookmarkMutationResult = NonNullable<Awaited<ReturnType<typeof recordLearningBookmark>>>
+    export type RecordLearningBookmarkMutationBody = BodyType<LearningBookmarkAction>
+    export type RecordLearningBookmarkMutationError = ErrorType<unknown>
+
+    /**
+ * @summary v1.4.0, Sprint L1 — Learning Centre Foundation. Set or clear a bookmark on a lesson, glossary term, path, strategy, or coach explanation. Reuses the existing learning_progress upsert shape — a bookmark is an attribute of an existing progress row, never a new table or item type.
+ */
+export const useRecordLearningBookmark = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordLearningBookmark>>, TError,{data: BodyType<LearningBookmarkAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof recordLearningBookmark>>,
+        TError,
+        {data: BodyType<LearningBookmarkAction>},
+        TContext
+      > => {
+      return useMutation(getRecordLearningBookmarkMutationOptions(options));
     }
 
 export const getRunLearningSimulationUrl = () => {

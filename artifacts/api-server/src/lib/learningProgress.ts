@@ -39,6 +39,29 @@ export async function recordCompleted(userId: string, itemType: LearningItemType
     });
 }
 
+// v1.4.0, Sprint L1 — Learning Centre Foundation. Bookmarking reuses the
+// exact same upsert-on-(userId, itemType, itemKey) shape recordViewed()/
+// recordCompleted() already established — a bookmark is just another
+// attribute on the same row, never a new table or a new item type. Setting
+// a bookmark also stamps viewedAt (via defaultNow() on insert, or by
+// leaving an existing row's own viewedAt untouched on update) — bookmarking
+// something implies you've at least seen it.
+export async function setBookmarked(
+  userId: string,
+  itemType: LearningItemType,
+  itemKey: string,
+  bookmarked: boolean,
+): Promise<void> {
+  const now = new Date();
+  await db
+    .insert(learningProgressTable)
+    .values({ userId, itemType, itemKey, viewedAt: now, bookmarkedAt: bookmarked ? now : null, updatedAt: now })
+    .onConflictDoUpdate({
+      target: [learningProgressTable.userId, learningProgressTable.itemType, learningProgressTable.itemKey],
+      set: { bookmarkedAt: bookmarked ? now : null, updatedAt: now },
+    });
+}
+
 export interface LearningPathCompletion {
   pathKey: string;
   title: string;
@@ -52,6 +75,13 @@ export interface LearningHistoryEntry {
   itemKey: string;
   viewedAt: string;
   completedAt: string | null;
+}
+
+// v1.4.0, Sprint L1 — Learning Centre Foundation.
+export interface LearningBookmarkEntry {
+  itemType: LearningItemType;
+  itemKey: string;
+  bookmarkedAt: string;
 }
 
 export interface LearningProgressSummary {
@@ -79,6 +109,11 @@ export interface LearningProgressSummary {
   // query — to expose the real viewed-key list the Comparison view's
   // "Learning Coverage" column and the Reporting extension both need.
   viewedStrategyKeys: string[];
+  // v1.4.0, Sprint L1 — Learning Centre Foundation. Every currently-bookmarked
+  // item (bookmarkedAt !== null), newest bookmark first — never limited to
+  // one item type, since a bookmark can apply to a lesson, glossary term,
+  // path, strategy, or coach explanation alike.
+  bookmarks: LearningBookmarkEntry[];
 }
 
 async function quizProgressFor(
@@ -136,6 +171,15 @@ export async function getLearningProgress(userId: string): Promise<LearningProgr
       completedAt: r.completedAt ? r.completedAt.toISOString() : null,
     }));
 
+  const bookmarks: LearningBookmarkEntry[] = progressRows
+    .filter((r) => r.bookmarkedAt !== null)
+    .sort((a, b) => b.bookmarkedAt!.getTime() - a.bookmarkedAt!.getTime())
+    .map((r) => ({
+      itemType: r.itemType as LearningItemType,
+      itemKey: r.itemKey,
+      bookmarkedAt: r.bookmarkedAt!.toISOString(),
+    }));
+
   return {
     lessonsViewed: lessonRows.length,
     lessonsCompleted: completedLessonKeys.size,
@@ -151,6 +195,7 @@ export async function getLearningProgress(userId: string): Promise<LearningProgr
     greeksQuiz,
     valueQuiz,
     recentHistory,
+    bookmarks,
   };
 }
 

@@ -29,6 +29,8 @@ const CATEGORY_LABELS: Record<LearningGlossaryTermCategory | "all", string> = {
   institutional: "Institutional",
   "value-investing": "Value Investing",
   trading: "Trading",
+  // v1.4.0, Sprint L1 — Learning Centre Foundation.
+  platform: "Platform Basics",
 };
 
 export default function Glossary() {

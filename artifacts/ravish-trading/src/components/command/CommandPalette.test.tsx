@@ -15,6 +15,8 @@ const mockState = vi.hoisted(() => ({
   intelligence: undefined as unknown,
   watchlist: undefined as unknown,
   portfolios: undefined as unknown,
+  // v1.4.0, Sprint L1 — Learning Centre Foundation.
+  progress: undefined as unknown,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -31,6 +33,8 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetInstitutionalIntelligence: () => ({ data: mockState.intelligence }),
     useGetValueWatchlist: () => ({ data: mockState.watchlist }),
     useGetPortfolios: () => ({ data: mockState.portfolios }),
+    // v1.4.0, Sprint L1 — Learning Centre Foundation.
+    useGetLearningProgress: () => ({ data: mockState.progress }),
   };
 });
 
@@ -49,6 +53,7 @@ beforeEach(() => {
   mockState.intelligence = undefined;
   mockState.watchlist = [];
   mockState.portfolios = [];
+  mockState.progress = undefined;
   window.history.pushState(null, "", "/");
   vi.clearAllMocks();
 });
@@ -113,6 +118,34 @@ describe("CommandPalette", () => {
       "/stock-analyst/portfolio-construction?portfolioId=7",
     );
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  // v1.4.0, Sprint L1 — Learning Centre Foundation. Search integration:
+  // extends this same palette's existing data sources.
+  it("shows a bookmark once fetched, resolves its real href via the owning learning path, and navigates on selection", () => {
+    mockState.learningPaths = [
+      { key: "platform-basics", title: "Platform Basics", description: "", glossaryCategory: "platform", topics: [{ key: "platform-basics-navigation" }] },
+    ];
+    mockState.progress = {
+      bookmarks: [{ itemType: "lesson", itemKey: "platform-basics-navigation", bookmarkedAt: "2026-07-17T00:00:00.000Z" }],
+    };
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    expect(screen.getByText("Bookmarks")).toBeInTheDocument();
+    const item = screen.getByTestId("command-item-bookmark-lesson-platform-basics-navigation");
+    expect(item).toBeInTheDocument();
+    fireEvent.click(item);
+    expect(window.location.pathname).toBe("/learn/paths/platform-basics/platform-basics-navigation");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("never fabricates a Bookmarks entry for an item whose owning page can't be resolved", () => {
+    mockState.learningPaths = [];
+    mockState.progress = {
+      bookmarks: [{ itemType: "coach", itemKey: "investment:AAPL", bookmarkedAt: "2026-07-17T00:00:00.000Z" }],
+    };
+    renderWithClient(<CommandPalette open={true} onOpenChange={vi.fn()} />);
+    expect(screen.queryByText("Bookmarks")).not.toBeInTheDocument();
   });
 
   it("Export Portfolio downloads a CSV of open positions and never navigates", () => {
