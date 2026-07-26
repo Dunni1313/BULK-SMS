@@ -6,7 +6,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, usersTable, learningProgressTable, greeksQuizResultsTable, valueQuizResultsTable } from "@workspace/db";
-import { recordViewed, recordCompleted, getLearningProgress } from "./learningProgress.js";
+import { recordViewed, recordCompleted, setBookmarked, getLearningProgress } from "./learningProgress.js";
 
 async function createUser(label: string): Promise<string> {
   const [row] = await db
@@ -40,7 +40,10 @@ describe("getLearningProgress — a brand-new user", () => {
       // Phase 21 — Institutional AI Coach & Education Platform added a 9th path.
       // Phase 29 — Institutional Trading AI Coach added a 10th path.
       // Phase 30 — Institutional Strategy Framework added an 11th path.
-      expect(progress.pathCompletion.length).toBe(10);
+      // v1.4.0, Sprint L1 — Learning Centre Foundation added a 12th path
+      // (platform-basics).
+      expect(progress.pathCompletion.length).toBe(11);
+      expect(progress.bookmarks).toEqual([]);
     } finally {
       await cleanupUser(userId);
     }
@@ -112,6 +115,55 @@ describe("recordViewed / recordCompleted", () => {
       const cur = new Date(progress.recentHistory[i].viewedAt).getTime();
       expect(prev).toBeGreaterThanOrEqual(cur);
     }
+  });
+});
+
+// v1.4.0, Sprint L1 — Learning Centre Foundation.
+describe("setBookmarked", () => {
+  let userId: string;
+  beforeAll(async () => {
+    userId = await createUser("bookmarks");
+  });
+  afterAll(async () => {
+    await cleanupUser(userId);
+  });
+
+  it("bookmarking a never-before-seen item creates a row and surfaces it in bookmarks", async () => {
+    await setBookmarked(userId, "lesson", "platform-basics-navigation", true);
+    const progress = await getLearningProgress(userId);
+    expect(progress.bookmarks).toHaveLength(1);
+    expect(progress.bookmarks[0]).toMatchObject({ itemType: "lesson", itemKey: "platform-basics-navigation" });
+    // Bookmarking also stamps viewedAt (via the same upsert path
+    // recordViewed/recordCompleted use), so it counts as viewed too.
+    expect(progress.lessonsViewed).toBe(1);
+  });
+
+  it("bookmarking is independent of completion — the item is not marked completed", async () => {
+    const progress = await getLearningProgress(userId);
+    expect(progress.completedLessonKeys).not.toContain("platform-basics-navigation");
+  });
+
+  it("un-bookmarking clears bookmarkedAt without deleting the row or its viewedAt/completedAt", async () => {
+    await recordCompleted(userId, "lesson", "platform-basics-navigation");
+    await setBookmarked(userId, "lesson", "platform-basics-navigation", false);
+    const progress = await getLearningProgress(userId);
+    expect(progress.bookmarks).toEqual([]);
+    // The completion recorded just above is untouched by un-bookmarking.
+    expect(progress.completedLessonKeys).toContain("platform-basics-navigation");
+  });
+
+  it("re-bookmarking the same item is idempotent — never a duplicate row", async () => {
+    await setBookmarked(userId, "lesson", "platform-basics-navigation", true);
+    await setBookmarked(userId, "lesson", "platform-basics-navigation", true);
+    const progress = await getLearningProgress(userId);
+    expect(progress.bookmarks).toHaveLength(1);
+  });
+
+  it("bookmarks span every item type independently, newest bookmark first", async () => {
+    await setBookmarked(userId, "glossary", "kill-switch", true);
+    const progress = await getLearningProgress(userId);
+    expect(progress.bookmarks.length).toBeGreaterThanOrEqual(2);
+    expect(progress.bookmarks[0]).toMatchObject({ itemType: "glossary", itemKey: "kill-switch" });
   });
 });
 

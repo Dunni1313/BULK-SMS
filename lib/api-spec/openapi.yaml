@@ -1241,6 +1241,34 @@ paths:
                   success:
                     type: boolean
 
+  /learning-centre/progress/bookmark:
+    post:
+      operationId: recordLearningBookmark
+      tags: [execution]
+      summary: >-
+        v1.4.0, Sprint L1 — Learning Centre Foundation. Set or clear a
+        bookmark on a lesson, glossary term, path, strategy, or coach
+        explanation. Reuses the existing learning_progress upsert shape —
+        a bookmark is an attribute of an existing progress row, never a
+        new table or item type.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LearningBookmarkAction"
+      responses:
+        "200":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+
   /learning-centre/simulate:
     post:
       operationId: runLearningSimulation
@@ -15809,7 +15837,7 @@ components:
           type: string
         category:
           type: string
-          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing, trading]
+          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing, trading, platform]
         definition:
           type: string
         relatedTermKeys:
@@ -15845,6 +15873,81 @@ components:
             type: string
         estimatedMinutes:
           type: number
+        # v1.4.0, Sprint L1 — Learning Centre Foundation. Optional, richer
+        # fields following the approved 13-part Learning Framework
+        # (Learning Content Master Plan). All optional so every one of the
+        # pre-existing 68 topics — which supply none of these — remains
+        # valid without any content change; only new topics authored from
+        # Sprint L1 onward populate them.
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced, institutional]
+        whyItExists:
+          type: string
+        institutionalThinking:
+          type: string
+        workflowSteps:
+          type: array
+          items:
+            type: string
+        screenWalkthrough:
+          type: array
+          items:
+            type: string
+        metricsExplained:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningTopicMetricExplained"
+        workedExample:
+          $ref: "#/components/schemas/LearningTopicWorkedExample"
+        commonMistakes:
+          type: array
+          items:
+            type: string
+        riskWarnings:
+          type: array
+          items:
+            type: string
+        bestPractices:
+          type: array
+          items:
+            type: string
+        relatedModuleHrefs:
+          type: array
+          items:
+            type: string
+        aiCoachPrompts:
+          type: array
+          items:
+            type: string
+        nextStepKeys:
+          type: array
+          items:
+            type: string
+        guidedTourRequired:
+          type: boolean
+
+    LearningTopicMetricExplained:
+      type: object
+      required: [term, explanation]
+      properties:
+        term:
+          type: string
+        explanation:
+          type: string
+
+    LearningTopicWorkedExample:
+      type: object
+      required: [title, steps]
+      properties:
+        title:
+          type: string
+        steps:
+          type: array
+          items:
+            type: string
+        note:
+          type: string
 
     LearningPath:
       type: object
@@ -15858,7 +15961,7 @@ components:
           type: string
         glossaryCategory:
           type: string
-          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing, trading]
+          enum: [foundations, greeks, volatility, strategies, portfolio, performance, institutional, value-investing, trading, platform]
         topics:
           type: array
           items:
@@ -16045,6 +16148,7 @@ components:
           completedStrategyKeys,
           completedCoachKeys,
           viewedStrategyKeys,
+          bookmarks,
         ]
       properties:
         lessonsViewed:
@@ -16089,6 +16193,10 @@ components:
           type: array
           items:
             type: string
+        bookmarks:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningBookmarkEntry"
 
     LearningProgressAction:
       type: object
@@ -16099,6 +16207,31 @@ components:
           enum: [lesson, glossary, path, strategy, coach]
         itemKey:
           type: string
+
+    # v1.4.0, Sprint L1 — Learning Centre Foundation.
+    LearningBookmarkEntry:
+      type: object
+      required: [itemType, itemKey, bookmarkedAt]
+      properties:
+        itemType:
+          type: string
+          enum: [lesson, glossary, path, strategy, coach]
+        itemKey:
+          type: string
+        bookmarkedAt:
+          type: string
+
+    LearningBookmarkAction:
+      type: object
+      required: [itemType, itemKey, bookmarked]
+      properties:
+        itemType:
+          type: string
+          enum: [lesson, glossary, path, strategy, coach]
+        itemKey:
+          type: string
+        bookmarked:
+          type: boolean
 
     LearningSimulationInput:
       type: object

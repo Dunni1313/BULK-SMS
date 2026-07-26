@@ -29,6 +29,7 @@ function emptyLearningProgress(overrides: Partial<LearningProgressSummary> = {})
     completedStrategyKeys: [],
     completedCoachKeys: [],
     viewedStrategyKeys: [],
+    bookmarks: [],
     greeksQuiz: emptyQuizProgress(),
     valueQuiz: emptyQuizProgress(),
     recentHistory: [],

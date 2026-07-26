@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
+import { LessonRenderer, hasRichLessonContent } from "@/components/learn/LessonRenderer";
 
 function PathsList() {
   const { data: paths, isLoading } = useGetLearningPaths();
@@ -155,43 +156,56 @@ function PathDetail({ pathKey, topicKey }: { pathKey: string; topicKey?: string 
               </CardHeader>
               {open && (
                 <CardContent className="space-y-3">
-                  {t.body.map((p, i) => (
-                    <p key={i} className="text-xs text-muted-foreground leading-relaxed">
-                      {p}
-                    </p>
-                  ))}
-                  <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-3">
-                    <p className="text-xs text-foreground/90">
-                      <span className="font-semibold text-indigo-400">Why it matters: </span>
-                      {t.whyItMatters}
-                    </p>
-                  </div>
-                  {t.externalHref && (
-                    <Link href={t.externalHref} className="block text-xs text-indigo-400 hover:underline" data-testid={`link-topic-external-${t.key}`}>
-                      Open the dedicated tool/page →
-                    </Link>
-                  )}
-                  {t.relatedGlossaryKeys.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {t.relatedGlossaryKeys.map((k) => (
-                        <Link key={k} href={`/learn/glossary/${k}`} data-testid={`link-glossary-${k}`}>
-                          <Badge variant="outline" className="text-[9px] cursor-pointer hover:border-indigo-500/40">
-                            {k}
-                          </Badge>
-                        </Link>
+                  {hasRichLessonContent(t) ? (
+                    <LessonRenderer
+                      topic={t}
+                      pathKey={path.key}
+                      siblingTopics={path.topics}
+                      completed={completed}
+                      onMarkComplete={() => markComplete(t.key)}
+                      markCompletePending={recordCompleted.isPending}
+                    />
+                  ) : (
+                    <>
+                      {t.body.map((p, i) => (
+                        <p key={i} className="text-xs text-muted-foreground leading-relaxed">
+                          {p}
+                        </p>
                       ))}
-                    </div>
+                      <div className="rounded-md border border-indigo-500/20 bg-indigo-500/5 p-3">
+                        <p className="text-xs text-foreground/90">
+                          <span className="font-semibold text-indigo-400">Why it matters: </span>
+                          {t.whyItMatters}
+                        </p>
+                      </div>
+                      {t.externalHref && (
+                        <Link href={t.externalHref} className="block text-xs text-indigo-400 hover:underline" data-testid={`link-topic-external-${t.key}`}>
+                          Open the dedicated tool/page →
+                        </Link>
+                      )}
+                      {t.relatedGlossaryKeys.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {t.relatedGlossaryKeys.map((k) => (
+                            <Link key={k} href={`/learn/glossary/${k}`} data-testid={`link-glossary-${k}`}>
+                              <Badge variant="outline" className="text-[9px] cursor-pointer hover:border-indigo-500/40">
+                                {k}
+                              </Badge>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                      <Button
+                        size="sm"
+                        variant={completed ? "outline" : "default"}
+                        className="h-7 text-xs"
+                        disabled={completed || recordCompleted.isPending}
+                        onClick={() => markComplete(t.key)}
+                        data-testid={`button-mark-complete-${t.key}`}
+                      >
+                        {completed ? "Completed" : "Mark Complete"}
+                      </Button>
+                    </>
                   )}
-                  <Button
-                    size="sm"
-                    variant={completed ? "outline" : "default"}
-                    className="h-7 text-xs"
-                    disabled={completed || recordCompleted.isPending}
-                    onClick={() => markComplete(t.key)}
-                    data-testid={`button-mark-complete-${t.key}`}
-                  >
-                    {completed ? "Completed" : "Mark Complete"}
-                  </Button>
                 </CardContent>
               )}
             </Card>

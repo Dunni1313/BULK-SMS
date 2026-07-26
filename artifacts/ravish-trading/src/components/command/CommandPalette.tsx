@@ -37,7 +37,11 @@ import {
   getGetValueWatchlistQueryKey,
   useGetPortfolios,
   getGetPortfoliosQueryKey,
+  // v1.4.0, Sprint L1 — Learning Centre Foundation.
+  useGetLearningProgress,
+  getGetLearningProgressQueryKey,
 } from "@workspace/api-client-react";
+import { resolveItemHref } from "@/lib/learning-item-href";
 import {
   CommandDialog,
   CommandEmpty,
@@ -53,7 +57,7 @@ import { QUICK_ACTIONS } from "@/lib/quick-actions";
 import { downloadPortfolioCsv } from "@/lib/portfolio-export";
 import { WORKFLOWS, type Workflow } from "@/lib/workflows";
 import { useToast } from "@/hooks/use-toast";
-import { Compass, Zap, Briefcase, BookOpen, Library, GraduationCap, Map, Sparkles, ListChecks, Building2 } from "lucide-react";
+import { Compass, Zap, Briefcase, BookOpen, Library, GraduationCap, Map, Sparkles, ListChecks, Building2, Bookmark } from "lucide-react";
 
 export interface CommandPaletteProps {
   open: boolean;
@@ -93,6 +97,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   // Phase 13 — Institutional Portfolio Manager.
   const { data: portfolios } = useGetPortfolios({
     query: { queryKey: getGetPortfoliosQueryKey(), enabled: open },
+  });
+  // v1.4.0, Sprint L1 — Learning Centre Foundation. Search integration:
+  // extends this same palette's existing data sources rather than
+  // building a second search engine, per the approved architecture.
+  const { data: progress } = useGetLearningProgress({
+    query: { queryKey: getGetLearningProgressQueryKey(), enabled: open },
   });
 
   function go(href: string) {
@@ -345,6 +355,39 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             </CommandGroup>
           </>
         )}
+
+        {(() => {
+          // Never fabricate a link: resolve every bookmark's real href up
+          // front and skip the whole group (not just individual items,
+          // which would otherwise leave a heading with nothing under it)
+          // when none can be resolved (e.g. a bookmarked "coach" item,
+          // which has no dedicated detail page of its own).
+          const resolvedBookmarks = (progress?.bookmarks ?? [])
+            .map((b) => ({ ...b, href: resolveItemHref(b.itemType, b.itemKey, learningPaths) }))
+            .filter((b): b is typeof b & { href: string } => Boolean(b.href))
+            .slice(0, 25);
+          if (resolvedBookmarks.length === 0) return null;
+          return (
+            <>
+              <CommandSeparator />
+              <CommandGroup heading="Bookmarks">
+                {resolvedBookmarks.map((b, i) => (
+                  <CommandItem
+                    key={`${b.itemType}-${b.itemKey}-${i}`}
+                    value={`bookmark ${b.itemType} ${b.itemKey}`}
+                    onSelect={() => go(b.href)}
+                    data-testid={`command-item-bookmark-${b.itemType}-${b.itemKey}`}
+                  >
+                    <Bookmark className="h-4 w-4" />
+                    <span className="capitalize">
+                      {b.itemType}: {b.itemKey}
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </>
+          );
+        })()}
 
         {intelligence && intelligence.observations.length > 0 && (
           <>

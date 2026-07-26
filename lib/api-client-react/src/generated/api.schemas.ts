@@ -7231,6 +7231,7 @@ export const LearningGlossaryTermCategory = {
   institutional: 'institutional',
   'value-investing': 'value-investing',
   trading: 'trading',
+  platform: 'platform',
 } as const;
 
 export interface LearningGlossaryTerm {
@@ -7240,6 +7241,27 @@ export interface LearningGlossaryTerm {
   definition: string;
   relatedTermKeys: string[];
   relatedLessonKeys: string[];
+}
+
+export type LearningTopicDifficulty = typeof LearningTopicDifficulty[keyof typeof LearningTopicDifficulty];
+
+
+export const LearningTopicDifficulty = {
+  beginner: 'beginner',
+  intermediate: 'intermediate',
+  advanced: 'advanced',
+  institutional: 'institutional',
+} as const;
+
+export interface LearningTopicMetricExplained {
+  term: string;
+  explanation: string;
+}
+
+export interface LearningTopicWorkedExample {
+  title: string;
+  steps: string[];
+  note?: string;
 }
 
 export interface LearningTopic {
@@ -7252,6 +7274,20 @@ export interface LearningTopic {
   externalHref: string | null;
   relatedGlossaryKeys: string[];
   estimatedMinutes: number;
+  difficulty?: LearningTopicDifficulty;
+  whyItExists?: string;
+  institutionalThinking?: string;
+  workflowSteps?: string[];
+  screenWalkthrough?: string[];
+  metricsExplained?: LearningTopicMetricExplained[];
+  workedExample?: LearningTopicWorkedExample;
+  commonMistakes?: string[];
+  riskWarnings?: string[];
+  bestPractices?: string[];
+  relatedModuleHrefs?: string[];
+  aiCoachPrompts?: string[];
+  nextStepKeys?: string[];
+  guidedTourRequired?: boolean;
 }
 
 export type LearningPathGlossaryCategory = typeof LearningPathGlossaryCategory[keyof typeof LearningPathGlossaryCategory];
@@ -7267,6 +7303,7 @@ export const LearningPathGlossaryCategory = {
   institutional: 'institutional',
   'value-investing': 'value-investing',
   trading: 'trading',
+  platform: 'platform',
 } as const;
 
 export interface LearningPath {
@@ -7366,6 +7403,23 @@ export interface LearningHistoryEntry {
   completedAt: string | null;
 }
 
+export type LearningBookmarkEntryItemType = typeof LearningBookmarkEntryItemType[keyof typeof LearningBookmarkEntryItemType];
+
+
+export const LearningBookmarkEntryItemType = {
+  lesson: 'lesson',
+  glossary: 'glossary',
+  path: 'path',
+  strategy: 'strategy',
+  coach: 'coach',
+} as const;
+
+export interface LearningBookmarkEntry {
+  itemType: LearningBookmarkEntryItemType;
+  itemKey: string;
+  bookmarkedAt: string;
+}
+
 export interface LearningProgressSummary {
   lessonsViewed: number;
   lessonsCompleted: number;
@@ -7381,6 +7435,7 @@ export interface LearningProgressSummary {
   completedStrategyKeys: string[];
   completedCoachKeys: string[];
   viewedStrategyKeys: string[];
+  bookmarks: LearningBookmarkEntry[];
 }
 
 export type LearningProgressActionItemType = typeof LearningProgressActionItemType[keyof typeof LearningProgressActionItemType];
@@ -7397,6 +7452,23 @@ export const LearningProgressActionItemType = {
 export interface LearningProgressAction {
   itemType: LearningProgressActionItemType;
   itemKey: string;
+}
+
+export type LearningBookmarkActionItemType = typeof LearningBookmarkActionItemType[keyof typeof LearningBookmarkActionItemType];
+
+
+export const LearningBookmarkActionItemType = {
+  lesson: 'lesson',
+  glossary: 'glossary',
+  path: 'path',
+  strategy: 'strategy',
+  coach: 'coach',
+} as const;
+
+export interface LearningBookmarkAction {
+  itemType: LearningBookmarkActionItemType;
+  itemKey: string;
+  bookmarked: boolean;
 }
 
 export type LearningSimulationInputType = typeof LearningSimulationInputType[keyof typeof LearningSimulationInputType];
@@ -11180,6 +11252,10 @@ export type RecordLearningItemViewed200 = {
 };
 
 export type RecordLearningItemCompleted200 = {
+  success: boolean;
+};
+
+export type RecordLearningBookmark200 = {
   success: boolean;
 };
 

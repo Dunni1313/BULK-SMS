@@ -69,14 +69,15 @@ describe("Learning Centre routes (live, real Postgres)", () => {
   });
 
   describe("GET /learning-centre/paths", () => {
-    it("returns all 10 learning paths", async () => {
+    it("returns all 11 learning paths", async () => {
       const res = await get("/learning-centre/paths");
       expect(res.status).toBe(200);
       const body = (await res.json()) as { key: string }[];
       // Phase 21 — Institutional AI Coach & Education Platform added a 9th path.
       // Phase 29 — Institutional Trading AI Coach added a 10th path.
       // Phase 30 — Institutional Strategy Framework added an 11th path.
-      expect(body).toHaveLength(10);
+      // v1.4.0, Sprint L1 — Learning Centre Foundation added a "platform-basics" path.
+      expect(body).toHaveLength(11);
     });
   });
 
@@ -179,7 +180,8 @@ describe("Learning Centre routes (live, real Postgres)", () => {
       // Phase 21 — Institutional AI Coach & Education Platform added a 9th path.
       // Phase 29 — Institutional Trading AI Coach added a 10th path.
       // Phase 30 — Institutional Strategy Framework added an 11th path.
-      expect(body.pathCompletion).toHaveLength(10);
+      // v1.4.0, Sprint L1 — Learning Centre Foundation added a "platform-basics" path.
+      expect(body.pathCompletion).toHaveLength(11);
       expect(typeof body.greeksQuiz.totalAttempts).toBe("number");
       expect(typeof body.valueQuiz.totalAttempts).toBe("number");
     });
@@ -208,6 +210,38 @@ describe("Learning Centre routes (live, real Postgres)", () => {
 
     it("400s for an invalid itemType", async () => {
       const res = await post("/learning-centre/progress/view", { itemType: "not_a_real_type", itemKey: "x" });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  // v1.4.0, Sprint L1 — Learning Centre Foundation.
+  describe("POST /learning-centre/progress/bookmark", () => {
+    it("sets and then clears a bookmark for a fresh, unique item key", async () => {
+      const itemKey = `test-bookmark-${randomUUID()}`;
+
+      const setRes = await post("/learning-centre/progress/bookmark", { itemType: "lesson", itemKey, bookmarked: true });
+      expect(setRes.status).toBe(200);
+      expect(((await setRes.json()) as { success: boolean }).success).toBe(true);
+
+      const progressRes = await get("/learning-centre/progress");
+      const progress = (await progressRes.json()) as { bookmarks: { itemType: string; itemKey: string }[] };
+      expect(progress.bookmarks.some((b) => b.itemType === "lesson" && b.itemKey === itemKey)).toBe(true);
+
+      const clearRes = await post("/learning-centre/progress/bookmark", { itemType: "lesson", itemKey, bookmarked: false });
+      expect(clearRes.status).toBe(200);
+
+      const progressRes2 = await get("/learning-centre/progress");
+      const progress2 = (await progressRes2.json()) as { bookmarks: { itemType: string; itemKey: string }[] };
+      expect(progress2.bookmarks.some((b) => b.itemKey === itemKey)).toBe(false);
+    });
+
+    it("400s for a missing bookmarked field", async () => {
+      const res = await post("/learning-centre/progress/bookmark", { itemType: "lesson", itemKey: "x" });
+      expect(res.status).toBe(400);
+    });
+
+    it("400s for an invalid itemType", async () => {
+      const res = await post("/learning-centre/progress/bookmark", { itemType: "not_a_real_type", itemKey: "x", bookmarked: true });
       expect(res.status).toBe(400);
     });
   });
