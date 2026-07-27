@@ -10,4 +10,5 @@ export interface LearningTopicWorkedExample {
   title: string;
   steps: string[];
   note?: string;
+  label?: string;
 }

@@ -3182,8 +3182,15 @@ export const GetLearningPathsResponseItem = zod.object({
   "workedExample": zod.object({
   "title": zod.string(),
   "steps": zod.array(zod.string()),
-  "note": zod.string().optional()
+  "note": zod.string().optional(),
+  "label": zod.string().optional()
 }).optional(),
+  "workedExamples": zod.array(zod.object({
+  "title": zod.string(),
+  "steps": zod.array(zod.string()),
+  "note": zod.string().optional(),
+  "label": zod.string().optional()
+})).optional(),
   "commonMistakes": zod.array(zod.string()).optional(),
   "riskWarnings": zod.array(zod.string()).optional(),
   "bestPractices": zod.array(zod.string()).optional(),
@@ -3229,8 +3236,15 @@ export const GetLearningPathByKeyResponse = zod.object({
   "workedExample": zod.object({
   "title": zod.string(),
   "steps": zod.array(zod.string()),
-  "note": zod.string().optional()
+  "note": zod.string().optional(),
+  "label": zod.string().optional()
 }).optional(),
+  "workedExamples": zod.array(zod.object({
+  "title": zod.string(),
+  "steps": zod.array(zod.string()),
+  "note": zod.string().optional(),
+  "label": zod.string().optional()
+})).optional(),
   "commonMistakes": zod.array(zod.string()).optional(),
   "riskWarnings": zod.array(zod.string()).optional(),
   "bestPractices": zod.array(zod.string()).optional(),

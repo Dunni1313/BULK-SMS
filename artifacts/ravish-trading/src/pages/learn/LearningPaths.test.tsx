@@ -95,6 +95,25 @@ const platformBasicsPathFixture = {
       relatedGlossaryKeys: [],
       estimatedMinutes: 4,
     },
+    // v1.4.0, Sprint L2A — Interactive Module Guides. A topic exercising
+    // the new plural `workedExamples` field (Good/Average/Poor tiers) —
+    // distinct from the singular `workedExample` the navigation topic
+    // above already exercises.
+    {
+      key: "platform-basics-worked-examples-demo",
+      title: "Worked Examples Demo",
+      summary: "Exercises the plural workedExamples field.",
+      body: ["Demo body."],
+      whyItMatters: "Demo.",
+      externalHref: null,
+      relatedGlossaryKeys: [],
+      estimatedMinutes: 3,
+      workedExamples: [
+        { label: "Good Opportunity", title: "A strong example", steps: ["Step one.", "Step two."], note: "A note." },
+        { label: "Average Opportunity", title: "A middling example", steps: ["Step one."] },
+        { label: "Poor Opportunity", title: "A weak example", steps: ["Step one."] },
+      ],
+    },
   ],
 };
 
@@ -209,6 +228,16 @@ describe("LearningPaths — rich lesson content (LessonRenderer)", () => {
       { data: { itemType: "lesson", itemKey: "platform-basics-navigation", bookmarked: true } },
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     );
+  });
+
+  it("a topic with the plural workedExamples field renders every labeled example", async () => {
+    paramsMock.current = { pathKey: "platform-basics", topicKey: "platform-basics-worked-examples-demo" };
+    renderWithClient(<LearningPaths />);
+    expect(await screen.findByTestId("lesson-worked-examples")).toBeInTheDocument();
+    expect(screen.getByTestId("lesson-worked-example-0")).toHaveTextContent("Good Opportunity");
+    expect(screen.getByTestId("lesson-worked-example-1")).toHaveTextContent("Average Opportunity");
+    expect(screen.getByTestId("lesson-worked-example-2")).toHaveTextContent("Poor Opportunity");
+    expect(screen.getByText("A strong example")).toBeInTheDocument();
   });
 
   it("a topic with none of the rich fields still renders the established plain fallback", async () => {

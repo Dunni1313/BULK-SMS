@@ -25,6 +25,13 @@ export interface LearningTopicWorkedExample {
   title: string;
   steps: string[];
   note?: string;
+  // v1.4.0, Sprint L2A — Interactive Module Guides. An optional tier label
+  // (e.g. "Good Opportunity" / "Average Opportunity" / "Poor Opportunity")
+  // for the plural `workedExamples` field below, letting one lesson show
+  // several worked examples along a quality spectrum instead of just one.
+  // Never set on the older, singular `workedExample` field's own existing
+  // usages — this is purely additive.
+  label?: string;
 }
 
 export interface LearningTopic {
@@ -51,6 +58,11 @@ export interface LearningTopic {
   screenWalkthrough?: string[];
   metricsExplained?: LearningTopicMetricExplained[];
   workedExample?: LearningTopicWorkedExample;
+  // v1.4.0, Sprint L2A — Interactive Module Guides. A plural companion to
+  // the singular `workedExample` above (left untouched, still supported),
+  // for lessons that show several worked examples along a quality
+  // spectrum (e.g. Good/Average/Poor Opportunity) rather than just one.
+  workedExamples?: LearningTopicWorkedExample[];
   commonMistakes?: string[];
   riskWarnings?: string[];
   bestPractices?: string[];
@@ -729,15 +741,108 @@ const INSTITUTIONAL_INVESTING_PATH: LearningPath = {
     topic({
       key: "investing-research-terminal",
       title: "The Research Terminal",
-      summary: "Search, Analyse, Compare, Review — all in one screen.",
+      summary: "Search, Analyse, Compare, Review — the Institutional Investing Engine's own module guide, upgraded to full depth in Sprint L2A.",
       body: [
-        "The Research Terminal unifies every Engine 1 module (Overview, Statements, Decision Engine, Investment Committee, Investment Memo, Portfolio Impact, Monitoring, Evidence, Notes) into one page with Analyse, Compare, and Split-screen modes.",
-        "Every panel and comparison cell quotes an already-computed value — the Terminal itself computes nothing new, it only arranges existing outputs for a faster workflow.",
+        "The Research Terminal (/research-terminal) unifies every Engine 1 module — Overview, Statements, Decision Engine, Investment Committee, Investment Memo, Portfolio Impact, Monitoring, Evidence, and Notes — into one page with three modes: Analyse (one symbol), Compare (2+ symbols side by side), and Split-screen (two independent panels at once).",
+        "Every panel and comparison cell quotes an already-computed value — the Terminal itself creates ZERO new valuation models and duplicates NO existing scoring logic; it only arranges existing outputs for a faster review workflow.",
+        "Who should use it, and when: any time you need to seriously evaluate a company, decide between two candidates, or review holdings you already own — it's the single screen a professional analyst would open first, rather than jumping between nine separate pages.",
       ],
-      whyItMatters: "A full review workflow (search → analyse → compare → review valuation → review decision → review portfolio impact → review monitoring → review committee → save notes) happens without ever leaving one page.",
+      whyItMatters: "A full review workflow — search → analyse → compare → review valuation → review decision → review committee → review portfolio impact → save notes — happens without ever leaving one page, and every figure you see always matches its own source module exactly.",
+      difficulty: "beginner",
+      whyItExists: "Nine already-built Engine 1 modules each answered one question well but required nine separate page visits to review a single company end-to-end — the Research Terminal is a pure integration layer solving exactly that, reusing every existing hook/component byte-for-byte rather than re-implementing any of them.",
+      institutionalThinking: "A professional analyst never trusts a single headline number — they cross-check whether Graham, Buffett, and Tom Nash actually agree (the Investment Committee's own agreement signal), read the Evidence tab's supporting AND contradicting facts, and only then form a view. A common retail mistake is reading only the Decision Engine's headline recommendation and skipping Evidence entirely — or treating a 'majority' committee agreement as equivalent to a genuinely 'unanimous' one, when the two mean very different things.",
+      screenWalkthrough: [
+        "Company Search — type a ticker and press Enter or Add; press \"/\" anywhere on the page to jump straight to the search box.",
+        "Mode toggle (keyboard shortcuts 1/2/3) — Analyse for one symbol's full deep-dive, Compare for a side-by-side table across every open symbol, Split for two fully independent panels rendered at once.",
+        "Portfolio context dropdown — optionally select one of your own portfolios to unlock the Portfolio Impact tab's real current-weight and sector-exposure figures for that portfolio.",
+        "Overview tab — the full research report: Business Quality, Competitive Advantage, Historical Trends, and every named valuation model.",
+        "Statements tab — a compact Revenue / Gross Profit / Operating Income / Net Income table across the same already-fetched years — no new math, just a tighter view.",
+        "Decision Engine tab — the single synthesized Buy / Accumulate / Hold / Reduce / Sell / Avoid recommendation, with its own confidence score.",
+        "Investment Committee tab — Graham, Buffett, and Tom Nash's consolidated verdict, confidence score, and agreement signal (unanimous / majority / split / insufficient-data).",
+        "Investment Memo tab — a full written memo: recommendation, confidence, an overview paragraph, and section-by-section supporting reasoning.",
+        "Portfolio Impact tab — whether you already hold the symbol, at what current weight, and its sector exposure — only populated once a portfolio is selected in the toolbar above.",
+        "Monitoring tab — any already-fired monitoring alerts for this specific symbol, or an honest 'No monitoring alerts' message.",
+        "Evidence tab — Supporting Evidence and Contradicting Evidence side by side, plus the full pass/warning/fail investment checklist behind the Decision Engine's own recommendation. Never take the headline verdict at face value without reading this tab.",
+        "Notes tab — your own saved research notes for this symbol, so a review is written down rather than left to memory.",
+        "Compare mode's table — 12 ranked dimensions (Decision Engine Synthesis Score, Decision, Business Quality, Investment Quality, Margin of Safety, Investment Committee, Tom Nash Conviction, Revenue Growth 5y, ROIC, ROE, Debt/Equity, Dividend Yield), with a ★ marking whichever symbol reads best on each individual row.",
+      ],
+      workflowSteps: [
+        "Search a company symbol (or press \"/\" to jump to the box).",
+        "Select a portfolio in the context dropdown if you want real Portfolio Impact figures.",
+        "Read the Overview tab first for business quality and valuation.",
+        "Open the Decision Engine tab for the synthesized recommendation.",
+        "Open the Investment Committee tab to see whether Graham, Buffett, and Tom Nash actually agree — not just what the consolidated verdict says.",
+        "Open Evidence and read both Supporting and Contradicting Evidence, plus the checklist, before trusting the headline recommendation.",
+        "Add a second symbol and switch to Compare mode to see how they stack up on the same 12 dimensions.",
+        "Switch to Split mode to review two symbols' full detail side by side instead of one at a time.",
+        "Save a layout (symbols + mode + portfolio) if you expect to return to this exact review later — Saved Layouts live only in your own browser (localStorage), not the database.",
+        "Record a note in the Notes tab before moving on — a review that isn't written down is easy to forget by the next session.",
+      ],
+      metricsExplained: [
+        { term: "Decision Engine Synthesis Score", explanation: "The single ranking score every other module that ranks a symbol (Opportunity Discovery, Portfolio Optimisation's Replacement Opportunities) also reuses — never a second, competing score." },
+        { term: "Margin of Safety", explanation: "(fair value − price) / fair value across four independent valuation models (Blended, Graham, DCF, Buffett) — a positive number reads the stock as undervalued by that model." },
+        { term: "Investment Committee Agreement", explanation: "unanimous / majority / split / insufficient-data — how many of the three independent analysts (Graham, Buffett, Tom Nash) actually agree on their own Buy/Hold/Wait vote. A split committee defaults to a safe, neutral Hold, never a forced coin-flip." },
+        { term: "Tom Nash Conviction Score", explanation: "A single 0-100 conviction reading blending business quality, growth, capital allocation, financial strength, and valuation — one of the three votes the Investment Committee consolidates." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Strong, well-agreed conviction",
+          steps: [
+            "Investment Committee tab shows a 'Buy' consolidated verdict, confidence around 82/100, and 'unanimous' agreement — all three analysts independently reached the same conclusion.",
+            "Margin of Safety reads meaningfully positive (the stock trades well below its computed fair value across most of the four models).",
+            "Evidence tab shows mostly Supporting Evidence, with few or no Contradicting items, and the checklist is mostly 'pass.'",
+          ],
+          note: "This is the profile worth a closer Investment Memo read and a genuine portfolio-impact check — not a guarantee of a good outcome, only a well-evidenced, well-agreed one.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "Mixed signals, genuinely uncertain",
+          steps: [
+            "Investment Committee tab shows a 'Hold' verdict, confidence around 55/100, and 'majority' agreement — two of the three analysts agree, one doesn't.",
+            "Margin of Safety reads close to zero across the models — roughly fair value, not clearly cheap or expensive.",
+            "Evidence tab shows a roughly even mix of Supporting and Contradicting items.",
+          ],
+          note: "'Majority' is a genuinely weaker signal than 'unanimous' — reading which specific analyst dissents (and why, via Evidence) matters more here than the headline verdict alone.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Split committee, negative margin of safety",
+          steps: [
+            "Investment Committee tab shows a 'Wait' or 'Sell' verdict, confidence around 40/100, and 'split' agreement — the three analysts genuinely disagree.",
+            "Margin of Safety reads negative across most models (the stock trades above its computed fair value).",
+            "Evidence tab shows more Contradicting Evidence than Supporting, and Financial Strength (visible on the Overview tab) may be flagged 'Risky' — a rating that can override every other positive signal on its own.",
+          ],
+          note: "A split committee combined with a negative margin of safety is exactly the profile the Decision Engine's own checklist is designed to catch before it ever reaches a Buy recommendation.",
+        },
+      ],
+      commonMistakes: [
+        "Reading only the headline Decision Engine score and skipping the Evidence tab entirely.",
+        "Treating a 'majority' committee agreement as equivalent to a 'unanimous' one — they represent genuinely different levels of consensus.",
+        "Forgetting to select a portfolio in the toolbar, so the Portfolio Impact tab silently shows nothing to compare against.",
+        "Using Compare mode's ★ star as a buy signal — it only means 'ranks highest among the symbols you added, on that one dimension.'",
+      ],
+      riskWarnings: [
+        "Every score here is deterministic and reused, not a live market prediction — the Research Terminal never tells you what a stock will do next, only what its own already-computed research says today.",
+        "A Buy verdict with low confidence or split agreement is a genuinely different situation from a Buy verdict with unanimous, high-confidence agreement — never treat the two the same just because the headline word is identical.",
+      ],
+      bestPractices: [
+        "Always open Evidence before acting on a headline recommendation.",
+        "Use Compare mode before choosing between two similar-looking candidates, rather than analysing them one at a time from memory.",
+        "Save a layout for any symbol set you review on a recurring cadence.",
+      ],
+      relatedModuleHrefs: ["/research-terminal", "/opportunity-discovery", "/stock-analyst/investment-committee", "/learn/paths/platform-basics", "/learn/paths/trading-engine"],
+      aiCoachPrompts: [
+        "Explain this Decision Engine recommendation.",
+        "Why did the Investment Committee split on this symbol?",
+        "What does a Margin of Safety of 15% actually mean?",
+        "What mistakes should I avoid when comparing two companies?",
+      ],
+      relatedGlossaryKeys: ["research-terminal", "institutional-decision-engine", "margin-of-safety", "investment-committee-workbench", "conviction-score"],
+      nextStepKeys: ["investing-investment-committee"],
+      guidedTourRequired: false,
       externalHref: "/research-terminal",
-      relatedGlossaryKeys: ["research-terminal", "institutional-decision-engine"],
-      estimatedMinutes: 4,
+      estimatedMinutes: 9,
     }),
     topic({
       key: "investing-investment-committee",
@@ -808,6 +913,115 @@ const TRADING_ENGINE_PATH: LearningPath = {
   description: "How to read the Institutional Trading Engine's own already-computed structure, liquidity, session, risk, and planning modules.",
   glossaryCategory: "trading",
   topics: [
+    // v1.4.0, Sprint L2A — Interactive Module Guides. A new flagship
+    // overview topic covering the whole Trading Research page
+    // (/trading-research) end to end — the Institutional Trading Engine's
+    // own module guide, positioned first in this path so the deep-dive
+    // topics that already follow it (Market Structure, Liquidity, etc.)
+    // read as a natural continuation rather than a cold start.
+    topic({
+      key: "trading-engine-overview",
+      title: "The Trading Research Page",
+      summary: "Structure → Confluence → Regime → Probability → Risk, all on one page — the Institutional Trading Engine's own module guide.",
+      body: [
+        "Trading Research (/trading-research) is the Institutional Trading Engine's own single page: search a symbol, and four cards resolve (Market Structure, Multi-Timeframe Confluence, Market Regime, Probability), plus an on-demand Liquidity tab and an always-visible Portfolio Risk section that reads your own open positions rather than any one symbol.",
+        "Every reading here is SIMULATED market analysis, advisory only — this page never previews, schedules, or submits an order, and never touches a real brokerage account.",
+        "Who should use it, and when: any time before sizing or opening a position, to check trend context, timeframe agreement, the combined regime, a plausible price range, and — critically — whether your own portfolio-level risk caps have room for it.",
+      ],
+      whyItMatters: "Reading Structure, Confluence, Regime, and Probability together, in that order, before ever touching Portfolio Risk's own position-sizing caps, is the difference between a considered entry and an impulsive one.",
+      difficulty: "intermediate",
+      whyItExists: "Five genuinely separate engines (Market Structure, Multi-Timeframe, Liquidity, Regime, Probability, Risk) were each built and tested independently — this page composes their already-computed outputs into one coherent read for a single symbol, adding zero new candle analysis or scoring logic of its own.",
+      institutionalThinking: "Professional traders read structure, then confluence, then regime, then probability, then portfolio-level risk before acting — never sizing or opening a position from a single card in isolation. A common retail mistake is checking only 'is it going up' on one timeframe and skipping both the volatility regime and the portfolio-level risk budget entirely.",
+      screenWalkthrough: [
+        "Symbol search box — type a ticker and click Search (or press Enter) to load every eager card below for that symbol.",
+        "\"Ask AI Trading Coach\" button — appears once a symbol is loaded; opens the dockable AI Trading Coach panel grounded in this symbol's own already-computed data.",
+        "Market Structure card — trend classification (uptrend / downtrend / range) from real swing highs and lows, a confidence badge, and any detected support/resistance zones.",
+        "Multi-Timeframe Confluence card — runs Market Structure across several timeframes (e.g. 15m / 1h / 1D) and reports whether they agree on the same trend; a genuine split honestly shows 'No dominant trend' rather than guessing a winner.",
+        "Market Regime card — combines trend, liquidity, and realized volatility into one label (e.g. trending-bullish, range-bound, volatile-choppy).",
+        "Probability card — a driftless lognormal ±1σ/±2σ price range per day-ahead horizon, built from the same realized volatility Market Regime already computed — never a directional prediction of where price is headed.",
+        "Liquidity tab (on-demand — fetched only when you open it, unlike the four eager cards above) — volume profile, liquidity band, and buy/sell pressure for the same symbol.",
+        "Portfolio Risk section — always visible regardless of which symbol you've searched, since it reads your own open trading positions, not one symbol: set your account value, add a position with a stop and target, and see Position Sizing, Stop/Target Discipline, and Portfolio Risk Budget scoring, each against a named, hard-capped threshold.",
+      ],
+      workflowSteps: [
+        "Enter a symbol and search it.",
+        "Read Market Structure first — trend context frames everything else on the page.",
+        "Check Multi-Timeframe Confluence to see whether shorter and longer horizons agree with that trend.",
+        "Read Market Regime for the combined trend/liquidity/volatility picture.",
+        "Check the Probability cone to see the plausible price range, not a prediction of direction.",
+        "Open the Liquidity tab if you need volume and pressure context before sizing an order.",
+        "Scroll to Portfolio Risk and confirm your account value is set.",
+        "Add or review your open positions there, each with a real stop and target.",
+        "Read the Position Sizing / Stop-Target Discipline / Portfolio Risk Budget scores before treating any single position as \"fine.\"",
+        "Use \"Ask AI Trading Coach\" for a free-form question grounded in everything above, rather than guessing at what a reading means.",
+      ],
+      metricsExplained: [
+        { term: "Trend Agreement", explanation: "unanimous / majority / split / insufficient-data — how many of the checked timeframes actually agree on the same dominant trend. A split reading never fabricates a winner." },
+        { term: "Confidence Level", explanation: "High / Moderate / Low — reflects how much of the underlying sample (candle count, timeframe coverage) actually supports the reading, never a claim about how the market will move." },
+        { term: "Regime Label", explanation: "One of 5 labels (trending-bullish, trending-bearish, range-bound, volatile-choppy, quiet-consolidation) combining the trend, liquidity, and realized-volatility axes into a single read." },
+        { term: "Portfolio Risk Budget", explanation: "Aggregate dollar risk across every stop-defined open position, banded against a named cap (6% of account value by default) — breaching it caps the overall Portfolio Risk score at 60 regardless of how good everything else looks." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Aligned structure, room in the risk budget",
+          steps: [
+            "Market Structure reads 'uptrend' with High confidence.",
+            "Multi-Timeframe Confluence reads 'unanimous' agreement across 15m / 1h / 1D.",
+            "Market Regime reads 'trending-bullish,' and the Probability cone is confidently computed (volatility was resolvable).",
+            "Portfolio Risk shows both Position Sizing and Portfolio Risk Budget comfortably within their own caps.",
+          ],
+          note: "This is the profile where every signal points the same direction and there's genuine room left in the portfolio's own risk budget — still not a guarantee, only a well-aligned read.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "No clear trend, one soft risk warning",
+          steps: [
+            "Market Structure reads 'range' with Moderate confidence.",
+            "Multi-Timeframe Confluence reads 'majority' — 2 of 3 timeframes agree, one doesn't.",
+            "Market Regime reads 'range-bound.'",
+            "Portfolio Risk shows Position Sizing close to its own cap but not yet breached — a soft warning, not a hard block.",
+          ],
+          note: "A majority (not unanimous) reading combined with a position sizing warning is exactly the situation to size smaller, not the same as a clean 'good opportunity' setup.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Split trend, unreadable volatility, a breached risk cap",
+          steps: [
+            "Multi-Timeframe Confluence reads 'split' — no dominant trend across the checked timeframes.",
+            "Market Regime reads 'volatile-choppy' with Low confidence.",
+            "The Probability cone is honestly unavailable (volatility couldn't be computed from the available sample).",
+            "Portfolio Risk shows a genuine hard-cap breach on either Position Sizing or the Portfolio Risk Budget — the overall score is capped at 60 regardless of the blend.",
+          ],
+          note: "A hard-cap breach overrides everything else on this screen by design — no combination of good Structure or Regime readings changes that a real risk limit was actually crossed.",
+        },
+      ],
+      commonMistakes: [
+        "Sizing a position before checking Portfolio Risk's own caps.",
+        "Treating a 'majority' trend agreement the same as 'unanimous.'",
+        "Skipping the Liquidity tab because it's on-demand and easy to forget it even exists.",
+        "Reading the Probability cone as a prediction of direction rather than a plausible dispersion range.",
+      ],
+      riskWarnings: [
+        "Every reading here is SIMULATED market analysis for education — this page never previews, schedules, or submits an order, and never touches a real brokerage account.",
+        "A hard-cap breach in Portfolio Risk caps the overall score at 60 regardless of how good everything else looks — never let a good Structure or Regime read distract from a genuinely breached risk cap.",
+      ],
+      bestPractices: [
+        "Read Structure → Confluence → Regime → Probability → Risk in that order, every time.",
+        "Always set a stop and target when adding a position, so Stop/Target Discipline can actually score it.",
+      ],
+      relatedModuleHrefs: ["/trading-research", "/market-structure-workbench", "/liquidity-workbench", "/learn/paths/institutional-investing", "/learn/paths/options-income-engine"],
+      aiCoachPrompts: [
+        "Explain this Market Regime reading.",
+        "Why did my timeframes disagree on trend?",
+        "What does this probability cone actually mean?",
+        "What mistakes should I avoid before sizing this position?",
+      ],
+      relatedGlossaryKeys: ["market-structure", "multi-timeframe-confluence", "liquidity-band", "trading-position-sizing", "portfolio-risk-budget"],
+      nextStepKeys: ["trading-market-structure"],
+      guidedTourRequired: false,
+      externalHref: "/trading-research",
+      estimatedMinutes: 9,
+    }),
     topic({
       key: "trading-market-structure",
       title: "Market Structure",
@@ -911,6 +1125,131 @@ const TRADING_ENGINE_PATH: LearningPath = {
       externalHref: "/trading-ai-coach",
       relatedGlossaryKeys: ["market-structure", "trade-plan"],
       estimatedMinutes: 4,
+    }),
+  ],
+};
+
+// v1.4.0, Sprint L2A — Interactive Module Guides. A new, twelfth Learning
+// Path, scoped to Engine 3 (the Options Income Engine) — the same
+// "engine tour" role INSTITUTIONAL_INVESTING_PATH plays for Engine 1 and
+// TRADING_ENGINE_PATH plays for Engine 2, filling a genuine gap: Engine 3
+// is this platform's original, mature foundation, but until this sprint it
+// had no equivalent single "how professional users work this whole
+// engine" module guide of its own (FOUNDATIONS/GREEKS/VOLATILITY/
+// STRATEGIES/PORTFOLIO/PERFORMANCE/INSTITUTIONAL above are all options
+// CONCEPT vocabulary, not a tour of Engine 3's own screens). This path's
+// one topic teaches the Trade Execution Center (/trade-execution-center),
+// the guided Scanner → AI Score → Strategy → Order Preview → Risk Review →
+// Confirm & Submit → Order Status → Monitor & Manage workflow — every
+// figure quotes an already-computed, already-tested value from
+// execution.ts/optionsMath.ts/risk.ts; this lesson never recomputes or
+// modifies any of that protected logic.
+const OPTIONS_INCOME_ENGINE_PATH: LearningPath = {
+  key: "options-income-engine",
+  title: "Options Income Engine",
+  description: "How to work the Options Income Engine's own guided Trade Execution Center, from Scanner through Monitor & Manage.",
+  glossaryCategory: "strategies",
+  topics: [
+    topic({
+      key: "options-income-engine-overview",
+      title: "The Trade Execution Center",
+      summary: "Scanner → AI Score → Strategy → Order Preview → Risk Review → Confirm & Submit → Order Status → Monitor & Manage — one guided, 8-step workflow.",
+      body: [
+        "The Trade Execution Center (/trade-execution-center) is a guided, single-page workflow over the EXISTING Options Income Engine pipeline: 8 steps, a live progress Stepper across the top, and a Paper Trading only badge that never changes — live execution is disabled platform-wide.",
+        "Every calculation is reused verbatim from already-shipped, already-tested modules: the Scanner grid, the AI Opportunity Score, the real Order Preview ticket (built on the protected execution engine), Pre-Trade Risk Validation (the same response's own already-computed validation field), and paper order submission through the same broker integration Settings' own Broker Connection card uses. The workflow orchestration itself — which step is active, the risk-acknowledgement gate, stale-preview detection, and a session Activity Timeline — is the only genuinely new logic this page adds; not one dollar figure or risk check is recomputed here.",
+        "Who should use it, and when: any time you're moving from 'the Scanner found something interesting' to 'I want to actually place a paper order' — it's the one page that walks that entire decision through every required check in order.",
+      ],
+      whyItMatters: "Institutions never skip risk validation to chase a good score — walking through every step in order, including the ones that feel like formalities, is what keeps a good-looking opportunity from becoming a badly-sized mistake.",
+      difficulty: "intermediate",
+      whyItExists: "The Scanner, AI Opportunity Score, Order Preview, Risk Validation, and paper order submission already existed as separate, independently-tested modules — this page adds zero new business logic beyond the step orchestration itself, composing them into one guided flow instead of requiring several separate page visits per trade.",
+      institutionalThinking: "Institutions treat a BLOCKED Pre-Trade Risk Validation as a hard 'no,' full stop — a high AI Opportunity Score never overrides a genuinely breached risk cap, since the cap exists precisely to catch the case where a good-looking trade is still a bad idea for THIS portfolio right now. A common retail mistake is jumping straight from 'the score looks great' to submitting, without reading the risk checklist item by item.",
+      screenWalkthrough: [
+        "Scanner (Opportunity Grid) — Run Scan to refresh candidates; each row shows Symbol, Tier, Strategy, POP (probability of profit), EV (expected value), Ravish Score, and Event Risk; Select moves you to that candidate's own AI Score step.",
+        "AI Score — Ravish Score, Tier, POP, and Expected Value as four metric tiles; \"View AI Explanation\" opens a full narrative breakdown of why the candidate scored the way it did.",
+        "Strategy — a review step only: the Scanner already assigned one strategy to this candidate, and no strategy re-assignment picker exists, so this step exists to confirm you understand which structure you're about to trade, not to change it.",
+        "Order Preview — the real ticket: Net Credit or Debit, Max Profit, Max Loss, Buying Power required, and every individual leg (buy/sell, strike, option type, price); a quantity stepper lets you resize from 1 to 20 contracts, rebuilding the preview each time.",
+        "Risk Review (Pre-Trade Risk Validation) — a PASSED/BLOCKED badge, a full checklist of individual pass/fail checks, any warnings, and (if blocked) the specific blocking violations; also shows this trade's own risk % and the portfolio's risk % before and after adding it.",
+        "Confirm & Submit — a stale-preview warning if the ticket is more than 60 seconds old (a forced refresh before you can continue), a required risk-acknowledgement checkbox, and the actual \"Submit Paper Order\" action, gated behind a confirmation dialog.",
+        "Order Status — the submitted order's ID, broker, and confirmation message.",
+        "Monitor & Manage — Position Monitor (live Unrealized P&L, P&L %, days-to-expiry, Delta), Adjust/Close (Roll/Convert, full Position Management, View in Trades), and an Activity Timeline logging every step you actually took this session.",
+      ],
+      workflowSteps: [
+        "Open the Trade Execution Center and run a scan.",
+        "Review the Opportunity Grid and pick one candidate to Select.",
+        "Review its AI Opportunity Score — Ravish Score, POP, and EV — before trusting the ranking blindly.",
+        "Confirm the Scanner's own assigned Strategy.",
+        "Review the Order Preview — the real credit/debit, max profit, and max loss for this exact structure.",
+        "Review Pre-Trade Risk Validation — a BLOCKED result means don't continue, no matter how good the AI Score looked.",
+        "Check broker connectivity before confirming.",
+        "Acknowledge the risk disclosure and submit the Paper Trading order.",
+        "Confirm the Order Status message and order ID.",
+        "Monitor the open position's Unrealized P&L and DTE, and use Position Management or Roll/Convert as conditions change — a trade is a process from entry to exit, not a single decision.",
+      ],
+      metricsExplained: [
+        { term: "Ravish Score", explanation: "This platform's own composite opportunity ranking for a scanned candidate — the same score every other module that ranks a scanner result reuses, never recomputed differently in two places." },
+        { term: "POP (Probability of Profit)", explanation: "The modeled probability this specific structure finishes profitable by expiration, computed by the protected options-pricing engine." },
+        { term: "EV (Expected Value)", explanation: "The probability-weighted average dollar result for the trade — a positive EV with a high POP is a stronger combination than either figure read alone." },
+        { term: "Pre-Trade Risk Validation", explanation: "A PASSED/BLOCKED gate over the same trade-risk-%, portfolio-risk-before/after-%, and buying-power checks the protected risk engine already runs — BLOCKED disables the Continue button entirely, by design." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "High score, clean risk validation",
+          steps: [
+            "AI Score shows a Ravish Score of 88, POP 78%, and a healthy positive EV.",
+            "Risk Review reads PASSED with zero warnings — Trade risk 2% of account, Portfolio risk 22% → 24% after entry, comfortably inside every cap.",
+            "The Continue to Confirmation button is enabled with no stale-preview warning.",
+          ],
+          note: "This is the profile where every step in the workflow clears cleanly — still a Paper Trading order, and still not a guarantee of a profitable outcome, only a well-scored, well-validated one.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "Decent score, one real warning to weigh",
+          steps: [
+            "AI Score shows a Ravish Score of 61, POP 65%, and a modestly positive EV.",
+            "Risk Review reads PASSED but with a warning attached (for example, elevated event risk on the underlying) — Trade risk 4%, Portfolio risk 30% → 34% after entry.",
+          ],
+          note: "PASSED-with-a-warning is a genuinely different situation from PASSED-with-zero-warnings — the warning is real information, not decoration, and is worth reading in full before continuing.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Low score, BLOCKED risk validation",
+          steps: [
+            "AI Score shows a Ravish Score of 34, POP 48%, and a negative EV.",
+            "Risk Review reads BLOCKED with a listed blocking violation (for example, the portfolio risk budget would be breached by adding this position).",
+            "The Continue to Confirmation button is disabled — the workflow itself will not let you proceed past this step.",
+          ],
+          note: "A BLOCKED result is a hard stop by design, not a suggestion — the workflow enforces this regardless of how the candidate scored on the Scanner or AI Score steps.",
+        },
+      ],
+      commonMistakes: [
+        "Submitting because the AI Score looks good, without reading the Risk Review's own checklist item by item.",
+        "Ignoring warnings because the badge still reads PASSED — warnings are real information, not decoration.",
+        "Letting a preview go stale (older than 60 seconds) and trying to submit anyway without refreshing.",
+        "Confusing the Strategy step with a place to change the structure — no such control exists; a different structure means selecting a different Scanner candidate entirely.",
+      ],
+      riskWarnings: [
+        "Every order this workflow can submit is a Paper Trading order — live execution is disabled platform-wide, and no button here ever routes a real order.",
+        "A BLOCKED Risk Review is a hard stop — the workflow will not let you continue to Confirm & Submit until it clears, by design.",
+        "Max Loss is the worst-case, defined-risk outcome for the structure shown, not a probability-weighted expectation — read it alongside EV and POP, never alone.",
+      ],
+      bestPractices: [
+        "Always read every check in Pre-Trade Risk Validation individually, not just the summary badge.",
+        "Re-run the scan periodically rather than acting on an old Opportunity Grid.",
+        "Use Monitor & Manage's own Activity Timeline to review exactly what you did this session before repeating it next time.",
+      ],
+      relatedModuleHrefs: ["/trade-execution-center", "/scanner", "/adjustments", "/learn/paths/institutional-investing", "/learn/paths/trading-engine"],
+      aiCoachPrompts: [
+        "Explain this Ravish Score.",
+        "Why was this trade blocked by risk validation?",
+        "Teach me what POP and EV actually mean together.",
+        "What mistakes should I avoid before submitting a paper order?",
+      ],
+      relatedGlossaryKeys: ["probability-of-profit", "expected-value", "iron-condor", "premium", "position-sizing"],
+      nextStepKeys: [],
+      guidedTourRequired: false,
+      externalHref: "/trade-execution-center",
+      estimatedMinutes: 9,
     }),
   ],
 };
@@ -1034,29 +1373,103 @@ const PLATFORM_BASICS_PATH: LearningPath = {
     topic({
       key: "command-centre-overview",
       title: "Command Centre",
-      summary: "One executive screen aggregating every engine's own dashboards.",
+      summary: "One executive screen aggregating every engine's own dashboards — the platform's institutional module guide, upgraded to full depth in Sprint L2A.",
       body: [
-        "Command Centre pulls together summary cards from every major module across all three engines into one screen — it computes nothing new itself, it only re-displays whatever each source module has already computed.",
-        "Every card is a jumping-off point: click through to reach that module's own full detail page rather than trying to do everything from Command Centre itself.",
+        "Command Centre (/command-center) is a single, comprehensive executive workspace consolidating every existing dashboard this platform already has into 8 sections: Executive Overview, Portfolio Health, Options Income Engine, Greeks Summary, Risk Alerts, Portfolio Allocation, Broker, and AI Insights.",
+        "It adds zero new calculations of any kind — every figure on the page is a direct, unmodified reuse of a request another page already makes (the Portfolio Risk Dashboard, the Greeks engine, Theta Income, Performance Analytics, and the Scanner's own top opportunity). Two badges make its role explicit at all times: Paper Trading Mode and Read-Only Command Center — nothing here ever places, closes, or modifies a real order.",
+        "Who should use it, and when: open it first, at the start of any session, before diving into a specific engine — it exists to answer 'what needs my attention today?' in one screen, so you never have to visit a dozen pages just to get oriented.",
       ],
-      whyItMatters: "A single at-a-glance screen saves you from visiting a dozen pages just to get oriented at the start of a session.",
+      whyItMatters: "A single at-a-glance screen saves you from visiting a dozen pages just to get oriented at the start of a session — and because it's a pure composition layer, every number you see here always matches its own source page exactly.",
       difficulty: "beginner",
-      whyItExists: "As the platform grew to dozens of modules across three engines, no single existing dashboard could show all of them at once — Command Centre is a pure composition layer solving exactly that, reusing every source module's own already-computed output.",
-      institutionalThinking: "A trading desk's own morning read is usually one consolidated screen, not a dozen separate systems — Command Centre mirrors that expectation.",
+      whyItExists: "As the platform grew to dozens of modules across three engines, no single existing dashboard could show all of them at once — Command Centre is a pure composition layer solving exactly that, reusing every source module's own already-computed output rather than recomputing anything.",
+      institutionalThinking: "A trading desk's own morning read is usually one consolidated screen, not a dozen separate systems — Command Centre mirrors that expectation. Professional risk managers scan Risk Alerts and the worst stress-test scenario BEFORE looking at new opportunities; a common retail mistake is to open the Scanner first and only check portfolio-level risk afterward, if at all.",
+      screenWalkthrough: [
+        "Executive Overview — Portfolio Value, Buying Power, Portfolio Health Score with an Overall Risk Rating badge (Healthy / Moderate Risk / Elevated Risk / High Risk), Daily P/L, Total Theta Income (Monthly), Broker Status, Paper Trading Status, and when the portfolio was last updated. This strip sets the context for every section below it.",
+        "Portfolio Health — a row of clickable widget cards, one per health factor computed elsewhere in the platform (e.g. Concentration, Diversification). Each card is a link: clicking it jumps straight to the page that actually owns that calculation, rather than trying to explain or fix it here.",
+        "Options Income Engine — Total Premium Collected (Realized), Expected Monthly Income, and open position counts for Iron Condors and Calendar Spreads. Wheel Positions, Covered Calls, and Cash Secured Puts are honestly labeled 'Not tracked in this engine' — never shown as a fabricated zero, which would look identical to 'tracked but currently none open.'",
+        "Greeks Summary — Net Delta, Gamma, Theta, and Vega summed across every open position. Beta reads 'Unavailable' whenever no beta figure exists anywhere in this engine's own data model — an honest gap, never a guessed number.",
+        "Risk Alerts — only the highest-priority, genuinely elevated guidance codes, plus the single worst modeled stress-test scenario (the largest negative portfolio-value impact across every scenario already computed by the Stress Test module). 'No elevated risk alerts at this time' means no alert cleared the elevated threshold — it does not mean nothing was checked.",
+        "Portfolio Allocation — four horizontal bar charts breaking deployed risk down by Symbol, Sector, Strategy, and Expiration. Each chart honestly shows 'No open positions' instead of an empty-looking chart when there's genuinely nothing to allocate.",
+        "Broker — Connected/Not connected, the last check timestamp, and whether credentials are configured — all read from the LAST REAL CHECK you ran in Settings. This section deliberately never auto-checks the broker on page load, matching the platform's own 'no automatic polling' discipline for broker connectivity everywhere else.",
+        "AI Insights — five deterministic, plain-English sentences (Largest Risk, Largest Opportunity, Concentration, Diversification, Income Status), each a client-side synthesis of figures already shown in the sections above. Never an LLM call, and never an execution recommendation.",
+      ],
       workflowSteps: [
         "Open Command Centre from the sidebar's Home group.",
-        "Scan each section top to bottom.",
-        "Click into any card whose figure you want to investigate further.",
+        "Review the Executive Overview strip first — Portfolio Value, Health Score, and Daily P/L set the context for everything else on the page.",
+        "Check AI Insights for the two things most likely to need attention today: Largest Risk and Largest Opportunity.",
+        "Review Portfolio Health's widget row and click into any factor that looks weak.",
+        "Review Risk Alerts and the worst stress-test scenario — if either is showing something elevated, that's your next stop, not the Scanner.",
+        "Open the Scanner (via the Largest Opportunity insight, or the sidebar) to see what new opportunities exist.",
+        "Analyse the top-ranked opportunity's AI Opportunity Score before acting on it.",
+        "Open the Trade Execution Center to review the strategy the Scanner already assigned to that candidate.",
+        "Create a paper trade only after its Order Preview and Pre-Trade Risk Validation both look acceptable.",
+        "Return to Command Centre afterward to confirm the new position shows up correctly in Portfolio Health and Greeks Summary.",
       ],
-      commonMistakes: ["Treating Command Centre as a place to take action, rather than a jumping-off point to the module that actually owns that action."],
-      bestPractices: ["Use it as your first screen of the day, then drill into whichever section looks like it needs attention."],
-      relatedModuleHrefs: ["/", "/executive-intelligence", "/institutional-dashboard"],
-      aiCoachPrompts: ["What does this Command Centre section show me?"],
-      relatedGlossaryKeys: [],
+      metricsExplained: [
+        { term: "Portfolio Health Score", explanation: "A single 0-100 score blending Concentration, Diversification, Event Risk, Net Greeks, Directional Exposure, Position Sizing Quality, Position Count, and Expiration Distribution — the exact same score the Portfolio Dashboard itself computes, reused here without recomputation." },
+        { term: "Overall Risk Rating", explanation: "A four-tier label (Healthy / Moderate Risk / Elevated Risk / High Risk) derived from the same Health Score — the badge color you see is the fastest possible read on whether anything below deserves a closer look." },
+        { term: "Net Delta / Net Theta", explanation: "The sum of every open position's own Delta/Theta — a single position's Greeks tell you little; these portfolio-level totals tell you your actual net directional lean and daily time-decay income." },
+        { term: "Buying Power", explanation: "The capital genuinely still available for new trades — selling defined-risk spreads ties this up equal to their own maximum loss." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A healthy session start",
+          steps: [
+            "Executive Overview shows a Portfolio Health Score of 82/100 with a 'Healthy' Overall Risk Rating badge.",
+            "Risk Alerts shows 'No elevated risk alerts at this time' — no guidance code crossed the elevated threshold, and the worst stress-test scenario is a modest, acceptable impact.",
+            "AI Insights' Income Status line reports a healthy, positive monthly theta projection, and Largest Risk names a single symbol at a moderate, non-elevated concentration.",
+          ],
+          note: "This is exactly the state where it's reasonable to move on to the Scanner and look for new opportunities without addressing anything on this screen first.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "One factor needs attention, nothing urgent",
+          steps: [
+            "Executive Overview shows a Portfolio Health Score of 58/100 with a 'Moderate Risk' badge.",
+            "Portfolio Health's widget row shows Concentration reading noticeably lower than the other factors.",
+            "AI Insights' Concentration line points at the same symbol/sector — worth reviewing on the Correlation & Concentration Risk page before adding another position in that same area.",
+          ],
+          note: "Nothing here is blocking — but a disciplined session would check Concentration before, not after, adding a fourth position in the same sector.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Multiple elevated alerts — address this before scanning for anything new",
+          steps: [
+            "Executive Overview shows a Portfolio Health Score of 27/100 with an 'Elevated Risk' or 'High Risk' badge.",
+            "Risk Alerts lists more than one elevated guidance code (e.g. elevated concentration AND elevated event risk), plus a worst stress-test scenario showing a large negative portfolio-value impact.",
+            "AI Insights' Largest Risk line names the same concentrated position driving both alerts.",
+          ],
+          note: "The institutionally correct move here is Portfolio Health and Risk Alerts first — reviewing or trimming the flagged position — never opening the Scanner to add size on top of an already-elevated risk state.",
+        },
+      ],
+      commonMistakes: [
+        "Treating Command Centre as a place to take action, rather than a jumping-off point to the module that actually owns that action.",
+        "Ignoring the Risk Alerts section because nothing feels 'broken' yet — an elevated alert is meant to be read before it becomes a problem, not after.",
+        "Not distinguishing Institutional Home (your own personalized, at-a-glance dashboard) from Command Centre (the fuller, comprehensive executive view) — the two are deliberately separate, related pages.",
+        "Assuming the Broker section reflects a live connection when it's actually a cached read from your last manual check in Settings.",
+      ],
+      riskWarnings: [
+        "Every figure here is read from cached/already-computed data — the Broker section in particular never auto-refreshes; a stale credential or connection state is possible until you run a fresh check in Settings.",
+        "AI Insights are deterministic summaries of already-computed figures, never predictions of what the market will do next — treat them as a starting point for investigation, not a conclusion.",
+      ],
+      bestPractices: [
+        "Use Command Centre as your literal first screen of a session, before opening any specific engine.",
+        "Treat an all-clear Risk Alerts section as 'no elevated alert fired,' not certainty that nothing needs attention.",
+        "When Portfolio Health flags a specific factor, click through to that factor's own page rather than guessing at the fix from the widget alone.",
+      ],
+      relatedModuleHrefs: ["/command-center", "/", "/learn/paths/institutional-investing", "/learn/paths/trading-engine", "/learn/paths/options-income-engine"],
+      aiCoachPrompts: [
+        "Explain my Portfolio Health Score.",
+        "Why is my Overall Risk Rating elevated?",
+        "What does my Options Income Engine section show?",
+        "What mistakes should I avoid when reading this dashboard?",
+      ],
+      relatedGlossaryKeys: ["portfolio-health", "concentration", "diversification", "buying-power", "theta-income"],
       nextStepKeys: ["learning-centre-overview"],
       guidedTourRequired: false,
       externalHref: "/command-center",
-      estimatedMinutes: 4,
+      estimatedMinutes: 9,
     }),
     topic({
       key: "learning-centre-overview",
@@ -1100,6 +1513,7 @@ export const LEARNING_PATHS: LearningPath[] = [
   INSTITUTIONAL_PATH,
   INSTITUTIONAL_INVESTING_PATH,
   TRADING_ENGINE_PATH,
+  OPTIONS_INCOME_ENGINE_PATH,
   STRATEGY_FRAMEWORK_PATH,
   PLATFORM_BASICS_PATH,
 ];

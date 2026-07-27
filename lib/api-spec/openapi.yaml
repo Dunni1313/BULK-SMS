@@ -15900,6 +15900,14 @@ components:
             $ref: "#/components/schemas/LearningTopicMetricExplained"
         workedExample:
           $ref: "#/components/schemas/LearningTopicWorkedExample"
+        # v1.4.0, Sprint L2A — Interactive Module Guides. A plural
+        # companion to workedExample above (left untouched, still
+        # supported) for lessons that show several worked examples along a
+        # quality spectrum (e.g. Good/Average/Poor Opportunity).
+        workedExamples:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningTopicWorkedExample"
         commonMistakes:
           type: array
           items:
@@ -15947,6 +15955,11 @@ components:
           items:
             type: string
         note:
+          type: string
+        # v1.4.0, Sprint L2A — Interactive Module Guides. An optional tier
+        # label (e.g. "Good Opportunity") for the plural workedExamples
+        # field on LearningTopic — never set on the older singular usage.
+        label:
           type: string
 
     LearningPath:
