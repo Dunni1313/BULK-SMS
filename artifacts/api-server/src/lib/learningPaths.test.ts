@@ -140,6 +140,14 @@ describe("learning path content", () => {
       "/institutional-mentor",
       "/learn/quiz",
       "/lessons",
+      // v1.4.0, Sprint L2C — Trading Workflow Academy. Every route this
+      // sprint's own upgraded/new module-guide topics point to, confirmed
+      // by direct inspection of App.tsx before this content was written.
+      "/trade-workspace",
+      "/trades",
+      "/strategy-workbench",
+      "/reporting-centre",
+      "/learn/paths/strategy-framework",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -209,26 +217,34 @@ describe("platform-basics path — the foundation lessons, and the template for 
     // new final topic in institutional-investing). platform-basics' own 2
     // new topics (institutional-dashboard-overview, ai-coach-overview) are
     // already excluded below via the pathKey filter, same as
-    // command-centre-overview always was. Every OTHER topic remains
-    // completely untouched, proven below.
+    // command-centre-overview always was.
+    // v1.4.0, Sprint L2C — Trading Workflow Academy deepened 3 pre-existing
+    // topics in place (trading-market-structure, strategy-framework-overview,
+    // trading-journal-review) and added 1 brand new one
+    // (trade-execution-order-management, a 3rd topic in options-income-engine).
+    // Every OTHER topic remains completely untouched, proven below.
     const richContentKeys = new Set([
       "investing-research-terminal",
       "trading-engine-overview",
       "options-income-engine-overview",
       "portfolio-ai-overview",
       "investing-institutional-mentor",
+      "trading-market-structure",
+      "strategy-framework-overview",
+      "trading-journal-review",
+      "trade-execution-order-management",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
-    expect(stillPlainTopics.length).toBe(67);
+    expect(stillPlainTopics.length).toBe(64);
     for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
     }
   });
 
-  it("Sprint L2A's and L2B's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -238,6 +254,10 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "ai-coach-overview",
       "portfolio-ai-overview",
       "investing-institutional-mentor",
+      "trading-market-structure",
+      "strategy-framework-overview",
+      "trading-journal-review",
+      "trade-execution-order-management",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
