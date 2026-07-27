@@ -302,18 +302,31 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "volatility-pricing-probability",
       "options-chain-contract-selection",
       "options-risk-management",
+      // v1.4.0, Sprint L2G — Options Strategies Academy. 3 brand-new
+      // topics (long-call/long-put/protective-put) plus 5 upgraded-in-place
+      // topics (covered-calls/verticals/iron-condor/iron-butterfly/
+      // calendar) — strategies-csp/strategies-wheel/strategies-diagonal
+      // were correctly out of scope and remain plain.
+      "strategies-long-call",
+      "strategies-long-put",
+      "strategies-covered-calls",
+      "strategies-protective-put",
+      "strategies-verticals",
+      "strategies-iron-condor",
+      "strategies-iron-butterfly",
+      "strategies-calendar",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
-    expect(stillPlainTopics.length).toBe(59);
+    expect(stillPlainTopics.length).toBe(54);
     for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
     }
   });
 
-  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -340,6 +353,14 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "volatility-pricing-probability",
       "options-chain-contract-selection",
       "options-risk-management",
+      "strategies-long-call",
+      "strategies-long-put",
+      "strategies-covered-calls",
+      "strategies-protective-put",
+      "strategies-verticals",
+      "strategies-iron-condor",
+      "strategies-iron-butterfly",
+      "strategies-calendar",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
