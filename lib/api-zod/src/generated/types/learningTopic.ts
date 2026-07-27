@@ -26,6 +26,7 @@ export interface LearningTopic {
   screenWalkthrough?: string[];
   metricsExplained?: LearningTopicMetricExplained[];
   workedExample?: LearningTopicWorkedExample;
+  workedExamples?: LearningTopicWorkedExample[];
   commonMistakes?: string[];
   riskWarnings?: string[];
   bestPractices?: string[];

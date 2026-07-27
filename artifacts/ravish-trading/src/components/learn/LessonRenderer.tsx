@@ -79,6 +79,7 @@ export function hasRichLessonContent(topic: LearningTopic): boolean {
       (topic.workflowSteps && topic.workflowSteps.length > 0) ||
       (topic.metricsExplained && topic.metricsExplained.length > 0) ||
       topic.workedExample ||
+      (topic.workedExamples && topic.workedExamples.length > 0) ||
       (topic.commonMistakes && topic.commonMistakes.length > 0) ||
       (topic.riskWarnings && topic.riskWarnings.length > 0) ||
       (topic.bestPractices && topic.bestPractices.length > 0),
@@ -183,6 +184,33 @@ export function LessonRenderer({
             {topic.workedExample.note && (
               <p className="text-[11px] text-muted-foreground/70 italic">{topic.workedExample.note}</p>
             )}
+          </div>
+        </LessonSection>
+      )}
+
+      {topic.workedExamples && topic.workedExamples.length > 0 && (
+        <LessonSection title="Worked Examples">
+          <div className="space-y-3" data-testid="lesson-worked-examples">
+            {topic.workedExamples.map((example, i) => (
+              <div key={i} className="rounded-md border border-border bg-secondary/20 p-3 space-y-1.5" data-testid={`lesson-worked-example-${i}`}>
+                <div className="flex items-center gap-2">
+                  {example.label && (
+                    <Badge variant="outline" className="text-[9px]" data-testid={`badge-worked-example-label-${i}`}>
+                      {example.label}
+                    </Badge>
+                  )}
+                  <p className="text-xs font-medium text-foreground/90">{example.title}</p>
+                </div>
+                <ol className="space-y-1 list-decimal list-inside">
+                  {example.steps.map((step, j) => (
+                    <li key={j} className="text-xs text-muted-foreground leading-relaxed">
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+                {example.note && <p className="text-[11px] text-muted-foreground/70 italic">{example.note}</p>}
+              </div>
+            ))}
           </div>
         </LessonSection>
       )}

@@ -7262,6 +7262,7 @@ export interface LearningTopicWorkedExample {
   title: string;
   steps: string[];
   note?: string;
+  label?: string;
 }
 
 export interface LearningTopic {
@@ -7281,6 +7282,7 @@ export interface LearningTopic {
   screenWalkthrough?: string[];
   metricsExplained?: LearningTopicMetricExplained[];
   workedExample?: LearningTopicWorkedExample;
+  workedExamples?: LearningTopicWorkedExample[];
   commonMistakes?: string[];
   riskWarnings?: string[];
   bestPractices?: string[];

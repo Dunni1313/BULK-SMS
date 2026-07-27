@@ -8,7 +8,7 @@ import { LEARNING_PATHS, getLearningPath, getLearningTopic, allLearningTopics } 
 import { getGlossaryTerm } from "./glossary.js";
 
 describe("learning path content", () => {
-  it("has exactly the 11 requested paths, in the requested order (v1.4.0 Sprint L1 adds platform-basics)", () => {
+  it("has exactly the 12 requested paths, in the requested order (v1.4.0 Sprint L2A adds options-income-engine)", () => {
     expect(LEARNING_PATHS.map((p) => p.key)).toEqual([
       "foundations",
       "greeks",
@@ -17,18 +17,24 @@ describe("learning path content", () => {
       "portfolio",
       "performance",
       "institutional",
-      // Phase 21 — Institutional AI Coach & Education Platform. A 9th,
+      // Phase 21 — Institutional AI Coach & Education Platform. An
       // Engine-1-scoped path (distinct from "institutional", Engine 3's own
       // options-portfolio thinking).
       "institutional-investing",
-      // Phase 29 — Institutional Trading AI Coach. A 10th, Engine-2-scoped
+      // Phase 29 — Institutional Trading AI Coach. An Engine-2-scoped
       // path (distinct from both "institutional" and "institutional-investing").
       "trading-engine",
-      // Phase 30 — Institutional Strategy Framework. An 11th path teaching
+      // v1.4.0, Sprint L2A — Interactive Module Guides. A new path, the
+      // Engine-3-scoped counterpart to institutional-investing/trading-
+      // engine above — the "engine tour" role neither of the pre-existing
+      // Engine-3 paths (institutional/strategies/etc., all pure options
+      // CONCEPT vocabulary) filled until this sprint.
+      "options-income-engine",
+      // Phase 30 — Institutional Strategy Framework. A path teaching
       // the FRAMEWORK itself (registering metadata, the Checklist Engine,
       // evidence citations), never a real trading methodology's own rules.
       "strategy-framework",
-      // v1.4.0, Sprint L1 — Learning Centre Foundation. A 12th path
+      // v1.4.0, Sprint L1 — Learning Centre Foundation. A path
       // teaching platform mechanics (navigation, Command Centre, the
       // Learning Centre itself) — never an investing/trading concept.
       "platform-basics",
@@ -114,6 +120,17 @@ describe("learning path content", () => {
       "/institutional-dashboard",
       "/learn/paths",
       "/learn/glossary",
+      // v1.4.0, Sprint L2A — Interactive Module Guides. Every route this
+      // sprint's own 4 deepened/new module-guide topics point to, confirmed
+      // by direct inspection of App.tsx before this content was written.
+      "/trading-research",
+      "/trade-execution-center",
+      "/scanner",
+      "/adjustments",
+      "/learn/paths/platform-basics",
+      "/learn/paths/institutional-investing",
+      "/learn/paths/trading-engine",
+      "/learn/paths/options-income-engine",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -164,12 +181,40 @@ describe("platform-basics path — the first 3 foundation lessons, and the templ
     expect(getLearningTopic("platform-basics", "learning-centre-overview")!.nextStepKeys).toEqual([]);
   });
 
-  it("the pre-existing 68 topics remain untouched — none of them acquired a rich field this sprint", () => {
-    const preExistingTopics = allLearningTopics().filter(({ pathKey }) => pathKey !== "platform-basics");
-    expect(preExistingTopics.length).toBe(68);
-    for (const { topic } of preExistingTopics) {
+  it("the topics never touched by any rich-content sprint remain plain — never a silent regression of an untouched topic", () => {
+    // v1.4.0, Sprint L2A — Interactive Module Guides deepened one
+    // pre-existing topic in place (investing-research-terminal, the
+    // Institutional Investing Engine's own module guide) and added 2 brand
+    // new ones (trading-engine-overview, options-income-engine-overview) —
+    // a disclosed, intentional expansion of rich content, not a regression.
+    // Every OTHER topic — including every other topic in
+    // institutional-investing and trading-engine themselves — remains
+    // completely untouched, proven below.
+    const richContentKeys = new Set(["investing-research-terminal", "trading-engine-overview", "options-income-engine-overview"]);
+    const stillPlainTopics = allLearningTopics().filter(
+      ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
+    );
+    expect(stillPlainTopics.length).toBe(67);
+    for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
+    }
+  });
+
+  it("Sprint L2A's own 3 module-guide topics (command-centre-overview plus the 2 above) each populate the full rich-content shape", () => {
+    const moduleGuideKeys = ["command-centre-overview", "investing-research-terminal", "trading-engine-overview", "options-income-engine-overview"];
+    for (const key of moduleGuideKeys) {
+      const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
+      expect(topic.difficulty).toBeDefined();
+      expect(topic.institutionalThinking!.length).toBeGreaterThan(10);
+      expect(topic.screenWalkthrough!.length).toBeGreaterThan(0);
+      expect(topic.workflowSteps!.length).toBeGreaterThan(0);
+      expect(topic.metricsExplained!.length).toBeGreaterThan(0);
+      expect(topic.workedExamples!.length).toBe(3);
+      expect(topic.workedExamples!.map((e) => e.label)).toEqual(["Good Opportunity", "Average Opportunity", "Poor Opportunity"]);
+      expect(topic.commonMistakes!.length).toBeGreaterThan(0);
+      expect(topic.riskWarnings!.length).toBeGreaterThan(0);
+      expect(topic.aiCoachPrompts!.length).toBeGreaterThan(0);
     }
   });
 });

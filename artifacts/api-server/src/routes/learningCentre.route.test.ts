@@ -69,7 +69,7 @@ describe("Learning Centre routes (live, real Postgres)", () => {
   });
 
   describe("GET /learning-centre/paths", () => {
-    it("returns all 11 learning paths", async () => {
+    it("returns all 12 learning paths", async () => {
       const res = await get("/learning-centre/paths");
       expect(res.status).toBe(200);
       const body = (await res.json()) as { key: string }[];
@@ -77,7 +77,9 @@ describe("Learning Centre routes (live, real Postgres)", () => {
       // Phase 29 — Institutional Trading AI Coach added a 10th path.
       // Phase 30 — Institutional Strategy Framework added an 11th path.
       // v1.4.0, Sprint L1 — Learning Centre Foundation added a "platform-basics" path.
-      expect(body).toHaveLength(11);
+      // v1.4.0, Sprint L2A — Interactive Module Guides added an
+      // "options-income-engine" path.
+      expect(body).toHaveLength(12);
     });
   });
 
@@ -181,7 +183,9 @@ describe("Learning Centre routes (live, real Postgres)", () => {
       // Phase 29 — Institutional Trading AI Coach added a 10th path.
       // Phase 30 — Institutional Strategy Framework added an 11th path.
       // v1.4.0, Sprint L1 — Learning Centre Foundation added a "platform-basics" path.
-      expect(body.pathCompletion).toHaveLength(11);
+      // v1.4.0, Sprint L2A — Interactive Module Guides added an
+      // "options-income-engine" path.
+      expect(body.pathCompletion).toHaveLength(12);
       expect(typeof body.greeksQuiz.totalAttempts).toBe("number");
       expect(typeof body.valueQuiz.totalAttempts).toBe("number");
     });

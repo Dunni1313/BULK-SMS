@@ -42,7 +42,9 @@ describe("getLearningProgress — a brand-new user", () => {
       // Phase 30 — Institutional Strategy Framework added an 11th path.
       // v1.4.0, Sprint L1 — Learning Centre Foundation added a 12th path
       // (platform-basics).
-      expect(progress.pathCompletion.length).toBe(11);
+      // v1.4.0, Sprint L2A — Interactive Module Guides added a 13th path
+      // (options-income-engine).
+      expect(progress.pathCompletion.length).toBe(12);
       expect(progress.bookmarks).toEqual([]);
     } finally {
       await cleanupUser(userId);
