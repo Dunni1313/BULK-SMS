@@ -7,6 +7,7 @@
  */
 import type { LearningTopicDifficulty } from './learningTopicDifficulty';
 import type { LearningTopicMetricExplained } from './learningTopicMetricExplained';
+import type { LearningTopicQuizQuestion } from './learningTopicQuizQuestion';
 import type { LearningTopicWorkedExample } from './learningTopicWorkedExample';
 
 export interface LearningTopic {
@@ -34,4 +35,5 @@ export interface LearningTopic {
   aiCoachPrompts?: string[];
   nextStepKeys?: string[];
   guidedTourRequired?: boolean;
+  knowledgeCheck?: LearningTopicQuizQuestion[];
 }

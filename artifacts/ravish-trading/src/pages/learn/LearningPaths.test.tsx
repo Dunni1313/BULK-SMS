@@ -1,7 +1,7 @@
 // AI Teacher & Learning Centre sprint — frontend smoke tests for the
 // Learning Paths page.
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithClient } from "@/test/test-utils";
@@ -11,6 +11,10 @@ const viewedMock = vi.hoisted(() => ({ mutate: vi.fn() }));
 const completedMock = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
 // v1.4.0, Sprint L1 — Learning Centre Foundation.
 const bookmarkMock = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false }));
+// v1.4.0, Sprint L2B — Knowledge Checks. KnowledgeCheck.tsx owns its own
+// useRecordLearningItemCompleted() call (the same hook LearningPaths.tsx's
+// own Mark Complete button uses) — reusing completedMock here means both
+// call sites are observable through one mock.
 
 const pathsListFixture = [
   { key: "foundations", title: "Foundations", description: "The basics.", glossaryCategory: "foundations", topics: [{ key: "foundations-stocks" }, { key: "foundations-options" }] },
@@ -45,6 +49,8 @@ const progressFixture = {
   completedLessonKeys: [] as string[],
   completedGlossaryKeys: [] as string[],
   completedStrategyKeys: [] as string[],
+  // v1.4.0, Sprint L2B — Knowledge Checks.
+  completedKnowledgeCheckKeys: [] as string[],
   greeksQuiz: { attempts: [], bestByTopic: [], totalAttempts: 0, averagePercent: 0, streak: 0, improvement: 0, firstPercent: 0, latestPercent: 0 },
   valueQuiz: { attempts: [], bestByTopic: [], totalAttempts: 0, averagePercent: 0, streak: 0, improvement: 0, firstPercent: 0, latestPercent: 0 },
   recentHistory: [],
@@ -112,6 +118,22 @@ const platformBasicsPathFixture = {
         { label: "Good Opportunity", title: "A strong example", steps: ["Step one.", "Step two."], note: "A note." },
         { label: "Average Opportunity", title: "A middling example", steps: ["Step one."] },
         { label: "Poor Opportunity", title: "A weak example", steps: ["Step one."] },
+      ],
+    },
+    // v1.4.0, Sprint L2B — Knowledge Checks. A topic exercising the new
+    // `knowledgeCheck` field and its self-contained KnowledgeCheck component.
+    {
+      key: "platform-basics-knowledge-check-demo",
+      title: "Knowledge Check Demo",
+      summary: "Exercises the new knowledgeCheck field.",
+      body: ["Demo body."],
+      whyItMatters: "Demo.",
+      externalHref: null,
+      relatedGlossaryKeys: [],
+      estimatedMinutes: 3,
+      knowledgeCheck: [
+        { prompt: "First question?", options: ["Wrong", "Right"], correctIndex: 1, explanation: "Right is right." },
+        { prompt: "Second question?", options: ["Right", "Wrong"], correctIndex: 0, explanation: "Right is right." },
       ],
     },
   ],
@@ -245,5 +267,68 @@ describe("LearningPaths — rich lesson content (LessonRenderer)", () => {
     renderWithClient(<LearningPaths />);
     expect(await screen.findByText(/Command Centre aggregates every dashboard/)).toBeInTheDocument();
     expect(screen.queryByTestId("lesson-renderer-command-centre-overview")).not.toBeInTheDocument();
+  });
+});
+
+// v1.4.0, Sprint L2B — Knowledge Checks.
+describe("LearningPaths — Knowledge Check (LessonRenderer + KnowledgeCheck)", () => {
+  // completedMock is a single shared vi.fn() across this whole test file
+  // (declared via vi.hoisted, reused by both the pre-existing Mark
+  // Complete button and this new Knowledge Check) — clearing it before
+  // each test in this describe block keeps assertions about ITS OWN
+  // absence-of-call scoped to this test, not polluted by prior tests'
+  // real calls.
+  beforeEach(() => {
+    completedMock.mutate.mockClear();
+  });
+
+  it("a topic with a knowledgeCheck field renders every question via the shared QuizCard", async () => {
+    paramsMock.current = { pathKey: "platform-basics", topicKey: "platform-basics-knowledge-check-demo" };
+    renderWithClient(<LearningPaths />);
+    expect(await screen.findByTestId("knowledge-check-platform-basics-knowledge-check-demo")).toBeInTheDocument();
+    expect(screen.getByTestId("quiz-card-0")).toHaveTextContent("First question?");
+    expect(screen.getByTestId("quiz-card-1")).toHaveTextContent("Second question?");
+    expect(screen.getByText("0 of 2 answered")).toBeInTheDocument();
+    expect(screen.queryByTestId(`badge-knowledge-check-complete-platform-basics-knowledge-check-demo`)).not.toBeInTheDocument();
+  });
+
+  it("answering every question fires the completion mutation with itemType knowledge-check", async () => {
+    paramsMock.current = { pathKey: "platform-basics", topicKey: "platform-basics-knowledge-check-demo" };
+    renderWithClient(<LearningPaths />);
+    await screen.findByTestId("quiz-card-0");
+    await userEvent.click(screen.getByTestId("quiz-card-0-option-1"));
+    await userEvent.click(screen.getByTestId("quiz-card-1-option-0"));
+    expect(await screen.findByText("2 of 2 answered — 2 correct on first try")).toBeInTheDocument();
+    expect(completedMock.mutate).toHaveBeenCalledWith(
+      { data: { itemType: "knowledge-check", itemKey: "platform-basics-knowledge-check-demo" } },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+  });
+
+  it("answering only some questions never fires completion early", async () => {
+    paramsMock.current = { pathKey: "platform-basics", topicKey: "platform-basics-knowledge-check-demo" };
+    renderWithClient(<LearningPaths />);
+    await screen.findByTestId("quiz-card-0");
+    await userEvent.click(screen.getByTestId("quiz-card-0-option-1"));
+    expect(screen.getByText("1 of 2 answered — 1 correct on first try")).toBeInTheDocument();
+    expect(completedMock.mutate).not.toHaveBeenCalledWith(
+      { data: { itemType: "knowledge-check", itemKey: "platform-basics-knowledge-check-demo" } },
+      expect.anything(),
+    );
+  });
+
+  it("shows a completed badge when progress already reports this Knowledge Check as complete", async () => {
+    progressFixture.completedKnowledgeCheckKeys = ["platform-basics-knowledge-check-demo"];
+    paramsMock.current = { pathKey: "platform-basics", topicKey: "platform-basics-knowledge-check-demo" };
+    renderWithClient(<LearningPaths />);
+    expect(await screen.findByTestId("badge-knowledge-check-complete-platform-basics-knowledge-check-demo")).toBeInTheDocument();
+    progressFixture.completedKnowledgeCheckKeys = [];
+  });
+
+  it("a topic with no knowledgeCheck field renders no Knowledge Check section", async () => {
+    paramsMock.current = { pathKey: "platform-basics", topicKey: "platform-basics-navigation" };
+    renderWithClient(<LearningPaths />);
+    await screen.findByTestId("lesson-renderer-platform-basics-navigation");
+    expect(screen.queryByTestId("knowledge-check-platform-basics-navigation")).not.toBeInTheDocument();
   });
 });

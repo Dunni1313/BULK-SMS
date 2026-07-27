@@ -35,6 +35,7 @@ describe("getLearningProgress — a brand-new user", () => {
       expect(progress.coachesViewed).toBe(0);
       expect(progress.completedLessonKeys).toEqual([]);
       expect(progress.completedCoachKeys).toEqual([]);
+      expect(progress.completedKnowledgeCheckKeys).toEqual([]);
       expect(progress.recentHistory).toEqual([]);
       expect(progress.pathCompletion.every((p) => p.topicsCompleted === 0)).toBe(true);
       // Phase 21 — Institutional AI Coach & Education Platform added a 9th path.

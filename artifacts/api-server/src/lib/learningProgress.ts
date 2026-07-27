@@ -16,7 +16,14 @@ import { LEARNING_PATHS } from "./learningPaths.js";
 // viewed/completed, mirroring "strategy"'s own flat (non-path) tracking
 // shape — coaches aren't organized into Learning Paths, so they get no
 // separate pathCompletion-style rollup, exactly like Strategy Academy.
-export type LearningItemType = "lesson" | "glossary" | "path" | "strategy" | "coach";
+//
+// "knowledge-check" (v1.4.0, Sprint L2B) tracks completion of a lesson's
+// own Knowledge Check (itemKey is the same lesson topic key, e.g.
+// "command-centre-overview") — a plain completion flag, not a stored
+// score; no new table, mirroring "coach"'s own precedent of a new
+// itemType value requiring zero schema/migration change, since
+// learning_progress's own itemType column was always a plain string.
+export type LearningItemType = "lesson" | "glossary" | "path" | "strategy" | "coach" | "knowledge-check";
 
 export async function recordViewed(userId: string, itemType: LearningItemType, itemKey: string): Promise<void> {
   await db
@@ -101,6 +108,10 @@ export interface LearningProgressSummary {
   completedGlossaryKeys: string[];
   completedStrategyKeys: string[];
   completedCoachKeys: string[];
+  // v1.4.0, Sprint L2B — a lesson's Knowledge Check is complete once its
+  // itemKey (the lesson topic key) has a completedAt, mirroring
+  // completedCoachKeys' own exact computation for a flat, non-path item type.
+  completedKnowledgeCheckKeys: string[];
   // Phase 31 — Institutional Strategy Workbench. A "strategy" progress row
   // is only ever recorded via recordViewed() (the Strategy Framework/
   // Workbench's own "Mark as viewed" action never calls recordCompleted()),
@@ -145,10 +156,12 @@ export async function getLearningProgress(userId: string): Promise<LearningProgr
   const glossaryRows = progressRows.filter((r) => r.itemType === "glossary");
   const strategyRows = progressRows.filter((r) => r.itemType === "strategy");
   const coachRows = progressRows.filter((r) => r.itemType === "coach");
+  const knowledgeCheckRows = progressRows.filter((r) => r.itemType === "knowledge-check");
   const completedLessonKeys = new Set(lessonRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey));
   const completedGlossaryKeys = glossaryRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey);
   const completedStrategyKeys = strategyRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey);
   const completedCoachKeys = coachRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey);
+  const completedKnowledgeCheckKeys = knowledgeCheckRows.filter((r) => r.completedAt !== null).map((r) => r.itemKey);
 
   const pathCompletion: LearningPathCompletion[] = LEARNING_PATHS.map((path) => {
     const topicsCompleted = path.topics.filter((t) => completedLessonKeys.has(t.key)).length;
@@ -191,6 +204,7 @@ export async function getLearningProgress(userId: string): Promise<LearningProgr
     completedGlossaryKeys,
     completedStrategyKeys,
     completedCoachKeys,
+    completedKnowledgeCheckKeys,
     viewedStrategyKeys: strategyRows.map((r) => r.itemKey),
     greeksQuiz,
     valueQuiz,

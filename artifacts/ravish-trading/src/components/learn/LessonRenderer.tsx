@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { BookmarkButton } from "./BookmarkButton";
 import { AskCoachLauncher } from "./AskCoachLauncher";
 import { RelatedGlossaryBadges } from "./RelatedGlossaryBadges";
+import { KnowledgeCheck } from "./KnowledgeCheck";
 import { ArrowRight, Clock } from "lucide-react";
 
 const DIFFICULTY_BADGE_CLASS: Record<string, string> = {
@@ -82,7 +83,8 @@ export function hasRichLessonContent(topic: LearningTopic): boolean {
       (topic.workedExamples && topic.workedExamples.length > 0) ||
       (topic.commonMistakes && topic.commonMistakes.length > 0) ||
       (topic.riskWarnings && topic.riskWarnings.length > 0) ||
-      (topic.bestPractices && topic.bestPractices.length > 0),
+      (topic.bestPractices && topic.bestPractices.length > 0) ||
+      (topic.knowledgeCheck && topic.knowledgeCheck.length > 0),
   );
 }
 
@@ -260,6 +262,12 @@ export function LessonRenderer({
       {topic.aiCoachPrompts && topic.aiCoachPrompts.length > 0 && (
         <LessonSection title="Ask the AI Coach">
           <AskCoachLauncher suggestedQuestion={topic.aiCoachPrompts[0]} />
+        </LessonSection>
+      )}
+
+      {topic.knowledgeCheck && topic.knowledgeCheck.length > 0 && (
+        <LessonSection title="Knowledge Check">
+          <KnowledgeCheck topicKey={topic.key} questions={topic.knowledgeCheck} />
         </LessonSection>
       )}
 
