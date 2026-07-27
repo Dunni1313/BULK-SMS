@@ -21,6 +21,23 @@ export interface LearningTopicMetricExplained {
   explanation: string;
 }
 
+// v1.4.0, Sprint L2B — Knowledge Checks. Deliberately the same shape as
+// coach.ts's own LearnQuizQuestion (prompt/options/correctIndex/
+// explanation) — no new quiz engine, this reuses the exact rendering
+// pattern the pre-existing DeltaMasterclass lesson already established
+// (extracted this sprint into the shared components/learn/QuizCard.tsx) —
+// but declared as its own type in this file's own domain, matching the
+// precedent LearningTopicWorkedExample/LearningTopicMetricExplained
+// already set of never cross-importing a type between the two,
+// deliberately independent content systems (coach.ts's LearnContent
+// lessons vs. this file's LearningPath/LearningTopic lessons).
+export interface LearningTopicQuizQuestion {
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
 export interface LearningTopicWorkedExample {
   title: string;
   steps: string[];
@@ -70,6 +87,12 @@ export interface LearningTopic {
   aiCoachPrompts?: string[];
   nextStepKeys?: string[];
   guidedTourRequired?: boolean;
+  // v1.4.0, Sprint L2B — Interactive Module Guides (Cross-Engine &
+  // Portfolio Hubs). A lightweight, lesson-level Knowledge Check —
+  // 5-10 multiple-choice questions rendered via the shared, extracted
+  // QuizCard component (instant feedback + explanation per question).
+  // Optional and additive; every pre-Sprint-L2B topic simply omits it.
+  knowledgeCheck?: LearningTopicQuizQuestion[];
 }
 
 export interface LearningPath {
@@ -896,6 +919,136 @@ const INSTITUTIONAL_INVESTING_PATH: LearningPath = {
       relatedGlossaryKeys: ["opportunity-discovery-engine", "screener", "opportunity-ranking", "opportunity-buckets"],
       estimatedMinutes: 4,
     }),
+    topic({
+      key: "investing-institutional-mentor",
+      title: "Institutional Mentor",
+      summary: "A deterministic professional portfolio review — explicitly NOT an LLM, chatbot, or predictive engine.",
+      body: [
+        "Institutional Mentor (/institutional-mentor) is a deterministic review of your own real portfolio, built entirely from already-computed figures across the platform's own engines — its own header comment states plainly: this is NOT an LLM, a chatbot, predictive AI, financial advice, portfolio optimisation, or a trade recommendation engine.",
+        "Its centerpiece is a Portfolio Scorecard across 9 categories (capital allocation, risk management, diversification, discipline, income generation, position sizing, greeks management, event preparation, portfolio health) — each scored 0-100 with a grade badge, a 'why' explanation, and a named source module it was computed from, never a fabricated number.",
+        "Below the scorecard sit threshold-gated reviews across a dozen areas (Professional Review, Decision Review, Capital Allocation Review, Risk Review, Income Review, Behaviour Review, Watchlist Review, Portfolio Review, Decision Engine Review, Opportunity Discovery Review, Monitoring Alerts Review) — each one only fires an observation when a real, named condition is actually met, and each links to the Learning Centre lesson/glossary/strategy/coach content most relevant to what it flagged.",
+      ],
+      whyItMatters: "A genuinely deterministic, source-attributed review is safer to lean on than a free-form AI opinion — every score traces to a specific module, and the 5 permanent badges at the top (Institutional Mentor, Professional Portfolio Review, Deterministic Analysis, Paper Trading, Educational Only) exist precisely to prevent this page from ever being mistaken for investment advice.",
+      difficulty: "intermediate",
+      whyItExists: "Every scoring input already existed somewhere else in the platform (Portfolio Optimisation, Decision Engine, Portfolio Risk Dashboard, the Trade Journal's own behaviour analysis) — Institutional Mentor's only new contribution is the scorecard's own weighting and threshold logic that decides WHEN each review fires, never a new fact about any position.",
+      institutionalThinking: "A professional review process is repeatable and source-attributed — you can trace exactly why a score is what it is, and re-run the same review next month to see if it improved. A common mistake is treating a scorecard's low grade as a command to act immediately, rather than as one structured input among several to weigh.",
+      screenWalkthrough: [
+        "Portfolio Scorecard — 9 categories, each with a 0-100 score, a grade badge, a 'why' sentence, and the specific source module it was computed from.",
+        "Professional Review — a synthesis of the scorecard into plain-language observations.",
+        "Decision Review, Capital Allocation Review, Risk Review, Income Review — each threshold-gated, reusing the Decision Engine, capital-allocation figures, the Portfolio Risk Dashboard, and theta income figures respectively.",
+        "Behaviour Review — reuses the AI Trade Journal's own behaviour analysis, never a second, separate behavioural model.",
+        "Watchlist Review, Portfolio Review, Decision Engine Review, Opportunity Discovery Review — each reusing Engine 1's own already-built modules of the same name.",
+        "Monitoring Alerts Review — reuses the same monitoring-alert list Monitoring & Alerts itself shows.",
+        "Institutional Lessons — cross-links from each review section to the Learning Centre lesson, glossary term, strategy, or coach explanation most relevant to what it flagged.",
+        "5 permanent badges at the top of the page: Institutional Mentor, Professional Portfolio Review, Deterministic Analysis, Paper Trading, Educational Only — always visible, never conditionally hidden.",
+      ],
+      workflowSteps: [
+        "Open Institutional Mentor from the sidebar.",
+        "Review the Portfolio Scorecard's 9 categories first, noting which score lowest and why.",
+        "Read Professional Review for the plain-language synthesis of the scorecard.",
+        "Open whichever threshold-gated review section fired an observation, and follow its source-module attribution back to the original page if you want more detail.",
+        "Follow an Institutional Lessons cross-link if a flagged area is unfamiliar.",
+        "Re-run this review on a recurring cadence to see whether flagged areas actually improve over time.",
+      ],
+      metricsExplained: [
+        { term: "Portfolio Scorecard category score", explanation: "A 0-100 score for one of 9 named categories, each with an explicit source module attribution — never a black-box number." },
+        { term: "Threshold-gated review", explanation: "A review section (e.g. Risk Review) only produces an observation when a real, named condition is met — an absent section means the condition simply wasn't met, not that nothing was checked." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "High scores across most categories",
+          steps: [
+            "The Portfolio Scorecard shows Diversification, Risk Management, and Portfolio Health all scoring above 75.",
+            "Professional Review reports no significant concerns.",
+            "Only Income Generation scores moderately, with a 'why' noting theta income is modest relative to account size.",
+          ],
+          note: "Even a strong overall scorecard can have one lower-scoring category worth reading the 'why' on — the scorecard rewards reading every category, not just the average.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "Position Sizing scores low, one threshold-gated review fires",
+          steps: [
+            "Position Sizing scores 48/100, with a 'why' noting one position sized meaningfully larger than the others.",
+            "Risk Review fires an observation naming the same position and linking to the Position Sizing lesson.",
+          ],
+          note: "A single flagged category with a clear source-module attribution and a relevant lesson link is exactly the kind of structured, traceable finding this page is designed to surface.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Multiple categories score low and several reviews fire together",
+          steps: [
+            "Capital Allocation, Diversification, and Risk Management all score below 40.",
+            "Both Capital Allocation Review and Risk Review fire observations naming overlapping concentrated positions.",
+            "Professional Review's synthesis explicitly connects the two findings.",
+          ],
+          note: "When multiple independent scorecard categories AND their corresponding threshold-gated reviews agree on the same underlying issue, that convergence is a stronger signal than any single low score alone.",
+        },
+      ],
+      commonMistakes: [
+        "Mistaking this page for an LLM chatbot or a source of trade recommendations — its own header comment and permanent badges explicitly rule that out.",
+        "Acting on a low scorecard score without reading its 'why' explanation and source-module attribution first.",
+        "Assuming an absent threshold-gated review section means nothing was checked, rather than that its condition simply wasn't met.",
+      ],
+      riskWarnings: [
+        "Institutional Mentor is explicitly not financial advice, portfolio optimisation, or a trade recommendation engine — it is a deterministic, source-attributed review only.",
+        "Every figure reflects your own current paper-trading portfolio, never a live prediction of future performance.",
+      ],
+      bestPractices: [
+        "Read each category's 'why' explanation, not just its numeric score.",
+        "Follow source-module attributions back to the original page for the fullest detail behind any given score.",
+        "Re-run this review on a consistent cadence to track whether flagged categories genuinely improve.",
+      ],
+      relatedModuleHrefs: ["/institutional-mentor", "/institutional-dashboard", "/decision-engine", "/portfolio-dashboard", "/trading-journal"],
+      aiCoachPrompts: [
+        "Why did my Risk Management category score low?",
+        "Explain my Portfolio Scorecard.",
+        "Is Institutional Mentor giving me financial advice?",
+      ],
+      relatedGlossaryKeys: ["portfolio-health", "capital-allocation", "position-sizing", "process-over-prediction", "concentration"],
+      nextStepKeys: [],
+      guidedTourRequired: false,
+      externalHref: "/institutional-mentor",
+      estimatedMinutes: 8,
+      knowledgeCheck: [
+        {
+          prompt: "According to its own header comment, what is Institutional Mentor explicitly NOT?",
+          options: ["A deterministic review tool", "An LLM, a chatbot, predictive AI, financial advice, portfolio optimisation, or a trade recommendation engine", "A page that scores portfolios", "A page linked from Institutional Dashboard"],
+          correctIndex: 1,
+          explanation: "Its own header comment states plainly that it is none of those things — every score is deterministic and source-attributed, never an AI-generated opinion.",
+        },
+        {
+          prompt: "How many categories does the Portfolio Scorecard score?",
+          options: ["3", "5", "9", "12"],
+          correctIndex: 2,
+          explanation: "The scorecard covers 9 named categories: capital allocation, risk management, diversification, discipline, income generation, position sizing, greeks management, event preparation, and portfolio health.",
+        },
+        {
+          prompt: "What does a threshold-gated review section's absence from the page mean?",
+          options: ["The review crashed", "Its condition simply wasn't met — not that nothing was checked", "You need to refresh the page", "The section is hidden behind a paywall"],
+          correctIndex: 1,
+          explanation: "Each review section only fires an observation when a real, named condition is actually met — an absent section is an honest 'condition not met,' never a sign nothing was evaluated.",
+        },
+        {
+          prompt: "Where does the Behaviour Review section get its analysis from?",
+          options: ["A brand-new behavioural model built just for this page", "The existing AI Trade Journal's own behaviour analysis, reused", "Live broker order data", "The Scanner's opportunity grid"],
+          correctIndex: 1,
+          explanation: "Behaviour Review reuses the Trade Journal's own already-built behaviour analysis rather than introducing a second, separate model.",
+        },
+        {
+          prompt: "What are the 5 permanent badges shown at the top of Institutional Mentor?",
+          options: ["Buy, Hold, Sell, Wait, Accumulate", "Institutional Mentor, Professional Portfolio Review, Deterministic Analysis, Paper Trading, Educational Only", "Delta, Theta, Gamma, Vega, POP", "Healthy, Watch, Critical, Elevated, Normal"],
+          correctIndex: 1,
+          explanation: "These 5 badges are always visible, never conditionally hidden, and exist specifically to prevent the page from being mistaken for investment advice.",
+        },
+        {
+          prompt: "What should you do with a low-scoring category on the Portfolio Scorecard?",
+          options: ["Act on it immediately without further review", "Read its 'why' explanation and source-module attribution before deciding what, if anything, to do", "Ignore it since the page isn't financial advice anyway", "Delete the flagged position immediately"],
+          correctIndex: 1,
+          explanation: "The scorecard is one structured input to weigh, with full source attribution — not a command to act, and the lesson explicitly warns against treating a low score as an immediate directive.",
+        },
+      ],
+    }),
   ],
 };
 
@@ -1246,10 +1399,139 @@ const OPTIONS_INCOME_ENGINE_PATH: LearningPath = {
         "What mistakes should I avoid before submitting a paper order?",
       ],
       relatedGlossaryKeys: ["probability-of-profit", "expected-value", "iron-condor", "premium", "position-sizing"],
-      nextStepKeys: [],
+      nextStepKeys: ["portfolio-ai-overview"],
       guidedTourRequired: false,
       externalHref: "/trade-execution-center",
       estimatedMinutes: 9,
+    }),
+    topic({
+      key: "portfolio-ai-overview",
+      title: "Portfolio AI (Options Income Cockpit)",
+      summary: "Account snapshot, Greeks, 3 health gauges, position threat radar, an AI-streamed market briefing, and Daily Reports you can compare.",
+      body: [
+        "Portfolio AI (/portfolio-ai) is the options-income cockpit: an Account Snapshot (Account Value, Buying Power, Day P&L, Total P&L, Open Positions, Risk Used), Portfolio Greeks and Theta Income panels, and three 0-100 gauge scores — Portfolio Health, Market Exposure, Risk Concentration — each color-coded by severity.",
+        "Below the gauges, a Position Threat Radar lists every open position with a live threat classification (Healthy/Watch/Critical) you can click straight into for adjustment; a Health Trend Panel charts the same health score and threat counts across your saved Daily Reports over 2 weeks, 1 month, 3 months, or all time.",
+        "A Market Briefing card streams AI-narrated prose (regime, VIX, IV rank, breadth, catalysts) grounded in already-computed market data, and a Report History panel lets you generate, save, compare (side-by-side deltas between two reports), and restore Daily Reports — every generated report is a snapshot you can look back on later, not a live-updating feed.",
+      ],
+      whyItMatters: "This is the single screen an options-income trader would open to answer 'is my current book of open positions healthy right now, and what changed since my last review?' — the gauges, the threat radar, and Report Comparison together answer both halves of that question.",
+      difficulty: "intermediate",
+      whyItExists: "The Options Income Engine already computed Greeks, theta income, and portfolio-level risk elsewhere — Portfolio AI consolidates those into one cockpit with gauge scores and historical comparison, rather than requiring a trader to mentally track health trends across separate page visits.",
+      institutionalThinking: "Professional risk desks track health trend over time, not just a single point-in-time snapshot — a Health Score of 70 that's been declining for three reports tells a very different story than a 70 that's been climbing. A common retail mistake is checking only today's gauge and never looking at the Health Trend Panel at all.",
+      screenWalkthrough: [
+        "Account Snapshot — Account Value, Buying Power, Day P&L, Total P&L, Open Positions, and Risk Used, the top-line figures every other panel builds context around.",
+        "Portfolio Greeks and Theta Income panels — net Delta/Gamma/Theta/Vega across every open position, and expected monthly theta income.",
+        "Three GaugeCard scores — Portfolio Health, Market Exposure, Risk Concentration, each a 0-100 radial gauge colored by severity (never a plain number with no visual context).",
+        "Threat summary pills — Healthy/Watch/Critical position counts, plus net Delta/Theta and the single largest-name exposure, at a glance above the full radar.",
+        "Position Threat Radar — every open position, live and clickable, navigating straight to that position's own adjustment ticket.",
+        "Health Trend Panel — a windowed (2W/1M/3M/All) chart of health score and red/yellow position counts across your own saved report history.",
+        "Market Briefing card — AI-streamed prose plus chips for regime, VIX, IV rank, and breadth, with a catalysts list below.",
+        "Report History panel — list, Compare mode (select up to 2 reports for a side-by-side delta view), delete/clear-all with an undo option, and a 'Generate Daily Report' button.",
+        "Report Comparison — Key Deltas grid, AI-streamed comparison narration, and a diff list of position/avoid changes between the two selected reports.",
+        "Report Detail — Position Snapshot, Top Opportunities, and Trades to Avoid for whichever single report you're viewing.",
+      ],
+      workflowSteps: [
+        "Open Portfolio AI from the sidebar.",
+        "Review the Account Snapshot and the three gauge scores first.",
+        "Check the Position Threat Radar for anything reading Watch or Critical.",
+        "Open the Health Trend Panel and check whether the health score is trending up or down over your chosen window, not just today's value.",
+        "Read the Market Briefing card for broader context before deciding whether to act on anything flagged above.",
+        "Generate a Daily Report to save today's snapshot for future comparison.",
+        "Use Report History's Compare mode against an earlier report to see exactly what changed.",
+      ],
+      metricsExplained: [
+        { term: "Portfolio Health Score", explanation: "A 0-100 gauge score — the same underlying health computation Command Centre's own Portfolio Health section and the Portfolio Risk Dashboard reuse, never a second, competing formula." },
+        { term: "Market Exposure / Risk Concentration", explanation: "The two companion gauges alongside Portfolio Health — directional exposure and how concentrated risk is across symbols/sectors, each its own 0-100 score." },
+        { term: "Threat classification (Healthy/Watch/Critical)", explanation: "A per-position live severity read, driving both the Position Threat Radar's row coloring and the summary pills' counts above it." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Health improving, no critical threats",
+          steps: [
+            "Portfolio Health gauge reads 84/100, colored green.",
+            "The Health Trend Panel over the last month shows the score climbing, not just holding steady.",
+            "The Position Threat Radar shows every position Healthy, zero Watch or Critical.",
+          ],
+          note: "This is the state where reviewing the Market Briefing and moving on to the Scanner for new opportunities is reasonable, without addressing anything on this page first.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "One position moved to Watch",
+          steps: [
+            "Portfolio Health gauge reads 61/100, colored amber.",
+            "The Position Threat Radar shows one position newly flagged Watch (not yet Critical).",
+            "The Health Trend Panel shows a slight recent decline from the prior report.",
+          ],
+          note: "A single Watch-level flag combined with a declining trend is worth reviewing via that position's own adjustment ticket before it potentially becomes Critical.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Multiple Critical positions and a declining trend",
+          steps: [
+            "Portfolio Health gauge reads 29/100, colored red.",
+            "The Position Threat Radar shows two or more positions flagged Critical.",
+            "The Health Trend Panel shows a sustained decline across the last several saved reports, not a one-off dip.",
+          ],
+          note: "A sustained decline across multiple saved reports, not just one bad day, is the signal that distinguishes a genuine deteriorating trend from ordinary day-to-day noise — this is the profile where reviewing Critical positions comes before anything else.",
+        },
+      ],
+      commonMistakes: [
+        "Checking only today's gauge scores and never opening the Health Trend Panel to see the actual trajectory.",
+        "Treating the Market Briefing's AI-streamed prose as a market prediction rather than a narrated summary of already-computed conditions.",
+        "Forgetting to generate a Daily Report before making changes, losing the ability to compare 'before' against 'after' later.",
+      ],
+      riskWarnings: [
+        "Every gauge and figure here reflects your own current, paper-trading portfolio — never a live prediction of what any position will do next.",
+        "A Report Comparison shows what changed between two saved snapshots, not a continuously-updating live feed — refresh by generating a new report, don't assume the last one is still current.",
+      ],
+      bestPractices: [
+        "Generate a Daily Report on a consistent cadence so Report Comparison has meaningful 'before/after' pairs to work with.",
+        "Check the Health Trend Panel's trajectory, not just today's single gauge reading, before deciding whether something needs attention.",
+        "Click straight from the Position Threat Radar into a flagged position's own adjustment ticket rather than navigating there separately.",
+      ],
+      relatedModuleHrefs: ["/portfolio-ai", "/institutional-dashboard", "/trade-execution-center", "/adjustments"],
+      aiCoachPrompts: [
+        "Explain my Portfolio Health Score.",
+        "What changed between my last two Daily Reports?",
+        "Why is this position flagged Critical?",
+      ],
+      relatedGlossaryKeys: ["portfolio-health", "concentration", "diversification", "theta-income", "delta", "theta"],
+      nextStepKeys: [],
+      guidedTourRequired: false,
+      externalHref: "/portfolio-ai",
+      estimatedMinutes: 8,
+      knowledgeCheck: [
+        {
+          prompt: "What are the three gauge scores on Portfolio AI's cockpit?",
+          options: ["Delta, Theta, Vega", "Portfolio Health, Market Exposure, Risk Concentration", "POP, EV, Ravish Score", "Account Value, Buying Power, Risk Used"],
+          correctIndex: 1,
+          explanation: "The three 0-100 radial gauges are Portfolio Health, Market Exposure, and Risk Concentration, each color-coded by severity.",
+        },
+        {
+          prompt: "What does the Health Trend Panel actually show?",
+          options: ["A live-updating real-time feed", "The health score and threat counts charted across your own saved Daily Reports over a chosen time window", "A prediction of tomorrow's health score", "A list of broker orders"],
+          correctIndex: 1,
+          explanation: "It's a windowed (2W/1M/3M/All) chart built from your own saved report history — a trend view, not a live feed or a prediction.",
+        },
+        {
+          prompt: "What happens when you click a position in the Position Threat Radar?",
+          options: ["It closes the position immediately", "It navigates you to that position's own adjustment ticket", "It deletes the position from your portfolio", "Nothing — the radar is read-only"],
+          correctIndex: 1,
+          explanation: "The radar is live and clickable, taking you straight into that specific position's adjustment ticket rather than requiring separate navigation.",
+        },
+        {
+          prompt: "What does Report Comparison's Compare mode let you do?",
+          options: ["Compare your portfolio to another user's", "Select up to two saved Daily Reports and see the deltas between them", "Compare your account to a live market index", "Auto-generate a new strategy"],
+          correctIndex: 1,
+          explanation: "Compare mode lets you pick up to 2 reports from your own history and shows Key Deltas plus an AI-streamed comparison narration between them.",
+        },
+        {
+          prompt: "Is the Market Briefing card's AI-streamed prose a prediction of future market movement?",
+          options: ["Yes, it forecasts tomorrow's prices", "No — it's a narrated summary of already-computed market conditions", "Yes, but only for the VIX", "It only applies to live accounts"],
+          correctIndex: 1,
+          explanation: "The Market Briefing narrates already-computed regime/VIX/IV rank/breadth data — it never predicts future price movement.",
+        },
+      ],
     }),
   ],
 };
@@ -1466,10 +1748,253 @@ const PLATFORM_BASICS_PATH: LearningPath = {
         "What mistakes should I avoid when reading this dashboard?",
       ],
       relatedGlossaryKeys: ["portfolio-health", "concentration", "diversification", "buying-power", "theta-income"],
-      nextStepKeys: ["learning-centre-overview"],
+      nextStepKeys: ["institutional-dashboard-overview"],
       guidedTourRequired: false,
       externalHref: "/command-center",
       estimatedMinutes: 9,
+    }),
+    topic({
+      key: "institutional-dashboard-overview",
+      title: "Institutional Dashboard (Cross-Engine Command Centre)",
+      summary: "One symbol lookup, all three engines side by side — never blended into a single number.",
+      body: [
+        "Institutional Dashboard (/institutional-dashboard) is a second, distinct executive screen from Command Centre: instead of aggregating dashboards, it lets you search ONE symbol and see Engine 1 (Institutional Investing) and Engine 2 (Institutional Trading) verdicts for that exact symbol side by side, plus an always-visible Portfolio Overview and Risk/Journal/Backtest summary row that needs no symbol at all.",
+        "Every card is a direct, unmodified reuse of an existing route response — the Investment Committee card reuses the same value report the Research Terminal reads, the Technical Read card reuses the same Market Regime route Trading Research reads, and the Portfolio Overview section deliberately shows Engine 1's Portfolio Construction and Engine 3's Options Income account NEXT TO each other, never combined into one blended net-worth figure, since a target-weight stock model and a live options P&L ledger are structurally different things.",
+        "Who should use it, and when: any time you want a single symbol's cross-engine read (does the Investment Committee's fundamental verdict agree with the Trading Engine's technical regime?) without opening two separate pages, or when you want an at-a-glance portfolio-wide status across all three engines without searching anything.",
+      ],
+      whyItMatters: "Fundamental and technical views can genuinely disagree — a company the Investment Committee rates Buy might sit in a downtrend regime, or vice versa. Seeing both side by side, sourced from the same underlying routes every dedicated page already uses, is more informative than trusting either view alone.",
+      difficulty: "beginner",
+      whyItExists: "Command Centre answers 'what needs my attention across everything I already own?' — Institutional Dashboard answers a different question: 'for this ONE symbol, what does every engine independently say?' Building it required zero new engine calculations; it's a pure composition layer over already-shipped routes.",
+      institutionalThinking: "A professional desk cross-checks a fundamental view against a technical one before acting — agreement between the two is a stronger signal than either alone, and disagreement is itself useful information worth investigating rather than ignoring. A common retail mistake is trusting only whichever view happens to be open on screen at the moment.",
+      screenWalkthrough: [
+        "Symbol search box — type a ticker to populate every per-symbol card below; the always-visible Portfolio Overview and Risk/Journal/Backtest row need no search at all.",
+        "Cross-Engine Verdict grid — Engine 1's Investment Committee card (consolidated verdict, agreement signal, confidence) next to Engine 2's Technical Read card (Market Regime label, confidence), fetched independently and concurrently — one engine's failure never blocks the other's card from rendering.",
+        "Macro/Regime Side-by-Side — three cards for the same searched symbol's day: Engine 3's Market Briefing (regime, VIX, headline), Engine 1's Macro Context (rate regime), and Engine 2's Market Regime — each labeled by its own originating engine, never merged into one consolidated macro read.",
+        "Signal cards grid — condensed Market Structure, Multi-Timeframe, Market Regime, Probability, and Liquidity cards, each linking out to the full Trading Research page for its own deeper detail.",
+        "Portfolio Overview — Engine 1's Portfolio Construction summary (portfolio count, total holdings) and Engine 3's Options Income account summary (account value, total P&L, open positions) shown side by side, always visible whether or not a symbol is searched.",
+        "Portfolio Risk / Recent Journal / Recent Backtests row — each a condensed summary linking out to its own full page for management actions, never re-implementing that page's own CRUD or state logic here.",
+      ],
+      workflowSteps: [
+        "Open Institutional Dashboard from the sidebar.",
+        "Review the always-visible Portfolio Overview and Risk/Journal/Backtest row first — this needs no symbol search.",
+        "Search a symbol you're evaluating.",
+        "Compare the Investment Committee's verdict against the Technical Read's regime label — note whether they agree or diverge.",
+        "Check the Macro/Regime Side-by-Side cards for broader context before acting on either engine's verdict alone.",
+        "Follow a signal card's link to Trading Research if you need the full, uncondensed detail behind it.",
+      ],
+      metricsExplained: [
+        { term: "Investment Committee Agreement", explanation: "unanimous / majority / split / insufficient-data — reused directly from Engine 1's own Investment Committee, never recomputed here." },
+        { term: "Market Regime Label", explanation: "Engine 2's own trending-bullish / trending-bearish / range-bound / volatile-choppy / quiet-consolidation classification, reused directly from the Technical Read card's own source route." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Fundamental and technical views agree",
+          steps: [
+            "Investment Committee card shows a 'Buy' consolidated verdict with unanimous agreement.",
+            "Technical Read card shows a 'trending-bullish' regime with high confidence.",
+            "Both signal cards below (Structure, Multi-Timeframe) also read uptrend/aligned.",
+          ],
+          note: "Agreement between the fundamental and technical view is a stronger combined signal than either read alone — still not a guarantee, only a better-corroborated one.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "The two views genuinely diverge",
+          steps: [
+            "Investment Committee card shows a 'Buy' verdict with majority agreement.",
+            "Technical Read card shows a 'range-bound' regime — no clear directional edge right now.",
+          ],
+          note: "This is exactly the kind of disagreement worth investigating rather than picking whichever view is more convenient — a good long-term fundamental case can still sit through a directionless technical stretch.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Both views read poorly, and Portfolio Risk already shows elevated exposure",
+          steps: [
+            "Investment Committee card shows a 'Wait' verdict with split agreement.",
+            "Technical Read card shows a 'volatile-choppy' regime.",
+            "The always-visible Portfolio Risk summary row already reads elevated before this symbol is even added.",
+          ],
+          note: "Reviewing the always-visible Portfolio Risk row before searching a new candidate — not after — is the disciplined order of operations this page is built to support.",
+        },
+      ],
+      commonMistakes: [
+        "Treating a single engine's card as the whole answer when the other engine's card is sitting right next to it, showing something different.",
+        "Assuming the Portfolio Overview section blends Engine 1 and Engine 3 into one number — it deliberately never does.",
+        "Searching a new symbol before reviewing the always-visible Portfolio Overview and Risk row that need no search at all.",
+      ],
+      riskWarnings: [
+        "Every card here is a read of already-computed, deterministic data — never a live market prediction, and never an execution recommendation.",
+        "Engine 1's and Engine 2's cards can genuinely disagree; neither is authoritative over the other, and the page never resolves the disagreement for you.",
+      ],
+      bestPractices: [
+        "Check the always-visible Portfolio Overview and Risk/Journal/Backtest row at the start of a session, before searching anything.",
+        "When the two engines' verdicts diverge, investigate why via each engine's own full page rather than picking whichever view you prefer.",
+      ],
+      relatedModuleHrefs: ["/institutional-dashboard", "/command-center", "/research-terminal", "/trading-research", "/portfolio-ai"],
+      aiCoachPrompts: [
+        "Why do the Investment Committee and Technical Read disagree on this symbol?",
+        "Explain my Portfolio Overview section.",
+        "What does the Macro/Regime Side-by-Side section actually compare?",
+      ],
+      relatedGlossaryKeys: ["portfolio-health", "concentration", "portfolio-construction", "capital-allocation"],
+      nextStepKeys: ["ai-coach-overview"],
+      guidedTourRequired: false,
+      externalHref: "/institutional-dashboard",
+      estimatedMinutes: 7,
+      knowledgeCheck: [
+        {
+          prompt: "Does Institutional Dashboard's Portfolio Overview section blend Engine 1 and Engine 3 into one net-worth number?",
+          options: ["Yes, always", "No — they're shown side by side, never combined", "Only when both have open positions", "Only for paper accounts"],
+          correctIndex: 1,
+          explanation: "A target-weight stock model (Engine 1) and a live options P&L ledger (Engine 3) are structurally different things, so they're deliberately never blended into one figure.",
+        },
+        {
+          prompt: "What happens if Engine 1's Investment Committee card fails to resolve for a searched symbol?",
+          options: ["The whole page fails to load", "Engine 2's Technical Read card still renders independently", "Engine 2's card is also blocked", "The page falls back to Command Centre"],
+          correctIndex: 1,
+          explanation: "The two cards are fetched independently and concurrently — one engine's failure never blocks the other's card from rendering.",
+        },
+        {
+          prompt: "Which section of Institutional Dashboard requires no symbol search at all?",
+          options: ["The Cross-Engine Verdict grid", "The Macro/Regime Side-by-Side cards", "Portfolio Overview and the Risk/Journal/Backtest row", "The Signal cards grid"],
+          correctIndex: 2,
+          explanation: "Portfolio Overview and the Risk/Journal/Backtest summary row are always visible, whether or not a symbol has been searched.",
+        },
+        {
+          prompt: "What does an 'unanimous' Investment Committee agreement signal mean?",
+          options: ["The AI is very confident", "All three underlying analysts (Graham, Buffett, Tom Nash) independently reached the same conclusion", "The stock price hasn't moved recently", "The trade was auto-executed"],
+          correctIndex: 1,
+          explanation: "Agreement is reused directly from Engine 1's own Investment Committee module — it reflects how many of the three independent analysts actually agree, never a fabricated confidence score.",
+        },
+        {
+          prompt: "If the Investment Committee reads 'Buy' but the Technical Read shows 'range-bound,' what is the institutionally disciplined response?",
+          options: ["Ignore the Technical Read since fundamentals matter more", "Investigate the disagreement rather than picking whichever view is convenient", "Automatically trust the more recent card", "Close the page and try a different symbol"],
+          correctIndex: 1,
+          explanation: "Divergence between the two engines is itself useful information — the lesson explicitly frames this as worth investigating, not resolving by picking a favorite.",
+        },
+        {
+          prompt: "Where does each Signal card (Structure, Multi-Timeframe, Regime, Probability, Liquidity) link out to for deeper detail?",
+          options: ["Command Centre", "Trading Research", "Portfolio AI", "The Learning Centre"],
+          correctIndex: 1,
+          explanation: "Each condensed Signal card on Institutional Dashboard links to the full Trading Research page rather than re-implementing that page's own deeper detail here.",
+        },
+      ],
+    }),
+    topic({
+      key: "ai-coach-overview",
+      title: "AI Coach",
+      summary: "A grounded chat assistant that explains YOUR own data — never a live market prediction or an execution recommendation.",
+      body: [
+        "AI Coach (/assistant) is a chat interface with mode selection (Auto-detect, Explain Trade, Teach Greeks, Risk Coach, Strategy Coach, Value Research, Quiz Me) and a Beginner/Advanced depth toggle — every answer is grounded in your own already-computed platform data, plus a persisted chat history so you can pick up where you left off.",
+        "Two quick-action buttons ('Explain latest trade', 'Quiz me') and a Reference Cards strip (plain-English definitions for Delta, Theta, Gamma, Vega, POP, and EV) sit above the chat itself, alongside a Recent Lessons row surfacing Learning Centre content relevant to what you've been asking about.",
+        "The chat can be interrupted mid-answer with a Stop button, and if a request genuinely fails, an honest error message appears in the transcript rather than a fabricated answer — this coach never invents a fact it can't ground in your own data.",
+      ],
+      whyItMatters: "A coach that only answers from your own already-computed data — never a live prediction, never a fabricated fact — is safe to lean on for explanation without it ever becoming an execution recommendation.",
+      difficulty: "beginner",
+      whyItExists: "Every page in this platform shows numbers, but not every user wants to look up what each number means separately — AI Coach exists so you can just ask, in plain language, and get an answer grounded in the same data the page itself already computed.",
+      institutionalThinking: "A disciplined trader treats an AI explanation the same way they'd treat a junior analyst's explanation of a report: useful for understanding WHY a number looks the way it does, never a substitute for your own judgment about what to DO next. A common mistake is treating a coach's explanation as an implicit trade recommendation, when it's explicitly never that.",
+      screenWalkthrough: [
+        "Mode selector — Auto-detect (the coach infers what you're asking about), or pick a specific mode: Explain Trade, Teach Greeks, Risk Coach, Strategy Coach, Value Research, Quiz Me.",
+        "Depth toggle — Beginner or Advanced, adjusting how much background the coach assumes you already know.",
+        "Quick-action buttons — 'Explain latest trade' and 'Quiz me,' one click each, no typing required.",
+        "Reference Cards strip — Δ (Delta), Θ (Theta), Γ (Gamma), V (Vega), POP, and EV, each a short plain-English definition, always visible above the chat.",
+        "Recent Lessons row — Learning Centre lessons relevant to your recent questions, so you can go deeper than a chat answer alone provides.",
+        "The chat itself — your message, a streamed reply, a Stop button while a reply is in progress, and an honest error turn if a request genuinely fails.",
+      ],
+      workflowSteps: [
+        "Open AI Coach from the sidebar.",
+        "Pick a mode if you know what you're asking about, or leave it on Auto-detect.",
+        "Set the depth toggle to match your own familiarity with the topic.",
+        "Ask a question, or use one of the quick-action buttons.",
+        "Use Stop if you want to interrupt a reply that's already answered your real question.",
+        "Follow a Recent Lessons link if you want the full depth behind a chat answer.",
+      ],
+      metricsExplained: [
+        { term: "Delta / Theta / Gamma / Vega", explanation: "The four Greeks explained in the Reference Cards strip — the same terms Greeks Tutor and Delta Masterclass teach in full depth; AI Coach's cards are a quick-reference summary, not a replacement for those dedicated lessons." },
+        { term: "POP / EV", explanation: "Probability of Profit and Expected Value — the same figures the Trade Execution Center's own AI Score step shows, summarized here for quick reference." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A grounded, well-scoped question",
+          steps: [
+            "You ask 'Explain my latest trade' using the quick-action button.",
+            "The coach's reply references your actual most recent trade's own already-computed figures (credit, max profit, max loss).",
+          ],
+          note: "This is the ideal use: a specific question the coach can genuinely ground in your own data, answered without inventing anything.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "A broader conceptual question",
+          steps: [
+            "You switch to Teach Greeks mode and ask 'Why does Theta decay accelerate near expiration?'",
+            "The coach answers from general options mechanics rather than your own specific position data.",
+          ],
+          note: "A conceptual question is answered from established option mechanics, not your live portfolio — still grounded, just in a different kind of already-known fact.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Asking for something the coach genuinely cannot know",
+          steps: [
+            "You ask 'What will this stock do tomorrow?'",
+            "The coach explains it cannot predict future price movement and redirects you to what it CAN ground an answer in — your own already-computed data.",
+          ],
+          note: "A coach that admits what it doesn't know, rather than fabricating an answer, is the entire point of grounding every reply in already-computed data.",
+        },
+      ],
+      commonMistakes: [
+        "Treating a coach explanation as an implicit trade recommendation — it's explicitly never that.",
+        "Not adjusting the depth toggle, then getting either an overly basic or overly technical answer for your own level.",
+        "Ignoring the Recent Lessons row when a chat answer leaves you wanting the fuller lesson behind it.",
+      ],
+      riskWarnings: [
+        "AI Coach never predicts future price movement, and never issues an execution recommendation — every answer is grounded in your own already-computed data or established educational mechanics.",
+        "If a request fails, the chat shows an honest error turn rather than a fabricated answer — treat a missing reply as 'try again,' never as 'nothing to explain here.'",
+      ],
+      bestPractices: [
+        "Use the quick-action buttons for the two most common questions before typing a custom one.",
+        "Switch modes deliberately when you know what you're asking about, rather than always leaving it on Auto-detect.",
+        "Follow up a useful chat answer with its related Recent Lessons entry for the full depth.",
+      ],
+      relatedModuleHrefs: ["/assistant", "/learn/greeks", "/learn/quiz", "/lessons"],
+      aiCoachPrompts: ["What modes does AI Coach support?", "How is a coach answer different from a live prediction?"],
+      relatedGlossaryKeys: ["delta", "theta", "gamma", "vega", "simulated-vs-live"],
+      nextStepKeys: ["learning-centre-overview"],
+      guidedTourRequired: false,
+      externalHref: "/assistant",
+      estimatedMinutes: 6,
+      knowledgeCheck: [
+        {
+          prompt: "What is AI Coach's Auto-detect mode?",
+          options: ["A mode that only works for Greeks questions", "A mode where the coach infers what you're asking about instead of you picking a specific mode", "A mode that auto-executes trades", "A setting that disables the chat entirely"],
+          correctIndex: 1,
+          explanation: "Auto-detect lets the coach infer your intent rather than requiring you to manually select Explain Trade, Teach Greeks, Risk Coach, Strategy Coach, Value Research, or Quiz Me first.",
+        },
+        {
+          prompt: "What happens when you ask AI Coach a question it genuinely cannot answer, like a future price prediction?",
+          options: ["It fabricates a plausible-sounding answer", "It honestly explains it cannot predict that and redirects to what it can ground an answer in", "It silently returns nothing", "It automatically switches to Risk Coach mode"],
+          correctIndex: 1,
+          explanation: "Every AI Coach answer is grounded in your own already-computed data or established mechanics — never a live market prediction, and it says so plainly rather than inventing an answer.",
+        },
+        {
+          prompt: "What does the Stop button in the chat do?",
+          options: ["Deletes your chat history", "Interrupts a reply that's already in progress", "Logs you out", "Switches the coach to a different mode"],
+          correctIndex: 1,
+          explanation: "The Stop button lets you interrupt a streaming reply mid-answer once it's already answered your real question.",
+        },
+        {
+          prompt: "What appears in the transcript if a chat request genuinely fails?",
+          options: ["A fabricated best-guess answer", "An honest error turn", "The chat silently retries forever", "The page reloads automatically"],
+          correctIndex: 1,
+          explanation: "AI Coach never invents a fact it can't ground in your own data — a genuine failure shows an honest error message in the transcript instead.",
+        },
+        {
+          prompt: "What does the Reference Cards strip show?",
+          options: ["Your open trades", "Plain-English definitions for Delta, Theta, Gamma, Vega, POP, and EV", "A list of recent broker orders", "Your saved Learning Centre bookmarks"],
+          correctIndex: 1,
+          explanation: "The Reference Cards strip is a quick-reference summary of six commonly-referenced terms, always visible above the chat itself.",
+        },
+      ],
     }),
     topic({
       key: "learning-centre-overview",

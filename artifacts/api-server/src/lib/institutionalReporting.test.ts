@@ -387,6 +387,7 @@ describe("institutionalReporting.ts — buildAiCoachLearningSummaryReport", () =
       completedGlossaryKeys: [],
       completedStrategyKeys: [],
       completedCoachKeys: [],
+      completedKnowledgeCheckKeys: [],
       viewedStrategyKeys: [],
       bookmarks: [],
     };

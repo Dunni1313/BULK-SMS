@@ -3197,7 +3197,13 @@ export const GetLearningPathsResponseItem = zod.object({
   "relatedModuleHrefs": zod.array(zod.string()).optional(),
   "aiCoachPrompts": zod.array(zod.string()).optional(),
   "nextStepKeys": zod.array(zod.string()).optional(),
-  "guidedTourRequired": zod.boolean().optional()
+  "guidedTourRequired": zod.boolean().optional(),
+  "knowledgeCheck": zod.array(zod.object({
+  "prompt": zod.string(),
+  "options": zod.array(zod.string()),
+  "correctIndex": zod.number(),
+  "explanation": zod.string()
+})).optional()
 }))
 })
 export const GetLearningPathsResponse = zod.array(GetLearningPathsResponseItem)
@@ -3251,7 +3257,13 @@ export const GetLearningPathByKeyResponse = zod.object({
   "relatedModuleHrefs": zod.array(zod.string()).optional(),
   "aiCoachPrompts": zod.array(zod.string()).optional(),
   "nextStepKeys": zod.array(zod.string()).optional(),
-  "guidedTourRequired": zod.boolean().optional()
+  "guidedTourRequired": zod.boolean().optional(),
+  "knowledgeCheck": zod.array(zod.object({
+  "prompt": zod.string(),
+  "options": zod.array(zod.string()),
+  "correctIndex": zod.number(),
+  "explanation": zod.string()
+})).optional()
 }))
 })
 
@@ -3403,7 +3415,7 @@ export const GetLearningProgressResponse = zod.object({
   "latestPercent": zod.number()
 }),
   "recentHistory": zod.array(zod.object({
-  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach', 'knowledge-check']),
   "itemKey": zod.string(),
   "viewedAt": zod.string(),
   "completedAt": zod.string().nullable()
@@ -3412,9 +3424,10 @@ export const GetLearningProgressResponse = zod.object({
   "completedGlossaryKeys": zod.array(zod.string()),
   "completedStrategyKeys": zod.array(zod.string()),
   "completedCoachKeys": zod.array(zod.string()),
+  "completedKnowledgeCheckKeys": zod.array(zod.string()),
   "viewedStrategyKeys": zod.array(zod.string()),
   "bookmarks": zod.array(zod.object({
-  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach', 'knowledge-check']),
   "itemKey": zod.string(),
   "bookmarkedAt": zod.string()
 }))
@@ -3425,7 +3438,7 @@ export const GetLearningProgressResponse = zod.object({
  * @summary Record that the calling user viewed a lesson, glossary term, path, or strategy — the only mutation this sprint introduces.
  */
 export const RecordLearningItemViewedBody = zod.object({
-  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach', 'knowledge-check']),
   "itemKey": zod.string()
 })
 
@@ -3438,7 +3451,7 @@ export const RecordLearningItemViewedResponse = zod.object({
  * @summary Record that the calling user completed a lesson, glossary term, path, or strategy.
  */
 export const RecordLearningItemCompletedBody = zod.object({
-  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach', 'knowledge-check']),
   "itemKey": zod.string()
 })
 
@@ -3451,7 +3464,7 @@ export const RecordLearningItemCompletedResponse = zod.object({
  * @summary v1.4.0, Sprint L1 — Learning Centre Foundation. Set or clear a bookmark on a lesson, glossary term, path, strategy, or coach explanation. Reuses the existing learning_progress upsert shape — a bookmark is an attribute of an existing progress row, never a new table or item type.
  */
 export const RecordLearningBookmarkBody = zod.object({
-  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach']),
+  "itemType": zod.enum(['lesson', 'glossary', 'path', 'strategy', 'coach', 'knowledge-check']),
   "itemKey": zod.string(),
   "bookmarked": zod.boolean()
 })

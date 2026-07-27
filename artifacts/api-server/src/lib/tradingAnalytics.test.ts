@@ -84,6 +84,7 @@ function emptyLearningProgress(): LearningProgressSummary {
     completedGlossaryKeys: [],
     completedStrategyKeys: [],
     completedCoachKeys: [],
+    completedKnowledgeCheckKeys: [],
     viewedStrategyKeys: [],
     bookmarks: [],
   };

@@ -131,6 +131,15 @@ describe("learning path content", () => {
       "/learn/paths/institutional-investing",
       "/learn/paths/trading-engine",
       "/learn/paths/options-income-engine",
+      // v1.4.0, Sprint L2B — Cross-Engine & Portfolio Hubs. Every route
+      // this sprint's own 4 new/expanded module-guide topics point to,
+      // confirmed by direct inspection of App.tsx before this content was
+      // written.
+      "/assistant",
+      "/portfolio-ai",
+      "/institutional-mentor",
+      "/learn/quiz",
+      "/lessons",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -143,15 +152,21 @@ describe("learning path content", () => {
   });
 });
 
-// v1.4.0, Sprint L1 — Learning Centre Foundation.
-describe("platform-basics path — the first 3 foundation lessons, and the template for future rich lessons", () => {
+// v1.4.0, Sprint L1 — Learning Centre Foundation. Sprint L2A upgraded
+// command-centre-overview in place; Sprint L2B inserted 2 further module
+// guides (institutional-dashboard-overview, ai-coach-overview) between it
+// and learning-centre-overview — a disclosed, intentional expansion from 3
+// to 5 topics, not a regression of the original 3.
+describe("platform-basics path — the foundation lessons, and the template for future rich lessons", () => {
   const path = getLearningPath("platform-basics")!;
 
-  it("exists with exactly the 3 approved foundation topics, in curriculum order", () => {
+  it("exists with exactly the 5 approved foundation topics, in curriculum order", () => {
     expect(path).not.toBeNull();
     expect(path.topics.map((t) => t.key)).toEqual([
       "platform-basics-navigation",
       "command-centre-overview",
+      "institutional-dashboard-overview",
+      "ai-coach-overview",
       "learning-centre-overview",
     ]);
   });
@@ -175,9 +190,11 @@ describe("platform-basics path — the first 3 foundation lessons, and the templ
     }
   });
 
-  it("chains correctly: navigation -> command centre -> learning centre overview -> end", () => {
+  it("chains correctly: navigation -> command centre -> institutional dashboard -> AI coach -> learning centre overview -> end", () => {
     expect(getLearningTopic("platform-basics", "platform-basics-navigation")!.nextStepKeys).toEqual(["command-centre-overview"]);
-    expect(getLearningTopic("platform-basics", "command-centre-overview")!.nextStepKeys).toEqual(["learning-centre-overview"]);
+    expect(getLearningTopic("platform-basics", "command-centre-overview")!.nextStepKeys).toEqual(["institutional-dashboard-overview"]);
+    expect(getLearningTopic("platform-basics", "institutional-dashboard-overview")!.nextStepKeys).toEqual(["ai-coach-overview"]);
+    expect(getLearningTopic("platform-basics", "ai-coach-overview")!.nextStepKeys).toEqual(["learning-centre-overview"]);
     expect(getLearningTopic("platform-basics", "learning-centre-overview")!.nextStepKeys).toEqual([]);
   });
 
@@ -185,12 +202,22 @@ describe("platform-basics path — the first 3 foundation lessons, and the templ
     // v1.4.0, Sprint L2A — Interactive Module Guides deepened one
     // pre-existing topic in place (investing-research-terminal, the
     // Institutional Investing Engine's own module guide) and added 2 brand
-    // new ones (trading-engine-overview, options-income-engine-overview) —
-    // a disclosed, intentional expansion of rich content, not a regression.
-    // Every OTHER topic — including every other topic in
-    // institutional-investing and trading-engine themselves — remains
+    // new ones (trading-engine-overview, options-income-engine-overview).
+    // v1.4.0, Sprint L2B — Cross-Engine & Portfolio Hubs added 2 further
+    // topics OUTSIDE platform-basics: portfolio-ai-overview (a new second
+    // topic in options-income-engine) and investing-institutional-mentor (a
+    // new final topic in institutional-investing). platform-basics' own 2
+    // new topics (institutional-dashboard-overview, ai-coach-overview) are
+    // already excluded below via the pathKey filter, same as
+    // command-centre-overview always was. Every OTHER topic remains
     // completely untouched, proven below.
-    const richContentKeys = new Set(["investing-research-terminal", "trading-engine-overview", "options-income-engine-overview"]);
+    const richContentKeys = new Set([
+      "investing-research-terminal",
+      "trading-engine-overview",
+      "options-income-engine-overview",
+      "portfolio-ai-overview",
+      "investing-institutional-mentor",
+    ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
@@ -201,8 +228,17 @@ describe("platform-basics path — the first 3 foundation lessons, and the templ
     }
   });
 
-  it("Sprint L2A's own 3 module-guide topics (command-centre-overview plus the 2 above) each populate the full rich-content shape", () => {
-    const moduleGuideKeys = ["command-centre-overview", "investing-research-terminal", "trading-engine-overview", "options-income-engine-overview"];
+  it("Sprint L2A's and L2B's own module-guide topics each populate the full rich-content shape", () => {
+    const moduleGuideKeys = [
+      "command-centre-overview",
+      "investing-research-terminal",
+      "trading-engine-overview",
+      "options-income-engine-overview",
+      "institutional-dashboard-overview",
+      "ai-coach-overview",
+      "portfolio-ai-overview",
+      "investing-institutional-mentor",
+    ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
       expect(topic.difficulty).toBeDefined();

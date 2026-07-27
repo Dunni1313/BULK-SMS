@@ -15934,6 +15934,13 @@ components:
             type: string
         guidedTourRequired:
           type: boolean
+        # v1.4.0, Sprint L2B — Interactive Module Guides (Cross-Engine &
+        # Portfolio Hubs). A lightweight, lesson-level Knowledge Check.
+        # Optional and additive.
+        knowledgeCheck:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningTopicQuizQuestion"
 
     LearningTopicMetricExplained:
       type: object
@@ -15960,6 +15967,28 @@ components:
         # label (e.g. "Good Opportunity") for the plural workedExamples
         # field on LearningTopic — never set on the older singular usage.
         label:
+          type: string
+
+    # v1.4.0, Sprint L2B — Interactive Module Guides (Cross-Engine &
+    # Portfolio Hubs). Deliberately the same shape as LearnQuizQuestion
+    # (this spec's own pre-existing DeltaMasterclass quiz schema) — no new
+    # quiz engine, reusing the same rendering pattern via the shared
+    # QuizCard component — but declared separately, matching this file's
+    # own precedent of never cross-referencing a type across the two
+    # independent lesson-content domains.
+    LearningTopicQuizQuestion:
+      type: object
+      required: [prompt, options, correctIndex, explanation]
+      properties:
+        prompt:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctIndex:
+          type: integer
+        explanation:
           type: string
 
     LearningPath:
@@ -16135,7 +16164,7 @@ components:
       properties:
         itemType:
           type: string
-          enum: [lesson, glossary, path, strategy, coach]
+          enum: [lesson, glossary, path, strategy, coach, knowledge-check]
         itemKey:
           type: string
         viewedAt:
@@ -16160,6 +16189,7 @@ components:
           completedGlossaryKeys,
           completedStrategyKeys,
           completedCoachKeys,
+          completedKnowledgeCheckKeys,
           viewedStrategyKeys,
           bookmarks,
         ]
@@ -16202,6 +16232,10 @@ components:
           type: array
           items:
             type: string
+        completedKnowledgeCheckKeys:
+          type: array
+          items:
+            type: string
         viewedStrategyKeys:
           type: array
           items:
@@ -16217,7 +16251,7 @@ components:
       properties:
         itemType:
           type: string
-          enum: [lesson, glossary, path, strategy, coach]
+          enum: [lesson, glossary, path, strategy, coach, knowledge-check]
         itemKey:
           type: string
 
@@ -16228,7 +16262,7 @@ components:
       properties:
         itemType:
           type: string
-          enum: [lesson, glossary, path, strategy, coach]
+          enum: [lesson, glossary, path, strategy, coach, knowledge-check]
         itemKey:
           type: string
         bookmarkedAt:
@@ -16240,7 +16274,7 @@ components:
       properties:
         itemType:
           type: string
-          enum: [lesson, glossary, path, strategy, coach]
+          enum: [lesson, glossary, path, strategy, coach, knowledge-check]
         itemKey:
           type: string
         bookmarked:

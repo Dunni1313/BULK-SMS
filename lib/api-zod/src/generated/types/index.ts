@@ -416,6 +416,7 @@ export * from './learningStrategyPaperExample';
 export * from './learningTopic';
 export * from './learningTopicDifficulty';
 export * from './learningTopicMetricExplained';
+export * from './learningTopicQuizQuestion';
 export * from './learningTopicWorkedExample';
 export * from './learnQuizQuestion';
 export * from './learnSection';

@@ -7265,6 +7265,13 @@ export interface LearningTopicWorkedExample {
   label?: string;
 }
 
+export interface LearningTopicQuizQuestion {
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
 export interface LearningTopic {
   key: string;
   title: string;
@@ -7290,6 +7297,7 @@ export interface LearningTopic {
   aiCoachPrompts?: string[];
   nextStepKeys?: string[];
   guidedTourRequired?: boolean;
+  knowledgeCheck?: LearningTopicQuizQuestion[];
 }
 
 export type LearningPathGlossaryCategory = typeof LearningPathGlossaryCategory[keyof typeof LearningPathGlossaryCategory];
@@ -7395,6 +7403,7 @@ export const LearningHistoryEntryItemType = {
   path: 'path',
   strategy: 'strategy',
   coach: 'coach',
+  'knowledge-check': 'knowledge-check',
 } as const;
 
 export interface LearningHistoryEntry {
@@ -7414,6 +7423,7 @@ export const LearningBookmarkEntryItemType = {
   path: 'path',
   strategy: 'strategy',
   coach: 'coach',
+  'knowledge-check': 'knowledge-check',
 } as const;
 
 export interface LearningBookmarkEntry {
@@ -7436,6 +7446,7 @@ export interface LearningProgressSummary {
   completedGlossaryKeys: string[];
   completedStrategyKeys: string[];
   completedCoachKeys: string[];
+  completedKnowledgeCheckKeys: string[];
   viewedStrategyKeys: string[];
   bookmarks: LearningBookmarkEntry[];
 }
@@ -7449,6 +7460,7 @@ export const LearningProgressActionItemType = {
   path: 'path',
   strategy: 'strategy',
   coach: 'coach',
+  'knowledge-check': 'knowledge-check',
 } as const;
 
 export interface LearningProgressAction {
@@ -7465,6 +7477,7 @@ export const LearningBookmarkActionItemType = {
   path: 'path',
   strategy: 'strategy',
   coach: 'coach',
+  'knowledge-check': 'knowledge-check',
 } as const;
 
 export interface LearningBookmarkAction {

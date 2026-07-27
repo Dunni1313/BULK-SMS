@@ -15,4 +15,5 @@ export const LearningBookmarkEntryItemType = {
   path: 'path',
   strategy: 'strategy',
   coach: 'coach',
+  'knowledge-check': 'knowledge-check',
 } as const;
