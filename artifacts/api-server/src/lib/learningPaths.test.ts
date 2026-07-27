@@ -157,6 +157,16 @@ describe("learning path content", () => {
       "/monitoring-compliance-engine",
       "/events",
       "/daily-report",
+      // v1.4.0, Sprint L2F — Options Academy Foundations. The one genuinely
+      // new route this sprint's upgraded/new module-guide topics point to
+      // (a concrete symbol-shaped Option Chain URL, since App.tsx's own
+      // route is the dynamic "/options/:symbol"), confirmed by direct
+      // inspection of App.tsx before this content was written. Every other
+      // route this sprint references (/scanner, /trade-execution-center,
+      // /portfolio, /portfolio-ai, /portfolio-dashboard, /position-sizing,
+      // /stress-test, /event-risk, /concentration-risk, /options-dashboard,
+      // /learn/delta, /learn/greeks) was already present above.
+      "/options/SPY",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -253,6 +263,22 @@ describe("platform-basics path — the foundation lessons, and the template for 
     // into trading-engine right after trading-market-structure;
     // volume-profile-vwap, inserted right after trading-liquidity) — all 4
     // living in trading-engine, none in platform-basics.
+    // v1.4.0, Sprint L2F — Options Academy Foundations (the first Options
+    // Academy sprint). Investigation before writing any content discovered
+    // a substantial pre-existing options-education structure (foundations/
+    // greeks/volatility/strategies/portfolio/performance paths, all plain
+    // topics predating the Sprint L1+ rich-content pattern). This sprint
+    // deepened 2 further pre-existing plain topics in place
+    // (foundations-options — the Fundamentals module; greeks-portfolio-
+    // greeks — the Greeks module) and added 3 brand new topics
+    // (volatility-pricing-probability, appended to the volatility path;
+    // options-chain-contract-selection and options-risk-management, both
+    // appended to options-income-engine right after
+    // options-scanner-watchlists). volatility-hv also received a small,
+    // disclosed factual correction in place (still plain, key unchanged,
+    // not counted as rich content) — it previously implied IV-vs-HV
+    // comparison was a real platform feature; HV is confirmed computed
+    // nowhere in the codebase.
     // Every OTHER topic remains completely untouched, proven below.
     const richContentKeys = new Set([
       "investing-research-terminal",
@@ -271,18 +297,23 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "trading-liquidity",
       "volume-profile-vwap",
       "trading-risk-management",
+      "foundations-options",
+      "greeks-portfolio-greeks",
+      "volatility-pricing-probability",
+      "options-chain-contract-selection",
+      "options-risk-management",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
-    expect(stillPlainTopics.length).toBe(61);
+    expect(stillPlainTopics.length).toBe(59);
     for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
     }
   });
 
-  it("Sprint L2A/L2B/L2C/L2D/L2E's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -304,6 +335,11 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "trading-liquidity",
       "volume-profile-vwap",
       "trading-risk-management",
+      "foundations-options",
+      "greeks-portfolio-greeks",
+      "volatility-pricing-probability",
+      "options-chain-contract-selection",
+      "options-risk-management",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
