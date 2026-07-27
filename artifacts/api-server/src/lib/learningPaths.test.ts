@@ -244,6 +244,15 @@ describe("platform-basics path — the foundation lessons, and the template for 
     // sprint's 3rd new topic) lives in platform-basics and is already
     // excluded below via the pathKey filter, same as
     // institutional-dashboard-overview/ai-coach-overview always were.
+    // v1.4.0, Sprint L2E — Trading Academy Foundations (the first Trading
+    // Academy sprint, distinct from the prior Platform Academy sprints)
+    // deepened 2 further pre-existing plain topics in place
+    // (trading-liquidity, trading-risk-management — both already existed
+    // as short/plain topics matching 2 of the 4 requested modules) and
+    // added 2 brand new topics (market-structure-fundamentals, inserted
+    // into trading-engine right after trading-market-structure;
+    // volume-profile-vwap, inserted right after trading-liquidity) — all 4
+    // living in trading-engine, none in platform-basics.
     // Every OTHER topic remains completely untouched, proven below.
     const richContentKeys = new Set([
       "investing-research-terminal",
@@ -258,18 +267,22 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "investing-monitoring",
       "options-scanner-watchlists",
       "investing-research-workflow",
+      "market-structure-fundamentals",
+      "trading-liquidity",
+      "volume-profile-vwap",
+      "trading-risk-management",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
-    expect(stillPlainTopics.length).toBe(63);
+    expect(stillPlainTopics.length).toBe(61);
     for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
     }
   });
 
-  it("Sprint L2A/L2B/L2C/L2D's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D/L2E's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -287,6 +300,10 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "options-scanner-watchlists",
       "investing-research-workflow",
       "platform-settings-personalisation",
+      "market-structure-fundamentals",
+      "trading-liquidity",
+      "volume-profile-vwap",
+      "trading-risk-management",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
