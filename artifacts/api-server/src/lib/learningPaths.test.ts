@@ -148,6 +148,15 @@ describe("learning path content", () => {
       "/strategy-workbench",
       "/reporting-centre",
       "/learn/paths/strategy-framework",
+      // v1.4.0, Sprint L2D — Platform Operations Academy. Every route this
+      // sprint's own upgraded/new module-guide topics point to, confirmed
+      // by direct inspection of App.tsx before this content was written.
+      "/stock-analyst/scanner",
+      "/watchlists-engine",
+      "/stock-analyst",
+      "/monitoring-compliance-engine",
+      "/events",
+      "/daily-report",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -168,13 +177,14 @@ describe("learning path content", () => {
 describe("platform-basics path — the foundation lessons, and the template for future rich lessons", () => {
   const path = getLearningPath("platform-basics")!;
 
-  it("exists with exactly the 5 approved foundation topics, in curriculum order", () => {
+  it("exists with exactly the 6 approved foundation topics, in curriculum order", () => {
     expect(path).not.toBeNull();
     expect(path.topics.map((t) => t.key)).toEqual([
       "platform-basics-navigation",
       "command-centre-overview",
       "institutional-dashboard-overview",
       "ai-coach-overview",
+      "platform-settings-personalisation",
       "learning-centre-overview",
     ]);
   });
@@ -198,11 +208,12 @@ describe("platform-basics path — the foundation lessons, and the template for 
     }
   });
 
-  it("chains correctly: navigation -> command centre -> institutional dashboard -> AI coach -> learning centre overview -> end", () => {
+  it("chains correctly: navigation -> command centre -> institutional dashboard -> AI coach -> settings & personalisation -> learning centre overview -> end", () => {
     expect(getLearningTopic("platform-basics", "platform-basics-navigation")!.nextStepKeys).toEqual(["command-centre-overview"]);
     expect(getLearningTopic("platform-basics", "command-centre-overview")!.nextStepKeys).toEqual(["institutional-dashboard-overview"]);
     expect(getLearningTopic("platform-basics", "institutional-dashboard-overview")!.nextStepKeys).toEqual(["ai-coach-overview"]);
-    expect(getLearningTopic("platform-basics", "ai-coach-overview")!.nextStepKeys).toEqual(["learning-centre-overview"]);
+    expect(getLearningTopic("platform-basics", "ai-coach-overview")!.nextStepKeys).toEqual(["platform-settings-personalisation"]);
+    expect(getLearningTopic("platform-basics", "platform-settings-personalisation")!.nextStepKeys).toEqual(["learning-centre-overview"]);
     expect(getLearningTopic("platform-basics", "learning-centre-overview")!.nextStepKeys).toEqual([]);
   });
 
@@ -222,6 +233,17 @@ describe("platform-basics path — the foundation lessons, and the template for 
     // topics in place (trading-market-structure, strategy-framework-overview,
     // trading-journal-review) and added 1 brand new one
     // (trade-execution-order-management, a 3rd topic in options-income-engine).
+    // v1.4.0, Sprint L2D — Platform Operations Academy deepened 1 further
+    // pre-existing topic in place (investing-monitoring — its own body/
+    // whyItMatters/relatedGlossaryKeys/externalHref/estimatedMinutes fields
+    // stay, only the content within them was corrected/expanded) and added
+    // 2 brand new NON-platform-basics topics (options-scanner-watchlists, a
+    // 4th topic in options-income-engine; investing-research-workflow, a
+    // new topic inserted into institutional-investing right after
+    // investing-research-terminal). platform-settings-personalisation (this
+    // sprint's 3rd new topic) lives in platform-basics and is already
+    // excluded below via the pathKey filter, same as
+    // institutional-dashboard-overview/ai-coach-overview always were.
     // Every OTHER topic remains completely untouched, proven below.
     const richContentKeys = new Set([
       "investing-research-terminal",
@@ -233,18 +255,21 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "strategy-framework-overview",
       "trading-journal-review",
       "trade-execution-order-management",
+      "investing-monitoring",
+      "options-scanner-watchlists",
+      "investing-research-workflow",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
-    expect(stillPlainTopics.length).toBe(64);
+    expect(stillPlainTopics.length).toBe(63);
     for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
     }
   });
 
-  it("Sprint L2A/L2B/L2C's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -258,6 +283,10 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "strategy-framework-overview",
       "trading-journal-review",
       "trade-execution-order-management",
+      "investing-monitoring",
+      "options-scanner-watchlists",
+      "investing-research-workflow",
+      "platform-settings-personalisation",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
