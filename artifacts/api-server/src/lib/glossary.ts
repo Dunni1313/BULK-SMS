@@ -1324,6 +1324,16 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: [],
     relatedLessonKeys: ["workflow-weekly-monthly-review"],
   },
+
+  // ─── Certification & Masterclass Academy (v1.4.0, Sprint L2L) ──────────
+  {
+    key: "progress-tracking-vs-certification",
+    term: "Progress Tracking vs. Certification",
+    category: "platform",
+    definition: "Distinguishes what this platform's Learning Centre genuinely computes and persists — self-reported lesson completion, live per-path completion percentages, ungraded/ungated Knowledge Check completion, and two genuinely scored practice quizzes — from what does not exist anywhere in the codebase: no certificate issuance, no credential or badge system, and no pass/fail gate tying any of the above to an official 'certified' status. Every reference to certification on this platform is self-directed, educational guidance, never an issued credential.",
+    relatedTermKeys: ["llm-narration-source"],
+    relatedLessonKeys: ["certification-becoming-certified"],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {

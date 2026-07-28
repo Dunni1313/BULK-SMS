@@ -8,7 +8,7 @@ import { LEARNING_PATHS, getLearningPath, getLearningTopic, allLearningTopics } 
 import { getGlossaryTerm } from "./glossary.js";
 
 describe("learning path content", () => {
-  it("has exactly the 14 requested paths, in the requested order (v1.4.0 Sprint L2A adds options-income-engine; Sprint L2J adds ai-academy; Sprint L2K adds professional-workflows)", () => {
+  it("has exactly the 15 requested paths, in the requested order (v1.4.0 Sprint L2A adds options-income-engine; Sprint L2J adds ai-academy; Sprint L2K adds professional-workflows; Sprint L2L adds certification-masterclass)", () => {
     expect(LEARNING_PATHS.map((p) => p.key)).toEqual([
       "foundations",
       "greeks",
@@ -49,6 +49,15 @@ describe("learning path content", () => {
       // review) over already-taught platform features — never a new
       // capability of its own.
       "professional-workflows",
+      // v1.4.0, Sprint L2L — Certification & Masterclass Academy. The
+      // Learning Centre's own capstone: a recommended study sequence, an
+      // honest account of what "certification" means on this platform
+      // (self-directed progress, never an issued credential — no
+      // certification/credentialing engine exists anywhere in this
+      // codebase), and three synthesis masterclasses combining every prior
+      // academy's real, already-taught features — never a new capability
+      // of its own.
+      "certification-masterclass",
     ]);
   });
 
@@ -435,6 +444,17 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "workflow-portfolio-review",
       "workflow-options",
       "workflow-weekly-monthly-review",
+      // v1.4.0, Sprint L2L — Certification & Masterclass Academy. 6
+      // brand-new topics in the new certification-masterclass path. No
+      // existing topic's plain-vs-rich status changed this sprint — this
+      // academy composes and cross-references prior academies' own content
+      // rather than modifying any of it.
+      "certification-learning-roadmap",
+      "certification-becoming-certified",
+      "certification-trading-masterclass",
+      "certification-investing-masterclass",
+      "certification-options-masterclass",
+      "certification-continuous-development",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
@@ -446,7 +466,7 @@ describe("platform-basics path — the foundation lessons, and the template for 
     }
   });
 
-  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H/L2I/L2J/L2K's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H/L2I/L2J/L2K/L2L's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -505,6 +525,12 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "workflow-portfolio-review",
       "workflow-options",
       "workflow-weekly-monthly-review",
+      "certification-learning-roadmap",
+      "certification-becoming-certified",
+      "certification-trading-masterclass",
+      "certification-investing-masterclass",
+      "certification-options-masterclass",
+      "certification-continuous-development",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
