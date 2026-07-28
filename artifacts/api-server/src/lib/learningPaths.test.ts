@@ -167,6 +167,16 @@ describe("learning path content", () => {
       // /stress-test, /event-risk, /concentration-risk, /options-dashboard,
       // /learn/delta, /learn/greeks) was already present above.
       "/options/SPY",
+      // v1.4.0, Sprint L2H — Institutional Options Portfolio Management
+      // Academy. The one genuinely new route this sprint's new/upgraded
+      // module-guide topics point to (/portfolio-analyst was already a
+      // real, registered App.tsx route — App.tsx:178 — simply never
+      // referenced by any Learning Centre topic before now). Every other
+      // route this sprint references (/portfolio-ai, /portfolio,
+      // /trade-performance, /portfolio-dashboard, /concentration-risk,
+      // /position-sizing, /adjustments, /adjustment-preview,
+      // /institutional-mentor) was already present above.
+      "/portfolio-analyst",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -315,18 +325,32 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "strategies-iron-condor",
       "strategies-iron-butterfly",
       "strategies-calendar",
+      // v1.4.0, Sprint L2H — Institutional Options Portfolio Management
+      // Academy. 3 brand-new topics (portfolio-overview/
+      // portfolio-managing-positions/portfolio-ai-review-workflow) plus 2
+      // upgraded-in-place topics (portfolio-concentration/
+      // portfolio-position-sizing) — portfolio-health/
+      // portfolio-buying-power/portfolio-diversification/
+      // portfolio-correlation/portfolio-stress-testing/
+      // portfolio-event-risk and all of PERFORMANCE_PATH were correctly
+      // out of scope and remain plain.
+      "portfolio-overview",
+      "portfolio-concentration",
+      "portfolio-position-sizing",
+      "portfolio-managing-positions",
+      "portfolio-ai-review-workflow",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
-    expect(stillPlainTopics.length).toBe(54);
+    expect(stillPlainTopics.length).toBe(52);
     for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
     }
   });
 
-  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -361,6 +385,11 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "strategies-iron-condor",
       "strategies-iron-butterfly",
       "strategies-calendar",
+      "portfolio-overview",
+      "portfolio-concentration",
+      "portfolio-position-sizing",
+      "portfolio-managing-positions",
+      "portfolio-ai-review-workflow",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
