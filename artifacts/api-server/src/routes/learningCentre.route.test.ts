@@ -69,7 +69,7 @@ describe("Learning Centre routes (live, real Postgres)", () => {
   });
 
   describe("GET /learning-centre/paths", () => {
-    it("returns all 12 learning paths", async () => {
+    it("returns all 13 learning paths", async () => {
       const res = await get("/learning-centre/paths");
       expect(res.status).toBe(200);
       const body = (await res.json()) as { key: string }[];
@@ -79,7 +79,9 @@ describe("Learning Centre routes (live, real Postgres)", () => {
       // v1.4.0, Sprint L1 — Learning Centre Foundation added a "platform-basics" path.
       // v1.4.0, Sprint L2A — Interactive Module Guides added an
       // "options-income-engine" path.
-      expect(body).toHaveLength(12);
+      // v1.4.0, Sprint L2J — AI Coach & Institutional Mentor Academy added
+      // an "ai-academy" path.
+      expect(body).toHaveLength(13);
     });
   });
 
@@ -185,7 +187,9 @@ describe("Learning Centre routes (live, real Postgres)", () => {
       // v1.4.0, Sprint L1 — Learning Centre Foundation added a "platform-basics" path.
       // v1.4.0, Sprint L2A — Interactive Module Guides added an
       // "options-income-engine" path.
-      expect(body.pathCompletion).toHaveLength(12);
+      // v1.4.0, Sprint L2J — AI Coach & Institutional Mentor Academy added
+      // an "ai-academy" path.
+      expect(body.pathCompletion).toHaveLength(13);
       expect(typeof body.greeksQuiz.totalAttempts).toBe("number");
       expect(typeof body.valueQuiz.totalAttempts).toBe("number");
     });
