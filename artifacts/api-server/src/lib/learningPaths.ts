@@ -710,15 +710,522 @@ const STRATEGIES_PATH: LearningPath = {
   description: "How individual option legs combine into defined, repeatable structures — full detail lives in the Strategy Academy.",
   glossaryCategory: "strategies",
   topics: [
+    // v1.4.0, Sprint L2G — Options Strategies Academy. NEW topic. Long Call
+    // is genuinely not built, priced, scanned, or order-routable anywhere
+    // in this platform — execution.ts's Strategy union is exhaustively
+    // "iron_condor" | "iron_fly" | "calendar_spread" | "earnings"
+    // (execution.ts:51), and Scanner.tsx's own filter offers exactly those
+    // four values. This lesson teaches the real, standard options-theory
+    // mechanics of buying a call while being explicit that the only real
+    // platform grounding available is viewing a specific contract's live
+    // Delta/Theta/IV/Bid/Mid/Ask on the Option Chain page — never a
+    // fabricated "how to trade a long call on this platform" workflow.
+    topic({
+      key: "strategies-long-call",
+      title: "Long Call: Buying Upside Directly",
+      summary: "Pay a premium for the right to buy stock at a fixed price — defined risk, open-ended upside, and a real look at why this platform doesn't build or price it as a standalone trade.",
+      body: [
+        "A long call is the simplest directional options strategy: you pay a premium to buy the right (not the obligation) to purchase 100 shares at the strike price, any time before expiration. Market outlook: bullish — you profit as the stock rises above your breakeven. Maximum loss is defined and known in advance: the entire premium you paid, and nothing more (no margin call, no unlimited downside) — if the stock never reaches your strike, the call simply expires worthless. Maximum profit is theoretically open-ended, since a stock's price has no upper cap, though in practice every real trade is closed well before that theoretical ceiling matters.",
+        "Breakeven at expiration is strike price plus premium paid, per share. A $100-strike call bought for $3.00 needs the stock above $103 at expiration just to break even — everything above that is profit, everything below is a partial or total loss of the premium. This is why 'being right on direction' is necessary but not sufficient: the stock also has to move far enough, and fast enough, to clear both the strike and the premium you paid.",
+        "The Greeks behave in a very specific way for a long call, and this platform's own live Option Chain (see Platform Implementation below) shows them for real, per strike: Delta is positive and grows as the stock rises and the option moves further in-the-money — a deep ITM call can behave almost like owning 100 shares outright (a 'stock-replacement' trade), while a far out-of-the-money call has low delta and needs a large move just to start responding meaningfully. Theta is negative — every long option loses value to time decay, and that decay accelerates as expiration approaches, working against you even if your directional view is eventually correct. Vega is positive — a long call gains value from rising implied volatility and loses value if IV collapses, which is exactly what tends to happen right after an anticipated catalyst (like earnings) resolves, even when the stock moves in your favor.",
+        "Risk profile: this is a defined-risk position by construction — the most you can ever lose is the premium paid, full stop. There is no assignment risk on the buyer's side (you hold the right, you're never obligated), and no naked/uncovered exposure of the kind this platform's own execution engine structurally blocks for every trade it does build. That said, defined risk does not mean low risk: losing 100% of the premium on a single trade is a common, real outcome for an OTM call that expires worthless, and doing that repeatedly is a fast way to erode an account even though no single trade technically has 'unlimited' downside.",
+        "Platform implementation, stated plainly: this platform's own scanner and execution engine do not build, price, scan for, or route an order for a standalone long call — it is not one of the four strategies execution.ts's own Strategy type supports (iron_condor, iron_fly, calendar_spread, earnings). There is no 'buy a call' button anywhere in this platform. What is real: the Option Chain page shows live, per-strike Delta, Theta, IV, and Bid/Mid/Ask pricing for every call at every strike in the current expiration — you can use it to see exactly what a specific long call would actually cost and how its Greeks look before ever placing a trade elsewhere. And the Options Fundamentals lesson's own worked examples already include a real, worked illustration of a deep-ITM long call used as a stock-replacement trade — cross-reference it below rather than duplicating it here.",
+      ],
+      whyItMatters: "Every multi-leg strategy this platform actually builds is assembled from single legs like this one — understanding a long call in isolation (its Greeks, its decay, its breakeven math) is the prerequisite for understanding why a spread trades the way it does, even though you'll never place this exact trade through this platform's own scanner.",
+      externalHref: "/options/SPY",
+      relatedGlossaryKeys: ["long-call", "call", "delta", "theta", "vega", "breakeven", "defined-risk"],
+      estimatedMinutes: 9,
+      difficulty: "beginner",
+      whyItExists: "Every options education path has to start with the single-leg case before combinations make sense — but this platform's own engine skips straight to defined-risk multi-leg structures, so this lesson exists specifically to bridge that gap honestly, without pretending a single-leg workflow exists here.",
+      institutionalThinking: "Professional options desks rarely trade naked long calls as a primary income strategy — they're a directional, often volatility-expensive way to express a view, which is exactly why this platform's own engine focuses on defined-risk, credit-collecting, probability-weighted structures instead. Understanding why desks prefer the latter starts with understanding the former's real cost structure.",
+      screenWalkthrough: [
+        "Navigate to the Option Chain page (Options Chain and Contract Selection lesson covers the full navigation) and pick any symbol — the URL is /options/SYMBOL, e.g. /options/AAPL.",
+        "The CALLS half of the table (left side) shows every available strike with its live Delta, Theta, IV, and Bid/Mid/Ask columns.",
+        "Pick a strike above the current price (out-of-the-money, lower delta, cheaper premium) and one below it (in-the-money, higher delta, more expensive) to compare side by side.",
+        "Notice how Delta rises and Theta's magnitude changes as you move from OTM through ATM to ITM strikes — this is the live version of the theory in the body text above, not a simulation.",
+      ],
+      workflowSteps: [
+        "Form a directional thesis: why do you expect the stock to rise, and over what time horizon?",
+        "On the Option Chain, compare strikes at different deltas to see how cost and sensitivity trade off against each other.",
+        "Calculate your own breakeven (strike + premium) before considering any trade — do this by hand, since no page on this platform computes it for a standalone long call.",
+        "Recognize that this platform's own execution engine cannot place this order — any actual long-call trade would happen outside this platform entirely.",
+        "Instead, consider whether this platform's own Iron Condor or Calendar Spread — both real, tradeable, defined-risk structures — better expresses a similar view with a probability-weighted edge instead of a pure directional bet.",
+      ],
+      metricsExplained: [
+        { term: "Delta (long call)", explanation: "Positive, 0 to 1. Approximates both the option's directional sensitivity and, loosely, its probability of expiring in-the-money — a 0.70 delta call behaves much more like owning stock than a 0.15 delta call does." },
+        { term: "Theta (long call)", explanation: "Negative. The dollar amount the option loses per day, all else equal, purely from the passage of time — this cost is paid whether or not you're eventually right about direction." },
+        { term: "Breakeven", explanation: "Strike price + premium paid, per share. The stock must close above this level at expiration for the position to show any profit at all." },
+        { term: "Premium at risk", explanation: "The total dollar amount paid to open the position — this is also, exactly, the maximum possible loss on a long call, never more." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A deep-ITM call bought for a clear, time-appropriate thesis",
+          steps: [
+            "A stock at $150 has a well-defined near-term catalyst roughly 30 days out.",
+            "A 90-delta, 45-DTE call is chosen deliberately — deep enough ITM that it behaves close to owning the stock, with a smaller relative theta cost than a cheaper OTM call.",
+            "The trader calculates breakeven by hand (strike + premium) before entering, and sizes the position knowing the entire premium is the maximum loss.",
+          ],
+          note: "This is the same deep-ITM, stock-replacement pattern the Options Fundamentals lesson's own worked example illustrates — see Related Lessons below rather than a second, duplicated example here.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "An at-the-money call with a reasonable but not ideal horizon",
+          steps: [
+            "A 50-delta, 30-DTE call is bought on a general bullish lean with no specific catalyst date.",
+            "The position has meaningfully higher theta decay relative to its cost than the deep-ITM example, and needs a real move to become profitable, not just 'being right eventually.'",
+          ],
+          note: "Directionally reasonable, but the shorter, cheaper structure trades a lower entry cost for a materially higher decay burden — a real trade-off, not free money.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "A far-OTM, short-dated 'lottery ticket' call",
+          steps: [
+            "A stock at $150 is expected to make a large move 'soon,' with no specific timeline.",
+            "A cheap, 10-delta, 7-DTE call is bought purely because it's inexpensive.",
+            "Theta decay is severe on such a short-dated contract, and the low delta means even a real move often isn't enough, fast enough, before expiration.",
+          ],
+          note: "This is the single most common long-call mistake: mistaking a cheap premium for a good trade. A 10-delta option has roughly a 1-in-10 rough approximation of finishing ITM — most of these expire worthless.",
+        },
+      ],
+      commonMistakes: [
+        "Treating premium cost as the only variable that matters, ignoring delta (probability) and theta (decay speed) entirely.",
+        "Buying far out-of-the-money, short-dated calls as cheap 'lottery tickets' — the single most common way to lose 100% of the premium repeatedly.",
+        "Not accounting for implied volatility crush after an anticipated event (like earnings) resolves — the stock can move in your favor and the option can still lose value if IV collapses hard enough.",
+        "Assuming this platform can execute this trade — it cannot; only Iron Condor, Iron Fly, Calendar Spread, and Earnings orders route through this platform's execution engine.",
+      ],
+      riskWarnings: [
+        "Maximum loss is 100% of the premium paid, and that outcome is common, not rare, for options that expire out-of-the-money.",
+        "Theta decay works against this position every single day it's held, regardless of whether the directional thesis is correct.",
+        "This lesson is educational only — nothing here is a recommendation to buy any specific option, and no example above should be read as a promise of profit.",
+      ],
+      bestPractices: [
+        "Match the option's expiration to your actual thesis horizon, not to whatever is cheapest.",
+        "Consider deeper ITM strikes for a stock-replacement approach — higher delta and comparatively lower theta/vega exposure than a cheap OTM contract.",
+        "Check the real bid/ask spread on the Option Chain before assuming you could actually get filled anywhere near the displayed mid price.",
+      ],
+      relatedModuleHrefs: ["/options/SPY", "/learn/greeks", "/scanner"],
+      aiCoachPrompts: [
+        "Explain why a long call's theta works against me even if I turn out to be right about direction.",
+        "Show me how delta changes as a long call moves from out-of-the-money to deep in-the-money.",
+        "What's the practical difference between buying a call outright and using this platform's Iron Condor if I have a bullish view?",
+        "Why does implied volatility crush hurt a long call even when the stock moves the right way?",
+      ],
+      nextStepKeys: ["strategies-long-put"],
+      knowledgeCheck: [
+        {
+          prompt: "What is the maximum possible loss on a long call position?",
+          options: ["Unlimited", "The premium paid, and nothing more", "The strike price times 100", "There is no defined maximum"],
+          correctIndex: 1,
+          explanation: "A long call's risk is fully defined at entry: the most you can ever lose is the premium you paid, since you simply let the option expire worthless if it's not profitable.",
+        },
+        {
+          prompt: "What is the breakeven price at expiration for a long call?",
+          options: ["The strike price alone", "The current stock price", "Strike price plus premium paid per share", "Strike price minus premium paid per share"],
+          correctIndex: 2,
+          explanation: "The stock must rise above the strike by at least the amount of premium paid, per share, before the position shows any net profit.",
+        },
+        {
+          prompt: "Can this platform's scanner or execution engine build and route an order for a standalone long call?",
+          options: ["Yes, via the Scanner's strategy filter", "Yes, but only through the Trade Ticket page directly", "No — only Iron Condor, Iron Fly, Calendar Spread, and Earnings are supported", "Yes, automatically through full-auto mode"],
+          correctIndex: 2,
+          explanation: "execution.ts's Strategy type is exhaustively iron_condor, iron_fly, calendar_spread, and earnings — a standalone long call is not one of the strategies this platform builds, prices, or trades.",
+        },
+        {
+          prompt: "Why does a long call lose value purely from the passage of time, even if the stock price doesn't move?",
+          options: ["Because of negative theta (time decay)", "Because of negative delta", "Because of positive vega", "It doesn't — long calls are unaffected by time"],
+          correctIndex: 0,
+          explanation: "Every long option position has negative theta — it decays in value each day purely from time passing, independent of any price movement.",
+        },
+        {
+          prompt: "A trader buys a cheap, far out-of-the-money call expiring in 7 days as a 'lottery ticket.' What is the most likely outcome?",
+          options: ["Guaranteed large profit if the market is bullish", "The option most likely expires worthless, losing the full premium", "The trade is risk-free since the premium is small", "The stock is guaranteed to reach the strike"],
+          correctIndex: 1,
+          explanation: "Low-delta, short-dated options have a low probability of finishing in-the-money and severe theta decay — this is the classic pattern behind most long-call losses.",
+        },
+      ],
+    }),
+    // v1.4.0, Sprint L2G — Options Strategies Academy. NEW topic. Mirrors
+    // strategies-long-call's structure exactly for the put side — same
+    // honest "not implemented" disclosure, same real Option Chain grounding.
+    topic({
+      key: "strategies-long-put",
+      title: "Long Put: Buying Downside Directly",
+      summary: "Pay a premium for the right to sell stock at a fixed price — defined risk, a bearish view, and the same honest platform-implementation gap as the long call.",
+      body: [
+        "A long put is the mirror image of a long call: you pay a premium for the right (not the obligation) to sell 100 shares at the strike price, any time before expiration. Market outlook: bearish — you profit as the stock falls below your breakeven. Maximum loss is defined at entry: the entire premium paid, and nothing more. Maximum profit is large but not literally unlimited — a stock's price is bounded at zero, so the theoretical ceiling on profit is the strike price minus the premium paid, realized only if the stock goes all the way to $0.",
+        "Breakeven at expiration is strike price minus premium paid, per share. A $100-strike put bought for $3.00 needs the stock below $97 at expiration just to break even. As with the long call, being directionally correct is necessary but not sufficient — the move has to clear both the strike and the premium within the option's remaining life.",
+        "Position construction is simple by design: one leg, one order, no combination of strikes. Greeks mirror the long call with signs flipped for direction: Delta is negative (the position gains as the stock falls), Theta is still negative (time decay works against every long option regardless of direction), and Vega is still positive (a long put gains value from rising implied volatility, which is why puts are often bought specifically as insurance ahead of anticipated volatility spikes, not just as a bearish direction bet).",
+        "Risk management for a long put is genuinely straightforward compared to short or multi-leg structures: the position is defined-risk by construction, there's no assignment risk for the buyer, and no naked exposure of the kind this platform's own execution engine structurally rejects for anything it does build. The real risk is the same as the long call's — losing the full premium is a common outcome, not a rare one, when the move doesn't happen in time.",
+        "Platform implementation, stated plainly, and this is the same honest gap as the long call: this platform's scanner and execution engine do not build, price, scan for, or route an order for a standalone long put. It is not one of execution.ts's four supported Strategy values. Trade review on this platform, in the sense of an actual position ledger, applies to the Iron Condor / Iron Fly / Calendar Spread positions the platform does open and track — a standalone long put would need to be reviewed entirely outside this platform. What is real and useful: the Option Chain's PUTS half (the right-hand side of the table) shows the exact same live Delta/Theta/IV/Bid/Mid/Ask detail for every put strike that the CALLS side shows for calls.",
+      ],
+      whyItMatters: "A long put is also the exact hedge instrument behind Protective Puts (the next lesson) — understanding it as a standalone directional bet first makes the hedging use case make sense afterward.",
+      externalHref: "/options/SPY",
+      relatedGlossaryKeys: ["long-put", "put", "delta", "theta", "vega", "breakeven", "defined-risk"],
+      estimatedMinutes: 8,
+      difficulty: "beginner",
+      whyItExists: "Puts are frequently taught as an afterthought to calls, but a genuinely complete strategies curriculum needs the mirror case on its own — especially since the Protective Put lesson immediately after this one depends on understanding a standalone long put first.",
+      institutionalThinking: "Institutional desks buy puts far more often for hedging (protecting an existing position) than as a pure directional bearish bet — the Protective Put lesson picks up exactly that use case next.",
+      screenWalkthrough: [
+        "Navigate to the Option Chain page for any symbol (/options/SYMBOL).",
+        "The PUTS half of the table (right side) mirrors the CALLS layout: Bid/Mid/Ask, IV, Theta, and Delta per strike.",
+        "Put deltas display as negative numbers on this platform's chain, matching standard options convention — a -0.50 delta put is the analogue of a 0.50 delta call.",
+        "Compare an in-the-money put (strike above current price) against an out-of-the-money put (strike below current price) to see the same delta/theta trade-off the long call lesson covered, mirrored.",
+      ],
+      workflowSteps: [
+        "Form a bearish thesis with a specific time horizon in mind.",
+        "Compare strikes at different deltas on the Option Chain's PUTS side.",
+        "Calculate breakeven by hand (strike − premium) — no page on this platform computes this for a standalone long put.",
+        "Recognize this platform's execution engine cannot route this order.",
+        "Consider whether an existing bearish-leaning structure this platform does build (e.g., an Iron Fly positioned for a range-bound-to-lower view) better fits, or whether the actual goal is hedging an existing position — in which case, see Protective Put next.",
+      ],
+      metricsExplained: [
+        { term: "Delta (long put)", explanation: "Negative, -1 to 0. The position gains value as the stock falls; a -0.70 delta put behaves closer to a short-stock position than a -0.15 delta put does." },
+        { term: "Theta (long put)", explanation: "Negative, same as a long call — every long option position decays with time, regardless of direction." },
+        { term: "Breakeven", explanation: "Strike price − premium paid, per share. The stock must close below this level at expiration for any net profit." },
+        { term: "Maximum theoretical profit", explanation: "Strike price minus premium paid, per share — realized only in the extreme case of the stock falling to $0, unlike a long call's genuinely open-ended upside." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A moderately ITM put sized to a specific bearish thesis and horizon",
+          steps: [
+            "A stock shows deteriorating fundamentals with a specific, dated catalyst roughly a month out.",
+            "A put with enough time value (DTE comfortably beyond the catalyst) and a strike close to or slightly above the current price is chosen deliberately.",
+            "Breakeven is calculated by hand before entry, and the full premium is treated as the position's maximum loss.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "A general bearish-lean put with no specific catalyst",
+          steps: [
+            "A 30-DTE, near-the-money put is bought on a broad 'this looks toppy' view with no dated event.",
+            "The position carries real theta decay with no specific timeline forcing the move — a reasonable but unfocused thesis.",
+          ],
+        },
+        {
+          label: "Poor Opportunity",
+          title: "A deep-OTM, short-dated put bought after a stock has already dropped sharply",
+          steps: [
+            "A stock has already fallen 15% in a week; a trader buys a cheap, far-OTM put expecting 'more downside,' chasing the move rather than anticipating it.",
+            "Implied volatility is often already elevated after a sharp move, making the put comparatively expensive for the probability it's actually pricing in.",
+          ],
+          note: "Buying protection or direction after a large move has already happened, when IV has already repriced, is a well-documented way to overpay for a position with a lower real edge than it appears to have.",
+        },
+      ],
+      commonMistakes: [
+        "Chasing a move that's already happened, buying puts only after a stock has already dropped sharply and IV has already repriced higher.",
+        "Ignoring that theta decay applies to puts exactly as it does to calls — a long put is not exempt from time decay.",
+        "Confusing 'bearish direction bet' with 'portfolio hedge' — they use the same instrument but have different sizing and time-horizon logic (see Protective Put).",
+        "Assuming this platform can execute a standalone put order — it cannot; only Iron Condor, Iron Fly, Calendar Spread, and Earnings route through execution.ts.",
+      ],
+      riskWarnings: [
+        "Maximum loss is 100% of the premium paid — a common, not rare, outcome for an option that expires out-of-the-money.",
+        "Puts are frequently more expensive, for a given delta, during periods of elevated implied volatility — check IV rank/percentile context before assuming a put is fairly priced.",
+        "This lesson is educational only, and no worked example above is a recommendation or a profit guarantee.",
+      ],
+      bestPractices: [
+        "Distinguish a directional bearish bet from a hedge before sizing the position — the two have different objectives and different acceptable costs.",
+        "Check where implied volatility sits (IV rank/percentile) before buying — a put bought when IV is already elevated is comparatively expensive.",
+        "Match expiration to your actual thesis horizon rather than defaulting to the cheapest available date.",
+      ],
+      relatedModuleHrefs: ["/options/SPY", "/learn/greeks", "/scanner"],
+      aiCoachPrompts: [
+        "Explain the difference between buying a put as a directional bet versus buying it as portfolio insurance.",
+        "Why is a put's delta expressed as a negative number, and what does -0.40 delta actually mean?",
+        "How does implied volatility affect what a put costs, independent of the stock's direction?",
+        "What's the maximum theoretical profit on a long put, and why is it different from a long call's?",
+      ],
+      nextStepKeys: ["strategies-protective-put"],
+      knowledgeCheck: [
+        {
+          prompt: "What is the breakeven price at expiration for a long put?",
+          options: ["Strike price plus premium paid", "Strike price minus premium paid, per share", "The current stock price", "There is no breakeven for a put"],
+          correctIndex: 1,
+          explanation: "The stock must fall below the strike by at least the premium paid, per share, before the position shows a net profit.",
+        },
+        {
+          prompt: "Why is a long put's maximum theoretical profit not literally unlimited, unlike a long call's?",
+          options: ["Puts have no maximum profit either", "A stock's price is bounded at zero, capping the put's maximum gain at strike minus premium", "Puts always expire worthless", "Maximum profit on a put equals the premium paid"],
+          correctIndex: 1,
+          explanation: "A stock can rise indefinitely (uncapped call profit) but can only fall to $0 (capped put profit at strike price minus premium paid).",
+        },
+        {
+          prompt: "What sign is Delta for a long put position?",
+          options: ["Always positive", "Always negative", "Always zero", "It depends only on the strike, never the position type"],
+          correctIndex: 1,
+          explanation: "A long put has negative delta by convention — the position gains value as the underlying stock price falls.",
+        },
+        {
+          prompt: "Does this platform's scanner or execution engine support placing a standalone long put order?",
+          options: ["Yes, through the Scanner's strategy filter", "Yes, but only in full-auto mode", "No — only Iron Condor, Iron Fly, Calendar Spread, and Earnings are supported", "Yes, through the Option Chain page directly"],
+          correctIndex: 2,
+          explanation: "execution.ts's Strategy type does not include a standalone put-buying strategy — the Option Chain only displays live pricing/Greeks, it does not route orders.",
+        },
+        {
+          prompt: "A trader buys a far out-of-the-money put right after a stock has already fallen sharply. What's the key risk being described?",
+          options: ["There is no added risk — the thesis is confirmed by the recent drop", "Implied volatility has likely already repriced higher, making the put comparatively expensive for its real edge", "Puts cannot be bought after a stock has fallen", "The premium is guaranteed to be refunded if the thesis is late"],
+          correctIndex: 1,
+          explanation: "Chasing a move after it's already happened, when IV has already repriced upward, is a well-documented way to overpay relative to the position's actual statistical edge.",
+        },
+      ],
+    }),
+    // v1.4.0, Sprint L2G — Options Strategies Academy. Upgraded in place
+    // (key preserved). Covered Call is genuinely not built or priced by
+    // this platform's execution engine (strategyAcademy.ts's own
+    // builtByThisEngine: false, confirmed by direct inspection of
+    // execution.ts's exhaustive Strategy type) — but real platform
+    // grounding does exist: the pre-existing Strategy Academy detail page
+    // and a real, routed Payoff Diagram Simulator. This lesson leans on
+    // both rather than inventing a scanner/execution workflow that
+    // doesn't exist, per the brief's own "document this clearly rather
+    // than inventing functionality" instruction.
     topic({
       key: "strategies-covered-calls",
-      title: "Covered Calls",
-      summary: "Own the stock, sell the upside for income.",
-      body: ["Own 100 shares and sell a call against them for premium income, capping upside at the strike."],
-      whyItMatters: "The classic first income strategy most traders learn — see the Strategy Academy for the full construction, Greeks profile, and common mistakes.",
+      title: "Covered Call: Selling Income Against Shares You Own",
+      summary: "Own 100 shares, sell a call against them for premium income — real assignment mechanics, real management choices, and an honest look at why this platform doesn't scan for or price this trade.",
+      body: [
+        "A covered call means owning 100 shares of stock and selling one call option against them. You collect the option's premium immediately as income, in exchange for capping your upside at the strike price for the life of the option — if the stock rises above the strike, your shares are likely to be called away (sold) at that strike, and any further upside beyond it belongs to the option buyer, not you. Income generation is the entire point: the premium collected is yours to keep regardless of what happens afterward, and it partially offsets any decline in the stock's own price, though it does not eliminate that risk — the stock itself remains the primary source of loss if it falls significantly.",
+        "Assignment risk is real and mechanical, not hypothetical: if the stock closes above the strike at expiration (or, for an American-style option, is exercised early — most commonly right before an ex-dividend date, when the dividend can make early exercise economically rational for the call holder), your shares are sold at the strike price. You keep the premium either way, but you give up the shares — this is not a malfunction, it's the strategy working as designed. A trader who doesn't actually want to sell the stock needs to manage the position (roll the call to a later date/higher strike, or close it) before that becomes likely, not be surprised by it after the fact.",
+        "Managing an open covered call typically means one of three choices as expiration approaches and the stock sits near or above the strike: let assignment happen and accept the sale, buy back the short call to close the position and keep the shares, or roll the call out to a later expiration (and often a higher strike) to collect additional premium while keeping the position open longer. Each choice has a real trade-off between locking in the current gain, paying to close, or extending the trade's own risk and time exposure.",
+        "Platform implementation, stated plainly: this platform's own scanner and execution engine do not build, price, scan for, or route an order for a covered call — it is not one of the four strategies execution.ts's Strategy type supports. What is real: the pre-existing Strategy Academy page for Covered Call gives the full construction, ideal-market conditions, Greeks profile, time-decay and volatility behavior, assignment risk, and common mistakes in dedicated reference form. Separately, this platform's Payoff Diagram Simulator (in the Learning Centre's Simulations tab) lets you enter a hypothetical strike, cost basis, and premium and see a real, computed expiration payoff diagram for a covered call — genuinely useful for building intuition, but explicitly labeled 'Educational Simulation — Not Market Data — No Trade Recommendation,' since it takes hypothetical inputs you provide, not live market prices, and does not represent a tradeable order on this platform.",
+      ],
+      whyItMatters: "Covered calls are one of the most widely used real-world income strategies, and understanding assignment mechanics here also explains the assignment-risk warnings that appear throughout this platform's own Options Risk Management lesson for the structures it does trade.",
       externalHref: "/learn/strategy-academy/covered_call",
-      relatedGlossaryKeys: ["covered-call", "call", "wheel"],
-      estimatedMinutes: 2,
+      relatedGlossaryKeys: ["covered-call", "call", "wheel", "assignment", "breakeven"],
+      estimatedMinutes: 9,
+      difficulty: "beginner",
+      whyItExists: "Covered calls are the strategy most retail options traders learn first in the real world, so a strategies curriculum that skipped it entirely — even though this platform's own engine doesn't trade it — would leave a real gap in a learner's foundation.",
+      institutionalThinking: "Institutional 'buy-write' desks run covered calls at scale as a systematic income overlay on long equity holdings — the retail version taught here is the same mechanic, just at a 100-share-lot scale instead of a portfolio-wide overlay.",
+      screenWalkthrough: [
+        "Navigate to the Strategy Academy (Learning Centre → Strategy Academy) and open the Covered Call entry for the full reference detail.",
+        "Review the Construction, Ideal Market, Max Profit, Max Loss, Greeks Profile, Time Decay, Volatility Behavior, and Assignment Risk sections.",
+        "Open the Learning Centre's Simulations tab, select 'Payoff Diagram,' choose Covered Call from the strategy dropdown, and enter a hypothetical strike/price/cost basis to see a real, computed payoff chart for those inputs.",
+        "Note the honest 'Not tracked in this engine' label the platform's own Command Centre shows for covered call positions — this platform has no live position-tracking for this strategy, matching its absence from the execution engine.",
+      ],
+      workflowSteps: [
+        "Confirm you already own (or are willing to buy) 100 shares of the underlying — this strategy requires the shares as collateral, not cash.",
+        "Choose a strike above the current price that reflects the ceiling you're willing to accept in exchange for the premium.",
+        "Read the Strategy Academy's Covered Call entry for the full construction and Greeks profile before proceeding conceptually.",
+        "Use the Payoff Diagram Simulator with your own hypothetical numbers to see the expiration outcome shape.",
+        "Recognize that any actual trade must be placed and managed entirely outside this platform, since it has no execution path for this strategy.",
+      ],
+      metricsExplained: [
+        { term: "Premium collected", explanation: "The income received for selling the call — yours to keep regardless of the stock's later performance." },
+        { term: "Strike price (the cap)", explanation: "The price at which shares are sold if the call is exercised — this defines the maximum price you'll realize on the stock while the position is open." },
+        { term: "Assignment", explanation: "The mechanical process of your shares being sold at the strike when the short call is exercised — a normal, expected outcome, not an error." },
+        { term: "Effective cost basis", explanation: "Your original stock purchase price minus the premium collected — the actual break-even level once the option income is accounted for." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A strike chosen with a real view on an upside ceiling you're comfortable with",
+          steps: [
+            "A trader owns 100 shares bought at $95 and expects the stock to trade sideways-to-modestly-up over the next month.",
+            "A call is sold at a strike above the current price, at a level the trader would genuinely be satisfied selling at if assigned.",
+            "The premium collected is treated as real income, and the trader has already decided in advance what they'll do if the stock approaches the strike (let it be assigned).",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "A strike sold with a vague plan for what happens near expiration",
+          steps: [
+            "Shares are held, and a call is sold at a round-number strike mostly because it 'looked reasonable,' without a clear plan for managing the position if the stock rallies hard toward it.",
+          ],
+          note: "The premium is real income either way, but the lack of a pre-decided management plan (roll, close, or accept assignment) often leads to reactive, worse decisions under time pressure near expiration.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Selling a call on a stock the trader isn't actually willing to part with",
+          steps: [
+            "A trader with strong long-term conviction in a stock sells a call anyway purely for the premium income, at a strike close to the current price.",
+            "The stock rallies sharply and the shares are assigned away at the strike, well below where the stock ends up trading later.",
+          ],
+          note: "This is the classic covered-call regret pattern: the premium collected is often small relative to the upside given away when the stock makes a large, fast move past the strike.",
+        },
+      ],
+      commonMistakes: [
+        "Selling a call at a strike you wouldn't actually be comfortable selling the stock at, then being unhappy when assignment happens exactly as designed.",
+        "Forgetting that assignment can happen early — most commonly right before an ex-dividend date — not only at expiration.",
+        "Assuming the premium collected fully protects against a large decline in the stock — it only partially offsets losses, it doesn't eliminate them.",
+        "Treating the Payoff Diagram Simulator's hypothetical output as a live, tradeable quote — it is educational only, computed from inputs you supply.",
+      ],
+      riskWarnings: [
+        "The underlying stock itself remains the primary risk — a large decline in the stock's price is only partially offset by the premium collected, never fully hedged.",
+        "Assignment gives up further upside beyond the strike, which can be a meaningful opportunity cost during a sharp rally.",
+        "This lesson and the Payoff Diagram Simulator are both educational only — nothing here is a trade recommendation, and this platform cannot place this trade for you.",
+      ],
+      bestPractices: [
+        "Only sell a call at a strike you would genuinely be satisfied selling your shares at — never purely for the premium.",
+        "Decide your management plan (accept assignment, roll, or close) before expiration approaches, not reactively at the last moment.",
+        "Use the Payoff Diagram Simulator to build real intuition for the expiration outcome shape before considering any actual trade elsewhere.",
+      ],
+      relatedModuleHrefs: ["/learn/strategy-academy/covered_call", "/learn"],
+      aiCoachPrompts: [
+        "Explain why assignment can happen before expiration, not just on the expiration date itself.",
+        "Walk me through the trade-offs between letting a covered call get assigned versus rolling it to a later date.",
+        "Why does this platform's execution engine not build or price covered calls the way it does iron condors?",
+        "What does 'effective cost basis' mean once premium income is factored into a covered call position?",
+      ],
+      nextStepKeys: ["strategies-protective-put"],
+      knowledgeCheck: [
+        {
+          prompt: "What must you already own, or be willing to buy, to open a covered call?",
+          options: ["Nothing — it requires only cash", "100 shares of the underlying stock per contract sold", "A margin account with unlimited buying power", "Another option position"],
+          correctIndex: 1,
+          explanation: "A covered call requires owning the underlying shares (100 per contract) as the 'cover' — this is what distinguishes it from an uncovered, naked call.",
+        },
+        {
+          prompt: "What happens if the stock is above the strike price at expiration?",
+          options: ["Nothing happens automatically", "The shares are typically called away (sold) at the strike price", "The premium is returned to the option buyer", "The position automatically rolls to the next expiration"],
+          correctIndex: 1,
+          explanation: "If the call finishes in-the-money, the shares are typically assigned (sold) at the strike price — this is the mechanical outcome of the strategy working as designed.",
+        },
+        {
+          prompt: "Does this platform's execution engine build, price, or route an order for a covered call?",
+          options: ["Yes, through the Scanner", "Yes, but only in full-auto mode", "No — it is not one of the strategies execution.ts supports", "Yes, through the Trade Ticket page directly"],
+          correctIndex: 2,
+          explanation: "Covered Call is explicitly marked builtByThisEngine: false in this platform's own Strategy Academy data — it is education-only, with no live scanning or order routing.",
+        },
+        {
+          prompt: "What is the Payoff Diagram Simulator's own explicit labeling?",
+          options: ["Live Market Data — Trade Recommendation", "Educational Simulation — Not Market Data — No Trade Recommendation", "Real-Time Broker Quote", "Automated Execution Preview"],
+          correctIndex: 1,
+          explanation: "The simulator computes a payoff diagram from hypothetical inputs you supply — it is explicitly and honestly labeled as educational, never a live quote or trade recommendation.",
+        },
+        {
+          prompt: "Why might a covered call assignment feel like a 'regret' outcome even though it worked as designed?",
+          options: ["Because the premium is always refunded", "Because a large, fast rally past the strike gives up upside beyond what the premium compensated for", "Because assignment is a system error", "Because covered calls always lose money on assignment"],
+          correctIndex: 1,
+          explanation: "A sharp rally past the strike means the shares are sold at a price below where the stock ends up — the premium collected is often small relative to the upside given away in that scenario.",
+        },
+      ],
+    }),
+    // v1.4.0, Sprint L2G — Options Strategies Academy. NEW topic. Zero
+    // prior treatment anywhere in this codebase — no execution builder, no
+    // Strategy Academy entry, no glossary key, no payoff simulator support.
+    // Pure conceptual/hedging-theory education, explicitly and repeatedly
+    // disclosed as such, per the brief's "if not implemented, document
+    // this clearly rather than inventing functionality" instruction.
+    topic({
+      key: "strategies-protective-put",
+      title: "Protective Put: Insuring Shares You Already Own",
+      summary: "Buy a put against stock you own to put a floor under your downside — genuine hedging theory, with zero platform implementation of any kind.",
+      body: [
+        "A protective put means owning shares of a stock and buying a put option against them as insurance. If the stock falls, the put gains value, offsetting the loss on the shares below the put's strike — effectively putting a floor under how much you can lose on the position, for as long as the put remains open. This is fundamentally a hedging strategy, not an income strategy: you pay a premium (the 'insurance cost') in exchange for limiting your downside, the same trade-off as buying insurance on anything else you own.",
+        "Portfolio protection is the entire purpose: a protective put doesn't try to generate income or improve your odds of profit — it exists purely to cap the damage from a decline you're worried about but don't want to sell the underlying position to avoid. This makes it conceptually the mirror image of a covered call: a covered call gives up upside in exchange for income, while a protective put pays a cost in exchange for a downside floor.",
+        "Risk profile: while you hold the shares and the put, your maximum loss on the combined position is capped at (share purchase price − put strike + premium paid), no matter how far the stock falls beyond the strike — genuinely defined risk on the downside, in exchange for the ongoing cost of the put premium, which acts like a recurring insurance expense if you keep replacing expiring puts with new ones. Your upside on the shares themselves remains completely open, unlike a covered call — you're only paying for downside protection, not giving up any gains.",
+        "Platform implementation: there is none, at any level. This platform's execution engine does not build or price a protective put. Unlike Covered Call, there is no dedicated Strategy Academy reference page for it, no entry in the Payoff Diagram Simulator's strategy list, and no glossary precedent prior to this lesson. This is genuinely, entirely conceptual education — a real, standard, widely-used risk-management technique worth understanding on its own terms, but with absolutely no platform workflow, screen, calculator, or example behind it. If you want to see the raw mechanics of the put leg itself, the Long Put lesson and the Option Chain's live PUTS pricing are the closest real platform grounding available — but neither computes a combined stock-plus-put payoff for you.",
+      ],
+      whyItMatters: "Hedging an existing position is a fundamentally different objective from generating income or placing a directional bet — recognizing that distinction is as important as any specific mechanic, especially since this platform's own defined-risk multi-leg strategies (Iron Condor, Iron Fly) already achieve a related 'known maximum loss' outcome through a completely different construction.",
+      // v1.4.0, Sprint L2G. No externalHref field set at all (defaults to
+      // null via the topic() helper) — this is the one lesson in this
+      // Academy with genuinely zero platform implementation of any kind
+      // to link to, not even a reference page.
+      relatedGlossaryKeys: ["protective-put", "put", "long-put", "defined-risk"],
+      estimatedMinutes: 6,
+      difficulty: "beginner",
+      whyItExists: "The brief for this sprint explicitly called for Protective Put coverage; per this platform's own honesty discipline, a genuine implementation gap does not mean the concept goes untaught — it means the gap itself is disclosed clearly, exactly as this lesson does throughout.",
+      institutionalThinking: "Portfolio managers use protective puts (and the related, more capital-efficient 'collar,' which sells a call to help pay for the put) constantly as a hedging overlay on core long positions they don't want to sell outright — the underlying logic of 'pay a known cost to cap an unknown loss' recurs throughout institutional risk management, well beyond options specifically.",
+      screenWalkthrough: [
+        "There is no dedicated screen for this strategy anywhere on this platform.",
+        "The closest real grounding is the Option Chain's live PUTS pricing (Delta/Theta/IV/Bid/Mid/Ask per strike) for viewing what a specific put would cost.",
+        "The Long Put lesson's own worked examples cover the put leg's mechanics in isolation — reference it rather than expecting a combined stock-plus-put view here.",
+      ],
+      workflowSteps: [
+        "Identify an existing stock position you want to protect without selling.",
+        "Decide how much downside you're willing to tolerate before the floor should kick in — this determines the strike you'd choose conceptually.",
+        "Understand that the put premium is a real, recurring cost if you keep replacing expiring puts — this is not a free hedge.",
+        "Recognize that no page on this platform builds, prices, or tracks this combined position — any real protective put would be constructed and monitored entirely outside this platform.",
+      ],
+      metricsExplained: [
+        { term: "Insurance cost (premium)", explanation: "The price paid for the put — the ongoing cost of maintaining downside protection, directly analogous to an insurance premium." },
+        { term: "Floor level", explanation: "Put strike price − premium paid — approximately the minimum value per share the combined position can fall to before expiration, ignoring the stock's own cost basis." },
+        { term: "Upside", explanation: "Completely uncapped — unlike a covered call, a protective put doesn't give up any gains on the stock; it only costs money on the downside protection." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A deliberate hedge sized to a specific, known risk window",
+          steps: [
+            "An investor holds a large, long-term position and faces a specific known risk event (e.g. a regulatory decision) in the near term.",
+            "A put is conceptually chosen at a strike reflecting the maximum decline the investor is willing to tolerate through that event, for a defined period.",
+          ],
+          note: "This is a textbook, deliberate use of the strategy for its actual purpose — protecting a specific position through a specific risk window, not as a permanent or reflexive habit.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "An open-ended hedge with no specific end date in mind",
+          steps: [
+            "An investor buys protection 'just in case,' with no particular catalyst or time horizon, and no plan for when to stop paying for it.",
+          ],
+          note: "Reasonable caution, but the ongoing premium cost of a hedge with no defined end point can meaningfully erode returns over a long enough period.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Buying protection after a stock has already fallen sharply",
+          steps: [
+            "A stock has already dropped 20% in a short period; an investor buys a put afterward, when implied volatility (and therefore the put's cost) has likely already repriced higher.",
+          ],
+          note: "The same 'chasing a move that already happened' problem the Long Put lesson describes applies here too — hedges are generally most cost-effective when put on before volatility spikes, not after.",
+        },
+      ],
+      commonMistakes: [
+        "Treating a hedge as a permanent, costless feature rather than a recurring expense that erodes returns over time if maintained indefinitely.",
+        "Buying protection reactively, after a decline has already happened and implied volatility has already repriced higher.",
+        "Confusing a protective put's 'defined maximum loss' with a covered call's 'capped upside' — they solve different problems and are not interchangeable.",
+        "Expecting this platform to have a screen, calculator, or workflow for this strategy — none exists, and this lesson exists specifically to make that gap explicit rather than silently absent.",
+      ],
+      riskWarnings: [
+        "The put premium is a real, ongoing cost — a hedge that's never needed still costs money the whole time it's held.",
+        "This concept has zero implementation on this platform at any level — there is no live example, calculator, or trade path to reference.",
+        "This lesson is purely educational — it does not constitute a recommendation to hedge any specific position.",
+      ],
+      bestPractices: [
+        "Size and time a hedge to a specific risk you're trying to manage, not as an open-ended, reflexive habit.",
+        "Compare the ongoing cost of repeated put purchases against the actual downside risk being protected against.",
+        "Consider that a collar (selling a call to help fund the put) is a related, more capital-efficient variant worth knowing about, even though it is likewise not implemented on this platform.",
+      ],
+      relatedModuleHrefs: ["/options/SPY"],
+      aiCoachPrompts: [
+        "Explain the difference between a protective put and a covered call in terms of what each one is trying to accomplish.",
+        "Why is a protective put's ongoing premium cost often compared to an insurance premium?",
+        "What is a 'collar' and how does it relate to a protective put?",
+        "Why does this platform have zero implementation for this strategy when it has a full page for covered calls?",
+      ],
+      nextStepKeys: [],
+      knowledgeCheck: [
+        {
+          prompt: "What is the primary purpose of a protective put?",
+          options: ["To generate income from stock you own", "To hedge downside risk on stock you already own, without selling it", "To speculate on a stock falling that you don't own", "To increase leverage on an existing position"],
+          correctIndex: 1,
+          explanation: "A protective put is fundamentally a hedging strategy — it exists to cap downside risk on an existing stock position, not to generate income or add leverage.",
+        },
+        {
+          prompt: "How does a protective put affect the stock's own upside potential?",
+          options: ["It caps the upside at the put's strike price", "It has no effect — upside remains completely uncapped", "It doubles the upside", "It eliminates upside entirely"],
+          correctIndex: 1,
+          explanation: "Unlike a covered call, a protective put only costs money for downside protection — it does not cap or reduce the stock's own upside in any way.",
+        },
+        {
+          prompt: "Is a protective put implemented anywhere on this platform (scanner, execution engine, Strategy Academy, or simulator)?",
+          options: ["Yes, fully, in the Strategy Academy", "Yes, in the Payoff Diagram Simulator only", "No — it has zero implementation anywhere on this platform", "Yes, through the execution engine's full-auto mode"],
+          correctIndex: 2,
+          explanation: "Unlike Covered Call, Protective Put has no Strategy Academy entry, no simulator support, and no execution-engine builder — it is purely conceptual education on this platform.",
+        },
+        {
+          prompt: "What does the put premium represent in a protective put strategy?",
+          options: ["A refundable deposit", "An ongoing insurance-like cost for maintaining downside protection", "Guaranteed profit", "A brokerage fee"],
+          correctIndex: 1,
+          explanation: "The premium paid for the put is directly analogous to an insurance premium — a real, ongoing cost paid in exchange for capped downside risk.",
+        },
+        {
+          prompt: "Why might buying a protective put after a stock has already fallen sharply be less cost-effective?",
+          options: ["Puts cannot be bought after a decline", "Implied volatility has often already repriced higher, making the put more expensive for the protection it provides", "The stock automatically recovers after a protective put is bought", "There is no disadvantage to buying after a decline"],
+          correctIndex: 1,
+          explanation: "The same principle from the Long Put lesson applies: chasing a move that has already happened, after IV has already repriced upward, tends to mean overpaying relative to the real protection obtained.",
+        },
+      ],
     }),
     topic({
       key: "strategies-csp",
@@ -740,45 +1247,514 @@ const STRATEGIES_PATH: LearningPath = {
       relatedGlossaryKeys: ["wheel", "covered-call", "cash-secured-put"],
       estimatedMinutes: 3,
     }),
+    // v1.4.0, Sprint L2G — Options Strategies Academy. Upgraded in place
+    // (key preserved). Covers all 4 named vertical-spread variants the
+    // brief requested. None are independently order-routable on this
+    // platform (confirmed: optionsStrategyLibrary.ts maps vertical_credit/
+    // vertical_debit to executionStrategyKey: null) — but the two CREDIT
+    // variants (bull put, bear call) have a genuine, honest platform
+    // connection: they are literally the two halves of every real Iron
+    // Condor this platform builds. The two DEBIT variants (bull call, bear
+    // put) have no such connection and are disclosed as pure theory.
     topic({
       key: "strategies-verticals",
-      title: "Vertical Spreads",
-      summary: "The building block underneath every iron condor.",
-      body: ["Buy and sell two options of the same type and expiration at different strikes, defining maximum profit and loss up front."],
-      whyItMatters: "An iron condor is literally a put vertical plus a call vertical — understanding one half explains the whole structure.",
+      title: "Vertical Spreads: Bull Call, Bear Put, Bull Put, Bear Call",
+      summary: "Buy one option, sell another at a different strike, same expiration — four directional/credit combinations, and a real, honest connection to this platform's own Iron Condor.",
+      body: [
+        "A vertical spread means buying and selling two options of the same type (both calls, or both puts) and the same expiration, at two different strikes. Combining a long and a short leg this way defines both maximum profit and maximum loss up front, unlike a standalone long call or put — the trade-off is a lower cost (or, for a credit spread, a smaller credit) in exchange for a capped, known outcome on both sides. There are exactly four named variants, split along two axes: debit vs. credit, and bullish vs. bearish.",
+        "Bull Call Spread (debit, bullish): buy a lower-strike call, sell a higher-strike call, same expiration. You pay a net debit up front. Maximum profit is the difference between strikes minus the debit paid, realized if the stock finishes at or above the higher (short) strike. Maximum loss is the debit paid, if the stock finishes at or below the lower (long) strike. This is a cheaper, capped-upside alternative to an outright long call.",
+        "Bear Put Spread (debit, bearish): buy a higher-strike put, sell a lower-strike put, same expiration. You pay a net debit. Maximum profit is the difference between strikes minus the debit paid, if the stock finishes at or below the lower (short) strike. Maximum loss is the debit paid, if the stock finishes at or above the higher (long) strike. The bearish mirror image of the bull call spread.",
+        "Bull Put Spread (credit, bullish/neutral): sell a higher-strike put, buy a lower-strike put, same expiration. You collect a net credit up front. Maximum profit is the credit received, if the stock stays above the higher (short) strike. Maximum loss is the difference between strikes minus the credit received, if the stock falls below the lower (long) strike. Probability of profit is generally higher than a debit spread's, since the position profits from the stock staying above a level rather than needing to reach one — the same probability-first, credit-collecting logic this platform's own Iron Condor and Iron Fly are built around. Greeks: short (net) theta-positive, short vega — time decay and falling IV both help this position, the opposite of a debit spread.",
+        "Bear Call Spread (credit, bearish/neutral): sell a lower-strike call, buy a higher-strike call, same expiration. You collect a net credit. Maximum profit is the credit received, if the stock stays below the lower (short) strike. Maximum loss is the difference between strikes minus the credit received, if the stock rises above the higher (long) strike. Same theta-positive, vega-negative Greeks profile as the bull put spread, mirrored for the opposite direction.",
+        "Platform implementation, and this is the genuinely useful part: no vertical spread is independently order-routable on this platform — none of the four variants is one of execution.ts's own Strategy values, and this platform's internal strategy catalog explicitly maps every vertical-spread variant to no execution builder. But you have already been trading bull put spreads and bear call spreads on this platform without necessarily calling them that: every real Iron Condor this platform's own scanner and execution engine build is constructed from exactly a bull put spread below the market plus a bear call spread above it, combined into one four-leg order. The two debit variants (bull call, bear put) have no such connection — they remain pure theory here, with the Option Chain as the only real platform grounding for viewing the underlying legs' live pricing.",
+      ],
+      whyItMatters: "This is the single most important structural fact connecting theory to what you actually trade on this platform: understanding a bull put spread and a bear call spread individually is the direct, honest path to understanding exactly how and why an Iron Condor is built the way it is, in the very next lesson.",
       externalHref: "/learn/strategy-academy/vertical_spread",
-      relatedGlossaryKeys: ["vertical-spread", "iron-condor"],
-      estimatedMinutes: 3,
+      relatedGlossaryKeys: ["vertical-spread", "bull-call-spread", "bear-put-spread", "bull-put-spread", "bear-call-spread", "iron-condor"],
+      estimatedMinutes: 11,
+      difficulty: "intermediate",
+      whyItExists: "Every credit-collecting structure this platform actually builds is assembled from vertical spreads under the hood — this lesson exists specifically to make that construction visible and explicit, rather than leaving Iron Condor as a black box of four strikes.",
+      institutionalThinking: "Professional options desks think in terms of spreads, not individual legs, almost universally — position risk, margin requirements, and probability of profit are all naturally expressed per-spread, which is exactly the framing this platform's own Iron Condor and Iron Fly quotes use internally.",
+      screenWalkthrough: [
+        "Navigate to the Option Chain (/options/SYMBOL) and pick two strikes of the same type (both calls, or both puts) to see their individual live pricing.",
+        "Navigate to the Strategy Academy's Vertical Spread entry for the full reference construction and Greeks profile.",
+        "Open any real Iron Condor quote on this platform (via the Scanner) and look at its four legs: the short put + long put pair is a bull put spread; the short call + long call pair is a bear call spread — the exact same two structures this lesson describes, already combined into one order.",
+      ],
+      workflowSteps: [
+        "Decide your directional view (bullish, bearish, or 'stay above/below a level') and whether you want to pay a debit or collect a credit.",
+        "Match that view to one of the four variants: bull call or bear put (debit, directional) vs. bull put or bear call (credit, probability-first).",
+        "Recognize that no single vertical spread is independently tradeable through this platform's scanner or execution engine.",
+        "If your view is genuinely credit-collecting and probability-first, proceed to the Iron Condor lesson — the real, tradeable structure built from exactly two of these four verticals at once.",
+      ],
+      metricsExplained: [
+        { term: "Net debit (bull call / bear put)", explanation: "The cost paid to open the spread — also the maximum possible loss on a debit spread." },
+        { term: "Net credit (bull put / bear call)", explanation: "The premium collected to open the spread — also the maximum possible profit on a credit spread." },
+        { term: "Strike width", explanation: "The distance between the two strikes — this defines the maximum possible profit-or-loss range for any vertical spread, before subtracting the debit paid or credit received." },
+        { term: "Probability of profit (credit spreads)", explanation: "Generally favors the seller for a reasonably-selected short strike, since the position only needs the stock to stay on the right side of a level rather than travel to reach one — the same logic this platform's own POP calculation applies to Iron Condor and Iron Fly." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A bull put spread sold with the same probability-first logic this platform's own Iron Condor uses",
+          steps: [
+            "A stock is range-bound to modestly bullish; a put is sold at a strike below the current price with a reasonable delta, and a further-out-of-the-money put is bought as protection, defining the maximum loss.",
+            "The credit collected reflects genuine compensation for the probability of the stock staying above the short strike — the same logic, applied to one side only, as an Iron Condor applies to both sides.",
+          ],
+          note: "This is literally half of a real Iron Condor's own construction — see the Iron Condor lesson for the full four-leg version.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "A bull call spread bought as a cheaper alternative to an outright long call",
+          steps: [
+            "A trader with a bullish thesis buys a lower-strike call and sells a higher-strike call to reduce the net cost versus buying the call alone, accepting a capped upside in exchange.",
+          ],
+          note: "A reasonable, standard trade-off, but the capped upside means a very large move benefits an outright long call more than this spread.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "A bear call spread sold too close to the current price with no real margin for error",
+          steps: [
+            "A trader sells a call spread with the short strike very close to the current stock price, collecting a large credit but leaving almost no room for the stock to move against the position before max loss is at risk.",
+          ],
+          note: "A classic risk/reward mistake: a larger credit for a closer-to-the-money short strike also means a meaningfully higher probability of the trade going against you — the credit collected and the probability of loss move together, not independently.",
+        },
+      ],
+      commonMistakes: [
+        "Selling a credit spread's short strike too close to the current price purely to collect a larger premium, without weighing the correspondingly higher probability of loss.",
+        "Confusing a debit spread's directional logic with a credit spread's probability-first logic — they solve different problems even though both are 'vertical spreads.'",
+        "Assuming any of these four variants can be ordered as a standalone trade on this platform — none can; only the combined four-leg Iron Condor and Iron Fly structures are order-routable.",
+        "Forgetting that a credit spread's maximum loss is (strike width − credit received), not the strike width alone.",
+      ],
+      riskWarnings: [
+        "A credit spread's maximum loss can be significantly larger than the credit collected — never assume the small credit received represents the total risk.",
+        "A debit spread's maximum loss is the full amount paid, if the stock finishes on the wrong side of both strikes.",
+        "This lesson is educational only — no example above is a trade recommendation.",
+      ],
+      bestPractices: [
+        "Match the variant to your actual view: debit spreads for a directional bet with reduced cost, credit spreads for a probability-first, range-based view.",
+        "Weigh a credit spread's premium against its own implied probability of loss — a bigger credit for a closer strike is not automatically a better trade.",
+        "Once the credit-spread logic makes sense on one side, study the Iron Condor lesson to see both sides combined into this platform's own real, tradeable structure.",
+      ],
+      relatedModuleHrefs: ["/learn/strategy-academy/vertical_spread", "/options/SPY", "/scanner"],
+      aiCoachPrompts: [
+        "Explain how a bull put spread and a bear call spread combine to form an Iron Condor.",
+        "What's the difference in Greeks exposure between a debit vertical spread and a credit vertical spread?",
+        "Why does a credit spread's maximum loss exceed the credit collected?",
+        "Show me how strike width relates to maximum profit and maximum loss on a vertical spread.",
+      ],
+      nextStepKeys: ["strategies-iron-condor"],
+      knowledgeCheck: [
+        {
+          prompt: "Which two vertical spread variants are credit spreads (you collect a premium up front)?",
+          options: ["Bull call spread and bear put spread", "Bull put spread and bear call spread", "Bull call spread and bull put spread", "Bear put spread and bear call spread"],
+          correctIndex: 1,
+          explanation: "Bull put spread and bear call spread both involve selling the closer-to-the-money leg, collecting a net credit — the other two variants (bull call, bear put) are debit spreads.",
+        },
+        {
+          prompt: "How is a real Iron Condor on this platform actually constructed, in terms of vertical spreads?",
+          options: ["Two bull call spreads combined", "A bull put spread below the market plus a bear call spread above it", "A single bear put spread", "Four independent, unrelated option legs with no spread relationship"],
+          correctIndex: 1,
+          explanation: "An Iron Condor's put side is a bull put spread (short put + long put below it) and its call side is a bear call spread (short call + long call above it) — combined into one four-leg order.",
+        },
+        {
+          prompt: "What is the maximum loss on a credit vertical spread?",
+          options: ["The credit received", "Strike width minus the credit received", "Unlimited", "Strike width plus the credit received"],
+          correctIndex: 1,
+          explanation: "A credit spread's maximum loss is the distance between the two strikes, minus the premium already collected — never the credit alone, and never unlimited since the long leg caps it.",
+        },
+        {
+          prompt: "Can any single vertical spread (e.g. just a bull put spread on its own) be ordered directly through this platform's execution engine?",
+          options: ["Yes, through the Scanner's strategy filter", "Yes, but only in full-auto mode", "No — only the combined four-leg Iron Condor and Iron Fly structures are order-routable", "Yes, through the Trade Ticket page directly"],
+          correctIndex: 2,
+          explanation: "None of the four vertical-spread variants is independently order-routable — this platform's Strategy type only supports iron_condor, iron_fly, calendar_spread, and earnings.",
+        },
+        {
+          prompt: "Which vertical spread variant is the bearish, debit-paying structure?",
+          options: ["Bull call spread", "Bull put spread", "Bear call spread", "Bear put spread"],
+          correctIndex: 3,
+          explanation: "A bear put spread (buy a higher-strike put, sell a lower-strike put) is bearish and requires paying a net debit — the bearish mirror of the bull call spread.",
+        },
+      ],
     }),
+    // v1.4.0, Sprint L2G — Options Strategies Academy. Upgraded in place
+    // (key preserved). This is a REAL, implemented, order-routable
+    // strategy — buildIronCondor() in optionsMath.ts:475-525. Every
+    // number below (shortDelta default 0.2, dte default 45, wing formula
+    // max(step, round(price*0.025, step))) is quoted directly from that
+    // function, not estimated.
     topic({
       key: "strategies-iron-condor",
-      title: "Iron Condors",
-      summary: "This platform's own flagship structure.",
-      body: ["A short put spread below the market plus a short call spread above it — defined risk, profits when the underlying stays inside the two short strikes."],
-      whyItMatters: "The strategy this platform's scanner and execution engine build and price most extensively — the Strategy Academy's iron condor entry includes a real, live worked example.",
+      title: "Iron Condor: This Platform's Own Flagship Structure",
+      summary: "A short put spread below the market plus a short call spread above it — real, live-priced, order-routable, and built by this platform's execution engine exactly the way this lesson describes.",
+      body: [
+        "An Iron Condor combines a bull put spread (sold below the market) with a bear call spread (sold above the market) into one four-leg, defined-risk, credit-collecting position. It profits when the underlying stays between the two short strikes through expiration — you're betting on a range, not a direction. This is genuinely the strategy this platform's scanner and execution engine build and price most extensively, and unlike every strategy covered so far in this Academy, the numbers below come directly from this platform's own real code, not textbook theory.",
+        "Setup and delta selection: this platform's Iron Condor builder selects both short strikes by target delta, defaulting to a 20-delta (0.20) short put and a 20-delta short call — a lower delta means a strike further from the current price (lower premium, higher probability of staying out-of-the-money); a higher delta means a strike closer to the money (larger premium, lower probability of profit). The days-to-expiration defaults to 45. Both of these — shortDelta and dte — are the only two parameters this platform's engine actually exposes for this construction; wing width is not a separate user-adjustable input.",
+        "Wing selection and width: the long (protective) put and call strikes are placed at wing = max(one strike increment, ~2.5% of the underlying's price), rounded to the nearest valid strike. This is computed automatically by the engine's own formula, not chosen manually per trade — a $100 stock gets roughly a $2.50 wing, a $400 stock roughly a $10 wing, both rounded to valid strike increments. This matters directly for risk: a wider wing means a larger maximum loss but also a larger credit collected, and vice versa.",
+        "Maximum profit, maximum loss, and breakevens: maximum profit is the net credit collected when the position is opened — the most you can make is locked in the moment you enter, unlike an outright long option. Maximum loss is (wing width − credit collected), realized if the stock finishes beyond either long strike at expiration. The lower breakeven is (short put strike − credit received); the upper breakeven is (short call strike + credit received) — the position is profitable anywhere between those two levels at expiration, not just exactly at the short strikes.",
+        "Probability of Profit and Return on Capital: this platform computes POP as the probability of the stock finishing between the two breakevens, using a volatility figure with a built-in haircut versus the raw implied volatility (a deliberate, disclosed conservatism, not a fabricated edge) — POP is a modeled estimate, not a guarantee, and this platform states that plainly wherever POP is shown. Return on Capital is maximum profit divided by maximum loss, expressed as a percentage — a way of comparing how much return a given trade offers relative to the capital it puts at risk, independent of the dollar size of the trade.",
+        "Risk management and platform workflow: every Iron Condor this platform builds passes through the same defined-risk validation every other trade does before it can be placed — no naked legs, a liquidity floor, a positive expected-value requirement, and a minimum quality score, covered in full in the Options Risk Management lesson. Setup runs through the Scanner (filter to Iron Condor, or leave 'All Strategies' selected), which surfaces real, live-priced, already-validated candidates; opening one carries it to the Trade Ticket for a full pre-trade review before any order — manual or, if explicitly armed, fully automated — is placed.",
+      ],
+      whyItMatters: "This is the strategy every other lesson in this Academy has been building toward: it's the real, live, tradeable synthesis of the vertical-spread mechanics from the prior lesson, and understanding its wing/delta/width parameters here is the foundation for the Iron Fly lesson right after it.",
       externalHref: "/learn/strategy-academy/iron_condor",
-      relatedGlossaryKeys: ["iron-condor", "vertical-spread", "delta"],
-      estimatedMinutes: 5,
+      relatedGlossaryKeys: ["iron-condor", "vertical-spread", "bull-put-spread", "bear-call-spread", "delta", "wing-width", "probability-of-profit", "expected-value", "return-on-capital"],
+      estimatedMinutes: 14,
+      difficulty: "intermediate",
+      whyItExists: "This is the platform's own flagship, most-built strategy — a learner who understands every prior lesson in this Academy but not this one hasn't yet connected the theory to what this platform actually trades day to day.",
+      institutionalThinking: "Selling premium at a target delta rather than a fixed dollar distance from the stock price is standard institutional practice — it automatically adapts strike selection to each underlying's own implied volatility, which is exactly why this platform's own builder parameterizes by delta (shortDelta) rather than a flat dollar width.",
+      screenWalkthrough: [
+        "Open the Scanner and filter to Iron Condor (or leave All Strategies selected) — every row shown is a real, live-priced, already-validated candidate built by this exact formula.",
+        "Review a candidate's credit, max loss, POP, EV, and Return on Capital columns — every one of these numbers traces directly to the math in this lesson's body text.",
+        "Open a candidate to the Trade Ticket for the full pre-trade review, including the Pre-Trade Risk Validation checklist.",
+        "Compare the same underlying's Iron Condor quote against its Iron Fly quote (next lesson) to see how moving the short strikes to at-the-money changes credit, width, and probability.",
+      ],
+      workflowSteps: [
+        "Filter the Scanner to Iron Condor or leave All Strategies selected to see it alongside Iron Fly, Calendar Spread, and Earnings candidates.",
+        "Review each candidate's short strikes (their implied delta), credit, max loss, and computed POP/EV/Ravish Score.",
+        "Confirm the position clears this platform's own liquidity and quality gates before proceeding — a rejected quote is never silently hidden.",
+        "Open the Trade Ticket to review the full four-leg structure, breakevens, and Greeks before placing any order.",
+        "Decide manual confirmation vs. relying on full-auto mode (only if explicitly armed with both the master and per-strategy kill switches on) — covered fully in the Options Risk Management lesson.",
+      ],
+      metricsExplained: [
+        { term: "Short strike delta", explanation: "Defaults to 0.20 on this platform — the target probability-adjacent distance from the current price used to select both short strikes." },
+        { term: "Wing width", explanation: "Computed automatically as roughly 2.5% of the underlying's price (rounded to a valid strike increment) — not a manually chosen input on this platform." },
+        { term: "Credit / Maximum profit", explanation: "The premium collected when the position opens — this is both the income received and the maximum possible profit, locked in at entry." },
+        { term: "Maximum loss", explanation: "Wing width minus credit collected — the most the position can lose if the stock finishes beyond either long strike." },
+        { term: "Probability of Profit (POP)", explanation: "A modeled estimate of the probability the stock finishes between the two breakevens, using a deliberately conservative volatility haircut — never a guarantee of outcome." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A well-scored candidate clearing every gate with a healthy margin",
+          steps: [
+            "A 20-delta Iron Condor on a liquid underlying shows a positive EV, a reasonable Return on Capital, tight bid/ask spreads, and open interest comfortably above this platform's own liquidity floor.",
+            "The Scanner surfaces it as a real, non-rejected candidate, and the Trade Ticket's Pre-Trade Risk Validation shows every check passing.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "A candidate that passes validation but with a thinner margin of safety",
+          steps: [
+            "A similar structure clears every required gate, but with a lower Ravish Score, a smaller EV cushion, and open interest closer to the platform's own minimum threshold.",
+          ],
+          note: "Passing validation is a floor, not an endorsement of quality — the Scanner's own scoring exists precisely to help distinguish a marginal pass from a genuinely strong setup.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "A candidate this platform's own engine correctly rejects",
+          steps: [
+            "A structure on an illiquid or wide-spread underlying computes to a negative expected value, or shows open interest below 200 contracts or a bid/ask spread wider than 8% of the option's price.",
+            "This platform's finalize() logic rejects it outright — the Scanner shows it as rejected with an explicit reason, never silently building a trade around it.",
+          ],
+          note: "This is the platform's own liquidity and EV gates working as designed — a rejected candidate is exactly this platform declining to fabricate a tradeable-looking quote out of unreliable pricing.",
+        },
+      ],
+      commonMistakes: [
+        "Treating a passing Pre-Trade Risk Validation as a guarantee of profit rather than a floor of acceptable structural quality.",
+        "Confusing Return on Capital with an annualized or guaranteed return — it's a single trade's max-profit-to-max-loss ratio, nothing more.",
+        "Not understanding that wing width is auto-computed on this platform, then being surprised the interface has no manual wing-width input to adjust.",
+        "Forgetting that POP is a modeled estimate built on a deliberately conservative volatility assumption, not a guarantee — see the Options Pricing, Volatility and Probability lesson for the full disclosure.",
+      ],
+      riskWarnings: [
+        "Maximum loss can be substantially larger than the credit collected — always know your wing width before entering.",
+        "A defined-risk structure is not a low-risk structure — losing the full max loss on a single trade is a real, disclosed possibility, not a remote edge case.",
+        "Probability of Profit is a model-based estimate, not a promise — no strategy on this platform, including this one, is presented as consistently profitable.",
+      ],
+      bestPractices: [
+        "Compare Return on Capital across multiple candidates rather than chasing the single largest credit.",
+        "Review the full Pre-Trade Risk Validation checklist on the Trade Ticket before every trade, even a candidate the Scanner already scored highly.",
+        "Understand your position's real breakevens (short strike ± credit), not just the short strikes themselves.",
+      ],
+      relatedModuleHrefs: ["/learn/strategy-academy/iron_condor", "/scanner", "/trade-execution-center", "/options-dashboard"],
+      aiCoachPrompts: [
+        "Walk me through exactly how this platform selects the short strikes for an Iron Condor by delta.",
+        "Why is wing width computed automatically instead of being a setting I can adjust?",
+        "Explain the relationship between Return on Capital and Probability of Profit on a real Iron Condor candidate.",
+        "What does it mean for the Scanner to reject a candidate, and why does that happen?",
+      ],
+      nextStepKeys: ["strategies-iron-butterfly"],
+      knowledgeCheck: [
+        {
+          prompt: "What is this platform's default short-strike delta for an Iron Condor?",
+          options: ["0.05", "0.20", "0.50", "0.80"],
+          correctIndex: 1,
+          explanation: "buildIronCondor()'s own default is shortDelta = 0.2 — a 20-delta short put and a 20-delta short call, unless overridden.",
+        },
+        {
+          prompt: "How is wing width determined for an Iron Condor on this platform?",
+          options: ["The user manually enters a dollar amount", "Automatically computed as roughly 2.5% of the underlying's price, rounded to a valid strike", "It is always exactly $5", "It matches the option's implied volatility exactly"],
+          correctIndex: 1,
+          explanation: "The engine computes wing = max(one strike increment, ~2.5% of price) — this is not a manually adjustable input in this platform's interface.",
+        },
+        {
+          prompt: "What is an Iron Condor's maximum profit?",
+          options: ["Unlimited", "The net credit collected when the position opens", "The wing width", "The strike width minus the wing width"],
+          correctIndex: 1,
+          explanation: "Maximum profit is locked in at entry — it's exactly the credit received, and cannot increase beyond that regardless of how favorably the stock moves.",
+        },
+        {
+          prompt: "What happens when a candidate's open interest is below this platform's liquidity floor?",
+          options: ["It's built anyway with a warning", "It's automatically resized to reduce risk", "It's rejected outright, with the rejection reason shown", "The system substitutes a different expiration automatically"],
+          correctIndex: 2,
+          explanation: "finalize()'s own liquidity gate rejects a candidate outright when open interest is below 200 contracts (or the bid/ask spread exceeds 8%) — never silently building a trade around unreliable pricing.",
+        },
+        {
+          prompt: "Is Probability of Profit (POP) on this platform a guarantee of outcome?",
+          options: ["Yes, POP guarantees the stated success rate", "No — it's a modeled estimate using a deliberately conservative volatility assumption, never a guarantee", "POP only applies to Iron Fly, not Iron Condor", "POP is guaranteed only for full-auto trades"],
+          correctIndex: 1,
+          explanation: "POP is computed from a modeled, deliberately haircut volatility figure — it is an estimate of probability, never a promise, and this platform states that honestly throughout.",
+        },
+      ],
     }),
+    // v1.4.0, Sprint L2G — Options Strategies Academy. Upgraded in place
+    // (key preserved). Also REAL — buildIronFly() in
+    // optionsMath.ts:527-576. Wing formula (max(2*step, round(price*0.05,
+    // step))) is double the Iron Condor's own relative wing, quoted
+    // directly from source.
     topic({
       key: "strategies-iron-butterfly",
-      title: "Iron Butterflies",
-      summary: "Maximum credit, minimum margin for error.",
-      body: ["Like an iron condor, but both short strikes sit at-the-money — richer credit, narrower profit zone."],
-      whyItMatters: "The opposite end of the delta spectrum from a 20-delta iron condor — useful for seeing how strike selection trades credit against probability.",
+      title: "Iron Fly: Maximum Credit, Minimum Margin for Error",
+      summary: "Like an Iron Condor, but both short strikes sit at-the-money — richer credit, a narrower profit zone, and a real, order-routable structure this platform builds and prices.",
+      body: [
+        "An Iron Fly (Iron Butterfly) is constructed almost identically to an Iron Condor, with one key difference: both short strikes — the short put and the short call — sit at the exact same at-the-money strike, rather than at two separate delta-selected strikes. This platform's own builder rounds the current price to the nearest valid strike increment and sells both the put and the call there. The result is a much richer credit collected up front, in exchange for a genuinely narrower range in which the position stays profitable.",
+        "Construction: sell an at-the-money put and an at-the-money call at the same strike, then buy a further-out put and call as protection, defining the wings. This platform's default expiration is again 45 days-to-expiration, matching the Iron Condor's own default. Unlike the Iron Condor, there's no delta parameter to select here — the short strike is always the current price itself, rounded to a valid increment.",
+        "Wing width, and this is a real, disclosed difference from the Iron Condor: this platform computes the Iron Fly's wing as roughly 5% of the underlying's price (double the Iron Condor's own ~2.5% formula), with a minimum of two full strike increments. A wider wing here reflects the reality that an at-the-money short strike needs more room on both sides for the position to have any meaningful probability of staying profitable.",
+        "Risk profile and Greeks: maximum profit is again the net credit collected, realized only if the stock finishes exactly at the short strike at expiration — a materially narrower target than an Iron Condor's own range between two separated short strikes. Maximum loss is (wing width − credit collected), the same formula shape as the Iron Condor. Because both short legs sit at-the-money, an Iron Fly typically has higher theta (faster time decay income, in your favor as the seller) and higher gamma risk (the position's own delta changes faster as the stock moves) than a comparably-dated Iron Condor.",
+        "Expected move and platform workflow: the width of an Iron Fly's own wings is a direct, real comparison point against the underlying's expected move over the same period (covered in the Volatility lesson) — a wing that's narrower than the expected move implies the position is betting on a tighter range than the market's own implied volatility suggests is likely, a genuinely useful sanity check before entering. Setup runs through the same Scanner (filter to Iron Fly) and Trade Ticket workflow as the Iron Condor, with the same liquidity, EV, and quality gates applied identically.",
+      ],
+      whyItMatters: "Comparing an Iron Fly's own richer-credit, narrower-zone construction directly against the Iron Condor's wider, delta-selected zone is the clearest possible way to internalize how strike selection trades credit against probability — the same trade-off underlies every credit strategy this platform builds.",
       externalHref: "/learn/strategy-academy/iron_fly",
-      relatedGlossaryKeys: ["iron-butterfly", "iron-condor", "at-the-money"],
-      estimatedMinutes: 4,
+      relatedGlossaryKeys: ["iron-butterfly", "iron-condor", "at-the-money", "wing-width", "expected-move"],
+      estimatedMinutes: 11,
+      difficulty: "intermediate",
+      whyItExists: "Seeing the same core builder logic (short strikes, protective wings, credit, defined risk) applied to two genuinely different configurations — delta-selected vs. at-the-money — is the fastest way to understand what's actually adjustable in this platform's strategy construction and what isn't.",
+      institutionalThinking: "Selling at-the-money premium for maximum credit is a classic, deliberate trade-off toward richer income at the cost of a tighter tolerance for being wrong — professional desks choose between condor-style and fly-style structures based explicitly on how much conviction they have in a range holding, not by default.",
+      screenWalkthrough: [
+        "Open the Scanner and filter to Iron Fly to see real, live-priced candidates built by this exact formula.",
+        "Compare a symbol's Iron Fly quote against its Iron Condor quote (same underlying, similar DTE) side by side — notice the larger credit and the narrower distance between breakevens.",
+        "Review the Strategy Academy's Iron Fly entry for the full reference detail alongside this lesson.",
+        "Open a candidate's Trade Ticket to see the at-the-money short strike explicitly, and how close it sits to the current price.",
+      ],
+      workflowSteps: [
+        "Filter the Scanner to Iron Fly, or compare it directly against an Iron Condor candidate for the same underlying.",
+        "Note the short strike sits exactly at the current price, rounded to a valid increment — there is no delta to choose here.",
+        "Compare the wing width and resulting credit against a comparable Iron Condor to see the richer-credit, narrower-zone trade-off directly.",
+        "Check the underlying's expected move (Volatility lesson) against the Iron Fly's own wing width as a sanity check on how tight the implied range really is.",
+        "Proceed through the same Trade Ticket and risk-validation workflow as any other strategy on this platform.",
+      ],
+      metricsExplained: [
+        { term: "At-the-money short strike", explanation: "Both the short put and short call sit at the same strike — the current underlying price, rounded to the nearest valid strike increment." },
+        { term: "Wing width (Iron Fly)", explanation: "Computed as roughly 5% of the underlying's price (double the Iron Condor's own relative wing), with a minimum of two strike increments." },
+        { term: "Credit (Iron Fly vs. Iron Condor)", explanation: "Typically larger than a comparable Iron Condor's, since both short legs sit at-the-money where option premiums are richest." },
+        { term: "Expected move", explanation: "A separate, independently computed estimate of how far the underlying is likely to move over a given period — useful as a real sanity check against the Iron Fly's own wing width." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "An Iron Fly whose wing width is genuinely wider than the underlying's own expected move",
+          steps: [
+            "The underlying's expected move over the position's DTE is comfortably narrower than the wing width, meaning the structure has real room before max loss becomes likely.",
+            "Liquidity and EV gates clear cleanly, matching the same quality bar every strategy on this platform is held to.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "An Iron Fly where the wing width and the expected move are roughly the same size",
+          steps: [
+            "The position clears all required gates, but the wing width offers little cushion beyond what the market's own implied volatility already suggests is a likely range.",
+          ],
+          note: "Passing every mechanical gate doesn't by itself mean the wing width offers a comfortable margin — comparing it against the expected move is a real, independent check worth doing every time.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "An Iron Fly whose wing width is narrower than the underlying's own expected move",
+          steps: [
+            "The structure's own protective wings sit closer to the current price than the market's own implied volatility suggests the stock is likely to travel.",
+          ],
+          note: "This doesn't mean the trade is automatically rejected by this platform's own gates (which check EV and liquidity, not expected-move comparisons) — it means the trader needs to make this specific comparison themselves before relying on it.",
+        },
+      ],
+      commonMistakes: [
+        "Assuming an Iron Fly's larger credit automatically makes it a 'better' trade than an Iron Condor without weighing the narrower profit zone.",
+        "Not comparing wing width against the underlying's own expected move before entering — this platform computes both, but doesn't force the comparison for you.",
+        "Confusing this platform's own 5% wing formula for the Iron Fly with the Iron Condor's ~2.5% formula — the two strategies genuinely use different wing math.",
+        "Expecting a delta parameter for the short strikes the way the Iron Condor has one — the Iron Fly's short strike is always at-the-money, not delta-selected.",
+      ],
+      riskWarnings: [
+        "Maximum loss can still be substantial, and the narrower profit zone means it can be reached more easily than an Iron Condor's own wider range.",
+        "Higher gamma risk means the position's own sensitivity to price moves changes faster than a comparable Iron Condor's — worth monitoring more closely, not less.",
+        "This lesson is educational — no example above is a recommendation, and no strategy on this platform is presented as consistently profitable.",
+      ],
+      bestPractices: [
+        "Always compare an Iron Fly's wing width against the underlying's own expected move before entering, as an independent sanity check beyond this platform's own EV/liquidity gates.",
+        "Compare a candidate Iron Fly directly against a same-underlying Iron Condor to make the credit-vs-probability trade-off explicit before choosing.",
+        "Monitor an open Iron Fly more closely than a comparable Iron Condor, given its narrower zone and higher gamma exposure.",
+      ],
+      relatedModuleHrefs: ["/learn/strategy-academy/iron_fly", "/scanner", "/trade-execution-center"],
+      aiCoachPrompts: [
+        "Compare this platform's Iron Fly and Iron Condor wing-width formulas directly — why are they different?",
+        "Why does an at-the-money short strike produce a larger credit than a delta-selected one?",
+        "Explain how expected move relates to whether an Iron Fly's wing width offers real protection.",
+        "What does higher gamma risk actually mean for how I'd monitor an open Iron Fly position?",
+      ],
+      nextStepKeys: ["strategies-calendar"],
+      knowledgeCheck: [
+        {
+          prompt: "Where does this platform place the short strikes for an Iron Fly?",
+          options: ["At a 20-delta strike, same as the Iron Condor", "Both at the same at-the-money strike (current price, rounded to a valid increment)", "At two different delta-selected strikes", "There are no short strikes in an Iron Fly"],
+          correctIndex: 1,
+          explanation: "Both the short put and short call sit at the exact same at-the-money strike — this is the defining difference from an Iron Condor's two separate delta-selected short strikes.",
+        },
+        {
+          prompt: "Roughly how does this platform compute an Iron Fly's wing width, compared to an Iron Condor's?",
+          options: ["Identical formula, ~2.5% of price for both", "Roughly double — ~5% of price for the Iron Fly versus ~2.5% for the Iron Condor", "The Iron Fly has no wings at all", "The Iron Fly's wing is always exactly $1"],
+          correctIndex: 1,
+          explanation: "buildIronFly() computes wing = max(2×step, ~5% of price) — roughly double the Iron Condor's own ~2.5% relative wing formula.",
+        },
+        {
+          prompt: "Why does an Iron Fly typically collect a larger credit than a comparable Iron Condor?",
+          options: ["Because it has wider wings only", "Because both short legs sit at-the-money, where option premiums are richest", "Because it uses a different underlying", "Because it always has a longer expiration"],
+          correctIndex: 1,
+          explanation: "At-the-money options carry the richest extrinsic value, so selling both legs there (rather than at lower-delta, further-out strikes) produces a larger net credit.",
+        },
+        {
+          prompt: "What is a genuinely useful independent sanity check for an Iron Fly's wing width, beyond this platform's own EV/liquidity gates?",
+          options: ["Comparing the wing width against the underlying's own expected move", "Checking only the credit amount", "There is no additional check needed beyond the automatic gates", "Comparing the wing width against a different, unrelated symbol"],
+          correctIndex: 0,
+          explanation: "Comparing wing width against the underlying's independently-computed expected move (covered in the Volatility lesson) shows whether the structure's own protective range is wide or narrow relative to the market's own implied volatility.",
+        },
+        {
+          prompt: "Is Return on Capital or the underlying construction logic (delta selection, protective wings, defined risk) different between an Iron Condor and Iron Fly?",
+          options: ["Both formulas and construction logic are entirely different systems", "The same finalize() logic and defined-risk construction apply to both — only the short-strike selection method and wing-width formula differ", "Iron Fly has no maximum loss", "Iron Condor has no credit collection"],
+          correctIndex: 1,
+          explanation: "Both strategies share the same finalize() validation, credit/max-loss/breakeven math shape, and defined-risk construction — the genuine differences are in how the short strikes are chosen and how wide the wings are computed.",
+        },
+      ],
     }),
+    // v1.4.0, Sprint L2G — Options Strategies Academy. Upgraded in place
+    // (key preserved). REAL — buildCalendar() in optionsMath.ts:578-623.
+    // Deliberately discloses the calls-only construction (no put calendar
+    // variant exists in this engine), a genuine, honest limitation.
     topic({
       key: "strategies-calendar",
-      title: "Calendar Spreads",
-      summary: "Profit from time decay differential, not direction.",
-      body: ["Sell a near-dated option and buy a longer-dated option at the same strike, profiting as the front leg decays faster than the back leg."],
-      whyItMatters: "A genuinely different risk profile from a condor or fly — long vega instead of short, and built by this platform's own engine for real.",
+      title: "Calendar Spread: Profiting from Time, Not Direction",
+      summary: "Sell a near-dated call and buy a longer-dated call at the same strike — a genuinely different, long-vega risk profile from the two Iron structures, and a real, order-routable strategy this platform builds.",
+      body: [
+        "A calendar spread sells a near-month option and buys a longer-month option at the same strike, profiting from the front leg's faster time decay relative to the back leg's slower decay — this is fundamentally a time-decay-differential trade, not a directional one, and it's a genuinely different risk profile from either Iron structure covered so far in this Academy. This platform's own builder constructs this using calls only, at a single shared strike — there is no put-calendar variant in this engine, a real, disclosed limitation worth knowing rather than assuming exists.",
+        "Near-month vs. far-month: this platform's default front (sold) leg expires at 30 days-to-expiration, and the back (bought) leg expires at 60 days-to-expiration — a 30-day gap between the two. The strike itself is selected by delta on the longer-dated leg, defaulting to 0.27 (27-delta), placing it moderately out-of-the-money rather than exactly at-the-money.",
+        "Time decay: the entire edge in a calendar spread comes from theta decaying faster on the shorter-dated option than the longer-dated one — this is a real, well-established options-pricing property (time value decays non-linearly, accelerating as expiration approaches), not something specific to this platform. As the front leg approaches its own expiration, it loses value faster than the back leg does, and the spread between the two (the position's own value) tends to widen in the position holder's favor, all else equal.",
+        "Volatility and Greeks: unlike the two Iron structures (which are net short vega — they benefit from falling implied volatility), a calendar spread is net long vega — it benefits from rising implied volatility, particularly on the longer-dated back leg. This is a genuine, structurally different exposure, and it's exactly why this lesson's whyItMatters calls it out as long vega instead of short: a calendar spread and an Iron Condor can hold opposite views on where volatility is headed, even on the same underlying at the same time.",
+        "Maximum profit and loss: maximum loss is the net debit paid to open the position (this is a debit strategy, unlike either Iron structure), never more than that. Maximum profit is estimated from the back leg's own theoretical value at the moment the front leg expires at-the-money, minus the debit paid — this is a genuine model-based estimate (since the back leg's actual future price depends on volatility conditions that haven't happened yet), and this platform computes it honestly as an estimate rather than a guaranteed number. Platform workflow runs through the same Scanner (filter to Calendar Spread) and Trade Ticket review as every other strategy here, with the same liquidity, EV, and quality gates applied identically.",
+      ],
+      whyItMatters: "A calendar spread is the one strategy in this Academy that profits primarily from rising implied volatility rather than falling volatility or a stable range — genuinely understanding it means understanding that this platform's own engine builds strategies with opposite volatility exposures, not just one house view.",
       externalHref: "/learn/strategy-academy/calendar_spread",
-      relatedGlossaryKeys: ["calendar-spread", "theta", "diagonal-spread"],
-      estimatedMinutes: 4,
+      relatedGlossaryKeys: ["calendar-spread", "theta", "diagonal-spread", "vega", "iv-rank"],
+      estimatedMinutes: 10,
+      difficulty: "intermediate",
+      whyItExists: "Every strategy covered before this one in the Academy is short vega — a learner who stopped there would walk away thinking this platform only trades one kind of volatility view, which isn't true.",
+      institutionalThinking: "Volatility desks routinely hold calendar-style, long-vega positions specifically as a counterweight to short-vega, premium-selling books elsewhere in a portfolio — the same 'own both sides of volatility, not just one' logic this platform's own Iron Condor/Calendar Spread combination reflects at the strategy level.",
+      screenWalkthrough: [
+        "Open the Scanner and filter to Calendar Spread to see real, live-priced candidates.",
+        "Note the two distinct expiration dates shown on a Calendar Spread candidate — this platform's own 30/60-day default front/back split.",
+        "Review the Strategy Academy's Calendar Spread entry for the full reference construction.",
+        "Compare a Calendar Spread candidate's IV exposure against an Iron Condor candidate for the same underlying — one is net long vega, the other net short.",
+      ],
+      workflowSteps: [
+        "Filter the Scanner to Calendar Spread to see live candidates using this platform's own 30/60-day, 27-delta default construction.",
+        "Confirm you understand this is a debit strategy — maximum loss is the debit paid, not a credit collected up front.",
+        "Review the estimated maximum profit figure as exactly that: a model-based estimate of the back leg's value at front-leg expiration, not a locked-in number.",
+        "Check the underlying's IV rank/percentile (Volatility lesson) — since this position benefits from rising IV, entering when IV is already unusually elevated works against the position's own edge.",
+        "Proceed through the same Trade Ticket and risk-validation workflow as any other strategy on this platform.",
+      ],
+      metricsExplained: [
+        { term: "Front-month DTE", explanation: "Defaults to 30 days-to-expiration on this platform — the shorter-dated leg that is sold." },
+        { term: "Back-month DTE", explanation: "Defaults to 60 days-to-expiration — the longer-dated leg that is bought, expiring 30 days after the front leg." },
+        { term: "Strike selection delta", explanation: "Defaults to 0.27 (27-delta) on the back leg, placing the shared strike moderately out-of-the-money rather than exactly at the current price." },
+        { term: "Net debit / maximum loss", explanation: "The cost paid to open the position — a calendar spread is a debit strategy, and the debit paid is the maximum possible loss." },
+        { term: "Estimated maximum profit", explanation: "A modeled estimate of the back leg's value when the front leg expires at-the-money, minus the debit paid — genuinely an estimate, since it depends on future volatility conditions, never a guaranteed number." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A calendar spread entered when implied volatility is relatively low, with room to rise",
+          steps: [
+            "The underlying's IV rank sits on the lower end of its recent range, meaning there's real room for IV to expand in the position's favor.",
+            "The position clears this platform's liquidity and EV gates, and the 30-day gap between front and back legs gives the time-decay differential room to work.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "A calendar spread entered with IV at a middling, unremarkable level",
+          steps: [
+            "The underlying's IV rank sits near the middle of its historical range — not an obviously favorable entry point for a long-vega position, but not obviously unfavorable either.",
+          ],
+          note: "The position can still clear every mechanical gate this platform checks while offering a less compelling volatility-entry point than one chosen with a clearer IV rationale.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "A calendar spread entered when implied volatility is already unusually elevated",
+          steps: [
+            "The underlying's IV rank sits near the top of its recent range — often right before an anticipated event — and the position is entered anyway.",
+            "If IV subsequently falls (a common pattern after an anticipated event resolves), the position's own long-vega exposure works against it even if the time-decay differential still functions normally.",
+          ],
+          note: "Entering a long-vega position when IV is already elevated is a well-known, avoidable mistake — the position is fighting its own primary source of edge from the start.",
+        },
+      ],
+      commonMistakes: [
+        "Entering a calendar spread when implied volatility is already elevated, working directly against the position's own long-vega exposure.",
+        "Treating the estimated maximum profit figure as a guaranteed number rather than the model-based estimate it genuinely is.",
+        "Assuming a put-based calendar spread variant exists on this platform — it doesn't; this engine's calendar construction is calls-only.",
+        "Confusing a calendar spread's debit-paid maximum loss with a credit strategy's max-loss formula — they're structurally different.",
+      ],
+      riskWarnings: [
+        "Maximum loss is the full debit paid if the trade doesn't work out — a real, defined risk, but a cost paid up front rather than a credit collected.",
+        "Estimated maximum profit is a model-based estimate dependent on future volatility conditions — it can be meaningfully different from the actual realized outcome.",
+        "This lesson is educational only — no example above is a recommendation, and no strategy on this platform is presented as consistently profitable.",
+      ],
+      bestPractices: [
+        "Check IV rank/percentile before entering — a calendar spread's edge is strongest when volatility has room to rise, not when it's already elevated.",
+        "Remember this is a debit strategy — size the position based on the debit paid as your real maximum loss.",
+        "Compare a calendar spread's long-vega exposure directly against an Iron Condor or Iron Fly's short-vega exposure on the same underlying before deciding which view you actually hold.",
+      ],
+      relatedModuleHrefs: ["/learn/strategy-academy/calendar_spread", "/scanner", "/trade-execution-center"],
+      aiCoachPrompts: [
+        "Explain why a calendar spread is long vega while an Iron Condor is short vega.",
+        "Walk me through this platform's default front-month and back-month DTE for a Calendar Spread.",
+        "Why is a calendar spread's maximum profit only an estimate, not a locked-in number the way Iron Condor's maximum profit is?",
+        "Does this platform support a put-based calendar spread, and if not, why?",
+      ],
+      nextStepKeys: [],
+      knowledgeCheck: [
+        {
+          prompt: "Is a calendar spread on this platform a credit strategy or a debit strategy?",
+          options: ["Credit — you collect a premium up front", "Debit — you pay a net premium to open the position", "Neither — it has no cash flow at entry", "It depends on the underlying"],
+          correctIndex: 1,
+          explanation: "A calendar spread's back (longer-dated) leg costs more than the front (shorter-dated) leg's premium collected, resulting in a net debit paid to open the position.",
+        },
+        {
+          prompt: "What is this platform's default gap between the front-month and back-month expirations for a Calendar Spread?",
+          options: ["7 days", "15 days", "30 days (30 DTE front, 60 DTE back)", "90 days"],
+          correctIndex: 2,
+          explanation: "buildCalendar()'s own defaults are frontDte = 30 and backDte = 60 — a 30-day gap between the two legs, unless overridden.",
+        },
+        {
+          prompt: "Is a Calendar Spread net long or net short implied volatility (vega), compared to an Iron Condor?",
+          options: ["Net long vega, the opposite of an Iron Condor's net short vega", "Net short vega, same as an Iron Condor", "Vega-neutral, unlike an Iron Condor", "Vega exposure does not apply to Calendar Spreads"],
+          correctIndex: 0,
+          explanation: "A Calendar Spread benefits from rising implied volatility (net long vega) — the opposite exposure from an Iron Condor or Iron Fly, which benefit from falling IV (net short vega).",
+        },
+        {
+          prompt: "Does this platform's engine support a put-based calendar spread variant?",
+          options: ["Yes, calls and puts are both supported", "No — this engine's calendar construction is calls-only", "Only in full-auto mode", "Only for symbols with earnings events"],
+          correctIndex: 1,
+          explanation: "buildCalendar() constructs the position using calls only — there is no put-calendar variant implemented in this engine, a real, disclosed limitation.",
+        },
+        {
+          prompt: "Why is a Calendar Spread's estimated maximum profit described as a model-based estimate rather than a guaranteed number?",
+          options: ["Because it depends on the back leg's future value under future, currently-unknown volatility conditions", "Because Calendar Spreads have no maximum profit at all", "Because this platform never estimates maximum profit for any strategy", "Because the front leg's value is unpredictable"],
+          correctIndex: 0,
+          explanation: "The maximum profit estimate depends on the back leg's own theoretical value at a future point in time, under volatility conditions that haven't happened yet — genuinely an estimate, honestly labeled as such.",
+        },
+      ],
     }),
     topic({
       key: "strategies-diagonal",
