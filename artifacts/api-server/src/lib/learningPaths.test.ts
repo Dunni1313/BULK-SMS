@@ -177,6 +177,17 @@ describe("learning path content", () => {
       // /position-sizing, /adjustments, /adjustment-preview,
       // /institutional-mentor) was already present above.
       "/portfolio-analyst",
+      // v1.4.0, Sprint L2I — Institutional Investing Academy. Every route
+      // this sprint's new/upgraded module-guide topics point to, confirmed
+      // real and registered by direct grep of App.tsx before this content
+      // was written. /stock-analyst, /research-terminal, /decision-engine,
+      // /stock-analyst/investment-committee, /monitoring-dashboard,
+      // /stock-analyst/portfolio-optimisation, /reporting-centre, and
+      // /opportunity-discovery were already present above.
+      "/stock-analyst/executive-dashboard",
+      "/institutional-ai-coach",
+      "/rebalancing-engine",
+      "/stock-analyst/portfolio-construction",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -339,18 +350,37 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "portfolio-position-sizing",
       "portfolio-managing-positions",
       "portfolio-ai-review-workflow",
+      // v1.4.0, Sprint L2I — Institutional Investing Academy. 5 brand-new
+      // topics (investing-executive-dashboard/investing-fundamental-
+      // analysis/investing-portfolio-construction-workflow/investing-
+      // rebalancing-and-review/investing-ai-coach) plus 1 upgraded-in-place
+      // topic (investing-investment-committee, corrected to cover the real
+      // "Narrate this verdict" LLM feature) — investing-business-quality/
+      // investing-financial-strength/investing-decision-engine/
+      // investing-portfolio-optimisation/investing-opportunity-discovery
+      // were correctly out of scope and remain plain.
+      // investing-margin-of-safety received a small, disclosed body-only
+      // deepening (still plain, key unchanged, not counted as rich content
+      // here) — matching the same precedent as volatility-hv's own factual
+      // correction above.
+      "investing-executive-dashboard",
+      "investing-fundamental-analysis",
+      "investing-portfolio-construction-workflow",
+      "investing-rebalancing-and-review",
+      "investing-ai-coach",
+      "investing-investment-committee",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
-    expect(stillPlainTopics.length).toBe(52);
+    expect(stillPlainTopics.length).toBe(51);
     for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
     }
   });
 
-  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H/L2I's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -390,6 +420,12 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "portfolio-position-sizing",
       "portfolio-managing-positions",
       "portfolio-ai-review-workflow",
+      "investing-executive-dashboard",
+      "investing-fundamental-analysis",
+      "investing-portfolio-construction-workflow",
+      "investing-rebalancing-and-review",
+      "investing-ai-coach",
+      "investing-investment-committee",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
