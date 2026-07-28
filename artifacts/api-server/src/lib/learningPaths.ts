@@ -1775,15 +1775,263 @@ const PORTFOLIO_PATH: LearningPath = {
   description: "Managing risk across the WHOLE account, not just one trade at a time — reuses this platform's own Portfolio Dashboard and overlays.",
   glossaryCategory: "portfolio",
   topics: [
+    // v1.4.0, Sprint L2H — Institutional Options Portfolio Management
+    // Academy. NEW topic (Module 1: Portfolio Overview). Deliberately built
+    // around what this platform's real screens actually show: /portfolio
+    // is Greeks-only (positions + unrealized P/L, no value/buying
+    // power/cash), the Account Snapshot (value/buying power/day P&L/total
+    // P&L) lives on /portfolio-ai instead, Realized P/L's only real
+    // portfolio-wide figure is /trade-performance's own Total P&L KPI
+    // (derived from actually-closed trades, per tradeAnalytics.ts's own
+    // documented derivation), and Cash Balance is a real, computed API
+    // field (routes/portfolio.ts's /summary) that is honestly disclosed as
+    // not currently rendered on any screen — never fabricated as a UI panel.
+    topic({
+      key: "portfolio-overview",
+      title: "Portfolio Overview: Value, Buying Power, Cash, and Daily Workflow",
+      summary: "Where your account's real numbers actually live — across three different screens, not one unified dashboard.",
+      body: [
+        "This platform does not have one single 'portfolio dashboard' screen showing every account-level number at once — the real figures are genuinely spread across three different pages, and knowing which page has which number is the first practical skill in managing a portfolio here. Open positions and per-position unrealized P/L live on the Portfolio Greeks page (/portfolio) alongside net Greeks. Portfolio value, buying power, day P/L, and total P/L live in the Account Snapshot on the Portfolio AI cockpit (/portfolio-ai). A rolled-up 0-100 Health Score and a broader risk breakdown live on the Portfolio Risk Dashboard (/portfolio-dashboard).",
+        "Portfolio value and buying power, computed for real: portfolio value is your account's baseline plus unrealized P/L; buying power is the capital still available for new positions after subtracting what's already committed to open trades — this platform computes it as (account value − risk already committed) × a flat 2x leverage assumption, not a broker-reported margin figure. Both numbers are real, computed from your actual open trades, and shown together on the Account Snapshot.",
+        "Cash — an honest disclosure rather than an invented screen: the backend does compute a real Cash Balance figure (account value minus risk dollars committed to open trades) as part of the same endpoint the Account Snapshot already calls, but no current screen renders it as its own labeled field. If you want the number, it exists in the underlying data the platform already computes — it simply isn't surfaced as a dedicated panel yet.",
+        "Unrealized vs. Realized P/L are genuinely different figures from genuinely different screens. Unrealized P/L is the live, still-open mark-to-market gain or loss on positions you haven't closed yet — shown per-position on the Portfolio Greeks page, and rolled into 'Day P/L' on the Account Snapshot (this platform's day P/L is literally set equal to the account's unrealized P/L for the day, not a separate intraday-realized figure). Realized P/L — profit or loss that's actually locked in because a trade has closed — has no dedicated 'Realized P/L' field on the portfolio pages; the platform's real, portfolio-wide realized-performance figure is the Total P/L KPI on the Performance Analytics page, computed honestly from trades that have actually closed, not an estimate.",
+        "Daily workflow, honestly: there is no single dedicated 'Daily Review' feature on this platform. The platform's actual daily workflow is a combination of already-shipped pieces working together — checking the Account Snapshot and Position Greeks, reviewing the Attention Queue on Adjustments for anything needing action, and (for a written, longer-term record) logging entries in the Trading Journal and revisiting them later with the AI Coach. This mirrors the exact same honest framing this platform's own Trading Journal lesson already uses for its engine — there is no magic 'one button' daily review; it's these real screens used together, deliberately.",
+      ],
+      whyItMatters: "Before any Greeks/risk/AI-review lesson makes sense, you need to know which screen actually has which number — a surprising number of real support questions in a platform like this come down to 'why doesn't the Portfolio page show my buying power,' and the honest answer is simply that a different page does.",
+      externalHref: "/portfolio-ai",
+      relatedGlossaryKeys: ["account-value", "buying-power", "cash-balance", "unrealized-pnl", "realized-pnl"],
+      estimatedMinutes: 10,
+      difficulty: "beginner",
+      whyItExists: "Every other lesson in this Academy assumes you already know where the basic account numbers live — this lesson exists to make that map explicit up front, since the platform's own screens split this information in a way that isn't obvious on first use.",
+      institutionalThinking: "Institutional desks track account value, buying power, and realized-vs-unrealized P/L as genuinely distinct concepts with different operational implications (buying power gates what you can do next; realized P/L is what actually happened) — treating them as interchangeable is a common beginner mistake this lesson is designed to prevent.",
+      screenWalkthrough: [
+        "Navigate to /portfolio-ai — the Account Snapshot panel shows Account Value, Buying Power, Day P&L, Total P&L, Open Positions, and Risk Used.",
+        "Navigate to /portfolio — the Active Positions table shows each open position's own unrealized P/L in dollars and percent, alongside its Greeks.",
+        "Navigate to /trade-performance — the Total P&L KPI is the platform's real, portfolio-wide realized-performance figure, computed from closed trades only.",
+        "Navigate to /portfolio-dashboard — the Executive Summary repeats portfolio value and buying power alongside the 0-100 Health Score and a full risk breakdown.",
+      ],
+      workflowSteps: [
+        "Start each session on /portfolio-ai to see account value, buying power, and today's P/L in one place.",
+        "Check /portfolio for the per-position unrealized P/L and Greeks detail the Account Snapshot doesn't break out individually.",
+        "Periodically check /trade-performance for your actual, closed-trade realized performance — never estimate this from unrealized figures alone.",
+        "Log anything noteworthy in the Trading Journal, and use the AI Coach later to review entries — this platform's real substitute for a single 'daily review' button.",
+        "Use /portfolio-dashboard's Health Score as a periodic, rolled-up sanity check, not a replacement for the detail on the other three pages.",
+      ],
+      metricsExplained: [
+        { term: "Account Value", explanation: "Account baseline plus unrealized P/L — the platform's real, live estimate of what the account is worth right now, including open positions' marks." },
+        { term: "Buying Power", explanation: "(Account value − risk dollars committed to open trades) × 2 — a flat, disclosed leverage assumption, not a broker-reported margin figure." },
+        { term: "Day P/L", explanation: "Set equal to the account's current unrealized P/L in this platform's implementation — not a separate, independently-tracked intraday-realized number." },
+        { term: "Total P/L (Performance Analytics)", explanation: "The platform's real, portfolio-wide realized-performance figure, computed only from trades that have actually closed." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Checking the right screen for the right number before making a decision",
+          steps: [
+            "Before deciding whether to open a new position, the trader checks Buying Power on the Account Snapshot (/portfolio-ai), not the Portfolio Greeks page, which doesn't show it at all.",
+            "Before assessing how the account has actually performed, the trader checks the Total P&L KPI on /trade-performance — the real, closed-trade figure — rather than reading the still-open, still-moving unrealized P/L as if it were final.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "Using the Health Score alone without the underlying detail",
+          steps: [
+            "A trader checks only the /portfolio-dashboard Health Score each day, treating a single 0-100 number as sufficient without ever opening the per-position detail on /portfolio or the Attention Queue on /adjustments.",
+          ],
+          note: "The Health Score is a real, useful rollup, but it's explicitly designed as a summary of 8 underlying factors — treating it as the whole picture misses exactly the detail those 8 factors were computed from.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Confusing unrealized P/L with realized, locked-in performance",
+          steps: [
+            "A trader sees a large positive unrealized P/L on an open position and treats it as already-banked profit, without recognizing it can still move (and reverse) before the position is actually closed.",
+          ],
+          note: "This is one of the most common and costly mental-accounting mistakes in options trading — unrealized P/L is a live mark, not a locked-in result, until the position is actually closed.",
+        },
+      ],
+      commonMistakes: [
+        "Looking for portfolio value, buying power, or cash on the Portfolio Greeks page — that page genuinely does not show them; they live on the Portfolio AI cockpit instead.",
+        "Treating a large unrealized gain as already-realized profit before the position is actually closed.",
+        "Assuming 'Day P/L' is a separately-tracked intraday-realized figure — in this platform's implementation it's literally the same number as unrealized P/L.",
+        "Expecting a single 'Daily Review' button — the platform's real daily workflow is several existing screens used together, not one dedicated feature.",
+      ],
+      riskWarnings: [
+        "Buying power is computed from a flat, disclosed 2x leverage assumption — treat it as a planning estimate, not a broker-verified margin figure.",
+        "Unrealized P/L can move against you at any time before a position closes — never treat it as a guaranteed outcome.",
+        "This lesson is educational only — nothing here is a recommendation to open, hold, or close any specific position.",
+      ],
+      bestPractices: [
+        "Build a short mental (or written) habit of checking all three screens — Account Snapshot, Portfolio Greeks, Performance Analytics — rather than relying on just one.",
+        "Distinguish 'how the account looks right now' (unrealized, still moving) from 'how the account has actually performed' (realized, from closed trades) every time you review it.",
+        "Use the Trading Journal to record context around decisions — it's the platform's own real substitute for a dedicated daily-review feature.",
+      ],
+      relatedModuleHrefs: ["/portfolio-ai", "/portfolio", "/trade-performance", "/portfolio-dashboard"],
+      aiCoachPrompts: [
+        "Explain the difference between my account's unrealized P/L and its realized P/L, and where each one is shown.",
+        "Why doesn't the Portfolio Greeks page show my buying power or cash balance?",
+        "Walk me through what buying power actually represents and how it's computed.",
+        "What is this platform's actual daily review workflow, given there's no single dedicated screen for it?",
+      ],
+      nextStepKeys: ["portfolio-concentration"],
+      knowledgeCheck: [
+        {
+          prompt: "Which screen shows the Account Snapshot with portfolio value, buying power, and day P/L?",
+          options: ["The Portfolio Greeks page (/portfolio)", "The Portfolio AI cockpit (/portfolio-ai)", "The Concentration Risk page", "The Trading Journal"],
+          correctIndex: 1,
+          explanation: "The Account Snapshot panel lives on the Portfolio AI cockpit (/portfolio-ai) — the Portfolio Greeks page (/portfolio) shows only positions, Greeks, and unrealized P/L, not account-level value or buying power.",
+        },
+        {
+          prompt: "Where does this platform's real, portfolio-wide Realized P/L figure actually come from?",
+          options: ["A dedicated 'Realized P/L' field on the Portfolio Greeks page", "The Total P&L KPI on the Performance Analytics page, computed from closed trades", "An estimate derived from unrealized P/L", "The Portfolio Health Score"],
+          correctIndex: 1,
+          explanation: "There is no dedicated realized-P/L field on the portfolio pages — the real, honest realized-performance figure is the Performance Analytics page's Total P&L KPI, computed only from trades that have actually closed.",
+        },
+        {
+          prompt: "Is Cash Balance shown as its own labeled panel anywhere on this platform today?",
+          options: ["Yes, on the Portfolio Greeks page", "Yes, on the Account Snapshot", "No — it's a real, computed backend field but not currently rendered on any screen", "No — it isn't computed anywhere"],
+          correctIndex: 2,
+          explanation: "Cash Balance is genuinely computed by the backend (account value minus risk dollars) as part of the same data the Account Snapshot already reads, but it is not currently displayed as its own labeled field anywhere.",
+        },
+        {
+          prompt: "How is 'Day P/L' computed in this platform's implementation?",
+          options: ["As a separate, independently-tracked intraday-realized figure", "It is set equal to the account's current unrealized P/L", "As the sum of all realized trades that day", "It is not computed at all"],
+          correctIndex: 1,
+          explanation: "In this platform's implementation, day P/L is literally the same number as the account's current unrealized P/L — not a separately-tracked intraday-realized figure.",
+        },
+        {
+          prompt: "What is this platform's actual 'daily workflow' for reviewing a portfolio?",
+          options: ["A single dedicated Daily Review button", "Checking the Account Snapshot, Portfolio Greeks, and Attention Queue together, plus the Trading Journal and AI Coach", "An automated daily email report", "There is no daily workflow at all"],
+          correctIndex: 1,
+          explanation: "This platform has no single dedicated 'Daily Review' feature — the real workflow combines several existing screens (Account Snapshot, Portfolio Greeks, Adjustments' Attention Queue) with the Trading Journal and AI Coach.",
+        },
+      ],
+    }),
+    // v1.4.0, Sprint L2H — Institutional Options Portfolio Management
+    // Academy. Upgraded in place (key preserved; Module 3: Portfolio Risk
+    // Management). Deliberately draws the hard-enforced-vs-advisory-only
+    // distinction confirmed this sprint: settings.maxRiskPerTrade /
+    // maxPortfolioRisk are real, trade-BLOCKING caps enforced by
+    // execution.ts's validatePreTrade() before any order can be submitted
+    // (manual or full-auto); positionSizing.ts's own recommendedQuantity
+    // is a real but purely advisory suggestion that cannot block anything.
     topic({
       key: "portfolio-position-sizing",
-      title: "Position Sizing",
-      summary: "How much to risk on any single trade.",
-      body: ["Bound each trade's risk as a percentage of total account value so no single position — however attractive — can do outsized damage."],
-      whyItMatters: "This platform's own Position Sizing & Portfolio Impact Calculator computes real current-vs-hypothetical exposure before you enter a trade — reused directly.",
+      title: "Portfolio Risk Management: Position Sizing, Exposure Caps, and Monitoring Multiple Positions",
+      summary: "How much to risk on any single trade, how much the whole account can risk at once, and what actually stops you before it's too much.",
+      body: [
+        "Position sizing means bounding each trade's risk as a percentage of total account value, so no single position — however attractive — can do outsized damage. This platform's own Position Sizing & Portfolio Impact Calculator (/position-sizing) computes a real recommended quantity from your account value and your own maxRiskPerTrade setting, plus a full before-and-after Portfolio Impact comparison (risk dollars, Greeks, exposure by symbol) showing exactly how a hypothetical trade would change your account if you opened it.",
+        "Portfolio exposure is tracked the same way, at the whole-account level: total risk dollars committed across every open position, split into long/short exposure and exposure-by-symbol — the same figures the Position Sizing calculator's own 'Current' snapshot already reads from your real open trades.",
+        "Sector concentration and correlation are covered in depth in this Academy's own Portfolio Greeks lesson (a real Herfindahl-Hirschman-Index concentration score, and a disclosed, categorical — not statistical — correlation-clustering view) — cross-referenced here rather than re-derived, since managing risk and understanding concentration are two angles on the same underlying computation.",
+        "Maximum portfolio risk is where this lesson's content stops being merely descriptive and becomes genuinely, mechanically enforced: settings.maxRiskPerTrade (a percentage of account value per trade) and settings.maxPortfolioRisk (a percentage of account value across every open trade combined) are real hard gates checked by this platform's execution engine before any order — manual, semi-auto, or full-auto — can actually be submitted. A trade that would push either figure over its cap is rejected outright, not just flagged. This is a genuinely different, harder-edged mechanic than the Position Sizing Calculator's own recommendedQuantity figure, which is purely advisory: it suggests a sensible size using the same maxRiskPerTrade setting, but it cannot block a trade — it never calls into the order-submission path at all.",
+        "Risk monitoring and managing multiple positions at once means periodically checking the same real signals this Academy's other lessons already cover — the Portfolio Health Score's rolled-up view (/portfolio-dashboard), the concentration/correlation overlay (/concentration-risk), and, for positions that actually need attention, the Attention Queue on the Adjustments page (/adjustments), which surfaces every open position whose deterministic recommendation isn't simply 'hold,' sorted by severity — the platform's real answer to 'how do I keep track of several open positions at once' without a dedicated multi-position dashboard beyond the ones already covered.",
+      ],
+      whyItMatters: "Confusing this platform's real, hard-enforced risk caps with the Position Sizing Calculator's own advisory-only suggestion is a genuine, common misunderstanding — this lesson exists specifically to draw that line clearly, since one of them can block your trade and the other cannot.",
       externalHref: "/position-sizing",
-      relatedGlossaryKeys: ["position-sizing", "concentration", "buying-power"],
-      estimatedMinutes: 4,
+      relatedGlossaryKeys: ["position-sizing", "concentration", "buying-power", "max-portfolio-risk"],
+      estimatedMinutes: 12,
+      difficulty: "intermediate",
+      whyItExists: "Risk management on this platform genuinely spans two different mechanisms — a hard-enforced gate and an advisory calculator — and a learner who only sees one of them will either overestimate how much protection the advisory tool provides, or underestimate how directly the hard caps constrain their trading.",
+      institutionalThinking: "Institutional risk desks distinguish hard limits (which block an action outright) from advisory guidance (which informs a decision but doesn't prevent it) as a matter of course — this platform's own architecture happens to mirror that exact distinction, which makes it a genuinely useful real-world parallel to teach directly from source, not from analogy.",
+      screenWalkthrough: [
+        "Navigate to /position-sizing, enter a hypothetical trade's details, and review the recommended quantity plus the before/after Portfolio Impact comparison.",
+        "Navigate to Settings and note the real maxRiskPerTrade and maxPortfolioRisk values — these are the actual hard caps the execution engine checks, not just informational settings.",
+        "Navigate to /adjustments and review the Attention Queue's Severity/POP/DTE columns for any open position needing action.",
+        "Navigate to /concentration-risk for the full concentration/correlation detail (covered fully in the Portfolio Greeks lesson).",
+      ],
+      workflowSteps: [
+        "Before opening any new position, run it through the Position Sizing Calculator to see its real before/after portfolio impact.",
+        "Know your own account's maxRiskPerTrade and maxPortfolioRisk settings — these are the real numbers that can reject a trade outright.",
+        "Recognize that a trade the calculator merely 'suggests' resizing is still your own decision — it will not stop you the way the hard caps will.",
+        "Periodically review the Attention Queue on Adjustments for any open position that isn't simply 'hold.'",
+        "Use the Concentration overlay's HHI score and clustering view for a portfolio-wide sanity check across all open positions at once.",
+      ],
+      metricsExplained: [
+        { term: "maxRiskPerTrade", explanation: "A hard, per-trade cap (percent of account value) enforced by the execution engine before any order — manual or automated — can be submitted." },
+        { term: "maxPortfolioRisk", explanation: "A hard, whole-account cap (percent of account value across every open trade combined) enforced the same way — a trade that would push the account over this line is rejected." },
+        { term: "recommendedQuantity", explanation: "The Position Sizing Calculator's own advisory suggestion, derived from the same maxRiskPerTrade setting — informational only, and unable to block a trade on its own." },
+        { term: "Total risk dollars / exposure by symbol", explanation: "The real, whole-account risk-dollar total across every open position, split by symbol — the same figures both the Position Sizing Calculator's snapshot and the Concentration overlay read from." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Sizing a trade to the calculator's suggestion, comfortably inside both hard caps",
+          steps: [
+            "A trader runs a candidate trade through the Position Sizing Calculator, sees a recommended quantity well within their own maxRiskPerTrade, and confirms the before/after Portfolio Impact keeps the account's aggregate risk comfortably under maxPortfolioRisk too.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "A trade near the caps that the calculator flags as elevated but doesn't outright reject",
+          steps: [
+            "A candidate trade's recommended quantity is smaller than the trader's initial instinct, and the Portfolio Impact comparison shows the account's aggregate risk would land close to, but still under, maxPortfolioRisk.",
+          ],
+          note: "'Under the cap' is not the same as 'comfortable' — a trade that barely clears the hard limit leaves little room for the next opportunity.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Attempting a trade that the execution engine actually rejects",
+          steps: [
+            "A trader ignores the Position Sizing Calculator's own advisory suggestion, attempts to submit a larger size anyway, and the trade is rejected outright by the execution engine's hard maxPortfolioRisk check — not merely flagged, genuinely blocked.",
+          ],
+          note: "This is the real, mechanical difference this lesson is built around: the advisory tool can be overridden by the user's own judgment, the hard cap cannot.",
+        },
+      ],
+      commonMistakes: [
+        "Assuming the Position Sizing Calculator's recommended quantity is a hard limit — it is advisory only and cannot block a trade.",
+        "Not knowing your own account's maxRiskPerTrade/maxPortfolioRisk settings before attempting to size a large trade, then being surprised when it's rejected.",
+        "Treating 'passed the hard caps' as equivalent to 'a good trade' — clearing a risk limit is a floor, not an endorsement.",
+        "Ignoring the Attention Queue on Adjustments until a position has already moved significantly against you.",
+      ],
+      riskWarnings: [
+        "Clearing the hard portfolio-risk caps does not mean a trade is a good idea — it only means it doesn't breach a structural limit.",
+        "The Position Sizing Calculator's suggestion is informational — you can still oversize a trade up to the hard cap if you choose to.",
+        "This lesson is educational only — nothing here is a recommendation to size or place any specific trade.",
+      ],
+      bestPractices: [
+        "Always run a candidate trade through the Position Sizing Calculator before entering it, even when you're confident about the size.",
+        "Know the real difference between an advisory suggestion and a hard, trade-blocking cap before assuming either one protects you.",
+        "Check the Attention Queue regularly rather than only when a position has already become a problem.",
+      ],
+      relatedModuleHrefs: ["/position-sizing", "/concentration-risk", "/adjustments", "/portfolio-dashboard"],
+      aiCoachPrompts: [
+        "Explain the difference between this platform's hard risk caps and the Position Sizing Calculator's own advisory suggestion.",
+        "Walk me through what actually happens if I try to submit a trade that would breach maxPortfolioRisk.",
+        "How does the Attention Queue on Adjustments help me manage several open positions at once?",
+        "What's the relationship between position sizing and the Concentration overlay's own risk score?",
+      ],
+      nextStepKeys: ["portfolio-managing-positions"],
+      knowledgeCheck: [
+        {
+          prompt: "Can the Position Sizing Calculator's recommended quantity block a trade from being submitted?",
+          options: ["Yes, it enforces a hard cap", "No — it is advisory only and never calls into the order-submission path", "Yes, but only in full-auto mode", "No, because the calculator doesn't exist"],
+          correctIndex: 1,
+          explanation: "positionSizing.ts's recommendedQuantity is explicitly advisory-only by its own design — it never contacts the execution/order-submission path and cannot block anything.",
+        },
+        {
+          prompt: "What happens if a trade would push the account's aggregate risk over settings.maxPortfolioRisk?",
+          options: ["The trade is flagged but still allowed", "The trade is rejected outright by the execution engine, before submission", "The Position Sizing Calculator automatically resizes it", "Nothing — this cap only applies to full-auto trades"],
+          correctIndex: 1,
+          explanation: "maxPortfolioRisk is a hard, trade-blocking cap enforced by execution.ts's validatePreTrade() for every order path — manual, semi-auto, and full-auto — not just an advisory flag.",
+        },
+        {
+          prompt: "Where does the Attention Queue live, and what does it show?",
+          options: ["On the Position Sizing page, showing recommended quantities", "On the Adjustments page, showing open positions whose recommendation isn't 'hold,' sorted by severity, with POP and DTE columns", "On the Concentration overlay, showing sector clusters", "It doesn't exist on this platform"],
+          correctIndex: 1,
+          explanation: "The Attention Queue is a real feature of the Adjustments page (/adjustments), surfacing exactly the open positions needing a decision, with real Severity/POP/DTE detail per row.",
+        },
+        {
+          prompt: "Is clearing this platform's hard portfolio-risk caps the same as a trade being 'a good trade'?",
+          options: ["Yes, clearing the caps guarantees profitability", "No — clearing a hard cap only means a structural limit wasn't breached, not that the trade is a good idea", "Yes, but only for defined-risk strategies", "The caps don't apply to any real trade"],
+          correctIndex: 1,
+          explanation: "The hard risk caps are a floor, not an endorsement — a trade can clear every structural limit and still be a poor decision on its own merits.",
+        },
+        {
+          prompt: "What is the real, mechanical difference between maxRiskPerTrade/maxPortfolioRisk and the Position Sizing Calculator's own recommendedQuantity?",
+          options: ["There is no difference — both are equally enforced", "The former are hard, order-blocking caps; the latter is a purely informational suggestion that cannot block a trade", "The former are advisory; the latter is a hard cap", "Both only apply to automated trading"],
+          correctIndex: 1,
+          explanation: "settings.maxRiskPerTrade/maxPortfolioRisk are enforced by execution.ts's validatePreTrade() and can reject a trade outright; the Position Sizing Calculator's recommendedQuantity is advisory-only and has no ability to block anything.",
+        },
+      ],
     }),
     topic({
       key: "portfolio-health",
@@ -1805,15 +2053,133 @@ const PORTFOLIO_PATH: LearningPath = {
       relatedGlossaryKeys: ["buying-power", "position-sizing", "max-loss"],
       estimatedMinutes: 3,
     }),
+    // v1.4.0, Sprint L2H — Institutional Options Portfolio Management
+    // Academy. Upgraded in place (key preserved; Module 2: Portfolio
+    // Greeks). Deliberately does NOT re-derive the Greeks math the
+    // pre-existing greeks-portfolio-greeks lesson (GREEKS_PATH, Sprint
+    // L2F) already covers in depth — this lesson's own, genuinely
+    // distinct angle is USING net Greeks to reason about diversification
+    // and concentration, plus the one real Greeks chart on this exact
+    // page, none of which greeks-portfolio-greeks's own content covers.
     topic({
       key: "portfolio-concentration",
-      title: "Concentration",
-      summary: "How much risk sits in one place.",
-      body: ["Measured across symbol, sector, strategy, and expiration dimensions — high concentration means one adverse move can hit a large share of the account at once."],
-      whyItMatters: "This platform's own Correlation & Concentration Risk Overlay computes a real Herfindahl-Hirschman-Index concentration score from your actual open positions.",
+      title: "Portfolio Greeks: Net Exposure, Diversification, and Concentration Risk",
+      summary: "Delta, Gamma, Theta, and Vega aren't just single-position numbers — used at the portfolio level, they're a genuine risk-management tool, and this platform visualizes exactly one of them.",
+      body: [
+        "This lesson builds on the Greeks curriculum's own 'Understanding the Greeks in Practice' lesson, which already covers exactly how this platform computes net portfolio Delta, Gamma, Theta, and Vega (a plain, un-weighted sum of every open position's own Black-Scholes Greeks — cross-reference that lesson for the full math and the confirmed 'Beta-Weighted Delta' label mismatch). This lesson's own focus is different and additive: using those same net Greek figures to reason about how concentrated or diversified a portfolio actually is.",
+        "Net Greek exposure as a diversification signal: this platform's own Portfolio Health Score computes a real factor — 100 minus the largest single position's share of the account's total absolute delta — meaning a portfolio where one position accounts for most of the net delta scores worse on this factor than one where delta is spread across several positions, even at the same total net-delta figure. A large net delta concentrated in one name is a genuinely different risk than the same net delta spread across five.",
+        "Concentration risk, computed for real: this platform's Correlation & Concentration Risk Overlay (/concentration-risk) computes a genuine Herfindahl-Hirschman Index — the sum of each position's squared weight (by risk dollars, not account value), scaled to 0-100 — across symbol, sector, strategy, expiration, and directional-bias dimensions. This is a standard, well-established concentration statistic, not a fabricated proprietary formula. Sector classification, honestly disclosed, comes from a small, static, hand-curated table covering this platform's own known universe — not a live market-data feed — and an unrecognized symbol is honestly labeled 'Unclassified' rather than guessed.",
+        "Diversification is the same score, read the other way — the Portfolio Health Score's own 'Diversification' factor is 100 minus the sector-level HHI, computed from the exact same overlay. 'Correlation,' on this platform, is explicitly disclosed as a categorical grouping (positions sharing a symbol, sector, strategy, expiration, or directional bias, when at least two positions share the trait) rather than a genuine statistical correlation coefficient — there is no price-return covariance matrix computed anywhere in this engine, and the platform states that honestly rather than implying a level of statistical rigor it doesn't have.",
+        "How the platform actually visualizes this: there is exactly one Greeks-related chart anywhere in this platform's frontend — the 'Greeks Contribution' bar chart on the Concentration overlay page, plotting each open position's own delta contribution to the portfolio's net delta, colored by sign. No other page charts gamma, theta, or vega — those remain plain numeric figures on the Account Snapshot and Portfolio Greeks pages. A separate Concentration Heat Map on the same page visualizes weight-by-position via color intensity, not Greeks specifically.",
+      ],
+      whyItMatters: "Net Greeks and concentration risk are two views of the same underlying question — 'how much of my account's outcome depends on one thing going right' — and seeing them computed from the exact same position data, side by side, is what makes portfolio-level risk management click in a way single-position Greeks alone don't.",
       externalHref: "/concentration-risk",
-      relatedGlossaryKeys: ["concentration", "diversification", "correlation"],
-      estimatedMinutes: 4,
+      relatedGlossaryKeys: ["concentration", "diversification", "correlation", "delta", "portfolio-health"],
+      estimatedMinutes: 11,
+      difficulty: "intermediate",
+      whyItExists: "Understanding Greeks as single-position definitions (covered elsewhere in this platform's curriculum) is a prerequisite, not a substitute, for understanding how those same numbers are actually used to manage a whole portfolio's concentration risk — this lesson exists to make that operational use explicit without re-teaching the definitions.",
+      institutionalThinking: "Institutional risk desks routinely decompose a portfolio's own net Greek exposure by position, sector, or strategy to find hidden concentration — a large net delta that looks fine in aggregate can be a serious problem if it's really just one oversized bet wearing five different tickers.",
+      screenWalkthrough: [
+        "Navigate to /portfolio and note the net Delta/Theta/Vega/Gamma figures — this is the same plain-sum computation the Understanding the Greeks lesson already covers in depth.",
+        "Navigate to /concentration-risk and review the Greeks Contribution bar chart — the one real Greeks visualization on this platform, showing each position's own delta contribution.",
+        "On the same page, review the Concentration Analysis section's dimension selector (symbol/sector/strategy/expiration/directional bias) and the Concentration Heat Map.",
+        "Review the Correlation Clusters section, explicitly labeled as categorical grouping rather than a statistical model.",
+      ],
+      workflowSteps: [
+        "Check net Delta/Theta/Vega/Gamma on the Portfolio Greeks page as a starting point.",
+        "Open the Concentration overlay and review the Greeks Contribution chart to see whether net delta is spread across positions or concentrated in one.",
+        "Review the concentration score across each available dimension (symbol/sector/strategy/expiration) — a high score in any one dimension is worth investigating even if the overall score looks moderate.",
+        "Read the Correlation Clusters as categorical groupings — a useful signal, not a substitute for a genuine statistical correlation model, which this platform does not compute.",
+        "Cross-reference the Portfolio Health Score's own Concentration and Diversification factors, since both are derived from this exact same overlay.",
+      ],
+      metricsExplained: [
+        { term: "Net delta share (top position)", explanation: "The largest single position's share of the portfolio's total absolute delta — used directly in the Portfolio Health Score's own net-Greeks-exposure factor." },
+        { term: "Concentration score (HHI)", explanation: "A genuine Herfindahl-Hirschman Index, 0-100, computed from each position's squared share of total risk dollars — a standard concentration statistic, not a fabricated formula." },
+        { term: "Sector classification", explanation: "A small, static, hand-curated table covering this platform's own known universe — never live market data, and an unrecognized symbol is honestly labeled 'Unclassified.'" },
+        { term: "Correlation clusters", explanation: "Categorical groupings of positions sharing a symbol/sector/strategy/expiration/directional bias — explicitly disclosed as not a statistical correlation model." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Net delta spread across several positions, low concentration score",
+          steps: [
+            "A portfolio's net delta is moderate, and the Greeks Contribution chart shows it's spread fairly evenly across five different positions.",
+            "The Concentration overlay's symbol/sector scores are both in the 'well diversified' range.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "A moderate concentration score driven by one sector, not one symbol",
+          steps: [
+            "The overall concentration score reads as 'moderate,' but the sector-dimension score is notably higher than the symbol-dimension score — several different tickers, all in the same sector.",
+          ],
+          note: "Checking only the overall or symbol-level score can miss a genuine sector-level concentration that a different dimension reveals.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "One position driving most of the portfolio's net delta",
+          steps: [
+            "The Greeks Contribution chart shows one position accounting for the large majority of the portfolio's net delta, and the Portfolio Health Score's net-Greeks-exposure factor scores poorly as a direct result.",
+          ],
+          note: "A moderate-looking total net delta can hide a concentrated bet in a single name — the per-position chart is what actually reveals this, not the aggregate number alone.",
+        },
+      ],
+      commonMistakes: [
+        "Reading only the aggregate net delta figure without checking the Greeks Contribution chart for how concentrated that delta actually is.",
+        "Treating 'Correlation Clusters' as a genuine statistical correlation model — this platform explicitly discloses it's categorical grouping, not a covariance calculation.",
+        "Checking only the symbol-level concentration score and missing a real sector-level concentration a different dimension would reveal.",
+        "Assuming gamma, theta, and vega are charted somewhere — only delta has a dedicated chart on this platform today.",
+      ],
+      riskWarnings: [
+        "A moderate aggregate net delta can still hide a concentrated single-position bet — always check the per-position breakdown, not just the total.",
+        "Sector classification is static, hand-curated metadata, not a live feed — treat it as directionally useful, not authoritative for every symbol.",
+        "This lesson is educational only — nothing here is a recommendation to adjust any specific position or allocation.",
+      ],
+      bestPractices: [
+        "Check the Greeks Contribution chart alongside the aggregate net-Greeks figures, not instead of them.",
+        "Review concentration across every available dimension (symbol/sector/strategy/expiration), not just the overall score.",
+        "Treat Correlation Clusters as a useful categorical signal, and remember it isn't a substitute for genuine statistical diversification analysis.",
+      ],
+      relatedModuleHrefs: ["/concentration-risk", "/portfolio", "/portfolio-dashboard"],
+      aiCoachPrompts: [
+        "Explain how the Portfolio Health Score's net-Greeks-exposure factor is derived from position-level delta contributions.",
+        "Why does this platform disclose that 'Correlation Clusters' aren't a real statistical correlation model?",
+        "Walk me through how the Concentration overlay's HHI score is actually computed.",
+        "Which Greek does this platform actually chart, and why not the others?",
+      ],
+      nextStepKeys: ["portfolio-position-sizing"],
+      knowledgeCheck: [
+        {
+          prompt: "How does this platform's Portfolio Health Score treat a large net delta that's concentrated in one position, versus the same net delta spread across five?",
+          options: ["Both score identically, since only the aggregate net delta matters", "The concentrated version scores worse on the net-Greeks-exposure factor, based on the largest position's share of total absolute delta", "Concentration only affects the sector dimension, never Greeks", "The platform doesn't distinguish between the two cases at all"],
+          correctIndex: 1,
+          explanation: "The net-Greeks-exposure health factor is 100 minus the largest single position's share of total absolute delta — a concentrated bet scores worse than the same aggregate delta spread across multiple positions.",
+        },
+        {
+          prompt: "What kind of calculation is this platform's Concentration Score?",
+          options: ["A fabricated proprietary formula unique to this platform", "A genuine Herfindahl-Hirschman Index (HHI), a standard, well-established concentration statistic", "A simple average of position sizes", "A live statistical correlation coefficient"],
+          correctIndex: 1,
+          explanation: "The Concentration Score is explicitly a real HHI — the sum of each position's squared weight — a standard statistic used across many fields, not something invented for this platform.",
+        },
+        {
+          prompt: "Is this platform's sector classification sourced from a live market-data feed?",
+          options: ["Yes, refreshed in real time", "No — it's a small, static, hand-curated table covering the platform's own known universe", "Yes, but only for large-cap symbols", "Sector classification doesn't exist on this platform"],
+          correctIndex: 1,
+          explanation: "Sector classification comes from a disclosed, static, hand-curated mapping — never live data — and an unrecognized symbol is honestly labeled 'Unclassified' rather than guessed.",
+        },
+        {
+          prompt: "Is this platform's 'Correlation Clusters' feature a genuine statistical correlation model?",
+          options: ["Yes, it computes a real price-return covariance matrix", "No — it's explicitly disclosed as categorical grouping (shared symbol/sector/strategy/expiration/directional bias), not statistics", "Yes, but only for options positions, not stocks", "Correlation clusters don't exist on this platform"],
+          correctIndex: 1,
+          explanation: "The platform's own documentation is explicit: Correlation Clusters group positions sharing a categorical trait — there is no statistical correlation coefficient computed anywhere in this engine.",
+        },
+        {
+          prompt: "Which Greek does this platform actually chart on a dedicated visualization?",
+          options: ["All four (Delta, Gamma, Theta, Vega) on separate charts", "Only Delta, via the Greeks Contribution bar chart on the Concentration overlay", "Only Theta, via a theta-income chart", "None — all Greeks are shown only as plain numbers"],
+          correctIndex: 1,
+          explanation: "The Greeks Contribution bar chart on /concentration-risk plots each position's own delta contribution — it is the only Greeks-related chart anywhere in this platform's frontend; gamma/theta/vega remain plain numeric figures elsewhere.",
+        },
+      ],
     }),
     topic({
       key: "portfolio-diversification",
@@ -1854,6 +2220,263 @@ const PORTFOLIO_PATH: LearningPath = {
       externalHref: "/event-risk",
       relatedGlossaryKeys: ["event-risk", "earnings-volatility"],
       estimatedMinutes: 4,
+    }),
+    // v1.4.0, Sprint L2H — Institutional Options Portfolio Management
+    // Academy. NEW topic (Module 4: Managing Existing Positions). Rolling
+    // is confirmed genuinely implemented (roll_threatened/roll_untested/
+    // convert are all real, detected action types in adjustment.ts) — NOT
+    // treated as "educational only," since it is implemented, with the one
+    // honest caveat that submitting a roll/convert is always human-gated,
+    // never auto-run (adjustment.ts's own header comment states this
+    // explicitly for structural changes).
+    topic({
+      key: "portfolio-managing-positions",
+      title: "Managing Existing Positions: Monitoring, Reviewing, and Exit Planning",
+      summary: "What to actually check on an open position, and how this platform's own deterministic engine flags the ones that need a decision.",
+      body: [
+        "Monitoring open positions on this platform centers on the Attention Queue on the Adjustments page (/adjustments) — a real, deterministic list of every open trade whose recommendation isn't simply 'hold,' sorted by severity, with Severity, POP, and DTE shown per row. This is genuinely different from a plain positions list: it's already filtered down to the positions that need a look, using the same adjustment-recommendation logic across every open trade.",
+        "Reviewing P/L and Greeks per position means the same real, per-position figures covered elsewhere in this Academy — unrealized P/L and net Greeks on the Portfolio Greeks page — but read here through the lens of 'has this position's situation changed enough to warrant a decision,' not just 'what is it worth right now.'",
+        "Evaluating time decay and probability metrics are both real, per-position figures shown directly in the Attention Queue: DTE (days to expiration) and POP (probability of profit, the same modeled — not guaranteed — estimate covered in this platform's own Options Pricing lesson). A position's DTE approaching a configured trigger, or its POP having eroded meaningfully since entry, are exactly the signals this platform's deterministic engine actually watches for.",
+        "Exit planning and rolling are both real, implemented decisions this engine actually recommends — not purely conceptual ideas bolted onto a screen that can't act on them. The recommendation engine's own action set includes close_for_profit, close_for_loss, roll_threatened, roll_untested, convert, and reduce_risk, alongside hold/do_nothing. Rolling (extending a position to a later expiration) and converting (restructuring a threatened position into a different structure) are both genuinely detected conditions, not hypothetical — but submitting either one is always a human-gated decision on the Trade Ticket; this platform's own engine never auto-executes a structural change like a roll or a convert, even in full-auto mode, by explicit design.",
+        "Daily review workflow for open positions, honestly: there is no separate 'position review' feature beyond the Attention Queue itself — checking it, along with the Portfolio Greeks page for the broader Greeks picture, is the platform's actual real workflow for staying on top of several open positions at once, matching the same honest 'existing screens used together, not one dedicated feature' framing this Academy's Portfolio Overview lesson already establishes for the account level.",
+      ],
+      whyItMatters: "An open position isn't 'set and forget' — this platform's own deterministic engine already does the work of flagging which of your positions actually need attention, and knowing how to read that signal (rather than manually re-checking every position from scratch each day) is the practical skill this lesson teaches.",
+      externalHref: "/adjustments",
+      relatedGlossaryKeys: ["probability-of-profit", "theta", "concentration"],
+      estimatedMinutes: 11,
+      difficulty: "intermediate",
+      whyItExists: "Position sizing and portfolio-wide risk (covered elsewhere in this Academy) tell you how much you're risking in aggregate, but they don't tell you which specific open position needs a decision today — that's the genuinely distinct, per-position monitoring job this lesson covers.",
+      institutionalThinking: "Professional options desks manage dozens of open positions by exception — reviewing a short, pre-filtered list of positions that have genuinely changed status, rather than re-underwriting every position from scratch every day — which is exactly the design the Attention Queue mirrors.",
+      screenWalkthrough: [
+        "Navigate to /adjustments and review the Attention Queue table — Severity, POP, and DTE columns per flagged position.",
+        "Click a row for the full detail behind that specific recommendation.",
+        "Navigate to /portfolio for the same position's own unrealized P/L and Greeks in more detail.",
+        "For a candidate roll or convert, use the Trade Adjustment Preview Simulator (/adjustment-preview) to see the real before/after comparison before ever submitting anything.",
+      ],
+      workflowSteps: [
+        "Check the Attention Queue first — it's already filtered to positions needing a decision, not a full re-review of every open trade.",
+        "For each flagged position, note its Severity, POP, and DTE before deciding on an action.",
+        "Cross-reference the Portfolio Greeks page for that position's own Greeks detail if the recommendation involves a directional or volatility concern.",
+        "For a recommended roll or convert, preview it fully on the Trade Adjustment Preview Simulator before submitting anything on the Trade Ticket — remember, this step is always a human decision, never automated.",
+        "Recognize that 'hold'/'do_nothing' positions aren't necessarily risk-free — they simply haven't crossed this engine's own thresholds yet.",
+      ],
+      metricsExplained: [
+        { term: "Severity", explanation: "The Attention Queue's own ranked urgency label (e.g. critical/warning/info) for a flagged position's recommendation." },
+        { term: "POP (in the Attention Queue)", explanation: "The same modeled probability-of-profit estimate covered elsewhere in this platform's curriculum, shown per position so its erosion since entry is visible at a glance." },
+        { term: "DTE", explanation: "Days to expiration remaining on the position — a key input to whether a roll is being considered." },
+        { term: "roll_threatened / roll_untested / convert", explanation: "Real, distinct recommended actions this platform's deterministic engine can flag — always requiring human submission on the Trade Ticket, never auto-executed." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Reviewing a flagged roll candidate fully before deciding",
+          steps: [
+            "A position appears in the Attention Queue with a roll_threatened recommendation, elevated severity, and DTE approaching the configured trigger.",
+            "The trader previews the roll fully on the Trade Adjustment Preview Simulator, reviewing the before/after Greeks and breakevens, before deciding whether to submit it on the Trade Ticket.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "Checking the Attention Queue but skipping the Portfolio Greeks cross-reference",
+          steps: [
+            "A trader reviews the Attention Queue's own Severity/POP/DTE columns for a flagged position, but doesn't cross-check that position's own Greeks detail on the Portfolio Greeks page before deciding.",
+          ],
+          note: "The Attention Queue's own columns are a real, useful starting point, but they're a summary — the fuller Greeks picture lives on a different page.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Ignoring 'hold' positions as risk-free",
+          steps: [
+            "A trader assumes every position marked 'hold' or 'do_nothing' needs no attention at all, and stops monitoring them entirely until they eventually cross a threshold and appear flagged.",
+          ],
+          note: "'Hold' means this engine's own thresholds haven't been crossed yet — it isn't a statement that the position carries no risk at all.",
+        },
+      ],
+      commonMistakes: [
+        "Treating the full open-positions list and the Attention Queue as the same thing — the Attention Queue is already filtered to positions needing a decision.",
+        "Submitting a roll or convert directly from the Attention Queue without previewing it on the Trade Adjustment Preview Simulator first.",
+        "Assuming any recommended action (roll, convert, close) executes automatically — every structural change requires a human decision on the Trade Ticket.",
+        "Ignoring 'hold' positions entirely, rather than recognizing they simply haven't crossed a threshold yet.",
+      ],
+      riskWarnings: [
+        "POP is a modeled estimate, not a guarantee — a position's eroding POP is a signal to review, not a certainty of loss.",
+        "This platform never automatically executes a roll or convert, in any mode — always confirm the specific terms on the Trade Ticket yourself.",
+        "This lesson is educational only — nothing here is a recommendation to close, roll, or convert any specific position.",
+      ],
+      bestPractices: [
+        "Use the Attention Queue as your first stop, not a full manual review of every open position from scratch.",
+        "Always preview a roll or convert on the Trade Adjustment Preview Simulator before submitting it.",
+        "Periodically revisit 'hold' positions anyway, since thresholds can be crossed between reviews.",
+      ],
+      relatedModuleHrefs: ["/adjustments", "/adjustment-preview", "/portfolio"],
+      aiCoachPrompts: [
+        "Explain what 'roll_threatened' actually means and what triggers it.",
+        "Walk me through the difference between a rolled position and a converted position.",
+        "Why does this platform never auto-execute a roll or convert, even in full-auto mode?",
+        "What does it mean for a position to still be flagged 'hold' — is that the same as risk-free?",
+      ],
+      nextStepKeys: ["portfolio-ai-review-workflow"],
+      knowledgeCheck: [
+        {
+          prompt: "What is the Attention Queue on the Adjustments page?",
+          options: ["A complete, unfiltered list of every open position", "A list of open positions whose recommendation isn't simply 'hold,' sorted by severity, with POP and DTE shown per row", "A list of only profitable positions", "A feature that doesn't exist on this platform"],
+          correctIndex: 1,
+          explanation: "The Attention Queue is deliberately pre-filtered — it surfaces only positions whose deterministic recommendation is something other than hold/do_nothing, sorted by severity.",
+        },
+        {
+          prompt: "Is rolling a position genuinely implemented on this platform, or purely conceptual?",
+          options: ["Purely conceptual — there is no real detection or preview for it", "Genuinely implemented — roll_threatened/roll_untested are real, detected recommendations, with a full preview simulator, though submission is always human-gated", "Fully automated — the platform rolls positions on its own", "Only available in full-auto mode"],
+          correctIndex: 1,
+          explanation: "Rolling is a real, detected recommendation with a genuine before/after preview simulator — the one honest caveat is that actually submitting a roll always requires a human decision on the Trade Ticket, never automated.",
+        },
+        {
+          prompt: "Does this platform ever automatically execute a roll or convert, even in full-auto mode?",
+          options: ["Yes, always in full-auto mode", "No — structural changes like rolls and converts are always human-gated, by explicit design", "Only for positions with critical severity", "Only for iron condors, never iron flies"],
+          correctIndex: 1,
+          explanation: "The adjustment engine's own design explicitly states rolling and converting are multi-leg structural changes that are never auto-run, regardless of execution mode.",
+        },
+        {
+          prompt: "What does DTE mean in the context of the Attention Queue?",
+          options: ["Daily Trade Estimate", "Days to expiration remaining on the position", "Delta-Theta Efficiency", "Days The Engine has monitored the position"],
+          correctIndex: 1,
+          explanation: "DTE is days to expiration — a key input into whether a position is approaching the point where a roll decision becomes relevant.",
+        },
+        {
+          prompt: "What should you do before submitting a recommended roll or convert?",
+          options: ["Submit it immediately, since the recommendation is already validated", "Preview it fully on the Trade Adjustment Preview Simulator first", "Nothing — the platform submits it automatically", "Wait for the position to reach 0 DTE"],
+          correctIndex: 1,
+          explanation: "The Trade Adjustment Preview Simulator shows a full before/after comparison — reviewing it before submitting anything on the Trade Ticket is the platform's own established, honest workflow for any structural change.",
+        },
+      ],
+    }),
+    // v1.4.0, Sprint L2H — Institutional Options Portfolio Management
+    // Academy. NEW topic (Module 5: AI Portfolio Review). Deliberately
+    // narrow and honest about what "AI" actually means at the portfolio
+    // level on this platform: only Market Briefing prose and Report
+    // Comparison prose are genuinely LLM-narrated; Portfolio Analyst and
+    // Institutional Mentor are explicitly, repeatedly self-disclaimed in
+    // their own source as NOT an LLM/chatbot — this lesson never
+    // describes their deterministic scoring as "AI reasoning," and never
+    // invents a free-form chat-with-the-AI-about-your-portfolio feature,
+    // since none of the three real portfolio-review pages has one.
+    topic({
+      key: "portfolio-ai-review-workflow",
+      title: "AI Portfolio Review: What's Genuinely AI-Narrated, and What Isn't",
+      summary: "Using this platform's real AI-narrated portfolio prose alongside its deterministic scoring tools — without mistaking one for the other.",
+      body: [
+        "This platform's genuinely LLM-narrated portfolio-level content is narrower than it might first appear, and knowing exactly where the line sits matters: the AI Market Briefing on the Portfolio AI cockpit (/portfolio-ai) is real, streamed LLM prose over deterministic regime/VIX/IV-rank/breadth/catalyst inputs, and the Report Comparison narration (when comparing two saved Daily Reports) is likewise real LLM prose describing what changed between them. Both carry this platform's standard coach disclaimer, enforced on every response, template-fallback included: this is educational analysis only, never a trade recommendation, and the platform never executes an order on its own.",
+        "Using the AI Coach to review a portfolio, in practice, means: open the Portfolio AI cockpit, read the Account Snapshot and Portfolio Health/Market Exposure/Risk Concentration gauges, then use the Market Briefing's streamed narration for context on the broader market backdrop those numbers sit within. There is no free-form question box anywhere on this platform's real portfolio-review pages — you cannot type an open-ended question about your specific portfolio and get an LLM-generated answer back; the AI narration that does exist is scoped to the Market Briefing and Report Comparison specifically.",
+        "Example prompts, honestly scoped to what's real: since there's no chat box, 'prompts' here mean the deterministic AI Coach prompts already surfaced on this platform's own Portfolio AI lesson content — questions like 'Explain my Portfolio Health Score' or 'What changed between my last two Daily Reports?' — both of which map directly onto the Market Briefing/Report Comparison narration this lesson describes, not a separate capability.",
+        "Risk review and decision support on this platform are, for the most part, genuinely deterministic, not AI-narrated — and this platform's own source code is explicit and repeated about it: both the AI Portfolio Analyst and the Institutional Mentor state directly, in their own header comments and frontend badges, that they are 'not an LLM, not a chatbot, not predictive AI.' The Portfolio Analyst composes an Executive Briefing and Health/Risk/Income/Greeks/Event summaries; the Institutional Mentor produces a 9-category Portfolio Scorecard plus threshold-gated Professional/Decision/Risk Reviews — both are template-and-threshold-based compositions of already-computed figures, genuinely useful for structured review, but never AI reasoning about your specific situation.",
+        "Weekly review process, honestly: there is no single dedicated 'weekly review' feature. The closest real analog is the Portfolio Health Trend chart on the Portfolio AI cockpit, which plots your own saved Daily Reports' Health Score over a 2-week/1-month/3-month/all-time window — genuinely useful for spotting a trend, but it's a chart over already-saved reports, not a separate weekly-cadence feature. As with this Academy's own Portfolio Overview lesson, the honest answer is that a 'weekly review' here means periodically revisiting the Health Trend chart, the Report History, and your own Trading Journal entries together — existing pieces used with a weekly cadence you set yourself, not a feature the platform enforces or automates.",
+      ],
+      whyItMatters: "The word 'AI' means genuinely different things across this platform's own three portfolio-review surfaces — real LLM narration in exactly two places, and explicitly-disclaimed deterministic scoring everywhere else — and conflating them is the single most likely way to either over-trust a template score as 'the AI's opinion,' or under-use the real narration that does exist.",
+      externalHref: "/portfolio-ai",
+      relatedGlossaryKeys: ["portfolio-health", "portfolio-diversification-score"],
+      estimatedMinutes: 10,
+      difficulty: "intermediate",
+      whyItExists: "The sprint brief for this Academy asked for an 'AI Portfolio Review' lesson, and the honest, accurate version of that lesson has to draw a line this platform's own source code already draws clearly — between genuine LLM narration and deterministic, explicitly-not-AI scoring — rather than blur the two together.",
+      institutionalThinking: "Distinguishing a genuine model-generated narrative from a deterministic, rules-based score is a basic due-diligence habit on any real desk that uses both — this platform's own explicit self-disclosure in the Portfolio Analyst's and Institutional Mentor's source code is exactly the kind of transparency that habit depends on.",
+      screenWalkthrough: [
+        "Navigate to /portfolio-ai and read the Account Snapshot, Portfolio Greeks, and the three score gauges (Portfolio Health, Market Exposure, Risk Concentration).",
+        "Open the AI Market Briefing card and note it is genuinely streamed LLM prose — the platform's only true open-ended-feeling narration at the portfolio level, though grounded entirely in deterministic market inputs, not your specific positions.",
+        "Select two saved reports in Compare mode to see the Report Comparison's own streamed narration of what changed.",
+        "Separately, visit /portfolio-analyst and /institutional-mentor and note both pages' own explicit 'not an LLM/chatbot' badges and disclosures.",
+      ],
+      workflowSteps: [
+        "Start with the Account Snapshot and score gauges on the Portfolio AI cockpit for the deterministic headline numbers.",
+        "Read the AI Market Briefing for genuine narrated context on the broader market backdrop.",
+        "Periodically use the Report Comparison narration to see what's changed between two saved Daily Reports.",
+        "Separately, use the Portfolio Analyst and Institutional Mentor for their own deterministic, template-based scoring and review sections — recognizing them as structured composition, not AI narration.",
+        "Revisit the Health Trend chart and your own Trading Journal entries on a cadence you set yourself — the platform's real substitute for a dedicated weekly review feature.",
+      ],
+      metricsExplained: [
+        { term: "AI Market Briefing", explanation: "Genuine, streamed LLM prose over deterministic regime/VIX/IV-rank/breadth/catalyst inputs — carries the standard coach disclaimer on every response." },
+        { term: "Report Comparison narration", explanation: "Genuine, streamed LLM prose describing the deltas between two saved Daily Reports — health/exposure/risk scores, position changes, net Greeks and P/L moves." },
+        { term: "Portfolio Analyst / Institutional Mentor", explanation: "Both explicitly self-disclaimed in their own source as 'not an LLM, not a chatbot, not predictive AI' — deterministic, template-and-threshold-based compositions of already-computed figures." },
+        { term: "Portfolio Health Trend", explanation: "A chart of your own saved Daily Reports' Health Score over 2W/1M/3M/all-time windows — the closest real analog to a 'weekly review' feature, though it's a chart, not a separate scheduled process." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Using the Market Briefing and score gauges together, correctly, for what each actually is",
+          steps: [
+            "A trader reads the deterministic Portfolio Health/Market Exposure/Risk Concentration gauges for the headline numbers, then reads the genuinely AI-narrated Market Briefing for broader market context, treating each for what it actually is.",
+          ],
+        },
+        {
+          label: "Average Opportunity",
+          title: "Using the Institutional Mentor's Scorecard without checking its own disclosure",
+          steps: [
+            "A trader relies on the Institutional Mentor's 9-category Scorecard for a review, without having read its own explicit 'not an LLM, not a chatbot' disclosure — the scoring itself is real and useful, but the trader's mental model of what produced it is inaccurate.",
+          ],
+          note: "The Scorecard's numbers are genuinely computed and useful; the risk here is purely in misunderstanding what kind of tool produced them.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Looking for a chat box to ask the AI a free-form question about a specific portfolio",
+          steps: [
+            "A trader expects to type an open-ended question about their own positions into an AI chat interface on the Portfolio AI, Portfolio Analyst, or Institutional Mentor pages, and finds no such box exists on any of them.",
+          ],
+          note: "No free-form portfolio-question chat interface exists on this platform today — the real AI narration is scoped specifically to the Market Briefing and Report Comparison.",
+        },
+      ],
+      commonMistakes: [
+        "Assuming the Institutional Mentor or Portfolio Analyst's scoring is AI-generated reasoning — both are explicitly, repeatedly disclaimed as deterministic, not LLM-based.",
+        "Looking for a free-form chat box to ask the AI about a specific portfolio — none exists on any of the three real portfolio-review pages.",
+        "Treating the Market Briefing's narration as being about your specific positions — it narrates deterministic market-wide inputs (regime, VIX, IV rank, breadth), not your own portfolio's holdings.",
+        "Expecting a single dedicated 'weekly review' feature — the real workflow combines the Health Trend chart, Report History, and Trading Journal on a cadence you set yourself.",
+      ],
+      riskWarnings: [
+        "Every AI-narrated response on this platform carries the same disclaimer: educational analysis only, never a trade recommendation, and the platform never executes on its own.",
+        "The Market Briefing narrates market-wide conditions, not a personalized read of your own specific positions — don't conflate the two.",
+        "This lesson is educational only — nothing here is a recommendation to act on any narration, score, or review output.",
+      ],
+      bestPractices: [
+        "Know which of the three real portfolio-review surfaces is genuinely AI-narrated (Market Briefing, Report Comparison) versus deterministic (Portfolio Analyst, Institutional Mentor) before relying on either.",
+        "Use the Health Trend chart and Report History together for the closest real analog to a weekly review, on a cadence you set yourself.",
+        "Read a platform feature's own disclosure text (badges, header comments where visible) rather than assuming a feature is 'AI' just because it appears alongside genuinely AI-narrated content.",
+      ],
+      relatedModuleHrefs: ["/portfolio-ai", "/portfolio-analyst", "/institutional-mentor"],
+      aiCoachPrompts: [
+        "Explain my Portfolio Health Score.",
+        "What changed between my last two Daily Reports?",
+        "Which parts of this platform's portfolio review tools are genuinely AI-narrated, and which are deterministic?",
+        "Why doesn't the Institutional Mentor's Scorecard count as an AI-generated recommendation?",
+      ],
+      nextStepKeys: [],
+      knowledgeCheck: [
+        {
+          prompt: "Which of this platform's portfolio-level features is genuinely, streamed LLM-narrated?",
+          options: ["The Institutional Mentor's Scorecard", "The AI Market Briefing and Report Comparison narration", "The Portfolio Analyst's Executive Briefing", "All portfolio features are equally AI-narrated"],
+          correctIndex: 1,
+          explanation: "Only the Market Briefing and Report Comparison are genuinely, streamed LLM-narrated at the portfolio level — the Portfolio Analyst and Institutional Mentor are both explicitly self-disclaimed as deterministic, not AI.",
+        },
+        {
+          prompt: "Does this platform have a free-form chat box for asking the AI open-ended questions about a specific portfolio?",
+          options: ["Yes, on the Portfolio AI cockpit", "No — none exists on any of the three real portfolio-review pages", "Yes, but only on the Institutional Mentor page", "Yes, through the Trade Ticket"],
+          correctIndex: 1,
+          explanation: "No free-form question box exists on the Portfolio AI, Portfolio Analyst, or Institutional Mentor pages — the real AI narration is scoped specifically to the Market Briefing and Report Comparison.",
+        },
+        {
+          prompt: "How does the Institutional Mentor describe its own Scorecard, in its own source and frontend badges?",
+          options: ["As an AI-generated recommendation engine", "As explicitly NOT an LLM, chatbot, or predictive AI — a deterministic, template-based review", "As a live broker feed", "It makes no claim either way"],
+          correctIndex: 1,
+          explanation: "Both the Institutional Mentor and the Portfolio Analyst state directly, in their own header comments and frontend badges, that they are not an LLM, chatbot, or predictive AI.",
+        },
+        {
+          prompt: "What does the AI Market Briefing actually narrate?",
+          options: ["A personalized read of your own specific open positions", "Deterministic market-wide inputs — regime, VIX, IV rank, breadth, catalysts", "Your account's exact P&L history", "Nothing — it's a static template"],
+          correctIndex: 1,
+          explanation: "The Market Briefing narrates deterministic, market-wide conditions (regime/VIX/IV-rank/breadth/catalysts) — it is not a personalized narration of your own specific portfolio holdings.",
+        },
+        {
+          prompt: "What is the closest real feature to a 'weekly review' on this platform?",
+          options: ["A dedicated Weekly Review button that runs automatically", "The Portfolio Health Trend chart plus Report History and Trading Journal, used together on a cadence you set", "The Institutional Mentor's Scorecard alone", "There is no analog at all"],
+          correctIndex: 1,
+          explanation: "No single dedicated weekly-review feature exists — the honest, real analog is combining the Health Trend chart, Report History, and Trading Journal on whatever cadence you choose to set yourself.",
+        },
+      ],
     }),
   ],
 };

@@ -433,6 +433,49 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
   },
 
   // ─── Portfolio ───────────────────────────────────────────────────────
+  // v1.4.0, Sprint L2H — Institutional Options Portfolio Management
+  // Academy. New terms: account-value, cash-balance, unrealized-pnl,
+  // realized-pnl, max-portfolio-risk.
+  {
+    key: "account-value",
+    term: "Account Value (Portfolio Value)",
+    category: "portfolio",
+    definition: "This platform's real-time estimate of what the account is worth right now — the account's baseline plus every open position's current unrealized P/L. Shown on the Account Snapshot panel of the Portfolio AI cockpit, not on the Portfolio Greeks page.",
+    relatedTermKeys: ["unrealized-pnl", "buying-power"],
+    relatedLessonKeys: ["portfolio-overview"],
+  },
+  {
+    key: "cash-balance",
+    term: "Cash Balance",
+    category: "portfolio",
+    definition: "Account value minus the risk dollars already committed to open trades — a real, computed backend figure, honestly disclosed as not currently rendered as its own labeled panel on any screen, even though the same endpoint that powers the Account Snapshot already returns it.",
+    relatedTermKeys: ["account-value", "buying-power"],
+    relatedLessonKeys: ["portfolio-overview"],
+  },
+  {
+    key: "unrealized-pnl",
+    term: "Unrealized P/L",
+    category: "portfolio",
+    definition: "The live, still-open mark-to-market gain or loss on a position that hasn't been closed yet. Shown per position on the Portfolio Greeks page, and rolled into this platform's own 'Day P/L' figure on the Account Snapshot — never a locked-in result until the position is actually closed.",
+    relatedTermKeys: ["realized-pnl", "account-value"],
+    relatedLessonKeys: ["portfolio-overview"],
+  },
+  {
+    key: "realized-pnl",
+    term: "Realized P/L",
+    category: "portfolio",
+    definition: "Profit or loss that's actually locked in because a trade has closed. This platform has no dedicated 'Realized P/L' field on its portfolio pages — the real, portfolio-wide realized-performance figure is the Total P&L KPI on the Performance Analytics page, computed only from trades that have actually closed.",
+    relatedTermKeys: ["unrealized-pnl", "win-rate"],
+    relatedLessonKeys: ["portfolio-overview"],
+  },
+  {
+    key: "max-portfolio-risk",
+    term: "Maximum Portfolio Risk",
+    category: "portfolio",
+    definition: "A hard, whole-account risk cap (a percentage of account value across every open trade combined) enforced by this platform's execution engine before any order — manual, semi-auto, or full-auto — can be submitted. A trade that would push the account over this line is rejected outright, distinct from the Position Sizing Calculator's own purely advisory sizing suggestion, which cannot block a trade.",
+    relatedTermKeys: ["position-sizing", "buying-power"],
+    relatedLessonKeys: ["portfolio-position-sizing"],
+  },
   {
     key: "position-sizing",
     term: "Position Sizing",
