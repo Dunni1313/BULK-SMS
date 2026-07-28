@@ -45,7 +45,9 @@ describe("getLearningProgress — a brand-new user", () => {
       // (platform-basics).
       // v1.4.0, Sprint L2A — Interactive Module Guides added a 13th path
       // (options-income-engine).
-      expect(progress.pathCompletion.length).toBe(12);
+      // v1.4.0, Sprint L2J — AI Coach & Institutional Mentor Academy added
+      // a 14th path (ai-academy).
+      expect(progress.pathCompletion.length).toBe(13);
       expect(progress.bookmarks).toEqual([]);
     } finally {
       await cleanupUser(userId);

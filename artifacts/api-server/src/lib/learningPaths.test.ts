@@ -8,7 +8,7 @@ import { LEARNING_PATHS, getLearningPath, getLearningTopic, allLearningTopics } 
 import { getGlossaryTerm } from "./glossary.js";
 
 describe("learning path content", () => {
-  it("has exactly the 12 requested paths, in the requested order (v1.4.0 Sprint L2A adds options-income-engine)", () => {
+  it("has exactly the 13 requested paths, in the requested order (v1.4.0 Sprint L2A adds options-income-engine; Sprint L2J adds ai-academy)", () => {
     expect(LEARNING_PATHS.map((p) => p.key)).toEqual([
       "foundations",
       "greeks",
@@ -38,6 +38,11 @@ describe("learning path content", () => {
       // teaching platform mechanics (navigation, Command Centre, the
       // Learning Centre itself) — never an investing/trading concept.
       "platform-basics",
+      // v1.4.0, Sprint L2J — AI Coach & Institutional Mentor Academy. A
+      // cross-engine path (spans Engine 1/2/3's AI features) teaching how
+      // to work with every AI assistant on the platform — never a new AI
+      // capability of its own.
+      "ai-academy",
     ]);
   });
 
@@ -188,6 +193,18 @@ describe("learning path content", () => {
       "/institutional-ai-coach",
       "/rebalancing-engine",
       "/stock-analyst/portfolio-construction",
+      // v1.4.0, Sprint L2J — AI Coach & Institutional Mentor Academy. The
+      // one genuinely new route this sprint's new ai-academy path and
+      // upgraded trading-ai-coach-overview topic point to (a confirmed
+      // naming collision with /trading-ai-coach, itself already present
+      // above — the two are separate, real, registered routes, confirmed
+      // by direct grep of App.tsx before this content was written). Every
+      // other route this sprint references (/assistant, /trading-ai-coach,
+      // /institutional-ai-coach, /institutional-mentor, /portfolio-analyst,
+      // /stock-analyst, /trading-research, /trading-journal,
+      // /stock-analyst/portfolio-construction, /rebalancing-engine,
+      // /research-terminal) was already present above.
+      "/ai-trading-coach",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -369,18 +386,30 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "investing-rebalancing-and-review",
       "investing-ai-coach",
       "investing-investment-committee",
+      // v1.4.0, Sprint L2J — AI Coach & Institutional Mentor Academy. 6
+      // brand-new topics in the new ai-academy path, plus 1
+      // upgraded-in-place topic (trading-ai-coach-overview, moved from a
+      // 905-character plain stub to full module-guide depth — the only
+      // topic in this sprint whose plain-vs-rich status actually changed).
+      "ai-team-overview",
+      "ai-writing-better-prompts",
+      "ai-research-workflow",
+      "ai-trading-workflow",
+      "ai-portfolio-review",
+      "ai-understanding-responses",
+      "trading-ai-coach-overview",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
     );
-    expect(stillPlainTopics.length).toBe(51);
+    expect(stillPlainTopics.length).toBe(50);
     for (const { topic } of stillPlainTopics) {
       expect(topic.difficulty).toBeUndefined();
       expect(topic.workflowSteps).toBeUndefined();
     }
   });
 
-  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H/L2I's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H/L2I/L2J's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -426,6 +455,13 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "investing-rebalancing-and-review",
       "investing-ai-coach",
       "investing-investment-committee",
+      "ai-team-overview",
+      "ai-writing-better-prompts",
+      "ai-research-workflow",
+      "ai-trading-workflow",
+      "ai-portfolio-review",
+      "ai-understanding-responses",
+      "trading-ai-coach-overview",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
