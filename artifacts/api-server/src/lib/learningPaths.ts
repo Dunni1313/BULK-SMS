@@ -8084,6 +8084,756 @@ const PROFESSIONAL_WORKFLOWS_PATH: LearningPath = {
   ],
 };
 
+// ─── Certification & Masterclass Academy (v1.4.0, Sprint L2L) ─────────────
+// The Learning Centre's own capstone academy. Confirmed by direct source
+// inspection before any content was written: there is no certification or
+// credentialing engine anywhere in this codebase (no certificate issuance,
+// no badge/achievement system, no pass/fail gate tying any quiz score or
+// lesson completion to an official "certified" status). Every reference to
+// "certification" in this academy is self-directed learning discipline —
+// deterministic guidance, never a new capability of its own. This academy
+// deliberately reuses, rather than re-teaches, every prior academy's own
+// content, and is meant to be studied last (see certification-learning-
+// roadmap's own recommended sequence).
+const CERTIFICATION_MASTERCLASS_PATH: LearningPath = {
+  key: "certification-masterclass",
+  title: "Certification & Masterclass Academy",
+  description: "The Learning Centre's capstone: a recommended study sequence, an honest account of what 'certification' means on this platform (self-directed progress, never an issued credential), and three synthesis masterclasses combining every prior academy's real, already-taught features into one coherent professional practice per engine.",
+  glossaryCategory: "platform",
+  topics: [
+    topic({
+      key: "certification-learning-roadmap",
+      title: "Learning Roadmap",
+      summary: "A recommended Beginner → Intermediate → Advanced sequence across all 15 learning paths — hand-authored guidance, not a coded prerequisite system, since no path or topic on this platform is ever locked.",
+      body: [
+        "The Learning Centre has grown to 15 learning paths, and no built-in wizard tells you which order to study them in — every path and topic is reachable directly by its own URL regardless of your progress anywhere else, confirmed by direct inspection of getLearningPath()/getLearningTopic(): both simply look up a key, with zero gating logic of any kind. This lesson supplies the sequencing manually, based on how each academy's own content actually assumes the vocabulary of the ones before it.",
+        "Recommended order: start with Platform Basics (beginner — navigation, Command Centre, the Learning Centre itself), then the 6 foundational options paths in sequence — Foundations, Greeks, Volatility, Strategies, Portfolio, Performance — since each assumes the vocabulary the one before it taught. From there, branch into whichever engine path(s) match your actual role: Institutional Investing (Engine 1), Trading Engine (Engine 2), or Options Income Engine plus Strategy Framework (Engine 3) — you do not need all three unless your work genuinely spans every engine. Study the AI Academy once you've actually used at least one AI-named feature, so its 'deterministic vs. LLM-narrated' distinctions land against real, remembered examples rather than abstract definitions. Study Professional Workflows next, since it exists specifically to show how the individual features you've now learned combine into real daily, weekly, and monthly routines. This Certification & Masterclass Academy comes last, deliberately — its own three masterclass lessons cross-reference the academies above rather than re-teaching them, and reading them out of order means constantly backtracking to look up vocabulary they assume you already have.",
+        "Academy dependencies, stated plainly as instructional framing rather than a coded dependency graph (none exists): the 'institutional' path (Engine 3's own decision-quality vocabulary) leans on Foundations/Greeks/Strategies; 'institutional-investing' leans on Foundations' company-research vocabulary; 'trading-engine' leans on Greeks/Volatility for context but is mostly self-contained; 'ai-academy' leans on having used at least one real AI feature already; 'professional-workflows' leans on whichever specific engine path matches the workflow you're studying next.",
+        "Suggested study schedule: every topic in every path carries a real, hand-authored estimatedMinutes field — summable across a whole path or academy to build a rough weekly plan (for example, 2-3 topics a week is a reasonable pace for most learners). No calendar, reminder, or notification feature on this platform ties learning to a schedule in any way — the Workflow Center's own 'weekly'/'monthly' cadence labels (taught in Professional Workflows' own Weekly & Monthly Review lesson) are the honest precedent here too: a cadence is a descriptive tag a professional sets for themselves, never a scheduler that fires automatically. Treat any study schedule the same way.",
+        "Tracking your real position on this roadmap: the Learning Centre home page (/learn) computes and displays your genuinely live pathCompletion percentages per path, plus a 'weakest paths' list surfacing any path under 50% complete — this is the actual, computed signal of where you stand, not a separate roadmap-tracking feature (none exists). Recent history and bookmarks on the same page are similarly real and live, not curated by this lesson.",
+      ],
+      whyItMatters: "Knowing a sensible order prevents two real costs: starting an advanced masterclass before the vocabulary it assumes is in place, and wasting time hunting inside the app for a built-in sequencing or prerequisite feature that was never built.",
+      difficulty: "beginner",
+      whyItExists: "This lesson is itself deterministic, hand-authored content with zero new scoring logic — the 'roadmap' is instructional sequencing, not a computed recommendation engine; it references the real, already-computed pathCompletion/estimatedMinutes fields purely for display.",
+      institutionalThinking: "Structured progression — vocabulary, then application, then synthesis — mirrors how real institutional training programmes are built, and recognizing precisely which parts of that structure are automated (your live completion percentage) versus which are self-imposed discipline (the order you study in) is itself the kind of honest self-assessment this whole academy asks you to practice.",
+      screenWalkthrough: [
+        "/learn — the Learning Centre home: your real pathCompletion percentages per path, a 'weakest paths' panel (under 50% complete), recent history, and bookmarks.",
+        "/learn/paths — the full list of all 15 learning paths, each showing its own topic list and description.",
+        "/learn/glossary — the shared, searchable glossary spanning all 10 categories, cross-linked from every lesson in every academy.",
+        "/learn/quiz — the two genuinely scored practice quizzes (Greeks Quiz, Value Investing Quiz), tracked independently of lesson completion.",
+      ],
+      workflowSteps: [
+        "Start at /learn/paths/platform-basics if you are new to the platform at all.",
+        "Work through Foundations → Greeks → Volatility → Strategies → Portfolio → Performance in order — each assumes the vocabulary of the ones before it.",
+        "Branch into your actual role's engine path(s): Institutional Investing, Trading Engine, and/or Options Income Engine plus Strategy Framework.",
+        "Study the AI Academy once you've actually used at least one AI-named feature, so its distinctions land against real examples.",
+        "Study Professional Workflows to see how individual features combine into real daily/weekly/monthly routines.",
+        "Finish with this Certification & Masterclass Academy — its lessons deliberately assume the academies above and cross-reference rather than repeat them.",
+        "Check /learn's own live pathCompletion bars periodically — your only real, computed progress signal.",
+      ],
+      metricsExplained: [
+        { term: "pathCompletion.percentComplete", explanation: "A genuinely live percentage computed per path as completedLessonKeys.length / topicsTotal — real and self-reported, never estimated or fabricated, and never gated by anything beyond clicking 'Mark Complete' on a lesson." },
+        { term: "estimatedMinutes", explanation: "A per-topic time estimate, hand-authored alongside each lesson's content, summable to build a rough weekly study plan — never itself scheduled, reminded, or enforced by any platform feature." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A disciplined, role-matched sequence",
+          steps: [
+            "A new Engine 2 (trading) specialist works Platform Basics → Foundations/Greeks/Volatility/Strategies → Trading Engine → AI Academy → Professional Workflows.",
+            "They then move to this academy's own Institutional Trading Masterclass specifically, skipping the Investing and Options masterclasses until actually needed for their role.",
+            "They check /learn's own percentComplete figures weekly to confirm real progress rather than guessing it.",
+          ],
+          note: "Matching the sequence to your actual role, and using the platform's own real progress data rather than assumption, is the accurate professional approach.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "Jumping straight to the masterclass",
+          steps: [
+            "A learner opens the Institutional Trading Masterclass in week one, skipping every prerequisite academy — technically allowed, since nothing on this platform locks it.",
+            "Partway through, they hit vocabulary (market structure, R-multiples, risk-first sizing) the masterclass assumes and has to backtrack to the Trading Engine and Portfolio paths to catch up.",
+          ],
+          note: "The content was still reachable and correct — the mistake was in the order, not in what the platform allowed.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Searching for a built-in recommendation engine",
+          steps: [
+            "A learner looks inside the app for a 'recommended path' or 'certification track' feature that sequences content for them automatically.",
+            "None exists — this lesson itself is the recommended sequencing, hand-authored rather than computed, and there is no coded gating or suggestion engine behind it.",
+          ],
+          note: "Knowing in advance that sequencing is instructional guidance, not a platform feature, saves the time spent searching for one.",
+        },
+      ],
+      commonMistakes: [
+        "Assuming a built-in dependency or prerequisite-locking system exists — none does; every path and topic is reachable directly by URL regardless of progress elsewhere.",
+        "Studying this academy's masterclasses before the academies they cross-reference, then re-reading the same material a second time mid-lesson.",
+        "Treating estimatedMinutes as a real scheduled reminder rather than a rough planning number.",
+      ],
+      riskWarnings: [
+        "Skipping foundational academies to reach 'certification' content faster risks genuinely misunderstanding what a masterclass lesson is describing, since masterclasses deliberately reuse earlier vocabulary without re-explaining it.",
+        "This roadmap is instructional guidance authored for this sprint, not a live, personalized recommendation engine — it does not adapt to your own actual activity beyond what you read yourself on /learn.",
+      ],
+      bestPractices: [
+        "Follow Beginner → Intermediate → Advanced roughly in the order above, adjusting for your actual role.",
+        "Check /learn's real pathCompletion bars weekly rather than estimating your own progress from memory.",
+        "Use /learn/glossary as a running lookup tool throughout every academy, not only when a lesson explicitly links to a term.",
+      ],
+      aiCoachPrompts: [
+        "Ask the AI Team Overview coach to explain what 'deterministic vs. LLM-narrated' means before reaching the AI Academy.",
+        "Ask the Institutional AI Coach's relevant persona to quiz you on a topic's key vocabulary before marking it complete.",
+        "Institutional Mentor: review your portfolio's real Health Score before studying the masterclass lessons that reference it — Institutional Mentor itself has no free-form chat interface, so this means opening its own page directly, not typing a question.",
+        "Ask the Trading AI Coach or Investing AI Coach (whichever matches your role) to explain one real concept from the path you just completed, in your own words.",
+      ],
+      relatedModuleHrefs: ["/learn", "/learn/paths", "/learn/glossary", "/learn/quiz"],
+      relatedGlossaryKeys: ["review-workflow-cadence", "llm-narration-source", "deterministic-ai-coach"],
+      nextStepKeys: ["certification-becoming-certified"],
+      estimatedMinutes: 10,
+      knowledgeCheck: [
+        {
+          prompt: "Does this platform have a coded feature that locks advanced content until prerequisite academies are completed?",
+          options: ["Yes, every path is gated", "No — every path and topic is reachable directly by URL regardless of progress elsewhere", "Only for the Certification & Masterclass Academy", "Only for institutional-tier paths"],
+          correctIndex: 1,
+          explanation: "getLearningPath()/getLearningTopic() are simple key lookups with zero gating logic — this lesson's recommended order is instructional guidance, not enforced.",
+        },
+        {
+          prompt: "Which page shows your real, live path-completion percentages?",
+          options: ["/learn/quiz", "/learn (the Learning Centre home)", "/learn/glossary", "A separate 'My Roadmap' page"],
+          correctIndex: 1,
+          explanation: "The Learning Centre home page computes and displays pathCompletion live from your actual recorded lesson completions.",
+        },
+        {
+          prompt: "What does a topic's estimatedMinutes field actually represent?",
+          options: ["A scheduled reminder that fires automatically", "A hand-authored planning estimate, useful for building a study plan but never enforced", "The time the platform requires you to spend", "A computed average across all users"],
+          correctIndex: 1,
+          explanation: "Like every 'cadence' concept on this platform, it's descriptive metadata for your own planning, never a scheduler.",
+        },
+        {
+          prompt: "In the recommended sequence, when should the Certification & Masterclass Academy itself be studied?",
+          options: ["First, before anything else", "Last, since its masterclasses cross-reference the other academies rather than re-teaching them", "At the same time as Platform Basics", "It doesn't matter"],
+          correctIndex: 1,
+          explanation: "This academy's own masterclass lessons deliberately assume the vocabulary and features taught in the academies studied before it.",
+        },
+        {
+          prompt: "Does Institutional Mentor provide a free-form chat interface for asking arbitrary questions, the way a genuine AI Coach does?",
+          options: ["Yes, identical to the AI Coach", "No — it has no free-form prompt interface; its own page surfaces deterministic summaries instead", "Only in advanced mode", "Only for institutional-tier accounts"],
+          correctIndex: 1,
+          explanation: "Confirmed during this academy's own platform inspection — Institutional Mentor is a deterministic composition layer with its own page, not a chat feature.",
+        },
+      ],
+    }),
+    topic({
+      key: "certification-becoming-certified",
+      title: "Becoming Platform Certified",
+      summary: "There is no certification or credentialing engine anywhere in this codebase. This lesson is honest, educational guidance on what 'certification' means here: self-directed progress, never an issued credential.",
+      body: [
+        "Stated plainly, and confirmed by direct source inspection before this lesson was written: this platform has no certification or credentialing engine of any kind. There is no certificate issuance, no PDF export, no badge or achievement system, and no pass/fail gate anywhere that ties a quiz score or lesson completion to an official 'certified' status. Everything this academy calls 'certification' is self-directed learning discipline — read this lesson as a philosophy and a personal checklist, never as a description of a platform feature.",
+        "What genuinely is real and tracked: recordViewed/recordCompleted-backed lesson completion, driven by the plain 'Mark Complete' button on every lesson (a self-reported action, not a graded assessment); a live pathCompletion percentage per academy, computed from your own completedLessonKeys; bookmarks; and two genuinely, independently scored practice quizzes (the Greeks Quiz and the Value Investing Quiz), each storing a real percent-correct score per attempt. Even these two real quizzes are never checked anywhere to gate lesson completion, path completion, or any certification status — they are entirely standalone practice tools.",
+        "Knowledge Checks specifically follow their own explicit, deliberate design: completion is ungraded and ungated. Once every question in a lesson's Knowledge Check has been answered at least once — right or wrong, and a 'Try again' re-answer never un-completes it — the Knowledge Check is marked complete exactly once. A running 'X of N correct on first try' score is shown for your own benefit only; it never blocks or delays completion. This is a deliberate, consistent design choice across the whole Learning Centre — a genuine comprehension aid, never an exam.",
+        "'Certification philosophy,' then, as this academy frames it — educational guidance only, never enforced: treat the Learning Roadmap lesson's recommended sequence as your syllabus; treat scoring meaningfully on both real quizzes (not just clicking through) as your own honest self-assessment; treat reaching 100% pathCompletion across the academies relevant to your role as your own personal milestone, self-defined and self-verified, never issued or checked by the platform.",
+        "Required academies (recommended, never enforced): Platform Basics, the six foundational paths, your role's own engine path(s), the AI Academy, and Professional Workflows — completed before this academy's own masterclass lessons, per the Learning Roadmap's own sequencing. Assessment preparation, since there is no real exam, means genuinely re-attempting each academy's Knowledge Checks until you consistently score well on the first try (even though the platform never requires this), and retaking both real scored quizzes until your percent-correct honestly reflects understanding.",
+        "Review workflow: the real Portfolio Workspace Workflow Center's weekly/monthly review cadence (taught in Professional Workflows' own Weekly & Monthly Review lesson) is a reasonable model for structuring your own periodic self-review of what you've learned — the same honesty applies here too: no platform feature will remind you to revisit a lesson. Ethical use of AI matters just as much in this self-certification as anywhere else on the platform: every genuinely LLM-narrated feature carries the enforced Coach Disclaimer (informational and educational, never financial advice, and automated systems can be wrong) — cross-reference the AI Academy's own Writing Better Prompts and Understanding AI Responses lessons rather than trusting any AI output uncritically. And finally, risk awareness: nothing on this platform — SIMULATED data, deterministic coaches, LLM narration, or this self-directed certification framing itself — is a substitute for real risk-management judgement. Live Trading remains disabled by default, and nothing in this lesson changes that.",
+      ],
+      whyItMatters: "This is the one lesson in the entire Learning Centre whose most important content is an explicit disclosure of what does not exist — preventing the single most consequential misunderstanding this academy could create: believing a credential was issued when none was.",
+      difficulty: "intermediate",
+      whyItExists: "Written specifically because 'certification' is the exact word this academy's own name uses, and honesty about what it does and does not mean on this platform is a non-negotiable requirement, confirmed by direct inspection before a word of this lesson was drafted.",
+      institutionalThinking: "Real institutions distinguish an internal training checklist from an externally audited credential — this platform's own 'certification' is entirely the former, and recognizing that distinction is itself a professional habit worth practicing deliberately.",
+      screenWalkthrough: [
+        "/learn — your live pathCompletion percentages are the only real, computed signal of your own progress; there is no separate certificate page anywhere on this platform.",
+        "Every lesson's Knowledge Check — ungraded, ungated, marked complete once every question has been answered at least once.",
+        "/learn/quiz — the two real, independently scored practice quizzes; genuinely scored, but never gating anything else.",
+      ],
+      workflowSteps: [
+        "Complete the recommended academies from the Learning Roadmap lesson.",
+        "Re-attempt each academy's Knowledge Checks until you consistently score well on the first try — a personal discipline, not a platform requirement.",
+        "Take both real scored quizzes and retake them until your percent-correct genuinely reflects understanding.",
+        "Periodically self-review using the same cadence discipline taught in Professional Workflows' Weekly & Monthly Review lesson.",
+        "Treat 100% pathCompletion across your role's relevant academies as your own self-declared milestone — never represent it externally as an issued credential, since none exists.",
+      ],
+      metricsExplained: [
+        { term: "percentComplete", explanation: "Real, live, self-reported — driven entirely by clicking 'Mark Complete,' never independently verified by the platform." },
+        { term: "Knowledge Check completion", explanation: "Ungraded and ungated by explicit design — answering every question once, right or wrong, is enough to complete it." },
+        { term: "Quiz percent score", explanation: "A real, independently stored score from the Greeks Quiz or Value Investing Quiz — never checked anywhere to gate lesson or path completion." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Honest self-directed discipline",
+          steps: [
+            "A learner completes every recommended academy, re-attempts Knowledge Checks until scoring well, and retakes both real quizzes until scoring high.",
+            "They privately consider themselves 'platform certified' for their own discipline — but never represent this to anyone else as an issued credential, since none exists.",
+          ],
+          note: "Self-verification, held to a genuinely high personal bar, is exactly what this academy's 'certification' framing is meant to encourage.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "Clicking through without genuine effort",
+          steps: [
+            "A learner answers every Knowledge Check question once (technically completing all of them, since completion is ungated) without seriously trying to get them right.",
+            "They then wonder why they don't feel prepared for the masterclass lessons, despite every path showing 100% complete.",
+          ],
+          note: "Ungated completion measures that you engaged with the material, not that you understood it — the difference is entirely up to the learner.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Looking for a certificate that doesn't exist",
+          steps: [
+            "A learner searches for a 'Get Certified' button or a downloadable certificate PDF.",
+            "None exists anywhere on the platform — not a broken feature, but one that was never built, which is precisely why this lesson states the fact plainly in advance.",
+          ],
+          note: "Knowing this before searching for it saves real time and avoids a false assumption about the platform's own capabilities.",
+        },
+      ],
+      commonMistakes: [
+        "Assuming 'certified' implies an issued, checkable credential exists somewhere in the platform.",
+        "Treating ungated Knowledge Check completion as proof of understanding rather than a self-check.",
+        "Skipping the two real scored quizzes since neither is required to complete any lesson or path.",
+      ],
+      riskWarnings: [
+        "No amount of self-directed 'certification' on this platform substitutes for real risk-management discipline, especially given Live Trading is disabled by default and all data defaults to SIMULATED.",
+        "Never represent your own self-assessed platform proficiency to a third party as an official credential — this platform issues none.",
+      ],
+      bestPractices: [
+        "Use the real, scored quizzes honestly, not only when convenient for satisfying a lesson-completion checkbox.",
+        "Set your own personal bar higher than the platform's own ungated Knowledge Check design requires.",
+        "Revisit the AI Academy's ethical-use lessons periodically, not only once.",
+      ],
+      aiCoachPrompts: [
+        "Ask the Understanding AI Responses coach to re-explain the difference between an LLM-narrated answer and a deterministic template.",
+        "Ask the relevant Institutional AI Coach persona to quiz you, conversationally, on a topic you just marked complete.",
+        "Institutional Mentor: review your current portfolio Health Score as part of your own periodic self-review — again, this means visiting Institutional Mentor's own page directly, since it has no chat interface to prompt.",
+        "Ask the AI Coach to restate the Coach Disclaimer in your own words, then explain why it applies even to a genuinely LLM-narrated answer.",
+      ],
+      relatedModuleHrefs: ["/learn", "/learn/quiz", "/learn/paths"],
+      relatedGlossaryKeys: ["progress-tracking-vs-certification", "coach-disclaimer", "llm-narration-source"],
+      nextStepKeys: ["certification-trading-masterclass"],
+      estimatedMinutes: 9,
+      knowledgeCheck: [
+        {
+          prompt: "Does this platform issue a certificate or credential upon completing a learning path?",
+          options: ["Yes, a downloadable PDF certificate", "No — confirmed absent anywhere in the codebase; every mention of certification here is self-directed guidance", "Only for institutional-tier accounts", "Only after passing both real quizzes"],
+          correctIndex: 1,
+          explanation: "A direct source inspection confirms no certificate issuance, badge system, or credentialing engine exists on this platform.",
+        },
+        {
+          prompt: "What happens once every question in a lesson's Knowledge Check has been answered at least once?",
+          options: ["It stays incomplete until a passing score is reached", "It is marked complete exactly once, regardless of how many answers were correct", "It resets and must be retaken", "It unlocks a certificate"],
+          correctIndex: 1,
+          explanation: "Knowledge Checks are explicitly ungraded and ungated by design — engagement, not a passing score, is what completes them.",
+        },
+        {
+          prompt: "Which two features on this platform are genuinely, independently scored?",
+          options: ["Every Knowledge Check", "The Greeks Quiz and the Value Investing Quiz", "pathCompletion percentages", "Bookmarks"],
+          correctIndex: 1,
+          explanation: "These two real quizzes store a genuine percent-correct score per attempt — the only genuinely graded assessments in the Learning Centre.",
+        },
+        {
+          prompt: "Do the two real scored quizzes gate any lesson or path completion on this platform?",
+          options: ["Yes, a passing score is required", "No — they are entirely standalone practice tools, never checked to gate anything else", "Only the Greeks Quiz gates completion", "Only for the Options Income Engine path"],
+          correctIndex: 1,
+          explanation: "Confirmed by direct inspection — quiz scores and lesson/path completion are tracked entirely independently.",
+        },
+        {
+          prompt: "How should 'certification' be understood on this platform?",
+          options: ["As an official, externally verifiable credential", "As self-directed learning discipline and educational guidance only", "As a requirement for enabling Live Trading", "As a hidden feature unlocked after enough quiz attempts"],
+          correctIndex: 1,
+          explanation: "This is the single most important fact this lesson establishes, confirmed before any content was written.",
+        },
+      ],
+    }),
+    topic({
+      key: "certification-trading-masterclass",
+      title: "Institutional Trading Masterclass",
+      summary: "A synthesis lesson combining the Trading Engine, Strategy Framework, AI Academy, and Professional Workflows academies into one coherent, risk-first trading practice — reusing every fact those academies already established, never re-teaching them.",
+      body: [
+        "This masterclass is a synthesis, not a fifth trading academy — it assumes you have completed the Trading Engine path, Strategy Framework path, Professional Workflows path, and AI Academy, and it cross-references each of them by name throughout rather than duplicating their content. If any of the terms below feel unfamiliar, that is the honest signal to revisit the Learning Roadmap lesson's recommended sequence first.",
+        "Combining Trading Academy knowledge into one practice: real technical preparation on this platform means reading the Trading Engine's own Structure, Multi-Timeframe, Regime, Liquidity, and Probability cards together (Trading Research and the deeper Market Structure Workbench and Liquidity Workbench) rather than any single one in isolation — each is a genuinely independent, real, price-action-derived read, and a masterclass-level trader deliberately checks all of them before treating a setup as confirmed, exactly as the Trading Market Structure and Trading Liquidity lessons already taught.",
+        "Professional workflow integration: Morning Market Preparation (Professional Workflows) is where this technical review belongs in your actual daily sequence — open the relevant dashboard, read the market-regime signals, review your watchlist, then move to the Structure/Liquidity/Regime read for your priority symbols. The Professional Trade Workflow lesson's own established fact bears repeating here: the Strategy Academy/Library teaches nine named strategies, but the platform's own live execution surfaces (scanner/order routing) only genuinely build and price a narrower set live-tradeable today — a masterclass-level trader always confirms which category a given strategy idea falls into before treating it as immediately actionable, rather than assuming every taught strategy is a live one.",
+        "AI-assisted preparation, precisely stated: the Institutional Trading AI Coach is a genuinely deterministic, rule-based module — fixed logic and pre-written explanation templates, zero calls to any language model, by design, exactly as the AI Academy's own AI Team Overview and Understanding AI Responses lessons established. 'AI-assisted' here means consistent, explainable, rule-based guidance you can rely on for the same input every time — never a free-form conversational analyst improvising a new answer. Where a genuinely LLM-narrated feature is involved elsewhere on the platform, it always carries the enforced Coach Disclaimer; treat both kinds of AI assistance for what they actually are, per the Writing Better Prompts lesson's own guidance.",
+        "Risk-first decision making: before any position, cross-reference the Trading Risk Management lesson's own vocabulary — trading position sizing, risk-reward ratio, trading capital allocation, and portfolio risk budget — as your genuine pre-trade checklist, not as background theory. The Trading Engine's own analysis (Structure/Regime/Liquidity/Probability) stays informational; any real paper order flows through the platform's shared Order Preview, Position Sizing, and broker-reconciliation surfaces rather than a separate execution pathway of the Trading Engine's own. Kill switches and guardrails, taught elsewhere on this platform, exist specifically to stop automated systems from acting unsafely — a masterclass-level trader understands that same risk-first posture applies to their own manual decisions too, not only to automated ones.",
+        "Multi-engine analysis: the Cross-Engine Verdict and Macro/Regime Side-by-Side sections (Command Center, Institutional Dashboard — taught in Professional Workflows' own Morning Market Preparation lesson) juxtapose Engine 1's Investment Committee verdict next to Engine 2's Market Regime read for the same symbol or day. This remains an explicit display juxtaposition only — never an algorithmically combined score — and a masterclass-level trader reads both independently rather than assuming agreement was computed. Trade journal discipline closes the loop: the Trading Journal Review lesson's real R-multiple tracking, reviewed on the cadence taught in Weekly & Monthly Review, is how genuine post-trade learning happens on this platform — never a one-time activity.",
+      ],
+      whyItMatters: "Institutional-grade trading is the disciplined combination of already-real, already-taught features into one repeatable practice — not a new capability this lesson introduces, and knowing exactly which reads are independent (multi-engine analysis) versus deterministic (the Trading AI Coach) prevents both over-trusting agreement that was never computed and mistaking rule-based guidance for adaptive analysis.",
+      difficulty: "institutional",
+      whyItExists: "Every fact and screen in this lesson reuses content the Trading Engine, Strategy Framework, AI Academy, and Professional Workflows paths already established and tested — this lesson's own job is composition and sequencing, introducing zero new platform capability of its own.",
+      institutionalThinking: "A professional trading practice is not one feature but a disciplined sequence through several genuinely independent, real inputs — technical structure, risk sizing, deterministic AI guidance, and honest post-trade review — combined by the trader's own judgement, never by the platform on their behalf.",
+      screenWalkthrough: [
+        "Trading Research (/trading-research), Market Structure Workbench (/market-structure-workbench), Liquidity Workbench (/liquidity-workbench) — the real Structure/Multi-Timeframe/Regime/Liquidity/Probability reads.",
+        "Trade Planning Studio (/trade-planning-studio) and Trade Workspace (/trade-workspace) — planning and staging a trade idea against your own real risk parameters.",
+        "Strategy Framework (/strategy-framework) — the platform's own generic methodology/checklist tool, distinct from the options-specific strategy picker.",
+        "Trading AI Coach (/trading-ai-coach) — the deterministic, rule-based coach persona for the Trading Engine.",
+        "Trading Journal (/trading-journal) — real R-multiple-tracked post-trade review.",
+      ],
+      workflowSteps: [
+        "Begin with Morning Market Preparation's own sequence, applied specifically to your priority trading symbols.",
+        "Review Structure, Multi-Timeframe, Regime, Liquidity, and Probability together for each candidate — never any single read in isolation.",
+        "Consult the Trading AI Coach for consistent, rule-based context, understanding its guidance is deterministic, not adaptive.",
+        "Apply the Trading Risk Management checklist — position sizing, risk-reward ratio, capital allocation, portfolio risk budget — before treating any idea as actionable.",
+        "Cross-check the Cross-Engine Verdict / Macro-Regime Side-by-Side reads as independent context, never a combined signal.",
+        "Log the outcome in the Trading Journal with a real R-multiple, and review it on the Weekly & Monthly Review cadence.",
+      ],
+      metricsExplained: [
+        { term: "Cross-Engine Verdict / Macro-Regime Side-by-Side", explanation: "A genuine display juxtaposition of Engine 1's and Engine 2's own already-computed reads — never an algorithmic combination, even when shown together on one screen." },
+        { term: "Deterministic AI Coach", explanation: "The Trading AI Coach's own design: fixed rule-based logic and templates, zero LLM calls, consistent output for the same input every time." },
+        { term: "R-multiple", explanation: "The Trading Journal's own real, computed measure of a closed trade's outcome relative to its initial risk — the basis for genuine post-trade review." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A disciplined, risk-first, multi-engine review",
+          steps: [
+            "A trader reviews Structure/Multi-Timeframe/Regime/Liquidity/Probability together for a candidate symbol, none in isolation.",
+            "They size the position using the Trading Risk Management checklist, confirm it against their own portfolio risk budget, and separately note what the Cross-Engine Verdict shows without assuming it confirms the trade.",
+            "After the trade closes, they log a real R-multiple in the Trading Journal and review it during their next Weekly Review.",
+          ],
+          note: "Combining every genuinely real, independent input with disciplined risk sizing and honest post-trade review is the accurate professional practice this masterclass describes.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "Trusting the Trading AI Coach as an adaptive analyst",
+          steps: [
+            "A trader asks the Trading AI Coach the same question twice expecting different, evolving analysis, since they assume it's a conversational LLM.",
+            "They realize, on reviewing the AI Academy's own findings, that the Coach is deterministic and rule-based — same input, same output, by design.",
+          ],
+          note: "The guidance itself was consistent and useful; the mistake was in expecting adaptive behavior from a module explicitly built to be deterministic.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Treating the Cross-Engine Verdict as a combined signal",
+          steps: [
+            "A trader sees Engine 1's Investment Committee verdict agreeing with Engine 2's Market Regime read on the same symbol and treats this as a computed 'strong buy' confirmation.",
+            "No such computation exists — the two reads are shown side by side purely for the trader's own independent judgement, never merged.",
+          ],
+          note: "Over-trusting an apparent agreement that was never actually calculated is a real, avoidable risk this masterclass exists to prevent.",
+        },
+      ],
+      commonMistakes: [
+        "Reading only one of Structure/Multi-Timeframe/Regime/Liquidity/Probability instead of all five together.",
+        "Assuming the Trading AI Coach adapts or reasons freely, when it is genuinely deterministic and rule-based.",
+        "Treating the Cross-Engine Verdict / Macro-Regime Side-by-Side sections as a single, combined recommendation.",
+        "Skipping the Trading Risk Management checklist because a setup 'looks obviously good.'",
+      ],
+      riskWarnings: [
+        "Every read described in this lesson is either explicitly SIMULATED or a derived signal built on real price action — none is a substitute for independent risk judgement, and Live Trading remains disabled by default.",
+        "Deterministic AI guidance and juxtaposed multi-engine reads can both create a false sense of confirmation if their real design (rule-based; independent, never combined) is misunderstood.",
+      ],
+      bestPractices: [
+        "Always combine all five real Trading Engine reads before treating a setup as confirmed.",
+        "Run every trade through the Trading Risk Management checklist before sizing it, regardless of how confident the setup looks.",
+        "Log a real R-multiple for every closed trade and review it on a genuine weekly cadence.",
+        "Remember the Trading AI Coach's guidance is consistent and rule-based — cross-check it against your own read, not as a tie-breaker.",
+      ],
+      aiCoachPrompts: [
+        "Ask the Trading AI Coach to explain the current Market Structure read for your priority symbol.",
+        "Ask the Trading AI Coach to walk through the Trading Risk Management checklist for a candidate position.",
+        "Institutional Mentor: review your current portfolio's real risk exposure before adding a new position — visited directly on its own page, not via a chat prompt.",
+        "Ask the AI Academy's Trading Workflow coach to re-explain how morning preparation, research, and execution chain together.",
+      ],
+      relatedModuleHrefs: ["/trading-research", "/market-structure-workbench", "/liquidity-workbench", "/trade-planning-studio", "/trading-journal", "/trading-ai-coach", "/strategy-framework", "/trade-workspace"],
+      relatedGlossaryKeys: ["market-structure", "multi-timeframe-confluence", "trading-position-sizing", "r-multiple", "deterministic-ai-coach"],
+      nextStepKeys: ["certification-investing-masterclass"],
+      estimatedMinutes: 14,
+      knowledgeCheck: [
+        {
+          prompt: "How many of the Trading Engine's real technical reads (Structure, Multi-Timeframe, Regime, Liquidity, Probability) should a masterclass-level trader review before confirming a setup?",
+          options: ["Just one, whichever is fastest", "All five together, never any single one in isolation", "Only Structure and Liquidity", "None — the Trading AI Coach replaces them"],
+          correctIndex: 1,
+          explanation: "Each is genuinely independent and real — reviewing them together, not in isolation, is the disciplined practice this masterclass describes.",
+        },
+        {
+          prompt: "Is the Institutional Trading AI Coach a genuinely adaptive, LLM-powered conversational analyst?",
+          options: ["Yes, it reasons freely like a chat assistant", "No — it is deterministic and rule-based, producing consistent output for the same input every time", "Only when Live Trading is enabled", "Only for institutional-tier accounts"],
+          correctIndex: 1,
+          explanation: "Confirmed by the AI Academy's own findings — the Trading AI Coach is a deterministic module by design, not a free-form LLM analyst.",
+        },
+        {
+          prompt: "Does the Cross-Engine Verdict / Macro-Regime Side-by-Side section combine Engine 1's and Engine 2's reads into one computed score?",
+          options: ["Yes, a weighted average is computed", "No — it is an explicit display juxtaposition only, never algorithmically combined", "Only on the Institutional Dashboard, not the Command Center", "Only when both engines agree"],
+          correctIndex: 1,
+          explanation: "Both sections are disclosed, deliberate juxtapositions — the trader's own judgement combines them, never the platform.",
+        },
+        {
+          prompt: "What does a real paper trade actually route through, once a Trading Engine idea is confirmed?",
+          options: ["A separate execution pathway built into the Trading Engine itself", "The platform's shared Order Preview, Position Sizing, and broker-reconciliation surfaces", "A fully automated execution the trader never reviews", "The Trading AI Coach directly submits the order"],
+          correctIndex: 1,
+          explanation: "The Trading Engine's own analysis stays informational — real order flow uses the platform's shared, already-taught execution surfaces.",
+        },
+        {
+          prompt: "What is the real, computed basis for genuine post-trade review on this platform?",
+          options: ["A subjective 'win or loss' label only", "R-multiple tracking in the Trading Journal, reviewed on a real cadence", "The Trading AI Coach's own automatic grading", "Nothing — post-trade review is not supported"],
+          correctIndex: 1,
+          explanation: "The Trading Journal Review lesson's real R-multiple tracking, reviewed periodically, is the platform's genuine post-trade discipline.",
+        },
+      ],
+    }),
+    topic({
+      key: "certification-investing-masterclass",
+      title: "Institutional Investing Masterclass",
+      summary: "A synthesis lesson combining the Institutional Investing academy's research, fundamental analysis, portfolio construction, and review features — plus the AI Academy's own investing workflow — into one coherent long-term practice.",
+      body: [
+        "This masterclass, like its Trading counterpart, is a synthesis of the Institutional Investing path, Professional Workflows, and the AI Academy — it assumes you have completed all three and cross-references their own real features throughout rather than re-teaching them.",
+        "Research workflow: the Research Terminal (/research-terminal) is the real, deep-dive company-research surface — Compare mode and Split-screen mode, taught in their own lesson, exist specifically for the kind of side-by-side comparison institutional research actually requires. Opportunity Discovery (/opportunity-discovery) is the platform's genuine screener/ranking surface for surfacing new candidates, and the Professional Workflows' own Research Workflow lesson already established this pipeline is fully real end to end — screening, deep research, note-taking, and watchlisting all genuinely persist.",
+        "Fundamental analysis: the Investing Fundamental Analysis lesson's own real vocabulary — business quality score, economic moat, return on invested capital, return on equity, margin of safety, the Graham Number, and discounted cash flow — is the actual analytical toolkit here, not new terminology this masterclass introduces. The Investment Committee Workbench (/stock-analyst/investment-committee) is where a genuinely synthesized conviction score and decision-confidence score come together from that analysis — real, computed figures, not fabricated for this lesson.",
+        "Portfolio construction: the Investing Portfolio Construction Workflow lesson's own real steps — building a position via portfolio-construction, sizing with position-sizing, checking diversification and cash allocation — remain the actual construction pipeline. The Portfolio Optimisation Engine (/stock-analyst/portfolio-optimisation) and Rebalancing Assistant, taught in Investing Rebalancing and Review, are real, computed tools here — but the same disclosed limit from Professional Workflows applies: rebalancing never reaches Trading Engine or Options Income Engine positions, only Investing Engine holdings.",
+        "Long-term review: Investing Monitoring's own real monitoring-alert and portfolio-drift-alert vocabulary, plus watchlist-and-opportunity triggers (Watchlists Engine, /watchlists-engine), are the genuine ongoing-review surfaces — not a substitute for the periodic, cadence-based Weekly & Monthly Review discipline taught in Professional Workflows, which applies here exactly as it does to trading positions.",
+        "AI-assisted investing workflow: the Institutional Investing AI Coach (taught in Investing AI Coach) is one of the platform's genuinely reusable coach personas from the broader Institutional AI Coach system — distinguish its deterministic, rule-based structure from any place a real language model is actually narrating text, per the AI Academy's own Understanding AI Responses lesson, and always read the Coach Disclaimer on any genuinely LLM-narrated output rather than treating it as verified fact.",
+      ],
+      whyItMatters: "Institutional-grade investing combines already-real research, fundamental-analysis, construction, and review tools into one repeatable long-term practice — recognizing precisely which figures are genuinely computed (business quality score, conviction score) versus which reviews remain honestly manual (weekly/monthly cadence) is what keeps that practice grounded in what the platform actually does.",
+      difficulty: "institutional",
+      whyItExists: "Every fact and screen in this lesson reuses content the Institutional Investing path, AI Academy, and Professional Workflows already established and tested — this lesson's own job is composition, not introducing a new capability.",
+      institutionalThinking: "Long-term investing discipline is the patient combination of genuine research, real fundamental analysis, deliberate portfolio construction, and an honest, recurring review cadence — never a single dashboard or a single computed score treated as the whole answer.",
+      screenWalkthrough: [
+        "Research Terminal (/research-terminal) — Compare and Split-screen modes for real, side-by-side company research.",
+        "Opportunity Discovery (/opportunity-discovery) and Watchlists Engine (/watchlists-engine) — screening and ongoing candidate tracking.",
+        "Investment Committee Workbench (/stock-analyst/investment-committee) and Decision Engine (/decision-engine) — synthesized conviction and decision-confidence scores.",
+        "Portfolio Optimisation (/stock-analyst/portfolio-optimisation) and Monitoring Dashboard (/monitoring-dashboard) — construction, rebalancing, and ongoing alerts.",
+        "Stock Analyst (/stock-analyst) — the Institutional Investing AI Coach's own home surface.",
+      ],
+      workflowSteps: [
+        "Screen for candidates via Opportunity Discovery, or work from an existing Watchlists Engine list.",
+        "Deep-research a candidate in the Research Terminal, using Compare mode against real alternatives.",
+        "Apply the Investing Fundamental Analysis checklist — business quality, moat, ROIC/ROE, margin of safety, DCF — to reach a real, computed view.",
+        "Consult the Investment Committee Workbench for a synthesized conviction and decision-confidence score.",
+        "Construct or adjust the position via Portfolio Construction, sizing it and checking diversification/cash allocation.",
+        "Set genuine monitoring alerts and review the position on the Weekly & Monthly Review cadence, never assuming alerts alone are sufficient.",
+      ],
+      metricsExplained: [
+        { term: "Conviction score / decision-confidence score", explanation: "Genuinely computed synthesis figures from the Investment Committee Workbench and Decision Engine — real outputs of real analysis, not fabricated for this lesson." },
+        { term: "Margin of safety", explanation: "The real, computed gap between a company's estimated intrinsic value and its current price — the Institutional Investing path's own core valuation concept, reused here unchanged." },
+        { term: "Rebalancing Assistant scope", explanation: "Real and computed, but explicitly Investing-Engine-only — it never reaches Trading Engine or Options Income Engine positions, a disclosed limit already established in Professional Workflows." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A full, disciplined research-to-review cycle",
+          steps: [
+            "An investor screens via Opportunity Discovery, deep-researches in the Research Terminal using Compare mode against two alternatives, and reviews the Investment Committee's own conviction score.",
+            "They construct the position with real sizing and diversification checks, set monitoring alerts, and add it to their real cadence-based Monthly Review.",
+          ],
+          note: "Every step here uses a genuinely real, already-computed platform feature in the order this masterclass recommends.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "Relying on the conviction score alone",
+          steps: [
+            "An investor sees a high conviction score on the Investment Committee Workbench and constructs a full position without reviewing the underlying fundamental analysis themselves.",
+            "On review, they realize the score synthesizes real inputs but was never meant to replace reading the Fundamental Analysis detail behind it.",
+          ],
+          note: "A genuinely computed score is still a synthesis, not a substitute for understanding what it was built from.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Expecting the Rebalancing Assistant to cover every account",
+          steps: [
+            "An investor runs the Rebalancing Assistant expecting it to also account for Trading Engine or Options Income Engine positions in the same portfolio view.",
+            "It doesn't — the tool is explicitly, by its own design, Investing-Engine-only.",
+          ],
+          note: "Knowing this scope limit in advance avoids a real, disclosed gap being mistaken for a bug.",
+        },
+      ],
+      commonMistakes: [
+        "Treating a real, computed conviction or decision-confidence score as a complete substitute for reading the underlying fundamental analysis.",
+        "Expecting the Rebalancing Assistant to reach Trading Engine or Options Income Engine positions — it never does.",
+        "Skipping the periodic Weekly & Monthly Review cadence because monitoring alerts feel sufficient on their own.",
+      ],
+      riskWarnings: [
+        "Every score and figure in this masterclass is a real, computed output of this platform's own analysis engines — none is a guarantee of future performance, and all default data is SIMULATED unless a live provider is configured.",
+        "Genuinely LLM-narrated investing content always carries the enforced Coach Disclaimer; treat it as informational, never as verified financial advice.",
+      ],
+      bestPractices: [
+        "Always read the fundamental analysis behind a conviction score, not just the score itself.",
+        "Use Compare mode in the Research Terminal for every serious candidate rather than researching in isolation.",
+        "Remember the Rebalancing Assistant's Investing-Engine-only scope when reviewing a multi-engine portfolio.",
+        "Keep monitoring alerts and cadence-based manual review as two separate, complementary habits — not one replacing the other.",
+      ],
+      aiCoachPrompts: [
+        "Ask the Institutional Investing AI Coach to summarize a company's real business quality score and moat rating.",
+        "Ask the Investment Committee Workbench's own summary to explain what drove a real conviction score.",
+        "Institutional Mentor: review your portfolio's real diversification and cash allocation before adding a new position — its own page, not a chat prompt.",
+        "Ask the AI Academy's Portfolio Review coach to walk through how monitoring alerts and cadence-based review complement each other.",
+      ],
+      relatedModuleHrefs: ["/research-terminal", "/stock-analyst", "/stock-analyst/portfolio-optimisation", "/stock-analyst/investment-committee", "/decision-engine", "/opportunity-discovery", "/monitoring-dashboard", "/watchlists-engine"],
+      relatedGlossaryKeys: ["margin-of-safety", "conviction-score", "decision-confidence-score", "rebalancing-assistant", "portfolio-drift-alert"],
+      nextStepKeys: ["certification-options-masterclass"],
+      estimatedMinutes: 14,
+      knowledgeCheck: [
+        {
+          prompt: "What is the real relationship between the Investment Committee Workbench's conviction score and the Fundamental Analysis detail behind it?",
+          options: ["The score replaces the need to ever read the detail", "The score is a genuine synthesis of that same real analysis — meant to be read alongside it, not instead of it", "They are computed by two unrelated engines", "The score is only available after enabling Live Trading"],
+          correctIndex: 1,
+          explanation: "The conviction score is a real, computed synthesis of the same fundamental analysis this masterclass teaches — not a substitute for reading it.",
+        },
+        {
+          prompt: "Does the Rebalancing Assistant apply to Trading Engine or Options Income Engine positions?",
+          options: ["Yes, across all three engines", "No — it is explicitly, by design, Investing-Engine-only", "Only for institutional-tier accounts", "Only when Live Trading is enabled"],
+          correctIndex: 1,
+          explanation: "A disclosed, real limit — the Rebalancing Assistant's own source confirms it never applies outside Investing Engine holdings.",
+        },
+        {
+          prompt: "What two modes does the Research Terminal offer specifically for institutional-style comparison research?",
+          options: ["Compare mode and Split-screen mode", "Quiz mode and Bookmark mode", "AutoPilot mode and Manual mode", "Sandbox mode and Live mode"],
+          correctIndex: 0,
+          explanation: "Both modes are real, already-built features supporting genuine side-by-side company research.",
+        },
+        {
+          prompt: "Are monitoring alerts (portfolio-drift-alert, monitoring-alert) meant to fully replace periodic manual review?",
+          options: ["Yes, alerts alone are sufficient", "No — they complement, but never replace, the cadence-based Weekly & Monthly Review discipline", "Only for watchlisted symbols", "Only for accounts with Live Trading enabled"],
+          correctIndex: 1,
+          explanation: "This masterclass treats alerts and manual, cadence-based review as two separate, complementary habits.",
+        },
+        {
+          prompt: "What should you always do before treating a genuinely LLM-narrated investing answer as reliable?",
+          options: ["Nothing extra — it is always verified", "Read the enforced Coach Disclaimer and treat the answer as informational, not verified financial advice", "Only trust it if it agrees with the conviction score", "Disable it entirely, since LLM narration is never used in investing"],
+          correctIndex: 1,
+          explanation: "Every genuinely LLM-narrated feature on this platform carries an enforced disclaimer, and this masterclass reinforces reading it every time.",
+        },
+      ],
+    }),
+    topic({
+      key: "certification-options-masterclass",
+      title: "Options Income Masterclass",
+      summary: "A synthesis lesson combining strategy selection, risk management, position lifecycle, monitoring, exit planning, and portfolio integration — with the same critical distinction established in Professional Workflows restated plainly: only four of the taught strategies are live-tradeable.",
+      body: [
+        "This masterclass is a synthesis of the Options Income Engine path, Strategy Framework, Professional Workflows, and the AI Academy — it assumes you have completed each and reuses their own real facts throughout, restating only the single most important one below because it is this masterclass's own most common point of confusion.",
+        "Strategy selection, restated plainly: the Strategy Academy and Strategy Library teach nine named strategies — long call, long put, covered call, cash-secured put, the wheel, vertical spread, iron condor, iron butterfly, calendar spread, diagonal spread, and protective put among them — but the platform's real, live scanner and execution engine only genuinely builds and prices four of them for live-tradeable candidates: iron condor, iron fly, calendar spread, and earnings-based strategies. The remaining taught strategies are genuine, real educational content — accurate and useful for understanding options mechanics — but not currently something the platform's own scanner will surface as an executable, scored opportunity. A masterclass-level options trader always confirms which category a strategy idea falls into before treating it as immediately actionable.",
+        "Risk management: the Options Risk Management lesson's own real vocabulary — max profit, max loss, probability of profit, expected value, breakeven, defined risk — is the genuine per-position toolkit; at the portfolio level, Portfolio Risk Budget, Stress Testing, Event Risk, and Concentration (all real, computed tools taught in the Portfolio path) extend that same discipline across every open position at once, not just one at a time.",
+        "Position lifecycle and monitoring: the Portfolio Managing Positions lesson's own real workflow — opening, adjusting, and closing a position, plus the Trade Adjustment & Roll/Convert Preview Simulator for previewing an adjustment before committing to it — is the genuine lifecycle tooling here. Options Scanner & Watchlists' own real alerting and Portfolio AI Review Workflow's own genuine Workflow Center review instances (weekly/monthly/quarterly, always user-initiated, never calendar-scheduled) are the actual monitoring and review surfaces, exactly as already taught.",
+        "Exit planning is not new content in this masterclass — it is fully taught in the existing Portfolio Managing Positions lesson, and this masterclass deliberately links to it rather than re-teaching the same mechanics twice, per this academy's own no-duplication requirement.",
+        "Portfolio integration: an options income position never exists in isolation from the rest of your real risk picture — the Portfolio Risk Dashboard's own real Health Score, Correlation & Concentration Risk, and Event Risk overlays all apply to options positions the same way they apply everywhere else on the platform, and a masterclass-level practitioner checks all of them, not just the position's own individual Greeks.",
+      ],
+      whyItMatters: "Confusing the nine-strategy educational library with the four-strategy live-tradeable set is this masterclass's single most consequential possible mistake — treating an educational strategy as an immediately actionable one risks a real misunderstanding of what the platform will and won't actually build and price for you.",
+      difficulty: "institutional",
+      whyItExists: "Every fact and screen in this lesson reuses content the Options Income Engine, Strategy Framework, Professional Workflows, and AI Academy paths already established and tested — the four-vs-nine distinction is restated here deliberately, since it is this masterclass's own single highest-risk point of confusion, not because it wasn't already taught.",
+      institutionalThinking: "Professional options income management is risk management first and strategy selection second — knowing precisely which strategies the platform will actually execute, and reviewing portfolio-level risk on every position rather than each position's own Greeks in isolation, is the discipline this masterclass exists to reinforce.",
+      screenWalkthrough: [
+        "Options Dashboard (/options-dashboard) and Scanner (/scanner) — the real, live-tradeable strategy surfaces (iron condor, iron fly, calendar spread, earnings).",
+        "Portfolio (/portfolio) and Portfolio Dashboard (/portfolio-dashboard) — real per-position and portfolio-level risk, including Health Score.",
+        "Adjustments (/adjustments) — real position lifecycle and roll/convert tooling.",
+        "Trade Execution Center (/trade-execution-center) — the platform's own unified order-preview-to-execution surface.",
+        "Stress Test (/stress-test) and Event Risk (/event-risk) — portfolio-level risk overlays applying to every open options position.",
+      ],
+      workflowSteps: [
+        "Confirm whether a strategy idea is one of the four live-tradeable strategies (iron condor, iron fly, calendar spread, earnings) or an educational-only strategy from the broader nine-strategy library.",
+        "For a live-tradeable idea, review it through the Scanner and apply the Options Risk Management checklist — max profit/loss, POP, expected value, breakeven.",
+        "Check portfolio-level risk (Stress Test, Event Risk, Concentration, Portfolio Health Score) before adding the position.",
+        "Manage the position's real lifecycle via Adjustments, previewing any roll or convert before committing.",
+        "Follow the existing Portfolio Managing Positions lesson's own exit-planning guidance rather than a separate one here.",
+        "Review the whole options portfolio on the same Weekly & Monthly Review cadence as every other engine.",
+      ],
+      metricsExplained: [
+        { term: "4 live-tradeable strategies vs. 9 taught strategies", explanation: "Iron condor, iron fly, calendar spread, and earnings-based strategies are the ones the platform's real scanner/execution engine builds and prices — the remaining taught strategies are genuine educational content, not currently scanner-executable." },
+        { term: "Portfolio Health Score", explanation: "A real, computed executive-level risk figure spanning every open options position, distinct from any single position's own individual Greeks." },
+        { term: "Review Workflow Cadence", explanation: "A descriptive label on a Workflow Center review instance, never a scheduler — every review remains user-initiated." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "Confirming live-tradeable status before acting",
+          steps: [
+            "A trader considers a diagonal spread idea, checks it against the four-strategy live-tradeable list, and confirms it is currently educational-only on this platform.",
+            "They instead pursue an iron condor idea through the real Scanner, apply the full Options Risk Management checklist, and check portfolio-level Stress Test and Concentration risk before entering.",
+          ],
+          note: "Confirming live-tradeable status first, then applying full risk discipline, is the accurate professional sequence.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "Managing risk position-by-position only",
+          steps: [
+            "A trader carefully checks each new position's own max loss and POP individually before entering, but never reviews the whole portfolio's Concentration or Event Risk overlays.",
+            "A later Portfolio Health Score review reveals real, uncaught concentration risk across several positions that looked fine individually.",
+          ],
+          note: "Per-position discipline alone is not the same as genuine portfolio-level risk management.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Assuming every taught strategy is scanner-executable",
+          steps: [
+            "A trader studies the Strategy Academy's protective put lesson and expects to find it as a live, scored opportunity in the Scanner.",
+            "The Scanner never surfaces it as an executable candidate, since only iron condor, iron fly, calendar spread, and earnings strategies are built and priced live — a real, disclosed platform boundary, not a bug.",
+          ],
+          note: "Knowing the four-vs-nine distinction in advance prevents this exact, avoidable confusion.",
+        },
+      ],
+      commonMistakes: [
+        "Assuming every strategy taught in the Strategy Academy/Library is live-tradeable — only four genuinely are.",
+        "Reviewing only a position's own Greeks and skipping portfolio-level Stress Test/Event Risk/Concentration overlays.",
+        "Re-deriving exit-planning mechanics from scratch instead of using the existing Portfolio Managing Positions lesson.",
+        "Treating a Workflow Center review's cadence label as an automated reminder rather than a manual, self-initiated action.",
+      ],
+      riskWarnings: [
+        "Confusing an educational-only strategy with a live-tradeable one is this masterclass's single highest-risk possible misunderstanding — always confirm scanner-executable status before treating an idea as actionable.",
+        "Portfolio-level risk (concentration, event risk, stress scenarios) can be materially worse than any single position's own risk figures suggest — always review both.",
+      ],
+      bestPractices: [
+        "Confirm live-tradeable status (iron condor / iron fly / calendar spread / earnings) before treating any strategy idea as immediately actionable.",
+        "Review portfolio-level risk overlays alongside, never instead of, per-position Greeks.",
+        "Preview every roll or convert via the Adjustment Simulator before committing to it live.",
+        "Follow the existing exit-planning lesson rather than inventing a separate personal process.",
+      ],
+      aiCoachPrompts: [
+        "Ask the Options Income Engine's own coach persona to confirm whether a given strategy idea is currently live-tradeable.",
+        "Ask the relevant Institutional AI Coach persona to walk through the Options Risk Management checklist for a candidate position.",
+        "Institutional Mentor: review your options portfolio's real Health Score and Concentration risk before entering a new position — its own page, not a chat prompt.",
+        "Ask the AI Academy's Portfolio Review coach to explain how a Workflow Center review instance's cadence label actually works.",
+      ],
+      relatedModuleHrefs: ["/options-dashboard", "/scanner", "/portfolio", "/portfolio-dashboard", "/adjustments", "/trade-execution-center", "/stress-test", "/event-risk"],
+      relatedGlossaryKeys: ["iron-condor", "iron-butterfly", "calendar-spread", "probability-of-profit", "expected-value", "portfolio-health", "concentration", "review-workflow-cadence"],
+      nextStepKeys: ["certification-continuous-development"],
+      estimatedMinutes: 15,
+      knowledgeCheck: [
+        {
+          prompt: "How many of the nine strategies taught in the Strategy Academy/Library does the platform's real scanner/execution engine currently build and price live?",
+          options: ["All nine", "Four — iron condor, iron fly, calendar spread, and earnings-based strategies", "Zero — the scanner is purely educational", "Only iron condor"],
+          correctIndex: 1,
+          explanation: "A real, disclosed platform boundary restated from Professional Workflows — the remaining five taught strategies are genuine educational content, not currently scanner-executable.",
+        },
+        {
+          prompt: "Is a strategy taught in the Strategy Academy but not among the four live-tradeable ones inaccurate or useless content?",
+          options: ["Yes, it should be ignored entirely", "No — it is genuine, accurate educational content, simply not currently surfaced by the live scanner as an executable candidate", "It is only accurate in SIMULATED mode", "It becomes live-tradeable once Live Trading is enabled"],
+          correctIndex: 1,
+          explanation: "The distinction is about scanner-executability, not about the educational accuracy of the strategy content itself.",
+        },
+        {
+          prompt: "Should a masterclass-level options trader review portfolio-level risk overlays (Stress Test, Event Risk, Concentration) in addition to a position's own Greeks?",
+          options: ["No, per-position Greeks are always sufficient", "Yes — portfolio-level risk can be materially worse than any single position's figures suggest", "Only during earnings season", "Only for accounts using Live Trading"],
+          correctIndex: 1,
+          explanation: "This masterclass explicitly teaches reviewing both levels, since concentration/event risk can hide across positions that each look fine individually.",
+        },
+        {
+          prompt: "Where is exit-planning mechanics fully taught, per this masterclass's own no-duplication approach?",
+          options: ["A brand-new section written specifically for this masterclass", "The existing Portfolio Managing Positions lesson, linked to rather than repeated", "It isn't taught anywhere on this platform", "The Trading Engine path"],
+          correctIndex: 1,
+          explanation: "Per this academy's own quality requirement to avoid duplicating existing academy content, this masterclass links to the existing lesson instead of re-teaching it.",
+        },
+        {
+          prompt: "Does a Workflow Center review instance's cadence label (e.g. 'weekly') trigger anything automatically?",
+          options: ["Yes, a scheduled reminder fires", "No — it is a descriptive tag; every review instance is started manually", "Only for options portfolios", "Only if notifications are enabled"],
+          correctIndex: 1,
+          explanation: "The same review-workflow-cadence fact already established in Professional Workflows applies identically here.",
+        },
+      ],
+    }),
+    topic({
+      key: "certification-continuous-development",
+      title: "Continuous Professional Development",
+      summary: "How to keep learning after finishing this academy — weekly study habits, monthly self-reviews, staying current with new platform content, and returning to the Learning Roadmap as the platform itself grows.",
+      body: [
+        "Completing this Certification & Masterclass Academy is not an endpoint — it is the point at which self-directed continuous development becomes your own responsibility, since (as established in Becoming Platform Certified) no platform feature tracks, reminds, or reissues anything on your behalf.",
+        "Weekly learning: treat a short, regular slot — even 20-30 minutes — as your own personal cadence for either revisiting a Knowledge Check you didn't score well on, retaking one of the two real scored quizzes, or reading one topic you bookmarked but never finished. The Learning Centre home page's own real, live 'weakest paths' panel (paths under 50% complete) is a genuinely useful weekly starting point, since it reflects your actual recorded activity rather than guesswork.",
+        "Monthly reviews: apply the exact same Weekly & Monthly Review discipline taught in Professional Workflows — but to your own learning, not just your portfolio. A reasonable monthly check: has your pathCompletion improved on the paths relevant to your current role? Have you retaken either real quiz recently, and did your score genuinely improve? Are there new bookmarks piling up unread? None of this is computed or reminded automatically — it is the same self-initiated, cadence-labeled discipline already taught everywhere else on this platform.",
+        "Continuing education and staying current with platform enhancements: this Learning Centre has grown across many sprints — each academy documents, in its own summary, exactly what was real and what was educational-only at the time it was written, and each explicitly cross-references the academies before it rather than assuming they haven't changed. When new content is added to the platform, it follows the exact same discipline this academy itself followed: direct source inspection before writing a single lesson, an honest distinction between implemented and educational-only content, and cross-references to what already exists rather than duplicating it. Revisiting the Learning Roadmap lesson periodically is a reasonable way to notice when a new academy or path has been added.",
+        "Version updates: because this Learning Centre's content is deterministic, version-controlled, plain TypeScript — never LLM-generated on the fly — any change to it is a genuine, reviewable content update, the same way any other code change on this platform is. There is no separate 'content versioning' feature to learn; it works exactly like every other part of the codebase.",
+        "A final, honest closing thought for this whole academy: everything taught across all 15 learning paths describes real platform behavior as confirmed by direct inspection at the time each academy was written — SIMULATED data, deterministic coaches, genuinely LLM-narrated features (each carrying its enforced disclaimer), and the honest absence of features like news feeds, calendar-scheduled reviews, and any certification engine. Continuous professional development, on this platform, means continuing to apply that same standard of honesty to your own understanding as the platform itself keeps growing.",
+      ],
+      whyItMatters: "A one-time pass through the Learning Centre, without a genuine ongoing habit, tends to fade — treating continuous development as its own explicit, self-initiated discipline (matching the same cadence-labeled pattern taught everywhere else on this platform) is what actually keeps real proficiency current.",
+      difficulty: "intermediate",
+      whyItExists: "This lesson closes the academy by applying its own honesty standard reflexively — to the Learning Centre's own future growth — rather than presenting this academy as a finished, static credential.",
+      institutionalThinking: "Professional development in any real institutional setting is continuous, self-initiated, and reviewed on a regular cadence — never a one-time certificate — and this platform's own Learning Centre, by design, asks exactly the same of its learners.",
+      screenWalkthrough: [
+        "/learn — the real 'weakest paths' panel and recent history, your genuine weekly starting point.",
+        "/learn/quiz — retaking the two real scored quizzes periodically to track genuine improvement over time.",
+        "/learn/paths — revisited periodically to notice newly added academies or paths as the platform grows.",
+      ],
+      workflowSteps: [
+        "Set a short, regular weekly slot for revisiting a weak path, a missed Knowledge Check, or an unread bookmark.",
+        "Apply a monthly self-review using the same cadence discipline taught in Professional Workflows, but pointed at your own learning.",
+        "Retake both real scored quizzes periodically and track genuine improvement in your own percent-correct.",
+        "Revisit the Learning Roadmap lesson occasionally to notice newly added academies or paths.",
+        "Hold new platform content to the same honesty standard this academy applied to itself — implemented vs. educational-only, clearly disclosed.",
+      ],
+      metricsExplained: [
+        { term: "Weakest paths panel", explanation: "A real, live list on /learn of every path under 50% complete — a genuine, computed starting point for weekly review, not a curated suggestion." },
+        { term: "Quiz score trend", explanation: "Not a platform-computed trend line — simply your own honest comparison between real, independently stored quiz attempts over time." },
+      ],
+      workedExamples: [
+        {
+          label: "Good Opportunity",
+          title: "A genuine, ongoing weekly/monthly habit",
+          steps: [
+            "A learner sets a 20-minute weekly slot, starting from /learn's own weakest-paths panel each time.",
+            "Monthly, they retake both real quizzes, compare scores honestly, and check for new bookmarks or newly added academies.",
+          ],
+          note: "This mirrors the exact cadence discipline taught throughout the platform, applied reflexively to the learner's own development.",
+        },
+        {
+          label: "Average Opportunity",
+          title: "A one-time pass with no follow-up",
+          steps: [
+            "A learner completes every academy once, reaching 100% pathCompletion everywhere, and never returns.",
+            "Months later, several new academies have been added and existing content has been corrected in place — none of which the learner is aware of, since nothing prompted them to revisit.",
+          ],
+          note: "Completion once is a real, genuine milestone — but without an ongoing habit, it doesn't stay current on its own.",
+        },
+        {
+          label: "Poor Opportunity",
+          title: "Expecting the platform to prompt continued learning automatically",
+          steps: [
+            "A learner waits for a notification or reminder to revisit the Learning Centre.",
+            "None arrives — no learning-specific reminder feature exists anywhere on this platform, confirmed throughout this academy's own investigation.",
+          ],
+          note: "Continuous development here is entirely self-initiated, exactly as this whole academy has been honest about from its first lesson.",
+        },
+      ],
+      commonMistakes: [
+        "Treating academy completion as a one-time event rather than the start of an ongoing habit.",
+        "Waiting for a platform reminder or notification that will never arrive.",
+        "Assuming existing content never changes — every academy in this Learning Centre discloses corrections made in place as the platform itself evolves.",
+      ],
+      riskWarnings: [
+        "Real financial markets, and the platform's own real features, both continue to change — treating any point-in-time completion of this academy as a permanent, unchanging credential risks stale understanding.",
+        "This platform issues no reminder for continued learning; the responsibility for staying current is entirely the learner's own.",
+      ],
+      bestPractices: [
+        "Set a genuine, recurring weekly or monthly slot for revisiting the Learning Centre, rather than relying on memory or motivation alone.",
+        "Use the real 'weakest paths' panel as an honest, computed starting point each time.",
+        "Hold any new platform content to the same implemented-vs-educational-only honesty standard this academy modeled.",
+      ],
+      aiCoachPrompts: [
+        "Ask any Institutional AI Coach persona to quiz you on a topic you completed months ago, to check real retention.",
+        "Ask the Understanding AI Responses coach to re-explain deterministic vs. LLM-narrated content, since this distinction is worth re-confirming periodically as new features ship.",
+        "Institutional Mentor: check your portfolio's current real state as part of your own monthly review — its own page, not a chat prompt.",
+        "Ask the AI Coach to summarize what's changed in your own completed paths since you last reviewed them, based on what you can see on /learn/paths.",
+      ],
+      relatedModuleHrefs: ["/learn", "/learn/quiz", "/learn/paths"],
+      relatedGlossaryKeys: ["review-workflow-cadence", "progress-tracking-vs-certification"],
+      nextStepKeys: [],
+      estimatedMinutes: 8,
+      knowledgeCheck: [
+        {
+          prompt: "Does this platform send a reminder or notification prompting you to continue your learning?",
+          options: ["Yes, a weekly email", "No — no learning-specific reminder feature exists anywhere on this platform", "Only for institutional-tier accounts", "Only after completing this academy"],
+          correctIndex: 1,
+          explanation: "Continuous professional development on this platform is entirely self-initiated, confirmed throughout this academy's own investigation.",
+        },
+        {
+          prompt: "What is a genuine, computed starting point for a weekly self-review of your own learning?",
+          options: ["A fabricated random topic", "The Learning Centre home page's own live 'weakest paths' panel", "The Trading AI Coach's daily suggestion", "There is none"],
+          correctIndex: 1,
+          explanation: "/learn's own weakest-paths panel is real and live, reflecting your actual recorded activity.",
+        },
+        {
+          prompt: "How should you treat completing this academy once, reaching 100% pathCompletion everywhere?",
+          options: ["As a permanent, unchanging credential requiring no further review", "As a genuine milestone that still benefits from an ongoing, self-initiated review habit", "As proof that no further platform content will ever be added", "As equivalent to enabling Live Trading"],
+          correctIndex: 1,
+          explanation: "A real milestone, but one that fades without a genuine ongoing habit, exactly as this lesson describes.",
+        },
+        {
+          prompt: "How does new content added to this Learning Centre stay honest about what is implemented versus educational-only?",
+          options: ["It doesn't need to — all content is assumed implemented", "By following the same discipline this academy itself followed: direct inspection before writing, explicit disclosure, cross-referencing rather than duplicating", "By an automated fact-checking engine", "New content is never added after this sprint"],
+          correctIndex: 1,
+          explanation: "Every academy in this Learning Centre, including this one, is held to the same investigate-first, disclose-honestly standard.",
+        },
+        {
+          prompt: "What should you do when revisiting the Learning Roadmap lesson periodically?",
+          options: ["Nothing — it never changes", "Notice whether new academies or paths have been added since your last review", "Retake the certification exam", "Disable Live Trading"],
+          correctIndex: 1,
+          explanation: "The Learning Roadmap lesson is a reasonable, real anchor point for noticing genuine platform growth over time.",
+        },
+      ],
+    }),
+  ],
+};
+
 export const LEARNING_PATHS: LearningPath[] = [
   FOUNDATIONS_PATH,
   GREEKS_PATH,
@@ -8099,6 +8849,7 @@ export const LEARNING_PATHS: LearningPath[] = [
   PLATFORM_BASICS_PATH,
   AI_ACADEMY_PATH,
   PROFESSIONAL_WORKFLOWS_PATH,
+  CERTIFICATION_MASTERCLASS_PATH,
 ];
 
 export function getLearningPath(key: string): LearningPath | null {

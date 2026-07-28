@@ -49,7 +49,9 @@ describe("getLearningProgress — a brand-new user", () => {
       // a 14th path (ai-academy).
       // v1.4.0, Sprint L2K — Professional Institutional Workflows Academy
       // added a 15th path (professional-workflows).
-      expect(progress.pathCompletion.length).toBe(14);
+      // v1.4.0, Sprint L2L — Certification & Masterclass Academy added a
+      // 16th path (certification-masterclass).
+      expect(progress.pathCompletion.length).toBe(15);
       expect(progress.bookmarks).toEqual([]);
     } finally {
       await cleanupUser(userId);
