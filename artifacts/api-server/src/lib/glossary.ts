@@ -1306,6 +1306,24 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
     relatedTermKeys: ["llm-narration-source"],
     relatedLessonKeys: ["ai-team-overview", "ai-understanding-responses"],
   },
+
+  // ─── Professional Institutional Workflows Academy (v1.4.0, Sprint L2K) ─
+  {
+    key: "ravish-score",
+    term: "Ravish Score",
+    category: "trading",
+    definition: "The real, computed opportunity score every Scanner result carries — genuinely used as a hard execution gate, not just a display number: AutoPilot's automated cycle rejects any candidate whose Ravish Score falls below the platform's configured floor before it's ever eligible for auto-execution.",
+    relatedTermKeys: [],
+    relatedLessonKeys: ["workflow-professional-trade"],
+  },
+  {
+    key: "review-workflow-cadence",
+    term: "Review Workflow Cadence",
+    category: "platform",
+    definition: "A descriptive label (daily/weekly/monthly/quarterly/ad hoc) attached to a named review workflow in the Portfolio Workspace's Workflow Center — a tag describing how often a professional would typically run that workflow, never a scheduler. Starting an instance, checking off its steps, and completing it are always a manual, user-initiated action; nothing on this platform fires a workflow automatically on a calendar.",
+    relatedTermKeys: [],
+    relatedLessonKeys: ["workflow-weekly-monthly-review"],
+  },
 ];
 
 export function searchGlossary(query?: string, category?: GlossaryCategory): GlossaryTerm[] {

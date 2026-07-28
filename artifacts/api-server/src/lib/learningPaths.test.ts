@@ -8,7 +8,7 @@ import { LEARNING_PATHS, getLearningPath, getLearningTopic, allLearningTopics } 
 import { getGlossaryTerm } from "./glossary.js";
 
 describe("learning path content", () => {
-  it("has exactly the 13 requested paths, in the requested order (v1.4.0 Sprint L2A adds options-income-engine; Sprint L2J adds ai-academy)", () => {
+  it("has exactly the 14 requested paths, in the requested order (v1.4.0 Sprint L2A adds options-income-engine; Sprint L2J adds ai-academy; Sprint L2K adds professional-workflows)", () => {
     expect(LEARNING_PATHS.map((p) => p.key)).toEqual([
       "foundations",
       "greeks",
@@ -43,6 +43,12 @@ describe("learning path content", () => {
       // to work with every AI assistant on the platform — never a new AI
       // capability of its own.
       "ai-academy",
+      // v1.4.0, Sprint L2K — Professional Institutional Workflows Academy.
+      // A cross-engine path teaching real, end-to-end workflows (morning
+      // prep, research, trading, portfolio review, options, weekly/monthly
+      // review) over already-taught platform features — never a new
+      // capability of its own.
+      "professional-workflows",
     ]);
   });
 
@@ -205,6 +211,25 @@ describe("learning path content", () => {
       // /stock-analyst/portfolio-construction, /rebalancing-engine,
       // /research-terminal) was already present above.
       "/ai-trading-coach",
+      // v1.4.0, Sprint L2K — Professional Institutional Workflows Academy.
+      // Every genuinely new route this sprint's 6 new module-guide topics
+      // point to, confirmed real and registered by direct grep of App.tsx
+      // before this content was written. /stock-analyst/portfolio-construction,
+      // /stress-test, /trade-adjustment-preview (see /adjustment-preview
+      // below), /options/SPY, /concentration-risk, and every other route
+      // this sprint references were already present above.
+      "/scoring",
+      "/order-preview",
+      "/autopilot",
+      "/journal",
+      "/trade-history",
+      "/risk-exposure-engine",
+      "/options-lifecycle-manager",
+      "/performance-attribution-engine",
+      "/trading-analytics",
+      "/performance",
+      "/trade-journal-ai",
+      "/portfolio-workspace",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -398,6 +423,18 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "ai-portfolio-review",
       "ai-understanding-responses",
       "trading-ai-coach-overview",
+      // v1.4.0, Sprint L2K — Professional Institutional Workflows Academy.
+      // 6 brand-new topics in the new professional-workflows path. No
+      // existing topic's plain-vs-rich status changed this sprint —
+      // portfolio-ai-review-workflow (already rich since Phase 21) received
+      // only a small, disclosed body-text correction (the newly-shipped
+      // Portfolio Workspace Workflow Center), not a rich-content promotion.
+      "workflow-morning-preparation",
+      "workflow-research",
+      "workflow-professional-trade",
+      "workflow-portfolio-review",
+      "workflow-options",
+      "workflow-weekly-monthly-review",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),
@@ -409,7 +446,7 @@ describe("platform-basics path — the foundation lessons, and the template for 
     }
   });
 
-  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H/L2I/L2J's own module-guide topics each populate the full rich-content shape", () => {
+  it("Sprint L2A/L2B/L2C/L2D/L2E/L2F/L2G/L2H/L2I/L2J/L2K's own module-guide topics each populate the full rich-content shape", () => {
     const moduleGuideKeys = [
       "command-centre-overview",
       "investing-research-terminal",
@@ -462,6 +499,12 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "ai-portfolio-review",
       "ai-understanding-responses",
       "trading-ai-coach-overview",
+      "workflow-morning-preparation",
+      "workflow-research",
+      "workflow-professional-trade",
+      "workflow-portfolio-review",
+      "workflow-options",
+      "workflow-weekly-monthly-review",
     ];
     for (const key of moduleGuideKeys) {
       const { topic } = allLearningTopics().find(({ topic: t }) => t.key === key)!;
