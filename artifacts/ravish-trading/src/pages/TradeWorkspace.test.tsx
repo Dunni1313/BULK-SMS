@@ -328,6 +328,7 @@ describe("TradeWorkspace", () => {
       "/trading/coach/ask/stream",
       { symbol: "AAPL", question: "What should I watch for?" },
       expect.anything(),
+      expect.anything(),
     );
     expect(await screen.findByText("Watch the session high.")).toBeInTheDocument();
   });

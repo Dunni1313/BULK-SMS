@@ -65,7 +65,7 @@ import {
   type TradingTradePlanUpdateStatus,
   type TradingTradePlan,
 } from "@workspace/api-client-react";
-import { streamCoach } from "@/lib/coach-stream";
+import { useCoachConversation } from "@/lib/ai-coach/useCoachConversation";
 import { Markdown } from "@/components/ui/markdown";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -337,39 +337,18 @@ export default function TradeWorkspace() {
   }
 
   // ─── AI Trading Coach Panel — reuses Sprint 47/48's own POST
-  // /trading/coach/ask/stream route and the exact streamCoach() SSE client
-  // TradingResearch.tsx's own coach panel already established, unmodified.
-  const [coachQuestion, setCoachQuestion] = useState("");
-  const [coachHistory, setCoachHistory] = useState<{ question: string; answer: string }[]>([]);
-  const [coachStreamingAnswer, setCoachStreamingAnswer] = useState("");
-  const [coachAsking, setCoachAsking] = useState(false);
-
-  function handleAskCoach(e: React.FormEvent) {
-    e.preventDefault();
-    const question = coachQuestion.trim();
-    if (!question || coachAsking || !symbol) return;
-    setCoachAsking(true);
-    setCoachStreamingAnswer("");
-    setCoachQuestion("");
-    streamCoach(
-      "/trading/coach/ask/stream",
-      { symbol, question },
-      {
-        onDelta: (text) => setCoachStreamingAnswer((prev) => prev + text),
-        onDone: (data) => {
-          const d = data as { answer?: string };
-          setCoachHistory((prev) => [...prev, { question, answer: d.answer ?? coachStreamingAnswer }]);
-          setCoachStreamingAnswer("");
-          setCoachAsking(false);
-        },
-        onError: () => {
-          setCoachHistory((prev) => [...prev, { question, answer: "Failed to get an answer — please try again." }]);
-          setCoachStreamingAnswer("");
-          setCoachAsking(false);
-        },
-      },
-    ).catch(() => setCoachAsking(false));
-  }
+  // /trading/coach/ask/stream route via the shared useCoachConversation()
+  // conversation engine (v1.5.0 Sprint 2 — AI Coach Architecture
+  // Consolidation, Framework) — the exact same request/response behavior
+  // this panel already had, now sourced from one shared hook instead of
+  // its own hand-duplicated state/handler (the same duplication also
+  // extracted out of MarketStructureWorkbench.tsx/TradePlanningStudio.tsx/
+  // LiquidityWorkbench.tsx's own identical embedded panels this sprint).
+  const coach = useCoachConversation({
+    endpoint: "/trading/coach/ask/stream",
+    buildRequestBody: (question) => ({ symbol, question }),
+    disabled: !symbol,
+  });
 
   // ─── Trade Checklist (new this phase) — a pure, client-side composition
   // over already-fetched panel data, zero new scoring. ───────────────────
@@ -1031,16 +1010,16 @@ export default function TradeWorkspace() {
                         </a>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        {coachHistory.length === 0 && !coachStreamingAnswer && (
+                        {coach.history.length === 0 && !coach.streamingAnswer && (
                           <p className="text-xs text-muted-foreground" data-testid="coach-empty">
                             {symbol
                               ? `Ask something like "What should I watch for on ${symbol}?"`
                               : "Select an instrument to consult the Trading AI Coach."}
                           </p>
                         )}
-                        {(coachHistory.length > 0 || coachStreamingAnswer) && (
+                        {(coach.history.length > 0 || coach.streamingAnswer) && (
                           <div className="max-h-56 space-y-2 overflow-y-auto pr-1" data-testid="coach-history">
-                            {coachHistory.map((turn, i) => (
+                            {coach.history.map((turn, i) => (
                               <div key={i} className="space-y-1">
                                 <p className="text-xs font-medium text-foreground/90">Q: {turn.question}</p>
                                 <div className="border-l border-border pl-2 text-xs text-muted-foreground">
@@ -1048,25 +1027,25 @@ export default function TradeWorkspace() {
                                 </div>
                               </div>
                             ))}
-                            {coachAsking && (
+                            {coach.isStreaming && (
                               <p className="border-l border-border pl-2 text-xs text-muted-foreground" data-testid="coach-loading">
-                                {coachStreamingAnswer || "thinking…"}
+                                {coach.streamingAnswer || "thinking…"}
                               </p>
                             )}
                           </div>
                         )}
-                        <form onSubmit={handleAskCoach} className="flex gap-2">
+                        <form onSubmit={coach.submit} className="flex gap-2">
                           <Input
-                            value={coachQuestion}
-                            onChange={(e) => setCoachQuestion(e.target.value)}
+                            value={coach.question}
+                            onChange={(e) => coach.setQuestion(e.target.value)}
                             placeholder="Ask the coach…"
-                            disabled={coachAsking || !symbol}
+                            disabled={coach.isStreaming || !symbol}
                             data-testid="coach-input"
                           />
                           <Button
                             type="submit"
                             size="sm"
-                            disabled={!coachQuestion.trim() || coachAsking || !symbol}
+                            disabled={!coach.question.trim() || coach.isStreaming || !symbol}
                             data-testid="coach-submit"
                           >
                             <Send className="h-3.5 w-3.5" />

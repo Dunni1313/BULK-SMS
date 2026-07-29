@@ -21,19 +21,29 @@
 // never an order. Reuses the existing general rate limiter (mounted once
 // in app.ts) and the existing getScopedUserId()/tenant-isolation
 // discipline used by every other route in this codebase.
+//
+// v1.5.0 Sprint 2 note (AI Coach Framework): the /ask and /ask/stream
+// routes below are now built from the shared createCoachAskHandlers()
+// factory (lib/aiCoachAskHandler.ts), the same one routes/tradingCoach.ts
+// was refactored to use this sprint — this router's own context (never
+// 404s: buildUnifiedCoachContext() always resolves) and its
+// persist-before/persist-after message-writing are supplied as this
+// factory call's own config, with zero change to the request/response
+// contract, confirmed by this file's own existing route tests passing
+// with zero assertion changes.
 
 import { Router, type IRouter } from "express";
 import { db, tradingCoachMessagesTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { getScopedUserId } from "../lib/tenantScope.js";
-import { narrateTradeFreeform, narrateTradeFreeformStream, llmAvailable } from "../lib/coachLLM.js";
-import { openSse } from "../lib/sse.js";
+import { narrateTradeFreeform, narrateTradeFreeformStream } from "../lib/coachLLM.js";
 import { buildUnifiedCoachContext, unifiedCoachFallback } from "../lib/tradingCoachUnified.js";
 import {
   AskUnifiedTradingCoachBody,
   AskUnifiedTradingCoachResponse,
   GetUnifiedTradingCoachMessagesResponse,
 } from "@workspace/api-zod";
+import { createCoachAskHandlers } from "../lib/aiCoachAskHandler.js";
 
 const router: IRouter = Router();
 
@@ -52,55 +62,37 @@ async function persistMessage(userId: string, role: "user" | "assistant", messag
   }
 }
 
-router.post("/trading-coach/ask", async (req, res): Promise<void> => {
-  const parsed = AskUnifiedTradingCoachBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-
-  const userId = await getScopedUserId(req);
-  const { question, symbol, scannerCandidateId, tradingPositionId } = parsed.data;
-  const context = await buildUnifiedCoachContext(userId, { symbol, scannerCandidateId, tradingPositionId });
-  const fallback = unifiedCoachFallback(context, question);
-
-  await persistMessage(userId, "user", question);
-  const n = await narrateTradeFreeform(question, context, fallback);
-  await persistMessage(userId, "assistant", n.text);
-
-  res.json(AskUnifiedTradingCoachResponse.parse({ answer: n.text, answerSource: n.source }));
+const unifiedCoachAskHandlers = createCoachAskHandlers<
+  { question: string; symbol?: string; scannerCandidateId?: number; tradingPositionId?: number },
+  Awaited<ReturnType<typeof buildUnifiedCoachContext>>
+>({
+  bodySchema: AskUnifiedTradingCoachBody,
+  resolveUserId: (req) => getScopedUserId(req),
+  // buildUnifiedCoachContext() always resolves (it never 404s — an
+  // optional symbol/candidate/position simply resolves to an honest
+  // null/unavailable field, matching this route's pre-refactor behavior).
+  resolveContext: async (userId, body) => {
+    const context = await buildUnifiedCoachContext(userId, {
+      symbol: body.symbol,
+      scannerCandidateId: body.scannerCandidateId,
+      tradingPositionId: body.tradingPositionId,
+    });
+    return { context, fallback: unifiedCoachFallback(context, body.question) };
+  },
+  narrate: narrateTradeFreeform,
+  narrateStream: narrateTradeFreeformStream,
+  responseSchema: AskUnifiedTradingCoachResponse,
+  onBeforeAnswer: (userId, question) => persistMessage(userId, "user", question),
+  onAfterAnswer: (userId, answer) => persistMessage(userId, "assistant", answer),
+  streamErrorLogMessage: "unified trading coach ask stream failed",
 });
+
+router.post("/trading-coach/ask", unifiedCoachAskHandlers.ask);
 
 // SSE variant — same event contract as /trading/coach/ask/stream (meta ->
 // delta... -> done), deliberately NOT in the OpenAPI/orval contract,
 // matching that route's own precedent.
-router.post("/trading-coach/ask/stream", async (req, res): Promise<void> => {
-  const parsed = AskUnifiedTradingCoachBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-
-  const userId = await getScopedUserId(req);
-  const { question, symbol, scannerCandidateId, tradingPositionId } = parsed.data;
-  const context = await buildUnifiedCoachContext(userId, { symbol, scannerCandidateId, tradingPositionId });
-  const fallback = unifiedCoachFallback(context, question);
-
-  await persistMessage(userId, "user", question);
-
-  const sse = openSse(res);
-  try {
-    sse.send("meta", { source: llmAvailable() ? "llm" : "template", llmAvailable: llmAvailable() });
-    const n = await narrateTradeFreeformStream(question, context, fallback, (t) => sse.send("delta", { text: t }));
-    await persistMessage(userId, "assistant", n.text);
-    sse.send("done", { answer: n.text, answerSource: n.source });
-  } catch (err) {
-    req.log.error({ err }, "unified trading coach ask stream failed");
-    sse.send("error", { error: "Failed to answer question" });
-  } finally {
-    sse.close();
-  }
-});
+router.post("/trading-coach/ask/stream", unifiedCoachAskHandlers.askStream);
 
 router.get("/trading-coach/messages", async (req, res): Promise<void> => {
   const userId = await getScopedUserId(req);

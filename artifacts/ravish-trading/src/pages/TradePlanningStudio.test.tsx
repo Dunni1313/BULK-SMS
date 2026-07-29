@@ -340,6 +340,7 @@ describe("TradePlanningStudio", () => {
       "/trading/coach/ask/stream",
       { symbol: "AAPL", question: "Is my planned risk within limits?" },
       expect.anything(),
+      expect.anything(),
     );
     expect(await screen.findByText("Your planned risk is within the portfolio's own budget.")).toBeInTheDocument();
   });

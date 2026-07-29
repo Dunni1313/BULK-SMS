@@ -7,22 +7,25 @@
 // (the full-page surface) — the only difference between the two call
 // sites is whether an `onClose` handler is supplied.
 //
-// Streaming/message-send logic mirrors pages/Assistant.tsx's own
-// established pattern (Sprint 59) exactly: local pendingUser/
-// streamingReply/isStreaming/stopped/erroredReply state, an AbortController
-// ref, and streamCoach() against the SSE `meta -> delta... -> done -> error`
-// contract — the ONLY difference is the endpoint
-// (POST /trading-coach/ask/stream, Sprint 1) and the request body, which
-// additionally carries whatever optional symbol/scannerCandidateId/
-// tradingPositionId the TradingCoachProvider's current `focus` holds.
-// Persisted history comes from the real, already-shipped
+// v1.5.0 Sprint 2 — AI Coach Framework: the streaming/message-send state
+// machine (question input, in-flight optimistic bubble, streamed-delta
+// accumulation, AbortController + Stop, honest error turn, retry) is now
+// the shared useCoachConversation() hook rather than hand-duplicated
+// local state — identical wire behavior: the same endpoint
+// (POST /trading-coach/ask/stream), the same request body (question +
+// whatever optional symbol/scannerCandidateId/tradingPositionId the
+// TradingCoachProvider's current `focus` holds), and the same SSE
+// `meta -> delta... -> done -> error` contract via streamCoach() under
+// the hood. Persisted history still comes from the real, already-shipped
 // GET /trading-coach/messages via the generated
-// useGetUnifiedTradingCoachMessages() hook.
+// useGetUnifiedTradingCoachMessages() hook — this workspace never reads
+// the shared hook's own local `history`, only its in-flight/error state,
+// exactly as documented in useCoachConversation.ts's own header comment.
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetUnifiedTradingCoachMessages, getGetUnifiedTradingCoachMessagesQueryKey } from "@workspace/api-client-react";
-import { streamCoach } from "@/lib/coach-stream";
+import { useCoachConversation } from "@/lib/ai-coach/useCoachConversation";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { getSuggestedPrompts, getSuggestedActions } from "@/lib/trading-coach-context";
 import { TradingCoachHeader } from "./TradingCoachHeader";
@@ -39,87 +42,30 @@ export function TradingCoachWorkspace({ onClose }: { onClose?: () => void }) {
 
   const { data: messages, isLoading: isLoadingHistory } = useGetUnifiedTradingCoachMessages();
 
-  const [input, setInput] = useState("");
-  const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
-  const [streamingReply, setStreamingReply] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [stopped, setStopped] = useState(false);
-  const [erroredReply, setErroredReply] = useState(false);
   // A view-only "clear conversation" cutoff — never a server delete (Sprint
   // 1's backend has no such endpoint). Resets to null (nothing hidden)
   // whenever this workspace mounts fresh, matching the deliberately
   // ephemeral, disclosed nature of "Clear conversation."
   const [clearedAt, setClearedAt] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-  const lastQuestionRef = useRef<string | null>(null);
+
+  const coach = useCoachConversation({
+    endpoint: "/trading-coach/ask/stream",
+    buildRequestBody: (question) => ({
+      question,
+      symbol: focus.symbol,
+      scannerCandidateId: focus.scannerCandidateId,
+      tradingPositionId: focus.tradingPositionId,
+    }),
+    onAnswered: () => {
+      queryClient.invalidateQueries({ queryKey: getGetUnifiedTradingCoachMessagesQueryKey() });
+    },
+  });
 
   const visibleMessages = (messages ?? []).filter((m) => !clearedAt || m.createdAt > clearedAt);
 
-  function send(question: string) {
-    const trimmed = question.trim();
-    if (!trimmed || isStreaming) return;
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    lastQuestionRef.current = trimmed;
-    setInput("");
-    setPendingUserMessage(trimmed);
-    setStreamingReply("");
-    setStopped(false);
-    setErroredReply(false);
-    setIsStreaming(true);
-
-    streamCoach(
-      "/trading-coach/ask/stream",
-      {
-        question: trimmed,
-        symbol: focus.symbol,
-        scannerCandidateId: focus.scannerCandidateId,
-        tradingPositionId: focus.tradingPositionId,
-      },
-      {
-        onDelta: (text) => setStreamingReply((prev) => prev + text),
-        onDone: () => {
-          queryClient.invalidateQueries({ queryKey: getGetUnifiedTradingCoachMessagesQueryKey() });
-          setIsStreaming(false);
-          setPendingUserMessage(null);
-          setStreamingReply("");
-        },
-        onError: () => {
-          setIsStreaming(false);
-          setErroredReply(true);
-        },
-      },
-      controller.signal,
-    ).catch(() => {
-      // An abort lands here too — keep the partial reply visible.
-      setIsStreaming(false);
-    });
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    send(input);
-  }
-
-  function handleStop() {
-    abortRef.current?.abort();
-    setIsStreaming(false);
-    setStopped(true);
-  }
-
-  function handleRetry() {
-    if (lastQuestionRef.current) send(lastQuestionRef.current);
-  }
-
   function handleClearConversation() {
     setClearedAt(new Date().toISOString());
-    setPendingUserMessage(null);
-    setStreamingReply("");
-    setErroredReply(false);
-    setStopped(false);
+    coach.reset();
   }
 
   const suggestedPrompts = getSuggestedPrompts(focus);
@@ -134,25 +80,25 @@ export function TradingCoachWorkspace({ onClose }: { onClose?: () => void }) {
       <TradingCoachMessages
         isLoadingHistory={isLoadingHistory}
         messages={visibleMessages}
-        pendingUserMessage={pendingUserMessage}
-        streamingReply={streamingReply}
-        isStreaming={isStreaming}
-        stopped={stopped}
-        erroredReply={erroredReply}
-        onRetry={handleRetry}
+        pendingUserMessage={coach.pendingQuestion}
+        streamingReply={coach.streamingAnswer}
+        isStreaming={coach.isStreaming}
+        stopped={coach.stopped}
+        erroredReply={coach.erroredReply}
+        onRetry={coach.retry}
       />
 
-      {hasHistory && !isStreaming && <TradingCoachSuggestedActions actions={suggestedActions} />}
+      {hasHistory && !coach.isStreaming && <TradingCoachSuggestedActions actions={suggestedActions} />}
 
-      <TradingCoachSuggestedPrompts prompts={suggestedPrompts} onSelect={send} disabled={isStreaming} />
+      <TradingCoachSuggestedPrompts prompts={suggestedPrompts} onSelect={coach.send} disabled={coach.isStreaming} />
 
       <TradingCoachComposer
-        value={input}
-        onChange={setInput}
-        onSubmit={handleSubmit}
-        onStop={handleStop}
+        value={coach.question}
+        onChange={coach.setQuestion}
+        onSubmit={coach.submit}
+        onStop={coach.stop}
         onClearConversation={handleClearConversation}
-        isStreaming={isStreaming}
+        isStreaming={coach.isStreaming}
         hasHistory={hasHistory}
       />
 
