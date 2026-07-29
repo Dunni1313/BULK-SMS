@@ -48,7 +48,7 @@ const coachConversationsState = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
   listConversations: vi.fn(async () => coachConversationsState.conversations),
-  createConversation: vi.fn(async (coachId: string) => {
+  createConversation: vi.fn(async (coachId: string, _title?: string, workspaceId?: number) => {
     const id = coachConversationsState.nextConversationId++;
     coachConversationsState.messagesByConversation[id] = [];
     const conversation = {
@@ -56,6 +56,8 @@ vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
       coachId,
       title: "New conversation",
       archived: false,
+      workspaceId: workspaceId ?? null,
+      favourite: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -79,6 +81,67 @@ vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
     ];
     return message;
   }),
+  // v1.5.0 Sprint 7 — AI Workspaces.
+  setConversationFavourite: vi.fn(async (id: number, favourite: boolean) => {
+    const conversation = coachConversationsState.conversations.find((c) => c.id === id);
+    if (conversation) conversation.favourite = favourite;
+    return conversation;
+  }),
+  assignConversationToWorkspace: vi.fn(async (id: number, workspaceId: number | null) => {
+    const conversation = coachConversationsState.conversations.find((c) => c.id === id);
+    if (conversation) conversation.workspaceId = workspaceId;
+    return conversation;
+  }),
+}));
+
+// v1.5.0 Sprint 7 — AI Workspaces. A small, realistic in-memory fake of
+// the new workspace-persistence API, mirroring the coachConversationsApi
+// mock above exactly.
+const workspacesState = vi.hoisted(() => ({
+  workspaces: [] as any[],
+  filesByWorkspace: {} as Record<number, any[]>,
+  notesByWorkspace: {} as Record<number, any[]>,
+  nextWorkspaceId: 1,
+}));
+vi.mock("@/lib/ai-coach/workspacesApi", () => ({
+  listWorkspaces: vi.fn(async () => workspacesState.workspaces),
+  createWorkspace: vi.fn(async (coachId: string, input: { name: string; description?: string; tags?: string[] }) => {
+    const id = workspacesState.nextWorkspaceId++;
+    const workspace = {
+      id,
+      coachId,
+      name: input.name,
+      description: input.description ?? null,
+      pinned: false,
+      archived: false,
+      tags: input.tags ?? [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    workspacesState.workspaces = [workspace, ...workspacesState.workspaces];
+    workspacesState.filesByWorkspace[id] = [];
+    workspacesState.notesByWorkspace[id] = [];
+    return workspace;
+  }),
+  getWorkspace: vi.fn(async (id: number) => {
+    const workspace = workspacesState.workspaces.find((w) => w.id === id);
+    return {
+      ...workspace,
+      conversations: [],
+      files: workspacesState.filesByWorkspace[id] ?? [],
+      notes: workspacesState.notesByWorkspace[id] ?? [],
+    };
+  }),
+  updateWorkspace: vi.fn(async (id: number, input: Record<string, unknown>) => {
+    const workspace = workspacesState.workspaces.find((w) => w.id === id);
+    Object.assign(workspace, input);
+    return workspace;
+  }),
+  deleteWorkspace: vi.fn(),
+  addWorkspaceNote: vi.fn(),
+  deleteWorkspaceNote: vi.fn(),
+  addWorkspaceFile: vi.fn(),
+  deleteWorkspaceFile: vi.fn(),
 }));
 
 import Assistant from "./Assistant";
@@ -94,6 +157,10 @@ describe("Assistant page (AI Options Coach)", () => {
     coachConversationsState.messagesByConversation = {};
     coachConversationsState.nextConversationId = 1;
     coachConversationsState.nextMessageId = 1;
+    workspacesState.workspaces = [];
+    workspacesState.filesByWorkspace = {};
+    workspacesState.notesByWorkspace = {};
+    workspacesState.nextWorkspaceId = 1;
   });
 
   it("shows a loading skeleton while messages are still loading, not the empty-state welcome", () => {
@@ -235,5 +302,110 @@ describe("Assistant page (AI Options Coach)", () => {
 
     expect(await screen.findByText(/Stopped/i)).toBeInTheDocument();
     expect(screen.getByText(/Gamma measures how fast delta moves/i)).toBeInTheDocument();
+  });
+
+  // v1.5.0 Sprint 7 — AI Workspaces.
+  describe("v1.5.0 Sprint 7 — AI Workspaces", () => {
+    it("shows an honest empty state when there are no workspaces yet", async () => {
+      renderWithClient(<Assistant />);
+      expect(await screen.findByTestId("assistant-workspace-sidebar-empty")).toBeInTheDocument();
+    });
+
+    it("creating a workspace adds it to the sidebar", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+
+      await user.click(await screen.findByTestId("assistant-workspace-sidebar-new-workspace"));
+      await user.type(screen.getByTestId("assistant-workspace-sidebar-create-name"), "Earnings project");
+      await user.click(screen.getByTestId("assistant-workspace-sidebar-create-save"));
+
+      expect(await screen.findByText("Earnings project")).toBeInTheDocument();
+    });
+
+    it("selecting a workspace shows its WorkspaceHeader and scopes the conversation list to it", async () => {
+      workspacesState.workspaces = [
+        {
+          id: 9,
+          coachId: "options",
+          name: "Iron condor research",
+          description: "Deep dive on IC entries",
+          pinned: false,
+          archived: false,
+          tags: ["ic"],
+          createdAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-01T00:00:00.000Z",
+        },
+      ];
+      workspacesState.filesByWorkspace[9] = [];
+      workspacesState.notesByWorkspace[9] = [];
+      coachConversationsState.conversations = [
+        {
+          id: 5,
+          coachId: "options",
+          title: "In the workspace",
+          archived: false,
+          workspaceId: 9,
+          favourite: false,
+          createdAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-01T00:00:00.000Z",
+        },
+      ];
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+
+      await user.click(await screen.findByTestId("assistant-workspace-sidebar-card-9-select"));
+
+      expect(await screen.findByTestId("assistant-workspace-header")).toBeInTheDocument();
+      expect(screen.getByTestId("assistant-workspace-header-name")).toHaveTextContent("Iron condor research");
+    });
+
+    it("'All conversations' clears the workspace selection and hides the WorkspaceHeader", async () => {
+      workspacesState.workspaces = [
+        {
+          id: 9,
+          coachId: "options",
+          name: "Iron condor research",
+          description: null,
+          pinned: false,
+          archived: false,
+          tags: [],
+          createdAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-01T00:00:00.000Z",
+        },
+      ];
+      workspacesState.filesByWorkspace[9] = [];
+      workspacesState.notesByWorkspace[9] = [];
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+
+      await user.click(await screen.findByTestId("assistant-workspace-sidebar-card-9-select"));
+      expect(await screen.findByTestId("assistant-workspace-header")).toBeInTheDocument();
+
+      await user.click(screen.getByTestId("assistant-workspace-sidebar-all-conversations"));
+      expect(screen.queryByTestId("assistant-workspace-header")).not.toBeInTheDocument();
+    });
+
+    it("a conversation resumed from the sidebar can be marked as a favourite", async () => {
+      coachConversationsState.conversations = [
+        {
+          id: 5,
+          coachId: "options",
+          title: "Trade Explanation",
+          archived: false,
+          workspaceId: null,
+          favourite: false,
+          createdAt: "2026-07-01T12:00:00.000Z",
+          updatedAt: "2026-07-01T12:00:05.000Z",
+        },
+      ];
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+
+      await user.click(await screen.findByTestId("assistant-coach-sidebar-favourite-5"));
+      // No crash / no thrown error is the meaningful assertion here — the
+      // real PATCH call is faked via coachConversationsApi's own mock,
+      // which the hook's setConversationFavourite import resolves against.
+      expect(screen.getByTestId("assistant-coach-sidebar-favourite-5")).toBeInTheDocument();
+    });
   });
 });

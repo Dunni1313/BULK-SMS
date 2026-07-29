@@ -22,6 +22,7 @@ import {
   accountsTable,
   aiCoachConversationsTable,
   aiCoachMessagesTable,
+  aiWorkspacesTable,
 } from "@workspace/db";
 import type { Server } from "node:http";
 
@@ -47,6 +48,10 @@ async function cleanupUser(userId: string): Promise<void> {
     await db.delete(aiCoachMessagesTable).where(eq(aiCoachMessagesTable.conversationId, c.id));
   }
   await db.delete(aiCoachConversationsTable).where(eq(aiCoachConversationsTable.userId, userId));
+  // v1.5.0 Sprint 7 — AI Workspaces: some tests below assign a conversation
+  // to a workspace, so this file's own cleanup must also remove any
+  // workspaces it created (files/notes cascade with their workspace).
+  await db.delete(aiWorkspacesTable).where(eq(aiWorkspacesTable.userId, userId));
   await db.delete(settingsTable).where(eq(settingsTable.userId, userId));
   await db.delete(sessionsTable).where(eq(sessionsTable.userId, userId));
   await db.delete(accountsTable).where(eq(accountsTable.userId, userId));
@@ -451,5 +456,120 @@ describe("AI Coach Memory routes (live, real Postgres + real auth)", () => {
       .where(eq(aiCoachMessagesTable.conversationId, created.id));
     expect(Object.keys(row).sort()).toEqual(["conversationId", "content", "createdAt", "id", "role"].sort());
     expect(row.content).toBe("Quiz me on premium selling.");
+  });
+
+  // ─── v1.5.0, Sprint 7 — AI Workspaces: additive fields on this same,
+  // otherwise-unmodified Sprint 6 route surface. See
+  // routes/aiWorkspaces.route.test.ts for the full workspace CRUD/
+  // isolation/conversation-assignment/search/archive/favourite/resume
+  // suite — these few cases only prove the two new fields on
+  // /coach-conversations itself are wired correctly and that every
+  // pre-existing behavior above remains completely unchanged. ──────────
+
+  it("a conversation created with no workspaceId has an honestly null workspaceId and a default-false favourite", async () => {
+    const user = await signUp();
+    const created = (await (
+      await fetch(`${baseUrl}/api/coach-conversations`, {
+        method: "POST",
+        headers: { "content-type": "application/json", cookie: user.cookie },
+        body: JSON.stringify({ coachId: "trading" }),
+      })
+    ).json()) as any;
+    expect(created.workspaceId).toBeNull();
+    expect(created.favourite).toBe(false);
+  });
+
+  it("PATCH /coach-conversations/:id toggles the favourite flag independent of workspace membership", async () => {
+    const user = await signUp();
+    const created = (await (
+      await fetch(`${baseUrl}/api/coach-conversations`, {
+        method: "POST",
+        headers: { "content-type": "application/json", cookie: user.cookie },
+        body: JSON.stringify({ coachId: "trading" }),
+      })
+    ).json()) as any;
+
+    const res = await fetch(`${baseUrl}/api/coach-conversations/${created.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", cookie: user.cookie },
+      body: JSON.stringify({ favourite: true }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as any;
+    expect(body.favourite).toBe(true);
+    expect(body.workspaceId).toBeNull();
+
+    const unfav = await fetch(`${baseUrl}/api/coach-conversations/${created.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", cookie: user.cookie },
+      body: JSON.stringify({ favourite: false }),
+    });
+    expect(((await unfav.json()) as any).favourite).toBe(false);
+  });
+
+  it("GET /coach-conversations?workspaceId= filters to only conversations assigned to that workspace, and omitting it lists every conversation (workspace member or not) — Sprint 6's original behavior is byte-for-byte unchanged", async () => {
+    const user = await signUp();
+    const workspace = (await (
+      await fetch(`${baseUrl}/api/ai-workspaces`, {
+        method: "POST",
+        headers: { "content-type": "application/json", cookie: user.cookie },
+        body: JSON.stringify({ coachId: "trading", name: "Filter test workspace" }),
+      })
+    ).json()) as any;
+
+    const inWorkspace = (await (
+      await fetch(`${baseUrl}/api/coach-conversations`, {
+        method: "POST",
+        headers: { "content-type": "application/json", cookie: user.cookie },
+        body: JSON.stringify({ coachId: "trading", title: "In workspace", workspaceId: workspace.id }),
+      })
+    ).json()) as any;
+    await fetch(`${baseUrl}/api/coach-conversations`, {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie: user.cookie },
+      body: JSON.stringify({ coachId: "trading", title: "Un-grouped" }),
+    });
+
+    const filtered = (await (
+      await fetch(`${baseUrl}/api/coach-conversations?coachId=trading&workspaceId=${workspace.id}`, {
+        headers: { cookie: user.cookie },
+      })
+    ).json()) as any[];
+    expect(filtered.map((c) => c.id)).toEqual([inWorkspace.id]);
+
+    // Omitting workspaceId entirely still returns every conversation for
+    // this coach, exactly matching Sprint 6's original, un-filtered shape.
+    const all = (await (
+      await fetch(`${baseUrl}/api/coach-conversations?coachId=trading`, { headers: { cookie: user.cookie } })
+    ).json()) as any[];
+    expect(all.map((c) => c.title).sort()).toEqual(["In workspace", "Un-grouped"].sort());
+  });
+
+  it("POST /coach-conversations rejects a workspaceId belonging to a different coach", async () => {
+    const user = await signUp();
+    const workspace = (await (
+      await fetch(`${baseUrl}/api/ai-workspaces`, {
+        method: "POST",
+        headers: { "content-type": "application/json", cookie: user.cookie },
+        body: JSON.stringify({ coachId: "investing", name: "Investing workspace" }),
+      })
+    ).json()) as any;
+
+    const res = await fetch(`${baseUrl}/api/coach-conversations`, {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie: user.cookie },
+      body: JSON.stringify({ coachId: "trading", workspaceId: workspace.id }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /coach-conversations rejects a nonexistent workspaceId with 404", async () => {
+    const user = await signUp();
+    const res = await fetch(`${baseUrl}/api/coach-conversations`, {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie: user.cookie },
+      body: JSON.stringify({ coachId: "trading", workspaceId: 999999999 }),
+    });
+    expect(res.status).toBe(404);
   });
 });

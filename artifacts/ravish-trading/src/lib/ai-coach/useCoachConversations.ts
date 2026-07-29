@@ -13,6 +13,15 @@
 // first time persistTurn() actually has a completed turn to save. This
 // keeps a user idly clicking "New Chat" from cluttering their own
 // conversation list with empty, never-used rows.
+//
+// v1.5.0 Sprint 7 — AI Workspaces: this hook gained one new, optional
+// `workspaceId` parameter. Omitting it (every pre-Sprint-7 call site)
+// preserves the exact original behavior byte-for-byte — every conversation
+// for the coach, workspace member or not. When provided, the conversation
+// list is scoped to that workspace only (via the /coach-conversations
+// route's own new, additive `?workspaceId=` filter — see
+// aiCoachConversations.ts), and any conversation created through this hook
+// while a workspaceId is active is pre-assigned to it.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CoachTurn } from "./types";
@@ -26,6 +35,8 @@ import {
   deleteConversation,
   listMessages,
   addMessage,
+  setConversationFavourite,
+  assignConversationToWorkspace,
 } from "./coachConversationsApi";
 
 export interface UseCoachConversationsResult {
@@ -43,12 +54,16 @@ export interface UseCoachConversationsResult {
   selectConversation: (id: number) => void;
   renameConversationById: (id: number, title: string) => Promise<void>;
   deleteConversationById: (id: number) => Promise<void>;
+  /** v1.5.0 Sprint 7 — AI Workspaces. */
+  toggleFavouriteById: (id: number, favourite: boolean) => Promise<void>;
+  /** v1.5.0 Sprint 7 — AI Workspaces. Pass null to unassign. */
+  assignConversationToWorkspaceById: (id: number, workspaceId: number | null) => Promise<void>;
   /** Wire this into useSpecialistCoach(config, params, { onAnswered }). */
   persistTurn: (turn: CoachTurn) => Promise<void>;
   error: string | null;
 }
 
-export function useCoachConversations(coachId: CoachId): UseCoachConversationsResult {
+export function useCoachConversations(coachId: CoachId, workspaceId?: number): UseCoachConversationsResult {
   const [conversations, setConversations] = useState<CoachConversation[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
@@ -68,7 +83,14 @@ export function useCoachConversations(coachId: CoachId): UseCoachConversationsRe
   const refreshList = useCallback(async () => {
     setIsLoadingConversations(true);
     try {
-      const list = await listConversations(coachId, searchTerm ? { search: searchTerm } : undefined);
+      // Preserve the exact pre-Sprint-7 call shape (a bare `undefined`
+      // second argument) whenever neither a search term nor a workspace
+      // filter is active — a behavior-preserving detail, not just cosmetic.
+      const hasFilter = !!searchTerm || workspaceId != null;
+      const options = hasFilter
+        ? { ...(searchTerm ? { search: searchTerm } : {}), ...(workspaceId != null ? { workspaceId } : {}) }
+        : undefined;
+      const list = await listConversations(coachId, options);
       setConversations(list);
       setError(null);
     } catch (err) {
@@ -76,7 +98,7 @@ export function useCoachConversations(coachId: CoachId): UseCoachConversationsRe
     } finally {
       setIsLoadingConversations(false);
     }
-  }, [coachId, searchTerm]);
+  }, [coachId, searchTerm, workspaceId]);
 
   useEffect(() => {
     refreshList();
@@ -128,12 +150,39 @@ export function useCoachConversations(coachId: CoachId): UseCoachConversationsRe
     [refreshList],
   );
 
+  /** v1.5.0 Sprint 7 — AI Workspaces. */
+  const toggleFavouriteById = useCallback(
+    async (id: number, favourite: boolean) => {
+      await setConversationFavourite(id, favourite);
+      await refreshList();
+    },
+    [refreshList],
+  );
+
+  /** v1.5.0 Sprint 7 — AI Workspaces. Assigning/unassigning a workspace may
+   * move a conversation out of the current filtered view (e.g. this hook
+   * is scoped to a specific workspace and the conversation is reassigned
+   * elsewhere) — refreshList() naturally drops it from the list in that
+   * case, which is the correct behavior. */
+  const assignConversationToWorkspaceById = useCallback(
+    async (id: number, targetWorkspaceId: number | null) => {
+      await assignConversationToWorkspace(id, targetWorkspaceId);
+      await refreshList();
+    },
+    [refreshList],
+  );
+
   const persistTurn = useCallback(
     async (turn: CoachTurn) => {
       try {
         let id = activeConversationIdRef.current;
         if (id == null) {
-          const created = await createConversation(coachId);
+          // v1.5.0 Sprint 7 — AI Workspaces: a conversation lazily created
+          // while a workspace is active is pre-assigned to it, so it shows
+          // up in that workspace's own conversation list immediately.
+          // Preserves the exact pre-Sprint-7 single-argument call shape
+          // when no workspace is active.
+          const created = workspaceId != null ? await createConversation(coachId, undefined, workspaceId) : await createConversation(coachId);
           id = created.id;
           setActiveConversationId(id);
         }
@@ -144,7 +193,7 @@ export function useCoachConversations(coachId: CoachId): UseCoachConversationsRe
         setError(err instanceof Error ? err.message : "Failed to save this conversation turn");
       }
     },
-    [coachId, refreshList, refreshMessages],
+    [coachId, refreshList, refreshMessages, workspaceId],
   );
 
   return {
@@ -159,6 +208,8 @@ export function useCoachConversations(coachId: CoachId): UseCoachConversationsRe
     selectConversation,
     renameConversationById,
     deleteConversationById,
+    toggleFavouriteById,
+    assignConversationToWorkspaceById,
     persistTurn,
     error,
   };

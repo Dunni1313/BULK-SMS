@@ -6,6 +6,11 @@
 // pattern for additive, self-contained routes — this file is the API_PREFIX
 // convention those two already use, applied to a small ordinary CRUD
 // surface rather than SSE.
+//
+// v1.5.0 Sprint 7 — AI Workspaces: additive fields/params only (workspaceId
+// on the conversation shape and as an optional list filter/create param,
+// favourite as a togglable flag) — every pre-existing export's signature
+// and default behavior (omit the new params entirely) is unchanged.
 
 import type { CoachId } from "./capabilityRegistry";
 
@@ -16,6 +21,10 @@ export interface CoachConversation {
   coachId: CoachId;
   title: string;
   archived: boolean;
+  /** v1.5.0 Sprint 7 — AI Workspaces: null when not a member of any workspace. */
+  workspaceId: number | null;
+  /** v1.5.0 Sprint 7 — AI Workspaces. */
+  favourite: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,22 +49,23 @@ async function parseOrThrow<T>(res: Response, fallbackMessage: string): Promise<
 
 export async function listConversations(
   coachId: CoachId,
-  options?: { search?: string; includeArchived?: boolean },
+  options?: { search?: string; includeArchived?: boolean; workspaceId?: number },
 ): Promise<CoachConversation[]> {
   const params = new URLSearchParams({ coachId });
   if (options?.search) params.set("search", options.search);
   if (options?.includeArchived) params.set("includeArchived", "true");
+  if (options?.workspaceId != null) params.set("workspaceId", String(options.workspaceId));
   const res = await fetch(`${API_PREFIX}/coach-conversations?${params.toString()}`, {
     headers: { accept: "application/json" },
   });
   return parseOrThrow(res, "Failed to load conversations");
 }
 
-export async function createConversation(coachId: CoachId, title?: string): Promise<CoachConversation> {
+export async function createConversation(coachId: CoachId, title?: string, workspaceId?: number): Promise<CoachConversation> {
   const res = await fetch(`${API_PREFIX}/coach-conversations`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ coachId, ...(title ? { title } : {}) }),
+    body: JSON.stringify({ coachId, ...(title ? { title } : {}), ...(workspaceId != null ? { workspaceId } : {}) }),
   });
   return parseOrThrow(res, "Failed to create conversation");
 }
@@ -67,6 +77,27 @@ export async function renameConversation(id: number, title: string): Promise<Coa
     body: JSON.stringify({ title }),
   });
   return parseOrThrow(res, "Failed to rename conversation");
+}
+
+/** v1.5.0 Sprint 7 — AI Workspaces. */
+export async function setConversationFavourite(id: number, favourite: boolean): Promise<CoachConversation> {
+  const res = await fetch(`${API_PREFIX}/coach-conversations/${id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ favourite }),
+  });
+  return parseOrThrow(res, "Failed to update favourite");
+}
+
+/** v1.5.0 Sprint 7 — AI Workspaces. Pass null to unassign (detach) a
+ * conversation from its workspace without deleting it. */
+export async function assignConversationToWorkspace(id: number, workspaceId: number | null): Promise<CoachConversation> {
+  const res = await fetch(`${API_PREFIX}/coach-conversations/${id}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ workspaceId }),
+  });
+  return parseOrThrow(res, "Failed to move conversation");
 }
 
 export async function deleteConversation(id: number): Promise<void> {

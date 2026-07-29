@@ -8,12 +8,18 @@
 // Confirm/Cancel, click Confirm to actually delete) rather than a modal —
 // simple to reason about and to test, no extra dialog component wiring
 // needed for a first-cut shared sidebar.
+//
+// v1.5.0 Sprint 7 — AI Workspaces: gained one new, optional
+// `onToggleFavourite` prop — a star toggle per conversation, surfacing the
+// new `favourite` flag (aiCoachConversations.ts, Sprint 7). Omitting it
+// (any pre-Sprint-7 consumer) renders exactly as before — no star, no
+// behavior change.
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Check, X, Star } from "lucide-react";
 import type { CoachConversation } from "./coachConversationsApi";
 
 export interface ConversationSidebarProps {
@@ -26,6 +32,9 @@ export interface ConversationSidebarProps {
   onSelectConversation: (id: number) => void;
   onRenameConversation: (id: number, title: string) => void | Promise<void>;
   onDeleteConversation: (id: number) => void | Promise<void>;
+  /** v1.5.0 Sprint 7 — AI Workspaces. Optional: omit to render without a
+   * favourite star (byte-identical to pre-Sprint-7 behavior). */
+  onToggleFavourite?: (id: number, favourite: boolean) => void | Promise<void>;
   /** Base data-testid — defaults to "conversation-sidebar". */
   testId?: string;
 }
@@ -40,6 +49,7 @@ export function ConversationSidebar({
   onSelectConversation,
   onRenameConversation,
   onDeleteConversation,
+  onToggleFavourite,
   testId = "conversation-sidebar",
 }: ConversationSidebarProps) {
   const [renamingId, setRenamingId] = useState<number | null>(null);
@@ -153,6 +163,20 @@ export function ConversationSidebar({
                         {formatDistanceToNow(new Date(conversation.updatedAt), { addSuffix: true })}
                       </span>
                     </button>
+
+                    {onToggleFavourite && (
+                      <button
+                        type="button"
+                        className="shrink-0"
+                        onClick={() => onToggleFavourite(conversation.id, !conversation.favourite)}
+                        aria-label={conversation.favourite ? "Unfavourite conversation" : "Favourite conversation"}
+                        data-testid={`${testId}-favourite-${conversation.id}`}
+                      >
+                        <Star
+                          className={`h-3 w-3 ${conversation.favourite ? "fill-amber-400 text-amber-400" : "text-muted-foreground/50 hover:text-amber-400"}`}
+                        />
+                      </button>
+                    )}
 
                     {isConfirmingDelete ? (
                       <div className="flex shrink-0 items-center gap-1">

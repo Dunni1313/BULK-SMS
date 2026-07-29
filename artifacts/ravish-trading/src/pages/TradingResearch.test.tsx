@@ -34,7 +34,7 @@ const coachConversationsState = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
   listConversations: vi.fn(async () => []),
-  createConversation: vi.fn(async (coachId: string) => {
+  createConversation: vi.fn(async (coachId: string, _title?: string, workspaceId?: number) => {
     const id = coachConversationsState.nextConversationId++;
     coachConversationsState.messagesByConversation[id] = [];
     return {
@@ -42,6 +42,8 @@ vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
       coachId,
       title: "New conversation",
       archived: false,
+      workspaceId: workspaceId ?? null,
+      favourite: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -63,6 +65,48 @@ vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
     ];
     return message;
   }),
+  setConversationFavourite: vi.fn(),
+  assignConversationToWorkspace: vi.fn(),
+}));
+
+// v1.5.0 Sprint 7 — AI Workspaces. Mirrors the coachConversationsApi mock
+// above exactly.
+const workspacesState = vi.hoisted(() => ({
+  workspaces: [] as any[],
+  nextWorkspaceId: 1,
+}));
+vi.mock("@/lib/ai-coach/workspacesApi", () => ({
+  listWorkspaces: vi.fn(async () => workspacesState.workspaces),
+  createWorkspace: vi.fn(async (coachId: string, input: { name: string; description?: string; tags?: string[] }) => {
+    const id = workspacesState.nextWorkspaceId++;
+    const workspace = {
+      id,
+      coachId,
+      name: input.name,
+      description: input.description ?? null,
+      pinned: false,
+      archived: false,
+      tags: input.tags ?? [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    workspacesState.workspaces = [workspace, ...workspacesState.workspaces];
+    return workspace;
+  }),
+  getWorkspace: vi.fn(async (id: number) => {
+    const workspace = workspacesState.workspaces.find((w) => w.id === id);
+    return { ...workspace, conversations: [], files: [], notes: [] };
+  }),
+  updateWorkspace: vi.fn(async (id: number, input: Record<string, unknown>) => {
+    const workspace = workspacesState.workspaces.find((w) => w.id === id);
+    Object.assign(workspace, input);
+    return workspace;
+  }),
+  deleteWorkspace: vi.fn(),
+  addWorkspaceNote: vi.fn(),
+  deleteWorkspaceNote: vi.fn(),
+  addWorkspaceFile: vi.fn(),
+  deleteWorkspaceFile: vi.fn(),
 }));
 
 const createPositionMutate = vi.fn();
@@ -320,6 +364,8 @@ describe("TradingResearch page", () => {
     coachConversationsState.messagesByConversation = {};
     coachConversationsState.nextConversationId = 1;
     coachConversationsState.nextMessageId = 1;
+    workspacesState.workspaces = [];
+    workspacesState.nextWorkspaceId = 1;
   });
 
   it("renders the advisory-only copy and a prompt before any symbol is searched", () => {
@@ -693,5 +739,56 @@ describe("TradingResearch page", () => {
     await userEvent.click(screen.getByTestId("trade-coach-submit"));
 
     expect(await screen.findByText(/Failed to get an answer/i)).toBeInTheDocument();
+  });
+
+  // v1.5.0 Sprint 7 — AI Workspaces. The legacy inline coach panel (and its
+  // workspace sidebar/header) only renders once a symbol has been searched
+  // — matching every pre-existing test above, which searches a symbol
+  // before finding "button-toggle-legacy-trade-coach".
+  describe("v1.5.0 Sprint 7 — AI Workspaces", () => {
+    async function openLegacyCoachPanel() {
+      mockState.structure = structureAnalysis();
+      renderWithClient(<TradingResearch />);
+      await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+      await userEvent.click(screen.getByTestId("button-trading-research-search"));
+      await userEvent.click(await screen.findByTestId("button-toggle-legacy-trade-coach"));
+    }
+
+    it("shows an honest empty state when there are no workspaces yet", async () => {
+      await openLegacyCoachPanel();
+      expect(await screen.findByTestId("trade-coach-workspace-sidebar-empty")).toBeInTheDocument();
+    });
+
+    it("creating a workspace adds it to the sidebar", async () => {
+      await openLegacyCoachPanel();
+
+      await userEvent.click(await screen.findByTestId("trade-coach-workspace-sidebar-new-workspace"));
+      await userEvent.type(screen.getByTestId("trade-coach-workspace-sidebar-create-name"), "Structure research");
+      await userEvent.click(screen.getByTestId("trade-coach-workspace-sidebar-create-save"));
+
+      expect(await screen.findByText("Structure research")).toBeInTheDocument();
+    });
+
+    it("selecting a workspace shows its WorkspaceHeader", async () => {
+      workspacesState.workspaces = [
+        {
+          id: 4,
+          coachId: "trading",
+          name: "Regime tracking",
+          description: null,
+          pinned: false,
+          archived: false,
+          tags: [],
+          createdAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-01T00:00:00.000Z",
+        },
+      ];
+      await openLegacyCoachPanel();
+
+      await userEvent.click(await screen.findByTestId("trade-coach-workspace-sidebar-card-4-select"));
+
+      expect(await screen.findByTestId("trade-coach-workspace-header")).toBeInTheDocument();
+      expect(screen.getByTestId("trade-coach-workspace-header-name")).toHaveTextContent("Regime tracking");
+    });
   });
 });

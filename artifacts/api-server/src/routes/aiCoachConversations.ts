@@ -49,7 +49,7 @@
 // text a user actually sees.
 
 import { Router, type IRouter } from "express";
-import { db, aiCoachConversationsTable, aiCoachMessagesTable } from "@workspace/db";
+import { db, aiCoachConversationsTable, aiCoachMessagesTable, aiWorkspacesTable } from "@workspace/db";
 import { and, eq, desc, asc } from "drizzle-orm";
 import { getScopedUserId } from "../lib/tenantScope.js";
 
@@ -84,9 +84,36 @@ function formatConversation(row: typeof aiCoachConversationsTable.$inferSelect) 
     coachId: row.coachId,
     title: row.title,
     archived: row.archived,
+    // v1.5.0 Sprint 7 — AI Workspaces: additive fields, never present
+    // before this sprint. workspaceId is honestly null (never fabricated)
+    // for every conversation that isn't a member of a workspace.
+    workspaceId: row.workspaceId ?? null,
+    favourite: row.favourite,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+// v1.5.0 Sprint 7 — AI Workspaces. The one place a new ai_coach_conversations
+// row is ever inserted — reused by both POST /coach-conversations (below)
+// and routes/aiWorkspaces.ts's own "start a new conversation in this
+// workspace" endpoint, so the two call sites can never drift apart.
+export async function createConversationRow(
+  userId: string,
+  coachId: CoachId,
+  title?: string,
+  workspaceId?: number | null,
+) {
+  const [row] = await db
+    .insert(aiCoachConversationsTable)
+    .values({
+      userId,
+      coachId,
+      title: title ?? DEFAULT_TITLE,
+      workspaceId: workspaceId ?? null,
+    })
+    .returning();
+  return row;
 }
 
 function formatMessage(row: typeof aiCoachMessagesTable.$inferSelect) {
@@ -120,9 +147,21 @@ function parseOptionalTitle(value: unknown): ValidationResult<string | undefined
   return { success: true, data: trimmed };
 }
 
+/** Accepts either a real integer or the literal `null` (meaning "no
+ * workspace" / "unassign") — undefined means "field omitted entirely",
+ * genuinely distinct from an explicit null in the update body. */
+function parseOptionalWorkspaceId(value: unknown): ValidationResult<number | null | undefined> {
+  if (value === undefined) return { success: true, data: undefined };
+  if (value === null) return { success: true, data: null };
+  if (typeof value !== "number" || !Number.isInteger(value)) {
+    return { success: false, error: "workspaceId must be an integer or null" };
+  }
+  return { success: true, data: value };
+}
+
 function parseCreateConversationBody(
   body: unknown,
-): ValidationResult<{ coachId: CoachId; title?: string }> {
+): ValidationResult<{ coachId: CoachId; title?: string; workspaceId?: number | null }> {
   if (typeof body !== "object" || body === null) return { success: false, error: "request body is required" };
   const b = body as Record<string, unknown>;
   if (!isCoachId(b.coachId)) {
@@ -130,12 +169,14 @@ function parseCreateConversationBody(
   }
   const title = parseOptionalTitle(b.title);
   if (!title.success) return { success: false, error: title.error };
-  return { success: true, data: { coachId: b.coachId, title: title.data } };
+  const workspaceId = parseOptionalWorkspaceId(b.workspaceId);
+  if (!workspaceId.success) return { success: false, error: workspaceId.error };
+  return { success: true, data: { coachId: b.coachId, title: title.data, workspaceId: workspaceId.data } };
 }
 
 function parseUpdateConversationBody(
   body: unknown,
-): ValidationResult<{ title?: string; archived?: boolean }> {
+): ValidationResult<{ title?: string; archived?: boolean; favourite?: boolean; workspaceId?: number | null }> {
   if (typeof body !== "object" || body === null) return { success: false, error: "request body is required" };
   const b = body as Record<string, unknown>;
   const title = parseOptionalTitle(b.title);
@@ -145,10 +186,17 @@ function parseUpdateConversationBody(
     if (typeof b.archived !== "boolean") return { success: false, error: "archived must be a boolean" };
     archived = b.archived;
   }
-  if (title.data === undefined && archived === undefined) {
-    return { success: false, error: "At least one of title or archived must be provided." };
+  let favourite: boolean | undefined;
+  if (b.favourite !== undefined) {
+    if (typeof b.favourite !== "boolean") return { success: false, error: "favourite must be a boolean" };
+    favourite = b.favourite;
   }
-  return { success: true, data: { title: title.data, archived } };
+  const workspaceId = parseOptionalWorkspaceId(b.workspaceId);
+  if (!workspaceId.success) return { success: false, error: workspaceId.error };
+  if (title.data === undefined && archived === undefined && favourite === undefined && workspaceId.data === undefined) {
+    return { success: false, error: "At least one of title, archived, favourite, or workspaceId must be provided." };
+  }
+  return { success: true, data: { title: title.data, archived, favourite, workspaceId: workspaceId.data } };
 }
 
 const MESSAGE_ROLES = ["user", "assistant"] as const;
@@ -179,7 +227,17 @@ async function loadOwnedConversation(id: number, userId: string) {
   return row ?? null;
 }
 
-// GET /coach-conversations?coachId=trading&search=&includeArchived=true
+// v1.5.0 Sprint 7 — AI Workspaces. Shared by both this file's own
+// POST/PATCH /coach-conversations handlers and routes/aiWorkspaces.ts.
+export async function loadOwnedWorkspace(id: number, userId: string) {
+  const [row] = await db
+    .select()
+    .from(aiWorkspacesTable)
+    .where(and(eq(aiWorkspacesTable.id, id), eq(aiWorkspacesTable.userId, userId)));
+  return row ?? null;
+}
+
+// GET /coach-conversations?coachId=trading&search=&includeArchived=true&workspaceId=5
 router.get("/coach-conversations", async (req, res): Promise<void> => {
   const coachId = parseCoachIdQuery(req.query.coachId);
   if (!coachId) {
@@ -190,10 +248,30 @@ router.get("/coach-conversations", async (req, res): Promise<void> => {
   const userId = await getScopedUserId(req);
   const includeArchived = req.query.includeArchived === "true";
 
+  // v1.5.0 Sprint 7 — AI Workspaces: an optional, additive scoping filter.
+  // Omitting it preserves Sprint 6's own original behavior byte-for-byte
+  // (every one of the coach's conversations, workspace member or not).
+  const workspaceIdRaw = Array.isArray(req.query.workspaceId) ? req.query.workspaceId[0] : req.query.workspaceId;
+  let workspaceIdFilter: number | undefined;
+  if (typeof workspaceIdRaw === "string" && workspaceIdRaw.length > 0) {
+    const parsedWorkspaceId = parseInt(workspaceIdRaw, 10);
+    if (isNaN(parsedWorkspaceId)) {
+      res.status(400).json({ error: "workspaceId query param must be an integer" });
+      return;
+    }
+    workspaceIdFilter = parsedWorkspaceId;
+  }
+
   const rows = await db
     .select()
     .from(aiCoachConversationsTable)
-    .where(and(eq(aiCoachConversationsTable.userId, userId), eq(aiCoachConversationsTable.coachId, coachId)))
+    .where(
+      and(
+        eq(aiCoachConversationsTable.userId, userId),
+        eq(aiCoachConversationsTable.coachId, coachId),
+        ...(workspaceIdFilter !== undefined ? [eq(aiCoachConversationsTable.workspaceId, workspaceIdFilter)] : []),
+      ),
+    )
     .orderBy(desc(aiCoachConversationsTable.updatedAt));
 
   const visible = includeArchived ? rows : rows.filter((r) => !r.archived);
@@ -205,7 +283,7 @@ router.get("/coach-conversations", async (req, res): Promise<void> => {
   res.json(filtered.map(formatConversation));
 });
 
-// POST /coach-conversations {coachId, title?}
+// POST /coach-conversations {coachId, title?, workspaceId?}
 router.post("/coach-conversations", async (req, res): Promise<void> => {
   const parsed = parseCreateConversationBody(req.body);
   if (!parsed.success || !parsed.data) {
@@ -214,14 +292,23 @@ router.post("/coach-conversations", async (req, res): Promise<void> => {
   }
 
   const userId = await getScopedUserId(req);
-  const [row] = await db
-    .insert(aiCoachConversationsTable)
-    .values({
-      userId,
-      coachId: parsed.data.coachId,
-      title: parsed.data.title ?? DEFAULT_TITLE,
-    })
-    .returning();
+
+  // v1.5.0 Sprint 7 — AI Workspaces: if a workspaceId was supplied, it
+  // must be owned by this user and belong to the same coach — a Trading
+  // conversation can never be filed under an Investing workspace.
+  if (parsed.data.workspaceId != null) {
+    const workspace = await loadOwnedWorkspace(parsed.data.workspaceId, userId);
+    if (!workspace) {
+      res.status(404).json({ error: "Workspace not found" });
+      return;
+    }
+    if (workspace.coachId !== parsed.data.coachId) {
+      res.status(400).json({ error: "Workspace belongs to a different coach" });
+      return;
+    }
+  }
+
+  const row = await createConversationRow(userId, parsed.data.coachId, parsed.data.title, parsed.data.workspaceId);
 
   res.status(201).json(formatConversation(row));
 });
@@ -304,8 +391,9 @@ router.post("/coach-conversations/:id/messages", async (req, res): Promise<void>
   res.status(201).json(formatMessage(message));
 });
 
-// PATCH /coach-conversations/:id {title?, archived?} — rename and/or
-// archive.
+// PATCH /coach-conversations/:id {title?, archived?, favourite?, workspaceId?}
+// — rename, archive, favourite/unfavourite, and/or assign/unassign a
+// workspace (workspaceId: null unassigns).
 router.patch("/coach-conversations/:id", async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
@@ -321,11 +409,34 @@ router.patch("/coach-conversations/:id", async (req, res): Promise<void> => {
   }
 
   const userId = await getScopedUserId(req);
+
+  // v1.5.0 Sprint 7 — AI Workspaces: assigning (not unassigning) requires
+  // the conversation to already exist and the target workspace to belong
+  // to this user and this same coach.
+  if (parsed.data.workspaceId !== undefined && parsed.data.workspaceId !== null) {
+    const conversation = await loadOwnedConversation(id, userId);
+    if (!conversation) {
+      res.status(404).json({ error: "Conversation not found" });
+      return;
+    }
+    const workspace = await loadOwnedWorkspace(parsed.data.workspaceId, userId);
+    if (!workspace) {
+      res.status(404).json({ error: "Workspace not found" });
+      return;
+    }
+    if (workspace.coachId !== conversation.coachId) {
+      res.status(400).json({ error: "Workspace belongs to a different coach" });
+      return;
+    }
+  }
+
   const [row] = await db
     .update(aiCoachConversationsTable)
     .set({
       ...(parsed.data.title !== undefined ? { title: parsed.data.title } : {}),
       ...(parsed.data.archived !== undefined ? { archived: parsed.data.archived } : {}),
+      ...(parsed.data.favourite !== undefined ? { favourite: parsed.data.favourite } : {}),
+      ...(parsed.data.workspaceId !== undefined ? { workspaceId: parsed.data.workspaceId } : {}),
       updatedAt: new Date(),
     })
     .where(and(eq(aiCoachConversationsTable.id, id), eq(aiCoachConversationsTable.userId, userId)))

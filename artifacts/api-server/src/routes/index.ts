@@ -74,6 +74,7 @@ import complianceEngineRouter from "./complianceEngine";
 import watchlistsRouter from "./watchlists";
 import portfolioWorkspaceRouter from "./portfolioWorkspace";
 import aiCoachConversationsRouter from "./aiCoachConversations";
+import aiWorkspacesRouter from "./aiWorkspaces";
 
 const router: IRouter = Router();
 
@@ -152,5 +153,6 @@ router.use(complianceEngineRouter);
 router.use(watchlistsRouter);
 router.use(portfolioWorkspaceRouter);
 router.use(aiCoachConversationsRouter);
+router.use(aiWorkspacesRouter);
 
 export default router;
