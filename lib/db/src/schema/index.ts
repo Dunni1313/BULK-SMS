@@ -56,3 +56,6 @@ export * from "./aiCoachConversations";
 export * from "./aiCoachMessages";
 export * from "./aiWorkspaceFiles";
 export * from "./aiWorkspaceNotes";
+export * from "./aiNotebooks";
+export * from "./aiNotebookNotes";
+export * from "./aiNotebookLinks";

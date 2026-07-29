@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Send, Bot, User, BrainCircuit, Lightbulb, BookOpen, GraduationCap, Sparkles, FileText, Square } from "lucide-react";
+import { Send, Bot, User, BrainCircuit, Lightbulb, BookOpen, GraduationCap, Sparkles, FileText, Square, MessageSquare, NotebookText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
@@ -24,6 +24,12 @@ import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
 import { useAiWorkspaces } from "@/lib/ai-coach/useAiWorkspaces";
 import { WorkspaceSidebar } from "@/lib/ai-coach/WorkspaceSidebar";
 import { WorkspaceHeader } from "@/lib/ai-coach/WorkspaceHeader";
+import { useAiNotebooks } from "@/lib/ai-coach/useAiNotebooks";
+import { NotebookSidebar } from "@/lib/ai-coach/NotebookSidebar";
+import { NotebookHeader } from "@/lib/ai-coach/NotebookHeader";
+import { NotebookEditor } from "@/lib/ai-coach/NotebookEditor";
+import { NotebookSummaryPanel } from "@/lib/ai-coach/NotebookSummaryPanel";
+import { NotebookEmptyState } from "@/lib/ai-coach/NotebookEmptyState";
 import { Markdown } from "@/components/ui/markdown";
 
 type ChatMode = "auto" | AiChatInputMode;
@@ -77,6 +83,14 @@ export default function Assistant() {
   // Sprint 6's original, un-grouped "All conversations" behavior.
   const optionsWorkspaces = useAiWorkspaces("options");
   const optionsCoachConversations = useCoachConversations("options", optionsWorkspaces.activeWorkspaceId ?? undefined);
+
+  // v1.5.0 Sprint 8 — AI Research Notebooks. A structured knowledge space
+  // inside a workspace (or unscoped) for collecting and refining AI
+  // research over time — a peer surface to the conversation view above,
+  // switched via the "Conversations"/"Notebooks" toggle below, never
+  // interleaved with the streaming chat state machine.
+  const [assistantView, setAssistantView] = useState<"conversations" | "notebooks">("conversations");
+  const optionsNotebooks = useAiNotebooks("options", optionsWorkspaces.activeWorkspaceId ?? undefined);
 
   // v1.5.0 Sprint 2 — AI Coach Framework: the send/stream/error/stop state
   // machine (question input, in-flight optimistic bubble, streamed-delta
@@ -220,6 +234,97 @@ export default function Assistant() {
         </div>
       )}
 
+      {/* v1.5.0 Sprint 8 — AI Research Notebooks: a peer surface to the
+          conversation view, switched via this toggle. Neither view's own
+          state is torn down when the other is shown — only its rendering
+          is conditional. */}
+      <div className="mb-3 flex gap-1.5" data-testid="assistant-view-toggle">
+        <Button
+          type="button"
+          size="sm"
+          variant={assistantView === "conversations" ? "default" : "outline"}
+          className="h-7 gap-1.5 text-xs"
+          onClick={() => setAssistantView("conversations")}
+          data-testid="assistant-view-conversations"
+        >
+          <MessageSquare className="h-3.5 w-3.5" />
+          Conversations
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={assistantView === "notebooks" ? "default" : "outline"}
+          className="h-7 gap-1.5 text-xs"
+          onClick={() => setAssistantView("notebooks")}
+          data-testid="assistant-view-notebooks"
+        >
+          <NotebookText className="h-3.5 w-3.5" />
+          Notebooks
+        </Button>
+      </div>
+
+      {assistantView === "notebooks" ? (
+        <div className="flex-1 flex gap-3 min-h-0" data-testid="assistant-notebooks-view">
+          <NotebookSidebar
+            notebooks={optionsNotebooks.notebooks}
+            isLoading={optionsNotebooks.isLoadingNotebooks}
+            activeNotebookId={optionsNotebooks.activeNotebookId}
+            searchTerm={optionsNotebooks.searchTerm}
+            onSearchChange={optionsNotebooks.setSearchTerm}
+            onCreateNotebook={(input) => optionsNotebooks.createNotebookAnd({ ...input, workspaceId: optionsWorkspaces.activeWorkspaceId })}
+            onSelectNotebook={optionsNotebooks.selectNotebook}
+            onClearSelection={optionsNotebooks.clearSelection}
+            onTogglePin={optionsNotebooks.togglePinById}
+            onToggleArchive={optionsNotebooks.toggleArchiveById}
+            onDeleteNotebook={optionsNotebooks.deleteNotebookById}
+            testId="assistant-notebook-sidebar"
+          />
+          <Card className="flex-1 flex flex-col bg-card border-border overflow-hidden">
+            {optionsNotebooks.activeNotebookDetail ? (
+              <ScrollArea className="flex-1 p-4">
+                <NotebookHeader
+                  notebook={optionsNotebooks.activeNotebookDetail}
+                  onRename={(input) => optionsNotebooks.updateNotebookById(optionsNotebooks.activeNotebookDetail!.id, input)}
+                  onTogglePin={(pinned) => optionsNotebooks.togglePinById(optionsNotebooks.activeNotebookDetail!.id, pinned)}
+                  onToggleArchive={(archived) => optionsNotebooks.toggleArchiveById(optionsNotebooks.activeNotebookDetail!.id, archived)}
+                  onDelete={() => optionsNotebooks.deleteNotebookById(optionsNotebooks.activeNotebookDetail!.id)}
+                  onSearch={optionsNotebooks.searchContents}
+                  testId="assistant-notebook-header"
+                />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <NotebookEditor
+                    notebook={optionsNotebooks.activeNotebookDetail}
+                    onAddNote={optionsNotebooks.addNote}
+                    onDeleteNote={optionsNotebooks.deleteNote}
+                    onLinkConversation={optionsNotebooks.linkConversation}
+                    onLinkFile={optionsWorkspaces.activeWorkspaceDetail ? optionsNotebooks.linkFile : undefined}
+                    onRemoveLink={optionsNotebooks.removeLink}
+                    linkableConversations={optionsCoachConversations.conversations.map((c) => ({ id: c.id, title: c.title }))}
+                    linkableFiles={optionsWorkspaces.activeWorkspaceDetail?.files.map((f) => ({ id: f.id, fileName: f.fileName }))}
+                    testId="assistant-notebook-editor"
+                  />
+                  <NotebookSummaryPanel
+                    onSummarize={optionsNotebooks.summarize}
+                    onMergeNotes={optionsNotebooks.mergeNotes}
+                    onGenerateTakeaways={optionsNotebooks.generateTakeaways}
+                    onGenerateActionItems={optionsNotebooks.generateActionItems}
+                    onSaveAsNote={(kind, content) => optionsNotebooks.addNote(kind, content)}
+                    testId="assistant-notebook-summary-panel"
+                  />
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="flex flex-1 items-center justify-center p-6">
+                <NotebookEmptyState
+                  title="No notebook selected"
+                  description="Choose a notebook on the left, or create a new one to start collecting research."
+                  testId="assistant-notebook-detail-empty"
+                />
+              </div>
+            )}
+          </Card>
+        </div>
+      ) : (
       <div className="flex-1 flex gap-3 min-h-0">
         {/* v1.5.0 Sprint 7 — AI Workspaces: WorkspaceSidebar (top half)
             groups multiple conversations into a reusable research project;
@@ -410,6 +515,7 @@ export default function Assistant() {
         </CardFooter>
       </Card>
       </div>
+      )}
     </div>
   );
 }

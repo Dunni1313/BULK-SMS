@@ -144,6 +144,71 @@ vi.mock("@/lib/ai-coach/workspacesApi", () => ({
   deleteWorkspaceFile: vi.fn(),
 }));
 
+// v1.5.0 Sprint 8 — AI Research Notebooks. A small, realistic in-memory
+// fake of the new notebook-persistence API, mirroring the workspacesApi
+// mock above exactly. The 4 AI action functions are plain vi.fn()s (no
+// default resolved value) so each test controls its own honest-available/
+// honest-unavailable response explicitly, per this module's own
+// "never fabricates, never auto-runs" contract.
+const notebooksState = vi.hoisted(() => ({
+  notebooks: [] as any[],
+  notesByNotebook: {} as Record<number, any[]>,
+  linksByNotebook: {} as Record<number, any[]>,
+  nextNotebookId: 1,
+  nextNoteId: 1,
+}));
+vi.mock("@/lib/ai-coach/notebooksApi", () => ({
+  listNotebooks: vi.fn(async () => notebooksState.notebooks),
+  createNotebook: vi.fn(async (coachId: string, input: { title: string; description?: string; tags?: string[]; workspaceId?: number | null }) => {
+    const id = notebooksState.nextNotebookId++;
+    const notebook = {
+      id,
+      coachId,
+      workspaceId: input.workspaceId ?? null,
+      title: input.title,
+      description: input.description ?? null,
+      pinned: false,
+      archived: false,
+      tags: input.tags ?? [],
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    notebooksState.notebooks = [notebook, ...notebooksState.notebooks];
+    notebooksState.notesByNotebook[id] = [];
+    notebooksState.linksByNotebook[id] = [];
+    return notebook;
+  }),
+  getNotebook: vi.fn(async (id: number) => {
+    const notebook = notebooksState.notebooks.find((n) => n.id === id);
+    return {
+      ...notebook,
+      notes: notebooksState.notesByNotebook[id] ?? [],
+      links: notebooksState.linksByNotebook[id] ?? [],
+    };
+  }),
+  updateNotebook: vi.fn(async (id: number, input: Record<string, unknown>) => {
+    const notebook = notebooksState.notebooks.find((n) => n.id === id);
+    Object.assign(notebook, input);
+    return notebook;
+  }),
+  deleteNotebook: vi.fn(),
+  searchNotebookContents: vi.fn(async () => []),
+  addNotebookNote: vi.fn(async (notebookId: number, kind: string, content: string) => {
+    const note = { id: notebooksState.nextNoteId++, notebookId, kind, content, createdAt: new Date().toISOString() };
+    notebooksState.notesByNotebook[notebookId] = [...(notebooksState.notesByNotebook[notebookId] ?? []), note];
+    return note;
+  }),
+  deleteNotebookNote: vi.fn(),
+  addNotebookConversationLink: vi.fn(),
+  addNotebookFileLink: vi.fn(),
+  deleteNotebookLink: vi.fn(),
+  summarizeNotebook: vi.fn(),
+  mergeNotebookNotes: vi.fn(),
+  generateNotebookTakeaways: vi.fn(),
+  generateNotebookActionItems: vi.fn(),
+}));
+
 import Assistant from "./Assistant";
 
 describe("Assistant page (AI Options Coach)", () => {
@@ -161,6 +226,11 @@ describe("Assistant page (AI Options Coach)", () => {
     workspacesState.filesByWorkspace = {};
     workspacesState.notesByWorkspace = {};
     workspacesState.nextWorkspaceId = 1;
+    notebooksState.notebooks = [];
+    notebooksState.notesByNotebook = {};
+    notebooksState.linksByNotebook = {};
+    notebooksState.nextNotebookId = 1;
+    notebooksState.nextNoteId = 1;
   });
 
   it("shows a loading skeleton while messages are still loading, not the empty-state welcome", () => {
@@ -406,6 +476,80 @@ describe("Assistant page (AI Options Coach)", () => {
       // real PATCH call is faked via coachConversationsApi's own mock,
       // which the hook's setConversationFavourite import resolves against.
       expect(screen.getByTestId("assistant-coach-sidebar-favourite-5")).toBeInTheDocument();
+    });
+  });
+
+  describe("v1.5.0 Sprint 8 — AI Research Notebooks", () => {
+    it("defaults to the Conversations view; switching to Notebooks hides the conversation UI and shows the notebook sidebar", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+
+      expect(screen.queryByTestId("assistant-notebook-sidebar")).not.toBeInTheDocument();
+      await user.click(screen.getByTestId("assistant-view-notebooks"));
+      expect(await screen.findByTestId("assistant-notebook-sidebar")).toBeInTheDocument();
+
+      await user.click(screen.getByTestId("assistant-view-conversations"));
+      expect(screen.queryByTestId("assistant-notebook-sidebar")).not.toBeInTheDocument();
+    });
+
+    it("shows an honest 'no notebook selected' message before any notebook is chosen", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-notebooks"));
+      expect(await screen.findByTestId("assistant-notebook-detail-empty")).toBeInTheDocument();
+    });
+
+    it("creates a notebook via the sidebar's inline form, then selecting it shows the header/editor/summary panel", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-notebooks"));
+
+      await user.click(await screen.findByTestId("assistant-notebook-sidebar-new-notebook"));
+      await user.type(screen.getByTestId("assistant-notebook-sidebar-create-title"), "Q3 research");
+      await user.click(screen.getByTestId("assistant-notebook-sidebar-create-save"));
+
+      const card = await screen.findByTestId(/assistant-notebook-sidebar-list-card-\d+-select/);
+      await user.click(card);
+
+      expect(await screen.findByTestId("assistant-notebook-header")).toHaveTextContent("Q3 research");
+      expect(screen.getByTestId("assistant-notebook-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("assistant-notebook-summary-panel")).toBeInTheDocument();
+    });
+
+    it("adding a note in the editor persists it and it appears in the notebook's own note list", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-notebooks"));
+      await user.click(await screen.findByTestId("assistant-notebook-sidebar-new-notebook"));
+      await user.type(screen.getByTestId("assistant-notebook-sidebar-create-title"), "Research notebook");
+      await user.click(screen.getByTestId("assistant-notebook-sidebar-create-save"));
+      await user.click(await screen.findByTestId(/assistant-notebook-sidebar-list-card-\d+-select/));
+
+      await screen.findByTestId("assistant-notebook-editor");
+      await user.type(screen.getByTestId("assistant-notebook-editor-note-input"), "Support held at 145");
+      await user.click(screen.getByTestId("assistant-notebook-editor-note-save"));
+
+      expect(await screen.findByText("Support held at 145")).toBeInTheDocument();
+    });
+
+    it("the AI summarise action is explicit — never called automatically — and renders the honest result once clicked", async () => {
+      const { summarizeNotebook } = await import("@/lib/ai-coach/notebooksApi");
+      vi.mocked(summarizeNotebook).mockResolvedValue({ summary: "This notebook has no notes yet.", source: "template" });
+
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-notebooks"));
+      await user.click(await screen.findByTestId("assistant-notebook-sidebar-new-notebook"));
+      await user.type(screen.getByTestId("assistant-notebook-sidebar-create-title"), "Empty notebook");
+      await user.click(screen.getByTestId("assistant-notebook-sidebar-create-save"));
+      await user.click(await screen.findByTestId(/assistant-notebook-sidebar-list-card-\d+-select/));
+      await screen.findByTestId("assistant-notebook-summary-panel");
+
+      expect(summarizeNotebook).not.toHaveBeenCalled();
+      await user.click(screen.getByTestId("assistant-notebook-summary-panel-summarize-button"));
+      expect(await screen.findByTestId("assistant-notebook-summary-panel-summary-result")).toHaveTextContent(
+        "This notebook has no notes yet.",
+      );
     });
   });
 });

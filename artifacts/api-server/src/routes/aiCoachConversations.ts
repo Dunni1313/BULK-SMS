@@ -219,7 +219,11 @@ function parseCoachIdQuery(raw: unknown): CoachId | null {
   return isCoachId(value) ? value : null;
 }
 
-async function loadOwnedConversation(id: number, userId: string) {
+// v1.5.0 Sprint 8 — AI Research Notebooks. Exported (previously private)
+// so routes/aiNotebooks.ts can validate a conversation belongs to the
+// requesting user before linking it — the exact same ownership check this
+// file's own routes already used, not duplicated.
+export async function loadOwnedConversation(id: number, userId: string) {
   const [row] = await db
     .select()
     .from(aiCoachConversationsTable)

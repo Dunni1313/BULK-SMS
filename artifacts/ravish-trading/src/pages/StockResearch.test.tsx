@@ -98,12 +98,71 @@ vi.mock("@/lib/ai-coach/workspacesApi", () => ({
   deleteWorkspaceFile: vi.fn(),
 }));
 
+// v1.5.0 Sprint 8 — AI Research Notebooks. Mirrors the workspacesApi mock
+// above exactly.
+const notebooksState = vi.hoisted(() => ({
+  notebooks: [] as any[],
+  notesByNotebook: {} as Record<number, any[]>,
+  nextNotebookId: 1,
+  nextNoteId: 1,
+}));
+vi.mock("@/lib/ai-coach/notebooksApi", () => ({
+  listNotebooks: vi.fn(async () => notebooksState.notebooks),
+  createNotebook: vi.fn(async (coachId: string, input: { title: string; description?: string; tags?: string[]; workspaceId?: number | null }) => {
+    const id = notebooksState.nextNotebookId++;
+    const notebook = {
+      id,
+      coachId,
+      workspaceId: input.workspaceId ?? null,
+      title: input.title,
+      description: input.description ?? null,
+      pinned: false,
+      archived: false,
+      tags: input.tags ?? [],
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    notebooksState.notebooks = [notebook, ...notebooksState.notebooks];
+    notebooksState.notesByNotebook[id] = [];
+    return notebook;
+  }),
+  getNotebook: vi.fn(async (id: number) => {
+    const notebook = notebooksState.notebooks.find((n) => n.id === id);
+    return { ...notebook, notes: notebooksState.notesByNotebook[id] ?? [], links: [] };
+  }),
+  updateNotebook: vi.fn(async (id: number, input: Record<string, unknown>) => {
+    const notebook = notebooksState.notebooks.find((n) => n.id === id);
+    Object.assign(notebook, input);
+    return notebook;
+  }),
+  deleteNotebook: vi.fn(),
+  searchNotebookContents: vi.fn(async () => []),
+  addNotebookNote: vi.fn(async (notebookId: number, kind: string, content: string) => {
+    const note = { id: notebooksState.nextNoteId++, notebookId, kind, content, createdAt: new Date().toISOString() };
+    notebooksState.notesByNotebook[notebookId] = [...(notebooksState.notesByNotebook[notebookId] ?? []), note];
+    return note;
+  }),
+  deleteNotebookNote: vi.fn(),
+  addNotebookConversationLink: vi.fn(),
+  addNotebookFileLink: vi.fn(),
+  deleteNotebookLink: vi.fn(),
+  summarizeNotebook: vi.fn(),
+  mergeNotebookNotes: vi.fn(),
+  generateNotebookTakeaways: vi.fn(),
+  generateNotebookActionItems: vi.fn(),
+}));
+
 beforeEach(() => {
   coachConversationsState.messagesByConversation = {};
   coachConversationsState.nextConversationId = 1;
   coachConversationsState.nextMessageId = 1;
   workspacesState.workspaces = [];
   workspacesState.nextWorkspaceId = 1;
+  notebooksState.notebooks = [];
+  notebooksState.notesByNotebook = {};
+  notebooksState.nextNotebookId = 1;
+  notebooksState.nextNoteId = 1;
 });
 
 type HookResult = { data: unknown; isLoading?: boolean };
@@ -380,6 +439,35 @@ describe("ReportView", () => {
 
       expect(await screen.findByTestId("ask-analyst-workspace-header")).toBeInTheDocument();
       expect(screen.getByTestId("ask-analyst-workspace-header-name")).toHaveTextContent("Margin of safety tracking");
+    });
+  });
+
+  // v1.5.0 Sprint 8 — AI Research Notebooks.
+  describe("v1.5.0 Sprint 8 — AI Research Notebooks", () => {
+    it("notebooks are collapsed by default; the toggle reveals the notebook sidebar", async () => {
+      const report = makeValueReport();
+      renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+      expect(screen.queryByTestId("investing-notebook-sidebar")).not.toBeInTheDocument();
+
+      await userEvent.click(await screen.findByTestId("button-toggle-investing-notebooks"));
+      expect(await screen.findByTestId("investing-notebook-sidebar")).toBeInTheDocument();
+    });
+
+    it("creating a notebook adds it to the sidebar, and selecting it shows the header/editor/summary panel", async () => {
+      const report = makeValueReport();
+      renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+      await userEvent.click(await screen.findByTestId("button-toggle-investing-notebooks"));
+
+      await userEvent.click(await screen.findByTestId("investing-notebook-sidebar-new-notebook"));
+      await userEvent.type(screen.getByTestId("investing-notebook-sidebar-create-title"), "Committee thesis notebook");
+      await userEvent.click(screen.getByTestId("investing-notebook-sidebar-create-save"));
+
+      const card = await screen.findByTestId(/investing-notebook-sidebar-list-card-\d+-select/);
+      await userEvent.click(card);
+
+      expect(await screen.findByTestId("investing-notebook-header")).toHaveTextContent("Committee thesis notebook");
+      expect(screen.getByTestId("investing-notebook-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("investing-notebook-summary-panel")).toBeInTheDocument();
     });
   });
 });

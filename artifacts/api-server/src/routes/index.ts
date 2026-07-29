@@ -75,6 +75,7 @@ import watchlistsRouter from "./watchlists";
 import portfolioWorkspaceRouter from "./portfolioWorkspace";
 import aiCoachConversationsRouter from "./aiCoachConversations";
 import aiWorkspacesRouter from "./aiWorkspaces";
+import aiNotebooksRouter from "./aiNotebooks";
 
 const router: IRouter = Router();
 
@@ -154,5 +155,6 @@ router.use(watchlistsRouter);
 router.use(portfolioWorkspaceRouter);
 router.use(aiCoachConversationsRouter);
 router.use(aiWorkspacesRouter);
+router.use(aiNotebooksRouter);
 
 export default router;
