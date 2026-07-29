@@ -1125,3 +1125,123 @@ const strategyReviewQuestionsPrompt =
 export async function generateStrategyReviewQuestions(context: unknown): Promise<string[] | null> {
   return generateJsonListExtraction(strategyReviewQuestionsPrompt, context, "questions", 6);
 }
+
+// v1.5.0, Sprint 10 — Institutional Trade Planner. Nine LLM-backed "AI
+// features" the approved scope names for a Trade Plan (a 10th, "Identify
+// Missing Information", and the list-generation half of "Compare Similar
+// Plans" are deliberately DETERMINISTIC — computed in
+// lib/tradePlanAnalysis.ts from the plan's own already-saved
+// section/tag/asset data — never an LLM call, since both are honestly,
+// exactly computable without one). Every function here is strictly
+// user-triggered (an explicit POST call from routes/tradePlans.ts) —
+// never run proactively or on a schedule. No persona is invoked, matching
+// narrateStrategySummary's own Sprint 9 precedent — only the baseline
+// COACH_DISCLAIMER guarantee applies. The AI remains advisory only: every
+// prompt below explicitly forbids recommending that the user actually
+// execute the trade.
+
+const tradePlanReviewPrompt =
+  "You are critically reviewing a user's own fully prepared trade plan (market context, thesis, bias, " +
+  "catalysts, entry zone, confirmation rules, invalidation, stop loss, targets, risk/reward, position size " +
+  "notes, trade management, exit plan, and psychology checklist) before they consider acting on it. Using " +
+  "ONLY the provided DATA, point out genuine gaps, ambiguities, or internal inconsistencies in the plan AS " +
+  "WRITTEN (e.g. a stop loss that doesn't align with the stated invalidation level, a missing exit plan, " +
+  "targets that don't match the stated risk/reward). NEVER invent a rule, number, or condition not present " +
+  "in the DATA, and NEVER recommend that the user actually execute, enter, or place this trade — you are a " +
+  "reviewer improving clarity and completeness, never an executor or an advocate for entering.";
+
+export async function narrateTradePlanReview(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(tradePlanReviewPrompt, context ?? {}, fallback);
+}
+
+const tradePlanSummaryPrompt =
+  "You are summarising a user's own fully prepared trade plan. Using ONLY the provided DATA, write 3-5 " +
+  "sentences summarising what this plan says — the planned asset, direction, thesis, and key levels. NEVER " +
+  "invent a rule, number, or condition not present in the DATA. This is a summary of the user's OWN existing " +
+  "plan, never a new trading recommendation, and never an instruction to execute it.";
+
+export async function narrateTradePlanSummary(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(tradePlanSummaryPrompt, context ?? {}, fallback);
+}
+
+const tradePlanRiskHighlightsPrompt =
+  "Highlight the genuine risk considerations already present (or honestly absent) in this trade plan's own " +
+  "DATA — e.g. an unusually wide or missing stop loss, a missing maximum-risk figure, targets that imply an " +
+  "unfavourable risk/reward, a missing invalidation condition. Base every point ONLY on the DATA provided. " +
+  "NEVER invent a risk scenario unrelated to what the plan's own sections describe, and never suggest a " +
+  "specific new numeric risk limit the user hasn't already written themselves. Never recommend executing " +
+  "this trade.";
+
+export async function narrateTradePlanRiskHighlights(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(tradePlanRiskHighlightsPrompt, context ?? {}, fallback);
+}
+
+const tradePlanRiskRewardReviewPrompt =
+  "Review the risk/reward profile of this trade plan using ONLY the provided DATA (its stated entry zone, " +
+  "stop loss, targets, risk/reward notes, and maximum risk). Comment honestly on whether the stated targets " +
+  "and stop appear internally consistent with any risk/reward ratio the plan itself claims, and note if the " +
+  "DATA is too incomplete (e.g. a missing stop or target) to assess risk/reward at all. NEVER invent a price " +
+  "level, ratio, or number not present in the DATA, and never recommend executing this trade.";
+
+export async function narrateTradePlanRiskRewardReview(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(tradePlanRiskRewardReviewPrompt, context ?? {}, fallback);
+}
+
+const tradePlanExecutiveSummaryPrompt =
+  "Produce a short executive summary (4-6 sentences) of this trade plan for someone reviewing it for the " +
+  "first time — the planned asset, direction, thesis, key levels, and overall readiness. Using ONLY the " +
+  "provided DATA. NEVER invent a rule or number not present in the DATA, and never phrase any part of the " +
+  "summary as an instruction to place this trade right now.";
+
+export async function narrateTradePlanExecutiveSummary(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(tradePlanExecutiveSummaryPrompt, context ?? {}, fallback);
+}
+
+const tradePlanPreparationNotesPrompt =
+  "Write 3-5 short preparation notes (things worth double-checking or watching for before this trade would " +
+  "be considered ready) drawn ONLY from this plan's own DATA — its market context, catalysts, confirmation " +
+  "rules, and trade-management sections in particular. Each note should help the user prepare for their OWN " +
+  "plan, never introduce a new trading concept or rule the plan's own DATA doesn't already contain, and " +
+  "never recommend executing the trade.";
+
+export async function narrateTradePlanPreparationNotes(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(tradePlanPreparationNotesPrompt, context ?? {}, fallback);
+}
+
+const tradePlanComparisonPrompt =
+  "Compare the two trade plans in the provided DATA (each with its own planned asset, direction, thesis, and " +
+  "sections). Written for a user deciding how the two plans differ. Note genuine similarities and " +
+  "differences ONLY from what each plan's own DATA actually says (e.g. differing entry zones, differing " +
+  "risk/reward, overlapping thesis). NEVER invent a detail for either plan that isn't in its own DATA, and " +
+  "never state that one plan is simply 'better' than the other or recommend executing either — only how " +
+  "they differ.";
+
+export async function narrateTradePlanComparison(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(tradePlanComparisonPrompt, context ?? {}, fallback);
+}
+
+const tradePlanPreTradeChecklistPrompt =
+  "Generate a pre-trade checklist for this trade plan — short, concrete, checkable items a trader would " +
+  "tick off to confirm this specific plan is genuinely ready before considering entry. Base every item ONLY " +
+  "on the plan's own market-context/entry-zone/confirmation-rules/stop-loss/position-size/psychology " +
+  "sections in the DATA below. NEVER invent a criterion the plan's own DATA doesn't already describe, and " +
+  "never phrase an item as an instruction to actually place the trade.";
+
+/** Honestly returns null (never a fabricated checklist) when the LLM is
+ * unavailable or its response can't be parsed as a real JSON array. */
+export async function generateTradePlanPreTradeChecklist(context: unknown): Promise<string[] | null> {
+  return generateJsonListExtraction(tradePlanPreTradeChecklistPrompt, context, "checklist", 10);
+}
+
+const tradePlanVerificationQuestionsPrompt =
+  "Generate short, honest questions a trader should verify are true before entering this specific trade, " +
+  "based ONLY on what its own DATA describes (its confirmation rules, invalidation, catalysts, and stop-loss " +
+  "sections in particular) — e.g. 'Has the confirmation rule genuinely triggered, or is this an anticipatory " +
+  "entry?', 'Is the stated catalyst still valid as of today?'. NEVER invent a question about a rule or " +
+  "condition the plan's own DATA doesn't contain, and never phrase a question as an instruction to execute.";
+
+/** Honestly returns null (never a fabricated list) when the LLM is
+ * unavailable or its response can't be parsed as a real JSON array. */
+export async function generateTradePlanVerificationQuestions(context: unknown): Promise<string[] | null> {
+  return generateJsonListExtraction(tradePlanVerificationQuestionsPrompt, context, "questions", 6);
+}

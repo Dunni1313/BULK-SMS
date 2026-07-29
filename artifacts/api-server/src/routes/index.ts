@@ -77,6 +77,7 @@ import aiCoachConversationsRouter from "./aiCoachConversations";
 import aiWorkspacesRouter from "./aiWorkspaces";
 import aiNotebooksRouter from "./aiNotebooks";
 import aiStrategiesRouter from "./aiStrategies";
+import tradePlansRouter from "./tradePlans";
 
 const router: IRouter = Router();
 
@@ -158,5 +159,6 @@ router.use(aiCoachConversationsRouter);
 router.use(aiWorkspacesRouter);
 router.use(aiNotebooksRouter);
 router.use(aiStrategiesRouter);
+router.use(tradePlansRouter);
 
 export default router;

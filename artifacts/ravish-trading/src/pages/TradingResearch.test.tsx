@@ -255,6 +255,134 @@ vi.mock("@/lib/ai-coach/strategiesApi", async () => {
   };
 });
 
+// v1.5.0 Sprint 10 — Institutional Trade Planner. Mirrors the
+// strategiesApi mock above exactly. Real constants are spread from the
+// actual module via importActual — TradePlanEditor.tsx/
+// TradePlannerSidebar.tsx import them directly and need real,
+// non-fabricated values.
+const tradePlansState = vi.hoisted(() => ({
+  plans: [] as any[],
+  sectionsByPlan: {} as Record<number, any[]>,
+  versionsByPlan: {} as Record<number, any[]>,
+  checklistItemsByPlan: {} as Record<number, any[]>,
+  nextPlanId: 1,
+  nextSectionId: 1,
+  nextVersionId: 1,
+  nextChecklistItemId: 1,
+}));
+vi.mock("@/lib/ai-coach/tradePlansApi", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/ai-coach/tradePlansApi")>("@/lib/ai-coach/tradePlansApi");
+  return {
+    ...actual,
+    listTradePlanChecklistTemplates: vi.fn(async () => []),
+    listTradePlans: vi.fn(async () => tradePlansState.plans),
+    createTradePlan: vi.fn(async (coachId: string, input: Record<string, unknown>) => {
+      const id = tradePlansState.nextPlanId++;
+      const plan = {
+        id,
+        coachId,
+        workspaceId: (input.workspaceId as number | null | undefined) ?? null,
+        strategyId: (input.strategyId as number | null | undefined) ?? null,
+        title: input.title,
+        plannedAsset: (input.plannedAsset as string | undefined) ?? null,
+        assetClass: (input.assetClass as string | undefined) ?? null,
+        direction: (input.direction as string | undefined) ?? null,
+        status: "draft",
+        pinned: false,
+        tags: (input.tags as string[] | undefined) ?? [],
+        currentVersion: 1,
+        executedTradeRef: null,
+        executedAt: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      tradePlansState.plans = [plan, ...tradePlansState.plans];
+      tradePlansState.sectionsByPlan[id] = [];
+      tradePlansState.versionsByPlan[id] = [{ id: tradePlansState.nextVersionId++, tradePlanId: id, version: 1, changeSummary: "Created", authorUserId: "u1", createdAt: new Date().toISOString() }];
+      tradePlansState.checklistItemsByPlan[id] = [];
+      return plan;
+    }),
+    getTradePlan: vi.fn(async (id: number) => {
+      const plan = tradePlansState.plans.find((p) => p.id === id);
+      const items = tradePlansState.checklistItemsByPlan[id] ?? [];
+      return {
+        ...plan,
+        sections: tradePlansState.sectionsByPlan[id] ?? [],
+        versions: tradePlansState.versionsByPlan[id] ?? [],
+        checklistItems: items,
+        checklistProgress: {
+          totalItems: items.length,
+          completedItems: items.filter((i: any) => i.completed).length,
+          requiredItems: items.filter((i: any) => i.required).length,
+          completedRequiredItems: items.filter((i: any) => i.required && i.completed).length,
+          progressPct: items.length === 0 ? 0 : Math.round((items.filter((i: any) => i.completed).length / items.length) * 100),
+          readyForEntry: items.filter((i: any) => i.required).length > 0 && items.filter((i: any) => i.required && i.completed).length === items.filter((i: any) => i.required).length,
+        },
+      };
+    }),
+    updateTradePlan: vi.fn(async (id: number, input: Record<string, unknown>) => {
+      const plan = tradePlansState.plans.find((p) => p.id === id);
+      Object.assign(plan, input);
+      return plan;
+    }),
+    deleteTradePlan: vi.fn(),
+    getMissingTradePlanInformation: vi.fn(async () => ({ missing: [], present: [], completenessPct: 100 })),
+    getSimilarTradePlans: vi.fn(async () => []),
+    listTradePlanSections: vi.fn(async (id: number) => tradePlansState.sectionsByPlan[id] ?? []),
+    upsertTradePlanSection: vi.fn(async (planId: number, input: Record<string, unknown>) => {
+      const section = {
+        id: tradePlansState.nextSectionId++,
+        tradePlanId: planId,
+        kind: input.kind,
+        content: (input.content as string | undefined) ?? null,
+        notebook: null,
+        conversation: null,
+        file: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      tradePlansState.sectionsByPlan[planId] = [...(tradePlansState.sectionsByPlan[planId] ?? []), section];
+      return section;
+    }),
+    deleteTradePlanSection: vi.fn(),
+    listTradePlanChecklistItems: vi.fn(async (id: number) => ({ items: tradePlansState.checklistItemsByPlan[id] ?? [], progress: { totalItems: 0, completedItems: 0, requiredItems: 0, completedRequiredItems: 0, progressPct: 0, readyForEntry: false } })),
+    addTradePlanChecklistItem: vi.fn(async (planId: number, input: Record<string, unknown>) => {
+      const item = {
+        id: tradePlansState.nextChecklistItemId++,
+        tradePlanId: planId,
+        label: input.label,
+        required: (input.required as boolean | undefined) ?? true,
+        completed: false,
+        sortOrder: (tradePlansState.checklistItemsByPlan[planId] ?? []).length,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      tradePlansState.checklistItemsByPlan[planId] = [...(tradePlansState.checklistItemsByPlan[planId] ?? []), item];
+      return item;
+    }),
+    applyTradePlanChecklistTemplate: vi.fn(async () => []),
+    updateTradePlanChecklistItem: vi.fn(async (planId: number, itemId: number, input: Record<string, unknown>) => {
+      const item = (tradePlansState.checklistItemsByPlan[planId] ?? []).find((i: any) => i.id === itemId);
+      Object.assign(item, input);
+      return item;
+    }),
+    deleteTradePlanChecklistItem: vi.fn(),
+    listTradePlanVersions: vi.fn(async (id: number) => tradePlansState.versionsByPlan[id] ?? []),
+    getTradePlanVersion: vi.fn(),
+    restoreTradePlanVersion: vi.fn(),
+    compareTradePlans: vi.fn(),
+    compareTradePlansWithAi: vi.fn(),
+    reviewTradePlan: vi.fn(),
+    summarizeTradePlan: vi.fn(),
+    generateTradePlanRiskHighlights: vi.fn(),
+    reviewTradePlanRiskReward: vi.fn(),
+    generateTradePlanExecutiveSummary: vi.fn(),
+    generateTradePlanPreparationNotes: vi.fn(),
+    generateTradePlanPreTradeChecklist: vi.fn(),
+    generateTradePlanVerificationQuestions: vi.fn(),
+  };
+});
+
 const createPositionMutate = vi.fn();
 const deletePositionMutate = vi.fn();
 const updateSettingsMutate = vi.fn();
@@ -522,6 +650,14 @@ describe("TradingResearch page", () => {
     strategiesState.nextStrategyId = 1;
     strategiesState.nextSectionId = 1;
     strategiesState.nextVersionId = 1;
+    tradePlansState.plans = [];
+    tradePlansState.sectionsByPlan = {};
+    tradePlansState.versionsByPlan = {};
+    tradePlansState.checklistItemsByPlan = {};
+    tradePlansState.nextPlanId = 1;
+    tradePlansState.nextSectionId = 1;
+    tradePlansState.nextVersionId = 1;
+    tradePlansState.nextChecklistItemId = 1;
   });
 
   it("renders the advisory-only copy and a prompt before any symbol is searched", () => {
@@ -1014,6 +1150,41 @@ describe("TradingResearch page", () => {
       expect(await screen.findByTestId("trade-strategy-header")).toHaveTextContent("Breakout plan");
       expect(screen.getByTestId("trade-strategy-editor")).toBeInTheDocument();
       expect(screen.getByTestId("trade-strategy-summary-panel")).toBeInTheDocument();
+    });
+  });
+
+  describe("v1.5.0 Sprint 10 — Institutional Trade Planner", () => {
+    async function openLegacyCoachPanel() {
+      mockState.structure = structureAnalysis();
+      renderWithClient(<TradingResearch />);
+      await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+      await userEvent.click(screen.getByTestId("button-trading-research-search"));
+      await userEvent.click(await screen.findByTestId("button-toggle-legacy-trade-coach"));
+    }
+
+    it("trade plans are collapsed by default; the toggle reveals the trade plan sidebar", async () => {
+      await openLegacyCoachPanel();
+      expect(screen.queryByTestId("trade-trade-plan-sidebar")).not.toBeInTheDocument();
+
+      await userEvent.click(await screen.findByTestId("button-toggle-trade-trade-plans"));
+      expect(await screen.findByTestId("trade-trade-plan-sidebar")).toBeInTheDocument();
+    });
+
+    it("creating a trade plan adds it to the sidebar, and selecting it shows the header/editor/checklist/summary panel", async () => {
+      await openLegacyCoachPanel();
+      await userEvent.click(await screen.findByTestId("button-toggle-trade-trade-plans"));
+
+      await userEvent.click(await screen.findByTestId("trade-trade-plan-sidebar-new-plan"));
+      await userEvent.type(screen.getByTestId("trade-trade-plan-sidebar-create-title"), "Breakout trade plan");
+      await userEvent.click(screen.getByTestId("trade-trade-plan-sidebar-create-save"));
+
+      const card = await screen.findByTestId(/trade-trade-plan-sidebar-list-card-\d+-select/);
+      await userEvent.click(card);
+
+      expect(await screen.findByTestId("trade-trade-plan-header")).toHaveTextContent("Breakout trade plan");
+      expect(screen.getByTestId("trade-trade-plan-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("trade-trade-plan-checklist")).toBeInTheDocument();
+      expect(screen.getByTestId("trade-trade-plan-summary-panel")).toBeInTheDocument();
     });
   });
 });
