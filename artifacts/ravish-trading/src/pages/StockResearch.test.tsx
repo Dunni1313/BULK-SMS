@@ -116,6 +116,7 @@ describe("ReportView", () => {
       "/stock-analyst/value-research/ask/stream",
       { symbol: report.symbol, question: "What does the Investment Committee conclude?" },
       expect.anything(),
+      expect.anything(),
     );
   });
 

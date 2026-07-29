@@ -44,6 +44,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Markdown } from "@/components/ui/markdown";
 import { useToast } from "@/hooks/use-toast";
 import { streamCoach } from "@/lib/coach-stream";
+import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
+import { investingCoachConfig } from "@/lib/ai-coach/coaches/investingCoach.config";
 import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
@@ -487,39 +489,21 @@ export function ReportView({
   const fr = report.financialRatios;
 
   // Phase 2, Sprint 30 — AI Investment Analyst free-form Q&A. Local to
-  // ReportView (keyed only off report.symbol), reuses the same streamCoach()
-  // SSE client the AI Research Thesis panel above already uses.
-  const [askQuestion, setAskQuestion] = useState("");
-  const [askHistory, setAskHistory] = useState<{ question: string; answer: string }[]>([]);
-  const [askStreamingAnswer, setAskStreamingAnswer] = useState("");
-  const [asking, setAsking] = useState(false);
-
-  const handleAsk = (e: React.FormEvent) => {
-    e.preventDefault();
-    const question = askQuestion.trim();
-    if (!question || asking) return;
-    setAsking(true);
-    setAskStreamingAnswer("");
-    setAskQuestion("");
-    streamCoach(
-      "/stock-analyst/value-research/ask/stream",
-      { symbol: report.symbol, question },
-      {
-        onDelta: (text) => setAskStreamingAnswer((prev) => prev + text),
-        onDone: (data) => {
-          const d = data as { answer?: string };
-          setAskHistory((prev) => [...prev, { question, answer: d.answer ?? askStreamingAnswer }]);
-          setAskStreamingAnswer("");
-          setAsking(false);
-        },
-        onError: () => {
-          setAskHistory((prev) => [...prev, { question, answer: "Failed to get an answer — please try again." }]);
-          setAskStreamingAnswer("");
-          setAsking(false);
-        },
-      },
-    ).catch(() => setAsking(false));
-  };
+  // ReportView (keyed only off report.symbol). v1.5.0 Sprint 3 —
+  // Specialist Coach Adapters: this panel's endpoint/request-body/error
+  // wording are now declared once in investingCoach.config.ts (the
+  // "Investing AI Coach" adapter) and wired through the shared
+  // useCoachConversation() engine via useSpecialistCoach(), rather than
+  // hand-duplicated local state calling streamCoach() directly — identical
+  // wire behavior: the same endpoint, same request body, same SSE
+  // contract.
+  const askCoach = useSpecialistCoach(investingCoachConfig, { symbol: report.symbol });
+  const askQuestion = askCoach.question;
+  const setAskQuestion = askCoach.setQuestion;
+  const askHistory = askCoach.history;
+  const askStreamingAnswer = askCoach.streamingAnswer;
+  const asking = askCoach.isStreaming;
+  const handleAsk = askCoach.submit;
 
   // Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
   // Local to ReportView (keyed only off report.symbol, reset per symbol via

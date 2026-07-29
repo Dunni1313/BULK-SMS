@@ -72,7 +72,8 @@ import {
   type TradingPositionInputSide,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { streamCoach } from "@/lib/coach-stream";
+import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
+import { tradingCoachConfig } from "@/lib/ai-coach/coaches/tradingCoach.config";
 import { Markdown } from "@/components/ui/markdown";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromSymbol, focusFromTradingPosition } from "@/lib/trading-coach-context";
@@ -232,14 +233,14 @@ export default function TradingResearch() {
   }
 
   // Phase 3, Sprint 48 — AI Trade Coach free-form Q&A. Local to this page
-  // (keyed only off `symbol`), reuses the exact streamCoach() SSE client
-  // StockResearch.tsx's own Ask panel already established (Phase 2, Sprint
-  // 30) against Sprint 47's already-shipped POST /trading/coach/ask/stream
-  // route — no new coaching logic here, only the chat UI.
-  const [coachQuestion, setCoachQuestion] = useState("");
-  const [coachHistory, setCoachHistory] = useState<{ question: string; answer: string }[]>([]);
-  const [coachStreamingAnswer, setCoachStreamingAnswer] = useState("");
-  const [coachAsking, setCoachAsking] = useState(false);
+  // (keyed only off `symbol`), against Sprint 47's already-shipped POST
+  // /trading/coach/ask/stream route — no new coaching logic here, only the
+  // chat UI. v1.5.0 Sprint 3 — Specialist Coach Adapters: the endpoint/
+  // request-body/error wording are now declared once in
+  // tradingCoach.config.ts (the "Trading AI Coach" adapter) and wired
+  // through the shared useCoachConversation() engine via
+  // useSpecialistCoach(), rather than hand-duplicated local state calling
+  // streamCoach() directly — identical wire behavior.
   // v1.3.2 — Version 1 Polish Sprint: this inline panel and the "Ask AI
   // Trading Coach" button above both answer free-form questions grounded
   // in this same symbol's data, which real-user review found confusing —
@@ -250,33 +251,13 @@ export default function TradingResearch() {
   // still-fully-functional backend capability (POST
   // /trading/coach/ask/stream, unchanged) stays reachable for continuity.
   const [legacyCoachOpen, setLegacyCoachOpen] = useState(false);
-
-  function handleAskCoach(e: React.FormEvent) {
-    e.preventDefault();
-    const question = coachQuestion.trim();
-    if (!question || coachAsking || !symbol) return;
-    setCoachAsking(true);
-    setCoachStreamingAnswer("");
-    setCoachQuestion("");
-    streamCoach(
-      "/trading/coach/ask/stream",
-      { symbol, question },
-      {
-        onDelta: (text) => setCoachStreamingAnswer((prev) => prev + text),
-        onDone: (data) => {
-          const d = data as { answer?: string };
-          setCoachHistory((prev) => [...prev, { question, answer: d.answer ?? coachStreamingAnswer }]);
-          setCoachStreamingAnswer("");
-          setCoachAsking(false);
-        },
-        onError: () => {
-          setCoachHistory((prev) => [...prev, { question, answer: "Failed to get an answer — please try again." }]);
-          setCoachStreamingAnswer("");
-          setCoachAsking(false);
-        },
-      },
-    ).catch(() => setCoachAsking(false));
-  }
+  const tradeCoach = useSpecialistCoach(tradingCoachConfig, { symbol });
+  const coachQuestion = tradeCoach.question;
+  const setCoachQuestion = tradeCoach.setQuestion;
+  const coachHistory = tradeCoach.history;
+  const coachStreamingAnswer = tradeCoach.streamingAnswer;
+  const coachAsking = tradeCoach.isStreaming;
+  const handleAskCoach = tradeCoach.submit;
 
   return (
     <div className="space-y-6 p-6" data-testid="page-trading-research">

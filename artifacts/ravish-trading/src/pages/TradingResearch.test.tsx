@@ -614,6 +614,7 @@ describe("TradingResearch page", () => {
       "/trading/coach/ask/stream",
       { symbol: "AAPL", question: "Is now a good time to look at AAPL given my risk profile?" },
       expect.anything(),
+      expect.anything(),
     );
   });
 
