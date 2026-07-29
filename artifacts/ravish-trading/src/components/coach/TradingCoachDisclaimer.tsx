@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. A single, concise, always-visible
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. A single, concise, always-visible
 // advisory line — kept deliberately short (one line, not a paragraph) so
 // it never overwhelms the panel, per the explicit "concise, professional
 // advisory disclaimer without overwhelming the UI" requirement. The

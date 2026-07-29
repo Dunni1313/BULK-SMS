@@ -1,7 +1,8 @@
 import type { ReactElement, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, type RenderOptions } from "@testing-library/react";
-// v1.3.1 — AI Trading Coach. TradingCoachProvider is now a permanent part
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only). TradingCoachProvider is now a permanent part
 // of the real app shell (App.tsx wraps <AppLayout> with it, matching
 // QueryClientProvider's own always-present role) — several pages
 // (Scanner, TradeExecutionCenter, Dashboard, Portfolio, TradingResearch)

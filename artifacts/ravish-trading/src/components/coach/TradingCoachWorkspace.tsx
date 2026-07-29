@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI (approved design doc:
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI (approved design doc:
 // docs/v1.3.0-AI-Trading-Coach-Design.md, §2–§7). The orchestrator: owns
 // every hook and every piece of local state, composing the small
 // presentational sub-components below it. Reused identically by

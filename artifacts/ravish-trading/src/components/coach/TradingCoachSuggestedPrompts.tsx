@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. A row of clickable, pre-filled
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. A row of clickable, pre-filled
 // question chips. Content itself comes from lib/trading-coach-context.ts's
 // getSuggestedPrompts() (context-aware, focus-derived) — this component
 // only renders whatever list it's given, no prompt logic of its own.

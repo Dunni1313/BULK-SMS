@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. Deep-link-only "what to do next"
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. Deep-link-only "what to do next"
 // chips, rendered after the Coach's most recent answer. Navigation via
 // wouter's <Link> exclusively — never a mutation hook, never an execution
 // call, matching the approved design doc's §8 rule 1 exactly ("Suggested

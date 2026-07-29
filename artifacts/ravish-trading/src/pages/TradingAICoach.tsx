@@ -32,7 +32,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GraduationCap, Search, CheckCircle2, Circle } from "lucide-react";
-import { TRADING_COACH_TYPES, TRADING_COACH_TYPE_LABELS } from "@/components/coach/TradingCoachDrawer";
+import { TRADING_COACH_TYPES, TRADING_COACH_TYPE_LABELS } from "@/lib/trading-coach-types";
 
 const ALL_TABS: (TradingCoachType | "scenario")[] = [...TRADING_COACH_TYPES, "scenario"];
 const TAB_LABELS: Record<(typeof ALL_TABS)[number], string> = { ...TRADING_COACH_TYPE_LABELS, scenario: "Scenario Coach" };

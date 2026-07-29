@@ -1,9 +1,10 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. Shared header used by both the
-// dockable panel (TradingCoachPanel) and the full-page surface
-// (pages/AITradingCoach.tsx) — a small, premium-institutional title block
-// with the badges every other coach surface in this codebase already uses
-// (Educational / Paper Trading), matching TradingCoachDrawer.tsx's own
-// established badge-row convention.
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only — see
+// docs/v1.5.0-Sprint-01-AI-Coach-Consolidation.md), Frontend UI. Shared
+// header used by both the dockable panel (TradingCoachPanel) and the
+// full-page surface (pages/AITradingCoach.tsx) — a small, premium-
+// institutional title block with the badges every other coach surface in
+// this codebase already uses (Educational / Paper Trading).
 
 import { Bot, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +16,7 @@ export function TradingCoachHeader({ onClose }: { onClose?: () => void }) {
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-center gap-1.5">
           <Bot className="h-5 w-5 text-indigo-400" aria-hidden="true" />
-          <h2 className="text-base font-semibold tracking-tight text-foreground">AI Trading Coach</h2>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">AI Trading Assistant</h2>
         </div>
         <div className="flex flex-wrap gap-1.5">
           <Badge variant="outline" className="text-[10px] text-emerald-500 border-emerald-500/30">
@@ -36,7 +37,7 @@ export function TradingCoachHeader({ onClose }: { onClose?: () => void }) {
           size="icon"
           className="h-7 w-7 shrink-0"
           onClick={onClose}
-          aria-label="Close AI Trading Coach"
+          aria-label="Close AI Trading Assistant"
           data-testid="button-trading-coach-close"
         >
           <X className="h-4 w-4" />

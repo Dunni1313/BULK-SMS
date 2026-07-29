@@ -334,7 +334,7 @@ export default function Dashboard() {
             data-testid="button-ask-trading-coach-dashboard"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            Ask AI Trading Coach
+            Ask AI Trading Assistant
           </Button>
           <div
             className="h-2 w-2 rounded-full bg-emerald-500"

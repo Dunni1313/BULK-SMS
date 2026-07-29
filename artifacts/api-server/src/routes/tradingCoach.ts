@@ -29,6 +29,21 @@
 // invent an answer when a question falls outside the DATA, the exact
 // discipline valueFreeformPrompt already established (Sprint 30).
 //
+// v1.5.0 Sprint 1 note (AI Coach Architecture Consolidation): this router's
+// endpoints are DISTINCT from, and untouched by, v1.3.0's later
+// routes/aiTradingCoach.ts (mounted at /trading-coach/...) — that router's
+// own ask/stream pair reuses these same narrateTradeFreeform()/Stream()
+// functions but with a strictly broader grounding context (adds Scanner,
+// Trade Execution Center, and options-income Portfolio/Dashboard
+// visibility this router's context lacks) and persists both turns to
+// trading_coach_messages. Because the two ask endpoints' actual response
+// context differs, this sprint deliberately did not merge, redirect, or
+// remove either — doing so would be a genuine behavioral change to
+// existing AI responses, out of scope for a naming/consistency sprint.
+// Only user-visible frontend labels were standardized this sprint (see
+// docs/v1.5.0-Sprint-01-AI-Coach-Consolidation.md); this file's own
+// endpoints, request/response shapes, and behavior are unchanged.
+//
 // 404 for an unresolvable symbol, matching every other per-symbol Engine 2
 // route's honest-degradation contract. No live broker, Level 2,
 // order-flow, or execution data anywhere in this module.

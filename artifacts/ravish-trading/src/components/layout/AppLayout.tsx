@@ -17,7 +17,8 @@ import { SidebarNav } from "./SidebarNav";
 const CommandPalette = lazy(() =>
   import("@/components/command/CommandPalette").then((m) => ({ default: m.CommandPalette })),
 );
-// v1.3.1 — AI Trading Coach. Same "keep a modal-triggered surface out of
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only). Same "keep a modal-triggered surface out of
 // the eagerly-loaded main bundle" reasoning as CommandPalette above — the
 // panel (react-markdown, the full Workspace component tree) is only ever
 // needed once a user actually opens it.

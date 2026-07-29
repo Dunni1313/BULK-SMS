@@ -308,7 +308,7 @@ export default function TradingResearch() {
             data-testid="button-ask-trading-coach-research"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            Ask AI Trading Coach
+            Ask AI Trading Assistant
           </Button>
         )}
       </form>
@@ -648,7 +648,7 @@ export default function TradingResearch() {
                 onClick={() => openWithFocus(focusFromSymbol(symbol))}
                 data-testid="button-ask-trading-coach-from-legacy-panel"
               >
-                Ask AI Trading Coach
+                Ask AI Trading Assistant
                 <ExternalLink className="h-3 w-3" />
               </Button>{" "}
               instead, which opens the same underlying capability in a dedicated panel.
@@ -926,7 +926,7 @@ export default function TradingResearch() {
                         size="sm"
                         className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
                         onClick={() => openWithFocus(focusFromTradingPosition(p))}
-                        title="Ask the AI Trading Coach about this position"
+                        title="Ask the AI Trading Assistant about this position"
                         data-testid={`button-ask-trading-coach-position-${p.id}`}
                       >
                         <MessageCircle className="h-4 w-4" />

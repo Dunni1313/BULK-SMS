@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. The first-open, no-history-yet
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. The first-open, no-history-yet
 // state (design doc §3's own wireframe). Deliberately contains no
 // suggested-prompt chips of its own — TradingCoachSuggestedPrompts is a
 // separate, reusable row TradingCoachWorkspace renders once, always above

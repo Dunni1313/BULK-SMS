@@ -4033,7 +4033,7 @@ const TRADING_ENGINE_PATH: LearningPath = {
       institutionalThinking: "Professional traders read structure, then confluence, then regime, then probability, then portfolio-level risk before acting — never sizing or opening a position from a single card in isolation. A common retail mistake is checking only 'is it going up' on one timeframe and skipping both the volatility regime and the portfolio-level risk budget entirely.",
       screenWalkthrough: [
         "Symbol search box — type a ticker and click Search (or press Enter) to load every eager card below for that symbol.",
-        "\"Ask AI Trading Coach\" button — appears once a symbol is loaded; opens the dockable AI Trading Coach panel grounded in this symbol's own already-computed data.",
+        "\"Ask AI Trading Assistant\" button — appears once a symbol is loaded; opens the dockable AI Trading Assistant panel grounded in this symbol's own already-computed data.",
         "Market Structure card — trend classification (uptrend / downtrend / range) from real swing highs and lows, a confidence badge, and any detected support/resistance zones.",
         "Multi-Timeframe Confluence card — runs Market Structure across several timeframes (e.g. 15m / 1h / 1D) and reports whether they agree on the same trend; a genuine split honestly shows 'No dominant trend' rather than guessing a winner.",
         "Market Regime card — combines trend, liquidity, and realized volatility into one label (e.g. trending-bullish, range-bound, volatile-choppy).",
@@ -4051,7 +4051,7 @@ const TRADING_ENGINE_PATH: LearningPath = {
         "Scroll to Portfolio Risk and confirm your account value is set.",
         "Add or review your open positions there, each with a real stop and target.",
         "Read the Position Sizing / Stop-Target Discipline / Portfolio Risk Budget scores before treating any single position as \"fine.\"",
-        "Use \"Ask AI Trading Coach\" for a free-form question grounded in everything above, rather than guessing at what a reading means.",
+        "Use \"Ask AI Trading Assistant\" for a free-form question grounded in everything above, rather than guessing at what a reading means.",
       ],
       metricsExplained: [
         { term: "Trend Agreement", explanation: "unanimous / majority / split / insufficient-data — how many of the checked timeframes actually agree on the same dominant trend. A split reading never fabricates a winner." },
@@ -4149,7 +4149,7 @@ const TRADING_ENGINE_PATH: LearningPath = {
         "Evidence (right panel) — the concrete supporting detail strings from Structure Overview, the Multi-Timeframe Matrix, the Structure Shift Timeline, and Liquidity Context, quoted verbatim so no reading here is a black box.",
         "Structure Notes (right panel) — free-text notes saved per symbol, addable and deletable, reusing the existing Trade Workspace notes system unmodified.",
         "Trade Plan Integration (right panel) — a form pre-filled with the Structure Overview's own summary as a starting thesis; set direction, risk %, entry, stop, and target, then link it into a real, persisted Trade Plan — with links out to the full Trade Workspace and Trade Planning & Risk Studio for deeper risk review.",
-        "AI Trading Coach (right panel) — a chat panel explaining existing structure outputs only, reusing the same streaming coach endpoint the full Institutional Trading AI Coach page uses, with a link to open that fuller page directly scoped to this symbol's structure explanation.",
+        "Trading AI Coach (right panel) — a chat panel explaining existing structure outputs only, reusing the same streaming coach endpoint the full Institutional Trading AI Coach page uses, with a link to open that fuller page directly scoped to this symbol's structure explanation.",
       ],
       workflowSteps: [
         "Select an instrument in the top search bar.",
@@ -4204,7 +4204,7 @@ const TRADING_ENGINE_PATH: LearningPath = {
       commonMistakes: [
         "Trusting a single-timeframe trend badge and skipping the Multi-Timeframe Structure Matrix's own agreement check entirely.",
         "Expecting Order Block detection, Fair Value Gap detection, or any named ICT/SMC/ASAD/Trader Bill methodology — none of that exists on this page, by deliberate, disclosed scope; only swing-based trend/zone detection.",
-        "Treating the AI Trading Coach's structure explanations as a trading signal — it explains existing outputs only, and its own prompt refuses to invent an entry, stop, target, or directional call.",
+        "Treating the Trading AI Coach's structure explanations as a trading signal — it explains existing outputs only, and its own prompt refuses to invent an entry, stop, target, or directional call.",
         "Forgetting the Structure Overview's own timeframe selector — reviewing only the default 1D read when a shorter horizon is actually relevant to your plan.",
       ],
       riskWarnings: [
@@ -5442,7 +5442,7 @@ const OPTIONS_INCOME_ENGINE_PATH: LearningPath = {
       summary: "Scan the universe, star what matters, and manage named watchlists across every engine you use.",
       body: [
         "The Market Scanner (/scanner) runs the options-income scanning engine against the platform's known symbol universe on demand — pick a Strategy filter (All Strategies, Iron Condor, Iron Fly, Calendar Spread, or Earnings) and press Run Scan; there is no second filter control (no DTE/delta/credit/POP/IV/sector box) — Strategy is the only scan parameter this page exposes.",
-        "Results are a persisted, ranked table (Symbol, Tier, Strategy, DTE, Credit, POP, EV, Score, Event Risk) sorted by the same Ravish Score every other opportunity-ranking surface in this platform reuses — never a second, competing ranking. Each row has three actions: Explain with AI Coach, open the AI Trading Coach focused on that candidate, or Review (which opens the Trade Ticket for that candidate).",
+        "Results are a persisted, ranked table (Symbol, Tier, Strategy, DTE, Credit, POP, EV, Score, Event Risk) sorted by the same Ravish Score every other opportunity-ranking surface in this platform reuses — never a second, competing ranking. Each row has three actions: Explain with AI Coach, open the AI Trading Assistant focused on that candidate, or Review (which opens the Trade Ticket for that candidate).",
         "Watchlists exist as two genuinely separate systems in this platform, and this lesson covers both honestly rather than treating them as one thing: a single flat Value Watchlist (one implicit list per user, no naming), and the Institutional Watchlists & Opportunity Dashboard (/watchlists-engine) — real, named, multiple watchlists per user, each independently manageable.",
       ],
       whyItMatters: "A scanner surfaces candidates; a watchlist is where you track ones you're not ready to act on yet. Knowing which watchlist system you're actually in (the one flat list, or a named list on the Watchlists Engine) prevents the confusing experience of starring a symbol from one screen and not finding it where you expected.",

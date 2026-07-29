@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. Shared context adapters and the
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. Shared context adapters and the
 // static suggested-prompts/suggested-actions rule tables — kept in one
 // small, page-agnostic module so no page-specific shape or navigation
 // logic lives inside the Coach components themselves (TradingCoachPanel/
