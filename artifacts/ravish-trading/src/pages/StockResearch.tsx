@@ -57,6 +57,13 @@ import { NotebookHeader } from "@/lib/ai-coach/NotebookHeader";
 import { NotebookEditor } from "@/lib/ai-coach/NotebookEditor";
 import { NotebookSummaryPanel } from "@/lib/ai-coach/NotebookSummaryPanel";
 import { NotebookEmptyState } from "@/lib/ai-coach/NotebookEmptyState";
+import { useAiStrategies } from "@/lib/ai-coach/useAiStrategies";
+import { useStrategyTemplates } from "@/lib/ai-coach/useStrategyTemplates";
+import { StrategySidebar } from "@/lib/ai-coach/StrategySidebar";
+import { StrategyHeader } from "@/lib/ai-coach/StrategyHeader";
+import { StrategyEditor } from "@/lib/ai-coach/StrategyEditor";
+import { StrategySummaryPanel } from "@/lib/ai-coach/StrategySummaryPanel";
+import { StrategyEmptyState } from "@/lib/ai-coach/StrategyEmptyState";
 import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
@@ -93,6 +100,7 @@ import {
   ChevronDown,
   ChevronUp,
   NotebookText,
+  ListTree,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -528,6 +536,13 @@ export function ReportView({
   // identical wiring/rationale.
   const [investingNotebooksOpen, setInvestingNotebooksOpen] = useState(false);
   const investingNotebooks = useAiNotebooks("investing", investingWorkspaces.activeWorkspaceId ?? undefined);
+
+  // v1.5.0 Sprint 9 — AI Strategy Builder. A collapsible peer surface to
+  // the notebooks view above — the strategy library plus, once a
+  // strategy is selected, its editor and AI actions panel.
+  const [investingStrategiesOpen, setInvestingStrategiesOpen] = useState(false);
+  const investingStrategies = useAiStrategies("investing", investingWorkspaces.activeWorkspaceId ?? undefined);
+  const investingStrategyTemplates = useStrategyTemplates();
   const askCoach = useSpecialistCoach(
     investingCoachConfig,
     { symbol: report.symbol },
@@ -1540,6 +1555,92 @@ export function ReportView({
                       title="No notebook selected"
                       description="Choose a notebook on the left, or create a new one to start collecting research."
                       testId="investing-notebook-detail-empty"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* v1.5.0 Sprint 9 — AI Strategy Builder. A collapsible peer
+                surface to the notebooks view above — the strategy
+                library plus, once a strategy is selected, its editor
+                and AI actions panel. */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-muted-foreground"
+              onClick={() => setInvestingStrategiesOpen((v) => !v)}
+              data-testid="button-toggle-investing-strategies"
+            >
+              {investingStrategiesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              <ListTree className="h-3.5 w-3.5" />
+              {investingStrategiesOpen ? "Hide strategies" : "Show strategies"}
+            </Button>
+
+            {investingStrategiesOpen && (
+              <div className="flex gap-3" data-testid="ask-analyst-strategies-view">
+                <StrategySidebar
+                  strategies={investingStrategies.strategies}
+                  isLoading={investingStrategies.isLoadingStrategies}
+                  activeStrategyId={investingStrategies.activeStrategyId}
+                  templates={investingStrategyTemplates}
+                  searchTerm={investingStrategies.searchTerm}
+                  onSearchChange={investingStrategies.setSearchTerm}
+                  folder={investingStrategies.folder}
+                  onFolderChange={investingStrategies.setFolder}
+                  statusFilter={investingStrategies.statusFilter}
+                  onStatusFilterChange={investingStrategies.setStatusFilter}
+                  includeArchived={investingStrategies.includeArchived}
+                  onIncludeArchivedChange={investingStrategies.setIncludeArchived}
+                  onCreateStrategy={(input) => investingStrategies.createStrategyAnd({ ...input, workspaceId: investingWorkspaces.activeWorkspaceId })}
+                  onSelectStrategy={investingStrategies.selectStrategy}
+                  onClearSelection={investingStrategies.clearSelection}
+                  onTogglePin={investingStrategies.togglePinById}
+                  onToggleArchive={investingStrategies.toggleArchiveById}
+                  onDeleteStrategy={investingStrategies.deleteStrategyById}
+                  testId="investing-strategy-sidebar"
+                />
+                <div className="flex-1 space-y-3">
+                  {investingStrategies.activeStrategyDetail ? (
+                    <>
+                      <StrategyHeader
+                        strategy={investingStrategies.activeStrategyDetail}
+                        onUpdate={(input) => investingStrategies.updateStrategyById(investingStrategies.activeStrategyDetail!.id, input)}
+                        onTogglePin={(pinned) => investingStrategies.togglePinById(investingStrategies.activeStrategyDetail!.id, pinned)}
+                        onToggleArchive={(archived) => investingStrategies.toggleArchiveById(investingStrategies.activeStrategyDetail!.id, archived)}
+                        onDelete={() => investingStrategies.deleteStrategyById(investingStrategies.activeStrategyDetail!.id)}
+                        testId="investing-strategy-header"
+                      />
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <StrategyEditor
+                          strategy={investingStrategies.activeStrategyDetail}
+                          onUpsertSection={investingStrategies.upsertSection}
+                          onDeleteSection={investingStrategies.removeSection}
+                          linkableNotebooks={investingNotebooks.notebooks.map((n) => ({ id: n.id, title: n.title }))}
+                          linkableConversations={askCoachConversations.conversations.map((c) => ({ id: c.id, title: c.title }))}
+                          linkableFiles={investingWorkspaces.activeWorkspaceDetail?.files.map((f) => ({ id: f.id, fileName: f.fileName }))}
+                          testId="investing-strategy-editor"
+                        />
+                        <StrategySummaryPanel
+                          onLoadMissingSections={investingStrategies.loadMissingSections}
+                          onSummarize={investingStrategies.summarize}
+                          onSuggestImprovements={investingStrategies.suggestImprovements}
+                          onGenerateExecutiveSummary={investingStrategies.generateExecutiveSummary}
+                          onGenerateLearningNotes={investingStrategies.generateLearningNotes}
+                          onGenerateRiskHighlights={investingStrategies.generateRiskHighlights}
+                          onGenerateSetupChecklist={investingStrategies.generateSetupChecklist}
+                          onGenerateTradePrepChecklist={investingStrategies.generateTradePrepChecklist}
+                          onGenerateReviewQuestions={investingStrategies.generateReviewQuestions}
+                          testId="investing-strategy-summary-panel"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <StrategyEmptyState
+                      title="No strategy selected"
+                      description="Choose a strategy on the left, or create a new one to start building your playbook."
+                      testId="investing-strategy-detail-empty"
                     />
                   )}
                 </div>

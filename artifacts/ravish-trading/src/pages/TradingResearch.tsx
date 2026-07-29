@@ -85,6 +85,13 @@ import { NotebookHeader } from "@/lib/ai-coach/NotebookHeader";
 import { NotebookEditor } from "@/lib/ai-coach/NotebookEditor";
 import { NotebookSummaryPanel } from "@/lib/ai-coach/NotebookSummaryPanel";
 import { NotebookEmptyState } from "@/lib/ai-coach/NotebookEmptyState";
+import { useAiStrategies } from "@/lib/ai-coach/useAiStrategies";
+import { useStrategyTemplates } from "@/lib/ai-coach/useStrategyTemplates";
+import { StrategySidebar } from "@/lib/ai-coach/StrategySidebar";
+import { StrategyHeader } from "@/lib/ai-coach/StrategyHeader";
+import { StrategyEditor } from "@/lib/ai-coach/StrategyEditor";
+import { StrategySummaryPanel } from "@/lib/ai-coach/StrategySummaryPanel";
+import { StrategyEmptyState } from "@/lib/ai-coach/StrategyEmptyState";
 import { Markdown } from "@/components/ui/markdown";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromSymbol, focusFromTradingPosition } from "@/lib/trading-coach-context";
@@ -122,6 +129,7 @@ import {
   ChevronDown,
   ChevronUp,
   NotebookText,
+  ListTree,
 } from "lucide-react";
 
 export default function TradingResearch() {
@@ -282,6 +290,13 @@ export default function TradingResearch() {
   // shown/hidden via this toggle without disturbing that view's own state.
   const [tradeNotebooksOpen, setTradeNotebooksOpen] = useState(false);
   const tradeNotebooks = useAiNotebooks("trading", tradingWorkspaces.activeWorkspaceId ?? undefined);
+
+  // v1.5.0 Sprint 9 — AI Strategy Builder. A collapsible peer surface to
+  // the notebooks view above — the strategy library plus, once a
+  // strategy is selected, its editor and AI actions panel.
+  const [tradeStrategiesOpen, setTradeStrategiesOpen] = useState(false);
+  const tradeStrategies = useAiStrategies("trading", tradingWorkspaces.activeWorkspaceId ?? undefined);
+  const tradeStrategyTemplates = useStrategyTemplates();
   const tradeCoach = useSpecialistCoach(
     tradingCoachConfig,
     { symbol },
@@ -858,6 +873,92 @@ export default function TradingResearch() {
                           title="No notebook selected"
                           description="Choose a notebook on the left, or create a new one to start collecting research."
                           testId="trade-notebook-detail-empty"
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* v1.5.0 Sprint 9 — AI Strategy Builder. A collapsible
+                    peer surface to the notebooks view above — the
+                    strategy library plus, once a strategy is selected,
+                    its editor and AI actions panel. */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-muted-foreground"
+                  onClick={() => setTradeStrategiesOpen((v) => !v)}
+                  data-testid="button-toggle-trade-strategies"
+                >
+                  {tradeStrategiesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  <ListTree className="h-3.5 w-3.5" />
+                  {tradeStrategiesOpen ? "Hide strategies" : "Show strategies"}
+                </Button>
+
+                {tradeStrategiesOpen && (
+                  <div className="flex gap-3" data-testid="trade-coach-strategies-view">
+                    <StrategySidebar
+                      strategies={tradeStrategies.strategies}
+                      isLoading={tradeStrategies.isLoadingStrategies}
+                      activeStrategyId={tradeStrategies.activeStrategyId}
+                      templates={tradeStrategyTemplates}
+                      searchTerm={tradeStrategies.searchTerm}
+                      onSearchChange={tradeStrategies.setSearchTerm}
+                      folder={tradeStrategies.folder}
+                      onFolderChange={tradeStrategies.setFolder}
+                      statusFilter={tradeStrategies.statusFilter}
+                      onStatusFilterChange={tradeStrategies.setStatusFilter}
+                      includeArchived={tradeStrategies.includeArchived}
+                      onIncludeArchivedChange={tradeStrategies.setIncludeArchived}
+                      onCreateStrategy={(input) => tradeStrategies.createStrategyAnd({ ...input, workspaceId: tradingWorkspaces.activeWorkspaceId })}
+                      onSelectStrategy={tradeStrategies.selectStrategy}
+                      onClearSelection={tradeStrategies.clearSelection}
+                      onTogglePin={tradeStrategies.togglePinById}
+                      onToggleArchive={tradeStrategies.toggleArchiveById}
+                      onDeleteStrategy={tradeStrategies.deleteStrategyById}
+                      testId="trade-strategy-sidebar"
+                    />
+                    <div className="flex-1 space-y-3">
+                      {tradeStrategies.activeStrategyDetail ? (
+                        <>
+                          <StrategyHeader
+                            strategy={tradeStrategies.activeStrategyDetail}
+                            onUpdate={(input) => tradeStrategies.updateStrategyById(tradeStrategies.activeStrategyDetail!.id, input)}
+                            onTogglePin={(pinned) => tradeStrategies.togglePinById(tradeStrategies.activeStrategyDetail!.id, pinned)}
+                            onToggleArchive={(archived) => tradeStrategies.toggleArchiveById(tradeStrategies.activeStrategyDetail!.id, archived)}
+                            onDelete={() => tradeStrategies.deleteStrategyById(tradeStrategies.activeStrategyDetail!.id)}
+                            testId="trade-strategy-header"
+                          />
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <StrategyEditor
+                              strategy={tradeStrategies.activeStrategyDetail}
+                              onUpsertSection={tradeStrategies.upsertSection}
+                              onDeleteSection={tradeStrategies.removeSection}
+                              linkableNotebooks={tradeNotebooks.notebooks.map((n) => ({ id: n.id, title: n.title }))}
+                              linkableConversations={tradeCoachConversations.conversations.map((c) => ({ id: c.id, title: c.title }))}
+                              linkableFiles={tradingWorkspaces.activeWorkspaceDetail?.files.map((f) => ({ id: f.id, fileName: f.fileName }))}
+                              testId="trade-strategy-editor"
+                            />
+                            <StrategySummaryPanel
+                              onLoadMissingSections={tradeStrategies.loadMissingSections}
+                              onSummarize={tradeStrategies.summarize}
+                              onSuggestImprovements={tradeStrategies.suggestImprovements}
+                              onGenerateExecutiveSummary={tradeStrategies.generateExecutiveSummary}
+                              onGenerateLearningNotes={tradeStrategies.generateLearningNotes}
+                              onGenerateRiskHighlights={tradeStrategies.generateRiskHighlights}
+                              onGenerateSetupChecklist={tradeStrategies.generateSetupChecklist}
+                              onGenerateTradePrepChecklist={tradeStrategies.generateTradePrepChecklist}
+                              onGenerateReviewQuestions={tradeStrategies.generateReviewQuestions}
+                              testId="trade-strategy-summary-panel"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <StrategyEmptyState
+                          title="No strategy selected"
+                          description="Choose a strategy on the left, or create a new one to start building your playbook."
+                          testId="trade-strategy-detail-empty"
                         />
                       )}
                     </div>

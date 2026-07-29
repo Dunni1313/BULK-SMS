@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Send, Bot, User, BrainCircuit, Lightbulb, BookOpen, GraduationCap, Sparkles, FileText, Square, MessageSquare, NotebookText } from "lucide-react";
+import { Send, Bot, User, BrainCircuit, Lightbulb, BookOpen, GraduationCap, Sparkles, FileText, Square, MessageSquare, NotebookText, ListTree, Scale } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
@@ -30,6 +30,15 @@ import { NotebookHeader } from "@/lib/ai-coach/NotebookHeader";
 import { NotebookEditor } from "@/lib/ai-coach/NotebookEditor";
 import { NotebookSummaryPanel } from "@/lib/ai-coach/NotebookSummaryPanel";
 import { NotebookEmptyState } from "@/lib/ai-coach/NotebookEmptyState";
+import { useAiStrategies } from "@/lib/ai-coach/useAiStrategies";
+import { useStrategyTemplates } from "@/lib/ai-coach/useStrategyTemplates";
+import { StrategySidebar } from "@/lib/ai-coach/StrategySidebar";
+import { StrategyHeader } from "@/lib/ai-coach/StrategyHeader";
+import { StrategyEditor } from "@/lib/ai-coach/StrategyEditor";
+import { StrategySummaryPanel } from "@/lib/ai-coach/StrategySummaryPanel";
+import { StrategyComparisonView } from "@/lib/ai-coach/StrategyComparisonView";
+import { StrategyEmptyState } from "@/lib/ai-coach/StrategyEmptyState";
+import { compareStrategies as fetchStrategyComparison, compareStrategiesWithAi, type StrategyComparison } from "@/lib/ai-coach/strategiesApi";
 import { Markdown } from "@/components/ui/markdown";
 
 type ChatMode = "auto" | AiChatInputMode;
@@ -89,8 +98,39 @@ export default function Assistant() {
   // research over time — a peer surface to the conversation view above,
   // switched via the "Conversations"/"Notebooks" toggle below, never
   // interleaved with the streaming chat state machine.
-  const [assistantView, setAssistantView] = useState<"conversations" | "notebooks">("conversations");
+  const [assistantView, setAssistantView] = useState<"conversations" | "notebooks" | "strategies">("conversations");
   const optionsNotebooks = useAiNotebooks("options", optionsWorkspaces.activeWorkspaceId ?? undefined);
+
+  // v1.5.0 Sprint 9 — AI Strategy Builder. A reusable, structured
+  // trading/options playbook, a third peer surface alongside Conversations
+  // and Notebooks, switched via the same toggle below — never interleaved
+  // with either's own state.
+  const optionsStrategies = useAiStrategies("options", optionsWorkspaces.activeWorkspaceId ?? undefined);
+  const optionsStrategyTemplates = useStrategyTemplates();
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareIdA, setCompareIdA] = useState<number | null>(null);
+  const [compareIdB, setCompareIdB] = useState<number | null>(null);
+  const [strategyComparison, setStrategyComparison] = useState<StrategyComparison | null>(null);
+  const [isLoadingComparison, setIsLoadingComparison] = useState(false);
+
+  useEffect(() => {
+    if (compareIdA == null || compareIdB == null) {
+      setStrategyComparison(null);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingComparison(true);
+    fetchStrategyComparison(compareIdA, compareIdB)
+      .then((result) => {
+        if (!cancelled) setStrategyComparison(result);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingComparison(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [compareIdA, compareIdB]);
 
   // v1.5.0 Sprint 2 — AI Coach Framework: the send/stream/error/stop state
   // machine (question input, in-flight optimistic bubble, streamed-delta
@@ -261,9 +301,122 @@ export default function Assistant() {
           <NotebookText className="h-3.5 w-3.5" />
           Notebooks
         </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={assistantView === "strategies" ? "default" : "outline"}
+          className="h-7 gap-1.5 text-xs"
+          onClick={() => setAssistantView("strategies")}
+          data-testid="assistant-view-strategies"
+        >
+          <ListTree className="h-3.5 w-3.5" />
+          Strategies
+        </Button>
       </div>
 
-      {assistantView === "notebooks" ? (
+      {assistantView === "strategies" ? (
+        <div className="flex-1 flex gap-3 min-h-0" data-testid="assistant-strategies-view">
+          <StrategySidebar
+            strategies={optionsStrategies.strategies}
+            isLoading={optionsStrategies.isLoadingStrategies}
+            activeStrategyId={optionsStrategies.activeStrategyId}
+            templates={optionsStrategyTemplates}
+            searchTerm={optionsStrategies.searchTerm}
+            onSearchChange={optionsStrategies.setSearchTerm}
+            folder={optionsStrategies.folder}
+            onFolderChange={optionsStrategies.setFolder}
+            statusFilter={optionsStrategies.statusFilter}
+            onStatusFilterChange={optionsStrategies.setStatusFilter}
+            includeArchived={optionsStrategies.includeArchived}
+            onIncludeArchivedChange={optionsStrategies.setIncludeArchived}
+            onCreateStrategy={(input) => optionsStrategies.createStrategyAnd({ ...input, workspaceId: optionsWorkspaces.activeWorkspaceId })}
+            onSelectStrategy={(id) => {
+              setCompareMode(false);
+              optionsStrategies.selectStrategy(id);
+            }}
+            onClearSelection={optionsStrategies.clearSelection}
+            onTogglePin={optionsStrategies.togglePinById}
+            onToggleArchive={optionsStrategies.toggleArchiveById}
+            onDeleteStrategy={optionsStrategies.deleteStrategyById}
+            testId="assistant-strategy-sidebar"
+          />
+          <Card className="flex-1 flex flex-col bg-card border-border overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border/60 p-2">
+              <span className="text-xs font-medium text-muted-foreground">Options strategy playbook</span>
+              <Button
+                type="button"
+                size="sm"
+                variant={compareMode ? "default" : "outline"}
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => setCompareMode((v) => !v)}
+                data-testid="assistant-strategy-compare-toggle"
+              >
+                <Scale className="h-3.5 w-3.5" />
+                Compare
+              </Button>
+            </div>
+            {compareMode ? (
+              <ScrollArea className="flex-1 p-4">
+                <StrategyComparisonView
+                  strategies={optionsStrategies.strategies}
+                  selectedIdA={compareIdA}
+                  selectedIdB={compareIdB}
+                  onSelectA={setCompareIdA}
+                  onSelectB={setCompareIdB}
+                  comparison={strategyComparison}
+                  isLoadingComparison={isLoadingComparison}
+                  onGenerateAiComparison={() =>
+                    compareIdA != null && compareIdB != null ? compareStrategiesWithAi(compareIdA, compareIdB) : Promise.resolve(null)
+                  }
+                  testId="assistant-strategy-comparison"
+                />
+              </ScrollArea>
+            ) : optionsStrategies.activeStrategyDetail ? (
+              <ScrollArea className="flex-1 p-4">
+                <StrategyHeader
+                  strategy={optionsStrategies.activeStrategyDetail}
+                  onUpdate={(input) => optionsStrategies.updateStrategyById(optionsStrategies.activeStrategyDetail!.id, input)}
+                  onTogglePin={(pinned) => optionsStrategies.togglePinById(optionsStrategies.activeStrategyDetail!.id, pinned)}
+                  onToggleArchive={(archived) => optionsStrategies.toggleArchiveById(optionsStrategies.activeStrategyDetail!.id, archived)}
+                  onDelete={() => optionsStrategies.deleteStrategyById(optionsStrategies.activeStrategyDetail!.id)}
+                  testId="assistant-strategy-header"
+                />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <StrategyEditor
+                    strategy={optionsStrategies.activeStrategyDetail}
+                    onUpsertSection={optionsStrategies.upsertSection}
+                    onDeleteSection={optionsStrategies.removeSection}
+                    linkableNotebooks={optionsNotebooks.notebooks.map((n) => ({ id: n.id, title: n.title }))}
+                    linkableConversations={optionsCoachConversations.conversations.map((c) => ({ id: c.id, title: c.title }))}
+                    linkableFiles={optionsWorkspaces.activeWorkspaceDetail?.files.map((f) => ({ id: f.id, fileName: f.fileName }))}
+                    testId="assistant-strategy-editor"
+                  />
+                  <StrategySummaryPanel
+                    onLoadMissingSections={optionsStrategies.loadMissingSections}
+                    onSummarize={optionsStrategies.summarize}
+                    onSuggestImprovements={optionsStrategies.suggestImprovements}
+                    onGenerateExecutiveSummary={optionsStrategies.generateExecutiveSummary}
+                    onGenerateLearningNotes={optionsStrategies.generateLearningNotes}
+                    onGenerateRiskHighlights={optionsStrategies.generateRiskHighlights}
+                    onGenerateSetupChecklist={optionsStrategies.generateSetupChecklist}
+                    onGenerateTradePrepChecklist={optionsStrategies.generateTradePrepChecklist}
+                    onGenerateReviewQuestions={optionsStrategies.generateReviewQuestions}
+                    testId="assistant-strategy-summary-panel"
+                  />
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="flex flex-1 items-center justify-center p-6">
+                <StrategyEmptyState
+                  title="No strategy selected"
+                  description="Choose a strategy on the left, or create a new one to start building your playbook."
+                  testId="assistant-strategy-detail-empty"
+                />
+              </div>
+            )}
+          </Card>
+        </div>
+      ) : assistantView === "notebooks" ? (
         <div className="flex-1 flex gap-3 min-h-0" data-testid="assistant-notebooks-view">
           <NotebookSidebar
             notebooks={optionsNotebooks.notebooks}

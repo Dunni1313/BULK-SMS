@@ -281,7 +281,7 @@ function parseIdParam(raw: unknown): number | null {
   return isNaN(id) ? null : id;
 }
 
-async function loadOwnedNotebook(id: number, userId: string) {
+export async function loadOwnedNotebook(id: number, userId: string) {
   const [row] = await db
     .select()
     .from(aiNotebooksTable)

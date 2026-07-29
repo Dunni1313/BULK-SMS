@@ -209,6 +209,100 @@ vi.mock("@/lib/ai-coach/notebooksApi", () => ({
   generateNotebookActionItems: vi.fn(),
 }));
 
+// v1.5.0 Sprint 9 — AI Strategy Builder. A small, realistic in-memory
+// fake of the new strategy-persistence API, mirroring the notebooksApi
+// mock above exactly. Real constants (QUALITATIVE_SECTION_KINDS,
+// SECTION_LABELS, STRATEGY_STATUSES, REFERENCE_SECTION_KINDS) are
+// spread from the actual module via importActual — StrategyEditor.tsx/
+// StrategyComparisonView.tsx/StrategySidebar.tsx all import them
+// directly and need real, non-fabricated values.
+const strategiesState = vi.hoisted(() => ({
+  strategies: [] as any[],
+  sectionsByStrategy: {} as Record<number, any[]>,
+  versionsByStrategy: {} as Record<number, any[]>,
+  nextStrategyId: 1,
+  nextSectionId: 1,
+  nextVersionId: 1,
+}));
+vi.mock("@/lib/ai-coach/strategiesApi", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/ai-coach/strategiesApi")>("@/lib/ai-coach/strategiesApi");
+  return {
+    ...actual,
+    listStrategyTemplates: vi.fn(async () => []),
+    listStrategies: vi.fn(async () => strategiesState.strategies),
+    createStrategy: vi.fn(async (coachId: string, input: Record<string, unknown>) => {
+      const id = strategiesState.nextStrategyId++;
+      const strategy = {
+        id,
+        coachId,
+        workspaceId: (input.workspaceId as number | null | undefined) ?? null,
+        title: input.title,
+        description: (input.description as string | undefined) ?? null,
+        strategyType: (input.strategyType as string | undefined) ?? "Custom",
+        assetClass: (input.assetClass as string | undefined) ?? null,
+        folder: (input.folder as string | undefined) ?? null,
+        status: "draft",
+        pinned: false,
+        archived: false,
+        tags: (input.tags as string[] | undefined) ?? [],
+        currentVersion: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      strategiesState.strategies = [strategy, ...strategiesState.strategies];
+      strategiesState.sectionsByStrategy[id] = [];
+      strategiesState.versionsByStrategy[id] = [{ id: strategiesState.nextVersionId++, strategyId: id, version: 1, changeSummary: "Created", authorUserId: "u1", createdAt: new Date().toISOString() }];
+      return strategy;
+    }),
+    getStrategy: vi.fn(async (id: number) => {
+      const strategy = strategiesState.strategies.find((s) => s.id === id);
+      return {
+        ...strategy,
+        sections: strategiesState.sectionsByStrategy[id] ?? [],
+        versions: strategiesState.versionsByStrategy[id] ?? [],
+      };
+    }),
+    updateStrategy: vi.fn(async (id: number, input: Record<string, unknown>) => {
+      const strategy = strategiesState.strategies.find((s) => s.id === id);
+      Object.assign(strategy, input);
+      return strategy;
+    }),
+    deleteStrategy: vi.fn(),
+    getMissingSections: vi.fn(async () => ({ missing: [], present: [], completenessPct: 100 })),
+    getSimilarStrategies: vi.fn(async () => []),
+    listStrategySections: vi.fn(async (id: number) => strategiesState.sectionsByStrategy[id] ?? []),
+    upsertStrategySection: vi.fn(async (strategyId: number, input: Record<string, unknown>) => {
+      const section = {
+        id: strategiesState.nextSectionId++,
+        strategyId,
+        kind: input.kind,
+        content: (input.content as string | undefined) ?? null,
+        notebook: null,
+        conversation: null,
+        file: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      strategiesState.sectionsByStrategy[strategyId] = [...(strategiesState.sectionsByStrategy[strategyId] ?? []), section];
+      return section;
+    }),
+    deleteStrategySection: vi.fn(),
+    listStrategyVersions: vi.fn(async (id: number) => strategiesState.versionsByStrategy[id] ?? []),
+    getStrategyVersion: vi.fn(),
+    restoreStrategyVersion: vi.fn(),
+    compareStrategies: vi.fn(),
+    compareStrategiesWithAi: vi.fn(),
+    summarizeStrategy: vi.fn(),
+    suggestStrategyImprovements: vi.fn(),
+    generateStrategyExecutiveSummary: vi.fn(),
+    generateStrategyLearningNotes: vi.fn(),
+    generateStrategyRiskHighlights: vi.fn(),
+    generateStrategySetupChecklist: vi.fn(),
+    generateStrategyTradePrepChecklist: vi.fn(),
+    generateStrategyReviewQuestions: vi.fn(),
+  };
+});
+
 import Assistant from "./Assistant";
 
 describe("Assistant page (AI Options Coach)", () => {
@@ -231,6 +325,12 @@ describe("Assistant page (AI Options Coach)", () => {
     notebooksState.linksByNotebook = {};
     notebooksState.nextNotebookId = 1;
     notebooksState.nextNoteId = 1;
+    strategiesState.strategies = [];
+    strategiesState.sectionsByStrategy = {};
+    strategiesState.versionsByStrategy = {};
+    strategiesState.nextStrategyId = 1;
+    strategiesState.nextSectionId = 1;
+    strategiesState.nextVersionId = 1;
   });
 
   it("shows a loading skeleton while messages are still loading, not the empty-state welcome", () => {
@@ -550,6 +650,102 @@ describe("Assistant page (AI Options Coach)", () => {
       expect(await screen.findByTestId("assistant-notebook-summary-panel-summary-result")).toHaveTextContent(
         "This notebook has no notes yet.",
       );
+    });
+  });
+
+  describe("v1.5.0 Sprint 9 — AI Strategy Builder", () => {
+    it("defaults to the Conversations view; switching to Strategies hides the conversation UI and shows the strategy sidebar", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+
+      expect(screen.queryByTestId("assistant-strategy-sidebar")).not.toBeInTheDocument();
+      await user.click(screen.getByTestId("assistant-view-strategies"));
+      expect(await screen.findByTestId("assistant-strategy-sidebar")).toBeInTheDocument();
+
+      await user.click(screen.getByTestId("assistant-view-conversations"));
+      expect(screen.queryByTestId("assistant-strategy-sidebar")).not.toBeInTheDocument();
+    });
+
+    it("shows an honest 'no strategy selected' message before any strategy is chosen", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-strategies"));
+      expect(await screen.findByTestId("assistant-strategy-detail-empty")).toBeInTheDocument();
+    });
+
+    it("creates a strategy from scratch via the sidebar's inline form, then selecting it shows the header/editor/summary panel", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-strategies"));
+
+      await user.click(await screen.findByTestId("assistant-strategy-sidebar-new-strategy"));
+      await user.type(screen.getByTestId("assistant-strategy-sidebar-create-title"), "Iron condor playbook");
+      await user.type(screen.getByTestId("assistant-strategy-sidebar-create-strategy-type"), "Iron Condor");
+      await user.click(screen.getByTestId("assistant-strategy-sidebar-create-save"));
+
+      const card = await screen.findByTestId(/assistant-strategy-sidebar-list-card-\d+-select/);
+      await user.click(card);
+
+      expect(await screen.findByTestId("assistant-strategy-header")).toHaveTextContent("Iron condor playbook");
+      expect(screen.getByTestId("assistant-strategy-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("assistant-strategy-summary-panel")).toBeInTheDocument();
+    });
+
+    it("editing a qualitative section (e.g. Entry) persists it and it renders back as saved content", async () => {
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-strategies"));
+      await user.click(await screen.findByTestId("assistant-strategy-sidebar-new-strategy"));
+      await user.type(screen.getByTestId("assistant-strategy-sidebar-create-title"), "My strategy");
+      await user.type(screen.getByTestId("assistant-strategy-sidebar-create-strategy-type"), "Breakout");
+      await user.click(screen.getByTestId("assistant-strategy-sidebar-create-save"));
+      await user.click(await screen.findByTestId(/assistant-strategy-sidebar-list-card-\d+-select/));
+
+      await screen.findByTestId("assistant-strategy-editor");
+      await user.click(screen.getByTestId("assistant-strategy-editor-section-entry-edit-toggle"));
+      await user.type(screen.getByTestId("assistant-strategy-editor-section-entry-input"), "Enter on confirmed breakout");
+      await user.click(screen.getByTestId("assistant-strategy-editor-section-entry-save"));
+
+      expect(await screen.findByTestId("assistant-strategy-editor-section-entry-content")).toHaveTextContent("Enter on confirmed breakout");
+    });
+
+    it("the AI summarise action is explicit — never called automatically — and renders the honest result once clicked", async () => {
+      const { summarizeStrategy } = await import("@/lib/ai-coach/strategiesApi");
+      vi.mocked(summarizeStrategy).mockResolvedValue({ text: "A breakout strategy with no sections defined yet.", source: "template" });
+
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-strategies"));
+      await user.click(await screen.findByTestId("assistant-strategy-sidebar-new-strategy"));
+      await user.type(screen.getByTestId("assistant-strategy-sidebar-create-title"), "Empty strategy");
+      await user.type(screen.getByTestId("assistant-strategy-sidebar-create-strategy-type"), "Breakout");
+      await user.click(screen.getByTestId("assistant-strategy-sidebar-create-save"));
+      await user.click(await screen.findByTestId(/assistant-strategy-sidebar-list-card-\d+-select/));
+      await screen.findByTestId("assistant-strategy-summary-panel");
+
+      expect(summarizeStrategy).not.toHaveBeenCalled();
+      await user.click(screen.getByTestId("assistant-strategy-summary-panel-summarize-button"));
+      expect(await screen.findByTestId("assistant-strategy-summary-panel-summary-result")).toHaveTextContent(
+        "A breakout strategy with no sections defined yet.",
+      );
+    });
+
+    it("the setup checklist action honestly reports unavailable rather than fabricating a checklist", async () => {
+      const { generateStrategySetupChecklist } = await import("@/lib/ai-coach/strategiesApi");
+      vi.mocked(generateStrategySetupChecklist).mockResolvedValue({ available: false, items: [] });
+
+      const user = userEvent.setup();
+      renderWithClient(<Assistant />);
+      await user.click(screen.getByTestId("assistant-view-strategies"));
+      await user.click(await screen.findByTestId("assistant-strategy-sidebar-new-strategy"));
+      await user.type(screen.getByTestId("assistant-strategy-sidebar-create-title"), "Checklist test");
+      await user.type(screen.getByTestId("assistant-strategy-sidebar-create-strategy-type"), "Breakout");
+      await user.click(screen.getByTestId("assistant-strategy-sidebar-create-save"));
+      await user.click(await screen.findByTestId(/assistant-strategy-sidebar-list-card-\d+-select/));
+      await screen.findByTestId("assistant-strategy-summary-panel");
+
+      await user.click(screen.getByTestId("assistant-strategy-summary-panel-setup-checklist-generate"));
+      expect(await screen.findByTestId("assistant-strategy-summary-panel-setup-checklist-unavailable")).toBeInTheDocument();
     });
   });
 });
