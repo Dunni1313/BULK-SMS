@@ -12,6 +12,54 @@ vi.mock("@/lib/coach-stream", () => ({
   streamCoach: streamCoachMock,
 }));
 
+// v1.5.0 Sprint 6 — AI Coach Memory. A small, realistic in-memory fake of
+// the new conversation-persistence API (rather than hardcoding call
+// assertions), mirroring TradingResearch.test.tsx's own established
+// pattern for this exact mock.
+const coachConversationsState = vi.hoisted(() => ({
+  messagesByConversation: {} as Record<number, unknown[]>,
+  nextConversationId: 1,
+  nextMessageId: 1,
+}));
+vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
+  listConversations: vi.fn(async () => []),
+  createConversation: vi.fn(async (coachId: string) => {
+    const id = coachConversationsState.nextConversationId++;
+    coachConversationsState.messagesByConversation[id] = [];
+    return {
+      id,
+      coachId,
+      title: "New conversation",
+      archived: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }),
+  renameConversation: vi.fn(),
+  deleteConversation: vi.fn(),
+  listMessages: vi.fn(async (id: number) => coachConversationsState.messagesByConversation[id] ?? []),
+  addMessage: vi.fn(async (id: number, role: "user" | "assistant", content: string) => {
+    const message = {
+      id: coachConversationsState.nextMessageId++,
+      conversationId: id,
+      role,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+    coachConversationsState.messagesByConversation[id] = [
+      ...(coachConversationsState.messagesByConversation[id] ?? []),
+      message,
+    ];
+    return message;
+  }),
+}));
+
+beforeEach(() => {
+  coachConversationsState.messagesByConversation = {};
+  coachConversationsState.nextConversationId = 1;
+  coachConversationsState.nextMessageId = 1;
+});
+
 type HookResult = { data: unknown; isLoading?: boolean };
 
 // Mutable state driving the one hook the page tests vary (the coverage
@@ -135,6 +183,45 @@ describe("ReportView", () => {
 
     expect(await screen.findByText(/Committee's consolidated verdict is Hold/i)).toBeInTheDocument();
     expect(screen.getByText("Q: What is the verdict?")).toBeInTheDocument();
+  });
+
+  // v1.5.0 Sprint 6 — AI Coach Memory.
+  it("shows an honest error message in the Ask panel when the stream fails, never fabricating an answer", async () => {
+    streamCoachMock.mockReset();
+    streamCoachMock.mockImplementation(async (_path, _body, handlers) => {
+      handlers.onError?.("network error");
+    });
+    const report = makeValueReport();
+    renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+
+    await userEvent.type(screen.getByTestId("ask-analyst-input"), "What is the verdict?");
+    await userEvent.click(screen.getByTestId("ask-analyst-submit"));
+
+    expect(await screen.findByTestId("ask-analyst-error")).toHaveTextContent(/Failed to get an answer/i);
+  });
+
+  it("reuses the same conversation across multiple turns rather than creating a new one each time", async () => {
+    streamCoachMock.mockReset();
+    streamCoachMock.mockImplementation(async (_path, _body, handlers) => {
+      handlers.onDone?.({ answer: "First answer." });
+    });
+    const report = makeValueReport();
+    renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+
+    await userEvent.type(screen.getByTestId("ask-analyst-input"), "First question?");
+    await userEvent.click(screen.getByTestId("ask-analyst-submit"));
+    expect(await screen.findByText("Q: First question?")).toBeInTheDocument();
+
+    streamCoachMock.mockImplementation(async (_path, _body, handlers) => {
+      handlers.onDone?.({ answer: "Second answer." });
+    });
+    await userEvent.type(screen.getByTestId("ask-analyst-input"), "Second question?");
+    await userEvent.click(screen.getByTestId("ask-analyst-submit"));
+
+    expect(await screen.findByText("Q: Second question?")).toBeInTheDocument();
+    // Both turns are visible together — proof they landed in the same
+    // conversation, not two separate ones.
+    expect(screen.getByText("Q: First question?")).toBeInTheDocument();
   });
 
   // Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.

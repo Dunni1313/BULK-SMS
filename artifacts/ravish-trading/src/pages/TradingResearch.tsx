@@ -74,6 +74,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
 import { tradingCoachConfig } from "@/lib/ai-coach/coaches/tradingCoach.config";
+import { useCoachConversations } from "@/lib/ai-coach/useCoachConversations";
+import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
 import { Markdown } from "@/components/ui/markdown";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromSymbol, focusFromTradingPosition } from "@/lib/trading-coach-context";
@@ -251,12 +253,25 @@ export default function TradingResearch() {
   // still-fully-functional backend capability (POST
   // /trading/coach/ask/stream, unchanged) stays reachable for continuity.
   const [legacyCoachOpen, setLegacyCoachOpen] = useState(false);
-  const tradeCoach = useSpecialistCoach(tradingCoachConfig, { symbol });
+  // v1.5.0 Sprint 6 — AI Coach Memory. tradeCoachConversations owns
+  // persistent, multi-conversation storage for this Trading AI Coach panel
+  // (isolated from Investing/Options — see useCoachConversations.ts); it is
+  // wired in purely via useSpecialistCoach()'s own pre-existing, unmodified
+  // onAnswered extension point, matching useCoachConversation.ts's own
+  // documented pattern for "a page whose history is server-persisted." The
+  // ask/stream request itself, its prompt, and its response shape are
+  // completely unchanged.
+  const tradeCoachConversations = useCoachConversations("trading");
+  const tradeCoach = useSpecialistCoach(
+    tradingCoachConfig,
+    { symbol },
+    { onAnswered: (turn) => tradeCoachConversations.persistTurn(turn) },
+  );
   const coachQuestion = tradeCoach.question;
   const setCoachQuestion = tradeCoach.setQuestion;
-  const coachHistory = tradeCoach.history;
   const coachStreamingAnswer = tradeCoach.streamingAnswer;
   const coachAsking = tradeCoach.isStreaming;
+  const coachErroredReply = tradeCoach.erroredReply;
   const handleAskCoach = tradeCoach.submit;
 
   return (
@@ -650,44 +665,69 @@ export default function TradingResearch() {
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-3 pt-3">
-                {coachHistory.length === 0 && !coachStreamingAnswer && (
-                  <p className="text-sm text-muted-foreground" data-testid="trade-coach-empty">
-                    No questions yet — ask something like "What does my portfolio risk look like for {symbol}?"
-                  </p>
-                )}
+                <div className="flex gap-3">
+                  <ConversationSidebar
+                    conversations={tradeCoachConversations.conversations}
+                    isLoading={tradeCoachConversations.isLoadingConversations}
+                    activeConversationId={tradeCoachConversations.activeConversationId}
+                    searchTerm={tradeCoachConversations.searchTerm}
+                    onSearchChange={tradeCoachConversations.setSearchTerm}
+                    onNewConversation={tradeCoachConversations.startNewConversation}
+                    onSelectConversation={tradeCoachConversations.selectConversation}
+                    onRenameConversation={tradeCoachConversations.renameConversationById}
+                    onDeleteConversation={tradeCoachConversations.deleteConversationById}
+                    testId="trade-coach-sidebar"
+                  />
 
-                {(coachHistory.length > 0 || coachStreamingAnswer) && (
-                  <div className="max-h-72 space-y-3 overflow-y-auto pr-1" data-testid="trade-coach-history">
-                    {coachHistory.map((turn, i) => (
-                      <div key={i} className="space-y-1">
-                        <p className="text-xs font-medium text-foreground/90">Q: {turn.question}</p>
-                        <div className="border-l border-border pl-3 text-xs text-muted-foreground">
-                          <Markdown className="inline text-xs">{turn.answer}</Markdown>
-                        </div>
-                      </div>
-                    ))}
-                    {coachAsking && (
-                      <div className="space-y-1" data-testid="trade-coach-loading">
-                        <p className="border-l border-border pl-3 text-xs text-muted-foreground">
-                          {coachStreamingAnswer || "thinking…"}
-                        </p>
+                  <div className="flex-1 space-y-3">
+                    {tradeCoachConversations.activeMessages.length === 0 && !coachStreamingAnswer && !coachErroredReply && (
+                      <p className="text-sm text-muted-foreground" data-testid="trade-coach-empty">
+                        No questions yet — ask something like "What does my portfolio risk look like for {symbol}?"
+                      </p>
+                    )}
+
+                    {(tradeCoachConversations.activeMessages.length > 0 || coachStreamingAnswer || coachErroredReply) && (
+                      <div className="max-h-72 space-y-3 overflow-y-auto pr-1" data-testid="trade-coach-history">
+                        {tradeCoachConversations.activeMessages.map((message) => (
+                          <div key={message.id} className="space-y-1">
+                            {message.role === "user" ? (
+                              <p className="text-xs font-medium text-foreground/90">Q: {message.content}</p>
+                            ) : (
+                              <div className="border-l border-border pl-3 text-xs text-muted-foreground">
+                                <Markdown className="inline text-xs">{message.content}</Markdown>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        {coachAsking && (
+                          <div className="space-y-1" data-testid="trade-coach-loading">
+                            <p className="border-l border-border pl-3 text-xs text-muted-foreground">
+                              {coachStreamingAnswer || "thinking…"}
+                            </p>
+                          </div>
+                        )}
+                        {coachErroredReply && !coachAsking && (
+                          <p className="text-xs text-destructive" data-testid="trade-coach-error">
+                            Failed to get an answer — please try again.
+                          </p>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
 
-                <form onSubmit={handleAskCoach} className="flex gap-2">
-                  <Input
-                    value={coachQuestion}
-                    onChange={(e) => setCoachQuestion(e.target.value)}
-                    placeholder="e.g. Is now a good time to look at AAPL given my risk profile?"
-                    disabled={coachAsking}
-                    data-testid="trade-coach-input"
-                  />
-                  <Button type="submit" size="sm" disabled={!coachQuestion.trim() || coachAsking} data-testid="trade-coach-submit">
-                    <Send className="h-3.5 w-3.5" />
-                  </Button>
-                </form>
+                    <form onSubmit={handleAskCoach} className="flex gap-2">
+                      <Input
+                        value={coachQuestion}
+                        onChange={(e) => setCoachQuestion(e.target.value)}
+                        placeholder="e.g. Is now a good time to look at AAPL given my risk profile?"
+                        disabled={coachAsking}
+                        data-testid="trade-coach-input"
+                      />
+                      <Button type="submit" size="sm" disabled={!coachQuestion.trim() || coachAsking} data-testid="trade-coach-submit">
+                        <Send className="h-3.5 w-3.5" />
+                      </Button>
+                    </form>
+                  </div>
+                </div>
               </CollapsibleContent>
             </Collapsible>
           </CardContent>

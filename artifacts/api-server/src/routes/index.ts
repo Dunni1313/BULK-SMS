@@ -73,6 +73,7 @@ import rebalancingEngineRouter from "./rebalancingEngine";
 import complianceEngineRouter from "./complianceEngine";
 import watchlistsRouter from "./watchlists";
 import portfolioWorkspaceRouter from "./portfolioWorkspace";
+import aiCoachConversationsRouter from "./aiCoachConversations";
 
 const router: IRouter = Router();
 
@@ -150,5 +151,6 @@ router.use(rebalancingEngineRouter);
 router.use(complianceEngineRouter);
 router.use(watchlistsRouter);
 router.use(portfolioWorkspaceRouter);
+router.use(aiCoachConversationsRouter);
 
 export default router;

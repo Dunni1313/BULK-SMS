@@ -46,6 +46,8 @@ import { useToast } from "@/hooks/use-toast";
 import { streamCoach } from "@/lib/coach-stream";
 import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
 import { investingCoachConfig } from "@/lib/ai-coach/coaches/investingCoach.config";
+import { useCoachConversations } from "@/lib/ai-coach/useCoachConversations";
+import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
 import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
@@ -497,12 +499,23 @@ export function ReportView({
   // hand-duplicated local state calling streamCoach() directly — identical
   // wire behavior: the same endpoint, same request body, same SSE
   // contract.
-  const askCoach = useSpecialistCoach(investingCoachConfig, { symbol: report.symbol });
+  // v1.5.0 Sprint 6 — AI Coach Memory. askCoachConversations owns
+  // persistent, multi-conversation storage for this Investing AI Coach
+  // panel (isolated from Trading/Options — see useCoachConversations.ts);
+  // wired in purely via useSpecialistCoach()'s own pre-existing, unmodified
+  // onAnswered extension point. The ask/stream request itself, its prompt,
+  // and its response shape are completely unchanged.
+  const askCoachConversations = useCoachConversations("investing");
+  const askCoach = useSpecialistCoach(
+    investingCoachConfig,
+    { symbol: report.symbol },
+    { onAnswered: (turn) => askCoachConversations.persistTurn(turn) },
+  );
   const askQuestion = askCoach.question;
   const setAskQuestion = askCoach.setQuestion;
-  const askHistory = askCoach.history;
   const askStreamingAnswer = askCoach.streamingAnswer;
   const asking = askCoach.isStreaming;
+  const askErroredReply = askCoach.erroredReply;
   const handleAsk = askCoach.submit;
 
   // Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
@@ -1341,39 +1354,62 @@ export function ReportView({
             Ask anything about this report — including the Tom Nash analysis and Investment Committee outcome. Grounded in the data above only; education, not investment advice.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {(askHistory.length > 0 || askStreamingAnswer) && (
-            <div className="space-y-3 max-h-72 overflow-y-auto pr-1" data-testid="ask-history">
-              {askHistory.map((turn, i) => (
-                <div key={i} className="space-y-1">
-                  <p className="text-xs font-medium text-foreground/90">Q: {turn.question}</p>
-                  <div className="text-xs text-muted-foreground pl-3 border-l border-border">
-                    <Markdown className="text-xs inline">{turn.answer}</Markdown>
+        <CardContent className="flex gap-3">
+          <ConversationSidebar
+            conversations={askCoachConversations.conversations}
+            isLoading={askCoachConversations.isLoadingConversations}
+            activeConversationId={askCoachConversations.activeConversationId}
+            searchTerm={askCoachConversations.searchTerm}
+            onSearchChange={askCoachConversations.setSearchTerm}
+            onNewConversation={askCoachConversations.startNewConversation}
+            onSelectConversation={askCoachConversations.selectConversation}
+            onRenameConversation={askCoachConversations.renameConversationById}
+            onDeleteConversation={askCoachConversations.deleteConversationById}
+            testId="ask-analyst-sidebar"
+          />
+
+          <div className="flex-1 space-y-3">
+            {(askCoachConversations.activeMessages.length > 0 || askStreamingAnswer || askErroredReply) && (
+              <div className="space-y-3 max-h-72 overflow-y-auto pr-1" data-testid="ask-history">
+                {askCoachConversations.activeMessages.map((message) => (
+                  <div key={message.id} className="space-y-1">
+                    {message.role === "user" ? (
+                      <p className="text-xs font-medium text-foreground/90">Q: {message.content}</p>
+                    ) : (
+                      <div className="text-xs text-muted-foreground pl-3 border-l border-border">
+                        <Markdown className="text-xs inline">{message.content}</Markdown>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
-              {asking && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground pl-3 border-l border-border">
-                    {askStreamingAnswer || "thinking…"}
+                ))}
+                {asking && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground pl-3 border-l border-border">
+                      {askStreamingAnswer || "thinking…"}
+                    </p>
+                  </div>
+                )}
+                {askErroredReply && !asking && (
+                  <p className="text-xs text-destructive" data-testid="ask-analyst-error">
+                    Failed to get an answer — please try again.
                   </p>
-                </div>
-              )}
-            </div>
-          )}
-          <form onSubmit={handleAsk} className="flex gap-2">
-            <Input
-              value={askQuestion}
-              onChange={(e) => setAskQuestion(e.target.value)}
-              placeholder="e.g. Why does the Investment Committee say Hold?"
-              className="bg-background"
-              disabled={asking}
-              data-testid="ask-analyst-input"
-            />
-            <Button type="submit" size="sm" disabled={!askQuestion.trim() || asking} data-testid="ask-analyst-submit">
-              <Send className="w-3.5 h-3.5" />
-            </Button>
-          </form>
+                )}
+              </div>
+            )}
+            <form onSubmit={handleAsk} className="flex gap-2">
+              <Input
+                value={askQuestion}
+                onChange={(e) => setAskQuestion(e.target.value)}
+                placeholder="e.g. Why does the Investment Committee say Hold?"
+                className="bg-background"
+                disabled={asking}
+                data-testid="ask-analyst-input"
+              />
+              <Button type="submit" size="sm" disabled={!askQuestion.trim() || asking} data-testid="ask-analyst-submit">
+                <Send className="w-3.5 h-3.5" />
+              </Button>
+            </form>
+          </div>
         </CardContent>
       </Card>
 
