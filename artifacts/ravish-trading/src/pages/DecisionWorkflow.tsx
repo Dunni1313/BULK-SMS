@@ -482,6 +482,9 @@ export default function DecisionWorkflow() {
           Strategy, Journal, and Portfolio, never replacing them. Guidance only, never a buy/sell instruction.{" "}
           <Link href="/decision-engine" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-decision-engine">
             Looking for a single-symbol Buy/Hold/Sell verdict? See the Decision Engine.
+          </Link>{" "}
+          <Link href="/execution-lifecycle" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-execution-lifecycle">
+            Once this decision is ready, track it through execution in the Execution &amp; Lifecycle Manager.
           </Link>
         </p>
       </div>

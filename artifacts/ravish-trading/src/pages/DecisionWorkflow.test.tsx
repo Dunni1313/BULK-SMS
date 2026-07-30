@@ -285,6 +285,11 @@ describe("DecisionWorkflow", () => {
     expect(await screen.findByTestId("link-to-decision-engine")).toHaveAttribute("href", "/decision-engine");
   });
 
+  it("links forward to the new Execution & Lifecycle Manager (Sprint 14)", async () => {
+    renderWithClient(<DecisionWorkflow />);
+    expect(await screen.findByTestId("link-to-execution-lifecycle")).toHaveAttribute("href", "/execution-lifecycle");
+  });
+
   it("shows an honest error state and lets the user choose another decision when loading fails", async () => {
     getTradePlanMock.mockRejectedValue(new Error("network error"));
     getMissingTradePlanInformationMock.mockResolvedValue({ missing: [], present: [], completenessPct: 100 });

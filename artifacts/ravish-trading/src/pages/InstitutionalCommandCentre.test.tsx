@@ -110,7 +110,7 @@ describe("InstitutionalCommandCentre", () => {
     expect(screen.getByTestId("badge-command-centre")).toBeInTheDocument();
   });
 
-  it("renders all 10 workflow stages with real status detail, never a blank stage (9 original + Decision, Sprint 13)", async () => {
+  it("renders all 12 workflow stages with real status detail, never a blank stage (9 original + Decision [Sprint 13] + Open Position/Trade Management [Sprint 14])", async () => {
     renderWithClient(<InstitutionalCommandCentre />);
     for (const id of [
       "research",
@@ -119,6 +119,8 @@ describe("InstitutionalCommandCentre", () => {
       "trade-plan",
       "decision",
       "execute",
+      "open-position",
+      "trade-management",
       "trade-journal",
       "performance",
       "portfolio",
@@ -127,6 +129,23 @@ describe("InstitutionalCommandCentre", () => {
       expect(await screen.findByTestId(`workflow-stage-${id}`)).toBeInTheDocument();
       expect(screen.getByTestId(`workflow-stage-detail-${id}`).textContent?.length).toBeGreaterThan(0);
     }
+  });
+
+  it("shows an honest 'no open positions' status on the Open Position / Trade Management workflow stages when none exist, per Sprint 14", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("workflow-stage-detail-open-position")).toHaveTextContent("No freshly opened positions");
+    expect(screen.getByTestId("workflow-stage-detail-trade-management")).toHaveTextContent("No open positions being actively managed");
+  });
+
+  it("renders the Execution Pipeline card, reusing the same trade-lifecycle pipeline the Workflow Panel already computed, per Sprint 14", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-execution-pipeline")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-requiring-action")).toHaveTextContent("0");
+    expect(screen.getByTestId("pipeline-open-positions")).toHaveTextContent("0");
+    expect(screen.getByTestId("pipeline-execution-ready")).toHaveTextContent("0");
+    expect(screen.getByTestId("pipeline-bottleneck")).toHaveTextContent("None");
+    expect(screen.getByTestId("pipeline-recent-completions-none")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-view-link")).toHaveAttribute("href", "/execution-lifecycle");
   });
 
   it("shows an honest 'no decision in progress' status on the Decision workflow stage when none exists, per Sprint 13", async () => {

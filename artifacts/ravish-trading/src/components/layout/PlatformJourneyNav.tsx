@@ -30,6 +30,16 @@
 // this sprint's cross-module Decision Score/Trace/Evidence engine, itself
 // built directly on the Trade Plan the stage before it produces. Every
 // pre-existing stage id/label/href is otherwise unchanged.
+//
+// v1.5.0, Sprint 14 — Institutional Execution & Lifecycle Manager. Two
+// more stages, "Open Position" and "Trade Management," inserted between
+// "Execute (external broker)" and "Trade Journal," per the approved chain
+// (... -> Decision Workflow -> Execution (External Broker) -> Open
+// Position -> Trade Management -> Trade Journal -> ...). Unlike "Execute"
+// itself (still deliberately non-clickable — no order-execution feature
+// exists), both new stages now have a real page to link to: the new
+// /execution-lifecycle Pipeline + per-trade lifecycle tracker. Every
+// pre-existing stage id/label/href is otherwise unchanged.
 import { Link } from "wouter";
 import { CheckCircle2, Circle, Ban } from "lucide-react";
 
@@ -40,6 +50,8 @@ export type PlatformJourneyStageId =
   | "trade-plan"
   | "decision"
   | "execute"
+  | "open-position"
+  | "trade-management"
   | "trade-journal"
   | "performance"
   | "portfolio"
@@ -65,6 +77,8 @@ export const PLATFORM_JOURNEY_STAGES: PlatformJourneyStage[] = [
   { id: "trade-plan", label: "Trade Plan", href: "/assistant" },
   { id: "decision", label: "Decision", href: "/decision-workflow" },
   { id: "execute", label: "Execute (external broker)", href: null },
+  { id: "open-position", label: "Open Position", href: "/execution-lifecycle" },
+  { id: "trade-management", label: "Trade Management", href: "/execution-lifecycle" },
   { id: "trade-journal", label: "Trade Journal", href: "/trading-journal" },
   { id: "performance", label: "Performance Review", href: "/performance-attribution-engine" },
   { id: "portfolio", label: "Portfolio Impact", href: "/portfolio-dashboard" },

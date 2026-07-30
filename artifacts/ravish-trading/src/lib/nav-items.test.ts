@@ -117,6 +117,10 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // page/route from the pre-existing "/decision-engine" (already in
   // PRE_REDESIGN_ROUTES, untouched).
   "/decision-workflow",
+  // v1.5.0, Sprint 14 — Institutional Execution & Lifecycle Manager
+  // (docs/v1.5.0-Sprint-14-Institutional-Execution-Lifecycle.md). The
+  // orchestration layer picking up right where Decision Workflow leaves off.
+  "/execution-lifecycle",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {

@@ -61,6 +61,8 @@ import { AskCoachLauncher } from "@/components/learn/AskCoachLauncher";
 import { COMMAND_CENTRE_QUICK_ACTIONS } from "@/lib/quick-actions";
 import { useWorkflowSnapshot } from "@/lib/useWorkflowSnapshot";
 import { useActiveDecisionSummary } from "@/lib/useDecisionWorkflow";
+import { useTradeLifecyclePipeline } from "@/lib/useTradeLifecycle";
+import { PIPELINE_STAGES, type PipelineStageId } from "@/lib/tradeLifecycle";
 import {
   Compass,
   ShieldAlert,
@@ -71,6 +73,7 @@ import {
   CalendarClock,
   Newspaper,
   Milestone,
+  Route,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -126,7 +129,10 @@ function useStageStatuses(
   portfolioElevatedCount: number | undefined,
   learningInProgress: number | undefined,
   decisionSummary: ReturnType<typeof useActiveDecisionSummary>,
+  pipeline: ReturnType<typeof useTradeLifecyclePipeline>,
 ): Record<PlatformJourneyStageId, StageStatus> {
+  const openPositionCount = pipeline.records.filter((r) => r.currentStage === "open-position").length;
+  const managingCount = pipeline.records.filter((r) => r.currentStage === "managing").length;
   return {
     research: {
       detail: watchlistCount === undefined ? "Loading…" : `${watchlistCount} symbol${watchlistCount === 1 ? "" : "s"} on your watchlist`,
@@ -159,6 +165,18 @@ function useStageStatuses(
     execute: {
       detail: "Executed manually at your own external broker — this platform never places, closes, or modifies a real order.",
       pendingCount: null,
+    },
+    // v1.5.0, Sprint 14 — Institutional Execution & Lifecycle Manager.
+    // Reuses useTradeLifecyclePipeline() directly (the same hook backing
+    // the Execution Pipeline card below) — never a second, duplicate
+    // pipeline computation for these two stages.
+    "open-position": {
+      detail: pipeline.loading ? "Loading…" : openPositionCount === 0 ? "No freshly opened positions" : `${openPositionCount} freshly opened position${openPositionCount === 1 ? "" : "s"}`,
+      pendingCount: pipeline.loading ? null : openPositionCount,
+    },
+    "trade-management": {
+      detail: pipeline.loading ? "Loading…" : managingCount === 0 ? "No open positions being actively managed" : `${managingCount} open position${managingCount === 1 ? "" : "s"} being actively managed`,
+      pendingCount: pipeline.loading ? null : managingCount,
     },
     "trade-journal": {
       detail:
@@ -471,6 +489,104 @@ function DecisionInProgressCard() {
   );
 }
 
+// ─── Execution Pipeline (v1.5.0, Sprint 14) ────────────────────────────
+// Reuses useTradeLifecyclePipeline() directly — the same hook backing the
+// Workflow Panel's own "open-position"/"trade-management" stage statuses
+// above and the /execution-lifecycle Pipeline board itself. Surfaces
+// exactly what the approved scope named: trades requiring action, open
+// positions, execution-ready trades, pipeline bottlenecks, portfolio
+// impact, and recent completions — never a second, duplicate pipeline
+// computation.
+
+function bottleneckStage(records: ReturnType<typeof useTradeLifecyclePipeline>["records"]): { id: PipelineStageId; label: string; count: number } | null {
+  const nonTerminal = records.filter((r) => r.currentStage !== "archived" && r.currentStage !== "reviewed");
+  if (nonTerminal.length === 0) return null;
+  const counts = new Map<PipelineStageId, number>();
+  for (const r of nonTerminal) counts.set(r.currentStage, (counts.get(r.currentStage) ?? 0) + 1);
+  let winner: { id: PipelineStageId; count: number } | null = null;
+  for (const [id, count] of counts) {
+    if (!winner || count > winner.count) winner = { id, count };
+  }
+  if (!winner) return null;
+  const label = PIPELINE_STAGES.find((s) => s.id === winner!.id)?.label ?? winner.id;
+  return { id: winner.id, label, count: winner.count };
+}
+
+function ExecutionPipelineCard({ pipeline }: { pipeline: ReturnType<typeof useTradeLifecyclePipeline> }) {
+  if (pipeline.loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { records } = pipeline;
+  const requiringAction = records.filter((r) => r.outstandingTasks.length > 0 && r.currentStage !== "archived");
+  const openPositions = records.filter((r) => r.currentStage === "open-position" || r.currentStage === "managing");
+  const executionReady = records.filter((r) => r.currentStage === "ready-to-execute");
+  const recentCompletions = records
+    .filter((r) => r.currentStage === "reviewed")
+    .sort((a, b) => new Date(b.tradePlan.updatedAt).getTime() - new Date(a.tradePlan.updatedAt).getTime())
+    .slice(0, 3);
+  const bottleneck = bottleneckStage(records);
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-execution-pipeline">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Route className="h-4 w-4" /> Execution Pipeline
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/execution-lifecycle" className="underline">
+            Execution &amp; Lifecycle Manager
+          </Link>
+          .
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <p className="text-muted-foreground">Requiring Action</p>
+            <p data-testid="pipeline-requiring-action">{requiringAction.length}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Open Positions</p>
+            <p data-testid="pipeline-open-positions">{openPositions.length}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Execution-Ready</p>
+            <p data-testid="pipeline-execution-ready">{executionReady.length}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Bottleneck</p>
+            <p data-testid="pipeline-bottleneck">{bottleneck ? `${bottleneck.label} (${bottleneck.count})` : "None"}</p>
+          </div>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-1">Recent Completions</p>
+          {recentCompletions.length === 0 ? (
+            <p className="text-xs text-muted-foreground" data-testid="pipeline-recent-completions-none">None yet.</p>
+          ) : (
+            <ul className="text-xs space-y-0.5" data-testid="pipeline-recent-completions-list">
+              {recentCompletions.map((r) => (
+                <li key={r.tradePlan.id}>{r.tradePlan.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <Link href="/execution-lifecycle" className="text-xs font-medium text-primary hover:underline inline-block" data-testid="pipeline-view-link">
+          Open the full Pipeline →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -687,6 +803,11 @@ export default function InstitutionalCommandCentre() {
   // the same intentional duplicate-fetch pattern this file already uses
   // for useGetPortfolioDashboard() (main component + <PortfolioSnapshotCard />).
   const decisionSummary = useActiveDecisionSummary();
+  // v1.5.0, Sprint 14 — computed ONCE here (not duplicated inside
+  // <ExecutionPipelineCard />, unlike the two hooks above) since this one
+  // fetches full trade-plan detail per plan across all coachIds — a real,
+  // disclosed cost not worth doubling for a second card on the same page.
+  const pipeline = useTradeLifecyclePipeline();
 
   const journalOutstanding = useMemo(() => {
     if (!closedTrades || !journalEntries) return null;
@@ -704,6 +825,7 @@ export default function InstitutionalCommandCentre() {
     dash?.guidance.length,
     undefined,
     decisionSummary,
+    pipeline,
   );
 
   return (
@@ -757,8 +879,12 @@ export default function InstitutionalCommandCentre() {
         <PortfolioSnapshotCard />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <DecisionInProgressCard />
+        <ExecutionPipelineCard pipeline={pipeline} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <LearningPanelCard />
         <CoachPanelCard />
       </div>

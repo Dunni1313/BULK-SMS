@@ -40,6 +40,7 @@ const InstitutionalCommandCentre = lazy(() => import("./pages/InstitutionalComma
 // the pre-existing DecisionEngine.tsx (/decision-engine) — see that
 // route's own line below and nav-items.ts for the disclosed disambiguation.
 const DecisionWorkflow = lazy(() => import("./pages/DecisionWorkflow"));
+const ExecutionLifecycleManager = lazy(() => import("./pages/ExecutionLifecycleManager"));
 const Home = lazy(() => import("./pages/Home"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
@@ -165,6 +166,7 @@ function Router() {
           <Route path="/login" component={Login} />
           <Route path="/" component={InstitutionalCommandCentre} />
           <Route path="/decision-workflow" component={DecisionWorkflow} />
+          <Route path="/execution-lifecycle" component={ExecutionLifecycleManager} />
           <Route path="/personal-dashboard" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
           <Route path="/notifications" component={NotificationCentre} />
