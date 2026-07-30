@@ -915,7 +915,9 @@ export type ValueResearchInputLevel = typeof ValueResearchInputLevel[keyof typeo
 
 export const ValueResearchInputLevel = {
   beginner: 'beginner',
+  intermediate: 'intermediate',
   advanced: 'advanced',
+  institutional: 'institutional',
 } as const;
 
 export interface ValueResearchInput {
@@ -3785,14 +3787,16 @@ export const AiChatInputMode = {
 } as const;
 
 /**
- * Optional explanation depth for narrated answers. Beginner defines jargon and keeps it simple; advanced is concise and precise.
+ * Optional explanation depth for narrated answers. Beginner defines jargon and keeps it simple; intermediate connects the answer to workflow; advanced is concise and precise; institutional assumes a professional practitioner and cites institutional practice.
  */
 export type AiChatInputLevel = typeof AiChatInputLevel[keyof typeof AiChatInputLevel];
 
 
 export const AiChatInputLevel = {
   beginner: 'beginner',
+  intermediate: 'intermediate',
   advanced: 'advanced',
+  institutional: 'institutional',
 } as const;
 
 export interface AiChatInput {
@@ -3801,7 +3805,7 @@ export interface AiChatInput {
   context?: string;
   /** Optional explicit coach mode. When set, the assistant routes deterministically into that mode instead of relying on keyword auto-detect. Omit for auto-detect. */
   mode?: AiChatInputMode;
-  /** Optional explanation depth for narrated answers. Beginner defines jargon and keeps it simple; advanced is concise and precise. */
+  /** Optional explanation depth for narrated answers. Beginner defines jargon and keeps it simple; intermediate connects the answer to workflow; advanced is concise and precise; institutional assumes a professional practitioner and cites institutional practice. */
   level?: AiChatInputLevel;
 }
 

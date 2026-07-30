@@ -3882,7 +3882,7 @@ export const AiChatBody = zod.object({
   "message": zod.string(),
   "context": zod.string().optional().describe('Optional context like current page or symbol'),
   "mode": zod.enum(['explain_trade', 'teach_greeks', 'risk_coach', 'strategy_coach', 'quiz', 'value_research']).optional().describe('Optional explicit coach mode. When set, the assistant routes deterministically into that mode instead of relying on keyword auto-detect. Omit for auto-detect.'),
-  "level": zod.enum(['beginner', 'advanced']).optional().describe('Optional explanation depth for narrated answers. Beginner defines jargon and keeps it simple; advanced is concise and precise.')
+  "level": zod.enum(['beginner', 'intermediate', 'advanced', 'institutional']).optional().describe('Optional explanation depth for narrated answers. Beginner defines jargon and keeps it simple; intermediate connects the answer to workflow; advanced is concise and precise; institutional assumes a professional practitioner and cites institutional practice.')
 })
 
 export const AiChatResponse = zod.object({
@@ -5297,7 +5297,7 @@ export const GenerateValueResearchBody = zod.object({
   "symbol": zod.string(),
   "persist": zod.boolean().optional(),
   "forceRefresh": zod.boolean().optional(),
-  "level": zod.enum(['beginner', 'advanced']).optional()
+  "level": zod.enum(['beginner', 'intermediate', 'advanced', 'institutional']).optional()
 })
 
 export const GenerateValueResearchResponse = zod.object({

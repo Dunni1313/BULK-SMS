@@ -59,6 +59,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { resolveItemHref } from "@/lib/learning-item-href";
+// v1.5.0 Sprint 11 — Platform Integration.
+import { PlatformJourneyNav } from "@/components/layout/PlatformJourneyNav";
 
 // v1.4.0, Sprint L1 — Learning Centre Foundation.
 const CATEGORY_CARDS: { label: string; description: string; href: string; icon: typeof Building2 }[] = [
@@ -771,6 +773,8 @@ export default function LearningCentre() {
 
   return (
     <div className="space-y-6">
+      {/* v1.5.0 Sprint 11 — Platform Integration. */}
+      <PlatformJourneyNav current="learning" />
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">

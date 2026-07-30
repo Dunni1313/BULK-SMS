@@ -7,12 +7,14 @@
  */
 
 /**
- * Optional explanation depth for narrated answers. Beginner defines jargon and keeps it simple; advanced is concise and precise.
+ * Optional explanation depth for narrated answers. Beginner defines jargon and keeps it simple; intermediate connects the answer to workflow; advanced is concise and precise; institutional assumes a professional practitioner and cites institutional practice.
  */
 export type AiChatInputLevel = typeof AiChatInputLevel[keyof typeof AiChatInputLevel];
 
 
 export const AiChatInputLevel = {
   beginner: 'beginner',
+  intermediate: 'intermediate',
   advanced: 'advanced',
+  institutional: 'institutional',
 } as const;

@@ -54,6 +54,10 @@ import {
   type TradePlanComparison as TradePlanComparisonResult,
 } from "@/lib/ai-coach/tradePlansApi";
 import { Markdown } from "@/components/ui/markdown";
+// v1.5.0 Sprint 11 — Platform Integration.
+import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
+import { PlatformJourneyNav, type PlatformJourneyStageId } from "@/components/layout/PlatformJourneyNav";
+import { getModuleLearnEntry } from "@/lib/learn/moduleLearnRegistry";
 
 type ChatMode = "auto" | AiChatInputMode;
 type ChatLevel = AiChatInputLevel;
@@ -76,6 +80,22 @@ const REFERENCE_CARDS: { sym: string; name: string; plain: string }[] = [
   { sym: "POP", name: "Prob. of Profit", plain: "Odds the trade is a winner at expiration. Ravish targets high-POP setups." },
   { sym: "EV", name: "Expected Value", plain: "Average $ outcome weighted by probability. Must be positive to trade." },
 ];
+
+// v1.5.0 Sprint 11 — Platform Integration. Maps this page's own 4-way
+// view toggle to the shared PlatformJourneyNav stage / ModuleLearnTrigger
+// registry entry it corresponds to.
+const ASSISTANT_VIEW_JOURNEY_STAGE: Record<"conversations" | "notebooks" | "strategies" | "trade-plans", PlatformJourneyStageId> = {
+  conversations: "notebook",
+  notebooks: "notebook",
+  strategies: "strategy",
+  "trade-plans": "trade-plan",
+};
+const ASSISTANT_VIEW_MODULE_LEARN_ID: Record<"conversations" | "notebooks" | "strategies" | "trade-plans", string> = {
+  conversations: "ai-notebook",
+  notebooks: "ai-notebook",
+  strategies: "ai-strategy",
+  "trade-plans": "ai-trade-plan",
+};
 
 export default function Assistant() {
   // v1.5.0 Sprint 6 — AI Coach Memory. The Options AI Coach now has its own
@@ -246,6 +266,12 @@ export default function Assistant() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Depth</span>
+          {/* v1.5.0 Sprint 11 — Platform Integration. Widened from a 2-way
+              Beginner/Advanced toggle to the shared 4-tier CoachLevel
+              vocabulary (lib/ai-core, now matching learningPaths.ts's own
+              LearningDifficulty) — the same "one shared coaching
+              experience" widening applied to StockResearch.tsx's own
+              level toggle. */}
           <ToggleGroup
             type="single"
             value={level}
@@ -255,8 +281,14 @@ export default function Assistant() {
             <ToggleGroupItem value={AiChatInputLevel.beginner} className="h-8 px-3 text-xs data-[state=on]:bg-indigo-500/20 data-[state=on]:text-indigo-400">
               Beginner
             </ToggleGroupItem>
+            <ToggleGroupItem value={AiChatInputLevel.intermediate} className="h-8 px-3 text-xs data-[state=on]:bg-indigo-500/20 data-[state=on]:text-indigo-400">
+              Intermediate
+            </ToggleGroupItem>
             <ToggleGroupItem value={AiChatInputLevel.advanced} className="h-8 px-3 text-xs data-[state=on]:bg-indigo-500/20 data-[state=on]:text-indigo-400">
               Advanced
+            </ToggleGroupItem>
+            <ToggleGroupItem value={AiChatInputLevel.institutional} className="h-8 px-3 text-xs data-[state=on]:bg-indigo-500/20 data-[state=on]:text-indigo-400">
+              Institutional
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
@@ -319,6 +351,19 @@ export default function Assistant() {
           </div>
         </div>
       )}
+
+      {/* v1.5.0 Sprint 11 — Platform Integration. The journey stage and
+          Learn trigger both track whichever of the 4 views below is
+          currently active — Conversations has no dedicated journey stage
+          of its own, so it defaults to the Notebook stage (the next real
+          step after a freeform conversation). */}
+      <PlatformJourneyNav current={ASSISTANT_VIEW_JOURNEY_STAGE[assistantView]} />
+      <div className="mt-3 mb-1 flex items-center gap-2">
+        {(() => {
+          const entry = getModuleLearnEntry(ASSISTANT_VIEW_MODULE_LEARN_ID[assistantView]);
+          return entry ? <ModuleLearnTrigger moduleLabel={entry.label} pathKey={entry.pathKey} topicKey={entry.topicKey} size="xs" /> : null;
+        })()}
+      </div>
 
       {/* v1.5.0 Sprint 8 — AI Research Notebooks: a peer surface to the
           conversation view, switched via this toggle. Neither view's own

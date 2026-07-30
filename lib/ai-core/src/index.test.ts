@@ -323,3 +323,53 @@ describe("extractJsonObject", () => {
     expect(extractJsonObject('prefix {"nested":{"b":2}} suffix')).toBe('{"nested":{"b":2}}');
   });
 });
+
+// v1.5.0, Sprint 11 — Platform Integration. CoachLevel widened from 2
+// values (beginner/advanced) to 4 (beginner/intermediate/advanced/
+// institutional), deliberately reusing lib/learningPaths.ts's own
+// LearningDifficulty vocabulary rather than inventing a new one — the
+// "one shared coaching experience" the sprint's approved scope requires.
+describe("levelInstruction — 4-tier CoachLevel", () => {
+  it("returns empty string for undefined (unchanged, pre-Sprint-11 default behavior)", async () => {
+    const { levelInstruction } = await import("./index.js");
+    expect(levelInstruction(undefined)).toBe("");
+  });
+
+  it("returns the pre-existing beginner instruction text unchanged", async () => {
+    const { levelInstruction } = await import("./index.js");
+    expect(levelInstruction("beginner")).toContain("BEGINNER depth");
+    expect(levelInstruction("beginner")).toContain("define any jargon");
+  });
+
+  it("returns the pre-existing advanced instruction text unchanged", async () => {
+    const { levelInstruction } = await import("./index.js");
+    expect(levelInstruction("advanced")).toContain("ADVANCED depth");
+    expect(levelInstruction("advanced")).toContain("nuanced trade-offs");
+  });
+
+  it("returns a genuinely new intermediate instruction, distinct from beginner and advanced", async () => {
+    const { levelInstruction } = await import("./index.js");
+    const text = levelInstruction("intermediate");
+    expect(text).toContain("INTERMEDIATE depth");
+    expect(text).not.toBe(levelInstruction("beginner"));
+    expect(text).not.toBe(levelInstruction("advanced"));
+  });
+
+  it("returns a genuinely new institutional instruction, distinct from every other tier", async () => {
+    const { levelInstruction } = await import("./index.js");
+    const text = levelInstruction("institutional");
+    expect(text).toContain("INSTITUTIONAL depth");
+    expect(text).toContain("institutional practice");
+    expect(text).not.toBe(levelInstruction("beginner"));
+    expect(text).not.toBe(levelInstruction("intermediate"));
+    expect(text).not.toBe(levelInstruction("advanced"));
+  });
+
+  it("levelKey produces 4 distinct cache-key suffixes, one per tier, so no two levels share a cached narration", async () => {
+    const { levelKey } = await import("./index.js");
+    const keys = [levelKey(undefined), levelKey("beginner"), levelKey("intermediate"), levelKey("advanced"), levelKey("institutional")];
+    expect(new Set(keys).size).toBe(5);
+    expect(levelKey(undefined)).toBe("");
+    expect(levelKey("institutional")).toBe(":institutional");
+  });
+});

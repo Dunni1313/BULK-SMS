@@ -7820,7 +7820,11 @@ components:
         forceRefresh: { type: boolean }
         level:
           type: string
-          enum: [beginner, advanced]
+          # v1.5.0, Sprint 11 — Platform Integration. Widened from
+          # [beginner, advanced] to match lib/ai-core's own CoachLevel
+          # (now 4 values) and lib/learningPaths.ts's LearningDifficulty
+          # vocabulary — one shared coaching-depth vocabulary platform-wide.
+          enum: [beginner, intermediate, advanced, institutional]
 
     ValueResearchResult:
       type: object
@@ -11112,10 +11116,15 @@ components:
             auto-detect. Omit for auto-detect.
         level:
           type: string
-          enum: [beginner, advanced]
+          # v1.5.0, Sprint 11 — Platform Integration. Widened from
+          # [beginner, advanced] — see ValueResearchInput.level's own
+          # comment for the shared-vocabulary rationale.
+          enum: [beginner, intermediate, advanced, institutional]
           description: >-
             Optional explanation depth for narrated answers. Beginner defines
-            jargon and keeps it simple; advanced is concise and precise.
+            jargon and keeps it simple; intermediate connects the answer to
+            workflow; advanced is concise and precise; institutional assumes
+            a professional practitioner and cites institutional practice.
 
     AiAnswer:
       type: object

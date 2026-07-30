@@ -144,13 +144,26 @@ export interface Narration {
 
 // Optional explanation depth. Threaded into the prompt and the cache key so a
 // beginner and an advanced ask for the same lesson don't share a cached answer.
-export type CoachLevel = "beginner" | "advanced";
+//
+// v1.5.0, Sprint 11 — Platform Integration. Widened from 2 values
+// (beginner/advanced) to 4, deliberately reusing — not reinventing — the
+// exact vocabulary lib/learningPaths.ts's own LearningDifficulty type
+// already established ("beginner" | "intermediate" | "advanced" |
+// "institutional"), per the sprint's "introduce ONE shared coaching
+// experience" mandate. This is a pure widening: every existing caller
+// passing "beginner"/"advanced"/undefined keeps compiling and behaving
+// identically; only "intermediate" and "institutional" are new.
+export type CoachLevel = "beginner" | "intermediate" | "advanced" | "institutional";
 
 export function levelInstruction(level?: CoachLevel): string {
   if (level === "beginner")
     return " Explain at a BEGINNER depth: assume little prior knowledge, define any jargon you use, and keep it simple and encouraging.";
+  if (level === "intermediate")
+    return " Explain at an INTERMEDIATE depth: assume the reader knows the basic mechanics already; connect the answer to how it fits into a broader workflow, and define only genuinely advanced jargon.";
   if (level === "advanced")
     return " Explain at an ADVANCED depth: assume the reader already knows the basics; be concise, precise, and focus on the nuanced trade-offs.";
+  if (level === "institutional")
+    return " Explain at an INSTITUTIONAL depth: assume the reader is a professional practitioner; be terse, cite institutional practice and process directly, skip basic definitions entirely, and focus on what a professional desk would actually watch for.";
   return "";
 }
 

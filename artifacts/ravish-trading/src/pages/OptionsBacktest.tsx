@@ -38,8 +38,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Play, FlaskConical } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+// v1.5.0 Sprint 11 — Platform Integration. Shared with Backtest.tsx/
+// TradingBacktest.tsx, replacing 3 independently-copy-pasted recharts blocks.
+import { EquityCurveChart } from "@/components/charts/EquityCurveChart";
 
 function pct(n: number | null): string {
   return n === null ? "n/a" : `${(n * 100).toFixed(1)}%`;
@@ -156,31 +158,7 @@ export default function OptionsBacktest() {
               </div>
             ) : (
               <>
-                <div className="h-[300px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={selectedResult.equityCurve} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis
-                        dataKey="date"
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickFormatter={(v) => new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                      />
-                      <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickFormatter={(v) => `$${v}`}
-                        domain={["auto", "auto"]}
-                      />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))", color: "hsl(var(--foreground))" }}
-                        itemStyle={{ color: "hsl(var(--primary))" }}
-                        labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-                      />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <EquityCurveChart data={selectedResult.equityCurve} dateTickFormat="month-day" />
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
                   <div className="bg-background p-3 rounded border border-border">
