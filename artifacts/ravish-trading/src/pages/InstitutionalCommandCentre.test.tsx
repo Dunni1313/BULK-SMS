@@ -14,9 +14,17 @@ vi.mock("@/lib/ai-coach/notebooksApi", () => ({
 }));
 vi.mock("@/lib/ai-coach/strategiesApi", () => ({
   listStrategies: vi.fn(async () => []),
+  getStrategy: vi.fn(async () => null),
+  getMissingSections: vi.fn(async () => null),
 }));
+
+const listTradePlansMock = vi.hoisted(() => vi.fn(async (_coachId?: string) => [] as unknown[]));
+const getTradePlanMock = vi.hoisted(() => vi.fn());
+const getMissingTradePlanInformationMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/ai-coach/tradePlansApi", () => ({
-  listTradePlans: vi.fn(async () => []),
+  listTradePlans: listTradePlansMock,
+  getTradePlan: getTradePlanMock,
+  getMissingTradePlanInformation: getMissingTradePlanInformationMock,
 }));
 
 vi.mock("@/lib/auth-client", async () => {
@@ -91,6 +99,9 @@ describe("InstitutionalCommandCentre", () => {
     mockState.notifications = [];
     mockState.journalEntries = [];
     mockState.closedTrades = [];
+    listTradePlansMock.mockReset().mockResolvedValue([]);
+    getTradePlanMock.mockReset();
+    getMissingTradePlanInformationMock.mockReset();
   });
 
   it("greets the signed-in user by name and shows the Command Centre badge", async () => {
@@ -182,5 +193,51 @@ describe("InstitutionalCommandCentre", () => {
     renderWithClient(<InstitutionalCommandCentre />);
     expect(await screen.findByTestId("link-to-personal-dashboard")).toHaveAttribute("href", "/personal-dashboard");
     expect(screen.getByTestId("link-to-options-command-center")).toHaveAttribute("href", "/command-center");
+  });
+
+  it("shows an honest 'no decision in progress' state when no trade plan exists, per Sprint 13", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("decision-in-progress-none")).toBeInTheDocument();
+  });
+
+  it("surfaces the real most-recently-updated in-progress decision with its score and evidence gap, per Sprint 13", async () => {
+    listTradePlansMock.mockImplementation(async (coachId: string) =>
+      coachId === "trading"
+        ? [{ id: 7, coachId: "trading", title: "AAPL breakout", status: "draft", updatedAt: "2026-07-29T00:00:00Z" }]
+        : [],
+    );
+    getTradePlanMock.mockResolvedValue({
+      id: 7,
+      coachId: "trading",
+      workspaceId: null,
+      strategyId: null,
+      title: "AAPL breakout",
+      plannedAsset: "AAPL",
+      assetClass: "equity",
+      direction: "long",
+      status: "draft",
+      pinned: false,
+      tags: [],
+      currentVersion: 1,
+      executedTradeRef: null,
+      executedAt: null,
+      createdAt: "2026-07-29T00:00:00Z",
+      updatedAt: "2026-07-29T00:00:00Z",
+      sections: [],
+      versions: [],
+      checklistItems: [],
+      checklistProgress: { totalItems: 4, completedItems: 0, requiredItems: 2, completedRequiredItems: 0, progressPct: 0, readyForEntry: false },
+    });
+    getMissingTradePlanInformationMock.mockResolvedValue({
+      missing: ["market_context"],
+      present: [],
+      completenessPct: 0,
+    });
+
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("decision-in-progress-title")).toHaveTextContent("AAPL breakout");
+    expect(screen.getByTestId("decision-in-progress-score")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-in-progress-gap")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-in-progress-link")).toHaveAttribute("href", "/decision-workflow?planId=7");
   });
 });

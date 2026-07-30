@@ -60,6 +60,7 @@ import { DailyBriefingCard } from "@/components/briefing/DailyBriefingCard";
 import { AskCoachLauncher } from "@/components/learn/AskCoachLauncher";
 import { COMMAND_CENTRE_QUICK_ACTIONS } from "@/lib/quick-actions";
 import { useWorkflowSnapshot } from "@/lib/useWorkflowSnapshot";
+import { useActiveDecisionSummary } from "@/lib/useDecisionWorkflow";
 import {
   Compass,
   ShieldAlert,
@@ -69,6 +70,7 @@ import {
   Bot,
   CalendarClock,
   Newspaper,
+  Milestone,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -385,6 +387,77 @@ function PortfolioSnapshotCard() {
   );
 }
 
+// ─── Decision in Progress ──────────────────────────────────────────────
+// v1.5.0, Sprint 13 — Institutional Decision Engine. Surfaces the user's
+// single most recently updated in-progress decision (an existing Trade
+// Plan, never a new entity — see lib/decisionWorkflow.ts's own header
+// comment) via useActiveDecisionSummary(), a lightweight reuse of the same
+// pure scoring functions the full /decision-workflow page uses — never a
+// second, duplicate scoring formula computed here.
+
+function DecisionInProgressCard() {
+  const summary = useActiveDecisionSummary();
+
+  if (summary.loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-4 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-decision-in-progress">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Milestone className="h-4 w-4" /> Decision in Progress
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/decision-workflow" className="underline">
+            Decision Workflow
+          </Link>
+          .
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {!summary.tradePlan ? (
+          <p className="text-sm text-muted-foreground" data-testid="decision-in-progress-none">
+            No decision in progress right now.
+          </p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium" data-testid="decision-in-progress-title">{summary.tradePlan.title}</p>
+              {summary.score && (
+                <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30" data-testid="decision-in-progress-score">
+                  {summary.score.overall}/100 — {summary.score.label}
+                </Badge>
+              )}
+            </div>
+            {summary.weakestStage && (
+              <p className="text-xs text-muted-foreground" data-testid="decision-in-progress-gap">
+                Evidence gap: {summary.weakestStage.label}
+                {summary.weakestStage.missingInfo.length > 0 ? ` — ${summary.weakestStage.missingInfo[0]}` : ""}
+              </p>
+            )}
+            <Link
+              href={`/decision-workflow?planId=${summary.tradePlan.id}`}
+              className="text-xs font-medium text-primary hover:underline"
+              data-testid="decision-in-progress-link"
+            >
+              {summary.weakestStage ? `Next step: ${summary.weakestStage.recommendedAction}` : "Continue this decision"} →
+            </Link>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -665,7 +738,8 @@ export default function InstitutionalCommandCentre() {
         <PortfolioSnapshotCard />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <DecisionInProgressCard />
         <LearningPanelCard />
         <CoachPanelCard />
       </div>
