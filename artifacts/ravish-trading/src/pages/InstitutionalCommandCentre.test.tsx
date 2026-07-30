@@ -110,13 +110,14 @@ describe("InstitutionalCommandCentre", () => {
     expect(screen.getByTestId("badge-command-centre")).toBeInTheDocument();
   });
 
-  it("renders all 9 workflow stages with real status detail, never a blank stage", async () => {
+  it("renders all 10 workflow stages with real status detail, never a blank stage (9 original + Decision, Sprint 13)", async () => {
     renderWithClient(<InstitutionalCommandCentre />);
     for (const id of [
       "research",
       "notebook",
       "strategy",
       "trade-plan",
+      "decision",
       "execute",
       "trade-journal",
       "performance",
@@ -126,6 +127,45 @@ describe("InstitutionalCommandCentre", () => {
       expect(await screen.findByTestId(`workflow-stage-${id}`)).toBeInTheDocument();
       expect(screen.getByTestId(`workflow-stage-detail-${id}`).textContent?.length).toBeGreaterThan(0);
     }
+  });
+
+  it("shows an honest 'no decision in progress' status on the Decision workflow stage when none exists, per Sprint 13", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("workflow-stage-detail-decision")).toHaveTextContent("No decision in progress");
+  });
+
+  it("shows the real Decision Score on the Decision workflow stage when a decision is in progress, per Sprint 13", async () => {
+    listTradePlansMock.mockImplementation(async (coachId: string) =>
+      coachId === "trading"
+        ? [{ id: 7, coachId: "trading", title: "AAPL breakout", status: "draft", updatedAt: "2026-07-29T00:00:00Z" }]
+        : [],
+    );
+    getTradePlanMock.mockResolvedValue({
+      id: 7,
+      coachId: "trading",
+      workspaceId: null,
+      strategyId: null,
+      title: "AAPL breakout",
+      plannedAsset: "AAPL",
+      assetClass: "equity",
+      direction: "long",
+      status: "draft",
+      pinned: false,
+      tags: [],
+      currentVersion: 1,
+      executedTradeRef: null,
+      executedAt: null,
+      createdAt: "2026-07-29T00:00:00Z",
+      updatedAt: "2026-07-29T00:00:00Z",
+      sections: [],
+      versions: [],
+      checklistItems: [],
+      checklistProgress: { totalItems: 4, completedItems: 0, requiredItems: 2, completedRequiredItems: 0, progressPct: 0, readyForEntry: false },
+    });
+    getMissingTradePlanInformationMock.mockResolvedValue({ missing: [], present: [], completenessPct: 100 });
+
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("workflow-stage-detail-decision")).toHaveTextContent(/\/100/);
   });
 
   it("never renders Execute as a clickable link — this platform has no execution feature", async () => {

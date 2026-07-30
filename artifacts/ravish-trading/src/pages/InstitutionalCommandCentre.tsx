@@ -125,6 +125,7 @@ function useStageStatuses(
   performanceLabel: string,
   portfolioElevatedCount: number | undefined,
   learningInProgress: number | undefined,
+  decisionSummary: ReturnType<typeof useActiveDecisionSummary>,
 ): Record<PlatformJourneyStageId, StageStatus> {
   return {
     research: {
@@ -142,6 +143,18 @@ function useStageStatuses(
     "trade-plan": {
       detail: snapshot.loading ? "Loading…" : `${snapshot.tradePlansReadyCount} trade plan${snapshot.tradePlansReadyCount === 1 ? "" : "s"} marked Ready`,
       pendingCount: snapshot.loading ? null : snapshot.tradePlansReadyCount,
+    },
+    // v1.5.0, Sprint 13 — Institutional Decision Engine. Reuses
+    // useActiveDecisionSummary() directly (the exact same hook backing the
+    // "Decision in Progress" card below) — never a second, duplicate
+    // scoring formula computed for this stage.
+    decision: {
+      detail: decisionSummary.loading
+        ? "Loading…"
+        : !decisionSummary.tradePlan
+          ? "No decision in progress"
+          : `${decisionSummary.score?.overall ?? 0}/100 — ${decisionSummary.score?.label ?? "Just Started"}`,
+      pendingCount: null,
     },
     execute: {
       detail: "Executed manually at your own external broker — this platform never places, closes, or modifies a real order.",
@@ -669,6 +682,11 @@ export default function InstitutionalCommandCentre() {
   const { data: journalEntries } = useListJournalEntries();
   const { data: closedTrades } = useListTrades({ status: "closed", limit: 20 });
   const { data: dash } = useGetPortfolioDashboard();
+  // Reused for the Workflow Panel's own "Decision" stage below, and again,
+  // independently, by <DecisionInProgressCard /> further down the page —
+  // the same intentional duplicate-fetch pattern this file already uses
+  // for useGetPortfolioDashboard() (main component + <PortfolioSnapshotCard />).
+  const decisionSummary = useActiveDecisionSummary();
 
   const journalOutstanding = useMemo(() => {
     if (!closedTrades || !journalEntries) return null;
@@ -685,6 +703,7 @@ export default function InstitutionalCommandCentre() {
     "See full breakdown in Performance & Attribution",
     dash?.guidance.length,
     undefined,
+    decisionSummary,
   );
 
   return (
