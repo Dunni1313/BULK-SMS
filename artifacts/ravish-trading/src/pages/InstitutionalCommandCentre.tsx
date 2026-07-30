@@ -63,6 +63,7 @@ import { useWorkflowSnapshot } from "@/lib/useWorkflowSnapshot";
 import { useActiveDecisionSummary } from "@/lib/useDecisionWorkflow";
 import { useTradeLifecyclePipeline } from "@/lib/useTradeLifecycle";
 import { PIPELINE_STAGES, type PipelineStageId } from "@/lib/tradeLifecycle";
+import { usePortfolioRiskIntelligence } from "@/lib/usePortfolioRiskIntelligence";
 import {
   Compass,
   ShieldAlert,
@@ -74,6 +75,7 @@ import {
   Newspaper,
   Milestone,
   Route,
+  GaugeCircle,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -587,6 +589,115 @@ function ExecutionPipelineCard({ pipeline }: { pipeline: ReturnType<typeof useTr
   );
 }
 
+// ─── Portfolio & Risk Intelligence (v1.5.0, Sprint 15) ─────────────────
+// Reuses usePortfolioRiskIntelligence() directly — the exact same hook
+// backing the full /portfolio-risk-intelligence page. Surfaces exactly
+// what the approved scope named: Portfolio Health, Risk Alerts, Exposure,
+// Allocation, Pending Trade Impact, Portfolio Trends, and Recommended
+// Review Tasks — never a second, duplicate health-scoring or risk-signal
+// computation. "Portfolio Trends" is honestly disclosed as a point-in-time
+// reading — no historical snapshot/trend-tracking table exists for this
+// Health Score, and none was fabricated to fill the label.
+
+function healthLabelBadgeClass(label: string): string {
+  if (label === "Excellent" || label === "Strong") return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+  if (label === "Moderate") return "bg-sky-500/15 text-sky-400 border-sky-500/30";
+  if (label === "Elevated Risk") return "bg-amber-500/15 text-amber-400 border-amber-500/30";
+  return "bg-destructive/15 text-destructive border-destructive/30";
+}
+
+function PortfolioIntelligenceCard() {
+  const { health, risk, coachNarrative } = usePortfolioRiskIntelligence();
+
+  if (!health || !risk || !coachNarrative) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-4 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const exposure = risk.signals.find((s) => s.code === "sector_exposure");
+  const allocationSignal = risk.signals.find((s) => s.code === "portfolio_concentration");
+  const pendingImpact = risk.signals.find((s) => s.code === "pending_trade_impact");
+  const alertSignals = risk.signals.filter((s) => s.available && (s.code === "single_position_risk" || s.code === "open_trade_risk" || s.code === "total_portfolio_risk")).slice(0, 2);
+  const reviewTasks = coachNarrative.weakestFactors.slice(0, 3);
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-portfolio-intelligence">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <GaugeCircle className="h-4 w-4" /> Portfolio &amp; Risk Intelligence
+          </CardTitle>
+          <Badge className={healthLabelBadgeClass(health.label)} data-testid="portfolio-intelligence-health-badge">
+            {health.overall}/100 — {health.label}
+          </Badge>
+        </div>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/portfolio-risk-intelligence" className="underline">
+            Portfolio &amp; Risk Intelligence
+          </Link>
+          .
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div>
+          <p className="text-muted-foreground mb-1">Risk Alerts</p>
+          {alertSignals.length === 0 ? (
+            <p data-testid="portfolio-intelligence-no-alerts">No elevated risk signals currently available.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="portfolio-intelligence-alerts">
+              {alertSignals.map((s) => (
+                <li key={s.code}>
+                  {s.label}: {s.headline}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <p className="text-muted-foreground">Exposure</p>
+            <p data-testid="portfolio-intelligence-exposure">{exposure?.headline ?? "Not available"}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Allocation</p>
+            <p data-testid="portfolio-intelligence-allocation">{allocationSignal?.headline ?? "Not available"}</p>
+          </div>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Pending Trade Impact</p>
+          <p data-testid="portfolio-intelligence-pending-impact">{pendingImpact?.headline ?? "Not available"}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Portfolio Trends</p>
+          <p data-testid="portfolio-intelligence-trends">Point-in-time reading — historical trend tracking is not yet built for this Health Score.</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Recommended Review Tasks</p>
+          {reviewTasks.length === 0 ? (
+            <p data-testid="portfolio-intelligence-no-review-tasks">Nothing needs review right now.</p>
+          ) : (
+            <ul className="list-disc list-inside" data-testid="portfolio-intelligence-review-tasks">
+              {reviewTasks.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <Link href="/portfolio-risk-intelligence" className="text-xs font-medium text-primary hover:underline inline-block" data-testid="portfolio-intelligence-view-link">
+          Open Portfolio &amp; Risk Intelligence →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -885,6 +996,7 @@ export default function InstitutionalCommandCentre() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <PortfolioIntelligenceCard />
         <LearningPanelCard />
         <CoachPanelCard />
       </div>

@@ -155,6 +155,13 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // manual external-broker execution. See
       // docs/v1.5.0-Sprint-14-Institutional-Execution-Lifecycle.md.
       { title: "Execution & Lifecycle Manager", href: "/execution-lifecycle", icon: Kanban },
+      // v1.5.0, Sprint 15 — Institutional Portfolio & Risk Intelligence
+      // Engine. The intelligence layer sitting above every other module —
+      // a transparent Health Score, Risk Intelligence, What-If Analysis,
+      // and AI Portfolio Coach, composed entirely from already-existing
+      // engine calculations. See
+      // docs/v1.5.0-Sprint-15-Portfolio-Risk-Intelligence.md.
+      { title: "Portfolio & Risk Intelligence", href: "/portfolio-risk-intelligence", icon: Activity },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },

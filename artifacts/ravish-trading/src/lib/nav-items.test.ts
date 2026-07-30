@@ -121,6 +121,10 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // (docs/v1.5.0-Sprint-14-Institutional-Execution-Lifecycle.md). The
   // orchestration layer picking up right where Decision Workflow leaves off.
   "/execution-lifecycle",
+  // v1.5.0, Sprint 15 — Institutional Portfolio & Risk Intelligence Engine
+  // (docs/v1.5.0-Sprint-15-Portfolio-Risk-Intelligence.md). The intelligence
+  // layer sitting above every other module.
+  "/portfolio-risk-intelligence",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {

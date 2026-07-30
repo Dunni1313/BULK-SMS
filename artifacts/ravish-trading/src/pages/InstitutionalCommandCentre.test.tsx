@@ -47,6 +47,13 @@ const mockState = vi.hoisted(() => ({
   notifications: [] as unknown[],
   journalEntries: [] as unknown[],
   closedTrades: [] as unknown[],
+  // v1.5.0, Sprint 15 — Portfolio & Risk Intelligence. Mocked (never left
+  // to fall through to the real generated hooks) so the new
+  // PortfolioIntelligenceCard never issues a real network fetch in tests.
+  portfolioConcentration: undefined as unknown,
+  portfolios: [] as unknown[],
+  portfolioRisk: undefined as unknown,
+  tradingRisk: undefined as unknown,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -66,6 +73,10 @@ vi.mock("@workspace/api-client-react", async () => {
     useListNotifications: () => ({ data: mockState.notifications }),
     useListJournalEntries: () => ({ data: mockState.journalEntries }),
     useListTrades: () => ({ data: mockState.closedTrades }),
+    useGetPortfolioConcentration: () => ({ data: mockState.portfolioConcentration, isLoading: false }),
+    useGetPortfolios: () => ({ data: mockState.portfolios, isLoading: false }),
+    useGetPortfolioRisk: () => ({ data: mockState.portfolioRisk, isLoading: false }),
+    useGetTradingRisk: () => ({ data: mockState.tradingRisk, isLoading: false }),
   };
 });
 
@@ -99,6 +110,10 @@ describe("InstitutionalCommandCentre", () => {
     mockState.notifications = [];
     mockState.journalEntries = [];
     mockState.closedTrades = [];
+    mockState.portfolioConcentration = undefined;
+    mockState.portfolios = [];
+    mockState.portfolioRisk = undefined;
+    mockState.tradingRisk = undefined;
     listTradePlansMock.mockReset().mockResolvedValue([]);
     getTradePlanMock.mockReset();
     getMissingTradePlanInformationMock.mockReset();
@@ -298,5 +313,22 @@ describe("InstitutionalCommandCentre", () => {
     expect(screen.getByTestId("decision-in-progress-score")).toBeInTheDocument();
     expect(screen.getByTestId("decision-in-progress-gap")).toBeInTheDocument();
     expect(screen.getByTestId("decision-in-progress-link")).toHaveAttribute("href", "/decision-workflow?planId=7");
+  });
+
+  // v1.5.0, Sprint 15 — Institutional Portfolio & Risk Intelligence Engine.
+  it("renders the Portfolio & Risk Intelligence card, reusing usePortfolioRiskIntelligence() directly, per Sprint 15", async () => {
+    mockState.portfolioDashboard = portfolioDashboard();
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-portfolio-intelligence")).toBeInTheDocument();
+    expect(screen.getByTestId("portfolio-intelligence-health-badge")).toHaveTextContent(/\/100/);
+    expect(screen.getByTestId("portfolio-intelligence-pending-impact")).toHaveTextContent("None pending");
+    expect(screen.getByTestId("portfolio-intelligence-trends")).toHaveTextContent(/Point-in-time reading/);
+    expect(screen.getByTestId("portfolio-intelligence-view-link")).toHaveAttribute("href", "/portfolio-risk-intelligence");
+  });
+
+  it("shows an honest 'no elevated risk signals' state on the Portfolio & Risk Intelligence card when nothing is resolvable, per Sprint 15", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-portfolio-intelligence")).toBeInTheDocument();
+    expect(screen.getByTestId("portfolio-intelligence-no-alerts")).toBeInTheDocument();
   });
 });
