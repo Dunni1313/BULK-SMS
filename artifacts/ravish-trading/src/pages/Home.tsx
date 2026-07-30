@@ -1,14 +1,23 @@
 // Phase 10 — Institutional Platform Polish & Control Center.
 //
-// Institutional Home — the new landing page ("/"). A genuine Personal
-// Dashboard: every section below is an independent, pinnable/hideable/
-// reorderable/resizable "widget," with the current arrangement persisted
-// server-side as the user's active Workspace (lib/dashboardWorkspaces.ts,
-// backend). Switching workspaces (via the picker in the header) swaps the
-// whole widget arrangement — the Workspace System and the Personal
-// Dashboard are the same underlying mechanism, per this phase's own
-// "unify, don't duplicate" design decision (see
-// docs/Institutional-Control-Center.md).
+// Institutional Home — originally the landing page at "/". A genuine
+// Personal Dashboard: every section below is an independent, pinnable/
+// hideable/reorderable/resizable "widget," with the current arrangement
+// persisted server-side as the user's active Workspace
+// (lib/dashboardWorkspaces.ts, backend). Switching workspaces (via the
+// picker in the header) swaps the whole widget arrangement — the
+// Workspace System and the Personal Dashboard are the same underlying
+// mechanism, per this phase's own "unify, don't duplicate" design
+// decision (see docs/Institutional-Control-Center.md).
+//
+// v1.5.0, Sprint 12 — Institutional Command Centre. This page moved from
+// "/" to "/personal-dashboard" when the new Institutional Command Centre
+// (pages/InstitutionalCommandCentre.tsx) took over "/" as the platform's
+// single daily starting point — the exact same "move, cross-link, never
+// delete" pattern this page itself established when it originally
+// superseded CommandCenter.tsx at "/" (Phase 10). Nothing about this
+// page's own widgets, data, or behaviour changed — only its address and
+// its own nav label ("Personal Dashboard," see lib/nav-items.ts).
 //
 // Deliberate, disclosed scope decision: "resize" is a binary Normal/
 // Compact toggle per widget, not freeform drag-resize — a robust,
@@ -19,11 +28,12 @@
 // Every widget reuses an already-existing, already-tested generated hook
 // — this page introduces ZERO new trading, execution, pricing, portfolio,
 // or risk calculations. CommandCenter.tsx (still reachable at
-// /command-center) remains the fuller, detail-oriented executive view;
-// this page is the condensed, personalized, at-a-glance one — the same
-// "distinct-but-related surfaces, deliberately not merged" precedent this
-// platform already uses elsewhere (e.g. Institutional Dashboard vs.
-// Trading Research).
+// /command-center, now titled "Options Command Center") remains the
+// fuller, options-income-focused executive view; this page is the
+// condensed, personalized, at-a-glance one — the same "distinct-but-
+// related surfaces, deliberately not merged" precedent this platform
+// already uses elsewhere (e.g. Institutional Dashboard vs. Trading
+// Research).
 
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -859,11 +869,18 @@ export default function Home() {
             Your own, personalized landing page — pin, hide, reorder, and resize widgets, and save the
             arrangement as a named workspace.{" "}
             <Link
+              href="/"
+              className="text-indigo-400 underline-offset-2 hover:underline"
+              data-testid="link-to-command-centre"
+            >
+              Looking for the platform's own daily starting point? See Institutional Command Centre.
+            </Link>{" "}
+            <Link
               href="/command-center"
               className="text-indigo-400 underline-offset-2 hover:underline"
               data-testid="link-to-command-center"
             >
-              Looking for the full, comprehensive executive view? See Command Center.
+              Looking for the Options Income Engine's own executive view? See Options Command Center.
             </Link>
           </p>
         </div>

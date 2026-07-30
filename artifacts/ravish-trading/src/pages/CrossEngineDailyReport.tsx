@@ -16,17 +16,21 @@
 // in this codebase already uses (mirrors StockResearch.tsx's own "Narrate
 // this verdict" button, Sprint 61) — never blocking or replacing the
 // deterministic data above it.
+//
+// v1.5.0, Sprint 12 — Institutional Command Centre. The summary+narrate
+// card below was extracted, unmodified in behavior/testids, into the new
+// shared components/briefing/DailyBriefingCard.tsx, so the new Command
+// Centre page can embed the identical "AI Daily Briefing" experience
+// without duplicating the streaming logic. This page's own loading/error
+// handling and 3-engine-card grid are untouched.
 
-import { useState } from "react";
 import { useGetCrossEngineDailyReport, getGetCrossEngineDailyReportQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Markdown } from "@/components/ui/markdown";
 import { fmtUsd, riskGradeBadgeClass } from "@/lib/trading-format";
-import { streamCoach } from "@/lib/coach-stream";
-import { Landmark, Scale, Briefcase, Sparkles, Newspaper } from "lucide-react";
+import { DailyBriefingCard } from "@/components/briefing/DailyBriefingCard";
+import { Landmark, Scale, Briefcase, Newspaper } from "lucide-react";
 
 // Engine 1's own macro/rate-regime vocabulary (rising_rates/falling_rates/
 // stable_rates, lib/investingMacro.ts) — kept local rather than imported
@@ -43,36 +47,6 @@ export default function CrossEngineDailyReport() {
   const { data: report, isLoading, isError } = useGetCrossEngineDailyReport({
     query: { queryKey: getGetCrossEngineDailyReportQueryKey() },
   });
-
-  const [narrative, setNarrative] = useState("");
-  const [narrating, setNarrating] = useState(false);
-  const [narrationError, setNarrationError] = useState(false);
-
-  const handleNarrate = () => {
-    if (narrating) return;
-    setNarrating(true);
-    setNarrative("");
-    setNarrationError(false);
-    streamCoach(
-      "/cross-engine-report/narrate/stream",
-      {},
-      {
-        onDelta: (text) => setNarrative((prev) => prev + text),
-        onDone: (data) => {
-          const d = data as { narrative?: string };
-          if (d.narrative) setNarrative(d.narrative);
-          setNarrating(false);
-        },
-        onError: () => {
-          setNarrationError(true);
-          setNarrating(false);
-        },
-      },
-    ).catch(() => {
-      setNarrationError(true);
-      setNarrating(false);
-    });
-  };
 
   return (
     <div className="space-y-6 p-6" data-testid="page-cross-engine-daily-report">
@@ -110,49 +84,7 @@ export default function CrossEngineDailyReport() {
 
       {report && (
         <>
-          <Card data-testid="card-daily-report-summary">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Today — {report.date}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground" data-testid="daily-report-summary-text">
-                {report.summary}
-              </p>
-              <div className="pt-1 border-t border-border/60">
-                {narrative ? (
-                  <div className="pt-2 space-y-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> AI-Narrated Synthesis
-                    </p>
-                    <div className="text-xs text-muted-foreground">
-                      <Markdown className="text-xs inline">{narrative}</Markdown>
-                      {narrating && (
-                        <span className="inline-block w-1 h-3 ml-0.5 align-middle bg-indigo-400 animate-pulse" />
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={narrating}
-                    onClick={handleNarrate}
-                    className="mt-2 h-7 text-[11px] border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
-                    data-testid="narrate-daily-report-button"
-                  >
-                    <Sparkles className="w-3 h-3 mr-1.5" />
-                    {narrating ? "Narrating…" : "Narrate My Day"}
-                  </Button>
-                )}
-                {narrationError && (
-                  <p className="text-[11px] text-destructive mt-1" data-testid="narrate-daily-report-error">
-                    Failed to narrate your day — please try again.
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <DailyBriefingCard />
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <Card data-testid="card-daily-report-engine1">

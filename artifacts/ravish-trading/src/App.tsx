@@ -29,6 +29,13 @@ import { useEffect } from "react";
 
 // Pages
 const NotFound = lazy(() => import("@/pages/not-found"));
+// v1.5.0, Sprint 12 — Institutional Command Centre. Now the "/" landing
+// page, superseding Home.tsx there — Home itself is unmodified, just
+// relocated to "/personal-dashboard" (see its own header comment), the
+// same "move, cross-link, never delete" pattern this codebase already
+// used once before when Home.tsx itself superseded the original
+// CommandCenter.tsx at "/" (Phase 10).
+const InstitutionalCommandCentre = lazy(() => import("./pages/InstitutionalCommandCentre"));
 const Home = lazy(() => import("./pages/Home"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
@@ -152,7 +159,8 @@ function Router() {
         <Suspense fallback={<PageLoadingFallback />}>
           <Switch>
           <Route path="/login" component={Login} />
-          <Route path="/" component={Home} />
+          <Route path="/" component={InstitutionalCommandCentre} />
+          <Route path="/personal-dashboard" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
           <Route path="/notifications" component={NotificationCentre} />
           <Route path="/operations" component={OperationsDashboard} />

@@ -227,7 +227,7 @@ export default function CommandCenter() {
     <div className="space-y-6 max-w-7xl">
       <div>
         <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl font-bold text-foreground">Institutional Command Center</h1>
+          <h1 className="text-2xl font-bold text-foreground">Options Command Center</h1>
           <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30" data-testid="badge-paper-trading-mode">
             Paper Trading Mode
           </Badge>
@@ -240,11 +240,18 @@ export default function CommandCenter() {
           Informational only — nothing here places, closes, or modifies a real order, and no execution
           recommendation is ever generated.{" "}
           <Link
-            href="/"
+            href="/personal-dashboard"
             className="text-indigo-400 underline-offset-2 hover:underline"
             data-testid="link-to-institutional-home"
           >
-            Looking for your own personalized, at-a-glance dashboard? See Institutional Home.
+            Looking for your own personalized, at-a-glance dashboard? See Personal Dashboard.
+          </Link>{" "}
+          <Link
+            href="/"
+            className="text-indigo-400 underline-offset-2 hover:underline"
+            data-testid="link-to-command-centre"
+          >
+            Looking for the platform's own daily starting point? See Institutional Command Centre.
           </Link>
         </p>
       </div>
