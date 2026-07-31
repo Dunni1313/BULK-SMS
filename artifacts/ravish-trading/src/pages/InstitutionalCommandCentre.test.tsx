@@ -331,4 +331,23 @@ describe("InstitutionalCommandCentre", () => {
     expect(await screen.findByTestId("card-portfolio-intelligence")).toBeInTheDocument();
     expect(screen.getByTestId("portfolio-intelligence-no-alerts")).toBeInTheDocument();
   });
+
+  // v1.5.0, Sprint 16 — Institutional Workflow Automation Engine.
+  it("renders the My Workflow card, reusing useWorkflowAutomation() directly, per Sprint 16", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-my-workflow")).toBeInTheDocument();
+    expect(screen.getByTestId("my-workflow-view-link")).toHaveAttribute("href", "/workflow-automation-engine");
+  });
+
+  it("shows an honest 'nothing pending' My Workflow state when no notebooks/trade plans/portfolio data exist, per Sprint 16", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-my-workflow");
+    // With zero notebooks across every engine, the one always-derivable
+    // "research-to-notebook" starter task is the sole recommended item.
+    expect(screen.getByTestId("my-workflow-recommended-list")).toBeInTheDocument();
+    expect(screen.getByTestId("my-workflow-no-blocked")).toBeInTheDocument();
+    expect(screen.getByTestId("my-workflow-no-awaiting-review")).toBeInTheDocument();
+    expect(screen.getByTestId("my-workflow-portfolio-review")).toHaveTextContent("No portfolio review recommended right now.");
+    expect(screen.getByTestId("my-workflow-no-recent")).toBeInTheDocument();
+  });
 });

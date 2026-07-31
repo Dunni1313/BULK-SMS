@@ -64,6 +64,7 @@ import { useActiveDecisionSummary } from "@/lib/useDecisionWorkflow";
 import { useTradeLifecyclePipeline } from "@/lib/useTradeLifecycle";
 import { PIPELINE_STAGES, type PipelineStageId } from "@/lib/tradeLifecycle";
 import { usePortfolioRiskIntelligence } from "@/lib/usePortfolioRiskIntelligence";
+import { useWorkflowAutomation } from "@/lib/useWorkflowAutomation";
 import {
   Compass,
   ShieldAlert,
@@ -76,6 +77,9 @@ import {
   Milestone,
   Route,
   GaugeCircle,
+  Workflow,
+  PauseCircle,
+  CheckCircle2,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -698,6 +702,118 @@ function PortfolioIntelligenceCard() {
   );
 }
 
+// ─── My Workflow (v1.5.0, Sprint 16) ────────────────────────────────────
+// Reuses useWorkflowAutomation() directly — the exact same hook backing
+// the full /workflow-automation-engine page. Surfaces exactly what the
+// approved scope named: Recommended next tasks, Blocked workflows, Items
+// awaiting review, Recently completed actions, Upcoming portfolio
+// reviews, and Learning recommendations — never a second, duplicate task
+// computation.
+
+function MyWorkflowCard() {
+  const { loading, activeTasks, recentlyCompleted } = useWorkflowAutomation();
+
+  if (loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const recommended = activeTasks.filter((t) => t.status === "pending").slice(0, 3);
+  const blocked = activeTasks.filter((t) => t.status === "waiting");
+  const awaitingReview = activeTasks.filter((t) => t.status === "in-progress").slice(0, 3);
+  const portfolioReview = activeTasks.find((t) => t.automation === "portfolio-risk-to-review");
+  const learningRecommendation = activeTasks.find((t) => t.automation === "learning-weakness-to-practice");
+  const recent = recentlyCompleted.slice(0, 3);
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-my-workflow">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Workflow className="h-4 w-4" /> My Workflow
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/workflow-automation-engine" className="underline">
+            Workflow Automation Engine
+          </Link>
+          .
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div>
+          <p className="text-muted-foreground mb-1">Recommended Next Tasks</p>
+          {recommended.length === 0 ? (
+            <p data-testid="my-workflow-no-recommended">Nothing pending right now.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="my-workflow-recommended-list">
+              {recommended.map((t) => (
+                <li key={t.id}>{t.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <PauseCircle className="h-3 w-3" /> Blocked Workflows
+          </p>
+          {blocked.length === 0 ? (
+            <p data-testid="my-workflow-no-blocked">Nothing blocked.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="my-workflow-blocked-list">
+              {blocked.map((t) => (
+                <li key={t.id}>{t.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Items Awaiting Review</p>
+          {awaitingReview.length === 0 ? (
+            <p data-testid="my-workflow-no-awaiting-review">Nothing awaiting review.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="my-workflow-awaiting-review-list">
+              {awaitingReview.map((t) => (
+                <li key={t.id}>{t.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Upcoming Portfolio Review</p>
+          <p data-testid="my-workflow-portfolio-review">{portfolioReview ? portfolioReview.title : "No portfolio review recommended right now."}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Learning Recommendation</p>
+          <p data-testid="my-workflow-learning-recommendation">{learningRecommendation ? learningRecommendation.title : "No specific practice recommended right now."}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Recently Completed
+          </p>
+          {recent.length === 0 ? (
+            <p data-testid="my-workflow-no-recent">None yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="my-workflow-recent-list">
+              {recent.map((t) => (
+                <li key={t.id}>{t.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <Link href="/workflow-automation-engine" className="text-xs font-medium text-primary hover:underline inline-block" data-testid="my-workflow-view-link">
+          Open Workflow Automation Engine →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -994,6 +1110,8 @@ export default function InstitutionalCommandCentre() {
         <DecisionInProgressCard />
         <ExecutionPipelineCard pipeline={pipeline} />
       </div>
+
+      <MyWorkflowCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <PortfolioIntelligenceCard />

@@ -44,6 +44,12 @@ import { recordJobRun } from "./systemHealth.js";
 // routes/monitoringEngine.ts's own explicit check endpoint, never from the
 // automatic background tick (see that function's own header comment).
 import { evaluateSymbolMonitoringAlerts, evaluatePortfolioMonitoringAlerts } from "./monitoringEngine.js";
+// v1.5.0, Sprint 16 — Institutional Workflow Automation Engine. The one
+// genuinely new evaluator this sprint adds to this already-existing
+// pipeline — see lib/workflowReminders.ts's own header comment for why
+// this is the sole workflow automation modeled as a real, async push
+// notification rather than a purely frontend-derived Task.
+import { evaluateJournalReminders } from "./workflowReminders.js";
 
 // AlertType/AlertSeverity/AlertCandidate moved to lib/alertTypes.ts during
 // the Version 1 Release Candidate (RC1) hardening pass, to break a
@@ -223,13 +229,14 @@ export async function evaluateAndPersistAlertsForUser(userId: string): Promise<P
   if (!settings.alertsEnabled) return [];
 
   const provider = await getFundamentalsProvider(userId);
-  const [watchlistCandidates, riskCandidates, symbolCandidates, portfolioCandidates] = await Promise.all([
+  const [watchlistCandidates, riskCandidates, symbolCandidates, portfolioCandidates, journalCandidates] = await Promise.all([
     evaluateWatchlistAlerts(userId).catch(() => [] as AlertCandidate[]),
     evaluateRiskAlerts(userId).catch(() => [] as AlertCandidate[]),
     evaluateSymbolMonitoringAlerts(userId, provider).catch(() => [] as AlertCandidate[]),
     evaluatePortfolioMonitoringAlerts(userId, provider).catch(() => [] as AlertCandidate[]),
+    evaluateJournalReminders(userId).catch(() => [] as AlertCandidate[]),
   ]);
-  const candidates = [...watchlistCandidates, ...riskCandidates, ...symbolCandidates, ...portfolioCandidates];
+  const candidates = [...watchlistCandidates, ...riskCandidates, ...symbolCandidates, ...portfolioCandidates, ...journalCandidates];
   return persistAlertCandidates(userId, candidates);
 }
 

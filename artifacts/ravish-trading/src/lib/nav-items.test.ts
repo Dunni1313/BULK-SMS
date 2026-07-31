@@ -125,6 +125,10 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // (docs/v1.5.0-Sprint-15-Portfolio-Risk-Intelligence.md). The intelligence
   // layer sitting above every other module.
   "/portfolio-risk-intelligence",
+  // v1.5.0, Sprint 16 — Institutional Workflow Automation Engine
+  // (docs/v1.5.0-Sprint-16-Workflow-Automation-Engine.md). Connects every
+  // existing module into one unified, dismissible Task list.
+  "/workflow-automation-engine",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {
