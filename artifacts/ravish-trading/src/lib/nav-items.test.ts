@@ -139,6 +139,11 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // documented operating procedures, each stage linking to an already-
   // existing module.
   "/playbooks",
+  // v1.5.0, Sprint 19 — Institutional Decision Quality & Review Engine
+  // (docs/v1.5.0-Sprint-19-Decision-Quality-Review.md). Evaluates decision
+  // PROCESS quality using already-collected platform evidence — never
+  // trade outcome.
+  "/decision-quality-review",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {

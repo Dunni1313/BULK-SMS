@@ -386,4 +386,62 @@ describe("InstitutionalCommandCentre", () => {
     // content's own declared order.
     expect(screen.getByTestId("playbooks-recommended-next")).toHaveTextContent("Investment Research");
   });
+
+  // v1.5.0, Sprint 19 — Institutional Decision Quality & Review Engine.
+  it("renders the Decision Quality card, reusing useDecisionQualityEngine() directly", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-decision-quality")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-quality-view-link")).toHaveAttribute("href", "/decision-quality-review");
+  });
+
+  it("shows an honest empty Decision Quality state when no decision has ever been executed", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-decision-quality");
+    expect(screen.getByTestId("decision-quality-no-reviews")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-quality-no-improvements")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-quality-no-recurring")).toBeInTheDocument();
+    expect(screen.getByTestId("decision-quality-pending-count")).toHaveTextContent("0 decisions awaiting review.");
+    expect(screen.getByTestId("decision-quality-recommended-next")).toHaveTextContent("No decision recommended for review right now.");
+  });
+
+  it("surfaces a real reviewed decision's process score on the Decision Quality card, never a fabricated figure", async () => {
+    const plan = {
+      id: 501,
+      coachId: "options",
+      workspaceId: null,
+      strategyId: null,
+      title: "AAPL Iron Condor",
+      plannedAsset: "AAPL",
+      assetClass: "equity",
+      direction: "long",
+      status: "executed",
+      pinned: false,
+      tags: [],
+      currentVersion: 1,
+      executedTradeRef: "501",
+      executedAt: "2026-07-01T00:00:00Z",
+      createdAt: "2026-07-01T00:00:00Z",
+      updatedAt: "2026-07-01T00:00:00Z",
+      sections: [
+        { id: 1, tradePlanId: 501, kind: "confirmation_rules", content: "Close below 190 invalidates.", notebook: null, conversation: null, file: null, createdAt: "", updatedAt: "" },
+        { id: 2, tradePlanId: 501, kind: "position_size_notes", content: "Sized at 1% account risk.", notebook: null, conversation: null, file: null, createdAt: "", updatedAt: "" },
+      ],
+      versions: [],
+      checklistItems: [],
+      checklistProgress: { totalItems: 2, completedItems: 2, requiredItems: 2, completedRequiredItems: 2, progressPct: 100, readyForEntry: true },
+    };
+    listTradePlansMock.mockImplementation(async (coachId: string) => (coachId === "options" ? [plan] : []));
+    getTradePlanMock.mockResolvedValue(plan);
+    getMissingTradePlanInformationMock.mockResolvedValue({ missing: [], present: [], completenessPct: 100 });
+    mockState.closedTrades = [{ id: 501, symbol: "AAPL", strategy: "iron_condor", status: "closed", legs: [], openDate: "2026-07-01T00:00:00Z", closeDate: "2026-07-05T00:00:00Z", credit: 0, maxProfit: 1000, maxLoss: 500, currentPnl: 300, pop: 0.6, ev: 50, theta: 0, ravishScore: 80 }];
+    mockState.journalEntries = [
+      { id: 9, tradeId: 501, title: "Closed AAPL", content: "x", mood: "confident", thesis: "Breakout on volume confirmation.", entryReasoning: "Entered on reclaim of 195.", lessonLearned: "Took profit on schedule.", tags: [], createdAt: "2026-07-05T00:00:00Z" },
+    ];
+
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-decision-quality");
+
+    expect(await screen.findByTestId("decision-quality-recent-list", {}, { timeout: 5000 })).toHaveTextContent("AAPL Iron Condor");
+    expect(screen.getByTestId("decision-quality-recent-list")).toHaveTextContent("/100");
+  });
 });

@@ -112,7 +112,14 @@ function kindGroupConfidence(
   return { confidence, missing };
 }
 
-function statusFromConfidence(confidence: number): StageCompletionStatus {
+// v1.5.0, Sprint 19 — exported (not recomputed) so lib/decisionReview.ts's
+// Decision Quality & Review Engine can classify its own new, honest
+// presence/consistency-based fields (alternative scenarios considered,
+// position sizing, decision rationale, execution discipline) against the
+// exact same 100/partial/missing thresholds this module already
+// established for every core Decision Engine stage — never a second,
+// slightly-different classification scale.
+export function statusFromConfidence(confidence: number): StageCompletionStatus {
   if (confidence >= 100) return "complete";
   if (confidence > 0) return "partial";
   return "missing";

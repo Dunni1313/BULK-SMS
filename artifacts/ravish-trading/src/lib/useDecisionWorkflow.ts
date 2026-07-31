@@ -221,8 +221,12 @@ export interface ActiveDecisionSummary {
   weakestStage: DecisionStage | null;
 }
 
-const NEUTRAL_REVIEW: ReviewContext = { hasJournalEntry: null };
-const NEUTRAL_PORTFOLIO: PortfolioContext = { currentlyHeldOrWatched: false, sourceLabel: "" };
+// v1.5.0, Sprint 19 — exported (not recomputed) so lib/useDecisionQualityEngine.ts
+// can reuse the exact same "review/portfolio context not needed for this
+// read" placeholders this hook already established for useActiveDecisionSummary()'s
+// own lighter-weight per-plan computation.
+export const NEUTRAL_REVIEW: ReviewContext = { hasJournalEntry: null };
+export const NEUTRAL_PORTFOLIO: PortfolioContext = { currentlyHeldOrWatched: false, sourceLabel: "" };
 
 export function useActiveDecisionSummary(): ActiveDecisionSummary {
   const [summary, setSummary] = useState<ActiveDecisionSummary>({ loading: true, tradePlan: null, score: null, weakestStage: null });
