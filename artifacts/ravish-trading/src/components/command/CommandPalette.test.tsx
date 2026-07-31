@@ -225,4 +225,24 @@ describe("CommandPalette", () => {
     expect(window.location.pathname + window.location.search).toBe("/execution-lifecycle-manager?planId=100");
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  // v1.5.0, Sprint 18 — Institutional Playbooks & Operating Procedures
+  // Engine. Playbooks are pure, static content — always shown, never
+  // gated on the palette being opened first.
+  it("shows all 12 Playbooks immediately (no fetch needed) and selecting one deep-links to it", async () => {
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    expect(screen.getByTestId("command-item-playbook-trade-planning")).toHaveTextContent("Trade Planning");
+    expect(screen.getByTestId("command-item-playbook-quarterly-performance-review")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("command-item-playbook-decision-review"));
+    expect(window.location.pathname + window.location.search).toBe("/playbooks?playbookId=decision-review");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("finds a Playbook by one of its own stage titles, never a second search engine", async () => {
+    renderWithClient(<CommandPalette open={true} onOpenChange={vi.fn()} />);
+    await userEvent.type(screen.getByTestId("command-palette-input"), "Pre-Trade Checklist");
+    expect(screen.getByTestId("command-item-playbook-trade-planning")).toBeInTheDocument();
+  });
 });

@@ -61,7 +61,12 @@ import { listNotebooks, type AiNotebook } from "@/lib/ai-coach/notebooksApi";
 import { listStrategies, type AiStrategy } from "@/lib/ai-coach/strategiesApi";
 import { listTradePlans, type TradePlan } from "@/lib/ai-coach/tradePlansApi";
 import type { CoachId } from "@/lib/ai-coach/capabilityRegistry";
-import { Compass, Zap, Briefcase, BookOpen, Library, GraduationCap, Map, Sparkles, ListChecks, Building2, Bookmark, Network, Route } from "lucide-react";
+// v1.5.0, Sprint 18 — Institutional Playbooks & Operating Procedures
+// Engine. PLAYBOOKS is pure, static content (lib/playbooks.ts) — unlike
+// the other Sprint 17 additions above, it needs no fetch/effect at all,
+// so it's simply imported and searched directly.
+import { PLAYBOOKS } from "@/lib/playbooks";
+import { Compass, Zap, Briefcase, BookOpen, Library, GraduationCap, Map, Sparkles, ListChecks, Building2, Bookmark, Network, Route, BookMarked } from "lucide-react";
 
 const COACH_IDS: CoachId[] = ["investing", "trading", "options"];
 
@@ -500,6 +505,21 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             </CommandGroup>
           </>
         )}
+
+        <CommandSeparator />
+        <CommandGroup heading="Playbooks">
+          {PLAYBOOKS.map((p) => (
+            <CommandItem
+              key={p.id}
+              value={`playbook procedure standard operating procedure ${p.name} ${p.purpose} ${p.stages.map((s) => s.title).join(" ")}`}
+              onSelect={() => go(`/playbooks?playbookId=${p.id}`)}
+              data-testid={`command-item-playbook-${p.id}`}
+            >
+              <BookMarked className="h-4 w-4" />
+              <span>{p.name}</span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
 
         <CommandSeparator />
         <CommandGroup heading="Other">

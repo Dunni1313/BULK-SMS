@@ -366,6 +366,14 @@ function tradeClosedToJournalTasks(input: WorkflowAutomationInput): WorkflowTask
 // Reuses Sprint 15's own PortfolioHealthScore/RiskIntelligenceReport
 // directly — zero new risk scoring.
 
+// v1.5.0, Sprint 18 — extracted (not recomputed) so lib/playbookProgress.ts's
+// Portfolio Review playbook can reuse the exact same breach-detection
+// reading this automation already established, rather than a second,
+// subtly different regex somewhere else.
+export function hasBreachedRiskSignal(portfolioRisk: RiskIntelligenceReport | null): boolean {
+  return !!portfolioRisk?.signals.find((s) => s.available && (s.code === "open_trade_risk" || s.code === "single_position_risk") && /breach|above|exceed/i.test(s.detail));
+}
+
 function portfolioRiskToReviewTasks(input: WorkflowAutomationInput): WorkflowTask[] {
   const { portfolioHealth, portfolioRisk } = input;
   // A portfolio with zero available factors (a brand-new user with no

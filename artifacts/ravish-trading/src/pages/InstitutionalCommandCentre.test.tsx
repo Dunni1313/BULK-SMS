@@ -367,4 +367,23 @@ describe("InstitutionalCommandCentre", () => {
     expect(screen.getByTestId("knowledge-insights-no-improvements")).toBeInTheDocument();
     expect(screen.getByTestId("knowledge-insights-no-themes")).toBeInTheDocument();
   });
+
+  // v1.5.0, Sprint 18 — Institutional Playbooks & Operating Procedures Engine.
+  it("renders the Playbooks card, reusing usePlaybooks() directly", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-playbooks")).toBeInTheDocument();
+    expect(screen.getByTestId("playbooks-view-link")).toHaveAttribute("href", "/playbooks");
+  });
+
+  it("shows an honest empty Playbooks state when nothing has been created anywhere yet", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-playbooks");
+    expect(screen.getByTestId("playbooks-no-current")).toBeInTheDocument();
+    expect(screen.getByTestId("playbooks-no-blocked")).toBeInTheDocument();
+    expect(screen.getByTestId("playbooks-no-completed")).toBeInTheDocument();
+    // With zero notebooks/strategies/trade plans/portfolio signal anywhere,
+    // Investment Research is the first not-started playbook in the
+    // content's own declared order.
+    expect(screen.getByTestId("playbooks-recommended-next")).toHaveTextContent("Investment Research");
+  });
 });

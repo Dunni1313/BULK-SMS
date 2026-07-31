@@ -173,6 +173,12 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // into one reusable, transparent knowledge graph. See
       // docs/v1.5.0-Sprint-17-Knowledge-Intelligence-Graph.md.
       { title: "Knowledge & Intelligence Graph", href: "/knowledge-graph", icon: Network },
+      // v1.5.0, Sprint 18 — Institutional Playbooks & Operating Procedures
+      // Engine. Not another Learning Centre, not another Workflow Engine,
+      // not another Knowledge Graph — 12 documented operating procedures
+      // whose every stage links to an already-existing module. See
+      // docs/v1.5.0-Sprint-18-Institutional-Playbooks.md.
+      { title: "Playbooks & Operating Procedures", href: "/playbooks", icon: BookMarked },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },
