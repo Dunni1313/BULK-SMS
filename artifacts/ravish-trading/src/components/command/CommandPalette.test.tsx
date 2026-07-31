@@ -41,6 +41,17 @@ vi.mock("@workspace/api-client-react", async () => {
 vi.mock("@/lib/portfolio-export", () => ({ downloadPortfolioCsv: vi.fn() }));
 import { downloadPortfolioCsv } from "@/lib/portfolio-export";
 
+// v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph. Extends
+// the existing search — Research/My Strategies/Trade Plans, mirroring
+// this file's own established plain-fetch mocking pattern.
+const listNotebooksMock = vi.hoisted(() => vi.fn(async (_coachId?: string) => [] as unknown[]));
+const listStrategiesApiMock = vi.hoisted(() => vi.fn(async (_coachId?: string) => [] as unknown[]));
+const listTradePlansMock = vi.hoisted(() => vi.fn(async (_coachId?: string) => [] as unknown[]));
+
+vi.mock("@/lib/ai-coach/notebooksApi", () => ({ listNotebooks: listNotebooksMock }));
+vi.mock("@/lib/ai-coach/strategiesApi", () => ({ listStrategies: listStrategiesApiMock }));
+vi.mock("@/lib/ai-coach/tradePlansApi", () => ({ listTradePlans: listTradePlansMock }));
+
 import { CommandPalette } from "./CommandPalette";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -55,6 +66,9 @@ beforeEach(() => {
   mockState.portfolios = [];
   mockState.progress = undefined;
   window.history.pushState(null, "", "/");
+  listNotebooksMock.mockReset().mockResolvedValue([]);
+  listStrategiesApiMock.mockReset().mockResolvedValue([]);
+  listTradePlansMock.mockReset().mockResolvedValue([]);
   vi.clearAllMocks();
 });
 
@@ -186,5 +200,29 @@ describe("CommandPalette", () => {
     };
     renderWithClient(<CommandPalette open={true} onOpenChange={vi.fn()} />);
     expect(screen.getByTestId("command-item-observation-obs-1")).toBeInTheDocument();
+  });
+
+  // v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph.
+  it("fetches Research/My Strategies/Trade Plans only once the palette is open, and shows a real result of each once resolved", async () => {
+    listNotebooksMock.mockImplementation(async (coachId?: string) => (coachId === "trading" ? [{ id: 1, title: "NVDA momentum research", tags: ["NVDA"] }] : []));
+    listStrategiesApiMock.mockImplementation(async (coachId?: string) => (coachId === "trading" ? [{ id: 10, title: "Breakout momentum", tags: [] }] : []));
+    listTradePlansMock.mockImplementation(async (coachId?: string) => (coachId === "trading" ? [{ id: 100, title: "NVDA breakout plan", plannedAsset: "NVDA", tags: [] }] : []));
+
+    renderWithClient(<CommandPalette open={false} onOpenChange={vi.fn()} />);
+    expect(listNotebooksMock).not.toHaveBeenCalled();
+
+    renderWithClient(<CommandPalette open={true} onOpenChange={vi.fn()} />);
+    expect(await screen.findByTestId("command-item-notebook-1")).toHaveTextContent("NVDA momentum research");
+    expect(await screen.findByTestId("command-item-my-strategy-10")).toHaveTextContent("Breakout momentum");
+    expect(await screen.findByTestId("command-item-trade-plan-100")).toHaveTextContent("NVDA breakout plan (NVDA)");
+  });
+
+  it("selecting a real Trade Plan navigates to the Execution & Lifecycle Manager pre-selected", async () => {
+    listTradePlansMock.mockImplementation(async (coachId?: string) => (coachId === "trading" ? [{ id: 100, title: "NVDA breakout plan", plannedAsset: "NVDA", tags: [] }] : []));
+    const onOpenChange = vi.fn();
+    renderWithClient(<CommandPalette open={true} onOpenChange={onOpenChange} />);
+    fireEvent.click(await screen.findByTestId("command-item-trade-plan-100"));
+    expect(window.location.pathname + window.location.search).toBe("/execution-lifecycle-manager?planId=100");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });

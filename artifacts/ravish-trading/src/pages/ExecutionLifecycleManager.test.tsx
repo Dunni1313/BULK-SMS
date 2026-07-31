@@ -22,6 +22,12 @@ vi.mock("@/lib/ai-coach/tradePlansApi", () => ({
 vi.mock("@/lib/ai-coach/strategiesApi", () => ({
   getStrategy: vi.fn(async () => null),
   getMissingSections: vi.fn(async () => null),
+  listStrategies: vi.fn(async () => []),
+}));
+
+// v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph.
+vi.mock("@/lib/ai-coach/notebooksApi", () => ({
+  listNotebooks: vi.fn(async () => []),
 }));
 
 const mockState = vi.hoisted(() => ({
@@ -39,6 +45,17 @@ vi.mock("@workspace/api-client-react", async () => {
     useListTrades: () => ({ data: mockState.trades }),
     useListTradingPositions: () => ({ data: mockState.positions }),
     useGetLearningProgress: () => ({ data: mockState.learningProgress }),
+    // v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph.
+    // RelatedKnowledgeCard reuses usePortfolioRiskIntelligence() (Sprint
+    // 15) via useKnowledgeGraph() — mocked the same way
+    // InstitutionalCommandCentre.test.tsx already established for that
+    // exact hook, so it settles immediately instead of hitting real,
+    // unmocked network calls in this jsdom test environment.
+    useGetPortfolioDashboard: () => ({ data: undefined, isLoading: false }),
+    useGetPortfolioConcentration: () => ({ data: undefined, isLoading: false }),
+    useGetPortfolios: () => ({ data: [], isLoading: false }),
+    useGetPortfolioRisk: () => ({ data: undefined, isLoading: false }),
+    useGetTradingRisk: () => ({ data: undefined, isLoading: false }),
   };
 });
 
@@ -177,5 +194,23 @@ describe("ExecutionLifecycleManager", () => {
     expect(await screen.findByTestId("ai-trade-manager-card")).toBeInTheDocument();
     expect(screen.getByTestId("guidance-what-now")).toHaveTextContent(/execution package/i);
     expect(screen.getByTestId("lifecycle-learning-card")).toBeInTheDocument();
+  });
+
+  // v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph.
+  it("shows the Related Knowledge card, reusing useKnowledgeGraph() directly, surfacing the plan's own real plannedAsset connection", async () => {
+    const plan = readyToExecutePlan();
+    listTradePlansMock.mockImplementation(async (coachId: string) => (coachId === "trading" ? [plan] : []));
+    getTradePlanMock.mockResolvedValue(plan);
+
+    renderWithClient(<ExecutionLifecycleManager />);
+    await userEvent.click(await screen.findByTestId("pipeline-card-42"));
+
+    expect(await screen.findByTestId("card-related-knowledge", {}, { timeout: 5000 })).toBeInTheDocument();
+    // This fixture's own plannedAsset ("AAPL") produces one real,
+    // structural connection to a derived company node — never fabricated,
+    // the graph engine's own honest behaviour (knowledgeGraph.test.ts
+    // covers the fully-isolated-entity case directly).
+    expect(await screen.findByTestId("related-knowledge-list", {}, { timeout: 5000 })).toHaveTextContent("AAPL");
+    expect(screen.getByTestId("related-knowledge-list")).toHaveTextContent("planned asset");
   });
 });

@@ -350,4 +350,21 @@ describe("InstitutionalCommandCentre", () => {
     expect(screen.getByTestId("my-workflow-portfolio-review")).toHaveTextContent("No portfolio review recommended right now.");
     expect(screen.getByTestId("my-workflow-no-recent")).toBeInTheDocument();
   });
+
+  // v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph.
+  it("renders the Knowledge Insights card, reusing useKnowledgeGraph() directly", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-knowledge-insights")).toBeInTheDocument();
+    expect(screen.getByTestId("knowledge-insights-view-link")).toHaveAttribute("href", "/knowledge-graph");
+  });
+
+  it("shows an honest empty Knowledge Insights state when nothing has been created anywhere yet", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-knowledge-insights");
+    expect(screen.getByTestId("knowledge-insights-no-discoveries")).toBeInTheDocument();
+    expect(screen.getByTestId("knowledge-insights-no-connected")).toBeInTheDocument();
+    expect(screen.getByTestId("knowledge-insights-no-mistakes")).toBeInTheDocument();
+    expect(screen.getByTestId("knowledge-insights-no-improvements")).toBeInTheDocument();
+    expect(screen.getByTestId("knowledge-insights-no-themes")).toBeInTheDocument();
+  });
 });

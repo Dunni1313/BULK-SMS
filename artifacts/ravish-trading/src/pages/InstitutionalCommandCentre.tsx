@@ -65,6 +65,8 @@ import { useTradeLifecyclePipeline } from "@/lib/useTradeLifecycle";
 import { PIPELINE_STAGES, type PipelineStageId } from "@/lib/tradeLifecycle";
 import { usePortfolioRiskIntelligence } from "@/lib/usePortfolioRiskIntelligence";
 import { useWorkflowAutomation } from "@/lib/useWorkflowAutomation";
+import { useKnowledgeGraph } from "@/lib/useKnowledgeGraph";
+import { buildKnowledgeInsights } from "@/lib/knowledgeGraph";
 import {
   Compass,
   ShieldAlert,
@@ -80,6 +82,7 @@ import {
   Workflow,
   PauseCircle,
   CheckCircle2,
+  Network,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -814,6 +817,114 @@ function MyWorkflowCard() {
   );
 }
 
+// ─── Knowledge Insights (v1.5.0, Sprint 17) ─────────────────────────────
+// Reuses useKnowledgeGraph() directly — the exact same hook backing the
+// full /knowledge-graph page. Surfaces exactly what the approved scope
+// named: Recent discoveries, Frequently connected entities, Repeated
+// mistakes, Strongest learning improvements, Emerging themes — never a
+// second, duplicate graph computation.
+
+function KnowledgeInsightsCard() {
+  const { loading, graph } = useKnowledgeGraph();
+  const { data: journalEntries } = useListJournalEntries();
+  const insights = useMemo(() => buildKnowledgeInsights(graph, journalEntries ?? [], null), [graph, journalEntries]);
+
+  if (loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-knowledge-insights">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Network className="h-4 w-4" /> Knowledge Insights
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/knowledge-graph" className="underline">
+            Knowledge &amp; Intelligence Graph
+          </Link>
+          .
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div>
+          <p className="text-muted-foreground mb-1">Recent Discoveries</p>
+          {insights.recentDiscoveries.length === 0 ? (
+            <p data-testid="knowledge-insights-no-discoveries">Nothing new to report yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="knowledge-insights-discoveries-list">
+              {insights.recentDiscoveries.map((p, i) => (
+                <li key={i}>{p.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Frequently Connected Entities</p>
+          {insights.frequentlyConnected.length === 0 ? (
+            <p data-testid="knowledge-insights-no-connected">Not enough connections yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="knowledge-insights-connected-list">
+              {insights.frequentlyConnected.slice(0, 3).map((r) => (
+                <li key={r.node.id}>
+                  {r.node.label} — {r.connections} connection{r.connections === 1 ? "" : "s"}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Repeated Mistakes</p>
+          {insights.repeatedMistakes.length === 0 ? (
+            <p data-testid="knowledge-insights-no-mistakes">None detected yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="knowledge-insights-mistakes-list">
+              {insights.repeatedMistakes.map((p, i) => (
+                <li key={i}>{p.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Strongest Learning Improvements</p>
+          {insights.strongestLearningImprovements.length === 0 ? (
+            <p data-testid="knowledge-insights-no-improvements">None recorded yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="knowledge-insights-improvements-list">
+              {insights.strongestLearningImprovements.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Emerging Themes</p>
+          {insights.emergingThemes.length === 0 ? (
+            <p data-testid="knowledge-insights-no-themes">Nothing emerging yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="knowledge-insights-themes-list">
+              {insights.emergingThemes.map((r) => (
+                <li key={r.node.id}>{r.node.label}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <Link href="/knowledge-graph" className="text-xs font-medium text-primary hover:underline inline-block" data-testid="knowledge-insights-view-link">
+          Open Knowledge &amp; Intelligence Graph →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -1112,6 +1223,8 @@ export default function InstitutionalCommandCentre() {
       </div>
 
       <MyWorkflowCard />
+
+      <KnowledgeInsightsCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <PortfolioIntelligenceCard />

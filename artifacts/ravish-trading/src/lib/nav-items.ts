@@ -167,6 +167,12 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // module into one unified, dismissible Task list. See
       // docs/v1.5.0-Sprint-16-Workflow-Automation-Engine.md.
       { title: "Workflow Automation Engine", href: "/workflow-automation-engine", icon: Workflow },
+      // v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph.
+      // Not another database, not another notebook, not vector search —
+      // connects Research/Strategies/Trade Plans/Journal/Companies/Themes
+      // into one reusable, transparent knowledge graph. See
+      // docs/v1.5.0-Sprint-17-Knowledge-Intelligence-Graph.md.
+      { title: "Knowledge & Intelligence Graph", href: "/knowledge-graph", icon: Network },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },
