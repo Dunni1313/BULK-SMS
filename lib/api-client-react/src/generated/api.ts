@@ -39,6 +39,7 @@ import type {
   BrokerOrderResult,
   BrokerOrdersResult,
   BrokerPositionsResult,
+  CaptureOpportunityPipelineItemInput,
   ClearReportsResult,
   CoachExplanation,
   CoachLesson,
@@ -86,6 +87,7 @@ import type {
   DeleteCompliancePolicy200,
   DeleteInstitutionalReport200,
   DeleteInvestingWatchlist200,
+  DeleteOpportunityPipelineItem200,
   DeleteReportResult,
   DeleteResult,
   DeleteWorkflowInstance200,
@@ -167,6 +169,7 @@ import type {
   NarrateInvestmentCommitteeInput,
   NarrateInvestmentCommitteeResult,
   OpportunityComparisonResult,
+  OpportunityPipelineItem,
   OpportunitySavedScreen,
   OpportunitySavedScreenCreate,
   OpportunitySavedScreenUpdate,
@@ -313,6 +316,7 @@ import type {
   UpdateCompliancePolicyInput,
   UpdateInvestingWatchlistInput,
   UpdateInvestingWatchlistItemInput,
+  UpdateOpportunityPipelineItemInput,
   UpdateWorkflowInstanceInput,
   ValueHistoryRow,
   ValueLessonsResponse,
@@ -1056,6 +1060,296 @@ export function useGetMarketIntelligence<TData = Awaited<ReturnType<typeof getMa
 
 
 
+
+export const getListOpportunityPipelineItemsUrl = () => {
+
+
+
+
+  return `/api/opportunity-pipeline/items`
+}
+
+/**
+ * @summary List the calling user's own captured Opportunity Pipeline items, newest first
+ */
+export const listOpportunityPipelineItems = async ( options?: RequestInit): Promise<OpportunityPipelineItem[]> => {
+
+  return customFetch<OpportunityPipelineItem[]>(getListOpportunityPipelineItemsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOpportunityPipelineItemsQueryKey = () => {
+    return [
+    `/api/opportunity-pipeline/items`
+    ] as const;
+    }
+
+
+export const getListOpportunityPipelineItemsQueryOptions = <TData = Awaited<ReturnType<typeof listOpportunityPipelineItems>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOpportunityPipelineItems>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOpportunityPipelineItemsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOpportunityPipelineItems>>> = ({ signal }) => listOpportunityPipelineItems({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOpportunityPipelineItems>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListOpportunityPipelineItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listOpportunityPipelineItems>>>
+export type ListOpportunityPipelineItemsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the calling user's own captured Opportunity Pipeline items, newest first
+ */
+
+export function useListOpportunityPipelineItems<TData = Awaited<ReturnType<typeof listOpportunityPipelineItems>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listOpportunityPipelineItems>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListOpportunityPipelineItemsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCaptureOpportunityPipelineItemUrl = () => {
+
+
+
+
+  return `/api/opportunity-pipeline/items`
+}
+
+/**
+ * @summary Capture a new opportunity into the calling user's own pipeline, stage defaults to "discovered"
+ */
+export const captureOpportunityPipelineItem = async (captureOpportunityPipelineItemInput: CaptureOpportunityPipelineItemInput, options?: RequestInit): Promise<OpportunityPipelineItem> => {
+
+  return customFetch<OpportunityPipelineItem>(getCaptureOpportunityPipelineItemUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      captureOpportunityPipelineItemInput,)
+  }
+);}
+
+
+
+
+export const getCaptureOpportunityPipelineItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof captureOpportunityPipelineItem>>, TError,{data: BodyType<CaptureOpportunityPipelineItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof captureOpportunityPipelineItem>>, TError,{data: BodyType<CaptureOpportunityPipelineItemInput>}, TContext> => {
+
+const mutationKey = ['captureOpportunityPipelineItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof captureOpportunityPipelineItem>>, {data: BodyType<CaptureOpportunityPipelineItemInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  captureOpportunityPipelineItem(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CaptureOpportunityPipelineItemMutationResult = NonNullable<Awaited<ReturnType<typeof captureOpportunityPipelineItem>>>
+    export type CaptureOpportunityPipelineItemMutationBody = BodyType<CaptureOpportunityPipelineItemInput>
+    export type CaptureOpportunityPipelineItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Capture a new opportunity into the calling user's own pipeline, stage defaults to "discovered"
+ */
+export const useCaptureOpportunityPipelineItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof captureOpportunityPipelineItem>>, TError,{data: BodyType<CaptureOpportunityPipelineItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof captureOpportunityPipelineItem>>,
+        TError,
+        {data: BodyType<CaptureOpportunityPipelineItemInput>},
+        TContext
+      > => {
+      return useMutation(getCaptureOpportunityPipelineItemMutationOptions(options));
+    }
+
+export const getUpdateOpportunityPipelineItemUrl = (id: number,) => {
+
+
+
+
+  return `/api/opportunity-pipeline/items/${id}`
+}
+
+/**
+ * @summary Update an Opportunity Pipeline item's stage, priority, or research links
+ */
+export const updateOpportunityPipelineItem = async (id: number,
+    updateOpportunityPipelineItemInput: UpdateOpportunityPipelineItemInput, options?: RequestInit): Promise<OpportunityPipelineItem> => {
+
+  return customFetch<OpportunityPipelineItem>(getUpdateOpportunityPipelineItemUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateOpportunityPipelineItemInput,)
+  }
+);}
+
+
+
+
+export const getUpdateOpportunityPipelineItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOpportunityPipelineItem>>, TError,{id: number;data: BodyType<UpdateOpportunityPipelineItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOpportunityPipelineItem>>, TError,{id: number;data: BodyType<UpdateOpportunityPipelineItemInput>}, TContext> => {
+
+const mutationKey = ['updateOpportunityPipelineItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOpportunityPipelineItem>>, {id: number;data: BodyType<UpdateOpportunityPipelineItemInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateOpportunityPipelineItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateOpportunityPipelineItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateOpportunityPipelineItem>>>
+    export type UpdateOpportunityPipelineItemMutationBody = BodyType<UpdateOpportunityPipelineItemInput>
+    export type UpdateOpportunityPipelineItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an Opportunity Pipeline item's stage, priority, or research links
+ */
+export const useUpdateOpportunityPipelineItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOpportunityPipelineItem>>, TError,{id: number;data: BodyType<UpdateOpportunityPipelineItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateOpportunityPipelineItem>>,
+        TError,
+        {id: number;data: BodyType<UpdateOpportunityPipelineItemInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateOpportunityPipelineItemMutationOptions(options));
+    }
+
+export const getDeleteOpportunityPipelineItemUrl = (id: number,) => {
+
+
+
+
+  return `/api/opportunity-pipeline/items/${id}`
+}
+
+/**
+ * @summary Remove an Opportunity Pipeline item
+ */
+export const deleteOpportunityPipelineItem = async (id: number, options?: RequestInit): Promise<DeleteOpportunityPipelineItem200> => {
+
+  return customFetch<DeleteOpportunityPipelineItem200>(getDeleteOpportunityPipelineItemUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteOpportunityPipelineItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOpportunityPipelineItem>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteOpportunityPipelineItem>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteOpportunityPipelineItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteOpportunityPipelineItem>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteOpportunityPipelineItem(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteOpportunityPipelineItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteOpportunityPipelineItem>>>
+
+    export type DeleteOpportunityPipelineItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Remove an Opportunity Pipeline item
+ */
+export const useDeleteOpportunityPipelineItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOpportunityPipelineItem>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteOpportunityPipelineItem>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteOpportunityPipelineItemMutationOptions(options));
+    }
 
 export const getGetMarketDataHealthUrl = () => {
 

@@ -29,7 +29,7 @@
 
 import type { MarketIntelligenceItem, MarketIntelligenceCategory } from "@workspace/api-client-react";
 import { getPlaybook } from "./playbooks";
-import { relatedEntities, relatedEntitiesWithinTwoHops, type KnowledgeGraph } from "./knowledgeGraph";
+import { relatedResearchStrategiesLessons, type KnowledgeGraph } from "./knowledgeGraph";
 
 export interface MarketIntelligenceRelatedEntity {
   label: string;
@@ -91,15 +91,14 @@ export function enrichMarketIntelligenceItem(
   const relatedStrategies: MarketIntelligenceRelatedEntity[] = [];
   const relatedLessons: MarketIntelligenceRelatedEntity[] = [];
   for (const sym of affectedUpper) {
-    const companyId = `company:${sym}`;
-    if (!graph.nodes.some((n) => n.id === companyId)) continue;
-    for (const r of relatedEntitiesWithinTwoHops(graph, companyId, "notebook")) {
+    const found = relatedResearchStrategiesLessons(graph, sym);
+    for (const r of found.research) {
       if (!relatedResearch.some((e) => e.label === r.node.label)) relatedResearch.push({ label: r.node.label, href: r.node.href });
     }
-    for (const r of relatedEntities(graph, companyId).filter((r) => r.node.type === "strategy")) {
+    for (const r of found.strategies) {
       if (!relatedStrategies.some((e) => e.label === r.node.label)) relatedStrategies.push({ label: r.node.label, href: r.node.href });
     }
-    for (const r of relatedEntities(graph, companyId).filter((r) => r.node.type === "journal-entry")) {
+    for (const r of found.lessons) {
       if (!relatedLessons.some((e) => e.label === r.node.label)) relatedLessons.push({ label: r.node.label, href: r.node.href });
     }
   }

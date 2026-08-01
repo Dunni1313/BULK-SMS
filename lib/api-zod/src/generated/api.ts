@@ -406,6 +406,90 @@ export const GetMarketIntelligenceResponse = zod.object({
 
 
 /**
+ * @summary List the calling user's own captured Opportunity Pipeline items, newest first
+ */
+export const ListOpportunityPipelineItemsResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "category": zod.enum(['watchlist_event', 'economic_release', 'earnings', 'corporate_action', 'portfolio_gap', 'sector_development', 'macro_change', 'knowledge_graph_relationship', 'previously_researched', 'research_update_needed']).describe('v1.5.0, Sprint 21 — maps 1:1 onto the sprint\'s own named Opportunity Sources list; never a new detection formula, only a classification of which existing engine surfaced the signal.'),
+  "origin": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "relatedAssets": zod.array(zod.string()),
+  "relatedSectors": zod.array(zod.string()),
+  "priority": zod.enum(['low', 'medium', 'high']),
+  "stage": zod.enum(['discovered', 'screening', 'research-candidate', 'research-in-progress', 'research-complete', 'strategy-candidate', 'archived']),
+  "stageLabel": zod.string(),
+  "nextRecommendedAction": zod.string(),
+  "linkedNotebookId": zod.number().nullable(),
+  "relatedResearchSymbol": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "archivedAt": zod.string().nullable()
+})
+export const ListOpportunityPipelineItemsResponse = zod.array(ListOpportunityPipelineItemsResponseItem)
+
+
+/**
+ * @summary Capture a new opportunity into the calling user's own pipeline, stage defaults to "discovered"
+ */
+export const CaptureOpportunityPipelineItemBody = zod.object({
+  "title": zod.string(),
+  "category": zod.enum(['watchlist_event', 'economic_release', 'earnings', 'corporate_action', 'portfolio_gap', 'sector_development', 'macro_change', 'knowledge_graph_relationship', 'previously_researched', 'research_update_needed']).describe('v1.5.0, Sprint 21 — maps 1:1 onto the sprint\'s own named Opportunity Sources list; never a new detection formula, only a classification of which existing engine surfaced the signal.'),
+  "origin": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "relatedAssets": zod.array(zod.string()),
+  "relatedSectors": zod.array(zod.string()),
+  "priority": zod.enum(['low', 'medium', 'high'])
+})
+
+
+/**
+ * @summary Update an Opportunity Pipeline item's stage, priority, or research links
+ */
+export const UpdateOpportunityPipelineItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateOpportunityPipelineItemBody = zod.object({
+  "stage": zod.enum(['discovered', 'screening', 'research-candidate', 'research-in-progress', 'research-complete', 'strategy-candidate', 'archived']).optional(),
+  "priority": zod.enum(['low', 'medium', 'high']).optional(),
+  "linkedNotebookId": zod.number().nullish(),
+  "relatedResearchSymbol": zod.string().nullish()
+})
+
+export const UpdateOpportunityPipelineItemResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "category": zod.enum(['watchlist_event', 'economic_release', 'earnings', 'corporate_action', 'portfolio_gap', 'sector_development', 'macro_change', 'knowledge_graph_relationship', 'previously_researched', 'research_update_needed']).describe('v1.5.0, Sprint 21 — maps 1:1 onto the sprint\'s own named Opportunity Sources list; never a new detection formula, only a classification of which existing engine surfaced the signal.'),
+  "origin": zod.string(),
+  "evidence": zod.array(zod.string()),
+  "relatedAssets": zod.array(zod.string()),
+  "relatedSectors": zod.array(zod.string()),
+  "priority": zod.enum(['low', 'medium', 'high']),
+  "stage": zod.enum(['discovered', 'screening', 'research-candidate', 'research-in-progress', 'research-complete', 'strategy-candidate', 'archived']),
+  "stageLabel": zod.string(),
+  "nextRecommendedAction": zod.string(),
+  "linkedNotebookId": zod.number().nullable(),
+  "relatedResearchSymbol": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "archivedAt": zod.string().nullable()
+})
+
+
+/**
+ * @summary Remove an Opportunity Pipeline item
+ */
+export const DeleteOpportunityPipelineItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteOpportunityPipelineItemResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary Get options market-data provider status and last-scan health metrics
  */
 export const GetMarketDataHealthResponse = zod.object({

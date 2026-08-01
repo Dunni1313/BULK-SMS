@@ -391,6 +391,35 @@ export function relatedEntitiesWithinTwoHops(graph: KnowledgeGraph, id: string, 
   return Array.from(results.values());
 }
 
+export interface RelatedResearchStrategiesLessons {
+  research: RelatedEntity[];
+  strategies: RelatedEntity[];
+  lessons: RelatedEntity[];
+}
+
+// v1.5.0, Sprint 21 — extracted from lib/marketIntelligence.ts's own
+// enrichMarketIntelligenceItem() (Sprint 20), which had been hand-rolling
+// this exact "walk the company:{SYMBOL} node for research/strategies/
+// journal entries, deduplicated" logic instead of reusing the pre-existing
+// relatedEntitiesOfType()/relatedEntitiesWithinTwoHops() helpers above —
+// the same "extract on the second real consumer" precedent this
+// codebase's own backend already follows (classifyMarginOfSafety(),
+// historyConsistencyScore(), etc.), now the second consumer being the new
+// Opportunity Pipeline (lib/opportunityPipeline.ts). Returns an honestly
+// empty result (never a fabricated placeholder) when the symbol has no
+// company node in the graph at all.
+export function relatedResearchStrategiesLessons(graph: KnowledgeGraph, symbol: string): RelatedResearchStrategiesLessons {
+  const companyId = `company:${symbol.toUpperCase()}`;
+  if (!graph.nodes.some((n) => n.id === companyId)) {
+    return { research: [], strategies: [], lessons: [] };
+  }
+  return {
+    research: relatedEntitiesWithinTwoHops(graph, companyId, "notebook"),
+    strategies: relatedEntitiesOfType(graph, companyId, "strategy"),
+    lessons: relatedEntitiesOfType(graph, companyId, "journal-entry"),
+  };
+}
+
 export function nodeById(graph: KnowledgeGraph, id: string): KnowledgeNode | null {
   return graph.nodes.find((n) => n.id === id) ?? null;
 }

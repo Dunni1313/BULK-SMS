@@ -150,6 +150,14 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // outward into Command Centre, Research, Decision Workflow, Portfolio
   // Intelligence, Knowledge Graph, and the AI Coach.
   "/market-intelligence",
+  // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine, built
+  // and named "Opportunity Pipeline" to avoid colliding with the
+  // pre-existing Phase 15 Opportunity Discovery scanner
+  // (docs/v1.5.0-Sprint-21-Opportunity-Discovery-Engine.md). The
+  // disciplined front door to the platform — discovering, capturing, and
+  // prioritising opportunities, tracked through a 7-stage pipeline into
+  // the existing Research workflow.
+  "/opportunity-pipeline",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {

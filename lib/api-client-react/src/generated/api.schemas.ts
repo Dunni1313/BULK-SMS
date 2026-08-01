@@ -11300,6 +11300,83 @@ export interface MarketIntelligenceFeed {
   generatedAt: string;
 }
 
+/**
+ * v1.5.0, Sprint 21 — maps 1:1 onto the sprint's own named Opportunity Sources list; never a new detection formula, only a classification of which existing engine surfaced the signal.
+ */
+export type OpportunityPipelineCategory = typeof OpportunityPipelineCategory[keyof typeof OpportunityPipelineCategory];
+
+
+export const OpportunityPipelineCategory = {
+  watchlist_event: 'watchlist_event',
+  economic_release: 'economic_release',
+  earnings: 'earnings',
+  corporate_action: 'corporate_action',
+  portfolio_gap: 'portfolio_gap',
+  sector_development: 'sector_development',
+  macro_change: 'macro_change',
+  knowledge_graph_relationship: 'knowledge_graph_relationship',
+  previously_researched: 'previously_researched',
+  research_update_needed: 'research_update_needed',
+} as const;
+
+export type OpportunityPipelineStage = typeof OpportunityPipelineStage[keyof typeof OpportunityPipelineStage];
+
+
+export const OpportunityPipelineStage = {
+  discovered: 'discovered',
+  screening: 'screening',
+  'research-candidate': 'research-candidate',
+  'research-in-progress': 'research-in-progress',
+  'research-complete': 'research-complete',
+  'strategy-candidate': 'strategy-candidate',
+  archived: 'archived',
+} as const;
+
+export type OpportunityPipelinePriority = typeof OpportunityPipelinePriority[keyof typeof OpportunityPipelinePriority];
+
+
+export const OpportunityPipelinePriority = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface OpportunityPipelineItem {
+  id: number;
+  title: string;
+  category: OpportunityPipelineCategory;
+  origin: string;
+  evidence: string[];
+  relatedAssets: string[];
+  relatedSectors: string[];
+  priority: OpportunityPipelinePriority;
+  stage: OpportunityPipelineStage;
+  stageLabel: string;
+  nextRecommendedAction: string;
+  linkedNotebookId: number | null;
+  relatedResearchSymbol: string | null;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt: string | null;
+}
+
+export interface CaptureOpportunityPipelineItemInput {
+  title: string;
+  category: OpportunityPipelineCategory;
+  origin: string;
+  evidence: string[];
+  relatedAssets: string[];
+  relatedSectors: string[];
+  priority: OpportunityPipelinePriority;
+}
+
+export interface UpdateOpportunityPipelineItemInput {
+  stage?: OpportunityPipelineStage;
+  priority?: OpportunityPipelinePriority;
+  linkedNotebookId?: number | null;
+  relatedResearchSymbol?: string | null;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -11321,6 +11398,10 @@ horizonDays?: number;
 
 export type GetMarketIntelligenceParams = {
 horizonDays?: number;
+};
+
+export type DeleteOpportunityPipelineItem200 = {
+  success: boolean;
 };
 
 export type ListReconciliationReports200 = {

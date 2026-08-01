@@ -71,6 +71,7 @@ import { usePlaybooks } from "@/lib/usePlaybooks";
 import { useDecisionQualityEngine } from "@/lib/useDecisionQualityEngine";
 import { useMarketIntelligence } from "@/lib/useMarketIntelligence";
 import { watchlistRelevantItems, priorityItems, todaysKeyEvents, upcomingEconomicReleases } from "@/lib/marketIntelligence";
+import { useOpportunityPipeline } from "@/lib/useOpportunityPipeline";
 import {
   Compass,
   ShieldAlert,
@@ -95,6 +96,8 @@ import {
   Flame,
   Eye,
   Sparkles,
+  Lightbulb,
+  Archive,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -1254,6 +1257,109 @@ function MarketIntelligenceCard() {
   );
 }
 
+// ─── Opportunity Pipeline ──────────────────────────────────────────────
+// v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine, built
+// and named "Opportunity Pipeline" to avoid colliding with the
+// pre-existing Phase 15 Opportunity Discovery scanner (see
+// lib/opportunityPipeline.ts's own header comment for the disclosed
+// reasoning). Reused directly from useOpportunityPipeline() — zero new
+// calculation in this file. Keep concise, per the approved scope.
+
+function OpportunityPipelineCard() {
+  const { loading, discovered, captured } = useOpportunityPipeline();
+
+  if (loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const capturedTitles = new Set(captured.map((c) => c.title));
+  const newOpportunities = discovered.filter((o) => !capturedTitles.has(o.title)).slice(0, 3);
+  const highPriority = discovered.filter((o) => o.priority === "high").slice(0, 3);
+  const awaitingResearch = captured.filter((c) => c.stage === "research-candidate").slice(0, 3);
+  const recentlyArchived = captured.filter((c) => c.stage === "archived").slice(0, 3);
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-opportunity-pipeline">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Lightbulb className="h-4 w-4" /> Opportunity Pipeline
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/opportunity-pipeline" className="underline">
+            Opportunity Pipeline
+          </Link>
+          . The disciplined front door to the platform — never a trading signal.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div>
+          <p className="text-muted-foreground mb-1">New Opportunities</p>
+          {newOpportunities.length === 0 ? (
+            <p data-testid="opportunity-pipeline-card-no-new">Nothing new right now.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="opportunity-pipeline-card-new">
+              {newOpportunities.map((o) => (
+                <li key={o.id}>{o.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <Flame className="h-3 w-3 text-destructive" /> High-Priority Candidates
+          </p>
+          {highPriority.length === 0 ? (
+            <p data-testid="opportunity-pipeline-card-no-high-priority">None flagged high priority right now.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="opportunity-pipeline-card-high-priority">
+              {highPriority.map((o) => (
+                <li key={o.id}>{o.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Research Awaiting Initiation</p>
+          {awaitingResearch.length === 0 ? (
+            <p data-testid="opportunity-pipeline-card-no-awaiting">Nothing awaiting research right now.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="opportunity-pipeline-card-awaiting">
+              {awaitingResearch.map((c) => (
+                <li key={c.id}>{c.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <Archive className="h-3 w-3" /> Recently Archived Ideas
+          </p>
+          {recentlyArchived.length === 0 ? (
+            <p data-testid="opportunity-pipeline-card-no-archived">None archived yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="opportunity-pipeline-card-archived">
+              {recentlyArchived.map((c) => (
+                <li key={c.id}>{c.title}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <Link href="/opportunity-pipeline" className="text-xs font-medium text-primary hover:underline inline-block" data-testid="opportunity-pipeline-view-link">
+          Open Opportunity Pipeline →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -1560,6 +1666,8 @@ export default function InstitutionalCommandCentre() {
       <DecisionQualityCard />
 
       <MarketIntelligenceCard />
+
+      <OpportunityPipelineCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <PortfolioIntelligenceCard />
