@@ -51,6 +51,8 @@ const KnowledgeIntelligenceGraph = lazy(() => import("./pages/KnowledgeIntellige
 const InstitutionalPlaybooks = lazy(() => import("./pages/InstitutionalPlaybooks"));
 // v1.5.0, Sprint 19 — Institutional Decision Quality & Review Engine.
 const DecisionQualityReview = lazy(() => import("./pages/DecisionQualityReview"));
+// v1.5.0, Sprint 20 — Institutional Market Intelligence Engine.
+const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
 const Home = lazy(() => import("./pages/Home"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
@@ -182,6 +184,7 @@ function Router() {
           <Route path="/knowledge-graph" component={KnowledgeIntelligenceGraph} />
           <Route path="/playbooks" component={InstitutionalPlaybooks} />
           <Route path="/decision-quality-review" component={DecisionQualityReview} />
+          <Route path="/market-intelligence" component={MarketIntelligence} />
           <Route path="/personal-dashboard" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
           <Route path="/notifications" component={NotificationCentre} />

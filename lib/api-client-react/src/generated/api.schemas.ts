@@ -11228,6 +11228,78 @@ export interface WorkspaceTopicLearning {
   links: WorkspaceLearningLink[];
 }
 
+export type MarketIntelligenceCategory = typeof MarketIntelligenceCategory[keyof typeof MarketIntelligenceCategory];
+
+
+export const MarketIntelligenceCategory = {
+  macro: 'macro',
+  economic_events: 'economic_events',
+  central_banks: 'central_banks',
+  earnings: 'earnings',
+  corporate_actions: 'corporate_actions',
+  sector_trends: 'sector_trends',
+  commodities: 'commodities',
+  currencies: 'currencies',
+  indices: 'indices',
+  volatility: 'volatility',
+  options_activity: 'options_activity',
+  market_breadth: 'market_breadth',
+  sentiment: 'sentiment',
+} as const;
+
+export interface MarketIntelligenceLearnMoreLink {
+  pathKey: string;
+  topicKey: string;
+  label: string;
+}
+
+export type MarketIntelligenceItemDataSource = typeof MarketIntelligenceItemDataSource[keyof typeof MarketIntelligenceItemDataSource];
+
+
+export const MarketIntelligenceItemDataSource = {
+  SIMULATED: 'SIMULATED',
+  LIVE: 'LIVE',
+} as const;
+
+export type MarketIntelligenceItemImpact = typeof MarketIntelligenceItemImpact[keyof typeof MarketIntelligenceItemImpact];
+
+
+export const MarketIntelligenceItemImpact = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface MarketIntelligenceItem {
+  id: string;
+  headline: string;
+  category: MarketIntelligenceCategory;
+  source: string;
+  dataSource: MarketIntelligenceItemDataSource;
+  timestamp: string;
+  impact: MarketIntelligenceItemImpact;
+  affectedAssets: string[];
+  affectedSectors: string[];
+  potentialRisks: string[];
+  potentialOpportunities: string[];
+  summary: string;
+  learnMore?: MarketIntelligenceLearnMoreLink | null;
+}
+
+export interface MarketIntelligenceCategoryMeta {
+  category: MarketIntelligenceCategory;
+  label: string;
+  description: string;
+  dataAvailable: boolean;
+  unavailableReason: string | null;
+}
+
+export interface MarketIntelligenceFeed {
+  items: MarketIntelligenceItem[];
+  categories: MarketIntelligenceCategoryMeta[];
+  generatedAt: string;
+}
+
 export type GetScannerResultsParams = {
 strategy?: GetScannerResultsStrategy;
 limit?: number;
@@ -11244,6 +11316,10 @@ export const GetScannerResultsStrategy = {
 } as const;
 
 export type GetUpcomingEventsParams = {
+horizonDays?: number;
+};
+
+export type GetMarketIntelligenceParams = {
 horizonDays?: number;
 };
 

@@ -54,6 +54,9 @@ const mockState = vi.hoisted(() => ({
   portfolios: [] as unknown[],
   portfolioRisk: undefined as unknown,
   tradingRisk: undefined as unknown,
+  // v1.5.0, Sprint 20 — Institutional Market Intelligence Engine.
+  marketIntelligenceFeed: undefined as unknown,
+  watchlistsDashboard: undefined as unknown,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -77,6 +80,8 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetPortfolios: () => ({ data: mockState.portfolios, isLoading: false }),
     useGetPortfolioRisk: () => ({ data: mockState.portfolioRisk, isLoading: false }),
     useGetTradingRisk: () => ({ data: mockState.tradingRisk, isLoading: false }),
+    useGetMarketIntelligence: () => ({ data: mockState.marketIntelligenceFeed, isLoading: false, refetch: vi.fn() }),
+    useGetWatchlistsDashboard: () => ({ data: mockState.watchlistsDashboard, isLoading: false }),
   };
 });
 
@@ -443,5 +448,53 @@ describe("InstitutionalCommandCentre", () => {
 
     expect(await screen.findByTestId("decision-quality-recent-list", {}, { timeout: 5000 })).toHaveTextContent("AAPL Iron Condor");
     expect(screen.getByTestId("decision-quality-recent-list")).toHaveTextContent("/100");
+  });
+
+  // v1.5.0, Sprint 20 — Institutional Market Intelligence Engine.
+  it("renders the Market Intelligence card, reusing useMarketIntelligence() directly", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-market-intelligence")).toBeInTheDocument();
+    expect(screen.getByTestId("market-intelligence-view-link")).toHaveAttribute("href", "/market-intelligence");
+  });
+
+  it("shows an honest empty Market Intelligence state when the feed has no items", async () => {
+    mockState.marketIntelligenceFeed = { items: [], categories: [], generatedAt: new Date().toISOString() };
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-market-intelligence");
+    expect(screen.getByTestId("market-intelligence-card-no-todays-events")).toBeInTheDocument();
+    expect(screen.getByTestId("market-intelligence-card-no-releases")).toBeInTheDocument();
+    expect(screen.getByTestId("market-intelligence-card-no-watchlist")).toBeInTheDocument();
+    expect(screen.getByTestId("market-intelligence-card-no-themes")).toBeInTheDocument();
+    expect(screen.getByTestId("market-intelligence-card-no-priority")).toBeInTheDocument();
+  });
+
+  it("surfaces a real intelligence item's headline on the Market Intelligence card, never a fabricated one", async () => {
+    mockState.marketIntelligenceFeed = {
+      items: [
+        {
+          id: "central_banks:fomc:today",
+          headline: "FOMC rate decision",
+          category: "central_banks",
+          source: "Simulated Economic/Event Calendar (eventRisk.ts)",
+          dataSource: "SIMULATED",
+          timestamp: new Date().toISOString(),
+          impact: "high",
+          affectedAssets: [],
+          affectedSectors: [],
+          potentialRisks: ["Broad market volatility around the announcement."],
+          potentialOpportunities: [],
+          summary: "FOMC rate decision today.",
+          learnMore: null,
+        },
+      ],
+      categories: [],
+      generatedAt: new Date().toISOString(),
+    };
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-market-intelligence");
+    // Market-wide (central_banks) at high impact — genuinely both today's
+    // key event and a priority item, never a fabricated duplicate.
+    expect(screen.getByTestId("market-intelligence-card-todays-events")).toHaveTextContent("FOMC rate decision");
+    expect(screen.getByTestId("market-intelligence-card-priority")).toHaveTextContent("FOMC rate decision");
   });
 });

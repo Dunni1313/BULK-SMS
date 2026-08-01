@@ -69,6 +69,8 @@ import { useKnowledgeGraph } from "@/lib/useKnowledgeGraph";
 import { buildKnowledgeInsights } from "@/lib/knowledgeGraph";
 import { usePlaybooks } from "@/lib/usePlaybooks";
 import { useDecisionQualityEngine } from "@/lib/useDecisionQualityEngine";
+import { useMarketIntelligence } from "@/lib/useMarketIntelligence";
+import { watchlistRelevantItems, priorityItems, todaysKeyEvents, upcomingEconomicReleases } from "@/lib/marketIntelligence";
 import {
   Compass,
   ShieldAlert,
@@ -89,6 +91,10 @@ import {
   BadgeCheck,
   TrendingUp,
   AlertTriangle,
+  Globe,
+  Flame,
+  Eye,
+  Sparkles,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -1126,6 +1132,128 @@ function DecisionQualityCard() {
   );
 }
 
+// ─── Market Intelligence ───────────────────────────────────────────────
+// v1.5.0, Sprint 20 — Institutional Market Intelligence Engine. Reused
+// directly from useMarketIntelligence() — zero new calculation in this
+// file. Distinct from MarketOverviewCard above (that card reuses Engine
+// 3's market briefing + Engine 1's macro regime for a general snapshot;
+// this card surfaces the classified, entity-linked Market Intelligence
+// feed itself — today's key events, upcoming releases, watchlist/
+// portfolio-relevant items, emerging themes, and priority items). Keep
+// concise, per the approved scope.
+
+function MarketIntelligenceCard() {
+  const { loading, items, emergingThemes } = useMarketIntelligence();
+
+  if (loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const todayIso = new Date().toISOString();
+  const todaysEvents = todaysKeyEvents(items, todayIso).slice(0, 3);
+  const releases = upcomingEconomicReleases(items).slice(0, 3);
+  const watchlistIntel = watchlistRelevantItems(items).slice(0, 3);
+  const priority = priorityItems(items).slice(0, 3);
+  const themes = emergingThemes.slice(0, 3);
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-market-intelligence">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Globe className="h-4 w-4" /> Market Intelligence
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/market-intelligence" className="underline">
+            Market Intelligence
+          </Link>
+          . External context, never a trading signal or price prediction.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <CalendarClock className="h-3 w-3" /> Today's Key Events
+          </p>
+          {todaysEvents.length === 0 ? (
+            <p data-testid="market-intelligence-card-no-todays-events">Nothing key today.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="market-intelligence-card-todays-events">
+              {todaysEvents.map((e) => (
+                <li key={e.id}>{e.headline}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Upcoming Economic Releases</p>
+          {releases.length === 0 ? (
+            <p data-testid="market-intelligence-card-no-releases">None upcoming.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="market-intelligence-card-releases">
+              {releases.map((e) => (
+                <li key={e.id}>{e.headline}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <Eye className="h-3 w-3" /> Watchlist Intelligence
+          </p>
+          {watchlistIntel.length === 0 ? (
+            <p data-testid="market-intelligence-card-no-watchlist">Nothing relevant to your watchlist right now.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="market-intelligence-card-watchlist">
+              {watchlistIntel.map((e) => (
+                <li key={e.id}>{e.headline}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <Sparkles className="h-3 w-3" /> Emerging Themes
+          </p>
+          {themes.length === 0 ? (
+            <p data-testid="market-intelligence-card-no-themes">No emerging themes detected yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="market-intelligence-card-themes">
+              {themes.map((t) => (
+                <li key={t.node.id}>{t.node.label}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <Flame className="h-3 w-3 text-destructive" /> Priority Items
+          </p>
+          {priority.length === 0 ? (
+            <p data-testid="market-intelligence-card-no-priority">Nothing flagged as priority right now.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="market-intelligence-card-priority">
+              {priority.map((e) => (
+                <li key={e.id}>{e.headline}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <Link href="/market-intelligence" className="text-xs font-medium text-primary hover:underline inline-block" data-testid="market-intelligence-view-link">
+          Open Market Intelligence →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -1430,6 +1558,8 @@ export default function InstitutionalCommandCentre() {
       <PlaybooksCard />
 
       <DecisionQualityCard />
+
+      <MarketIntelligenceCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <PortfolioIntelligenceCard />

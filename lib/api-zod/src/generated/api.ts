@@ -368,6 +368,44 @@ export const GetUpcomingEventsResponse = zod.array(GetUpcomingEventsResponseItem
 
 
 /**
+ * @summary Get the market-wide Market Intelligence feed (Macro, Economic Events, Central Banks, Earnings, Corporate Actions, Volatility, Options Activity, Market Breadth)
+ */
+export const GetMarketIntelligenceQueryParams = zod.object({
+  "horizonDays": zod.coerce.number().optional()
+})
+
+export const GetMarketIntelligenceResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "headline": zod.string(),
+  "category": zod.enum(['macro', 'economic_events', 'central_banks', 'earnings', 'corporate_actions', 'sector_trends', 'commodities', 'currencies', 'indices', 'volatility', 'options_activity', 'market_breadth', 'sentiment']),
+  "source": zod.string(),
+  "dataSource": zod.enum(['SIMULATED', 'LIVE']),
+  "timestamp": zod.string(),
+  "impact": zod.enum(['low', 'medium', 'high']),
+  "affectedAssets": zod.array(zod.string()),
+  "affectedSectors": zod.array(zod.string()),
+  "potentialRisks": zod.array(zod.string()),
+  "potentialOpportunities": zod.array(zod.string()),
+  "summary": zod.string(),
+  "learnMore": zod.object({
+  "pathKey": zod.string(),
+  "topicKey": zod.string(),
+  "label": zod.string()
+}).nullish()
+})),
+  "categories": zod.array(zod.object({
+  "category": zod.enum(['macro', 'economic_events', 'central_banks', 'earnings', 'corporate_actions', 'sector_trends', 'commodities', 'currencies', 'indices', 'volatility', 'options_activity', 'market_breadth', 'sentiment']),
+  "label": zod.string(),
+  "description": zod.string(),
+  "dataAvailable": zod.boolean(),
+  "unavailableReason": zod.string().nullable()
+})),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Get options market-data provider status and last-scan health metrics
  */
 export const GetMarketDataHealthResponse = zod.object({

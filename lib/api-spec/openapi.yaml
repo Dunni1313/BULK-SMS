@@ -96,6 +96,8 @@ tags:
     description: Institutional Watchlists & Opportunity Dashboard (Phase 43) — named, taggable, manually-orderable Personal and Institutional watchlists (a new, separate primitive from the existing flat value_watchlist table), with per-symbol analytics reused verbatim from the Risk & Exposure Engine (Phase 37), the Performance & Attribution Engine (Phase 38), the Scenario Engine (Phase 39), the Decision Support Engine's own Diversification Summary (Phase 40), and the Compliance Engine (Phase 42), plus a portfolio-wide Watchlist Health rollup and Cross-Engine Summary. Monitoring and organisation only — no trade recommendations, no buy/sell signals, no ranked/scored "opportunity" signal, no portfolio optimisation, no auto rebalancing, no auto execution, no auto watchlist generation, no AI predictions, no forecasting, no machine learning.
   - name: portfolio-workspace
     description: Institutional Portfolio Workspace & Workflow Center (Phase 44) — a unified operating dashboard bringing together the Decision Support Engine's own Executive Home/Portfolio Snapshot (Phase 40, reused wholesale), the Risk & Exposure Engine (Phase 37), the Performance & Attribution Engine (Phase 38), the Rebalancing Engine (Phase 41), the Compliance Engine (Phase 42), and the Watchlists Engine (Phase 43) into Holdings/Trading/Options/Risk/Performance/Compliance/Watchlists Overview cards, a merged Outstanding Issues list, Recent Reports, and Active Workflows — plus a deterministic Workflow Center (Morning/Weekly/Monthly/Quarterly/Portfolio/Risk/Compliance/Performance/Scenario Review, each a static checklist of already-shipped pages) and a Workspace layer (Pinned Resources/Favorites, Recently Viewed, and a fixed Quick Actions list). Orchestration and workflow only — no trade recommendations, no buy/sell signals, no AI predictions, no portfolio optimisation, no auto execution, no auto hedging, no machine learning, no market forecasting, no broker integration changes.
+  - name: market-intelligence
+    description: Institutional Market Intelligence Engine (v1.5.0, Sprint 20) — a stateless, market-wide feed of external context (Macro, Economic Events, Central Banks, Earnings, Corporate Actions, Volatility, Options Activity, Market Breadth, plus reserved-but-currently-empty Sector Trends/Commodities/Currencies/Sentiment categories, disclosed honestly with a reason). Every item is reused directly from an already-existing engine (lib/eventRisk.ts, lib/marketBriefing.ts, lib/investingMacro.ts, lib/optionsMath.ts's own snapshot) — zero new pricing/valuation formulas, zero new provider integrations. Research remains user-created; this is external context only. No trading signals, no buy/sell recommendations, no AI price predictions, no duplicate news/watchlist/research system, no broker integration.
 
 paths:
   /healthz:
@@ -242,6 +244,25 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/EventRiskEvent"
+
+  /market-intelligence:
+    get:
+      operationId: getMarketIntelligence
+      tags: [market-intelligence]
+      summary: Get the market-wide Market Intelligence feed (Macro, Economic Events, Central Banks, Earnings, Corporate Actions, Volatility, Options Activity, Market Breadth)
+      parameters:
+        - name: horizonDays
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Market Intelligence feed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketIntelligenceFeed"
 
   /market-data/health:
     get:
@@ -20697,3 +20718,75 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/WorkspaceLearningLink"
+
+    # v1.5.0, Sprint 20 — Institutional Market Intelligence Engine.
+    MarketIntelligenceCategory:
+      type: string
+      enum: [macro, economic_events, central_banks, earnings, corporate_actions, sector_trends, commodities, currencies, indices, volatility, options_activity, market_breadth, sentiment]
+
+    MarketIntelligenceLearnMoreLink:
+      type: object
+      required: [pathKey, topicKey, label]
+      properties:
+        pathKey: { type: string }
+        topicKey: { type: string }
+        label: { type: string }
+
+    MarketIntelligenceItem:
+      type: object
+      required: [id, headline, category, source, dataSource, timestamp, impact, affectedAssets, affectedSectors, potentialRisks, potentialOpportunities, summary]
+      properties:
+        id: { type: string }
+        headline: { type: string }
+        category: { $ref: "#/components/schemas/MarketIntelligenceCategory" }
+        source: { type: string }
+        dataSource:
+          type: string
+          enum: [SIMULATED, LIVE]
+        timestamp: { type: string }
+        impact:
+          type: string
+          enum: [low, medium, high]
+        affectedAssets:
+          type: array
+          items: { type: string }
+        affectedSectors:
+          type: array
+          items: { type: string }
+        potentialRisks:
+          type: array
+          items: { type: string }
+        potentialOpportunities:
+          type: array
+          items: { type: string }
+        summary: { type: string }
+        learnMore:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/MarketIntelligenceLearnMoreLink"
+
+    MarketIntelligenceCategoryMeta:
+      type: object
+      required: [category, label, description, dataAvailable, unavailableReason]
+      properties:
+        category: { $ref: "#/components/schemas/MarketIntelligenceCategory" }
+        label: { type: string }
+        description: { type: string }
+        dataAvailable: { type: boolean }
+        unavailableReason:
+          type: string
+          nullable: true
+
+    MarketIntelligenceFeed:
+      type: object
+      required: [items, categories, generatedAt]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarketIntelligenceItem"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarketIntelligenceCategoryMeta"
+        generatedAt: { type: string }

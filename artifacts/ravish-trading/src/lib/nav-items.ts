@@ -97,6 +97,7 @@ import {
   MessageCircle,
   Kanban,
   BadgeCheck,
+  Globe,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -189,6 +190,15 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // Graph. Outcome (P&L) is shown for context only and is never scored.
       // See docs/v1.5.0-Sprint-19-Decision-Quality-Review.md.
       { title: "Decision Quality & Review", href: "/decision-quality-review", icon: BadgeCheck },
+      // v1.5.0, Sprint 20 — Institutional Market Intelligence Engine. Not
+      // another Research module, not another dashboard — external market
+      // context (Macro/Economic Events/Central Banks/Earnings/Corporate
+      // Actions/Volatility/Options Activity/Market Breadth, plus reserved-
+      // but-honestly-disclosed Sector Trends/Commodities/Currencies/
+      // Sentiment) connected outward into Command Centre, Research,
+      // Decision Workflow, Portfolio Intelligence, Knowledge Graph, and the
+      // AI Coach. See docs/v1.5.0-Sprint-20-Market-Intelligence-Engine.md.
+      { title: "Market Intelligence", href: "/market-intelligence", icon: Globe },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },
