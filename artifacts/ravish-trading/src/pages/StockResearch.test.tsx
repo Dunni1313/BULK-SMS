@@ -153,6 +153,97 @@ vi.mock("@/lib/ai-coach/notebooksApi", () => ({
   generateNotebookActionItems: vi.fn(),
 }));
 
+// v1.5.0 Sprint 9 — AI Strategy Builder. Mirrors the notebooksApi mock
+// above exactly. Real constants are spread from the actual module via
+// importActual — StrategyEditor.tsx/StrategySidebar.tsx import them
+// directly and need real, non-fabricated values.
+const strategiesState = vi.hoisted(() => ({
+  strategies: [] as any[],
+  sectionsByStrategy: {} as Record<number, any[]>,
+  versionsByStrategy: {} as Record<number, any[]>,
+  nextStrategyId: 1,
+  nextSectionId: 1,
+  nextVersionId: 1,
+}));
+vi.mock("@/lib/ai-coach/strategiesApi", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/ai-coach/strategiesApi")>("@/lib/ai-coach/strategiesApi");
+  return {
+    ...actual,
+    listStrategyTemplates: vi.fn(async () => []),
+    listStrategies: vi.fn(async () => strategiesState.strategies),
+    createStrategy: vi.fn(async (coachId: string, input: Record<string, unknown>) => {
+      const id = strategiesState.nextStrategyId++;
+      const strategy = {
+        id,
+        coachId,
+        workspaceId: (input.workspaceId as number | null | undefined) ?? null,
+        title: input.title,
+        description: (input.description as string | undefined) ?? null,
+        strategyType: (input.strategyType as string | undefined) ?? "Custom",
+        assetClass: (input.assetClass as string | undefined) ?? null,
+        folder: (input.folder as string | undefined) ?? null,
+        status: "draft",
+        pinned: false,
+        archived: false,
+        tags: (input.tags as string[] | undefined) ?? [],
+        currentVersion: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      strategiesState.strategies = [strategy, ...strategiesState.strategies];
+      strategiesState.sectionsByStrategy[id] = [];
+      strategiesState.versionsByStrategy[id] = [{ id: strategiesState.nextVersionId++, strategyId: id, version: 1, changeSummary: "Created", authorUserId: "u1", createdAt: new Date().toISOString() }];
+      return strategy;
+    }),
+    getStrategy: vi.fn(async (id: number) => {
+      const strategy = strategiesState.strategies.find((s) => s.id === id);
+      return {
+        ...strategy,
+        sections: strategiesState.sectionsByStrategy[id] ?? [],
+        versions: strategiesState.versionsByStrategy[id] ?? [],
+      };
+    }),
+    updateStrategy: vi.fn(async (id: number, input: Record<string, unknown>) => {
+      const strategy = strategiesState.strategies.find((s) => s.id === id);
+      Object.assign(strategy, input);
+      return strategy;
+    }),
+    deleteStrategy: vi.fn(),
+    getMissingSections: vi.fn(async () => ({ missing: [], present: [], completenessPct: 100 })),
+    getSimilarStrategies: vi.fn(async () => []),
+    listStrategySections: vi.fn(async (id: number) => strategiesState.sectionsByStrategy[id] ?? []),
+    upsertStrategySection: vi.fn(async (strategyId: number, input: Record<string, unknown>) => {
+      const section = {
+        id: strategiesState.nextSectionId++,
+        strategyId,
+        kind: input.kind,
+        content: (input.content as string | undefined) ?? null,
+        notebook: null,
+        conversation: null,
+        file: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      strategiesState.sectionsByStrategy[strategyId] = [...(strategiesState.sectionsByStrategy[strategyId] ?? []), section];
+      return section;
+    }),
+    deleteStrategySection: vi.fn(),
+    listStrategyVersions: vi.fn(async (id: number) => strategiesState.versionsByStrategy[id] ?? []),
+    getStrategyVersion: vi.fn(),
+    restoreStrategyVersion: vi.fn(),
+    compareStrategies: vi.fn(),
+    compareStrategiesWithAi: vi.fn(),
+    summarizeStrategy: vi.fn(),
+    suggestStrategyImprovements: vi.fn(),
+    generateStrategyExecutiveSummary: vi.fn(),
+    generateStrategyLearningNotes: vi.fn(),
+    generateStrategyRiskHighlights: vi.fn(),
+    generateStrategySetupChecklist: vi.fn(),
+    generateStrategyTradePrepChecklist: vi.fn(),
+    generateStrategyReviewQuestions: vi.fn(),
+  };
+});
+
 beforeEach(() => {
   coachConversationsState.messagesByConversation = {};
   coachConversationsState.nextConversationId = 1;
@@ -163,6 +254,12 @@ beforeEach(() => {
   notebooksState.notesByNotebook = {};
   notebooksState.nextNotebookId = 1;
   notebooksState.nextNoteId = 1;
+  strategiesState.strategies = [];
+  strategiesState.sectionsByStrategy = {};
+  strategiesState.versionsByStrategy = {};
+  strategiesState.nextStrategyId = 1;
+  strategiesState.nextSectionId = 1;
+  strategiesState.nextVersionId = 1;
 });
 
 type HookResult = { data: unknown; isLoading?: boolean };
@@ -468,6 +565,35 @@ describe("ReportView", () => {
       expect(await screen.findByTestId("investing-notebook-header")).toHaveTextContent("Committee thesis notebook");
       expect(screen.getByTestId("investing-notebook-editor")).toBeInTheDocument();
       expect(screen.getByTestId("investing-notebook-summary-panel")).toBeInTheDocument();
+    });
+  });
+
+  describe("v1.5.0 Sprint 9 — AI Strategy Builder", () => {
+    it("strategies are collapsed by default; the toggle reveals the strategy sidebar", async () => {
+      const report = makeValueReport();
+      renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+      expect(screen.queryByTestId("investing-strategy-sidebar")).not.toBeInTheDocument();
+
+      await userEvent.click(await screen.findByTestId("button-toggle-investing-strategies"));
+      expect(await screen.findByTestId("investing-strategy-sidebar")).toBeInTheDocument();
+    });
+
+    it("creating a strategy adds it to the sidebar, and selecting it shows the header/editor/summary panel", async () => {
+      const report = makeValueReport();
+      renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+      await userEvent.click(await screen.findByTestId("button-toggle-investing-strategies"));
+
+      await userEvent.click(await screen.findByTestId("investing-strategy-sidebar-new-strategy"));
+      await userEvent.type(screen.getByTestId("investing-strategy-sidebar-create-title"), "Value investing thesis");
+      await userEvent.type(screen.getByTestId("investing-strategy-sidebar-create-strategy-type"), "Value Investing");
+      await userEvent.click(screen.getByTestId("investing-strategy-sidebar-create-save"));
+
+      const card = await screen.findByTestId(/investing-strategy-sidebar-list-card-\d+-select/);
+      await userEvent.click(card);
+
+      expect(await screen.findByTestId("investing-strategy-header")).toHaveTextContent("Value investing thesis");
+      expect(screen.getByTestId("investing-strategy-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("investing-strategy-summary-panel")).toBeInTheDocument();
     });
   });
 });

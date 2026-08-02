@@ -59,3 +59,6 @@ export * from "./aiWorkspaceNotes";
 export * from "./aiNotebooks";
 export * from "./aiNotebookNotes";
 export * from "./aiNotebookLinks";
+export * from "./aiStrategies";
+export * from "./aiStrategySections";
+export * from "./aiStrategyVersions";

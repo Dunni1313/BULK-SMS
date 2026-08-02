@@ -949,15 +949,23 @@ export async function narrateNotebookMergedSummary(context: unknown, fallback: s
   return narrate(notebookMergePrompt, context ?? {}, fallback);
 }
 
-async function generateNotebookExtractionList(
+// v1.5.0, Sprint 9 — generalized from Sprint 8's own
+// generateNotebookExtractionList (module-private, never exported, so this
+// rename/generalization is a behavior-preserving refactor with zero
+// external callers to update) — the shared JSON-array-extraction shape
+// now used by both notebook takeaways/action-items AND strategy
+// checklists/review-questions, avoiding a second, subtly-different
+// duplicate of this exact prompt-and-parse pattern.
+async function generateJsonListExtraction(
   instructionPrompt: string,
   context: unknown,
-  fieldName: "takeaways" | "actionItems",
+  fieldName: string,
+  maxEntries = 8,
 ): Promise<string[] | null> {
   if (!llmAvailable()) return null;
   const content =
     `${instructionPrompt}\n\nReply as strict JSON with one field, "${fieldName}", an array of short plain-` +
-    `English strings (never more than 8 entries). Use ONLY facts present in the DATA below — never invent ` +
+    `English strings (never more than ${maxEntries} entries). Use ONLY facts present in the DATA below — never invent ` +
     `one, and never phrase an entry as an instruction to buy, sell, place, or execute anything.` +
     `\n\nDATA:\n${JSON.stringify(context ?? {})}`;
   const raw = await aiCoreComplete(SYSTEM_PROMPT, content, 500, { json: true, onWarn });
@@ -971,7 +979,7 @@ async function generateNotebookExtractionList(
     const cleaned = list.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((s) => s.trim());
     return cleaned.length > 0 ? cleaned : null;
   } catch (err) {
-    logger.warn({ err }, `notebook ${fieldName} JSON parse failed`);
+    logger.warn({ err }, `${fieldName} JSON parse failed`);
     return null;
   }
 }
@@ -984,7 +992,7 @@ const notebookTakeawaysPrompt =
 /** Honestly returns null (never a fabricated list) when the LLM is
  * unavailable or its response can't be parsed as a real JSON array. */
 export async function generateNotebookKeyTakeaways(context: unknown): Promise<string[] | null> {
-  return generateNotebookExtractionList(notebookTakeawaysPrompt, context, "takeaways");
+  return generateJsonListExtraction(notebookTakeawaysPrompt, context, "takeaways");
 }
 
 const notebookActionItemsPrompt =
@@ -997,5 +1005,123 @@ const notebookActionItemsPrompt =
 /** Honestly returns null (never a fabricated list) when the LLM is
  * unavailable or its response can't be parsed as a real JSON array. */
 export async function generateNotebookActionItems(context: unknown): Promise<string[] | null> {
-  return generateNotebookExtractionList(notebookActionItemsPrompt, context, "actionItems");
+  return generateJsonListExtraction(notebookActionItemsPrompt, context, "actionItems");
+}
+
+// v1.5.0, Sprint 9 — AI Strategy Builder. Nine LLM-backed "AI features" the
+// approved scope names (a 10th, "Highlight Risks," is #9 below; "Detect
+// Missing Sections" and "Find Similar Strategies" are deliberately
+// DETERMINISTIC, computed in lib/strategySimilarity.ts / routes/aiStrategies.ts
+// from the strategy's own already-saved section/tag/type data — never an
+// LLM call, since both are honestly, exactly computable without one).
+// Every function here is strictly user-triggered (an explicit POST call
+// from routes/aiStrategies.ts) — never run proactively or on a schedule.
+// No persona is invoked, matching narrateNotebookSummary's own Sprint 8
+// precedent — only the baseline COACH_DISCLAIMER guarantee applies.
+
+const strategySummaryPrompt =
+  "You are summarising a user's own trading/investing strategy — a structured playbook (market context, " +
+  "setup, entry/stop/target rules, risk management, exit conditions, and the user's own notes) they have " +
+  "written for themselves. Using ONLY the provided DATA, write 3-5 sentences summarising what this " +
+  "strategy says. NEVER invent a rule, number, or condition not present in the DATA. This is a summary of " +
+  "the user's OWN existing playbook, never a new trading recommendation or an autonomous decision.";
+
+export async function narrateStrategySummary(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(strategySummaryPrompt, context ?? {}, fallback);
+}
+
+const strategyImprovementsPrompt =
+  "You are suggesting improvements to a user's own trading/investing strategy, based ONLY on what the " +
+  "provided DATA already contains (its sections, or the honest absence of a section). Point out genuine " +
+  "gaps, ambiguities, or internal inconsistencies in the strategy AS WRITTEN (e.g. 'the stop-loss rule " +
+  "doesn't specify a percentage or price level', 'the entry criteria and the invalidation conditions " +
+  "appear to overlap'). NEVER suggest a specific new trading rule, price level, or number the user hasn't " +
+  "already written themselves — you are a reviewer improving clarity and completeness, never an author of " +
+  "new trading advice.";
+
+export async function narrateStrategyImprovements(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(strategyImprovementsPrompt, context ?? {}, fallback);
+}
+
+const strategyExecutiveSummaryPrompt =
+  "Produce a short executive summary (4-6 sentences) of this trading/investing strategy for someone " +
+  "reviewing it for the first time — what it is, when it applies, and its core risk-management approach. " +
+  "Using ONLY the provided DATA. NEVER invent a rule or number not present in the DATA, and never phrase " +
+  "any part of the summary as an instruction to place a specific trade right now.";
+
+export async function narrateStrategyExecutiveSummary(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(strategyExecutiveSummaryPrompt, context ?? {}, fallback);
+}
+
+const strategyComparisonPrompt =
+  "Compare the two trading/investing strategies in the provided DATA (each with its own title, type, and " +
+  "sections). Written for a user deciding when each one might apply. Note genuine similarities and " +
+  "differences ONLY from what each strategy's own DATA actually says (e.g. differing entry criteria, " +
+  "differing risk approaches, overlapping market context). NEVER invent a rule for either strategy that " +
+  "isn't in its own DATA, and never state that one strategy is simply 'better' than the other — only how " +
+  "they differ.";
+
+export async function narrateStrategyComparison(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(strategyComparisonPrompt, context ?? {}, fallback);
+}
+
+const strategyLearningNotesPrompt =
+  "Write 3-5 short learning notes (things worth remembering or watching for) drawn ONLY from this " +
+  "strategy's own DATA — its market context, setup, risk rules, common mistakes, and psychology notes " +
+  "sections in particular. Each note should help the user internalise their OWN strategy, never introduce " +
+  "a new trading concept or rule the strategy's own DATA doesn't already contain.";
+
+export async function narrateStrategyLearningNotes(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(strategyLearningNotesPrompt, context ?? {}, fallback);
+}
+
+const strategyRiskHighlightsPrompt =
+  "Highlight the genuine risk considerations already present (or honestly absent) in this strategy's own " +
+  "DATA — e.g. an unusually wide or missing stop-loss rule, a missing position-sizing section, a risk " +
+  "section that doesn't address a scenario the setup itself implies. Base every point ONLY on the DATA " +
+  "provided. NEVER invent a risk scenario unrelated to what the strategy's own sections describe, and " +
+  "never suggest a specific new numeric risk limit the user hasn't already written themselves.";
+
+export async function narrateStrategyRiskHighlights(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(strategyRiskHighlightsPrompt, context ?? {}, fallback);
+}
+
+const strategySetupChecklistPrompt =
+  "Generate a setup confirmation checklist for this trading/investing strategy — short, concrete, " +
+  "checkable items a trader would tick off to confirm the SETUP conditions are genuinely present before " +
+  "considering an entry. Base every item ONLY on the strategy's own market-context/setup/checklist " +
+  "sections in the DATA below. NEVER invent a criterion the strategy's own DATA doesn't already describe, " +
+  "and never phrase an item as an instruction to actually place a trade.";
+
+/** Honestly returns null (never a fabricated checklist) when the LLM is
+ * unavailable or its response can't be parsed as a real JSON array. */
+export async function generateStrategySetupChecklist(context: unknown): Promise<string[] | null> {
+  return generateJsonListExtraction(strategySetupChecklistPrompt, context, "checklist", 10);
+}
+
+const strategyTradePrepChecklistPrompt =
+  "Generate a trade-preparation checklist for this trading/investing strategy — short, concrete items a " +
+  "trader would tick off immediately before entry (e.g. confirming position size, confirming the stop and " +
+  "target levels, confirming no overlapping risk-management rule is violated). Base every item ONLY on the " +
+  "strategy's own entry/stop/targets/position-size/risk/trade-management sections in the DATA below. NEVER " +
+  "invent a criterion the strategy's own DATA doesn't already describe, and never phrase an item as an " +
+  "instruction to actually place a trade.";
+
+/** Honestly returns null (never a fabricated checklist) when the LLM is
+ * unavailable or its response can't be parsed as a real JSON array. */
+export async function generateStrategyTradePrepChecklist(context: unknown): Promise<string[] | null> {
+  return generateJsonListExtraction(strategyTradePrepChecklistPrompt, context, "checklist", 10);
+}
+
+const strategyReviewQuestionsPrompt =
+  "Generate short, honest review questions a trader should ask themselves after using this strategy, " +
+  "based ONLY on what its own DATA describes (its setup, risk rules, common mistakes, and psychology notes " +
+  "sections in particular) — e.g. 'Did the setup genuinely match the market-context criteria, or was it " +
+  "forced?', 'Was the stop-loss rule followed exactly as written?'. NEVER invent a question about a rule or " +
+  "condition the strategy's own DATA doesn't contain.";
+
+/** Honestly returns null (never a fabricated list) when the LLM is
+ * unavailable or its response can't be parsed as a real JSON array. */
+export async function generateStrategyReviewQuestions(context: unknown): Promise<string[] | null> {
+  return generateJsonListExtraction(strategyReviewQuestionsPrompt, context, "questions", 6);
 }
