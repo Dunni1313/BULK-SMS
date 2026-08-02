@@ -62,6 +62,7 @@ import { NotebookPen, Pencil, Trash2, X, ExternalLink } from "lucide-react";
 // v1.5.0 Sprint 11 — Platform Integration.
 import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
 import { PlatformJourneyNav } from "@/components/layout/PlatformJourneyNav";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 
 function moodBadgeClass(mood: string): string {
   switch (mood) {
@@ -329,6 +330,9 @@ export default function TradingJournal() {
 
   return (
     <div className="grid grid-cols-1 gap-6 p-6 pb-12 md:grid-cols-3" data-testid="page-trading-journal">
+      <div className="md:col-span-3">
+        <AiTradingCoachPanel />
+      </div>
       <div className="space-y-6 md:col-span-2">
         <div>
           {/* v1.5.0 Sprint 11 — Platform Integration. */}

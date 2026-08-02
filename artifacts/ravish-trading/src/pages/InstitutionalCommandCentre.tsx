@@ -57,6 +57,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PLATFORM_JOURNEY_STAGES, type PlatformJourneyStageId } from "@/components/layout/PlatformJourneyNav";
 import { DailyBriefingCard } from "@/components/briefing/DailyBriefingCard";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 import { AskCoachLauncher } from "@/components/learn/AskCoachLauncher";
 import { COMMAND_CENTRE_QUICK_ACTIONS } from "@/lib/quick-actions";
 import { useWorkflowSnapshot } from "@/lib/useWorkflowSnapshot";
@@ -1626,6 +1627,17 @@ export default function InstitutionalCommandCentre() {
       </div>
 
       <DailyBriefingCard compact />
+
+      {/* v1.6.0 Sprint 1 — AI Trading Coach Guided Workflow. Surfaces the
+          one primary recommended next action for today, ahead of the
+          pre-existing, differently-scoped Workflow Automation Engine panel
+          just below (WorkflowPanel tracks longer-horizon platform tasks,
+          not this daily guided sequence) — never a second Command Centre,
+          never a duplicate of that panel's own data. */}
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-3">AI Trading Coach</h2>
+        <AiTradingCoachPanel collapsible={false} />
+      </div>
 
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-3">Your Workflow Today</h2>

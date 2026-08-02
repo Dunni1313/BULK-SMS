@@ -103,6 +103,7 @@ import { TradePlanEmptyState } from "@/lib/ai-coach/TradePlanEmptyState";
 // v1.5.0 Sprint 11 — Platform Integration.
 import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
 import { PlatformJourneyNav } from "@/components/layout/PlatformJourneyNav";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 import { Markdown } from "@/components/ui/markdown";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromSymbol, focusFromTradingPosition } from "@/lib/trading-coach-context";
@@ -333,6 +334,7 @@ export default function TradingResearch() {
     <div className="space-y-6 p-6" data-testid="page-trading-research">
       {/* v1.5.0 Sprint 11 — Platform Integration. */}
       <PlatformJourneyNav current="research" />
+      <AiTradingCoachPanel />
       <div>
         <h1 className="text-2xl font-bold text-foreground">Trading Research</h1>
         <p className="text-sm text-muted-foreground">
