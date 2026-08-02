@@ -21,6 +21,9 @@ import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
 import { optionsCoachConfig } from "@/lib/ai-coach/coaches/optionsCoach.config";
 import { useCoachConversations } from "@/lib/ai-coach/useCoachConversations";
 import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
+import { useAiWorkspaces } from "@/lib/ai-coach/useAiWorkspaces";
+import { WorkspaceSidebar } from "@/lib/ai-coach/WorkspaceSidebar";
+import { WorkspaceHeader } from "@/lib/ai-coach/WorkspaceHeader";
 import { Markdown } from "@/components/ui/markdown";
 
 type ChatMode = "auto" | AiChatInputMode;
@@ -66,7 +69,14 @@ export default function Assistant() {
   const [level, setLevel] = useState<ChatLevel>(AiChatInputLevel.beginner);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const optionsCoachConversations = useCoachConversations("options");
+  // v1.5.0 Sprint 7 — AI Workspaces. The Options AI Coach now supports
+  // reusable workspaces grouping conversations, research, files, and notes.
+  // useCoachConversations() gained an optional workspaceId scope (Sprint 6's
+  // own hook, extended additively) — passing the active workspace's id
+  // scopes the list to it; omitting it (activeWorkspaceId === null) is
+  // Sprint 6's original, un-grouped "All conversations" behavior.
+  const optionsWorkspaces = useAiWorkspaces("options");
+  const optionsCoachConversations = useCoachConversations("options", optionsWorkspaces.activeWorkspaceId ?? undefined);
 
   // v1.5.0 Sprint 2 — AI Coach Framework: the send/stream/error/stop state
   // machine (question input, in-flight optimistic bubble, streamed-delta
@@ -211,19 +221,58 @@ export default function Assistant() {
       )}
 
       <div className="flex-1 flex gap-3 min-h-0">
-        <ConversationSidebar
-          conversations={optionsCoachConversations.conversations}
-          isLoading={optionsCoachConversations.isLoadingConversations}
-          activeConversationId={optionsCoachConversations.activeConversationId}
-          searchTerm={optionsCoachConversations.searchTerm}
-          onSearchChange={optionsCoachConversations.setSearchTerm}
-          onNewConversation={optionsCoachConversations.startNewConversation}
-          onSelectConversation={optionsCoachConversations.selectConversation}
-          onRenameConversation={optionsCoachConversations.renameConversationById}
-          onDeleteConversation={optionsCoachConversations.deleteConversationById}
-          testId="assistant-coach-sidebar"
-        />
+        {/* v1.5.0 Sprint 7 — AI Workspaces: WorkspaceSidebar (top half)
+            groups multiple conversations into a reusable research project;
+            ConversationSidebar (bottom half, unchanged from Sprint 6) is
+            scoped to whichever workspace is active, or every un-grouped
+            conversation when "All conversations" is selected. */}
+        <div className="flex w-64 shrink-0 flex-col gap-3">
+          <div className="max-h-64 overflow-hidden">
+            <WorkspaceSidebar
+              workspaces={optionsWorkspaces.workspaces}
+              isLoading={optionsWorkspaces.isLoadingWorkspaces}
+              activeWorkspaceId={optionsWorkspaces.activeWorkspaceId}
+              searchTerm={optionsWorkspaces.searchTerm}
+              onSearchChange={optionsWorkspaces.setSearchTerm}
+              onCreateWorkspace={optionsWorkspaces.createWorkspaceAnd}
+              onSelectWorkspace={optionsWorkspaces.selectWorkspace}
+              onClearSelection={optionsWorkspaces.clearSelection}
+              onTogglePin={optionsWorkspaces.togglePinById}
+              onToggleArchive={optionsWorkspaces.toggleArchiveById}
+              onDeleteWorkspace={optionsWorkspaces.deleteWorkspaceById}
+              testId="assistant-workspace-sidebar"
+            />
+          </div>
+          <ConversationSidebar
+            conversations={optionsCoachConversations.conversations}
+            isLoading={optionsCoachConversations.isLoadingConversations}
+            activeConversationId={optionsCoachConversations.activeConversationId}
+            searchTerm={optionsCoachConversations.searchTerm}
+            onSearchChange={optionsCoachConversations.setSearchTerm}
+            onNewConversation={optionsCoachConversations.startNewConversation}
+            onSelectConversation={optionsCoachConversations.selectConversation}
+            onRenameConversation={optionsCoachConversations.renameConversationById}
+            onDeleteConversation={optionsCoachConversations.deleteConversationById}
+            onToggleFavourite={optionsCoachConversations.toggleFavouriteById}
+            testId="assistant-coach-sidebar"
+          />
+        </div>
       <Card className="flex-1 flex flex-col bg-card border-border overflow-hidden">
+        {optionsWorkspaces.activeWorkspaceDetail && (
+          <div className="px-4 pt-4">
+            <WorkspaceHeader
+              workspace={optionsWorkspaces.activeWorkspaceDetail}
+              onTogglePin={(pinned) => optionsWorkspaces.togglePinById(optionsWorkspaces.activeWorkspaceDetail!.id, pinned)}
+              onToggleArchive={(archived) => optionsWorkspaces.toggleArchiveById(optionsWorkspaces.activeWorkspaceDetail!.id, archived)}
+              onDelete={() => optionsWorkspaces.deleteWorkspaceById(optionsWorkspaces.activeWorkspaceDetail!.id)}
+              onAddNote={optionsWorkspaces.addNote}
+              onDeleteNote={optionsWorkspaces.deleteNote}
+              onAddFile={optionsWorkspaces.addFile}
+              onDeleteFile={optionsWorkspaces.deleteFile}
+              testId="assistant-workspace-header"
+            />
+          </div>
+        )}
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <div className="space-y-6 pb-4">
             {isLoading ? (

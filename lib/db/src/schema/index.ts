@@ -51,5 +51,8 @@ export * from "./compliancePolicies";
 export * from "./investingWatchlists";
 export * from "./portfolioWorkspace";
 export * from "./tradingCoachMessages";
+export * from "./aiWorkspaces";
 export * from "./aiCoachConversations";
 export * from "./aiCoachMessages";
+export * from "./aiWorkspaceFiles";
+export * from "./aiWorkspaceNotes";

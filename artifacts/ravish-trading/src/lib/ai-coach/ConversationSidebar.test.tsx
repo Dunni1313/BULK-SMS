@@ -12,6 +12,9 @@ function conversation(overrides: Partial<CoachConversation> = {}): CoachConversa
     coachId: "trading",
     title: "AAPL earnings review",
     archived: false,
+    // v1.5.0 Sprint 7 — AI Workspaces: additive default fields.
+    workspaceId: null,
+    favourite: false,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: new Date().toISOString(),
     ...overrides,
@@ -255,5 +258,65 @@ describe("ConversationSidebar — actions", () => {
     );
     expect(screen.getByTestId("trading-coach-sidebar")).toBeInTheDocument();
     expect(screen.getByTestId("trading-coach-sidebar-new-chat")).toBeInTheDocument();
+  });
+});
+
+// v1.5.0 Sprint 7 — AI Workspaces: the new, optional favourite star.
+describe("ConversationSidebar — v1.5.0 Sprint 7: favourite toggle", () => {
+  it("renders no favourite star when onToggleFavourite is omitted — byte-identical to pre-Sprint-7 behavior", () => {
+    render(
+      <ConversationSidebar
+        conversations={[conversation({ id: 1 })]}
+        isLoading={false}
+        activeConversationId={null}
+        searchTerm=""
+        onSearchChange={noop}
+        onNewConversation={noop}
+        onSelectConversation={noop}
+        onRenameConversation={noop}
+        onDeleteConversation={noop}
+      />,
+    );
+    expect(screen.queryByTestId("conversation-sidebar-favourite-1")).not.toBeInTheDocument();
+  });
+
+  it("clicking the favourite star calls onToggleFavourite with the toggled value", () => {
+    const onToggleFavourite = vi.fn();
+    render(
+      <ConversationSidebar
+        conversations={[conversation({ id: 1, favourite: false })]}
+        isLoading={false}
+        activeConversationId={null}
+        searchTerm=""
+        onSearchChange={noop}
+        onNewConversation={noop}
+        onSelectConversation={noop}
+        onRenameConversation={noop}
+        onDeleteConversation={noop}
+        onToggleFavourite={onToggleFavourite}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("conversation-sidebar-favourite-1"));
+    expect(onToggleFavourite).toHaveBeenCalledWith(1, true);
+  });
+
+  it("an already-favourited conversation's star toggles it off", () => {
+    const onToggleFavourite = vi.fn();
+    render(
+      <ConversationSidebar
+        conversations={[conversation({ id: 1, favourite: true })]}
+        isLoading={false}
+        activeConversationId={null}
+        searchTerm=""
+        onSearchChange={noop}
+        onNewConversation={noop}
+        onSelectConversation={noop}
+        onRenameConversation={noop}
+        onDeleteConversation={noop}
+        onToggleFavourite={onToggleFavourite}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("conversation-sidebar-favourite-1"));
+    expect(onToggleFavourite).toHaveBeenCalledWith(1, false);
   });
 });

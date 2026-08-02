@@ -76,6 +76,9 @@ import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
 import { tradingCoachConfig } from "@/lib/ai-coach/coaches/tradingCoach.config";
 import { useCoachConversations } from "@/lib/ai-coach/useCoachConversations";
 import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
+import { useAiWorkspaces } from "@/lib/ai-coach/useAiWorkspaces";
+import { WorkspaceSidebar } from "@/lib/ai-coach/WorkspaceSidebar";
+import { WorkspaceHeader } from "@/lib/ai-coach/WorkspaceHeader";
 import { Markdown } from "@/components/ui/markdown";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromSymbol, focusFromTradingPosition } from "@/lib/trading-coach-context";
@@ -261,7 +264,11 @@ export default function TradingResearch() {
   // documented pattern for "a page whose history is server-persisted." The
   // ask/stream request itself, its prompt, and its response shape are
   // completely unchanged.
-  const tradeCoachConversations = useCoachConversations("trading");
+  // v1.5.0 Sprint 7 — AI Workspaces. See Assistant.tsx's own identical
+  // comment (Options coach) — the same additive workspaceId scope, applied
+  // here to the Trading AI Coach's own conversation memory.
+  const tradingWorkspaces = useAiWorkspaces("trading");
+  const tradeCoachConversations = useCoachConversations("trading", tradingWorkspaces.activeWorkspaceId ?? undefined);
   const tradeCoach = useSpecialistCoach(
     tradingCoachConfig,
     { symbol },
@@ -666,20 +673,57 @@ export default function TradingResearch() {
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-3 pt-3">
                 <div className="flex gap-3">
-                  <ConversationSidebar
-                    conversations={tradeCoachConversations.conversations}
-                    isLoading={tradeCoachConversations.isLoadingConversations}
-                    activeConversationId={tradeCoachConversations.activeConversationId}
-                    searchTerm={tradeCoachConversations.searchTerm}
-                    onSearchChange={tradeCoachConversations.setSearchTerm}
-                    onNewConversation={tradeCoachConversations.startNewConversation}
-                    onSelectConversation={tradeCoachConversations.selectConversation}
-                    onRenameConversation={tradeCoachConversations.renameConversationById}
-                    onDeleteConversation={tradeCoachConversations.deleteConversationById}
-                    testId="trade-coach-sidebar"
-                  />
+                  {/* v1.5.0 Sprint 7 — AI Workspaces: WorkspaceSidebar (top
+                      half) groups multiple conversations into a reusable
+                      research project; ConversationSidebar (bottom half,
+                      unchanged from Sprint 6) is scoped to whichever
+                      workspace is active. */}
+                  <div className="flex w-64 shrink-0 flex-col gap-3">
+                    <div className="max-h-64 overflow-hidden">
+                      <WorkspaceSidebar
+                        workspaces={tradingWorkspaces.workspaces}
+                        isLoading={tradingWorkspaces.isLoadingWorkspaces}
+                        activeWorkspaceId={tradingWorkspaces.activeWorkspaceId}
+                        searchTerm={tradingWorkspaces.searchTerm}
+                        onSearchChange={tradingWorkspaces.setSearchTerm}
+                        onCreateWorkspace={tradingWorkspaces.createWorkspaceAnd}
+                        onSelectWorkspace={tradingWorkspaces.selectWorkspace}
+                        onClearSelection={tradingWorkspaces.clearSelection}
+                        onTogglePin={tradingWorkspaces.togglePinById}
+                        onToggleArchive={tradingWorkspaces.toggleArchiveById}
+                        onDeleteWorkspace={tradingWorkspaces.deleteWorkspaceById}
+                        testId="trade-coach-workspace-sidebar"
+                      />
+                    </div>
+                    <ConversationSidebar
+                      conversations={tradeCoachConversations.conversations}
+                      isLoading={tradeCoachConversations.isLoadingConversations}
+                      activeConversationId={tradeCoachConversations.activeConversationId}
+                      searchTerm={tradeCoachConversations.searchTerm}
+                      onSearchChange={tradeCoachConversations.setSearchTerm}
+                      onNewConversation={tradeCoachConversations.startNewConversation}
+                      onSelectConversation={tradeCoachConversations.selectConversation}
+                      onRenameConversation={tradeCoachConversations.renameConversationById}
+                      onDeleteConversation={tradeCoachConversations.deleteConversationById}
+                      onToggleFavourite={tradeCoachConversations.toggleFavouriteById}
+                      testId="trade-coach-sidebar"
+                    />
+                  </div>
 
                   <div className="flex-1 space-y-3">
+                    {tradingWorkspaces.activeWorkspaceDetail && (
+                      <WorkspaceHeader
+                        workspace={tradingWorkspaces.activeWorkspaceDetail}
+                        onTogglePin={(pinned) => tradingWorkspaces.togglePinById(tradingWorkspaces.activeWorkspaceDetail!.id, pinned)}
+                        onToggleArchive={(archived) => tradingWorkspaces.toggleArchiveById(tradingWorkspaces.activeWorkspaceDetail!.id, archived)}
+                        onDelete={() => tradingWorkspaces.deleteWorkspaceById(tradingWorkspaces.activeWorkspaceDetail!.id)}
+                        onAddNote={tradingWorkspaces.addNote}
+                        onDeleteNote={tradingWorkspaces.deleteNote}
+                        onAddFile={tradingWorkspaces.addFile}
+                        onDeleteFile={tradingWorkspaces.deleteFile}
+                        testId="trade-coach-workspace-header"
+                      />
+                    )}
                     {tradeCoachConversations.activeMessages.length === 0 && !coachStreamingAnswer && !coachErroredReply && (
                       <p className="text-sm text-muted-foreground" data-testid="trade-coach-empty">
                         No questions yet — ask something like "What does my portfolio risk look like for {symbol}?"

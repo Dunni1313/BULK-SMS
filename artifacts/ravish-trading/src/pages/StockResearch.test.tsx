@@ -23,7 +23,7 @@ const coachConversationsState = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
   listConversations: vi.fn(async () => []),
-  createConversation: vi.fn(async (coachId: string) => {
+  createConversation: vi.fn(async (coachId: string, _title?: string, workspaceId?: number) => {
     const id = coachConversationsState.nextConversationId++;
     coachConversationsState.messagesByConversation[id] = [];
     return {
@@ -31,6 +31,8 @@ vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
       coachId,
       title: "New conversation",
       archived: false,
+      workspaceId: workspaceId ?? null,
+      favourite: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -52,12 +54,56 @@ vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
     ];
     return message;
   }),
+  setConversationFavourite: vi.fn(),
+  assignConversationToWorkspace: vi.fn(),
+}));
+
+// v1.5.0 Sprint 7 — AI Workspaces. Mirrors the coachConversationsApi mock
+// above exactly.
+const workspacesState = vi.hoisted(() => ({
+  workspaces: [] as any[],
+  nextWorkspaceId: 1,
+}));
+vi.mock("@/lib/ai-coach/workspacesApi", () => ({
+  listWorkspaces: vi.fn(async () => workspacesState.workspaces),
+  createWorkspace: vi.fn(async (coachId: string, input: { name: string; description?: string; tags?: string[] }) => {
+    const id = workspacesState.nextWorkspaceId++;
+    const workspace = {
+      id,
+      coachId,
+      name: input.name,
+      description: input.description ?? null,
+      pinned: false,
+      archived: false,
+      tags: input.tags ?? [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    workspacesState.workspaces = [workspace, ...workspacesState.workspaces];
+    return workspace;
+  }),
+  getWorkspace: vi.fn(async (id: number) => {
+    const workspace = workspacesState.workspaces.find((w) => w.id === id);
+    return { ...workspace, conversations: [], files: [], notes: [] };
+  }),
+  updateWorkspace: vi.fn(async (id: number, input: Record<string, unknown>) => {
+    const workspace = workspacesState.workspaces.find((w) => w.id === id);
+    Object.assign(workspace, input);
+    return workspace;
+  }),
+  deleteWorkspace: vi.fn(),
+  addWorkspaceNote: vi.fn(),
+  deleteWorkspaceNote: vi.fn(),
+  addWorkspaceFile: vi.fn(),
+  deleteWorkspaceFile: vi.fn(),
 }));
 
 beforeEach(() => {
   coachConversationsState.messagesByConversation = {};
   coachConversationsState.nextConversationId = 1;
   coachConversationsState.nextMessageId = 1;
+  workspacesState.workspaces = [];
+  workspacesState.nextWorkspaceId = 1;
 });
 
 type HookResult = { data: unknown; isLoading?: boolean };
@@ -292,6 +338,49 @@ describe("ReportView", () => {
     // The deterministic summary is still there — an LLM failure never blanks
     // the Committee's own already-computed verdict.
     expect(screen.getByText(report.investmentCommittee.summary)).toBeInTheDocument();
+  });
+
+  // v1.5.0 Sprint 7 — AI Workspaces.
+  describe("v1.5.0 Sprint 7 — AI Workspaces", () => {
+    it("shows an honest empty state when there are no workspaces yet", async () => {
+      const report = makeValueReport();
+      renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+      expect(await screen.findByTestId("ask-analyst-workspace-sidebar-empty")).toBeInTheDocument();
+    });
+
+    it("creating a workspace adds it to the sidebar", async () => {
+      const report = makeValueReport();
+      renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+
+      await userEvent.click(await screen.findByTestId("ask-analyst-workspace-sidebar-new-workspace"));
+      await userEvent.type(screen.getByTestId("ask-analyst-workspace-sidebar-create-name"), "Committee research");
+      await userEvent.click(screen.getByTestId("ask-analyst-workspace-sidebar-create-save"));
+
+      expect(await screen.findByText("Committee research")).toBeInTheDocument();
+    });
+
+    it("selecting a workspace shows its WorkspaceHeader", async () => {
+      workspacesState.workspaces = [
+        {
+          id: 6,
+          coachId: "investing",
+          name: "Margin of safety tracking",
+          description: null,
+          pinned: false,
+          archived: false,
+          tags: [],
+          createdAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-01T00:00:00.000Z",
+        },
+      ];
+      const report = makeValueReport();
+      renderWithClient(<ReportView report={report} commentary="" isStreaming={false} />);
+
+      await userEvent.click(await screen.findByTestId("ask-analyst-workspace-sidebar-card-6-select"));
+
+      expect(await screen.findByTestId("ask-analyst-workspace-header")).toBeInTheDocument();
+      expect(screen.getByTestId("ask-analyst-workspace-header-name")).toHaveTextContent("Margin of safety tracking");
+    });
   });
 });
 

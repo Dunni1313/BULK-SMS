@@ -48,6 +48,9 @@ import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
 import { investingCoachConfig } from "@/lib/ai-coach/coaches/investingCoach.config";
 import { useCoachConversations } from "@/lib/ai-coach/useCoachConversations";
 import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
+import { useAiWorkspaces } from "@/lib/ai-coach/useAiWorkspaces";
+import { WorkspaceSidebar } from "@/lib/ai-coach/WorkspaceSidebar";
+import { WorkspaceHeader } from "@/lib/ai-coach/WorkspaceHeader";
 import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
@@ -505,7 +508,11 @@ export function ReportView({
   // wired in purely via useSpecialistCoach()'s own pre-existing, unmodified
   // onAnswered extension point. The ask/stream request itself, its prompt,
   // and its response shape are completely unchanged.
-  const askCoachConversations = useCoachConversations("investing");
+  // v1.5.0 Sprint 7 — AI Workspaces. See Assistant.tsx's own identical
+  // comment (Options coach) — the same additive workspaceId scope, applied
+  // here to the Investing AI Coach's own conversation memory.
+  const investingWorkspaces = useAiWorkspaces("investing");
+  const askCoachConversations = useCoachConversations("investing", investingWorkspaces.activeWorkspaceId ?? undefined);
   const askCoach = useSpecialistCoach(
     investingCoachConfig,
     { symbol: report.symbol },
@@ -1355,20 +1362,56 @@ export function ReportView({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex gap-3">
-          <ConversationSidebar
-            conversations={askCoachConversations.conversations}
-            isLoading={askCoachConversations.isLoadingConversations}
-            activeConversationId={askCoachConversations.activeConversationId}
-            searchTerm={askCoachConversations.searchTerm}
-            onSearchChange={askCoachConversations.setSearchTerm}
-            onNewConversation={askCoachConversations.startNewConversation}
-            onSelectConversation={askCoachConversations.selectConversation}
-            onRenameConversation={askCoachConversations.renameConversationById}
-            onDeleteConversation={askCoachConversations.deleteConversationById}
-            testId="ask-analyst-sidebar"
-          />
+          {/* v1.5.0 Sprint 7 — AI Workspaces: WorkspaceSidebar (top half)
+              groups multiple conversations into a reusable research
+              project; ConversationSidebar (bottom half, unchanged from
+              Sprint 6) is scoped to whichever workspace is active. */}
+          <div className="flex w-64 shrink-0 flex-col gap-3">
+            <div className="max-h-64 overflow-hidden">
+              <WorkspaceSidebar
+                workspaces={investingWorkspaces.workspaces}
+                isLoading={investingWorkspaces.isLoadingWorkspaces}
+                activeWorkspaceId={investingWorkspaces.activeWorkspaceId}
+                searchTerm={investingWorkspaces.searchTerm}
+                onSearchChange={investingWorkspaces.setSearchTerm}
+                onCreateWorkspace={investingWorkspaces.createWorkspaceAnd}
+                onSelectWorkspace={investingWorkspaces.selectWorkspace}
+                onClearSelection={investingWorkspaces.clearSelection}
+                onTogglePin={investingWorkspaces.togglePinById}
+                onToggleArchive={investingWorkspaces.toggleArchiveById}
+                onDeleteWorkspace={investingWorkspaces.deleteWorkspaceById}
+                testId="ask-analyst-workspace-sidebar"
+              />
+            </div>
+            <ConversationSidebar
+              conversations={askCoachConversations.conversations}
+              isLoading={askCoachConversations.isLoadingConversations}
+              activeConversationId={askCoachConversations.activeConversationId}
+              searchTerm={askCoachConversations.searchTerm}
+              onSearchChange={askCoachConversations.setSearchTerm}
+              onNewConversation={askCoachConversations.startNewConversation}
+              onSelectConversation={askCoachConversations.selectConversation}
+              onRenameConversation={askCoachConversations.renameConversationById}
+              onDeleteConversation={askCoachConversations.deleteConversationById}
+              onToggleFavourite={askCoachConversations.toggleFavouriteById}
+              testId="ask-analyst-sidebar"
+            />
+          </div>
 
           <div className="flex-1 space-y-3">
+            {investingWorkspaces.activeWorkspaceDetail && (
+              <WorkspaceHeader
+                workspace={investingWorkspaces.activeWorkspaceDetail}
+                onTogglePin={(pinned) => investingWorkspaces.togglePinById(investingWorkspaces.activeWorkspaceDetail!.id, pinned)}
+                onToggleArchive={(archived) => investingWorkspaces.toggleArchiveById(investingWorkspaces.activeWorkspaceDetail!.id, archived)}
+                onDelete={() => investingWorkspaces.deleteWorkspaceById(investingWorkspaces.activeWorkspaceDetail!.id)}
+                onAddNote={investingWorkspaces.addNote}
+                onDeleteNote={investingWorkspaces.deleteNote}
+                onAddFile={investingWorkspaces.addFile}
+                onDeleteFile={investingWorkspaces.deleteFile}
+                testId="ask-analyst-workspace-header"
+              />
+            )}
             {(askCoachConversations.activeMessages.length > 0 || askStreamingAnswer || askErroredReply) && (
               <div className="space-y-3 max-h-72 overflow-y-auto pr-1" data-testid="ask-history">
                 {askCoachConversations.activeMessages.map((message) => (
