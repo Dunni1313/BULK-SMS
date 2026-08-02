@@ -571,15 +571,65 @@ const valueFreeformPrompt =
   "in the DATA. Do not give a recommendation to buy or sell; explain the reasoning. This is education " +
   "about SIMULATED or provider data, not investment advice.";
 
+// v1.5.0 Sprint 4 — AI Context & Tools Consolidation, "Prompt Loader."
+//
+// narrateValueFreeform/Stream (here) and narrateTradeFreeform/Stream
+// (further below) had hand-duplicated the exact same shape: pick this
+// coach's own fixed prompt prefix, append "\n\nQUESTION: <the user's
+// question>", call the shared narrate()/narrateStream() pair, then
+// optionally run a coach-specific safety wrapper over the result.
+// createFreeformNarrator() is that shape extracted ONCE (declared here,
+// reused by both freeform coaches below) — never a new narration engine,
+// never a new prompt, never a change to either coach's actual prompt text
+// or safety behavior (confirmed by both coaches' own pre-existing test
+// files passing unchanged). Prompt TEXT itself stays exactly where it
+// already lived (a private, backend-only constant per coach, per Sprint
+// 3's own explicit "never send/duplicate a system prompt to the frontend"
+// decision) — this factory only makes prompt SELECTION explicit and
+// parameterized by coach id, instead of each coach's exported functions
+// re-deriving their own copy of the same `${prompt}\n\nQUESTION: ...` +
+// narrate/narrateStream + safety-wrap boilerplate. Options' /ai/chat is
+// deliberately never wired through this factory: it mode-dispatches
+// across several distinct narrate*() functions rather than a single fixed
+// freeform prompt, so it never shared this duplication in the first place
+// (Sprint 3's own finding, unchanged).
+export type FreeformCoachId = "investing" | "trading";
+
+function createFreeformNarrator(
+  coachId: FreeformCoachId,
+  promptPrefix: string,
+  safetyWrap: (n: Narration, fallback: string) => Narration = (n) => n,
+) {
+  return {
+    coachId,
+    async narrate(question: string, context: unknown, fallback: string, cacheKey?: string): Promise<Narration> {
+      const prompt = `${promptPrefix}\n\nQUESTION: ${question}`;
+      const n = await narrate(prompt, context ?? {}, fallback, cacheKey);
+      return safetyWrap(n, fallback);
+    },
+    async narrateStream(
+      question: string,
+      context: unknown,
+      fallback: string,
+      onToken: TokenSink,
+      cacheKey?: string,
+    ): Promise<Narration> {
+      const prompt = `${promptPrefix}\n\nQUESTION: ${question}`;
+      const n = await narrateStream(prompt, context ?? {}, fallback, onToken, cacheKey);
+      return safetyWrap(n, fallback);
+    },
+  };
+}
+
+const valueFreeformNarrator = createFreeformNarrator("investing", valueFreeformPrompt, enforceValueSafety);
+
 export async function narrateValueFreeform(
   question: string,
   context: unknown,
   fallback: string,
   cacheKey?: string,
 ): Promise<Narration> {
-  const prompt = `${valueFreeformPrompt}\n\nQUESTION: ${question}`;
-  const n = await narrate(prompt, context ?? {}, fallback, cacheKey);
-  return enforceValueSafety(n, fallback);
+  return valueFreeformNarrator.narrate(question, context, fallback, cacheKey);
 }
 
 // Streaming counterpart of narrateValueFreeform. Same disclaimer + anti-
@@ -591,9 +641,7 @@ export async function narrateValueFreeformStream(
   onToken: TokenSink,
   cacheKey?: string,
 ): Promise<Narration> {
-  const prompt = `${valueFreeformPrompt}\n\nQUESTION: ${question}`;
-  const n = await narrateStream(prompt, context ?? {}, fallback, onToken, cacheKey);
-  return enforceValueSafety(n, fallback);
+  return valueFreeformNarrator.narrateStream(question, context, fallback, onToken, cacheKey);
 }
 
 // Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
@@ -682,14 +730,22 @@ const tradeFreeformPrompt =
   "order is a manual decision made elsewhere. This is education about SIMULATED data, not investment " +
   "advice.";
 
+// v1.5.0 Sprint 4 — reuses the same createFreeformNarrator() factory
+// narrateValueFreeform/Stream is built from (declared earlier in this
+// file). No safety-wrap argument is passed — narrate()/narrateStream()
+// already guarantee the baseline COACH_DISCLAIMER invariant, and no persona
+// is invoked here, so the factory's default no-op safety wrap applies,
+// exactly matching this pair's own pre-existing (no enforceValueSafety())
+// behavior.
+const tradeFreeformNarrator = createFreeformNarrator("trading", tradeFreeformPrompt);
+
 export async function narrateTradeFreeform(
   question: string,
   context: unknown,
   fallback: string,
   cacheKey?: string,
 ): Promise<Narration> {
-  const prompt = `${tradeFreeformPrompt}\n\nQUESTION: ${question}`;
-  return narrate(prompt, context ?? {}, fallback, cacheKey);
+  return tradeFreeformNarrator.narrate(question, context, fallback, cacheKey);
 }
 
 // Streaming counterpart of narrateTradeFreeform. narrateStream() already
@@ -702,8 +758,7 @@ export async function narrateTradeFreeformStream(
   onToken: TokenSink,
   cacheKey?: string,
 ): Promise<Narration> {
-  const prompt = `${tradeFreeformPrompt}\n\nQUESTION: ${question}`;
-  return narrateStream(prompt, context ?? {}, fallback, onToken, cacheKey);
+  return tradeFreeformNarrator.narrateStream(question, context, fallback, onToken, cacheKey);
 }
 
 // Phase 4, Sprint 63 — Management Quality Analysis LLM-Narrated Dimensions.
