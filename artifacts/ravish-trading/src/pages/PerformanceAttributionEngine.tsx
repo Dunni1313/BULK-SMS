@@ -28,6 +28,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LineChart, GraduationCap, FileBarChart2 } from "lucide-react";
+// v1.5.0 Sprint 11 — Platform Integration.
+import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
+import { PlatformJourneyNav } from "@/components/layout/PlatformJourneyNav";
 
 type PerformanceView = "investing" | "trading" | "options" | "combined";
 
@@ -55,6 +58,8 @@ export default function PerformanceAttributionEngine() {
 
   return (
     <div className="p-4 md:p-6 space-y-4" data-testid="performance-attribution-engine">
+      {/* v1.5.0 Sprint 11 — Platform Integration. */}
+      <PlatformJourneyNav current="performance" />
       <div>
         <h1 className="text-xl font-semibold flex items-center gap-2">
           <LineChart className="w-6 h-6 text-emerald-400" /> Institutional Performance & Attribution Engine
@@ -65,6 +70,7 @@ export default function PerformanceAttributionEngine() {
           trade recommendations, no portfolio optimisation, no auto rebalancing, no auto execution, no alpha
           generation, no benchmark prediction.
         </p>
+        <ModuleLearnTrigger moduleLabel="Performance Review" pathKey="performance" size="xs" />
         <div className="flex flex-wrap gap-1.5 mt-2" data-testid="performance-attribution-engine-labels">
           <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-400">
             Cross-Engine Performance

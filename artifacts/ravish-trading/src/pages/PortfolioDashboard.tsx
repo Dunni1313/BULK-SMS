@@ -24,11 +24,15 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  Cell,
   ResponsiveContainer,
-  RadialBarChart,
-  RadialBar,
 } from "recharts";
+// v1.5.0 Sprint 11 — Platform Integration. Shared with pages/Dashboard.tsx —
+// see this file's own pre-existing HealthGauge comment below, which already
+// disclosed mirroring that page's gauge pattern rather than sharing a
+// component; this sprint completes that by actually sharing it.
+import { ScoreRing } from "@/components/charts/ScoreRing";
+import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
+import { PlatformJourneyNav } from "@/components/layout/PlatformJourneyNav";
 
 type FactorSortMode = "default" | "score_asc";
 
@@ -56,42 +60,6 @@ function ratingColor(code: string): string {
   return "#ef4444";
 }
 
-// Mirrors pages/Dashboard.tsx's own established ScoreRing gauge pattern
-// (a small RadialBarChart-based ring), sized larger for this page's own
-// headline Health Score — the same visual technique, not a new charting
-// approach.
-function HealthGauge({ score, ratingCode }: { score: number; ratingCode: string }) {
-  const rounded = Math.round(score);
-  const color = ratingColor(ratingCode);
-  const data = [{ value: rounded }, { value: 100 - rounded }];
-  return (
-    <div className="relative w-24 h-24" data-testid="gauge-health-score">
-      <RadialBarChart
-        width={96}
-        height={96}
-        cx={48}
-        cy={48}
-        innerRadius={32}
-        outerRadius={44}
-        startAngle={90}
-        endAngle={-270}
-        data={data}
-        barSize={10}
-      >
-        <RadialBar dataKey="value" cornerRadius={8} isAnimationActive={false}>
-          <Cell fill={color} />
-          <Cell fill="transparent" />
-        </RadialBar>
-      </RadialBarChart>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xl font-mono font-bold" style={{ color }}>
-          {rounded}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export default function PortfolioDashboard() {
   const { data: result, isLoading, isError } = useGetPortfolioDashboard();
   const [factorSortMode, setFactorSortMode] = useState<FactorSortMode>("default");
@@ -108,6 +76,8 @@ export default function PortfolioDashboard() {
 
   return (
     <div className="space-y-6 max-w-6xl">
+      {/* v1.5.0 Sprint 11 — Platform Integration. */}
+      <PlatformJourneyNav current="portfolio" />
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-bold text-foreground">Portfolio Risk Dashboard</h1>
@@ -117,6 +87,7 @@ export default function PortfolioDashboard() {
           <Badge className="bg-sky-500/15 text-sky-400 border-sky-500/30" data-testid="badge-read-only-portfolio-dashboard">
             Read-Only Portfolio Dashboard
           </Badge>
+          <ModuleLearnTrigger moduleLabel="Portfolio Impact" pathKey="portfolio" size="xs" />
         </div>
         <p className="text-sm text-muted-foreground mt-1">
           A single executive view unifying Position Sizing, the Portfolio Stress Test, the Event Risk
@@ -155,7 +126,7 @@ export default function PortfolioDashboard() {
             </CardHeader>
             <CardContent className="flex flex-col sm:flex-row gap-6 items-start">
               <div className="flex items-center gap-4">
-                <HealthGauge score={result.healthScore} ratingCode={result.overallRiskRating.code} />
+                <ScoreRing score={result.healthScore} color={ratingColor(result.overallRiskRating.code)} size="lg" testId="gauge-health-score" />
                 <div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                     Portfolio Health Score <ExplainButton metrics={["portfolio_health"]} />

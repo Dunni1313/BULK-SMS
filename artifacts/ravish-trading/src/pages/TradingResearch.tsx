@@ -100,6 +100,9 @@ import { TradePlanEditor } from "@/lib/ai-coach/TradePlanEditor";
 import { TradePlanChecklist } from "@/lib/ai-coach/TradePlanChecklist";
 import { TradePlanSummary } from "@/lib/ai-coach/TradePlanSummary";
 import { TradePlanEmptyState } from "@/lib/ai-coach/TradePlanEmptyState";
+// v1.5.0 Sprint 11 — Platform Integration.
+import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
+import { PlatformJourneyNav } from "@/components/layout/PlatformJourneyNav";
 import { Markdown } from "@/components/ui/markdown";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromSymbol, focusFromTradingPosition } from "@/lib/trading-coach-context";
@@ -328,6 +331,8 @@ export default function TradingResearch() {
 
   return (
     <div className="space-y-6 p-6" data-testid="page-trading-research">
+      {/* v1.5.0 Sprint 11 — Platform Integration. */}
+      <PlatformJourneyNav current="research" />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Trading Research</h1>
         <p className="text-sm text-muted-foreground">
@@ -822,18 +827,22 @@ export default function TradingResearch() {
                     peer surface to the conversation view above — its own
                     workspace-scoped notebook list plus, once a notebook is
                     selected, its content editor and AI actions panel. */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1.5 text-muted-foreground"
-                  onClick={() => setTradeNotebooksOpen((v) => !v)}
-                  data-testid="button-toggle-trade-notebooks"
-                >
-                  {tradeNotebooksOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                  <NotebookText className="h-3.5 w-3.5" />
-                  {tradeNotebooksOpen ? "Hide research notebooks" : "Show research notebooks"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1.5 text-muted-foreground"
+                    onClick={() => setTradeNotebooksOpen((v) => !v)}
+                    data-testid="button-toggle-trade-notebooks"
+                  >
+                    {tradeNotebooksOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    <NotebookText className="h-3.5 w-3.5" />
+                    {tradeNotebooksOpen ? "Hide research notebooks" : "Show research notebooks"}
+                  </Button>
+                  {/* v1.5.0 Sprint 11 — Platform Integration. */}
+                  <ModuleLearnTrigger moduleLabel="AI Research Notebooks" pathKey="ai-academy" topicKey="ai-research-workflow" size="xs" />
+                </div>
 
                 {tradeNotebooksOpen && (
                   <div className="flex gap-3" data-testid="trade-coach-notebooks-view">
@@ -900,18 +909,22 @@ export default function TradingResearch() {
                     peer surface to the notebooks view above — the
                     strategy library plus, once a strategy is selected,
                     its editor and AI actions panel. */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1.5 text-muted-foreground"
-                  onClick={() => setTradeStrategiesOpen((v) => !v)}
-                  data-testid="button-toggle-trade-strategies"
-                >
-                  {tradeStrategiesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                  <ListTree className="h-3.5 w-3.5" />
-                  {tradeStrategiesOpen ? "Hide strategies" : "Show strategies"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1.5 text-muted-foreground"
+                    onClick={() => setTradeStrategiesOpen((v) => !v)}
+                    data-testid="button-toggle-trade-strategies"
+                  >
+                    {tradeStrategiesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    <ListTree className="h-3.5 w-3.5" />
+                    {tradeStrategiesOpen ? "Hide strategies" : "Show strategies"}
+                  </Button>
+                  {/* v1.5.0 Sprint 11 — Platform Integration. */}
+                  <ModuleLearnTrigger moduleLabel="AI Strategy Builder" pathKey="ai-academy" topicKey="ai-team-overview" size="xs" />
+                </div>
 
                 {tradeStrategiesOpen && (
                   <div className="flex gap-3" data-testid="trade-coach-strategies-view">
@@ -986,18 +999,22 @@ export default function TradingResearch() {
                     collapsible peer surface to the strategies view above —
                     the trade plan library plus, once a plan is selected,
                     its editor, readiness checklist, and AI actions panel. */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1.5 text-muted-foreground"
-                  onClick={() => setTradeTradePlansOpen((v) => !v)}
-                  data-testid="button-toggle-trade-trade-plans"
-                >
-                  {tradeTradePlansOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                  <ClipboardList className="h-3.5 w-3.5" />
-                  {tradeTradePlansOpen ? "Hide trade plans" : "Show trade plans"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1.5 text-muted-foreground"
+                    onClick={() => setTradeTradePlansOpen((v) => !v)}
+                    data-testid="button-toggle-trade-trade-plans"
+                  >
+                    {tradeTradePlansOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    <ClipboardList className="h-3.5 w-3.5" />
+                    {tradeTradePlansOpen ? "Hide trade plans" : "Show trade plans"}
+                  </Button>
+                  {/* v1.5.0 Sprint 11 — Platform Integration. */}
+                  <ModuleLearnTrigger moduleLabel="Institutional Trade Planner" pathKey="trading-engine" topicKey="trading-trade-planning" size="xs" />
+                </div>
 
                 {tradeTradePlansOpen && (
                   <div className="flex gap-3" data-testid="trade-coach-trade-plans-view">

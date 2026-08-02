@@ -5,11 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { EventRiskBadge } from "@/components/ui/event-risk-badge";
 import { useEffect, useRef, useState } from "react";
 import {
-  AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, RadialBarChart, RadialBar
+  AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from "recharts";
 import { TrendingUp, TrendingDown, Zap, Activity, Target, DollarSign, Clock, Database, ShieldCheck, ShieldAlert, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
+// v1.5.0 Sprint 11 — Platform Integration. Shared with PortfolioDashboard.tsx,
+// replacing 2 independently-implemented copies of this gauge (that page's
+// own header comment already disclosed "mirrors pages/Dashboard.tsx's own
+// established ScoreRing gauge pattern").
+import { ScoreRing } from "@/components/charts/ScoreRing";
 
 const SYMBOLS = ["SPY", "QQQ", "IWM", "NVDA", "META", "AAPL", "AMZN", "MSFT", "GOOGL", "TSLA"];
 
@@ -115,35 +120,6 @@ function GlowCard({
   );
 }
 
-function ScoreRing({ score, tier }: { score: number; tier: string }) {
-  score = Math.round(score);
-  const color =
-    tier === "elite" ? "#f59e0b" :
-    tier === "high_conviction" ? "#818cf8" :
-    tier === "good" ? "#22c55e" : "#6b7280";
-  const data = [{ value: score }, { value: 100 - score }];
-  return (
-    <div className="relative w-14 h-14">
-      <RadialBarChart
-        width={56} height={56}
-        cx={28} cy={28}
-        innerRadius={18} outerRadius={26}
-        startAngle={90} endAngle={-270}
-        data={data}
-        barSize={6}
-      >
-        <RadialBar dataKey="value" cornerRadius={6} isAnimationActive={false}>
-          <Cell fill={color} />
-          <Cell fill="transparent" />
-        </RadialBar>
-      </RadialBarChart>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xs font-mono font-bold" style={{ color }}>{score}</span>
-      </div>
-    </div>
-  );
-}
-
 function TickerTape() {
   const prices = useFakeTicker();
   const tickerRef = useRef<HTMLDivElement>(null);
@@ -238,7 +214,7 @@ function TopPickHero({ opp, onReview }: { opp: { id: number; symbol: string; rav
             <p className="text-5xl font-mono font-black text-white leading-none">{opp.symbol}</p>
             <p className="text-sm text-muted-foreground mt-1 capitalize">{opp.strategy.replace("_", " ")}</p>
           </div>
-          <ScoreRing score={opp.ravishScore} tier={opp.ravishTier} />
+          <ScoreRing score={opp.ravishScore} color={TIER_COLOR[opp.ravishTier] ?? "#6b7280"} />
           <div className="ml-auto text-right">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Ravish Score</p>
             <p className="text-4xl font-mono font-black text-yellow-500">{Math.round(opp.ravishScore)}</p>
@@ -562,7 +538,7 @@ export default function Dashboard() {
                         {i === 0 && <span className="text-[10px] font-bold" style={{ color }}>#{i + 1}</span>}
                         {i > 0 && <span className="text-[10px] text-muted-foreground">#{i + 1}</span>}
                         <span className="font-bold text-sm text-white">{opp.symbol}</span>
-                        <ScoreRing score={opp.ravishScore} tier={opp.ravishTier} />
+                        <ScoreRing score={opp.ravishScore} color={TIER_COLOR[opp.ravishTier] ?? "#6b7280"} />
                         {opp.eventRiskLevel && opp.eventRiskLevel !== "none" && (
                           <EventRiskBadge
                             level={opp.eventRiskLevel}

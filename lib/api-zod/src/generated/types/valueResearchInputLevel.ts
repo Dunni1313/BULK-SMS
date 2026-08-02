@@ -11,5 +11,7 @@ export type ValueResearchInputLevel = typeof ValueResearchInputLevel[keyof typeo
 
 export const ValueResearchInputLevel = {
   beginner: 'beginner',
+  intermediate: 'intermediate',
   advanced: 'advanced',
+  institutional: 'institutional',
 } as const;

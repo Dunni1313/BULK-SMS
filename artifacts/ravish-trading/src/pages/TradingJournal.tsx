@@ -59,6 +59,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { NotebookPen, Pencil, Trash2, X, ExternalLink } from "lucide-react";
+// v1.5.0 Sprint 11 — Platform Integration.
+import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
+import { PlatformJourneyNav } from "@/components/layout/PlatformJourneyNav";
 
 function moodBadgeClass(mood: string): string {
   switch (mood) {
@@ -328,13 +331,16 @@ export default function TradingJournal() {
     <div className="grid grid-cols-1 gap-6 p-6 pb-12 md:grid-cols-3" data-testid="page-trading-journal">
       <div className="space-y-6 md:col-span-2">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
+          {/* v1.5.0 Sprint 11 — Platform Integration. */}
+          <PlatformJourneyNav current="trade-journal" />
+          <h1 className="mt-3 flex items-center gap-2 text-2xl font-bold text-foreground">
             <NotebookPen className="h-6 w-6" />
             Trading Journal
           </h1>
           <p className="text-sm text-muted-foreground">
             Institutional Trading Engine (Engine 2) — reflections on your own trading positions. Never places an order.
           </p>
+          <ModuleLearnTrigger moduleLabel="Trading Journal" pathKey="trading-engine" topicKey="trading-journal-review" size="xs" />
           <a
             href="/market-structure-workbench"
             className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"

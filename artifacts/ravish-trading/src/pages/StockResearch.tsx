@@ -72,6 +72,9 @@ import { TradePlanEditor } from "@/lib/ai-coach/TradePlanEditor";
 import { TradePlanChecklist } from "@/lib/ai-coach/TradePlanChecklist";
 import { TradePlanSummary } from "@/lib/ai-coach/TradePlanSummary";
 import { TradePlanEmptyState } from "@/lib/ai-coach/TradePlanEmptyState";
+// v1.5.0 Sprint 11 — Platform Integration.
+import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
+import { PlatformJourneyNav } from "@/components/layout/PlatformJourneyNav";
 import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
@@ -1504,18 +1507,22 @@ export function ReportView({
                 surface to the conversation view above — its own
                 workspace-scoped notebook list plus, once a notebook is
                 selected, its content editor and AI actions panel. */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-muted-foreground"
-              onClick={() => setInvestingNotebooksOpen((v) => !v)}
-              data-testid="button-toggle-investing-notebooks"
-            >
-              {investingNotebooksOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              <NotebookText className="h-3.5 w-3.5" />
-              {investingNotebooksOpen ? "Hide research notebooks" : "Show research notebooks"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() => setInvestingNotebooksOpen((v) => !v)}
+                data-testid="button-toggle-investing-notebooks"
+              >
+                {investingNotebooksOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                <NotebookText className="h-3.5 w-3.5" />
+                {investingNotebooksOpen ? "Hide research notebooks" : "Show research notebooks"}
+              </Button>
+              {/* v1.5.0 Sprint 11 — Platform Integration. */}
+              <ModuleLearnTrigger moduleLabel="AI Research Notebooks" pathKey="ai-academy" topicKey="ai-research-workflow" size="xs" />
+            </div>
 
             {investingNotebooksOpen && (
               <div className="flex gap-3" data-testid="ask-analyst-notebooks-view">
@@ -1582,18 +1589,22 @@ export function ReportView({
                 surface to the notebooks view above — the strategy
                 library plus, once a strategy is selected, its editor
                 and AI actions panel. */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-muted-foreground"
-              onClick={() => setInvestingStrategiesOpen((v) => !v)}
-              data-testid="button-toggle-investing-strategies"
-            >
-              {investingStrategiesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              <ListTree className="h-3.5 w-3.5" />
-              {investingStrategiesOpen ? "Hide strategies" : "Show strategies"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() => setInvestingStrategiesOpen((v) => !v)}
+                data-testid="button-toggle-investing-strategies"
+              >
+                {investingStrategiesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                <ListTree className="h-3.5 w-3.5" />
+                {investingStrategiesOpen ? "Hide strategies" : "Show strategies"}
+              </Button>
+              {/* v1.5.0 Sprint 11 — Platform Integration. */}
+              <ModuleLearnTrigger moduleLabel="AI Strategy Builder" pathKey="ai-academy" topicKey="ai-team-overview" size="xs" />
+            </div>
 
             {investingStrategiesOpen && (
               <div className="flex gap-3" data-testid="ask-analyst-strategies-view">
@@ -1668,18 +1679,22 @@ export function ReportView({
                 collapsible peer surface to the strategies view above —
                 the trade plan library plus, once a plan is selected, its
                 editor, readiness checklist, and AI actions panel. */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-muted-foreground"
-              onClick={() => setInvestingTradePlansOpen((v) => !v)}
-              data-testid="button-toggle-investing-trade-plans"
-            >
-              {investingTradePlansOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              <ClipboardList className="h-3.5 w-3.5" />
-              {investingTradePlansOpen ? "Hide trade plans" : "Show trade plans"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() => setInvestingTradePlansOpen((v) => !v)}
+                data-testid="button-toggle-investing-trade-plans"
+              >
+                {investingTradePlansOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                <ClipboardList className="h-3.5 w-3.5" />
+                {investingTradePlansOpen ? "Hide trade plans" : "Show trade plans"}
+              </Button>
+              {/* v1.5.0 Sprint 11 — Platform Integration. */}
+              <ModuleLearnTrigger moduleLabel="Institutional Trade Planner" pathKey="trading-engine" topicKey="trading-trade-planning" size="xs" />
+            </div>
 
             {investingTradePlansOpen && (
               <div className="flex gap-3" data-testid="ask-analyst-trade-plans-view">
@@ -2135,6 +2150,8 @@ export default function StockResearch() {
 
   return (
     <div className="space-y-6">
+      {/* v1.5.0 Sprint 11 — Platform Integration. */}
+      <PlatformJourneyNav current="research" />
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -2170,6 +2187,12 @@ export default function StockResearch() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Depth</span>
+          {/* v1.5.0 Sprint 11 — Platform Integration. Widened from a 2-way
+              Beginner/Advanced toggle to the shared 4-tier CoachLevel
+              vocabulary (lib/ai-core, now matching learningPaths.ts's own
+              LearningDifficulty) — the same widening applied to
+              Assistant.tsx's own level toggle, "one shared coaching
+              experience" across the platform. */}
           <ToggleGroup
             type="single"
             value={level}
@@ -2179,8 +2202,14 @@ export default function StockResearch() {
             <ToggleGroupItem value={ValueResearchInputLevel.beginner} className="h-8 px-3 text-xs data-[state=on]:bg-indigo-500/20 data-[state=on]:text-indigo-400">
               Beginner
             </ToggleGroupItem>
+            <ToggleGroupItem value={ValueResearchInputLevel.intermediate} className="h-8 px-3 text-xs data-[state=on]:bg-indigo-500/20 data-[state=on]:text-indigo-400">
+              Intermediate
+            </ToggleGroupItem>
             <ToggleGroupItem value={ValueResearchInputLevel.advanced} className="h-8 px-3 text-xs data-[state=on]:bg-indigo-500/20 data-[state=on]:text-indigo-400">
               Advanced
+            </ToggleGroupItem>
+            <ToggleGroupItem value={ValueResearchInputLevel.institutional} className="h-8 px-3 text-xs data-[state=on]:bg-indigo-500/20 data-[state=on]:text-indigo-400">
+              Institutional
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
