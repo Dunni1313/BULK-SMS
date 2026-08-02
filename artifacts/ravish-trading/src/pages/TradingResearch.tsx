@@ -79,6 +79,12 @@ import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
 import { useAiWorkspaces } from "@/lib/ai-coach/useAiWorkspaces";
 import { WorkspaceSidebar } from "@/lib/ai-coach/WorkspaceSidebar";
 import { WorkspaceHeader } from "@/lib/ai-coach/WorkspaceHeader";
+import { useAiNotebooks } from "@/lib/ai-coach/useAiNotebooks";
+import { NotebookSidebar } from "@/lib/ai-coach/NotebookSidebar";
+import { NotebookHeader } from "@/lib/ai-coach/NotebookHeader";
+import { NotebookEditor } from "@/lib/ai-coach/NotebookEditor";
+import { NotebookSummaryPanel } from "@/lib/ai-coach/NotebookSummaryPanel";
+import { NotebookEmptyState } from "@/lib/ai-coach/NotebookEmptyState";
 import { Markdown } from "@/components/ui/markdown";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromSymbol, focusFromTradingPosition } from "@/lib/trading-coach-context";
@@ -115,6 +121,7 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  NotebookText,
 } from "lucide-react";
 
 export default function TradingResearch() {
@@ -269,6 +276,12 @@ export default function TradingResearch() {
   // here to the Trading AI Coach's own conversation memory.
   const tradingWorkspaces = useAiWorkspaces("trading");
   const tradeCoachConversations = useCoachConversations("trading", tradingWorkspaces.activeWorkspaceId ?? undefined);
+
+  // v1.5.0 Sprint 8 — AI Research Notebooks. A collapsible peer surface
+  // alongside the legacy inline assistant's own conversation view above —
+  // shown/hidden via this toggle without disturbing that view's own state.
+  const [tradeNotebooksOpen, setTradeNotebooksOpen] = useState(false);
+  const tradeNotebooks = useAiNotebooks("trading", tradingWorkspaces.activeWorkspaceId ?? undefined);
   const tradeCoach = useSpecialistCoach(
     tradingCoachConfig,
     { symbol },
@@ -772,6 +785,84 @@ export default function TradingResearch() {
                     </form>
                   </div>
                 </div>
+
+                {/* v1.5.0 Sprint 8 — AI Research Notebooks. A collapsible
+                    peer surface to the conversation view above — its own
+                    workspace-scoped notebook list plus, once a notebook is
+                    selected, its content editor and AI actions panel. */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-muted-foreground"
+                  onClick={() => setTradeNotebooksOpen((v) => !v)}
+                  data-testid="button-toggle-trade-notebooks"
+                >
+                  {tradeNotebooksOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  <NotebookText className="h-3.5 w-3.5" />
+                  {tradeNotebooksOpen ? "Hide research notebooks" : "Show research notebooks"}
+                </Button>
+
+                {tradeNotebooksOpen && (
+                  <div className="flex gap-3" data-testid="trade-coach-notebooks-view">
+                    <NotebookSidebar
+                      notebooks={tradeNotebooks.notebooks}
+                      isLoading={tradeNotebooks.isLoadingNotebooks}
+                      activeNotebookId={tradeNotebooks.activeNotebookId}
+                      searchTerm={tradeNotebooks.searchTerm}
+                      onSearchChange={tradeNotebooks.setSearchTerm}
+                      onCreateNotebook={(input) => tradeNotebooks.createNotebookAnd({ ...input, workspaceId: tradingWorkspaces.activeWorkspaceId })}
+                      onSelectNotebook={tradeNotebooks.selectNotebook}
+                      onClearSelection={tradeNotebooks.clearSelection}
+                      onTogglePin={tradeNotebooks.togglePinById}
+                      onToggleArchive={tradeNotebooks.toggleArchiveById}
+                      onDeleteNotebook={tradeNotebooks.deleteNotebookById}
+                      testId="trade-notebook-sidebar"
+                    />
+                    <div className="flex-1 space-y-3">
+                      {tradeNotebooks.activeNotebookDetail ? (
+                        <>
+                          <NotebookHeader
+                            notebook={tradeNotebooks.activeNotebookDetail}
+                            onRename={(input) => tradeNotebooks.updateNotebookById(tradeNotebooks.activeNotebookDetail!.id, input)}
+                            onTogglePin={(pinned) => tradeNotebooks.togglePinById(tradeNotebooks.activeNotebookDetail!.id, pinned)}
+                            onToggleArchive={(archived) => tradeNotebooks.toggleArchiveById(tradeNotebooks.activeNotebookDetail!.id, archived)}
+                            onDelete={() => tradeNotebooks.deleteNotebookById(tradeNotebooks.activeNotebookDetail!.id)}
+                            onSearch={tradeNotebooks.searchContents}
+                            testId="trade-notebook-header"
+                          />
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <NotebookEditor
+                              notebook={tradeNotebooks.activeNotebookDetail}
+                              onAddNote={tradeNotebooks.addNote}
+                              onDeleteNote={tradeNotebooks.deleteNote}
+                              onLinkConversation={tradeNotebooks.linkConversation}
+                              onLinkFile={tradingWorkspaces.activeWorkspaceDetail ? tradeNotebooks.linkFile : undefined}
+                              onRemoveLink={tradeNotebooks.removeLink}
+                              linkableConversations={tradeCoachConversations.conversations.map((c) => ({ id: c.id, title: c.title }))}
+                              linkableFiles={tradingWorkspaces.activeWorkspaceDetail?.files.map((f) => ({ id: f.id, fileName: f.fileName }))}
+                              testId="trade-notebook-editor"
+                            />
+                            <NotebookSummaryPanel
+                              onSummarize={tradeNotebooks.summarize}
+                              onMergeNotes={tradeNotebooks.mergeNotes}
+                              onGenerateTakeaways={tradeNotebooks.generateTakeaways}
+                              onGenerateActionItems={tradeNotebooks.generateActionItems}
+                              onSaveAsNote={(kind, content) => tradeNotebooks.addNote(kind, content)}
+                              testId="trade-notebook-summary-panel"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <NotebookEmptyState
+                          title="No notebook selected"
+                          description="Choose a notebook on the left, or create a new one to start collecting research."
+                          testId="trade-notebook-detail-empty"
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
               </CollapsibleContent>
             </Collapsible>
           </CardContent>

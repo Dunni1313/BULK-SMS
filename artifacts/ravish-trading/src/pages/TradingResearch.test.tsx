@@ -109,6 +109,61 @@ vi.mock("@/lib/ai-coach/workspacesApi", () => ({
   deleteWorkspaceFile: vi.fn(),
 }));
 
+// v1.5.0 Sprint 8 — AI Research Notebooks. Mirrors the workspacesApi mock
+// above exactly.
+const notebooksState = vi.hoisted(() => ({
+  notebooks: [] as any[],
+  notesByNotebook: {} as Record<number, any[]>,
+  nextNotebookId: 1,
+  nextNoteId: 1,
+}));
+vi.mock("@/lib/ai-coach/notebooksApi", () => ({
+  listNotebooks: vi.fn(async () => notebooksState.notebooks),
+  createNotebook: vi.fn(async (coachId: string, input: { title: string; description?: string; tags?: string[]; workspaceId?: number | null }) => {
+    const id = notebooksState.nextNotebookId++;
+    const notebook = {
+      id,
+      coachId,
+      workspaceId: input.workspaceId ?? null,
+      title: input.title,
+      description: input.description ?? null,
+      pinned: false,
+      archived: false,
+      tags: input.tags ?? [],
+      version: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    notebooksState.notebooks = [notebook, ...notebooksState.notebooks];
+    notebooksState.notesByNotebook[id] = [];
+    return notebook;
+  }),
+  getNotebook: vi.fn(async (id: number) => {
+    const notebook = notebooksState.notebooks.find((n) => n.id === id);
+    return { ...notebook, notes: notebooksState.notesByNotebook[id] ?? [], links: [] };
+  }),
+  updateNotebook: vi.fn(async (id: number, input: Record<string, unknown>) => {
+    const notebook = notebooksState.notebooks.find((n) => n.id === id);
+    Object.assign(notebook, input);
+    return notebook;
+  }),
+  deleteNotebook: vi.fn(),
+  searchNotebookContents: vi.fn(async () => []),
+  addNotebookNote: vi.fn(async (notebookId: number, kind: string, content: string) => {
+    const note = { id: notebooksState.nextNoteId++, notebookId, kind, content, createdAt: new Date().toISOString() };
+    notebooksState.notesByNotebook[notebookId] = [...(notebooksState.notesByNotebook[notebookId] ?? []), note];
+    return note;
+  }),
+  deleteNotebookNote: vi.fn(),
+  addNotebookConversationLink: vi.fn(),
+  addNotebookFileLink: vi.fn(),
+  deleteNotebookLink: vi.fn(),
+  summarizeNotebook: vi.fn(),
+  mergeNotebookNotes: vi.fn(),
+  generateNotebookTakeaways: vi.fn(),
+  generateNotebookActionItems: vi.fn(),
+}));
+
 const createPositionMutate = vi.fn();
 const deletePositionMutate = vi.fn();
 const updateSettingsMutate = vi.fn();
@@ -366,6 +421,10 @@ describe("TradingResearch page", () => {
     coachConversationsState.nextMessageId = 1;
     workspacesState.workspaces = [];
     workspacesState.nextWorkspaceId = 1;
+    notebooksState.notebooks = [];
+    notebooksState.notesByNotebook = {};
+    notebooksState.nextNotebookId = 1;
+    notebooksState.nextNoteId = 1;
   });
 
   it("renders the advisory-only copy and a prompt before any symbol is searched", () => {
@@ -789,6 +848,40 @@ describe("TradingResearch page", () => {
 
       expect(await screen.findByTestId("trade-coach-workspace-header")).toBeInTheDocument();
       expect(screen.getByTestId("trade-coach-workspace-header-name")).toHaveTextContent("Regime tracking");
+    });
+  });
+
+  describe("v1.5.0 Sprint 8 — AI Research Notebooks", () => {
+    async function openLegacyCoachPanel() {
+      mockState.structure = structureAnalysis();
+      renderWithClient(<TradingResearch />);
+      await userEvent.type(screen.getByTestId("input-trading-research-symbol"), "AAPL");
+      await userEvent.click(screen.getByTestId("button-trading-research-search"));
+      await userEvent.click(await screen.findByTestId("button-toggle-legacy-trade-coach"));
+    }
+
+    it("notebooks are collapsed by default; the toggle reveals the notebook sidebar", async () => {
+      await openLegacyCoachPanel();
+      expect(screen.queryByTestId("trade-notebook-sidebar")).not.toBeInTheDocument();
+
+      await userEvent.click(await screen.findByTestId("button-toggle-trade-notebooks"));
+      expect(await screen.findByTestId("trade-notebook-sidebar")).toBeInTheDocument();
+    });
+
+    it("creating a notebook adds it to the sidebar, and selecting it shows the header/editor/summary panel", async () => {
+      await openLegacyCoachPanel();
+      await userEvent.click(await screen.findByTestId("button-toggle-trade-notebooks"));
+
+      await userEvent.click(await screen.findByTestId("trade-notebook-sidebar-new-notebook"));
+      await userEvent.type(screen.getByTestId("trade-notebook-sidebar-create-title"), "Structure notes");
+      await userEvent.click(screen.getByTestId("trade-notebook-sidebar-create-save"));
+
+      const card = await screen.findByTestId(/trade-notebook-sidebar-list-card-\d+-select/);
+      await userEvent.click(card);
+
+      expect(await screen.findByTestId("trade-notebook-header")).toHaveTextContent("Structure notes");
+      expect(screen.getByTestId("trade-notebook-editor")).toBeInTheDocument();
+      expect(screen.getByTestId("trade-notebook-summary-panel")).toBeInTheDocument();
     });
   });
 });

@@ -51,6 +51,12 @@ import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
 import { useAiWorkspaces } from "@/lib/ai-coach/useAiWorkspaces";
 import { WorkspaceSidebar } from "@/lib/ai-coach/WorkspaceSidebar";
 import { WorkspaceHeader } from "@/lib/ai-coach/WorkspaceHeader";
+import { useAiNotebooks } from "@/lib/ai-coach/useAiNotebooks";
+import { NotebookSidebar } from "@/lib/ai-coach/NotebookSidebar";
+import { NotebookHeader } from "@/lib/ai-coach/NotebookHeader";
+import { NotebookEditor } from "@/lib/ai-coach/NotebookEditor";
+import { NotebookSummaryPanel } from "@/lib/ai-coach/NotebookSummaryPanel";
+import { NotebookEmptyState } from "@/lib/ai-coach/NotebookEmptyState";
 import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
@@ -84,6 +90,9 @@ import {
   ScrollText,
   NotebookPen,
   Gavel,
+  ChevronDown,
+  ChevronUp,
+  NotebookText,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -513,6 +522,12 @@ export function ReportView({
   // here to the Investing AI Coach's own conversation memory.
   const investingWorkspaces = useAiWorkspaces("investing");
   const askCoachConversations = useCoachConversations("investing", investingWorkspaces.activeWorkspaceId ?? undefined);
+
+  // v1.5.0 Sprint 8 — AI Research Notebooks. A collapsible peer surface to
+  // the Ask panel's own conversation view above — see TradingResearch.tsx's
+  // identical wiring/rationale.
+  const [investingNotebooksOpen, setInvestingNotebooksOpen] = useState(false);
+  const investingNotebooks = useAiNotebooks("investing", investingWorkspaces.activeWorkspaceId ?? undefined);
   const askCoach = useSpecialistCoach(
     investingCoachConfig,
     { symbol: report.symbol },
@@ -1452,6 +1467,84 @@ export function ReportView({
                 <Send className="w-3.5 h-3.5" />
               </Button>
             </form>
+
+            {/* v1.5.0 Sprint 8 — AI Research Notebooks. A collapsible peer
+                surface to the conversation view above — its own
+                workspace-scoped notebook list plus, once a notebook is
+                selected, its content editor and AI actions panel. */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-muted-foreground"
+              onClick={() => setInvestingNotebooksOpen((v) => !v)}
+              data-testid="button-toggle-investing-notebooks"
+            >
+              {investingNotebooksOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              <NotebookText className="h-3.5 w-3.5" />
+              {investingNotebooksOpen ? "Hide research notebooks" : "Show research notebooks"}
+            </Button>
+
+            {investingNotebooksOpen && (
+              <div className="flex gap-3" data-testid="ask-analyst-notebooks-view">
+                <NotebookSidebar
+                  notebooks={investingNotebooks.notebooks}
+                  isLoading={investingNotebooks.isLoadingNotebooks}
+                  activeNotebookId={investingNotebooks.activeNotebookId}
+                  searchTerm={investingNotebooks.searchTerm}
+                  onSearchChange={investingNotebooks.setSearchTerm}
+                  onCreateNotebook={(input) => investingNotebooks.createNotebookAnd({ ...input, workspaceId: investingWorkspaces.activeWorkspaceId })}
+                  onSelectNotebook={investingNotebooks.selectNotebook}
+                  onClearSelection={investingNotebooks.clearSelection}
+                  onTogglePin={investingNotebooks.togglePinById}
+                  onToggleArchive={investingNotebooks.toggleArchiveById}
+                  onDeleteNotebook={investingNotebooks.deleteNotebookById}
+                  testId="investing-notebook-sidebar"
+                />
+                <div className="flex-1 space-y-3">
+                  {investingNotebooks.activeNotebookDetail ? (
+                    <>
+                      <NotebookHeader
+                        notebook={investingNotebooks.activeNotebookDetail}
+                        onRename={(input) => investingNotebooks.updateNotebookById(investingNotebooks.activeNotebookDetail!.id, input)}
+                        onTogglePin={(pinned) => investingNotebooks.togglePinById(investingNotebooks.activeNotebookDetail!.id, pinned)}
+                        onToggleArchive={(archived) => investingNotebooks.toggleArchiveById(investingNotebooks.activeNotebookDetail!.id, archived)}
+                        onDelete={() => investingNotebooks.deleteNotebookById(investingNotebooks.activeNotebookDetail!.id)}
+                        onSearch={investingNotebooks.searchContents}
+                        testId="investing-notebook-header"
+                      />
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <NotebookEditor
+                          notebook={investingNotebooks.activeNotebookDetail}
+                          onAddNote={investingNotebooks.addNote}
+                          onDeleteNote={investingNotebooks.deleteNote}
+                          onLinkConversation={investingNotebooks.linkConversation}
+                          onLinkFile={investingWorkspaces.activeWorkspaceDetail ? investingNotebooks.linkFile : undefined}
+                          onRemoveLink={investingNotebooks.removeLink}
+                          linkableConversations={askCoachConversations.conversations.map((c) => ({ id: c.id, title: c.title }))}
+                          linkableFiles={investingWorkspaces.activeWorkspaceDetail?.files.map((f) => ({ id: f.id, fileName: f.fileName }))}
+                          testId="investing-notebook-editor"
+                        />
+                        <NotebookSummaryPanel
+                          onSummarize={investingNotebooks.summarize}
+                          onMergeNotes={investingNotebooks.mergeNotes}
+                          onGenerateTakeaways={investingNotebooks.generateTakeaways}
+                          onGenerateActionItems={investingNotebooks.generateActionItems}
+                          onSaveAsNote={(kind, content) => investingNotebooks.addNote(kind, content)}
+                          testId="investing-notebook-summary-panel"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <NotebookEmptyState
+                      title="No notebook selected"
+                      description="Choose a notebook on the left, or create a new one to start collecting research."
+                      testId="investing-notebook-detail-empty"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

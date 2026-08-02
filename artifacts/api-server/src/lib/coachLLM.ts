@@ -910,3 +910,92 @@ export async function narrateCrossEngineDailyReportStream(
 ): Promise<Narration> {
   return narrateStream(crossEngineDailyReportPrompt, context ?? {}, fallback, onToken, cacheKey);
 }
+
+// v1.5.0, Sprint 8 — AI Research Notebooks. Four narration/extraction
+// entry points for the "AI features" the approved scope names: summarise
+// an entire notebook, merge its own raw notes into one executive summary,
+// generate key takeaways, and generate action items. All four are strictly
+// user-triggered (an explicit POST call from routes/aiNotebooks.ts) —
+// never run proactively or on a schedule, matching the approved scope's
+// own "Do NOT generate autonomous recommendations. The AI remains an
+// assistant, not an autonomous decision-maker" instruction. No persona is
+// invoked (unlike the Value coach's "in the spirit of Warren Buffett"
+// framing), so the prose functions rely on the baseline COACH_DISCLAIMER
+// guarantee alone, matching narrateCrossEngineDailyReport's own simpler
+// precedent.
+const notebookSummaryPrompt =
+  "You are summarising a user's own AI research notebook — a structured collection of notes, saved AI " +
+  "responses, key findings, action items, and references the user has assembled over time for the Trading, " +
+  "Investing, or Options AI Coach. Using ONLY the provided DATA (the notebook's own title, description, " +
+  "and every note/finding/action-item/reference/saved-response it contains), write 3-5 sentences summarising " +
+  "what this notebook's research says. NEVER invent a fact, figure, or conclusion not present in the DATA. " +
+  "This is a summary of the user's OWN existing research, never a new recommendation or an autonomous " +
+  "decision — you are an assistant organizing what the user already wrote or saved, not advising a course " +
+  "of action.";
+
+export async function narrateNotebookSummary(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(notebookSummaryPrompt, context ?? {}, fallback);
+}
+
+const notebookMergePrompt =
+  "You are merging a user's own individual notes (from an AI research notebook) into ONE concise executive " +
+  "summary. Using ONLY the provided DATA (the raw text of each individual note), write a single short " +
+  "executive summary (3-6 sentences) that consolidates what these notes say, in the user's own voice as " +
+  "much as possible. NEVER invent a fact not present in the notes' own text, and NEVER add a new " +
+  "recommendation or conclusion the notes themselves don't already contain — you are consolidating existing " +
+  "research, not generating new advice.";
+
+export async function narrateNotebookMergedSummary(context: unknown, fallback: string): Promise<Narration> {
+  return narrate(notebookMergePrompt, context ?? {}, fallback);
+}
+
+async function generateNotebookExtractionList(
+  instructionPrompt: string,
+  context: unknown,
+  fieldName: "takeaways" | "actionItems",
+): Promise<string[] | null> {
+  if (!llmAvailable()) return null;
+  const content =
+    `${instructionPrompt}\n\nReply as strict JSON with one field, "${fieldName}", an array of short plain-` +
+    `English strings (never more than 8 entries). Use ONLY facts present in the DATA below — never invent ` +
+    `one, and never phrase an entry as an instruction to buy, sell, place, or execute anything.` +
+    `\n\nDATA:\n${JSON.stringify(context ?? {})}`;
+  const raw = await aiCoreComplete(SYSTEM_PROMPT, content, 500, { json: true, onWarn });
+  if (!raw) return null;
+  try {
+    const json = extractJsonObject(raw);
+    if (!json) return null;
+    const parsed = JSON.parse(json) as Record<string, unknown>;
+    const list = parsed[fieldName];
+    if (!Array.isArray(list)) return null;
+    const cleaned = list.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((s) => s.trim());
+    return cleaned.length > 0 ? cleaned : null;
+  } catch (err) {
+    logger.warn({ err }, `notebook ${fieldName} JSON parse failed`);
+    return null;
+  }
+}
+
+const notebookTakeawaysPrompt =
+  "Extract the key takeaways from this AI research notebook's own content (notes, findings, saved AI " +
+  "responses, references). Each takeaway must be a plain factual statement drawn directly from the DATA — " +
+  "never a new insight, prediction, or piece of advice.";
+
+/** Honestly returns null (never a fabricated list) when the LLM is
+ * unavailable or its response can't be parsed as a real JSON array. */
+export async function generateNotebookKeyTakeaways(context: unknown): Promise<string[] | null> {
+  return generateNotebookExtractionList(notebookTakeawaysPrompt, context, "takeaways");
+}
+
+const notebookActionItemsPrompt =
+  "Extract concrete action items already implied or stated in this AI research notebook's own content " +
+  "(notes, findings, saved AI responses). Each action item must be something the DATA itself already " +
+  "suggests doing (e.g. 'review the Q3 filing once available') — never a NEW trading or investment " +
+  "recommendation the notebook's own content doesn't already contain, and never an instruction to buy, " +
+  "sell, place, or execute anything.";
+
+/** Honestly returns null (never a fabricated list) when the LLM is
+ * unavailable or its response can't be parsed as a real JSON array. */
+export async function generateNotebookActionItems(context: unknown): Promise<string[] | null> {
+  return generateNotebookExtractionList(notebookActionItemsPrompt, context, "actionItems");
+}
