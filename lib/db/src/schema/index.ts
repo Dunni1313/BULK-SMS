@@ -67,3 +67,5 @@ export * from "./tradePlans";
 export * from "./tradePlanSections";
 export * from "./tradePlanVersions";
 export * from "./tradePlanChecklistItems";
+export * from "./aiTradingCoachPreferences";
+export * from "./aiTradingCoachDailyState";
