@@ -18,7 +18,7 @@
 // every item below is a navigation, a read of already-fetched data, or
 // (Export Portfolio) a client-side CSV download of already-fetched trades.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import {
   useListTrades,
@@ -57,7 +57,13 @@ import { QUICK_ACTIONS } from "@/lib/quick-actions";
 import { downloadPortfolioCsv } from "@/lib/portfolio-export";
 import { WORKFLOWS, type Workflow } from "@/lib/workflows";
 import { useToast } from "@/hooks/use-toast";
-import { Compass, Zap, Briefcase, BookOpen, Library, GraduationCap, Map, Sparkles, ListChecks, Building2, Bookmark } from "lucide-react";
+import { listNotebooks, type AiNotebook } from "@/lib/ai-coach/notebooksApi";
+import { listStrategies, type AiStrategy } from "@/lib/ai-coach/strategiesApi";
+import { listTradePlans, type TradePlan } from "@/lib/ai-coach/tradePlansApi";
+import type { CoachId } from "@/lib/ai-coach/capabilityRegistry";
+import { Compass, Zap, Briefcase, BookOpen, Library, GraduationCap, Map, Sparkles, ListChecks, Building2, Bookmark, Network, Route } from "lucide-react";
+
+const COACH_IDS: CoachId[] = ["investing", "trading", "options"];
 
 export interface CommandPaletteProps {
   open: boolean;
@@ -104,6 +110,34 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const { data: progress } = useGetLearningProgress({
     query: { queryKey: getGetLearningProgressQueryKey(), enabled: open },
   });
+
+  // v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph.
+  // "Extend the existing search" — Research Notebooks (Sprint 8), My
+  // Strategies (Sprint 9), and Trade Plans (Sprint 10) join this same
+  // palette rather than a second search surface, matching this file's own
+  // "fetched lazily... only once the palette is actually opened" rule:
+  // notebooksApi.ts/strategiesApi.ts/tradePlansApi.ts are still plain-fetch
+  // (Sprint 8/9/10's own established shape, not generated hooks), so this
+  // effect gates on `open` itself instead of a generated `enabled` flag.
+  const [notebooks, setNotebooks] = useState<AiNotebook[]>([]);
+  const [myStrategies, setMyStrategies] = useState<AiStrategy[]>([]);
+  const [tradePlans, setTradePlans] = useState<TradePlan[]>([]);
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    Promise.all(COACH_IDS.map((c) => listNotebooks(c).catch((): AiNotebook[] => []))).then((r) => {
+      if (!cancelled) setNotebooks(r.flat());
+    });
+    Promise.all(COACH_IDS.map((c) => listStrategies(c).catch((): AiStrategy[] => []))).then((r) => {
+      if (!cancelled) setMyStrategies(r.flat());
+    });
+    Promise.all(COACH_IDS.map((c) => listTradePlans(c).catch((): TradePlan[] => []))).then((r) => {
+      if (!cancelled) setTradePlans(r.flat());
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   function go(href: string) {
     setLocation(href);
@@ -402,6 +436,65 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>{o.title}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {notebooks.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Research">
+              {notebooks.slice(0, 25).map((n) => (
+                <CommandItem
+                  key={n.id}
+                  value={`research notebook ${n.title} ${n.tags.join(" ")}`}
+                  onSelect={() => go("/institutional-ai-coach")}
+                  data-testid={`command-item-notebook-${n.id}`}
+                >
+                  <Network className="h-4 w-4" />
+                  <span>{n.title}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {myStrategies.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="My Strategies">
+              {myStrategies.slice(0, 25).map((s) => (
+                <CommandItem
+                  key={s.id}
+                  value={`my strategy ${s.title} ${s.tags.join(" ")}`}
+                  onSelect={() => go("/institutional-ai-coach")}
+                  data-testid={`command-item-my-strategy-${s.id}`}
+                >
+                  <Route className="h-4 w-4" />
+                  <span>{s.title}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {tradePlans.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Trade Plans">
+              {tradePlans.slice(0, 25).map((p) => (
+                <CommandItem
+                  key={p.id}
+                  value={`trade plan ${p.title} ${p.plannedAsset ?? ""} ${p.tags.join(" ")}`}
+                  onSelect={() => go(`/execution-lifecycle-manager?planId=${p.id}`)}
+                  data-testid={`command-item-trade-plan-${p.id}`}
+                >
+                  <Briefcase className="h-4 w-4" />
+                  <span>
+                    {p.title} {p.plannedAsset ? `(${p.plannedAsset})` : ""}
+                  </span>
                 </CommandItem>
               ))}
             </CommandGroup>

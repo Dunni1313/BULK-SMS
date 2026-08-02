@@ -37,6 +37,8 @@ import {
 } from "@/lib/tradeLifecycle";
 import { updateTradePlan } from "@/lib/ai-coach/tradePlansApi";
 import type { CoachId } from "@/lib/ai-coach/capabilityRegistry";
+import { useKnowledgeGraph } from "@/lib/useKnowledgeGraph";
+import { relatedEntities } from "@/lib/knowledgeGraph";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +59,7 @@ import {
   TrendingUp,
   BookOpen,
   KanbanSquare,
+  Network,
 } from "lucide-react";
 
 const fmtUsd = (n: number) => n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -465,6 +468,49 @@ function TradePlanPicker({
 
 // ─── Main page ────────────────────────────────────────────────────────
 
+// v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph. Reuses
+// useKnowledgeGraph()/relatedEntities() directly — the same graph engine
+// backing /knowledge-graph and the Command Centre's own Knowledge
+// Insights card. A bounded first surface (Command Centre + this page); a
+// future sprint can extend the same pattern to more pages.
+function RelatedKnowledgeCard({ tradePlanId }: { tradePlanId: number }) {
+  const { graph, loading } = useKnowledgeGraph();
+  if (loading) return <Skeleton className="h-24 w-full" />;
+  const related = relatedEntities(graph, `trade-plan:${tradePlanId}`);
+  return (
+    <Card className="bg-card border-border" data-testid="card-related-knowledge">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Network className="h-4 w-4" /> Related Knowledge
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/knowledge-graph" className="underline">
+            Knowledge &amp; Intelligence Graph
+          </Link>
+          .
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {related.length === 0 ? (
+          <p className="text-sm text-muted-foreground" data-testid="related-knowledge-empty">
+            Nothing else in your platform is connected to this trade plan yet.
+          </p>
+        ) : (
+          <ul className="space-y-1" data-testid="related-knowledge-list">
+            {related.map((r) => (
+              <li key={r.node.id} className="text-sm">
+                <span className="text-muted-foreground text-xs uppercase">{r.node.type.replace("-", " ")}:</span> {r.node.label}
+                <span className="text-[10px] text-muted-foreground ml-1">({r.relation})</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ExecutionLifecycleManager() {
   const search = useSearch();
   const [tradePlanId, setTradePlanId] = useState<number | null>(null);
@@ -541,6 +587,8 @@ export default function ExecutionLifecycleManager() {
                 <AiTradeManager record={workflow.record} />
                 <LifecycleLearningCard record={workflow.record} weakestDecisionStageId={workflow.weakestDecisionStage?.id ?? null} />
               </div>
+
+              <RelatedKnowledgeCard tradePlanId={workflow.record.tradePlan.id} />
 
               <Card className="bg-card border-border" data-testid="lifecycle-archive-card">
                 <CardContent className="pt-6 flex items-center justify-between gap-2 flex-wrap">

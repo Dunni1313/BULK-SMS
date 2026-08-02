@@ -129,6 +129,11 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // (docs/v1.5.0-Sprint-16-Workflow-Automation-Engine.md). Connects every
   // existing module into one unified, dismissible Task list.
   "/workflow-automation-engine",
+  // v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph
+  // (docs/v1.5.0-Sprint-17-Knowledge-Intelligence-Graph.md). Connects
+  // Research/Strategies/Trade Plans/Journal/Companies/Themes into one
+  // reusable, transparent knowledge graph.
+  "/knowledge-graph",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {

@@ -45,6 +45,8 @@ const ExecutionLifecycleManager = lazy(() => import("./pages/ExecutionLifecycleM
 const PortfolioRiskIntelligence = lazy(() => import("./pages/PortfolioRiskIntelligence"));
 // v1.5.0, Sprint 16 — Institutional Workflow Automation Engine.
 const WorkflowAutomationEngine = lazy(() => import("./pages/WorkflowAutomationEngine"));
+// v1.5.0, Sprint 17 — Institutional Knowledge & Intelligence Graph.
+const KnowledgeIntelligenceGraph = lazy(() => import("./pages/KnowledgeIntelligenceGraph"));
 const Home = lazy(() => import("./pages/Home"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
@@ -173,6 +175,7 @@ function Router() {
           <Route path="/execution-lifecycle" component={ExecutionLifecycleManager} />
           <Route path="/portfolio-risk-intelligence" component={PortfolioRiskIntelligence} />
           <Route path="/workflow-automation-engine" component={WorkflowAutomationEngine} />
+          <Route path="/knowledge-graph" component={KnowledgeIntelligenceGraph} />
           <Route path="/personal-dashboard" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
           <Route path="/notifications" component={NotificationCentre} />
