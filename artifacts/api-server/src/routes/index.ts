@@ -17,6 +17,7 @@ import marketDataHealthRouter from "./marketDataHealth";
 import brokerHealthRouter from "./brokerHealth";
 import brokerReconciliationRouter from "./brokerReconciliation";
 import eventsRouter from "./events";
+import marketIntelligenceRouter from "./marketIntelligence";
 import stockAnalystRouter from "./stockAnalyst";
 import portfolioConstructionRouter from "./portfolioConstruction";
 import tradingJournalRouter from "./tradingJournal";
@@ -160,5 +161,6 @@ router.use(aiWorkspacesRouter);
 router.use(aiNotebooksRouter);
 router.use(aiStrategiesRouter);
 router.use(tradePlansRouter);
+router.use(marketIntelligenceRouter);
 
 export default router;

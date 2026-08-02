@@ -144,6 +144,12 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // PROCESS quality using already-collected platform evidence — never
   // trade outcome.
   "/decision-quality-review",
+  // v1.5.0, Sprint 20 — Institutional Market Intelligence Engine
+  // (docs/v1.5.0-Sprint-20-Market-Intelligence-Engine.md). External market
+  // context — never trading signals or price predictions — connected
+  // outward into Command Centre, Research, Decision Workflow, Portfolio
+  // Intelligence, Knowledge Graph, and the AI Coach.
+  "/market-intelligence",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {
