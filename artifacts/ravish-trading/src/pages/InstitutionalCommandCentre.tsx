@@ -67,6 +67,7 @@ import { usePortfolioRiskIntelligence } from "@/lib/usePortfolioRiskIntelligence
 import { useWorkflowAutomation } from "@/lib/useWorkflowAutomation";
 import { useKnowledgeGraph } from "@/lib/useKnowledgeGraph";
 import { buildKnowledgeInsights } from "@/lib/knowledgeGraph";
+import { usePlaybooks } from "@/lib/usePlaybooks";
 import {
   Compass,
   ShieldAlert,
@@ -83,6 +84,7 @@ import {
   PauseCircle,
   CheckCircle2,
   Network,
+  BookMarked,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -925,6 +927,97 @@ function KnowledgeInsightsCard() {
   );
 }
 
+// ─── Playbooks (v1.5.0, Sprint 18) ──────────────────────────────────────
+// Reuses usePlaybooks() directly — the exact same hook backing the full
+// /playbooks page. Surfaces exactly what the approved scope named:
+// Current playbook, Progress, Blocked stages, Recently completed
+// procedures, and Recommended next procedure — never a second, duplicate
+// playbook computation.
+
+function PlaybooksCard() {
+  const { loading, current, recommendedNext, progresses } = usePlaybooks();
+
+  if (loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const completed = progresses.filter((p) => p.overallStatus === "complete").slice(0, 3);
+  const blockedAcrossAll = progresses.flatMap((p) => p.blockedStages.map((s) => ({ playbookName: p.playbook.name, stage: s })));
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-playbooks">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <BookMarked className="h-4 w-4" /> Playbooks
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/playbooks" className="underline">
+            Playbooks &amp; Operating Procedures
+          </Link>
+          . "Recently completed" reflects current completion state — no timestamped history is tracked.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div>
+          <p className="text-muted-foreground mb-1">Current Playbook</p>
+          {current ? (
+            <p data-testid="playbooks-current">
+              {current.playbook.name} — {current.completedCount}/{current.totalCount} stages ({current.progressPct}%)
+            </p>
+          ) : (
+            <p data-testid="playbooks-no-current">No playbook currently in progress.</p>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <PauseCircle className="h-3 w-3" /> Blocked Stages
+          </p>
+          {blockedAcrossAll.length === 0 ? (
+            <p data-testid="playbooks-no-blocked">Nothing blocked.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="playbooks-blocked-list">
+              {blockedAcrossAll.slice(0, 3).map((b, i) => (
+                <li key={i}>
+                  {b.playbookName} — {b.stage.stage.title}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Recently Completed Procedures
+          </p>
+          {completed.length === 0 ? (
+            <p data-testid="playbooks-no-completed">None yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="playbooks-completed-list">
+              {completed.map((p) => (
+                <li key={p.playbook.id}>{p.playbook.name}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Recommended Next Procedure</p>
+          <p data-testid="playbooks-recommended-next">{recommendedNext ? recommendedNext.playbook.name : "No further playbook recommended right now."}</p>
+        </div>
+        <Link href="/playbooks" className="text-xs font-medium text-primary hover:underline inline-block" data-testid="playbooks-view-link">
+          Open Playbooks &amp; Operating Procedures →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -1225,6 +1318,8 @@ export default function InstitutionalCommandCentre() {
       <MyWorkflowCard />
 
       <KnowledgeInsightsCard />
+
+      <PlaybooksCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <PortfolioIntelligenceCard />

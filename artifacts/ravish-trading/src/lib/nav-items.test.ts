@@ -134,6 +134,11 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // Research/Strategies/Trade Plans/Journal/Companies/Themes into one
   // reusable, transparent knowledge graph.
   "/knowledge-graph",
+  // v1.5.0, Sprint 18 — Institutional Playbooks & Operating Procedures
+  // Engine (docs/v1.5.0-Sprint-18-Institutional-Playbooks.md). 12
+  // documented operating procedures, each stage linking to an already-
+  // existing module.
+  "/playbooks",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {
