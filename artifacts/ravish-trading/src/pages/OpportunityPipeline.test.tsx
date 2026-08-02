@@ -44,6 +44,7 @@ const mockState = vi.hoisted(() => ({
   valueWatchlist: [] as unknown[],
   watchlistsDashboard: undefined as unknown,
   researchNotes: [] as unknown[],
+  researchNotesIsError: false,
   captured: [] as OpportunityPipelineItem[],
 }));
 
@@ -67,7 +68,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetMarketIntelligence: () => ({ data: mockState.feed, isLoading: false, refetch: vi.fn() }),
     useGetValueWatchlist: () => ({ data: mockState.valueWatchlist, isLoading: false }),
     useGetWatchlistsDashboard: () => ({ data: mockState.watchlistsDashboard, isLoading: false }),
-    useGetAllResearchNotes: () => ({ data: mockState.researchNotes, isLoading: false }),
+    useGetAllResearchNotes: () => ({ data: mockState.researchNotes, isLoading: false, isError: mockState.researchNotesIsError }),
     useListOpportunityPipelineItems: () => ({ data: mockState.captured, isLoading: false, refetch: vi.fn() }),
     useCaptureOpportunityPipelineItem: () => ({ mutateAsync: captureMock }),
     useUpdateOpportunityPipelineItem: () => ({ mutateAsync: updateMock }),
@@ -213,5 +214,16 @@ describe("OpportunityPipeline page", () => {
     await userEvent.click(screen.getByTestId("opportunity-tab-captured"));
     await waitFor(() => expect(screen.getByText("Open Research Workspace →")).toBeInTheDocument());
     expect(screen.getByText("Open Research Workspace →").closest("a")).toHaveAttribute("href", "/stock-analyst?symbol=MSFT");
+  });
+
+  // v1.5.0, Sprint 23 (GA Readiness) — proves the new isError-driven error
+  // banner renders instead of a silently-blank/perpetually-loading page
+  // when an underlying fetch (here, Research Notes) fails.
+  it("shows an honest error message instead of a blank page when an underlying fetch fails", async () => {
+    mockState.feed = { items: [], categories: CATEGORY_METAS, generatedAt: new Date().toISOString() };
+    mockState.researchNotesIsError = true;
+    renderWithClient(<OpportunityPipeline />);
+    await waitFor(() => expect(screen.getByTestId("opportunity-pipeline-error")).toBeInTheDocument());
+    mockState.researchNotesIsError = false;
   });
 });

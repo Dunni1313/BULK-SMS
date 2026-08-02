@@ -333,6 +333,10 @@ export default function PortfolioRiskIntelligence() {
           <Skeleton className="h-40 w-full" />
           <Skeleton className="h-40 w-full" />
         </div>
+      ) : result.isError ? (
+        <p className="text-sm text-rose-400" data-testid="portfolio-risk-intelligence-error">
+          Couldn't load Portfolio &amp; Risk Intelligence right now. Try refreshing the page.
+        </p>
       ) : (
         <div className="space-y-4">
           <PortfolioHealthCard result={result} />

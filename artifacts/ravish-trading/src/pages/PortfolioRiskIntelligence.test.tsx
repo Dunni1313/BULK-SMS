@@ -35,13 +35,14 @@ const mockState = vi.hoisted(() => ({
   journalEntries: [] as unknown[],
   closedTrades: [] as unknown[],
   learningProgress: undefined as unknown,
+  portfolioDashboardIsError: false,
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
   const actual = await vi.importActual<typeof import("@workspace/api-client-react")>("@workspace/api-client-react");
   return {
     ...actual,
-    useGetPortfolioDashboard: () => ({ data: mockState.portfolioDashboard, isLoading: false }),
+    useGetPortfolioDashboard: () => ({ data: mockState.portfolioDashboard, isLoading: false, isError: mockState.portfolioDashboardIsError }),
     useGetPortfolioConcentration: () => ({ data: mockState.portfolioConcentration, isLoading: false }),
     useGetPortfolios: () => ({ data: mockState.portfolios, isLoading: false }),
     useGetPortfolioRisk: () => ({ data: mockState.portfolioRisk, isLoading: false }),
@@ -111,6 +112,7 @@ describe("PortfolioRiskIntelligence", () => {
     mockState.journalEntries = [];
     mockState.closedTrades = [];
     mockState.learningProgress = { pathCompletion: [], recentHistory: [] };
+    mockState.portfolioDashboardIsError = false;
     window.history.pushState({}, "", "/portfolio-risk-intelligence");
   });
 
@@ -174,5 +176,15 @@ describe("PortfolioRiskIntelligence", () => {
     renderWithClient(<PortfolioRiskIntelligence />);
     expect(await screen.findByTestId("link-to-portfolio-dashboard")).toHaveAttribute("href", "/portfolio-dashboard");
     expect(screen.getByTestId("link-to-execution-lifecycle")).toHaveAttribute("href", "/execution-lifecycle");
+  });
+
+  // v1.5.0, Sprint 23 (GA Readiness) — proves the new isError-driven error
+  // banner renders instead of a silently-blank/perpetually-loading page
+  // when an underlying fetch fails.
+  it("shows an honest error message instead of a blank page when an underlying fetch fails", async () => {
+    mockState.portfolioDashboardIsError = true;
+    renderWithClient(<PortfolioRiskIntelligence />);
+    await waitFor(() => expect(screen.getByTestId("portfolio-risk-intelligence-error")).toBeInTheDocument());
+    mockState.portfolioDashboardIsError = false;
   });
 });

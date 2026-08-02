@@ -25,6 +25,11 @@ import type { MarketIntelligenceCategoryMeta } from "@workspace/api-client-react
 
 export interface UseMarketIntelligenceResult {
   loading: boolean;
+  /** v1.5.0, Sprint 23 (GA Readiness) — true when the feed itself or
+   * either watchlist source failed to load (mirrors the exact same
+   * dependency set `loading` already uses, so `isError` never fires for a
+   * source that was never actually gating `loading` in the first place). */
+  isError: boolean;
   items: MarketIntelligenceView[];
   categories: MarketIntelligenceCategoryMeta[];
   portfolioIntelligence: UsePortfolioRiskIntelligenceResult;
@@ -43,9 +48,9 @@ export interface UseMarketIntelligenceResult {
 }
 
 export function useMarketIntelligence(): UseMarketIntelligenceResult {
-  const { data: feed, isLoading: feedLoading, refetch } = useGetMarketIntelligence();
-  const { data: valueWatchlist, isLoading: valueWatchlistLoading } = useGetValueWatchlist();
-  const { data: watchlistsDashboard, isLoading: watchlistsLoading } = useGetWatchlistsDashboard();
+  const { data: feed, isLoading: feedLoading, isError: feedError, refetch } = useGetMarketIntelligence();
+  const { data: valueWatchlist, isLoading: valueWatchlistLoading, isError: valueWatchlistError } = useGetValueWatchlist();
+  const { data: watchlistsDashboard, isLoading: watchlistsLoading, isError: watchlistsError } = useGetWatchlistsDashboard();
   const knowledge = useKnowledgeGraph();
   const portfolioIntelligence = usePortfolioRiskIntelligence();
   const { data: journalEntries } = useListJournalEntries();
@@ -76,9 +81,11 @@ export function useMarketIntelligence(): UseMarketIntelligenceResult {
   );
 
   const loading = feedLoading || valueWatchlistLoading || watchlistsLoading || knowledge.loading;
+  const isError = feedError || valueWatchlistError || watchlistsError;
 
   return {
     loading,
+    isError,
     items,
     categories: feed?.categories ?? [],
     portfolioIntelligence,

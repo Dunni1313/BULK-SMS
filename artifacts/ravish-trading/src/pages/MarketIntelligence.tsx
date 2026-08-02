@@ -256,6 +256,16 @@ export default function MarketIntelligence() {
     );
   }
 
+  if (intel.isError) {
+    return (
+      <div className="space-y-4 max-w-6xl" data-testid="page-market-intelligence">
+        <p className="text-sm text-rose-400" data-testid="market-intelligence-error">
+          Couldn't load Market Intelligence right now. Try refreshing the page.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-6xl" data-testid="page-market-intelligence">
       <div>
