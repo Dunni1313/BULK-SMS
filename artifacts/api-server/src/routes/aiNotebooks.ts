@@ -47,7 +47,7 @@ import {
   aiWorkspaceFilesTable,
   aiCoachConversationsTable,
 } from "@workspace/db";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, inArray } from "drizzle-orm";
 import { getScopedUserId } from "../lib/tenantScope.js";
 import { COACH_IDS, type CoachId, loadOwnedWorkspace, loadOwnedConversation } from "./aiCoachConversations.js";
 import {
@@ -303,11 +303,14 @@ async function buildNotebookContext(notebook: typeof aiNotebooksTable.$inferSele
   ]);
 
   const conversationIds = links.filter((l) => l.linkType === "conversation" && l.conversationId != null).map((l) => l.conversationId!);
-  const conversationTitles: string[] = [];
-  for (const id of conversationIds) {
-    const [row] = await db.select().from(aiCoachConversationsTable).where(eq(aiCoachConversationsTable.id, id));
-    if (row) conversationTitles.push(row.title);
-  }
+  // v1.5.0, Sprint 22 (Release Candidate consolidation) — batched via a
+  // single inArray() lookup instead of one query per linked conversation
+  // (an N+1 pattern flagged by the sprint's own audit). Behavior-preserving:
+  // still only includes titles for conversations that actually resolved.
+  const conversationTitles =
+    conversationIds.length === 0
+      ? []
+      : (await db.select().from(aiCoachConversationsTable).where(inArray(aiCoachConversationsTable.id, conversationIds))).map((row) => row.title);
 
   return {
     title: notebook.title,

@@ -233,6 +233,7 @@ function WorkflowCenterTab() {
                   <Button
                     size="icon"
                     variant="ghost"
+                    aria-label={`Remove ${instance.title} from active workflows`}
                     data-testid={`button-delete-workflow-instance-${instance.id}`}
                     onClick={() => deleteMutation.mutate({ id: instance.id }, { onSuccess: invalidate })}
                   >
@@ -344,7 +345,7 @@ function WorkspaceTab() {
                 <Link href={pin.linkPath} className="hover:underline" onClick={() => handleNavigate(pin.resourceType, pin.resourceKey, pin.label, pin.linkPath)}>
                   {pin.label}
                 </Link>
-                <Button size="icon" variant="ghost" data-testid={`button-unpin-${pin.id}`} onClick={() => unpinMutation.mutate({ id: pin.id })}>
+                <Button size="icon" variant="ghost" aria-label={`Unpin ${pin.label}`} data-testid={`button-unpin-${pin.id}`} onClick={() => unpinMutation.mutate({ id: pin.id })}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>

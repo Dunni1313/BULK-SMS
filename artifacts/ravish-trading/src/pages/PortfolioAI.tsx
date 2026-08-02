@@ -311,7 +311,7 @@ export default function PortfolioAI() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <BrainCircuit className="h-6 w-6 text-indigo-400" /> Portfolio AI
             </h1>
             <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-400 text-[10px] tracking-widest">

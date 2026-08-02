@@ -1347,27 +1347,35 @@ router.post("/trade-plans/:id/versions/:version/restore", async (req, res): Prom
     })
     .where(eq(tradePlansTable.id, id));
 
+  // v1.5.0, Sprint 22 (Release Candidate consolidation) — batched into one
+  // insert call per table instead of one insert per row (an N+1 pattern
+  // flagged by the sprint's own audit). Behavior-preserving: same rows,
+  // same values, same order.
   await db.delete(tradePlanSectionsTable).where(eq(tradePlanSectionsTable.tradePlanId, id));
-  for (const s of snapshot.sections) {
-    await db.insert(tradePlanSectionsTable).values({
-      tradePlanId: id,
-      kind: s.kind,
-      content: s.content,
-      refNotebookId: s.refNotebookId,
-      refConversationId: s.refConversationId,
-      refFileId: s.refFileId,
-    });
+  if (snapshot.sections.length > 0) {
+    await db.insert(tradePlanSectionsTable).values(
+      snapshot.sections.map((s) => ({
+        tradePlanId: id,
+        kind: s.kind,
+        content: s.content,
+        refNotebookId: s.refNotebookId,
+        refConversationId: s.refConversationId,
+        refFileId: s.refFileId,
+      })),
+    );
   }
 
   await db.delete(tradePlanChecklistItemsTable).where(eq(tradePlanChecklistItemsTable.tradePlanId, id));
-  for (const c of snapshot.checklistItems) {
-    await db.insert(tradePlanChecklistItemsTable).values({
-      tradePlanId: id,
-      label: c.label,
-      required: c.required,
-      completed: c.completed,
-      sortOrder: c.sortOrder,
-    });
+  if (snapshot.checklistItems.length > 0) {
+    await db.insert(tradePlanChecklistItemsTable).values(
+      snapshot.checklistItems.map((c) => ({
+        tradePlanId: id,
+        label: c.label,
+        required: c.required,
+        completed: c.completed,
+        sortOrder: c.sortOrder,
+      })),
+    );
   }
 
   const updated = await bumpVersion(id, userId, `Restored to version ${version}`);

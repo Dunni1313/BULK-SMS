@@ -334,7 +334,7 @@ export default function TradingResearch() {
       {/* v1.5.0 Sprint 11 — Platform Integration. */}
       <PlatformJourneyNav current="research" />
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Trading Research</h1>
+        <h1 className="text-2xl font-bold text-foreground">Trading Research</h1>
         <p className="text-sm text-muted-foreground">
           Institutional Trading Engine (Engine 2) — SIMULATED market analysis, advisory only. Never places an order.
         </p>
