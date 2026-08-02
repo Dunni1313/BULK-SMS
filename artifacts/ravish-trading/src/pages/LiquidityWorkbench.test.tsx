@@ -457,6 +457,7 @@ describe("LiquidityWorkbench", () => {
       "/trading/coach/ask/stream",
       { symbol: "AAPL", question: "Which session has the deepest liquidity?" },
       expect.anything(),
+      expect.anything(),
     );
     expect(await screen.findByText("London has the deepest liquidity right now.")).toBeInTheDocument();
   });

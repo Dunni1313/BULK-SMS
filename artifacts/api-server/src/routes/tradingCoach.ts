@@ -92,11 +92,11 @@ import {
 } from "@workspace/api-zod";
 import { getScopedUserId } from "../lib/tenantScope.js";
 import { getSettingsRow } from "../lib/serverState.js";
-import { narrateTradeFreeform, narrateTradeFreeformStream, llmAvailable } from "../lib/coachLLM.js";
-import { openSse } from "../lib/sse.js";
+import { narrateTradeFreeform, narrateTradeFreeformStream } from "../lib/coachLLM.js";
 import { buildSessionData } from "../lib/trading/sessionService.js";
 import type { SessionData } from "../lib/tradingDomainModel.js";
 import { AskTradingCoachBody, AskTradingCoachResponse } from "@workspace/api-zod";
+import { createCoachAskHandlers } from "../lib/aiCoachAskHandler.js";
 
 const router: IRouter = Router();
 
@@ -228,65 +228,49 @@ function tradeCoachFallback(probability: ProbabilityAnalysis, risk: TradingRiskA
   );
 }
 
-router.post("/trading/coach/ask", async (req, res): Promise<void> => {
-  const parsed = AskTradingCoachBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+// v1.5.0 Sprint 2 — AI Coach Architecture Consolidation, Framework. Both
+// ask endpoints below are now built from the shared
+// createCoachAskHandlers() factory (lib/aiCoachAskHandler.ts) rather than
+// two hand-duplicated ~30-line blocks — the request validation, 404,
+// JSON-response, and meta/delta/done/error SSE sequence are identical to
+// this router's own pre-refactor behavior, confirmed by this file's own
+// existing route tests passing unchanged. resolveContext composes the
+// exact same buildProbabilityAnalysis()/gatherUserContext()/
+// buildSessionData()/buildTradeCoachContext() calls this route always
+// made; narrate/narrateStream still point at the same, unmodified
+// coachLLM.ts functions.
+const tradeCoachAskHandlers = createCoachAskHandlers<
+  { question: string; symbol: string },
+  ReturnType<typeof buildTradeCoachContext>
+>({
+  bodySchema: AskTradingCoachBody,
+  resolveUserId: (req) => getScopedUserId(req),
+  resolveContext: async (userId, body) => {
+    const provider = await getMarketDataProvider(userId);
+    const probability = await buildProbabilityAnalysis(body.symbol, provider);
+    if (!probability) return null;
 
-  const userId = await getScopedUserId(req);
-  const provider = await getMarketDataProvider(userId);
-  const probability = await buildProbabilityAnalysis(parsed.data.symbol, provider);
-  if (!probability) {
-    res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
-    return;
-  }
-
-  const { risk, journalRows } = await gatherUserContext(userId, provider);
-  const session = await buildSessionData(parsed.data.symbol);
-  const context = buildTradeCoachContext(probability, risk, journalRows, session);
-  const fallback = tradeCoachFallback(probability, risk, parsed.data.question);
-  const n = await narrateTradeFreeform(parsed.data.question, context, fallback);
-  res.json(AskTradingCoachResponse.parse({ answer: n.text, answerSource: n.source }));
+    const { risk, journalRows } = await gatherUserContext(userId, provider);
+    const session = await buildSessionData(body.symbol);
+    return {
+      context: buildTradeCoachContext(probability, risk, journalRows, session),
+      fallback: tradeCoachFallback(probability, risk, body.question),
+    };
+  },
+  notFoundMessage: (body) => `Unknown symbol: ${body.symbol}`,
+  narrate: narrateTradeFreeform,
+  narrateStream: narrateTradeFreeformStream,
+  responseSchema: AskTradingCoachResponse,
+  streamErrorLogMessage: "trade coach ask stream failed",
 });
+
+router.post("/trading/coach/ask", tradeCoachAskHandlers.ask);
 
 // SSE variant — same event contract as /stock-analyst/value-research/ask/
 // stream (meta -> delta... -> done). Deliberately NOT in the OpenAPI/orval
 // contract, matching that route's own precedent — orval only models
 // single-shot JSON responses.
-router.post("/trading/coach/ask/stream", async (req, res): Promise<void> => {
-  const parsed = AskTradingCoachBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-
-  const userId = await getScopedUserId(req);
-  const provider = await getMarketDataProvider(userId);
-  const probability = await buildProbabilityAnalysis(parsed.data.symbol, provider);
-  if (!probability) {
-    res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
-    return;
-  }
-
-  const { risk, journalRows } = await gatherUserContext(userId, provider);
-  const session = await buildSessionData(parsed.data.symbol);
-  const context = buildTradeCoachContext(probability, risk, journalRows, session);
-  const fallback = tradeCoachFallback(probability, risk, parsed.data.question);
-
-  const sse = openSse(res);
-  try {
-    sse.send("meta", { source: llmAvailable() ? "llm" : "template", llmAvailable: llmAvailable() });
-    const n = await narrateTradeFreeformStream(parsed.data.question, context, fallback, (t) => sse.send("delta", { text: t }));
-    sse.send("done", { answer: n.text, answerSource: n.source });
-  } catch (err) {
-    req.log.error({ err }, "trade coach ask stream failed");
-    sse.send("error", { error: "Failed to answer question" });
-  } finally {
-    sse.close();
-  }
-});
+router.post("/trading/coach/ask/stream", tradeCoachAskHandlers.askStream);
 
 // ---------------------------------------------------------------------------
 // Phase 29 — Institutional Trading AI Coach. Deterministic (zero-LLM)

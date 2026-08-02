@@ -437,6 +437,7 @@ describe("MarketStructureWorkbench", () => {
       "/trading/coach/ask/stream",
       { symbol: "AAPL", question: "Why is AAPL ranging?" },
       expect.anything(),
+      expect.anything(),
     );
     expect(await screen.findByText("The range is holding between known zones.")).toBeInTheDocument();
   });

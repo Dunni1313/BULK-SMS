@@ -17,7 +17,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Send, Bot, User, BrainCircuit, Lightbulb, BookOpen, GraduationCap, Sparkles, FileText, Square } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { streamCoach } from "@/lib/coach-stream";
+import { useCoachConversation } from "@/lib/ai-coach/useCoachConversation";
 import { Markdown } from "@/components/ui/markdown";
 
 type ChatMode = "auto" | AiChatInputMode;
@@ -48,83 +48,33 @@ export default function Assistant() {
   const queryClient = useQueryClient();
 
   const recentLessons = (lessons ?? []).slice(0, 4);
-  
-  const [input, setInput] = useState("");
+
   const [mode, setMode] = useState<ChatMode>("auto");
   const [level, setLevel] = useState<ChatLevel>(AiChatInputLevel.beginner);
-  // The user message we just sent (rendered optimistically) and the streaming
-  // assistant reply, shown until the server-persisted messages are refetched.
-  const [pendingUser, setPendingUser] = useState<string | null>(null);
-  const [streamingReply, setStreamingReply] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
-  // True when the user aborted the in-flight stream — the partial reply stays
-  // on screen (no query invalidation) until the next message is sent.
-  const [stopped, setStopped] = useState(false);
-  // Phase 4, Sprint 59 — true when the server signals a genuine mid-stream
-  // `error` SSE event (routes/ai.ts's /ai/chat/stream really emits one on
-  // internal failure). Surfaces an honest failure turn instead of silently
-  // leaving the just-sent message stuck with no reply, matching the exact
-  // onError convention StockResearch.tsx's Ask panel (Sprint 30) and
-  // TradingResearch.tsx's coach panel (Sprint 48) already established.
-  const [erroredReply, setErroredReply] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // v1.5.0 Sprint 2 — AI Coach Framework: the send/stream/error/stop state
+  // machine (question input, in-flight optimistic bubble, streamed-delta
+  // accumulation, AbortController + Stop, honest error turn) is now the
+  // shared useCoachConversation() hook rather than hand-duplicated local
+  // state — identical wire behavior: the same endpoint (POST
+  // /ai/chat/stream), the same request body ({message, mode, level}), and
+  // the same SSE `meta -> delta... -> done -> error` contract via
+  // streamCoach() under the hood. `mode`/`level` are read fresh on every
+  // send since buildRequestBody is re-evaluated per call.
+  const coach = useCoachConversation({
+    endpoint: "/ai/chat/stream",
+    buildRequestBody: (question) => ({ message: question, mode: mode === "auto" ? undefined : mode, level }),
+    onAnswered: () => {
+      queryClient.invalidateQueries({ queryKey: getGetAiMessagesQueryKey() });
+    },
+  });
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isStreaming, streamingReply, pendingUser, erroredReply]);
-
-  useEffect(() => () => abortRef.current?.abort(), []);
-
-  const handleSend = (e: React.FormEvent | string) => {
-    if (typeof e !== 'string') {
-      e.preventDefault();
-    }
-    const msg = typeof e === 'string' ? e : input;
-    if (!msg.trim() || isStreaming) return;
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setInput("");
-    setPendingUser(msg);
-    setStreamingReply("");
-    setStopped(false);
-    setErroredReply(false);
-    setIsStreaming(true);
-
-    streamCoach(
-      "/ai/chat/stream",
-      { message: msg, mode: mode === "auto" ? undefined : mode, level },
-      {
-        onDelta: (text) => setStreamingReply((prev) => prev + text),
-        onDone: () => {
-          queryClient.invalidateQueries({ queryKey: getGetAiMessagesQueryKey() });
-          setIsStreaming(false);
-          setPendingUser(null);
-          setStreamingReply("");
-        },
-        onError: () => {
-          setIsStreaming(false);
-          setErroredReply(true);
-        },
-      },
-      controller.signal,
-    ).catch(() => {
-      // An abort lands here too — keep the partial reply visible in that case.
-      setIsStreaming(false);
-    });
-  };
-
-  // Abort the in-flight stream, leaving the partial reply on screen.
-  const handleStop = () => {
-    abortRef.current?.abort();
-    setIsStreaming(false);
-    setStopped(true);
-  };
+  }, [messages, coach.isStreaming, coach.streamingAnswer, coach.pendingQuestion, coach.erroredReply]);
 
   return (
     <div className="h-full flex flex-col max-h-[calc(100vh-3rem)]">
@@ -184,8 +134,8 @@ export default function Assistant() {
           <Button
             size="sm"
             variant="outline"
-            disabled={isStreaming}
-            onClick={() => handleSend("Explain my latest trade in detail.")}
+            disabled={coach.isStreaming}
+            onClick={() => coach.send("Explain my latest trade in detail.")}
             className="h-8 text-xs border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
           >
             <FileText className="w-3.5 h-3.5 mr-1.5" /> Explain latest trade
@@ -193,8 +143,8 @@ export default function Assistant() {
           <Button
             size="sm"
             variant="outline"
-            disabled={isStreaming}
-            onClick={() => handleSend("Quiz me on premium selling.")}
+            disabled={coach.isStreaming}
+            onClick={() => coach.send("Quiz me on premium selling.")}
             className="h-8 text-xs border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
           >
             <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Quiz me
@@ -255,16 +205,16 @@ export default function Assistant() {
                 <p className="text-sm mt-2 mb-8">How can I help you improve your premium selling today?</p>
                 
                 <div className="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
-                  <Badge variant="outline" className="px-3 py-2 cursor-pointer hover:bg-secondary border-indigo-500/30 text-indigo-400" onClick={() => handleSend("Explain my latest trade in detail.")}>
+                  <Badge variant="outline" className="px-3 py-2 cursor-pointer hover:bg-secondary border-indigo-500/30 text-indigo-400" onClick={() => coach.send("Explain my latest trade in detail.")}>
                     Explain my latest trade
                   </Badge>
-                  <Badge variant="outline" className="px-3 py-2 cursor-pointer hover:bg-secondary border-indigo-500/30 text-indigo-400" onClick={() => handleSend("Quiz me on Iron Condor mechanics.")}>
+                  <Badge variant="outline" className="px-3 py-2 cursor-pointer hover:bg-secondary border-indigo-500/30 text-indigo-400" onClick={() => coach.send("Quiz me on Iron Condor mechanics.")}>
                     Quiz me on Iron Condors
                   </Badge>
-                  <Badge variant="outline" className="px-3 py-2 cursor-pointer hover:bg-secondary border-border" onClick={() => handleSend("What is the best Iron Condor today?")}>
+                  <Badge variant="outline" className="px-3 py-2 cursor-pointer hover:bg-secondary border-border" onClick={() => coach.send("What is the best Iron Condor today?")}>
                     Find best Iron Condor
                   </Badge>
-                  <Badge variant="outline" className="px-3 py-2 cursor-pointer hover:bg-secondary border-border" onClick={() => handleSend("How delta neutral is my portfolio?")}>
+                  <Badge variant="outline" className="px-3 py-2 cursor-pointer hover:bg-secondary border-border" onClick={() => coach.send("How delta neutral is my portfolio?")}>
                     Check portfolio delta
                   </Badge>
                 </div>
@@ -287,13 +237,13 @@ export default function Assistant() {
             )}
 
             {/* Optimistic user message + streaming assistant reply */}
-            {pendingUser && (
+            {coach.pendingQuestion && (
               <div className="flex gap-3 flex-row-reverse">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-secondary">
                   <User size={16} />
                 </div>
                 <div className="px-4 py-3 rounded-lg max-w-[80%] bg-secondary text-foreground">
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{pendingUser}</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{coach.pendingQuestion}</p>
                 </div>
               </div>
             )}
@@ -303,7 +253,7 @@ export default function Assistant() {
                 convention StockResearch.tsx/TradingResearch.tsx already
                 established (Sprints 30, 48), instead of silently leaving
                 pendingUser stuck on screen with no reply. */}
-            {erroredReply && (
+            {coach.erroredReply && (
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
                   <Bot size={16} />
@@ -317,20 +267,20 @@ export default function Assistant() {
               </div>
             )}
 
-            {(isStreaming || (stopped && streamingReply)) && (
+            {(coach.isStreaming || (coach.stopped && coach.streamingAnswer)) && (
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
                   <Bot size={16} />
                 </div>
-                {streamingReply ? (
+                {coach.streamingAnswer ? (
                   <div className="px-4 py-3 rounded-lg max-w-[80%] bg-indigo-500/10 border border-indigo-500/20 text-foreground">
                     <div className="text-sm leading-relaxed">
-                      <Markdown className="text-sm inline">{streamingReply}</Markdown>
-                      {isStreaming && (
+                      <Markdown className="text-sm inline">{coach.streamingAnswer}</Markdown>
+                      {coach.isStreaming && (
                         <span className="inline-block w-1.5 h-4 ml-0.5 align-middle bg-indigo-400 animate-pulse" />
                       )}
                     </div>
-                    {stopped && (
+                    {coach.stopped && (
                       <p className="text-[11px] text-muted-foreground/70 mt-2 flex items-center gap-1">
                         <Square className="w-3 h-3" /> Stopped
                       </p>
@@ -349,19 +299,19 @@ export default function Assistant() {
         </ScrollArea>
         
         <CardFooter className="p-4 border-t border-border bg-card">
-          <form onSubmit={handleSend} className="flex w-full gap-2">
+          <form onSubmit={coach.submit} className="flex w-full gap-2">
             <Input
-              value={input}
-              onChange={e => setInput(e.target.value)}
+              value={coach.question}
+              onChange={e => coach.setQuestion(e.target.value)}
               placeholder="Ask Ravish Coach..."
               className="bg-background border-border flex-1 font-mono text-sm"
-              disabled={isStreaming}
+              disabled={coach.isStreaming}
               data-testid="assistant-input"
             />
-            {isStreaming ? (
+            {coach.isStreaming ? (
               <Button
                 type="button"
-                onClick={handleStop}
+                onClick={coach.stop}
                 size="icon"
                 variant="destructive"
                 title="Stop generating"
@@ -370,7 +320,7 @@ export default function Assistant() {
                 <Square className="w-4 h-4" />
               </Button>
             ) : (
-              <Button type="submit" disabled={!input.trim()} size="icon" className="bg-indigo-600 hover:bg-indigo-700" aria-label="Send message" data-testid="assistant-submit">
+              <Button type="submit" disabled={!coach.question.trim()} size="icon" className="bg-indigo-600 hover:bg-indigo-700" aria-label="Send message" data-testid="assistant-submit">
                 <Send className="w-4 h-4" />
               </Button>
             )}
