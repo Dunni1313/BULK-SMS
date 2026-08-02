@@ -28,7 +28,12 @@ export type AlertType =
   | "portfolio_drift"
   | "sector_concentration_breach"
   | "position_sizing_breach"
-  | "opportunity_match";
+  | "opportunity_match"
+  // v1.5.0, Sprint 16 — Institutional Workflow Automation Engine. The one
+  // genuinely new alert type this sprint adds — reused via the exact same
+  // evaluate/persist/scheduler pipeline every other alert type already
+  // uses (see lib/workflowReminders.ts's own header comment).
+  | "journal_entry_pending";
 
 export type AlertSeverity = "info" | "warning" | "critical";
 

@@ -162,6 +162,11 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // engine calculations. See
       // docs/v1.5.0-Sprint-15-Portfolio-Risk-Intelligence.md.
       { title: "Portfolio & Risk Intelligence", href: "/portfolio-risk-intelligence", icon: Activity },
+      // v1.5.0, Sprint 16 — Institutional Workflow Automation Engine. Not
+      // an automation platform, not auto-trading — connects every existing
+      // module into one unified, dismissible Task list. See
+      // docs/v1.5.0-Sprint-16-Workflow-Automation-Engine.md.
+      { title: "Workflow Automation Engine", href: "/workflow-automation-engine", icon: Workflow },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },
