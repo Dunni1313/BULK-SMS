@@ -68,6 +68,7 @@ import {
   BookMarked,
   Landmark,
   Home,
+  Compass,
   Bell,
   Server,
   Gavel,
@@ -132,8 +133,14 @@ export const NAV_GROUPS: NavigationGroup[] = [
     defaultExpanded: true,
     theme: "neutral",
     items: [
-      { title: "Institutional Home", href: "/", icon: Home },
-      { title: "Command Center", href: "/command-center", icon: LayoutDashboard },
+      // v1.5.0, Sprint 12 — Institutional Command Centre. The new "/"
+      // landing page and single daily starting point. "Institutional
+      // Home" (the pre-existing, still fully-preserved customizable
+      // widget dashboard) moved to "/personal-dashboard" — nothing about
+      // it was removed, only relocated; see its own header comment.
+      { title: "Command Centre", href: "/", icon: Compass },
+      { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
+      { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },
       { title: "Operations Dashboard", href: "/operations", icon: Server },
     ],
@@ -309,7 +316,7 @@ export const ALL_NAV_ITEMS: NavigationItem[] = NAV_GROUPS.flatMap((g) => g.items
 /** Suggested initial "Frequently Used" pins for a user with no saved
  * preference yet — see lib/sidebar-preferences.ts. */
 export const DEFAULT_PINNED_HREFS: string[] = [
-  "/command-center",
+  "/",
   "/options-dashboard",
   "/scanner",
   "/portfolio-dashboard",

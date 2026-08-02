@@ -126,12 +126,15 @@ describe("CommandCenter page", () => {
   });
 
   // v1.3.2 — Version 1 Polish Sprint: clarify Home vs. Command Center.
-  it("links to Institutional Home for users looking for their own personalized dashboard", () => {
+  // v1.5.0, Sprint 12 — Personal Dashboard (formerly "Institutional Home")
+  // moved to "/personal-dashboard" when the new Institutional Command
+  // Centre took over "/".
+  it("links to Personal Dashboard for users looking for their own personalized dashboard", () => {
     mockState.dashboard = dashboardFixture();
     renderWithClient(<CommandCenter />);
     const link = screen.getByTestId("link-to-institutional-home");
     expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute("href", "/");
+    expect(link).toHaveAttribute("href", "/personal-dashboard");
     mockState.dashboard = undefined;
   });
 

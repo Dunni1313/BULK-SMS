@@ -106,6 +106,12 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   "/trade-execution-center",
   // v1.3.1 — AI Trading Coach (docs/v1.3.0-AI-Trading-Coach-Design.md).
   "/ai-trading-coach",
+  // v1.5.0, Sprint 12 — Institutional Command Centre
+  // (docs/v1.5.0-Sprint-12-Institutional-Command-Centre.md). "/" itself was
+  // already in PRE_REDESIGN_ROUTES (previously Home.tsx, now the new
+  // Institutional Command Centre); "/personal-dashboard" is the genuinely
+  // new href — Home.tsx's own new address, fully preserved, not removed.
+  "/personal-dashboard",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {
@@ -152,8 +158,10 @@ describe("nav-items — the single canonical navigation configuration", () => {
 
   describe("findNavItem", () => {
     it("resolves a known href to its title and icon", () => {
+      // v1.5.0, Sprint 12 — renamed to "Options Command Center" to
+      // disambiguate from the new Institutional Command Centre at "/".
       const item = findNavItem("/command-center");
-      expect(item?.title).toBe("Command Center");
+      expect(item?.title).toBe("Options Command Center");
       expect(item?.icon).toBeDefined();
     });
 
@@ -182,8 +190,10 @@ describe("nav-items — the single canonical navigation configuration", () => {
     });
 
     it("matches the redesign spec's own suggested defaults", () => {
+      // v1.5.0, Sprint 12 — the new Institutional Command Centre ("/")
+      // took over the first default pin slot from the old "/command-center".
       expect(DEFAULT_PINNED_HREFS).toEqual([
-        "/command-center",
+        "/",
         "/options-dashboard",
         "/scanner",
         "/portfolio-dashboard",

@@ -36,13 +36,20 @@ export type PlatformJourneyStageId =
   | "portfolio"
   | "learning";
 
-interface Stage {
+export interface PlatformJourneyStage {
   id: PlatformJourneyStageId;
   label: string;
   href: string | null;
 }
 
-const STAGES: Stage[] = [
+// v1.5.0, Sprint 12 — Institutional Command Centre. Exported (previously
+// module-private) so the Command Centre's own richer per-stage Workflow
+// Panel (status/progress/pending tasks/quick actions per stage) can reuse
+// this exact same 9-stage id/label/href list rather than re-declaring it a
+// second time — single source of truth for "what are the platform's
+// stages and where do they link," this component's own compact stepper
+// rendering is unchanged.
+export const PLATFORM_JOURNEY_STAGES: PlatformJourneyStage[] = [
   { id: "research", label: "Research", href: "/stock-analyst" },
   { id: "notebook", label: "Notebook", href: "/assistant" },
   { id: "strategy", label: "Strategy", href: "/assistant" },
@@ -60,9 +67,9 @@ export function PlatformJourneyNav({ current }: { current: PlatformJourneyStageI
       className="flex flex-wrap items-center gap-x-1 gap-y-2 rounded-md border border-border bg-secondary/10 px-3 py-2"
       data-testid="nav-platform-journey"
     >
-      {STAGES.map((stage, i) => {
+      {PLATFORM_JOURNEY_STAGES.map((stage, i) => {
         const isCurrent = stage.id === current;
-        const isPast = STAGES.findIndex((s) => s.id === current) > i;
+        const isPast = PLATFORM_JOURNEY_STAGES.findIndex((s) => s.id === current) > i;
         const content = (
           <span
             data-testid={`journey-stage-content-${stage.id}`}

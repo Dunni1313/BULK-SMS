@@ -76,3 +76,23 @@ export const CROSS_ENGINE_QUICK_ACTIONS: QuickAction[] = [
   { id: "open-performance-attribution-engine", label: "Open Performance & Attribution Engine", href: "/performance-attribution-engine", icon: LineChart, kind: "navigate" },
   { id: "open-scenario-engine", label: "Open Scenario & Stress Testing Engine", href: "/scenario-engine", icon: AlertTriangle, kind: "navigate" },
 ];
+
+// v1.5.0, Sprint 12 — Institutional Command Centre. A third, additive
+// static list, following the exact same "distinct-but-related, additive,
+// pure navigation" precedent CROSS_ENGINE_QUICK_ACTIONS itself already
+// set. Matches the sprint's own explicit Quick Actions list (Continue
+// Research, Open Notebook, Resume Strategy, Review Trade Plan, Journal
+// Trade, Portfolio Review, Learning Centre) — 7 of its 8 named actions;
+// "Ask AI Coach" is deliberately NOT in this list, since it opens the
+// existing global TradingCoachPanel rather than navigating to a route
+// (see components/learn/AskCoachLauncher.tsx) — the Command Centre page
+// renders that one directly via <AskCoachLauncher /> alongside these.
+export const COMMAND_CENTRE_QUICK_ACTIONS: QuickAction[] = [
+  { id: "continue-research", label: "Continue Research", href: "/stock-analyst", icon: Search, kind: "navigate" },
+  { id: "open-notebook", label: "Open Notebook", href: "/assistant", icon: BookOpen, kind: "navigate" },
+  { id: "resume-strategy", label: "Resume Strategy", href: "/assistant", icon: Layers, kind: "navigate" },
+  { id: "review-trade-plan", label: "Review Trade Plan", href: "/assistant", icon: ClipboardList, kind: "navigate" },
+  { id: "journal-trade", label: "Journal Trade", href: "/trading-journal", icon: FileBarChart2, kind: "navigate" },
+  { id: "portfolio-review", label: "Portfolio Review", href: "/portfolio-dashboard", icon: PieChart, kind: "navigate" },
+  { id: "learning-centre-cc", label: "Learning Centre", href: "/learn", icon: GraduationCap, kind: "navigate" },
+];

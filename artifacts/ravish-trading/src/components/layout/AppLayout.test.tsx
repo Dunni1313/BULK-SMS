@@ -95,17 +95,22 @@ describe("AppLayout — Command Palette wiring", () => {
     expect(screen.queryByTestId("command-palette-input")).not.toBeInTheDocument();
   });
 
-  it("the sidebar links to both Institutional Home and the Command Center at their own distinct routes", () => {
+  it("the sidebar links to both Personal Dashboard and the Options Command Center at their own distinct routes", () => {
     renderWithClient(
       <AppLayout>
         <div>page content</div>
       </AppLayout>,
     );
-    expect(screen.getByText("Institutional Home").closest("a")).toHaveAttribute("href", "/");
-    // Command Center is both a default "Frequently Used" pin and the Home
-    // group's own canonical item (v1.1.0 sidebar redesign) — both are
-    // real, intentional links to the same route, so this queries by
-    // data-testid rather than text to avoid the deliberate duplicate.
+    // v1.5.0, Sprint 12 — Institutional Command Centre. "Institutional
+    // Home" was relocated (relabeled "Personal Dashboard") to
+    // "/personal-dashboard" when the new Institutional Command Centre
+    // took over "/" — see nav-items.ts's own header comment.
+    expect(screen.getByText("Personal Dashboard").closest("a")).toHaveAttribute("href", "/personal-dashboard");
+    // Options Command Center is both a default "Frequently Used" pin's
+    // sibling and the Home group's own canonical item (v1.1.0 sidebar
+    // redesign) — both are real, intentional links to the same route, so
+    // this queries by data-testid rather than text to avoid the
+    // deliberate duplicate.
     expect(screen.getByTestId("sidebar-link-/command-center")).toHaveAttribute("href", "/command-center");
     expect(screen.getByText("Notifications").closest("a")).toHaveAttribute("href", "/notifications");
   });
@@ -214,10 +219,12 @@ describe("AppLayout — sidebar navigation redesign (v1.1.0)", () => {
         el.getAttribute("data-testid"),
       );
     const before = pinnedHrefs();
-    expect(before[0]).toBe("sidebar-pinned-link-/command-center");
-    fireEvent.click(screen.getByTestId("sidebar-pin-move-down-/command-center"));
-    await waitFor(() => expect(pinnedHrefs()[0]).not.toBe("sidebar-pinned-link-/command-center"));
-    expect(pinnedHrefs()[1]).toBe("sidebar-pinned-link-/command-center");
+    // v1.5.0, Sprint 12 — Institutional Command Centre took over "/" as
+    // the redesign's own first default pin (DEFAULT_PINNED_HREFS).
+    expect(before[0]).toBe("sidebar-pinned-link-/");
+    fireEvent.click(screen.getByTestId("sidebar-pin-move-down-/"));
+    await waitFor(() => expect(pinnedHrefs()[0]).not.toBe("sidebar-pinned-link-/"));
+    expect(pinnedHrefs()[1]).toBe("sidebar-pinned-link-/");
   });
 
   it("persists sidebar preferences under the documented localStorage key", async () => {
@@ -265,7 +272,8 @@ describe("AppLayout — sidebar accessibility (v1.3.2, Version 1 Polish Sprint)"
   });
 
   it("marks the active route's sidebar link with aria-current=\"page\"", () => {
-    // beforeEach already navigates to "/" (Institutional Home).
+    // beforeEach already navigates to "/" (Institutional Command Centre,
+    // v1.5.0 Sprint 12).
     renderWithClient(
       <AppLayout>
         <div>page content</div>
@@ -295,16 +303,17 @@ describe("AppLayout — sidebar accessibility (v1.3.2, Version 1 Polish Sprint)"
   });
 
   it("also marks a Frequently Used pinned link's aria-current when it matches the active route", () => {
-    // Command Center is one of the redesign's own suggested default pins
-    // (confirmed by the pre-existing "reordering a pinned item" test above),
-    // so it renders both as a group item and as a Frequently Used pin.
-    window.history.pushState(null, "", "/command-center");
+    // Scanner is one of the redesign's own suggested default pins
+    // (DEFAULT_PINNED_HREFS), distinct from the "/" case already covered
+    // by the test above (which is now pinned too, v1.5.0 Sprint 12), so
+    // it renders both as a group item and as a Frequently Used pin.
+    window.history.pushState(null, "", "/scanner");
     renderWithClient(
       <AppLayout>
         <div>page content</div>
       </AppLayout>,
     );
-    expect(screen.getByTestId("sidebar-pinned-link-/command-center")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("sidebar-pinned-link-/scanner")).toHaveAttribute("aria-current", "page");
   });
 
   it("preserves every pre-existing sidebar behaviour alongside the new accessibility attributes", async () => {
