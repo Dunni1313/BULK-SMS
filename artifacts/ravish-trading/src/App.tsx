@@ -41,6 +41,8 @@ const InstitutionalCommandCentre = lazy(() => import("./pages/InstitutionalComma
 // route's own line below and nav-items.ts for the disclosed disambiguation.
 const DecisionWorkflow = lazy(() => import("./pages/DecisionWorkflow"));
 const ExecutionLifecycleManager = lazy(() => import("./pages/ExecutionLifecycleManager"));
+// v1.5.0, Sprint 15 — Institutional Portfolio & Risk Intelligence Engine.
+const PortfolioRiskIntelligence = lazy(() => import("./pages/PortfolioRiskIntelligence"));
 const Home = lazy(() => import("./pages/Home"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
@@ -167,6 +169,7 @@ function Router() {
           <Route path="/" component={InstitutionalCommandCentre} />
           <Route path="/decision-workflow" component={DecisionWorkflow} />
           <Route path="/execution-lifecycle" component={ExecutionLifecycleManager} />
+          <Route path="/portfolio-risk-intelligence" component={PortfolioRiskIntelligence} />
           <Route path="/personal-dashboard" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
           <Route path="/notifications" component={NotificationCentre} />
