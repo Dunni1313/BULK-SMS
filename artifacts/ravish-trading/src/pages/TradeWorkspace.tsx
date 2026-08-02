@@ -815,6 +815,7 @@ export default function TradeWorkspace() {
                                       variant="ghost"
                                       className="h-6 w-6"
                                       onClick={() => handleDeletePlan(plan.id)}
+                                      aria-label={`Delete trade plan (${plan.direction} · ${plan.status})`}
                                       data-testid={`button-delete-plan-${plan.id}`}
                                     >
                                       <Trash2 className="h-3 w-3" />
@@ -908,6 +909,7 @@ export default function TradeWorkspace() {
                                   variant="ghost"
                                   className="h-5 w-5 shrink-0"
                                   onClick={() => handleDeleteNote(n.id)}
+                                  aria-label="Delete note"
                                   data-testid={`button-delete-note-${n.id}`}
                                 >
                                   <Trash2 className="h-3 w-3" />

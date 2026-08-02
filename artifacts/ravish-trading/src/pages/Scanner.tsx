@@ -153,6 +153,7 @@ export default function Scanner() {
                           className="h-7 w-7 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
                           onClick={() => setExplainScannerId(result.id)}
                           title="Explain with AI Coach"
+                          aria-label="Explain with AI Coach"
                         >
                           <Bot className="w-4 h-4" />
                         </Button>
@@ -162,6 +163,7 @@ export default function Scanner() {
                           className="h-7 w-7 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
                           onClick={() => openWithFocus(focusFromScannerCandidate(result))}
                           title="Ask the AI Trading Assistant about this"
+                          aria-label="Ask the AI Trading Assistant about this"
                           data-testid={`button-ask-trading-coach-${result.id}`}
                         >
                           <MessageCircle className="w-4 h-4" />

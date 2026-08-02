@@ -1647,32 +1647,49 @@ export default function InstitutionalCommandCentre() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <MarketOverviewCard />
-        <PortfolioSnapshotCard />
+      {/* v1.5.0, Sprint 22 (Release Candidate consolidation) — the ~16
+          panels below were previously one long, undifferentiated stack in
+          build/sprint-chronological order, flagged by the sprint's own
+          audit as cluttered with no visible priority hierarchy. Regrouped
+          into 4 labeled sections below (no panel removed, reordered, or
+          changed internally) so a first-time user can scan section headers
+          instead of 16 unlabeled cards to find what they need. */}
+
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-2">Market &amp; Portfolio Snapshot</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <MarketOverviewCard />
+          <PortfolioSnapshotCard />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <DecisionInProgressCard />
-        <ExecutionPipelineCard pipeline={pipeline} />
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-2">Decisions &amp; Execution In Progress</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <DecisionInProgressCard />
+          <ExecutionPipelineCard pipeline={pipeline} />
+        </div>
+        <div className="mt-4">
+          <MyWorkflowCard />
+        </div>
       </div>
 
-      <MyWorkflowCard />
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold text-foreground mb-0">Research, Intelligence &amp; Opportunities</h2>
+        <KnowledgeInsightsCard />
+        <PlaybooksCard />
+        <DecisionQualityCard />
+        <MarketIntelligenceCard />
+        <OpportunityPipelineCard />
+      </div>
 
-      <KnowledgeInsightsCard />
-
-      <PlaybooksCard />
-
-      <DecisionQualityCard />
-
-      <MarketIntelligenceCard />
-
-      <OpportunityPipelineCard />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PortfolioIntelligenceCard />
-        <LearningPanelCard />
-        <CoachPanelCard />
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-2">Portfolio Intelligence, Learning &amp; Coaching</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <PortfolioIntelligenceCard />
+          <LearningPanelCard />
+          <CoachPanelCard />
+        </div>
       </div>
 
       <NotificationsCard

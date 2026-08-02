@@ -1070,16 +1070,23 @@ router.post("/ai-strategies/:id/versions/:version/restore", async (req, res): Pr
     })
     .where(eq(aiStrategiesTable.id, id));
 
+  // v1.5.0, Sprint 22 (Release Candidate consolidation) — batched into one
+  // insert call instead of one insert per row (an N+1 pattern flagged by
+  // the sprint's own audit, the same fix applied to tradePlans.ts's
+  // identically-shaped restore path). Behavior-preserving: same rows, same
+  // values, same order.
   await db.delete(aiStrategySectionsTable).where(eq(aiStrategySectionsTable.strategyId, id));
-  for (const s of snapshot.sections) {
-    await db.insert(aiStrategySectionsTable).values({
-      strategyId: id,
-      kind: s.kind,
-      content: s.content,
-      refNotebookId: s.refNotebookId,
-      refConversationId: s.refConversationId,
-      refFileId: s.refFileId,
-    });
+  if (snapshot.sections.length > 0) {
+    await db.insert(aiStrategySectionsTable).values(
+      snapshot.sections.map((s) => ({
+        strategyId: id,
+        kind: s.kind,
+        content: s.content,
+        refNotebookId: s.refNotebookId,
+        refConversationId: s.refConversationId,
+        refFileId: s.refFileId,
+      })),
+    );
   }
 
   const updated = await bumpVersion(id, userId, `Restored to version ${version}`);
