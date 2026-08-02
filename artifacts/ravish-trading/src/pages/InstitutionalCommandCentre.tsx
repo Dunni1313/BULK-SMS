@@ -68,6 +68,7 @@ import { useWorkflowAutomation } from "@/lib/useWorkflowAutomation";
 import { useKnowledgeGraph } from "@/lib/useKnowledgeGraph";
 import { buildKnowledgeInsights } from "@/lib/knowledgeGraph";
 import { usePlaybooks } from "@/lib/usePlaybooks";
+import { useDecisionQualityEngine } from "@/lib/useDecisionQualityEngine";
 import {
   Compass,
   ShieldAlert,
@@ -85,6 +86,9 @@ import {
   CheckCircle2,
   Network,
   BookMarked,
+  BadgeCheck,
+  TrendingUp,
+  AlertTriangle,
 } from "lucide-react";
 
 function fmtUsd(n: number | null | undefined): string {
@@ -1018,6 +1022,110 @@ function PlaybooksCard() {
   );
 }
 
+// ─── Decision Quality ──────────────────────────────────────────────────
+// v1.5.0, Sprint 19 — Institutional Decision Quality & Review Engine.
+// Reused directly from useDecisionQualityEngine() — zero new calculation
+// in this file. Keep concise, per the approved scope.
+
+function DecisionQualityCard() {
+  const { loading, reviews, pendingReviewCount, trends, recurringDeviations } = useDecisionQualityEngine();
+
+  if (loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6 space-y-2">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const recentlyReviewed = [...reviews].reverse().slice(0, 3);
+  const improvements = trends.filter((t) => t.direction === "improving").slice(0, 2);
+  const recurring = recurringDeviations.slice(0, 2);
+  const pending = reviews.filter((r) => r.currentStage === "open-position" || r.currentStage === "managing" || r.currentStage === "closed" || r.currentStage === "journal-pending");
+  const recommendedNext = pending[0] ?? null;
+
+  return (
+    <Card className="bg-card border-border" data-testid="card-decision-quality">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <BadgeCheck className="h-4 w-4" /> Decision Quality
+        </CardTitle>
+        <CardDescription>
+          Reused directly from{" "}
+          <Link href="/decision-quality-review" className="underline">
+            Decision Quality &amp; Review
+          </Link>
+          . Evaluates decision PROCESS, never trade outcome.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-xs">
+        <div>
+          <p className="text-muted-foreground mb-1">Recently Reviewed Decisions</p>
+          {recentlyReviewed.length === 0 ? (
+            <p data-testid="decision-quality-no-reviews">No decisions reviewed yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="decision-quality-recent-list">
+              {recentlyReviewed.map((r) => (
+                <li key={r.tradePlanId}>
+                  {r.tradePlanTitle} ({r.symbol}) — {r.processQuality.score}/100, {r.processQuality.label}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <TrendingUp className="h-3 w-3 text-emerald-400" /> Best Process Improvements
+          </p>
+          {improvements.length === 0 ? (
+            <p data-testid="decision-quality-no-improvements">No confirmed improving trend yet.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="decision-quality-improvements-list">
+              {improvements.map((t) => (
+                <li key={t.id}>
+                  {t.label}: {t.earlierAverage}% → {t.laterAverage}%
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1 flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3 text-amber-400" /> Recurring Issues
+          </p>
+          {recurring.length === 0 ? (
+            <p data-testid="decision-quality-no-recurring">No recurring deviations detected.</p>
+          ) : (
+            <ul className="space-y-0.5" data-testid="decision-quality-recurring-list">
+              {recurring.map((d) => (
+                <li key={`${d.playbookId}:${d.stageTitle}`}>
+                  {d.playbookName} — {d.stageTitle} ({d.occurrenceCount}x)
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Pending Reviews</p>
+          <p data-testid="decision-quality-pending-count">{pendingReviewCount} decision{pendingReviewCount === 1 ? "" : "s"} awaiting review.</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground mb-1">Recommended Next Review</p>
+          <p data-testid="decision-quality-recommended-next">
+            {recommendedNext ? `${recommendedNext.tradePlanTitle} (${recommendedNext.symbol})` : "No decision recommended for review right now."}
+          </p>
+        </div>
+        <Link href="/decision-quality-review" className="text-xs font-medium text-primary hover:underline inline-block" data-testid="decision-quality-view-link">
+          Open Decision Quality &amp; Review →
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Learning Panel ────────────────────────────────────────────────────
 
 function LearningPanelCard() {
@@ -1320,6 +1428,8 @@ export default function InstitutionalCommandCentre() {
       <KnowledgeInsightsCard />
 
       <PlaybooksCard />
+
+      <DecisionQualityCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <PortfolioIntelligenceCard />

@@ -96,6 +96,7 @@ import {
   Command,
   MessageCircle,
   Kanban,
+  BadgeCheck,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -179,6 +180,15 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // whose every stage links to an already-existing module. See
       // docs/v1.5.0-Sprint-18-Institutional-Playbooks.md.
       { title: "Playbooks & Operating Procedures", href: "/playbooks", icon: BookMarked },
+      // v1.5.0, Sprint 19 — Institutional Decision Quality & Review Engine.
+      // Not another analytics dashboard, not another trade journal, not
+      // another performance report — evaluates the QUALITY and CONSISTENCY
+      // of the decision-making process itself (research, evidence, risk
+      // planning, discipline, journaling) using evidence already collected
+      // by the Decision Engine, Trade Lifecycle, Playbooks, and Knowledge
+      // Graph. Outcome (P&L) is shown for context only and is never scored.
+      // See docs/v1.5.0-Sprint-19-Decision-Quality-Review.md.
+      { title: "Decision Quality & Review", href: "/decision-quality-review", icon: BadgeCheck },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },
