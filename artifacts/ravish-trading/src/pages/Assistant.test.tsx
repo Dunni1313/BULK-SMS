@@ -33,6 +33,54 @@ vi.mock("@workspace/api-client-react", async () => {
   };
 });
 
+// v1.5.0 Sprint 6 — AI Coach Memory. The Options AI Coach now renders its
+// own persistent, multi-conversation history instead of the flat
+// useGetAiMessages() list above (that hook/route are still called and
+// still invalidated unchanged, just no longer read for the chat view). A
+// small, realistic in-memory fake of the new conversation-persistence API,
+// mirroring TradingResearch.test.tsx's/StockResearch.test.tsx's own
+// established pattern for this exact mock.
+const coachConversationsState = vi.hoisted(() => ({
+  conversations: [] as any[],
+  messagesByConversation: {} as Record<number, any[]>,
+  nextConversationId: 1,
+  nextMessageId: 1,
+}));
+vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
+  listConversations: vi.fn(async () => coachConversationsState.conversations),
+  createConversation: vi.fn(async (coachId: string) => {
+    const id = coachConversationsState.nextConversationId++;
+    coachConversationsState.messagesByConversation[id] = [];
+    const conversation = {
+      id,
+      coachId,
+      title: "New conversation",
+      archived: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    coachConversationsState.conversations = [conversation, ...coachConversationsState.conversations];
+    return conversation;
+  }),
+  renameConversation: vi.fn(),
+  deleteConversation: vi.fn(),
+  listMessages: vi.fn(async (id: number) => coachConversationsState.messagesByConversation[id] ?? []),
+  addMessage: vi.fn(async (id: number, role: "user" | "assistant", content: string) => {
+    const message = {
+      id: coachConversationsState.nextMessageId++,
+      conversationId: id,
+      role,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+    coachConversationsState.messagesByConversation[id] = [
+      ...(coachConversationsState.messagesByConversation[id] ?? []),
+      message,
+    ];
+    return message;
+  }),
+}));
+
 import Assistant from "./Assistant";
 
 describe("Assistant page (AI Options Coach)", () => {
@@ -42,6 +90,10 @@ describe("Assistant page (AI Options Coach)", () => {
     mockState.lessons = [];
     streamCoachMock.mockReset();
     streamCoachMock.mockResolvedValue(undefined);
+    coachConversationsState.conversations = [];
+    coachConversationsState.messagesByConversation = {};
+    coachConversationsState.nextConversationId = 1;
+    coachConversationsState.nextMessageId = 1;
   });
 
   it("shows a loading skeleton while messages are still loading, not the empty-state welcome", () => {
@@ -58,14 +110,45 @@ describe("Assistant page (AI Options Coach)", () => {
     expect(screen.getByText("Quiz me on Iron Condors")).toBeInTheDocument();
   });
 
-  it("renders the persisted conversation history for both roles", () => {
-    mockState.messages = [
-      { id: 1, role: "user", message: "Explain my latest trade.", createdAt: "2026-07-01T12:00:00.000Z" },
-      { id: 2, role: "assistant", message: "Your latest trade was a bullish put spread on AAPL.", createdAt: "2026-07-01T12:00:05.000Z" },
+  // v1.5.0 Sprint 6 — AI Coach Memory. Chat history is now rendered from
+  // the new per-conversation store (resumed via the sidebar), not from the
+  // old flat useGetAiMessages() list.
+  it("renders a resumed conversation's persisted history for both roles", async () => {
+    coachConversationsState.conversations = [
+      {
+        id: 5,
+        coachId: "options",
+        title: "Trade Explanation",
+        archived: false,
+        createdAt: "2026-07-01T12:00:00.000Z",
+        updatedAt: "2026-07-01T12:00:05.000Z",
+      },
     ];
+    coachConversationsState.messagesByConversation[5] = [
+      { id: 1, conversationId: 5, role: "user", content: "Explain my latest trade.", createdAt: "2026-07-01T12:00:00.000Z" },
+      { id: 2, conversationId: 5, role: "assistant", content: "Your latest trade was a bullish put spread on AAPL.", createdAt: "2026-07-01T12:00:05.000Z" },
+    ];
+    const user = userEvent.setup();
     renderWithClient(<Assistant />);
-    expect(screen.getByText("Explain my latest trade.")).toBeInTheDocument();
+
+    await user.click(await screen.findByTestId("assistant-coach-sidebar-select-5"));
+
+    expect(await screen.findByText("Explain my latest trade.")).toBeInTheDocument();
     expect(screen.getByText(/bullish put spread on AAPL/i)).toBeInTheDocument();
+  });
+
+  it("auto-creates a conversation and persists a completed turn once the answer streams in", async () => {
+    streamCoachMock.mockImplementation(async (_path: string, _body: unknown, handlers: { onDone?: (d: unknown) => void }) => {
+      handlers.onDone?.({ answer: "Delta measures direction and rough odds of finishing ITM." });
+    });
+    const user = userEvent.setup();
+    renderWithClient(<Assistant />);
+
+    await user.type(screen.getByTestId("assistant-input"), "What is delta?");
+    await user.click(screen.getByTestId("assistant-submit"));
+
+    expect(await screen.findByText(/Delta measures direction/i)).toBeInTheDocument();
+    expect(screen.getByText("What is delta?")).toBeInTheDocument();
   });
 
   it("submits the form with the current mode/level and the typed message", async () => {

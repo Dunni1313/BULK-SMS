@@ -22,6 +22,49 @@ vi.mock("@/lib/coach-stream", () => ({
   streamCoach: streamCoachMock,
 }));
 
+// v1.5.0 Sprint 6 — AI Coach Memory. A small, realistic in-memory fake of
+// the new conversation-persistence API (rather than hardcoding call
+// assertions), so this file's own tests exercise the real
+// create-conversation -> persist-turn -> re-fetch-messages round trip the
+// hook actually performs, without a real network/database.
+const coachConversationsState = vi.hoisted(() => ({
+  messagesByConversation: {} as Record<number, unknown[]>,
+  nextConversationId: 1,
+  nextMessageId: 1,
+}));
+vi.mock("@/lib/ai-coach/coachConversationsApi", () => ({
+  listConversations: vi.fn(async () => []),
+  createConversation: vi.fn(async (coachId: string) => {
+    const id = coachConversationsState.nextConversationId++;
+    coachConversationsState.messagesByConversation[id] = [];
+    return {
+      id,
+      coachId,
+      title: "New conversation",
+      archived: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }),
+  renameConversation: vi.fn(),
+  deleteConversation: vi.fn(),
+  listMessages: vi.fn(async (id: number) => coachConversationsState.messagesByConversation[id] ?? []),
+  addMessage: vi.fn(async (id: number, role: "user" | "assistant", content: string) => {
+    const message = {
+      id: coachConversationsState.nextMessageId++,
+      conversationId: id,
+      role,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+    coachConversationsState.messagesByConversation[id] = [
+      ...(coachConversationsState.messagesByConversation[id] ?? []),
+      message,
+    ];
+    return message;
+  }),
+}));
+
 const createPositionMutate = vi.fn();
 const deletePositionMutate = vi.fn();
 const updateSettingsMutate = vi.fn();
@@ -274,6 +317,9 @@ describe("TradingResearch page", () => {
     updateSettingsMutate.mockReset();
     streamCoachMock.mockReset();
     streamCoachMock.mockResolvedValue(undefined);
+    coachConversationsState.messagesByConversation = {};
+    coachConversationsState.nextConversationId = 1;
+    coachConversationsState.nextMessageId = 1;
   });
 
   it("renders the advisory-only copy and a prompt before any symbol is searched", () => {

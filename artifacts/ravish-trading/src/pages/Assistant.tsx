@@ -19,6 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
 import { optionsCoachConfig } from "@/lib/ai-coach/coaches/optionsCoach.config";
+import { useCoachConversations } from "@/lib/ai-coach/useCoachConversations";
+import { ConversationSidebar } from "@/lib/ai-coach/ConversationSidebar";
 import { Markdown } from "@/components/ui/markdown";
 
 type ChatMode = "auto" | AiChatInputMode;
@@ -44,7 +46,17 @@ const REFERENCE_CARDS: { sym: string; name: string; plain: string }[] = [
 ];
 
 export default function Assistant() {
-  const { data: messages, isLoading } = useGetAiMessages();
+  // v1.5.0 Sprint 6 — AI Coach Memory. The Options AI Coach now has its own
+  // multi-conversation history (isolated from Trading/Investing — see
+  // useCoachConversations.ts), rendered instead of this page's old flat,
+  // ungrouped useGetAiMessages() history. The underlying POST /ai/chat[/
+  // stream] route is completely unchanged and still writes to its own
+  // pre-existing ai_messages table server-side as it always has — this is
+  // a disclosed, harmless side effect of an otherwise-untouched route, not
+  // read by this page's UI anymore. useGetAiMessages()'s own query is still
+  // invalidated on each answer (unchanged), in case any other surface still
+  // reads it.
+  const { isLoading: isMessagesLoading } = useGetAiMessages();
   const { data: lessons } = useGetCoachLessons();
   const queryClient = useQueryClient();
 
@@ -53,6 +65,8 @@ export default function Assistant() {
   const [mode, setMode] = useState<ChatMode>("auto");
   const [level, setLevel] = useState<ChatLevel>(AiChatInputLevel.beginner);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const optionsCoachConversations = useCoachConversations("options");
 
   // v1.5.0 Sprint 2 — AI Coach Framework: the send/stream/error/stop state
   // machine (question input, in-flight optimistic bubble, streamed-delta
@@ -67,10 +81,14 @@ export default function Assistant() {
   // the hood. `mode`/`level` are read fresh on every send since the
   // config's buildRequestBody is re-evaluated per call.
   const coach = useSpecialistCoach(optionsCoachConfig, { mode, level }, {
-    onAnswered: () => {
+    onAnswered: (turn) => {
       queryClient.invalidateQueries({ queryKey: getGetAiMessagesQueryKey() });
+      optionsCoachConversations.persistTurn(turn);
     },
   });
+
+  const messages = optionsCoachConversations.activeMessages;
+  const isLoading = isMessagesLoading || optionsCoachConversations.isLoadingMessages;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -192,6 +210,19 @@ export default function Assistant() {
         </div>
       )}
 
+      <div className="flex-1 flex gap-3 min-h-0">
+        <ConversationSidebar
+          conversations={optionsCoachConversations.conversations}
+          isLoading={optionsCoachConversations.isLoadingConversations}
+          activeConversationId={optionsCoachConversations.activeConversationId}
+          searchTerm={optionsCoachConversations.searchTerm}
+          onSearchChange={optionsCoachConversations.setSearchTerm}
+          onNewConversation={optionsCoachConversations.startNewConversation}
+          onSelectConversation={optionsCoachConversations.selectConversation}
+          onRenameConversation={optionsCoachConversations.renameConversationById}
+          onDeleteConversation={optionsCoachConversations.deleteConversationById}
+          testId="assistant-coach-sidebar"
+        />
       <Card className="flex-1 flex flex-col bg-card border-border overflow-hidden">
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <div className="space-y-6 pb-4">
@@ -229,9 +260,9 @@ export default function Assistant() {
                   </div>
                   <div className={`px-4 py-3 rounded-lg max-w-[80%] ${msg.role === 'user' ? 'bg-secondary text-foreground' : 'bg-indigo-500/10 border border-indigo-500/20 text-foreground'}`}>
                     {msg.role === 'user' ? (
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                     ) : (
-                      <Markdown className="text-sm">{msg.message}</Markdown>
+                      <Markdown className="text-sm">{msg.content}</Markdown>
                     )}
                   </div>
                 </div>
@@ -329,6 +360,7 @@ export default function Assistant() {
           </form>
         </CardFooter>
       </Card>
+      </div>
     </div>
   );
 }
