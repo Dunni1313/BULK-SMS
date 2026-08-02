@@ -95,6 +95,7 @@ import {
   Workflow,
   Command,
   MessageCircle,
+  Kanban,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -148,6 +149,12 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // Both are kept, cross-linked, never merged or renamed — see
       // docs/v1.5.0-Sprint-13-Institutional-Decision-Engine.md.
       { title: "Decision Workflow", href: "/decision-workflow", icon: Milestone },
+      // v1.5.0, Sprint 14 — Institutional Execution & Lifecycle Manager.
+      // The orchestration layer picking up right where Decision Workflow
+      // leaves off: manages every trade's lifecycle before and after a
+      // manual external-broker execution. See
+      // docs/v1.5.0-Sprint-14-Institutional-Execution-Lifecycle.md.
+      { title: "Execution & Lifecycle Manager", href: "/execution-lifecycle", icon: Kanban },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },

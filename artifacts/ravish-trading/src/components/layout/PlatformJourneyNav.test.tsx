@@ -8,11 +8,24 @@ import { render, screen } from "@testing-library/react";
 import { PlatformJourneyNav } from "./PlatformJourneyNav";
 
 describe("PlatformJourneyNav", () => {
-  it("renders all 10 requested stages, in order (9 original + Decision, Sprint 13)", () => {
+  it("renders all 12 requested stages, in order (9 original + Decision [Sprint 13] + Open Position/Trade Management [Sprint 14])", () => {
     render(<PlatformJourneyNav current="research" />);
     const nav = screen.getByTestId("nav-platform-journey");
     expect(nav).toBeInTheDocument();
-    for (const id of ["research", "notebook", "strategy", "trade-plan", "decision", "execute", "trade-journal", "performance", "portfolio", "learning"]) {
+    for (const id of [
+      "research",
+      "notebook",
+      "strategy",
+      "trade-plan",
+      "decision",
+      "execute",
+      "open-position",
+      "trade-management",
+      "trade-journal",
+      "performance",
+      "portfolio",
+      "learning",
+    ]) {
       expect(screen.getByTestId(`journey-stage-${id}`)).toBeInTheDocument();
     }
   });
@@ -21,6 +34,14 @@ describe("PlatformJourneyNav", () => {
     render(<PlatformJourneyNav current="research" />);
     const decisionLink = screen.getByTestId("journey-stage-decision").querySelector("a");
     expect(decisionLink).toHaveAttribute("href", "/decision-workflow");
+  });
+
+  it("links both Open Position and Trade Management to the new /execution-lifecycle page (Sprint 14)", () => {
+    render(<PlatformJourneyNav current="research" />);
+    const openPositionLink = screen.getByTestId("journey-stage-open-position").querySelector("a");
+    expect(openPositionLink).toHaveAttribute("href", "/execution-lifecycle");
+    const tradeManagementLink = screen.getByTestId("journey-stage-trade-management").querySelector("a");
+    expect(tradeManagementLink).toHaveAttribute("href", "/execution-lifecycle");
   });
 
   it("highlights the current stage", () => {
