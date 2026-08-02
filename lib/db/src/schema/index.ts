@@ -37,6 +37,7 @@ export * from "./investingDecisionSnapshots";
 export * from "./investingDecisionNotes";
 export * from "./investingSavedScreens";
 export * from "./investingMonitoringStates";
+export * from "./investingOpportunityPipelineItems";
 export * from "./investingAlertNotes";
 export * from "./investingOptimisationReviews";
 export * from "./dashboardWorkspaces";

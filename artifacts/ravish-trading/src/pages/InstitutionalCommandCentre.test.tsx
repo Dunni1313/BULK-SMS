@@ -57,6 +57,10 @@ const mockState = vi.hoisted(() => ({
   // v1.5.0, Sprint 20 — Institutional Market Intelligence Engine.
   marketIntelligenceFeed: undefined as unknown,
   watchlistsDashboard: undefined as unknown,
+  // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine
+  // ("Opportunity Pipeline").
+  researchNotes: [] as unknown[],
+  opportunityPipelineItems: [] as unknown[],
 }));
 
 vi.mock("@workspace/api-client-react", async () => {
@@ -82,6 +86,11 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetTradingRisk: () => ({ data: mockState.tradingRisk, isLoading: false }),
     useGetMarketIntelligence: () => ({ data: mockState.marketIntelligenceFeed, isLoading: false, refetch: vi.fn() }),
     useGetWatchlistsDashboard: () => ({ data: mockState.watchlistsDashboard, isLoading: false }),
+    useGetAllResearchNotes: () => ({ data: mockState.researchNotes, isLoading: false }),
+    useListOpportunityPipelineItems: () => ({ data: mockState.opportunityPipelineItems, isLoading: false, refetch: vi.fn() }),
+    useCaptureOpportunityPipelineItem: () => ({ mutateAsync: vi.fn() }),
+    useUpdateOpportunityPipelineItem: () => ({ mutateAsync: vi.fn() }),
+    useDeleteOpportunityPipelineItem: () => ({ mutateAsync: vi.fn() }),
   };
 });
 
@@ -119,6 +128,10 @@ describe("InstitutionalCommandCentre", () => {
     mockState.portfolios = [];
     mockState.portfolioRisk = undefined;
     mockState.tradingRisk = undefined;
+    mockState.marketIntelligenceFeed = undefined;
+    mockState.watchlistsDashboard = undefined;
+    mockState.researchNotes = [];
+    mockState.opportunityPipelineItems = [];
     listTradePlansMock.mockReset().mockResolvedValue([]);
     getTradePlanMock.mockReset();
     getMissingTradePlanInformationMock.mockReset();
@@ -496,5 +509,48 @@ describe("InstitutionalCommandCentre", () => {
     // key event and a priority item, never a fabricated duplicate.
     expect(screen.getByTestId("market-intelligence-card-todays-events")).toHaveTextContent("FOMC rate decision");
     expect(screen.getByTestId("market-intelligence-card-priority")).toHaveTextContent("FOMC rate decision");
+  });
+
+  // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine
+  // ("Opportunity Pipeline").
+  it("renders the Opportunity Pipeline card, reusing useOpportunityPipeline() directly", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    expect(await screen.findByTestId("card-opportunity-pipeline")).toBeInTheDocument();
+    expect(screen.getByTestId("opportunity-pipeline-view-link")).toHaveAttribute("href", "/opportunity-pipeline");
+  });
+
+  it("shows an honest empty Opportunity Pipeline state when there is nothing discovered or captured", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-opportunity-pipeline");
+    expect(screen.getByTestId("opportunity-pipeline-card-no-new")).toBeInTheDocument();
+    expect(screen.getByTestId("opportunity-pipeline-card-no-high-priority")).toBeInTheDocument();
+    expect(screen.getByTestId("opportunity-pipeline-card-no-awaiting")).toBeInTheDocument();
+    expect(screen.getByTestId("opportunity-pipeline-card-no-archived")).toBeInTheDocument();
+  });
+
+  it("surfaces a real captured opportunity's title in the correct pipeline bucket, never a fabricated one", async () => {
+    mockState.opportunityPipelineItems = [
+      {
+        id: 1,
+        title: "MSFT: research candidate",
+        category: "watchlist_event",
+        origin: "Watchlist — target crossing (checkTargets)",
+        evidence: [],
+        relatedAssets: ["MSFT"],
+        relatedSectors: [],
+        priority: "high",
+        stage: "research-candidate",
+        stageLabel: "Research Candidate",
+        nextRecommendedAction: "Promote to Research In Progress.",
+        linkedNotebookId: null,
+        relatedResearchSymbol: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        archivedAt: null,
+      },
+    ];
+    renderWithClient(<InstitutionalCommandCentre />);
+    await screen.findByTestId("card-opportunity-pipeline");
+    expect(screen.getByTestId("opportunity-pipeline-card-awaiting")).toHaveTextContent("MSFT: research candidate");
   });
 });

@@ -98,6 +98,8 @@ tags:
     description: Institutional Portfolio Workspace & Workflow Center (Phase 44) — a unified operating dashboard bringing together the Decision Support Engine's own Executive Home/Portfolio Snapshot (Phase 40, reused wholesale), the Risk & Exposure Engine (Phase 37), the Performance & Attribution Engine (Phase 38), the Rebalancing Engine (Phase 41), the Compliance Engine (Phase 42), and the Watchlists Engine (Phase 43) into Holdings/Trading/Options/Risk/Performance/Compliance/Watchlists Overview cards, a merged Outstanding Issues list, Recent Reports, and Active Workflows — plus a deterministic Workflow Center (Morning/Weekly/Monthly/Quarterly/Portfolio/Risk/Compliance/Performance/Scenario Review, each a static checklist of already-shipped pages) and a Workspace layer (Pinned Resources/Favorites, Recently Viewed, and a fixed Quick Actions list). Orchestration and workflow only — no trade recommendations, no buy/sell signals, no AI predictions, no portfolio optimisation, no auto execution, no auto hedging, no machine learning, no market forecasting, no broker integration changes.
   - name: market-intelligence
     description: Institutional Market Intelligence Engine (v1.5.0, Sprint 20) — a stateless, market-wide feed of external context (Macro, Economic Events, Central Banks, Earnings, Corporate Actions, Volatility, Options Activity, Market Breadth, plus reserved-but-currently-empty Sector Trends/Commodities/Currencies/Sentiment categories, disclosed honestly with a reason). Every item is reused directly from an already-existing engine (lib/eventRisk.ts, lib/marketBriefing.ts, lib/investingMacro.ts, lib/optionsMath.ts's own snapshot) — zero new pricing/valuation formulas, zero new provider integrations. Research remains user-created; this is external context only. No trading signals, no buy/sell recommendations, no AI price predictions, no duplicate news/watchlist/research system, no broker integration.
+  - name: opportunity-pipeline
+    description: Institutional Opportunity Discovery Engine (v1.5.0, Sprint 21) — built and named "Opportunity Pipeline" to avoid colliding with the pre-existing Phase 15 Opportunity Discovery stock-scanner (lib/opportunityDiscovery.ts, route /opportunity-discovery), which remains untouched and is explicitly out of scope (this sprint's spec forbids building "another scanner"). Persists only a user's own explicitly-captured opportunities and their 7-stage pipeline (Discovered/Screening/Research Candidate/Research In Progress/Research Complete/Strategy Candidate/Archived) — the discovery composition itself (reading Market Intelligence, Watchlists, Portfolio & Risk Intelligence, Knowledge Graph, and Research Notes) happens entirely on the frontend from already-existing data, zero new backend calculation. No trading signals, no buy/sell recommendations, no AI predictions, no duplicate watchlist/research system, no broker integration.
 
 paths:
   /healthz:
@@ -263,6 +265,84 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MarketIntelligenceFeed"
+
+  /opportunity-pipeline/items:
+    get:
+      operationId: listOpportunityPipelineItems
+      tags: [opportunity-pipeline]
+      summary: List the calling user's own captured Opportunity Pipeline items, newest first
+      responses:
+        "200":
+          description: Opportunity Pipeline items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpportunityPipelineItem"
+    post:
+      operationId: captureOpportunityPipelineItem
+      tags: [opportunity-pipeline]
+      summary: Capture a new opportunity into the calling user's own pipeline, stage defaults to "discovered"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaptureOpportunityPipelineItemInput"
+      responses:
+        "201":
+          description: Captured Opportunity Pipeline item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpportunityPipelineItem"
+
+  /opportunity-pipeline/items/{id}:
+    patch:
+      operationId: updateOpportunityPipelineItem
+      tags: [opportunity-pipeline]
+      summary: Update an Opportunity Pipeline item's stage, priority, or research links
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOpportunityPipelineItemInput"
+      responses:
+        "200":
+          description: Updated Opportunity Pipeline item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpportunityPipelineItem"
+    delete:
+      operationId: deleteOpportunityPipelineItem
+      tags: [opportunity-pipeline]
+      summary: Remove an Opportunity Pipeline item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required: [success]
 
   /market-data/health:
     get:
@@ -20790,3 +20870,96 @@ components:
           items:
             $ref: "#/components/schemas/MarketIntelligenceCategoryMeta"
         generatedAt: { type: string }
+
+    OpportunityPipelineCategory:
+      type: string
+      description: v1.5.0, Sprint 21 — maps 1:1 onto the sprint's own named Opportunity Sources list; never a new detection formula, only a classification of which existing engine surfaced the signal.
+      enum:
+        - watchlist_event
+        - economic_release
+        - earnings
+        - corporate_action
+        - portfolio_gap
+        - sector_development
+        - macro_change
+        - knowledge_graph_relationship
+        - previously_researched
+        - research_update_needed
+
+    OpportunityPipelineStage:
+      type: string
+      enum:
+        - discovered
+        - screening
+        - research-candidate
+        - research-in-progress
+        - research-complete
+        - strategy-candidate
+        - archived
+
+    OpportunityPipelinePriority:
+      type: string
+      enum: [low, medium, high]
+
+    OpportunityPipelineItem:
+      type: object
+      required: [id, title, category, origin, evidence, relatedAssets, relatedSectors, priority, stage, stageLabel, nextRecommendedAction, linkedNotebookId, relatedResearchSymbol, createdAt, updatedAt, archivedAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        category: { $ref: "#/components/schemas/OpportunityPipelineCategory" }
+        origin: { type: string }
+        evidence:
+          type: array
+          items: { type: string }
+        relatedAssets:
+          type: array
+          items: { type: string }
+        relatedSectors:
+          type: array
+          items: { type: string }
+        priority: { $ref: "#/components/schemas/OpportunityPipelinePriority" }
+        stage: { $ref: "#/components/schemas/OpportunityPipelineStage" }
+        stageLabel: { type: string }
+        nextRecommendedAction: { type: string }
+        linkedNotebookId:
+          type: integer
+          nullable: true
+        relatedResearchSymbol:
+          type: string
+          nullable: true
+        createdAt: { type: string }
+        updatedAt: { type: string }
+        archivedAt:
+          type: string
+          nullable: true
+
+    CaptureOpportunityPipelineItemInput:
+      type: object
+      required: [title, category, origin, evidence, relatedAssets, relatedSectors, priority]
+      properties:
+        title: { type: string }
+        category: { $ref: "#/components/schemas/OpportunityPipelineCategory" }
+        origin: { type: string }
+        evidence:
+          type: array
+          items: { type: string }
+        relatedAssets:
+          type: array
+          items: { type: string }
+        relatedSectors:
+          type: array
+          items: { type: string }
+        priority: { $ref: "#/components/schemas/OpportunityPipelinePriority" }
+
+    UpdateOpportunityPipelineItemInput:
+      type: object
+      properties:
+        stage: { $ref: "#/components/schemas/OpportunityPipelineStage" }
+        priority: { $ref: "#/components/schemas/OpportunityPipelinePriority" }
+        linkedNotebookId:
+          type: integer
+          nullable: true
+        relatedResearchSymbol:
+          type: string
+          nullable: true

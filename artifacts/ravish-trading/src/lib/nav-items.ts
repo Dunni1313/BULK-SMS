@@ -98,6 +98,7 @@ import {
   Kanban,
   BadgeCheck,
   Globe,
+  Lightbulb,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -199,6 +200,19 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // Decision Workflow, Portfolio Intelligence, Knowledge Graph, and the
       // AI Coach. See docs/v1.5.0-Sprint-20-Market-Intelligence-Engine.md.
       { title: "Market Intelligence", href: "/market-intelligence", icon: Globe },
+      // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine,
+      // built and named "Opportunity Pipeline" to avoid colliding with the
+      // pre-existing Phase 15 "Opportunity Discovery" stock scanner (see
+      // "Stock Scanner" under Value Investing below, and
+      // docs/v1.5.0-Sprint-21-Opportunity-Discovery-Engine.md §1 for the
+      // full disclosed reasoning). The disciplined front door to the
+      // platform — discovering, capturing, and prioritising opportunities
+      // gathered from Market Intelligence, Watchlists, Portfolio & Risk
+      // Intelligence, and the Knowledge Graph, tracked through a 7-stage
+      // pipeline into the existing Research workflow. Never a trading
+      // signal, never a buy/sell recommendation, never a duplicate
+      // watchlist/research system.
+      { title: "Opportunity Pipeline", href: "/opportunity-pipeline", icon: Lightbulb },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },

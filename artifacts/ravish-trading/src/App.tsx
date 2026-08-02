@@ -53,6 +53,10 @@ const InstitutionalPlaybooks = lazy(() => import("./pages/InstitutionalPlaybooks
 const DecisionQualityReview = lazy(() => import("./pages/DecisionQualityReview"));
 // v1.5.0, Sprint 20 — Institutional Market Intelligence Engine.
 const MarketIntelligence = lazy(() => import("./pages/MarketIntelligence"));
+// v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine (built and
+// named "Opportunity Pipeline" to avoid colliding with the pre-existing
+// Phase 15 OpportunityDiscovery.tsx scanner page below).
+const OpportunityPipeline = lazy(() => import("./pages/OpportunityPipeline"));
 const Home = lazy(() => import("./pages/Home"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
@@ -185,6 +189,7 @@ function Router() {
           <Route path="/playbooks" component={InstitutionalPlaybooks} />
           <Route path="/decision-quality-review" component={DecisionQualityReview} />
           <Route path="/market-intelligence" component={MarketIntelligence} />
+          <Route path="/opportunity-pipeline" component={OpportunityPipeline} />
           <Route path="/personal-dashboard" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
           <Route path="/notifications" component={NotificationCentre} />

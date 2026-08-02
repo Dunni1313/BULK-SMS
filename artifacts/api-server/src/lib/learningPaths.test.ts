@@ -239,6 +239,17 @@ describe("learning path content", () => {
       "/performance",
       "/trade-journal-ai",
       "/portfolio-workspace",
+      // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine
+      // (built and named "Opportunity Pipeline" in code). Every genuinely
+      // new route this sprint's 4 new module-guide topics point to,
+      // confirmed real and registered by direct grep of App.tsx before this
+      // content was written. /stock-analyst/investment-committee,
+      // /research-terminal, and /stock-analyst were already present above.
+      "/opportunity-pipeline",
+      "/market-intelligence",
+      "/knowledge-graph",
+      "/decision-quality-review",
+      "/portfolio-risk-intelligence",
     ]);
     for (const { topic } of allLearningTopics()) {
       if (topic.externalHref) {
@@ -455,6 +466,14 @@ describe("platform-basics path — the foundation lessons, and the template for 
       "certification-investing-masterclass",
       "certification-options-masterclass",
       "certification-continuous-development",
+      // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine
+      // (built and named "Opportunity Pipeline" in code). 4 brand-new,
+      // rich topics in the existing institutional-investing path. No
+      // existing topic's plain-vs-rich status changed this sprint.
+      "investing-idea-generation",
+      "investing-confirmation-bias",
+      "investing-opportunity-filtering",
+      "investing-research-prioritisation",
     ]);
     const stillPlainTopics = allLearningTopics().filter(
       ({ pathKey, topic }) => pathKey !== "platform-basics" && !richContentKeys.has(topic.key),

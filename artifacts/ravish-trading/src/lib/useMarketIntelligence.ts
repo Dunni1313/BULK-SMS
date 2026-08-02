@@ -33,6 +33,11 @@ export interface UseMarketIntelligenceResult {
    * reads this same field. */
   emergingThemes: KnowledgeInsights["emergingThemes"];
   graph: KnowledgeGraph;
+  /** v1.5.0, Sprint 21 — exposed additively (was already computed
+   * internally) so the new Opportunity Pipeline Engine can reuse the exact
+   * same "held" concept for its own AI Discovery Coach, rather than
+   * re-deriving it a second time. */
+  heldSymbols: ReadonlySet<string>;
   generatedAt: string | null;
   reload: () => void;
 }
@@ -79,6 +84,7 @@ export function useMarketIntelligence(): UseMarketIntelligenceResult {
     portfolioIntelligence,
     emergingThemes,
     graph: knowledge.graph,
+    heldSymbols,
     generatedAt: feed?.generatedAt ?? null,
     reload: () => {
       refetch();

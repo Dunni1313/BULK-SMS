@@ -3995,6 +3995,126 @@ const INSTITUTIONAL_INVESTING_PATH: LearningPath = {
         },
       ],
     }),
+    // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine (built
+    // and named "Opportunity Pipeline" in code to avoid colliding with the
+    // pre-existing Phase 15 Opportunity Discovery scanner). 4 new topics
+    // teaching how professionals actually generate, filter, and prioritise
+    // investment ideas — the disciplined thinking behind the new
+    // /opportunity-pipeline page, not a re-teaching of any single screen.
+    topic({
+      key: "investing-idea-generation",
+      title: "How Professionals Generate Investment Ideas",
+      summary: "Real research ideas come from noticing something in evidence you already have — never from a hunch or a hot tip.",
+      body: [
+        "Professional idea generation is not 'having a feeling' about a stock. It is noticing a real, already-documented signal — a watchlist price target crossing, an earnings date approaching on a name you hold, a stale research note that hasn't been revisited in months, an emerging theme the Knowledge Graph surfaces across several companies at once — and treating that signal as a prompt to look closer, never as a conclusion.",
+        "The Opportunity Pipeline (/opportunity-pipeline) is built around exactly this discipline: every 'Discovered' card traces back to one real, named source — Market Intelligence, a watchlist target crossing, stale research, a portfolio quality gap, or an emerging Knowledge Graph theme. There is no seventh, hidden source and no predictive score behind any card.",
+        "Because every idea must cite its own evidence, the honest question to ask about any new idea — from this platform or anywhere else — is simply: 'what specific, already-known fact made me think of this, right now?' If you can't name one, the idea isn't ready for research time yet.",
+      ],
+      whyItMatters: "An idea with no traceable evidence is indistinguishable from a guess — and a portfolio built on guesses cannot be reviewed, defended, or improved after the fact.",
+      difficulty: "beginner",
+      whyItExists: "The Opportunity Pipeline was built specifically so that 'why did this idea appear?' always has a real, one-sentence answer — never a fabricated signal or an unexplained ranking.",
+      institutionalThinking: "A professional research desk doesn't wait for inspiration — it runs a standing process that surfaces the same handful of evidence types every single day (calendar events, price/valuation triggers, portfolio gaps, thematic clustering) and trusts that process more than any single person's instinct.",
+      workflowSteps: [
+        "Open the Opportunity Pipeline's Discovered tab before starting any new research.",
+        "For each card, read its Origin line — confirm you understand exactly which existing system surfaced it.",
+        "Read the Evidence list — this is the entire factual basis for the idea, nothing more is implied.",
+        "Only capture an idea into the pipeline once you can restate, in your own words, why it surfaced.",
+      ],
+      metricsExplained: [
+        { term: "Origin", explanation: "The exact existing module that surfaced the opportunity (e.g. 'Watchlist — target crossing') — never a vague 'AI detected' label." },
+        { term: "Evidence", explanation: "The specific, already-known facts behind the idea — real numbers or events, never a fabricated summary." },
+      ],
+      commonMistakes: [
+        "Treating a headline alone as a reason to research — the Evidence list, not the headline, is the actual basis.",
+        "Capturing every discovered card into the pipeline instead of screening for the ones with genuinely strong evidence.",
+      ],
+      relatedModuleHrefs: ["/opportunity-pipeline", "/market-intelligence", "/knowledge-graph", "/learn/paths/institutional-investing"],
+      relatedGlossaryKeys: ["opportunity-discovery-engine", "supporting-contradicting-evidence"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "investing-confirmation-bias",
+      title: "Avoiding Confirmation Bias in Research",
+      summary: "The evidence that challenges your idea is exactly as important as the evidence that supports it.",
+      body: [
+        "Confirmation bias is the tendency to notice, remember, and weigh evidence that supports a belief you already hold, while discounting or ignoring evidence that contradicts it. In investing, it is one of the most costly biases there is, because it turns research into a search for reasons to do what you already wanted to do.",
+        "The single most effective structural defence is simple: for every piece of supporting evidence you write down for an opportunity, deliberately look for at least one piece of contradicting evidence too, and record it just as visibly. A one-sided evidence list is a warning sign, not a strong case.",
+        "This is exactly why the platform's own research artifacts are built the way they are — the Investment Committee consolidates Graham, Buffett, and Tom Nash's independent verdicts rather than picking the one you like best, and Decision Quality Review evaluates your own process (did you document both sides?) rather than whether the trade happened to work out.",
+      ],
+      whyItMatters: "A portfolio built entirely from confirming evidence is a portfolio that has never really been tested — the first real market stress will be the first time the other side of the argument gets a hearing.",
+      difficulty: "beginner",
+      whyItExists: "This lesson exists because the Opportunity Pipeline could easily be misused as a one-way filter — capturing only ideas that already match a pre-formed view — if the discipline of also seeking contradicting evidence isn't taught alongside it.",
+      institutionalThinking: "An investment committee's job is structurally adversarial for a reason — one member is often explicitly tasked with arguing the other side. You don't need a committee to borrow that habit: before promoting any opportunity to Research Candidate, write down the strongest argument against it, not just for it.",
+      workflowSteps: [
+        "Before promoting a captured opportunity to Research Candidate, write down the single strongest reason it might be wrong.",
+        "Check whether your own portfolio holdings, journal entries, or past decisions already reflect that same belief — repeated confidence is not the same as repeated confirmation.",
+        "Use the Investment Committee's own consolidated view (Graham/Buffett/Tom Nash) as a built-in second opinion rather than seeking only the analyst whose conclusion you already favour.",
+      ],
+      commonMistakes: [
+        "Only reading the parts of a research report that support the conclusion you already wanted.",
+        "Treating a lone supporting data point as proof, while dismissing several smaller contradicting ones.",
+        "Re-researching the same idea repeatedly until it finally looks good, instead of accepting an honest 'not yet.'",
+      ],
+      relatedModuleHrefs: ["/opportunity-pipeline", "/stock-analyst/investment-committee", "/decision-quality-review", "/learn/paths/institutional-investing"],
+      relatedGlossaryKeys: ["supporting-contradicting-evidence", "process-over-prediction"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "investing-opportunity-filtering",
+      title: "How to Filter Opportunities Without Fabricating a Score",
+      summary: "Not every discovered idea deserves research time — filtering is a discipline, not a shortcut past due diligence.",
+      body: [
+        "Discovery naturally produces more ideas than any one person has time to research properly. Filtering is the deliberate, honest process of deciding which ones earn that time next — and it is different from ranking by a fabricated predictive score, which this platform deliberately never does.",
+        "The Opportunity Pipeline's own Priority field (High/Medium/Low) is a genuinely simple, transparent filter: it reflects concrete facts like a real price-target crossing or a portfolio quality gap, never a hidden formula. Use it as a starting filter, not a final verdict — a Low-priority idea can still be exactly right, it just hasn't shown a strong enough concrete trigger yet.",
+        "A disciplined filter asks three plain questions of every idea: is the evidence specific and real (not a vague headline)? does it relate to something you already hold, watch, or have researched before? and do you actually have time to do it justice this week? An idea that fails all three should honestly move to Archived, not linger unreviewed forever.",
+      ],
+      whyItMatters: "Without deliberate filtering, a discovery engine just produces noise — the goal is fewer, better-evidenced research candidates, not a longer list.",
+      difficulty: "intermediate",
+      whyItExists: "The 7-stage pipeline (Discovered → Screening → Research Candidate → ... → Archived) exists specifically to make filtering a visible, trackable step, rather than something that happens invisibly in someone's head.",
+      institutionalThinking: "A professional research desk explicitly budgets research hours and only promotes ideas that clear a real bar — clearing that bar is itself a decision worth recording, which is exactly what moving an item from Discovered to Screening does.",
+      workflowSteps: [
+        "Sort the Discovered tab by Priority, but read every High and Medium item's own Evidence before deciding anything.",
+        "Move an idea to Screening only once you've confirmed its evidence is specific and not already fully captured elsewhere.",
+        "Archive ideas honestly and promptly rather than letting a growing, unreviewed backlog build up — an archived idea can always be revisited later if new evidence appears.",
+      ],
+      metricsExplained: [
+        { term: "Priority", explanation: "A transparent, evidence-derived High/Medium/Low classification — never a fabricated predictive ranking." },
+        { term: "Stage: Screening", explanation: "An idea under active, lightweight consideration — not yet committed to full research." },
+      ],
+      commonMistakes: [
+        "Letting the Discovered list grow indefinitely without ever archiving anything.",
+        "Treating Priority as a precise ranking rather than a rough, transparent, evidence-based filter.",
+      ],
+      relatedModuleHrefs: ["/opportunity-pipeline", "/portfolio-risk-intelligence", "/learn/paths/institutional-investing"],
+      relatedGlossaryKeys: ["opportunity-ranking", "opportunity-buckets"],
+      estimatedMinutes: 4,
+    }),
+    topic({
+      key: "investing-research-prioritisation",
+      title: "Prioritising Research: What to Investigate First",
+      summary: "Once an idea clears filtering, the next question is sequencing — what gets your limited research time first.",
+      body: [
+        "Filtering decides which ideas are worth researching at all; prioritisation decides the ORDER. The two are related but distinct disciplines, and skipping straight from 'discovered' to 'deep research' without ever stepping back to sequence your queue is a common, avoidable mistake.",
+        "A reasonable sequencing rule: research candidates connected to something you already hold outrank brand-new names, since a gap in existing research on a current holding carries real, present portfolio risk. Within that, an idea backed by multiple independent evidence sources (e.g. both a watchlist target crossing AND an emerging Knowledge Graph theme) generally deserves earlier attention than one backed by a single, isolated signal.",
+        "When an opportunity is promoted to Research Candidate, it links directly into the existing Research Workspace — there is no second notebook or duplicate research system to maintain. That handoff itself is a natural prioritisation checkpoint: only promote what you're genuinely ready to start on next.",
+      ],
+      whyItMatters: "A research queue with no sequencing logic tends to default to whatever is newest or loudest — deliberate prioritisation keeps attention on what actually matters most to your existing portfolio.",
+      difficulty: "intermediate",
+      whyItExists: "The pipeline's Research Candidate stage was built to hand off directly into the Research Terminal precisely so prioritisation and execution stay connected — a promoted idea should be something you're ready to act on, not a second backlog.",
+      institutionalThinking: "Committees sequence their own agendas the same way: items touching existing positions or already-flagged risks are taken up before speculative new names, because the cost of NOT knowing about an existing holding is higher than the cost of researching a new one a week later.",
+      workflowSteps: [
+        "Before opening a new Research Candidate, check whether it relates to a current holding via Portfolio Impact — those should generally come first.",
+        "Prefer ideas corroborated by more than one Origin/evidence source over single-source ideas, all else equal.",
+        "Use the 'Open Research Workspace →' handoff only once you intend to start that research now, keeping the Research Candidate stage meaningful rather than a second holding pen.",
+      ],
+      commonMistakes: [
+        "Researching whatever arrived most recently instead of what matters most to the existing portfolio.",
+        "Promoting many ideas to Research Candidate at once without any real intention to start on most of them soon.",
+      ],
+      relatedModuleHrefs: ["/opportunity-pipeline", "/research-terminal", "/stock-analyst", "/learn/paths/institutional-investing"],
+      relatedGlossaryKeys: ["research-terminal", "investment-checklist"],
+      estimatedMinutes: 4,
+    }),
   ],
 };
 

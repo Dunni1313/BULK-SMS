@@ -67,6 +67,7 @@ import {
   workspacePinnedResourcesTable,
   workspaceRecentViewsTable,
   tradingCoachMessagesTable,
+  investingOpportunityPipelineItemsTable,
 } from "@workspace/db";
 import { assertTenantIsolation } from "./tenantIsolationHelper.js";
 import { getSettingsRow } from "./serverState.js";
@@ -171,6 +172,10 @@ afterAll(async () => {
     workspaceRecentViewsTable,
     // v1.3.0, Sprint 1 — AI Trading Coach's own new table.
     tradingCoachMessagesTable,
+    // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine's own
+    // new table (built and named "Opportunity Pipeline" to avoid colliding
+    // with the pre-existing Phase 15 table above).
+    investingOpportunityPipelineItemsTable,
   ] as any[]) {
     await db.delete(table).where(eq(table.userId, userA));
     await db.delete(table).where(eq(table.userId, userB));
@@ -415,6 +420,25 @@ describe("tenant isolation — every user-scoped table (Sprint 7, approved plan 
       userId,
       name: "Test Screen",
       filtersJson: { sector: "Technology" },
+    }));
+  });
+
+  // v1.5.0, Sprint 21 — Institutional Opportunity Discovery Engine's own
+  // new table (built and named "Opportunity Pipeline" — see
+  // lib/opportunityPipeline.ts's header comment for the disclosed
+  // naming-collision reasoning against the Phase 15 table above), reusing
+  // the same shared helper.
+  it("investing_opportunity_pipeline_items: a userId-scoped query never crosses accounts", async () => {
+    await assertTenantIsolation(investingOpportunityPipelineItemsTable, userA, userB, (userId) => ({
+      userId,
+      title: "Test Opportunity",
+      category: "watchlist_event",
+      origin: "Test origin",
+      evidenceJson: ["evidence"],
+      relatedAssetsJson: ["AAPL"],
+      relatedSectorsJson: [],
+      priority: "medium",
+      stage: "discovered",
     }));
   });
 
