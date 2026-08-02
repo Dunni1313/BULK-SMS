@@ -29,6 +29,10 @@ import { discoverOpportunities, type DiscoveredOpportunity } from "./opportunity
 
 export interface UseOpportunityPipelineResult {
   loading: boolean;
+  /** v1.5.0, Sprint 23 (GA Readiness) — true when the underlying Market
+   * Intelligence composition or either of this hook's own direct fetches
+   * failed. */
+  isError: boolean;
   discovered: DiscoveredOpportunity[];
   captured: OpportunityPipelineItem[];
   heldSymbols: ReadonlySet<string>;
@@ -40,9 +44,9 @@ export interface UseOpportunityPipelineResult {
 
 export function useOpportunityPipeline(): UseOpportunityPipelineResult {
   const marketIntel = useMarketIntelligence();
-  const { data: watchlist, isLoading: watchlistLoading } = useGetValueWatchlist({ checkTargets: "true" });
-  const { data: researchNotes, isLoading: notesLoading } = useGetAllResearchNotes();
-  const { data: captured, isLoading: capturedLoading, refetch: refetchCaptured } = useListOpportunityPipelineItems();
+  const { data: watchlist, isLoading: watchlistLoading, isError: watchlistError } = useGetValueWatchlist({ checkTargets: "true" });
+  const { data: researchNotes, isLoading: notesLoading, isError: notesError } = useGetAllResearchNotes();
+  const { data: captured, isLoading: capturedLoading, isError: capturedError, refetch: refetchCaptured } = useListOpportunityPipelineItems();
 
   const captureMutation = useCaptureOpportunityPipelineItem({
     mutation: { onSuccess: () => refetchCaptured() },
@@ -66,9 +70,11 @@ export function useOpportunityPipeline(): UseOpportunityPipelineResult {
   }, [marketIntel.loading, marketIntel.items, marketIntel.portfolioIntelligence.weakestFactor, marketIntel.emergingThemes, watchlistLoading, watchlist, notesLoading, researchNotes]);
 
   const loading = marketIntel.loading || watchlistLoading || notesLoading || capturedLoading;
+  const isError = marketIntel.isError || watchlistError || notesError || capturedError;
 
   return {
     loading,
+    isError,
     discovered,
     captured: captured ?? [],
     heldSymbols: marketIntel.heldSymbols,

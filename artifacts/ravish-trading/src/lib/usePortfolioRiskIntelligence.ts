@@ -33,6 +33,13 @@ import {
 
 export interface UsePortfolioRiskIntelligenceResult {
   loading: boolean;
+  /** v1.5.0, Sprint 23 (GA Readiness) — true when any of this hook's own
+   * directly-fetched TanStack Query calls failed (never the nested
+   * decisionSummary/pipeline sub-hooks, which silently degrade to a
+   * neutral empty state by their own established design and expose no
+   * error signal to reflect). Lets pages/PortfolioRiskIntelligence.tsx
+   * show an honest "couldn't load" state instead of a silently-empty one. */
+  isError: boolean;
   health: PortfolioHealthScore | null;
   risk: RiskIntelligenceReport | null;
   coachNarrative: PortfolioCoachNarrative | null;
@@ -42,19 +49,19 @@ export interface UsePortfolioRiskIntelligenceResult {
 }
 
 export function usePortfolioRiskIntelligence(): UsePortfolioRiskIntelligenceResult {
-  const { data: optionsIncome, isLoading: optionsLoading } = useGetPortfolioDashboard();
-  const { data: optionsConcentration, isLoading: concentrationLoading } = useGetPortfolioConcentration();
-  const { data: investingPortfolios, isLoading: portfoliosLoading } = useGetPortfolios();
+  const { data: optionsIncome, isLoading: optionsLoading, isError: optionsError } = useGetPortfolioDashboard();
+  const { data: optionsConcentration, isLoading: concentrationLoading, isError: concentrationError } = useGetPortfolioConcentration();
+  const { data: investingPortfolios, isLoading: portfoliosLoading, isError: portfoliosError } = useGetPortfolios();
 
   // Reads the first (primary) Investing Engine portfolio's own real risk
   // analysis, when the user has created one — a disclosed simplification
   // rather than trying to blend multiple named portfolios into one figure.
   const primaryPortfolioId = investingPortfolios && investingPortfolios.length > 0 ? investingPortfolios[0].id : undefined;
-  const { data: investingRisk, isLoading: investingRiskLoading } = useGetPortfolioRisk(primaryPortfolioId as number, {
+  const { data: investingRisk, isLoading: investingRiskLoading, isError: investingRiskError } = useGetPortfolioRisk(primaryPortfolioId as number, {
     query: { queryKey: getGetPortfolioRiskQueryKey(primaryPortfolioId as number), enabled: primaryPortfolioId !== undefined },
   });
 
-  const { data: tradingRisk, isLoading: tradingRiskLoading } = useGetTradingRisk();
+  const { data: tradingRisk, isLoading: tradingRiskLoading, isError: tradingRiskError } = useGetTradingRisk();
 
   const decisionSummary = useActiveDecisionSummary();
   const pipeline = useTradeLifecyclePipeline();
@@ -70,6 +77,7 @@ export function usePortfolioRiskIntelligence(): UsePortfolioRiskIntelligenceResu
   }, [closedTrades, journalEntries]);
 
   const loading = optionsLoading || concentrationLoading || portfoliosLoading || (primaryPortfolioId !== undefined && investingRiskLoading) || tradingRiskLoading || decisionSummary.loading || pipeline.loading;
+  const isError = optionsError || concentrationError || portfoliosError || (primaryPortfolioId !== undefined && investingRiskError) || tradingRiskError;
 
   const input = useMemo<PortfolioIntelligenceInput>(
     () => ({
@@ -92,5 +100,5 @@ export function usePortfolioRiskIntelligence(): UsePortfolioRiskIntelligenceResu
   const weakestFactor = useMemo(() => weakestAvailableFactor(health), [health]);
   const recommendedLesson = useMemo(() => recommendedPortfolioLesson(weakestFactor?.code ?? null), [weakestFactor]);
 
-  return { loading, health, risk, coachNarrative, weakestFactor, recommendedLesson, input };
+  return { loading, isError, health, risk, coachNarrative, weakestFactor, recommendedLesson, input };
 }

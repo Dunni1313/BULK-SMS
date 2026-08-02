@@ -40,6 +40,7 @@ const mockState = vi.hoisted(() => ({
   positions: [] as unknown[],
   learningProgress: undefined as unknown,
   feed: undefined as MarketIntelligenceFeed | undefined,
+  feedIsError: false,
   valueWatchlist: [] as unknown[],
   watchlistsDashboard: undefined as unknown,
 }));
@@ -57,7 +58,7 @@ vi.mock("@workspace/api-client-react", async () => {
     useGetPortfolios: () => ({ data: [], isLoading: false }),
     useGetPortfolioRisk: () => ({ data: undefined, isLoading: false }),
     useGetTradingRisk: () => ({ data: undefined, isLoading: false }),
-    useGetMarketIntelligence: () => ({ data: mockState.feed, isLoading: false, refetch: vi.fn() }),
+    useGetMarketIntelligence: () => ({ data: mockState.feed, isLoading: false, isError: mockState.feedIsError, refetch: vi.fn() }),
     useGetValueWatchlist: () => ({ data: mockState.valueWatchlist, isLoading: false }),
     useGetWatchlistsDashboard: () => ({ data: mockState.watchlistsDashboard, isLoading: false }),
   };
@@ -165,5 +166,16 @@ describe("MarketIntelligence page", () => {
     mockState.feed = { items: [item()], categories: CATEGORY_METAS, generatedAt: new Date().toISOString() };
     renderWithClient(<MarketIntelligence />);
     await waitFor(() => expect(screen.getByTestId("market-intelligence-portfolio-integration")).toBeInTheDocument());
+  });
+
+  // v1.5.0, Sprint 23 (GA Readiness) — proves the new isError-driven error
+  // banner renders instead of a silently-blank/perpetually-loading page
+  // when the underlying feed fetch fails.
+  it("shows an honest error message instead of a blank page when the feed fetch fails", async () => {
+    mockState.feed = undefined;
+    mockState.feedIsError = true;
+    renderWithClient(<MarketIntelligence />);
+    await waitFor(() => expect(screen.getByTestId("market-intelligence-error")).toBeInTheDocument());
+    mockState.feedIsError = false;
   });
 });

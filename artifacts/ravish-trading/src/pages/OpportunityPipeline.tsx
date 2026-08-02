@@ -179,6 +179,16 @@ export default function OpportunityPipeline() {
     );
   }
 
+  if (pipeline.isError) {
+    return (
+      <div className="space-y-4 max-w-6xl" data-testid="page-opportunity-pipeline">
+        <p className="text-sm text-rose-400" data-testid="opportunity-pipeline-error">
+          Couldn't load the Opportunity Pipeline right now. Try refreshing the page.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-6xl" data-testid="page-opportunity-pipeline">
       <div>

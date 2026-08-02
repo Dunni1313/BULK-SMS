@@ -58,10 +58,25 @@ function isoDateInDays(days: number): string {
 // via direct probing of the real, unmodified getEventRiskForSymbol(),
 // to reproduce every one of these 3 blocks' own original fixture
 // intentions permanently, regardless of which real date this suite is
-// actually run on. The other 2 describe blocks in this file ("portfolio
-// with multiple events...", "medium-risk macro-only events") are left on
-// the real clock since they were not failing and do not need this fix.
+// actually run on.
 const FROZEN_EVENT_CLOCK = new Date("2026-10-15T00:00:00.000Z");
+
+// v1.5.0, Sprint 23 (GA Readiness). The "medium-risk macro-only events"
+// describe block below was, per the comment this replaces, "left on the
+// real clock since it was not failing" at the time of the fix above — but
+// the same category of date-drift bug (IBM at 45 DTE landing in a
+// different macro-release window than when the fixture was first written)
+// caught up with it too, surfacing as a real failure during the v1.5.0
+// Sprint 22 Release Candidate's own validation runs ("medium" expected,
+// "high" received — 2026-10-15 itself, reused directly, actually lands on
+// a window containing an FOMC release, which is "high" impact, not
+// "medium"). Fixed the same way, with its own independently-verified
+// frozen date (deliberately different from FROZEN_EVENT_CLOCK above, since
+// that date does not reproduce this block's own fixture intention) — a
+// date verified, via direct probing of the real, unmodified
+// getEventRiskForSymbol(), to reproduce IBM at 45 DTE landing in a window
+// with only medium-impact macro releases (jobs/CPI/PCE) and no FOMC.
+const FROZEN_MEDIUM_MACRO_CLOCK = new Date("2026-09-17T00:00:00.000Z");
 
 interface InsertedTrade {
   id: number;
@@ -281,12 +296,15 @@ describe("buildPortfolioEventRiskOverlay", () => {
     let trade: InsertedTrade;
 
     beforeAll(async () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(FROZEN_MEDIUM_MACRO_CLOCK);
       userId = await createUser("medium-risk");
-      // IBM, 45 DTE, no dividend/earnings — empirically verified to be
-      // macro-events-only, level "medium".
+      // IBM, 45 DTE, no dividend/earnings — empirically verified (at the
+      // frozen clock above) to be macro-events-only, level "medium".
       trade = await insertPosition(userId, "IBM", 45);
     });
     afterAll(async () => {
+      vi.useRealTimers();
       await cleanupUser(userId);
     });
 

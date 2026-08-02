@@ -358,7 +358,19 @@ function buildGreeksContributions(positions: PositionCompute[]): PositionGreeksC
       gamma: p.greeks.gamma,
       theta: p.greeks.theta,
       vega: p.greeks.vega,
-      deltaSharePct: totalAbsDelta > 0 ? round2((Math.abs(p.greeks.delta) / totalAbsDelta) * 100) : 0,
+      // v1.5.0, Sprint 23 (GA Readiness). A lone position is honestly 100%
+      // of the portfolio's own delta-risk concentration by definition —
+      // it's the only position there is — even when that position's own
+      // net delta happens to be exactly 0 (a delta-neutral iron condor,
+      // for instance), which would otherwise make totalAbsDelta itself 0
+      // and silently understate a single position's concentration as 0%
+      // instead of 100%. Caught by a real, reproducible test failure
+      // during the v1.5.0 Sprint 22 Release Candidate's own validation.
+      // With 2+ positions, the pre-existing 0% fallback for the
+      // (untested, unverified) all-positions-exactly-delta-neutral edge
+      // case is left unchanged, to avoid introducing new, unverified
+      // behavior beyond the one concrete bug found.
+      deltaSharePct: totalAbsDelta > 0 ? round2((Math.abs(p.greeks.delta) / totalAbsDelta) * 100) : positions.length === 1 ? 100 : 0,
     }))
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
