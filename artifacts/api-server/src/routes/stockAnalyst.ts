@@ -109,6 +109,7 @@ import {
 } from "../lib/coachLLM.js";
 import { openSse } from "../lib/sse.js";
 import { getScopedUserId } from "../lib/tenantScope.js";
+import { createCoachAskHandlers } from "../lib/aiCoachAskHandler.js";
 
 const router: IRouter = Router();
 
@@ -444,71 +445,43 @@ router.post("/value-research/stream", async (req, res): Promise<void> => {
 // Rebuilds the report server-side each call (same pattern as /value-research) —
 // SIMULATED reports are cheap/deterministic and LIVE reports are already
 // short-TTL cached in fundamentals.ts, so no additional caching is added here.
-router.post("/value-research/ask", async (req, res): Promise<void> => {
-  const parsed = AskValueResearchBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-  const userId = await getScopedUserId(req);
-  const report = await buildValueResearchReport(
-    parsed.data.symbol,
-    undefined,
-    undefined,
-    undefined,
-    { forceRefresh: parsed.data.forceRefresh },
-    userId,
-  );
-  if (!report) {
-    res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
-    return;
-  }
-  const fallback = freeformFallback(report, parsed.data.question);
-  const n = await narrateValueFreeform(parsed.data.question, buildFreeformContext(report), fallback);
-  res.json(AskValueResearchResponse.parse({ answer: n.text, answerSource: n.source }));
+//
+// v1.5.0 Sprint 3 — Specialist Coach Adapters: this pair now builds on the
+// shared createCoachAskHandlers() factory (Sprint 2), mirroring
+// routes/tradingCoach.ts's and routes/aiTradingCoach.ts's own conversions —
+// identical validation/404/response/SSE behavior, confirmed by this route's
+// own pre-existing test suite passing with zero assertion changes.
+const valueResearchAskHandlers = createCoachAskHandlers<
+  { symbol: string; question: string; forceRefresh?: boolean },
+  ReturnType<typeof buildFreeformContext>
+>({
+  bodySchema: AskValueResearchBody,
+  resolveUserId: getScopedUserId,
+  resolveContext: async (userId, body) => {
+    const report = await buildValueResearchReport(
+      body.symbol,
+      undefined,
+      undefined,
+      undefined,
+      { forceRefresh: body.forceRefresh },
+      userId,
+    );
+    if (!report) return null;
+    return { context: buildFreeformContext(report), fallback: freeformFallback(report, body.question) };
+  },
+  notFoundMessage: (body) => `Unknown symbol: ${body.symbol}`,
+  narrate: narrateValueFreeform,
+  narrateStream: narrateValueFreeformStream,
+  responseSchema: AskValueResearchResponse,
+  streamErrorLogMessage: "value research ask stream failed",
 });
+
+router.post("/value-research/ask", valueResearchAskHandlers.ask);
 
 // SSE variant — same event contract as /value-research/stream (meta → delta… →
 // done). Deliberately NOT in the OpenAPI/orval contract, matching that route's
 // own precedent — orval only models single-shot JSON responses.
-router.post("/value-research/ask/stream", async (req, res): Promise<void> => {
-  const parsed = AskValueResearchBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-  const userId = await getScopedUserId(req);
-  const report = await buildValueResearchReport(
-    parsed.data.symbol,
-    undefined,
-    undefined,
-    undefined,
-    { forceRefresh: parsed.data.forceRefresh },
-    userId,
-  );
-  if (!report) {
-    res.status(404).json({ error: `Unknown symbol: ${parsed.data.symbol}` });
-    return;
-  }
-  const fallback = freeformFallback(report, parsed.data.question);
-
-  const sse = openSse(res);
-  try {
-    sse.send("meta", { source: llmAvailable() ? "llm" : "template", llmAvailable: llmAvailable() });
-    const n = await narrateValueFreeformStream(
-      parsed.data.question,
-      buildFreeformContext(report),
-      fallback,
-      (t) => sse.send("delta", { text: t }),
-    );
-    sse.send("done", { answer: n.text, answerSource: n.source });
-  } catch (err) {
-    req.log.error({ err }, "value research ask stream failed");
-    sse.send("error", { error: "Failed to answer question" });
-  } finally {
-    sse.close();
-  }
-});
+router.post("/value-research/ask/stream", valueResearchAskHandlers.askStream);
 
 // Phase 4, Sprint 61 — AI Investment Committee LLM-Narrated Synthesis.
 // Deliberately a separate, on-demand route (not folded into

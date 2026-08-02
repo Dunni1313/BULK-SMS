@@ -17,7 +17,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Send, Bot, User, BrainCircuit, Lightbulb, BookOpen, GraduationCap, Sparkles, FileText, Square } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useCoachConversation } from "@/lib/ai-coach/useCoachConversation";
+import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
+import { optionsCoachConfig } from "@/lib/ai-coach/coaches/optionsCoach.config";
 import { Markdown } from "@/components/ui/markdown";
 
 type ChatMode = "auto" | AiChatInputMode;
@@ -55,16 +56,17 @@ export default function Assistant() {
 
   // v1.5.0 Sprint 2 — AI Coach Framework: the send/stream/error/stop state
   // machine (question input, in-flight optimistic bubble, streamed-delta
-  // accumulation, AbortController + Stop, honest error turn) is now the
-  // shared useCoachConversation() hook rather than hand-duplicated local
-  // state — identical wire behavior: the same endpoint (POST
-  // /ai/chat/stream), the same request body ({message, mode, level}), and
-  // the same SSE `meta -> delta... -> done -> error` contract via
-  // streamCoach() under the hood. `mode`/`level` are read fresh on every
-  // send since buildRequestBody is re-evaluated per call.
-  const coach = useCoachConversation({
-    endpoint: "/ai/chat/stream",
-    buildRequestBody: (question) => ({ message: question, mode: mode === "auto" ? undefined : mode, level }),
+  // accumulation, AbortController + Stop, honest error turn) is the shared
+  // useCoachConversation() hook rather than hand-duplicated local state.
+  // v1.5.0 Sprint 3 — Specialist Coach Adapters: this page's own endpoint/
+  // request-body literals are now declared once in optionsCoach.config.ts
+  // (the "Options AI Coach" adapter) rather than inlined here — identical
+  // wire behavior: the same endpoint (POST /ai/chat/stream), the same
+  // request body ({message, mode, level}), and the same SSE
+  // `meta -> delta... -> done -> error` contract via streamCoach() under
+  // the hood. `mode`/`level` are read fresh on every send since the
+  // config's buildRequestBody is re-evaluated per call.
+  const coach = useSpecialistCoach(optionsCoachConfig, { mode, level }, {
     onAnswered: () => {
       queryClient.invalidateQueries({ queryKey: getGetAiMessagesQueryKey() });
     },
