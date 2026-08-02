@@ -112,6 +112,11 @@ const ADDED_SINCE_REDESIGN_ROUTES = [
   // Institutional Command Centre); "/personal-dashboard" is the genuinely
   // new href — Home.tsx's own new address, fully preserved, not removed.
   "/personal-dashboard",
+  // v1.5.0, Sprint 13 — Institutional Decision Engine
+  // (docs/v1.5.0-Sprint-13-Institutional-Decision-Engine.md). A distinct
+  // page/route from the pre-existing "/decision-engine" (already in
+  // PRE_REDESIGN_ROUTES, untouched).
+  "/decision-workflow",
 ];
 
 describe("nav-items — the single canonical navigation configuration", () => {

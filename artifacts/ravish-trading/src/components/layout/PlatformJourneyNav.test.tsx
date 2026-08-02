@@ -8,13 +8,19 @@ import { render, screen } from "@testing-library/react";
 import { PlatformJourneyNav } from "./PlatformJourneyNav";
 
 describe("PlatformJourneyNav", () => {
-  it("renders all 9 requested stages, in order", () => {
+  it("renders all 10 requested stages, in order (9 original + Decision, Sprint 13)", () => {
     render(<PlatformJourneyNav current="research" />);
     const nav = screen.getByTestId("nav-platform-journey");
     expect(nav).toBeInTheDocument();
-    for (const id of ["research", "notebook", "strategy", "trade-plan", "execute", "trade-journal", "performance", "portfolio", "learning"]) {
+    for (const id of ["research", "notebook", "strategy", "trade-plan", "decision", "execute", "trade-journal", "performance", "portfolio", "learning"]) {
       expect(screen.getByTestId(`journey-stage-${id}`)).toBeInTheDocument();
     }
+  });
+
+  it("links the Decision stage to the new /decision-workflow page (Sprint 13)", () => {
+    render(<PlatformJourneyNav current="research" />);
+    const decisionLink = screen.getByTestId("journey-stage-decision").querySelector("a");
+    expect(decisionLink).toHaveAttribute("href", "/decision-workflow");
   });
 
   it("highlights the current stage", () => {

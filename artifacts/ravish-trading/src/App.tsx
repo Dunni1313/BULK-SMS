@@ -36,6 +36,10 @@ const NotFound = lazy(() => import("@/pages/not-found"));
 // used once before when Home.tsx itself superseded the original
 // CommandCenter.tsx at "/" (Phase 10).
 const InstitutionalCommandCentre = lazy(() => import("./pages/InstitutionalCommandCentre"));
+// v1.5.0, Sprint 13 — Institutional Decision Engine. A distinct page from
+// the pre-existing DecisionEngine.tsx (/decision-engine) — see that
+// route's own line below and nav-items.ts for the disclosed disambiguation.
+const DecisionWorkflow = lazy(() => import("./pages/DecisionWorkflow"));
 const Home = lazy(() => import("./pages/Home"));
 const CommandCenter = lazy(() => import("./pages/CommandCenter"));
 const NotificationCentre = lazy(() => import("./pages/NotificationCentre"));
@@ -160,6 +164,7 @@ function Router() {
           <Switch>
           <Route path="/login" component={Login} />
           <Route path="/" component={InstitutionalCommandCentre} />
+          <Route path="/decision-workflow" component={DecisionWorkflow} />
           <Route path="/personal-dashboard" component={Home} />
           <Route path="/command-center" component={CommandCenter} />
           <Route path="/notifications" component={NotificationCentre} />

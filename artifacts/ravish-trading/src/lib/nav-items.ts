@@ -72,6 +72,7 @@ import {
   Bell,
   Server,
   Gavel,
+  Milestone,
   Telescope,
   BellRing,
   LayoutPanelLeft,
@@ -139,6 +140,14 @@ export const NAV_GROUPS: NavigationGroup[] = [
       // widget dashboard) moved to "/personal-dashboard" — nothing about
       // it was removed, only relocated; see its own header comment.
       { title: "Command Centre", href: "/", icon: Compass },
+      // v1.5.0, Sprint 13 — Institutional Decision Engine. A distinct
+      // page/route from the pre-existing "Decision Engine"
+      // (/decision-engine, under Institutional Investing) — that page is a
+      // single-symbol deterministic Buy/Hold/Sell verdict engine; this one
+      // is a cross-module workflow tracker over an existing Trade Plan.
+      // Both are kept, cross-linked, never merged or renamed — see
+      // docs/v1.5.0-Sprint-13-Institutional-Decision-Engine.md.
+      { title: "Decision Workflow", href: "/decision-workflow", icon: Milestone },
       { title: "Personal Dashboard", href: "/personal-dashboard", icon: Home },
       { title: "Options Command Center", href: "/command-center", icon: LayoutDashboard },
       { title: "Notifications", href: "/notifications", icon: Bell },

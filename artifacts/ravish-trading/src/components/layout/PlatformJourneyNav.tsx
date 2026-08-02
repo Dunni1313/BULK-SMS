@@ -22,6 +22,14 @@
 // families (Conversations/Notebooks/Strategies/Trade Plans) are reachable
 // together. This is a disclosed, honest simplification, not a claim that
 // those panels exist ONLY on that page.
+//
+// v1.5.0, Sprint 13 — Institutional Decision Engine. A 10th stage,
+// "Decision," was inserted right after "Trade Plan," per the approved
+// chain (Command Centre -> Research -> Notebook -> Strategy -> Trade Plan
+// -> Decision -> ...). It links to the new /decision-workflow page —
+// this sprint's cross-module Decision Score/Trace/Evidence engine, itself
+// built directly on the Trade Plan the stage before it produces. Every
+// pre-existing stage id/label/href is otherwise unchanged.
 import { Link } from "wouter";
 import { CheckCircle2, Circle, Ban } from "lucide-react";
 
@@ -30,6 +38,7 @@ export type PlatformJourneyStageId =
   | "notebook"
   | "strategy"
   | "trade-plan"
+  | "decision"
   | "execute"
   | "trade-journal"
   | "performance"
@@ -54,6 +63,7 @@ export const PLATFORM_JOURNEY_STAGES: PlatformJourneyStage[] = [
   { id: "notebook", label: "Notebook", href: "/assistant" },
   { id: "strategy", label: "Strategy", href: "/assistant" },
   { id: "trade-plan", label: "Trade Plan", href: "/assistant" },
+  { id: "decision", label: "Decision", href: "/decision-workflow" },
   { id: "execute", label: "Execute (external broker)", href: null },
   { id: "trade-journal", label: "Trade Journal", href: "/trading-journal" },
   { id: "performance", label: "Performance Review", href: "/performance-attribution-engine" },
