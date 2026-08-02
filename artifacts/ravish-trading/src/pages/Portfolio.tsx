@@ -26,7 +26,7 @@ export default function Portfolio() {
           data-testid="button-ask-trading-coach-portfolio"
         >
           <MessageCircle className="h-3.5 w-3.5" />
-          Ask AI Trading Coach
+          Ask AI Trading Assistant
         </Button>
       </div>
 

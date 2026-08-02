@@ -861,11 +861,11 @@ export default function MarketStructureWorkbench() {
                       </CardContent>
                     </Card>
 
-                    {/* AI Trading Coach — structure explanations only */}
+                    {/* Trading AI Coach — structure explanations only */}
                     <Card data-testid="panel-workbench-coach">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm flex items-center gap-2">
-                          <MessageCircle className="h-4 w-4" /> AI Trading Coach
+                          <MessageCircle className="h-4 w-4" /> Trading AI Coach
                         </CardTitle>
                         <CardDescription className="text-xs">Explains existing structure outputs only — never a signal or directional call.</CardDescription>
                         <a

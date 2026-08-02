@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. Lightweight smoke tests for the
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. Lightweight smoke tests for the
 // small, purely presentational components (Header, Disclaimer, Empty/Error
 // states) that have no logic of their own to exercise beyond "renders the
 // right content and calls the right callback."
@@ -13,7 +14,7 @@ import { TradingCoachErrorState } from "./TradingCoachErrorState";
 describe("TradingCoachHeader", () => {
   it("renders the title and safety badges, with no close button by default", () => {
     render(<TradingCoachHeader />);
-    expect(screen.getByText("AI Trading Coach")).toBeInTheDocument();
+    expect(screen.getByText("AI Trading Assistant")).toBeInTheDocument();
     expect(screen.getByText("Educational")).toBeInTheDocument();
     expect(screen.getByText("Paper Trading Only")).toBeInTheDocument();
     expect(screen.queryByTestId("button-trading-coach-close")).not.toBeInTheDocument();

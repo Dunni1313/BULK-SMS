@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. An honest failure turn — mirrors
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. An honest failure turn — mirrors
 // pages/Assistant.tsx's own "erroredReply" convention exactly (Phase 4,
 // Sprint 59): a genuine mid-stream server `error` SSE event, or a request
 // that failed before the stream even opened, renders this instead of

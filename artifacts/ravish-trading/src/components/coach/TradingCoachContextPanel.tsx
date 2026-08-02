@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. Renders only the context chips
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. Renders only the context chips
 // that genuinely apply — never a fabricated chip for a signal that isn't
 // actually in focus, matching the design doc's own wireframe note ("only
 // the ones actually resolved"). Two rows, clearly separated:
@@ -30,7 +31,8 @@ const ROUTE_LABELS: Record<string, string> = {
   "/options-dashboard": "Options Dashboard",
   "/portfolio": "Portfolio Greeks",
   "/portfolio-ai": "Options Income Portfolio",
-  "/ai-trading-coach": "AI Trading Coach",
+  "/ai-trading-coach": "AI Trading Assistant",
+  "/trading-ai-coach": "Trading AI Coach",
 };
 
 function routeLabel(path: string): string {

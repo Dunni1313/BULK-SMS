@@ -995,11 +995,11 @@ export default function TradeWorkspace() {
                       </CardContent>
                     </Card>
 
-                    {/* AI Trading Coach Panel */}
+                    {/* Trading AI Coach Panel */}
                     <Card data-testid="panel-ai-coach">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm flex items-center gap-2">
-                          <MessageCircle className="h-4 w-4" /> AI Trading Coach
+                          <MessageCircle className="h-4 w-4" /> Trading AI Coach
                         </CardTitle>
                         <a
                           href={symbol ? `/trading-ai-coach?symbol=${symbol}&coach=structure` : "/trading-ai-coach"}
@@ -1035,7 +1035,7 @@ export default function TradeWorkspace() {
                           <p className="text-xs text-muted-foreground" data-testid="coach-empty">
                             {symbol
                               ? `Ask something like "What should I watch for on ${symbol}?"`
-                              : "Select an instrument to consult the AI Trading Coach."}
+                              : "Select an instrument to consult the Trading AI Coach."}
                           </p>
                         )}
                         {(coachHistory.length > 0 || coachStreamingAnswer) && (

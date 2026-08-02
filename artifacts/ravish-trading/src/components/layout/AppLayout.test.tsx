@@ -428,8 +428,8 @@ describe("AppLayout — sidebar section headers (v1.3.1)", () => {
   });
 });
 
-describe("AppLayout — AI Trading Coach launcher and sidebar navigation (v1.3.1)", () => {
-  it("shows a clear, accessible header launcher for the AI Trading Coach", () => {
+describe("AppLayout — AI Trading Assistant launcher and sidebar navigation (v1.3.1, renamed from \"AI Trading Coach\" in v1.5.0 Sprint 1)", () => {
+  it("shows a clear, accessible header launcher for the AI Trading Assistant", () => {
     renderWithClient(
       <AppLayout>
         <div>page content</div>
@@ -437,7 +437,7 @@ describe("AppLayout — AI Trading Coach launcher and sidebar navigation (v1.3.1
     );
     const launcher = screen.getByTestId("button-trading-coach-launcher");
     expect(launcher).toBeInTheDocument();
-    expect(launcher).toHaveAccessibleName("Open AI Trading Coach");
+    expect(launcher).toHaveAccessibleName("Open AI Trading Assistant");
   });
 
   it("keeps the launcher reachable in both expanded and collapsed (compact) sidebar modes", async () => {

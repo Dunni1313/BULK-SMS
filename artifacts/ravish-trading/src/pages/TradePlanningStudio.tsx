@@ -1037,11 +1037,11 @@ export default function TradePlanningStudio() {
                       </CardContent>
                     </Card>
 
-                    {/* AI Trading Coach */}
+                    {/* Trading AI Coach */}
                     <Card data-testid="panel-ai-coach">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm flex items-center gap-2">
-                          <MessageCircle className="h-4 w-4" /> AI Trading Coach
+                          <MessageCircle className="h-4 w-4" /> Trading AI Coach
                         </CardTitle>
                         <CardDescription className="text-xs">Explains existing plan/risk outputs only — never a signal or directional call.</CardDescription>
                         <a

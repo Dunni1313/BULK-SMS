@@ -1,4 +1,5 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. Renders conversation history +
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only), Frontend UI. Renders conversation history +
 // in-flight streaming state. Mirrors pages/Assistant.tsx's own established
 // message-rendering pattern (Sprint 59) closely — persisted history first,
 // then an optimistic pending-user bubble, then the streaming/error/loading

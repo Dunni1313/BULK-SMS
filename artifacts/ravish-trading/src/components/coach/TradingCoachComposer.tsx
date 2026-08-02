@@ -1,4 +1,7 @@
-// v1.3.1 — AI Trading Coach, Frontend UI. The input row (send / stop) plus
+// v1.3.1 — AI Trading Assistant (renamed from "AI Trading Coach" in
+// v1.5.0 Sprint 1, label only — see
+// docs/v1.5.0-Sprint-01-AI-Coach-Consolidation.md), Frontend UI. The
+// input row (send / stop) plus
 // a "Clear conversation" action with a confirmation dialog. "Clear" is
 // deliberately a LOCAL, view-only reset — Sprint 1's backend contract has
 // no delete/clear endpoint for trading_coach_messages (only ask/ask-stream/
@@ -46,7 +49,7 @@ export function TradingCoachComposer({
         <Input
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Ask the AI Trading Coach…"
+          placeholder="Ask the AI Trading Assistant…"
           disabled={isStreaming}
           className="flex-1"
           data-testid="input-trading-coach-composer"
@@ -89,7 +92,7 @@ export function TradingCoachComposer({
             <AlertDialogTitle>Clear this conversation view?</AlertDialogTitle>
             <AlertDialogDescription>
               This clears the conversation from this view only — your message history remains saved and will
-              reappear the next time you open the AI Trading Coach.
+              reappear the next time you open the AI Trading Assistant.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

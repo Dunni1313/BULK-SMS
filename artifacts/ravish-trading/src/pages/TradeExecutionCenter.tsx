@@ -349,7 +349,7 @@ export default function TradeExecutionCenter() {
             data-testid="button-ask-trading-coach-execution-center"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            Ask AI Trading Coach about {selected.symbol}
+            Ask AI Trading Assistant about {selected.symbol}
           </Button>
         )}
       </div>

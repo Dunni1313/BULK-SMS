@@ -161,7 +161,7 @@ export default function Scanner() {
                           variant="ghost"
                           className="h-7 w-7 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
                           onClick={() => openWithFocus(focusFromScannerCandidate(result))}
-                          title="Ask the AI Trading Coach about this"
+                          title="Ask the AI Trading Assistant about this"
                           data-testid={`button-ask-trading-coach-${result.id}`}
                         >
                           <MessageCircle className="w-4 h-4" />
