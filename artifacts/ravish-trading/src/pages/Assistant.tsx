@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Send, Bot, User, BrainCircuit, Lightbulb, BookOpen, GraduationCap, Sparkles, FileText, Square, MessageSquare, NotebookText, ListTree, Scale } from "lucide-react";
+import { Send, Bot, User, BrainCircuit, Lightbulb, BookOpen, GraduationCap, Sparkles, FileText, Square, MessageSquare, NotebookText, ListTree, Scale, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useSpecialistCoach } from "@/lib/ai-coach/useSpecialistCoach";
@@ -39,6 +39,20 @@ import { StrategySummaryPanel } from "@/lib/ai-coach/StrategySummaryPanel";
 import { StrategyComparisonView } from "@/lib/ai-coach/StrategyComparisonView";
 import { StrategyEmptyState } from "@/lib/ai-coach/StrategyEmptyState";
 import { compareStrategies as fetchStrategyComparison, compareStrategiesWithAi, type StrategyComparison } from "@/lib/ai-coach/strategiesApi";
+import { useTradePlans } from "@/lib/ai-coach/useTradePlans";
+import { useTradePlanChecklistTemplates } from "@/lib/ai-coach/useTradePlanChecklistTemplates";
+import { TradePlannerSidebar } from "@/lib/ai-coach/TradePlannerSidebar";
+import { TradePlanHeader } from "@/lib/ai-coach/TradePlanHeader";
+import { TradePlanEditor } from "@/lib/ai-coach/TradePlanEditor";
+import { TradePlanChecklist } from "@/lib/ai-coach/TradePlanChecklist";
+import { TradePlanSummary } from "@/lib/ai-coach/TradePlanSummary";
+import { TradePlanComparison } from "@/lib/ai-coach/TradePlanComparison";
+import { TradePlanEmptyState } from "@/lib/ai-coach/TradePlanEmptyState";
+import {
+  compareTradePlans as fetchTradePlanComparison,
+  compareTradePlansWithAi,
+  type TradePlanComparison as TradePlanComparisonResult,
+} from "@/lib/ai-coach/tradePlansApi";
 import { Markdown } from "@/components/ui/markdown";
 
 type ChatMode = "auto" | AiChatInputMode;
@@ -98,7 +112,7 @@ export default function Assistant() {
   // research over time — a peer surface to the conversation view above,
   // switched via the "Conversations"/"Notebooks" toggle below, never
   // interleaved with the streaming chat state machine.
-  const [assistantView, setAssistantView] = useState<"conversations" | "notebooks" | "strategies">("conversations");
+  const [assistantView, setAssistantView] = useState<"conversations" | "notebooks" | "strategies" | "trade-plans">("conversations");
   const optionsNotebooks = useAiNotebooks("options", optionsWorkspaces.activeWorkspaceId ?? undefined);
 
   // v1.5.0 Sprint 9 — AI Strategy Builder. A reusable, structured
@@ -131,6 +145,38 @@ export default function Assistant() {
       cancelled = true;
     };
   }, [compareIdA, compareIdB]);
+
+  // v1.5.0 Sprint 10 — Institutional Trade Planner. A fully prepared trade
+  // before execution — a fourth peer surface alongside Conversations,
+  // Notebooks, and Strategies, switched via the same toggle below — never
+  // interleaved with any of their own state. This module is planning
+  // only; it never executes a trade.
+  const optionsTradePlans = useTradePlans("options", optionsWorkspaces.activeWorkspaceId ?? undefined);
+  const optionsTradePlanChecklistTemplates = useTradePlanChecklistTemplates("options");
+  const [tradePlanCompareMode, setTradePlanCompareMode] = useState(false);
+  const [tradePlanCompareIdA, setTradePlanCompareIdA] = useState<number | null>(null);
+  const [tradePlanCompareIdB, setTradePlanCompareIdB] = useState<number | null>(null);
+  const [tradePlanComparison, setTradePlanComparison] = useState<TradePlanComparisonResult | null>(null);
+  const [isLoadingTradePlanComparison, setIsLoadingTradePlanComparison] = useState(false);
+
+  useEffect(() => {
+    if (tradePlanCompareIdA == null || tradePlanCompareIdB == null) {
+      setTradePlanComparison(null);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingTradePlanComparison(true);
+    fetchTradePlanComparison(tradePlanCompareIdA, tradePlanCompareIdB)
+      .then((result) => {
+        if (!cancelled) setTradePlanComparison(result);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingTradePlanComparison(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tradePlanCompareIdA, tradePlanCompareIdB]);
 
   // v1.5.0 Sprint 2 — AI Coach Framework: the send/stream/error/stop state
   // machine (question input, in-flight optimistic bubble, streamed-delta
@@ -312,9 +358,131 @@ export default function Assistant() {
           <ListTree className="h-3.5 w-3.5" />
           Strategies
         </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={assistantView === "trade-plans" ? "default" : "outline"}
+          className="h-7 gap-1.5 text-xs"
+          onClick={() => setAssistantView("trade-plans")}
+          data-testid="assistant-view-trade-plans"
+        >
+          <ClipboardList className="h-3.5 w-3.5" />
+          Trade Planner
+        </Button>
       </div>
 
-      {assistantView === "strategies" ? (
+      {assistantView === "trade-plans" ? (
+        <div className="flex-1 flex gap-3 min-h-0" data-testid="assistant-trade-plans-view">
+          <TradePlannerSidebar
+            plans={optionsTradePlans.plans}
+            isLoading={optionsTradePlans.isLoadingPlans}
+            activePlanId={optionsTradePlans.activePlanId}
+            searchTerm={optionsTradePlans.searchTerm}
+            onSearchChange={optionsTradePlans.setSearchTerm}
+            statusFilter={optionsTradePlans.statusFilter}
+            onStatusFilterChange={optionsTradePlans.setStatusFilter}
+            includeArchived={optionsTradePlans.includeArchived}
+            onIncludeArchivedChange={optionsTradePlans.setIncludeArchived}
+            onCreatePlan={(input) => optionsTradePlans.createPlanAnd({ ...input, workspaceId: optionsWorkspaces.activeWorkspaceId })}
+            onSelectPlan={(id) => {
+              setTradePlanCompareMode(false);
+              optionsTradePlans.selectPlan(id);
+            }}
+            onClearSelection={optionsTradePlans.clearSelection}
+            onTogglePin={optionsTradePlans.togglePinById}
+            onDeletePlan={optionsTradePlans.deletePlanById}
+            testId="assistant-trade-plan-sidebar"
+          />
+          <Card className="flex-1 flex flex-col bg-card border-border overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border/60 p-2">
+              <span className="text-xs font-medium text-muted-foreground">Options trade plan — planning only, never executes</span>
+              <Button
+                type="button"
+                size="sm"
+                variant={tradePlanCompareMode ? "default" : "outline"}
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => setTradePlanCompareMode((v) => !v)}
+                data-testid="assistant-trade-plan-compare-toggle"
+              >
+                <Scale className="h-3.5 w-3.5" />
+                Compare
+              </Button>
+            </div>
+            {tradePlanCompareMode ? (
+              <ScrollArea className="flex-1 p-4">
+                <TradePlanComparison
+                  plans={optionsTradePlans.plans}
+                  selectedIdA={tradePlanCompareIdA}
+                  selectedIdB={tradePlanCompareIdB}
+                  onSelectA={setTradePlanCompareIdA}
+                  onSelectB={setTradePlanCompareIdB}
+                  comparison={tradePlanComparison}
+                  isLoadingComparison={isLoadingTradePlanComparison}
+                  onGenerateAiComparison={() =>
+                    tradePlanCompareIdA != null && tradePlanCompareIdB != null
+                      ? compareTradePlansWithAi(tradePlanCompareIdA, tradePlanCompareIdB)
+                      : Promise.resolve(null)
+                  }
+                  testId="assistant-trade-plan-comparison"
+                />
+              </ScrollArea>
+            ) : optionsTradePlans.activePlanDetail ? (
+              <ScrollArea className="flex-1 p-4">
+                <TradePlanHeader
+                  plan={optionsTradePlans.activePlanDetail}
+                  onUpdate={(input) => optionsTradePlans.updatePlanById(optionsTradePlans.activePlanDetail!.id, input)}
+                  onTogglePin={(pinned) => optionsTradePlans.togglePinById(optionsTradePlans.activePlanDetail!.id, pinned)}
+                  onDelete={() => optionsTradePlans.deletePlanById(optionsTradePlans.activePlanDetail!.id)}
+                  testId="assistant-trade-plan-header"
+                />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-3">
+                    <TradePlanEditor
+                      plan={optionsTradePlans.activePlanDetail}
+                      onUpsertSection={optionsTradePlans.upsertSection}
+                      onDeleteSection={optionsTradePlans.removeSection}
+                      linkableNotebooks={optionsNotebooks.notebooks.map((n) => ({ id: n.id, title: n.title }))}
+                      linkableConversations={optionsCoachConversations.conversations.map((c) => ({ id: c.id, title: c.title }))}
+                      linkableFiles={optionsWorkspaces.activeWorkspaceDetail?.files.map((f) => ({ id: f.id, fileName: f.fileName }))}
+                      testId="assistant-trade-plan-editor"
+                    />
+                    <TradePlanChecklist
+                      items={optionsTradePlans.activePlanDetail.checklistItems}
+                      progress={optionsTradePlans.activePlanDetail.checklistProgress}
+                      templates={optionsTradePlanChecklistTemplates.templates}
+                      onAddItem={optionsTradePlans.addChecklistItem}
+                      onApplyTemplate={optionsTradePlans.applyChecklistTemplate}
+                      onToggleCompleted={(itemId, completed) => optionsTradePlans.updateChecklistItem(itemId, { completed })}
+                      onDeleteItem={optionsTradePlans.removeChecklistItem}
+                      testId="assistant-trade-plan-checklist"
+                    />
+                  </div>
+                  <TradePlanSummary
+                    onLoadMissingInformation={optionsTradePlans.loadMissingInformation}
+                    onReview={optionsTradePlans.review}
+                    onSummarize={optionsTradePlans.summarize}
+                    onGenerateRiskHighlights={optionsTradePlans.generateRiskHighlights}
+                    onReviewRiskReward={optionsTradePlans.reviewRiskReward}
+                    onGenerateExecutiveSummary={optionsTradePlans.generateExecutiveSummary}
+                    onGeneratePreparationNotes={optionsTradePlans.generatePreparationNotes}
+                    onGeneratePreTradeChecklist={optionsTradePlans.generatePreTradeChecklist}
+                    onGenerateVerificationQuestions={optionsTradePlans.generateVerificationQuestions}
+                    testId="assistant-trade-plan-summary-panel"
+                  />
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="flex flex-1 items-center justify-center p-6">
+                <TradePlanEmptyState
+                  title="No trade plan selected"
+                  description="Choose a trade plan on the left, or create a new one to start preparing your next trade."
+                  testId="assistant-trade-plan-detail-empty"
+                />
+              </div>
+            )}
+          </Card>
+        </div>
+      ) : assistantView === "strategies" ? (
         <div className="flex-1 flex gap-3 min-h-0" data-testid="assistant-strategies-view">
           <StrategySidebar
             strategies={optionsStrategies.strategies}

@@ -64,6 +64,14 @@ import { StrategyHeader } from "@/lib/ai-coach/StrategyHeader";
 import { StrategyEditor } from "@/lib/ai-coach/StrategyEditor";
 import { StrategySummaryPanel } from "@/lib/ai-coach/StrategySummaryPanel";
 import { StrategyEmptyState } from "@/lib/ai-coach/StrategyEmptyState";
+import { useTradePlans } from "@/lib/ai-coach/useTradePlans";
+import { useTradePlanChecklistTemplates } from "@/lib/ai-coach/useTradePlanChecklistTemplates";
+import { TradePlannerSidebar } from "@/lib/ai-coach/TradePlannerSidebar";
+import { TradePlanHeader } from "@/lib/ai-coach/TradePlanHeader";
+import { TradePlanEditor } from "@/lib/ai-coach/TradePlanEditor";
+import { TradePlanChecklist } from "@/lib/ai-coach/TradePlanChecklist";
+import { TradePlanSummary } from "@/lib/ai-coach/TradePlanSummary";
+import { TradePlanEmptyState } from "@/lib/ai-coach/TradePlanEmptyState";
 import { fmtUsd } from "@/lib/investing-format";
 import {
   Search,
@@ -101,6 +109,7 @@ import {
   ChevronUp,
   NotebookText,
   ListTree,
+  ClipboardList,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -543,6 +552,14 @@ export function ReportView({
   const [investingStrategiesOpen, setInvestingStrategiesOpen] = useState(false);
   const investingStrategies = useAiStrategies("investing", investingWorkspaces.activeWorkspaceId ?? undefined);
   const investingStrategyTemplates = useStrategyTemplates();
+
+  // v1.5.0 Sprint 10 — Institutional Trade Planner. A collapsible peer
+  // surface to the strategies view above — the trade plan library plus,
+  // once a plan is selected, its editor, readiness checklist, and AI
+  // actions panel. Planning only — never executes a trade.
+  const [investingTradePlansOpen, setInvestingTradePlansOpen] = useState(false);
+  const investingTradePlans = useTradePlans("investing", investingWorkspaces.activeWorkspaceId ?? undefined);
+  const investingTradePlanChecklistTemplates = useTradePlanChecklistTemplates("investing");
   const askCoach = useSpecialistCoach(
     investingCoachConfig,
     { symbol: report.symbol },
@@ -1641,6 +1658,99 @@ export function ReportView({
                       title="No strategy selected"
                       description="Choose a strategy on the left, or create a new one to start building your playbook."
                       testId="investing-strategy-detail-empty"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* v1.5.0 Sprint 10 — Institutional Trade Planner. A
+                collapsible peer surface to the strategies view above —
+                the trade plan library plus, once a plan is selected, its
+                editor, readiness checklist, and AI actions panel. */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-muted-foreground"
+              onClick={() => setInvestingTradePlansOpen((v) => !v)}
+              data-testid="button-toggle-investing-trade-plans"
+            >
+              {investingTradePlansOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              <ClipboardList className="h-3.5 w-3.5" />
+              {investingTradePlansOpen ? "Hide trade plans" : "Show trade plans"}
+            </Button>
+
+            {investingTradePlansOpen && (
+              <div className="flex gap-3" data-testid="ask-analyst-trade-plans-view">
+                <TradePlannerSidebar
+                  plans={investingTradePlans.plans}
+                  isLoading={investingTradePlans.isLoadingPlans}
+                  activePlanId={investingTradePlans.activePlanId}
+                  searchTerm={investingTradePlans.searchTerm}
+                  onSearchChange={investingTradePlans.setSearchTerm}
+                  statusFilter={investingTradePlans.statusFilter}
+                  onStatusFilterChange={investingTradePlans.setStatusFilter}
+                  includeArchived={investingTradePlans.includeArchived}
+                  onIncludeArchivedChange={investingTradePlans.setIncludeArchived}
+                  onCreatePlan={(input) => investingTradePlans.createPlanAnd({ ...input, workspaceId: investingWorkspaces.activeWorkspaceId })}
+                  onSelectPlan={investingTradePlans.selectPlan}
+                  onClearSelection={investingTradePlans.clearSelection}
+                  onTogglePin={investingTradePlans.togglePinById}
+                  onDeletePlan={investingTradePlans.deletePlanById}
+                  testId="investing-trade-plan-sidebar"
+                />
+                <div className="flex-1 space-y-3">
+                  {investingTradePlans.activePlanDetail ? (
+                    <>
+                      <TradePlanHeader
+                        plan={investingTradePlans.activePlanDetail}
+                        onUpdate={(input) => investingTradePlans.updatePlanById(investingTradePlans.activePlanDetail!.id, input)}
+                        onTogglePin={(pinned) => investingTradePlans.togglePinById(investingTradePlans.activePlanDetail!.id, pinned)}
+                        onDelete={() => investingTradePlans.deletePlanById(investingTradePlans.activePlanDetail!.id)}
+                        testId="investing-trade-plan-header"
+                      />
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="space-y-3">
+                          <TradePlanEditor
+                            plan={investingTradePlans.activePlanDetail}
+                            onUpsertSection={investingTradePlans.upsertSection}
+                            onDeleteSection={investingTradePlans.removeSection}
+                            linkableNotebooks={investingNotebooks.notebooks.map((n) => ({ id: n.id, title: n.title }))}
+                            linkableConversations={askCoachConversations.conversations.map((c) => ({ id: c.id, title: c.title }))}
+                            linkableFiles={investingWorkspaces.activeWorkspaceDetail?.files.map((f) => ({ id: f.id, fileName: f.fileName }))}
+                            testId="investing-trade-plan-editor"
+                          />
+                          <TradePlanChecklist
+                            items={investingTradePlans.activePlanDetail.checklistItems}
+                            progress={investingTradePlans.activePlanDetail.checklistProgress}
+                            templates={investingTradePlanChecklistTemplates.templates}
+                            onAddItem={investingTradePlans.addChecklistItem}
+                            onApplyTemplate={investingTradePlans.applyChecklistTemplate}
+                            onToggleCompleted={(itemId, completed) => investingTradePlans.updateChecklistItem(itemId, { completed })}
+                            onDeleteItem={investingTradePlans.removeChecklistItem}
+                            testId="investing-trade-plan-checklist"
+                          />
+                        </div>
+                        <TradePlanSummary
+                          onLoadMissingInformation={investingTradePlans.loadMissingInformation}
+                          onReview={investingTradePlans.review}
+                          onSummarize={investingTradePlans.summarize}
+                          onGenerateRiskHighlights={investingTradePlans.generateRiskHighlights}
+                          onReviewRiskReward={investingTradePlans.reviewRiskReward}
+                          onGenerateExecutiveSummary={investingTradePlans.generateExecutiveSummary}
+                          onGeneratePreparationNotes={investingTradePlans.generatePreparationNotes}
+                          onGeneratePreTradeChecklist={investingTradePlans.generatePreTradeChecklist}
+                          onGenerateVerificationQuestions={investingTradePlans.generateVerificationQuestions}
+                          testId="investing-trade-plan-summary-panel"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <TradePlanEmptyState
+                      title="No trade plan selected"
+                      description="Choose a trade plan on the left, or create a new one to start preparing your next trade."
+                      testId="investing-trade-plan-detail-empty"
                     />
                   )}
                 </div>
