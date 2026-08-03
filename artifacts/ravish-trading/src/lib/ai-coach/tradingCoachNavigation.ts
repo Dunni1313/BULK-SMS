@@ -42,11 +42,12 @@
 // shape.
 
 import type { DailyWorkflowStepId } from "./tradingCoachWorkflow";
+import { getModuleLearnEntry, type ModuleLearnEntry } from "../learn/moduleLearnRegistry";
 
 export interface WorkflowNavigationTarget {
   /** Route path with no query string. */
   path: string;
-  /** Full href, including ?planId= when a real, known trade plan id applies. */
+  /** Full href, including ?planId= when a real, known trade plan id applies, and always ?workflowStep=<id>. */
   href: string;
   /** Human label for the destination page, for UI copy ("Open Scanner"). */
   destinationLabel: string;
@@ -93,7 +94,39 @@ export function resolveWorkflowNavigationTarget(
 ): WorkflowNavigationTarget {
   const path = BASE_PATHS[stepId];
   const destinationLabel = DESTINATION_LABELS[stepId];
-  const href =
-    PLAN_ID_AWARE_STEPS.has(stepId) && activeTradePlanId != null ? `${path}?planId=${activeTradePlanId}` : path;
+  // v1.6.0 Sprint 2 (#7, "context preserved between every workflow step") —
+  // every Start destination carries ?workflowStep=<id> (in addition to the
+  // existing ?planId= when applicable), so the very same AiTradingCoachPanel
+  // already mounted on the destination page (Sprint 1) can recognize "the
+  // user arrived here as part of today's guided workflow" and confirm it —
+  // never a new state store, just this codebase's own established
+  // query-param deep-link convention, read back by the panel itself.
+  const params = new URLSearchParams();
+  if (PLAN_ID_AWARE_STEPS.has(stepId) && activeTradePlanId != null) {
+    params.set("planId", String(activeTradePlanId));
+  }
+  params.set("workflowStep", stepId);
+  const href = `${path}?${params.toString()}`;
   return { path, href, destinationLabel };
+}
+
+/**
+ * v1.6.0 Sprint 2 (#6, "Beginner Mode improvements" — a contextual,
+ * per-step Learn destination instead of always pointing at the generic
+ * "trading-engine" path overview). Reuses lib/learn/moduleLearnRegistry.ts
+ * verbatim (Sprint 11, unmodified) — zero new lesson content, and only
+ * ever resolves an id that registry already defines. Any step without an
+ * unambiguous existing match honestly returns null; the caller falls back
+ * to the generic pathKey="trading-engine" trigger Sprint 1 already shipped.
+ */
+const STEP_LEARN_REGISTRY_IDS: Partial<Record<DailyWorkflowStepId, string>> = {
+  research: "research-trading",
+  "trade-planning": "ai-trade-plan",
+  "trade-journal": "trading-journal",
+};
+
+export function resolveStepLearnEntry(stepId: DailyWorkflowStepId): ModuleLearnEntry | null {
+  const registryId = STEP_LEARN_REGISTRY_IDS[stepId];
+  if (!registryId) return null;
+  return getModuleLearnEntry(registryId) ?? null;
 }
