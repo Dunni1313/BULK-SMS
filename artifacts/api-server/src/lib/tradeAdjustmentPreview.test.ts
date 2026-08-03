@@ -27,8 +27,38 @@
 //     high-ivRank symbol (AMZN) without breaching a stop-loss.
 // Both were verified empirically against the real, unmodified engine
 // before being hardcoded here — not guessed.
+//
+// Repository-maintenance fix, dated 2026-08-xx (branch
+// fix/trade-adjustment-preview-determinism): shortDelta alone is NOT a
+// day-independent trigger the way the convert fixture's 0.7x-entryIv
+// trick is. optionsMath.ts's getSnapshot() is day-seeded
+// (makeRng(`${symbol}|${todayStr()}`)), so AAPL's own IV varies by
+// calendar day, and strikeForDelta()'s strike-for-a-fixed-delta output
+// moves with IV — on a low-IV day a 0.45-delta short lands close enough
+// to spot to trip the engine's default 2% short-strike-proximity band; on
+// a higher-IV day it can land just outside it. An empirical sweep (30
+// consecutive real dates, real getSnapshot()/buildIronCondor()/
+// evaluateTradeAdjustment() calls, unmodified) found shortDelta=0.45
+// trips "roll_threatened" on ~83% of days and silently falls through to
+// "hold" on the rest — including, confirmed live, the real calendar date
+// this fix was written on. This was ALWAYS a latent flake, not a new
+// regression: the fixture was tuned against a single day's snapshot and
+// never re-verified against every possible day's IV. Production behavior
+// is correct — evaluateTradeAdjustment() is honestly reporting that
+// today's day-seeded market snapshot does not put this shortDelta=0.45
+// AAPL structure's short strikes within the configured proximity band;
+// the bug is entirely in the test's assumption that shortDelta=0.45
+// reliably reproduces that condition on any day. The "Roll Forward
+// scenario" describe block below freezes the real system clock (Vitest's
+// vi.useFakeTimers({ toFake: ["Date"] })) to a single, empirically
+// re-verified calendar date for its own fixture-build AND every
+// subsequent evaluation call, so the same day-seeded snapshot is used
+// throughout and the outcome no longer depends on which real day CI
+// happens to run on. Only `Date` is faked (never timers), so real async
+// I/O — the live Postgres connection every test in this file already
+// depends on — is completely unaffected.
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, usersTable, tradesTable, settingsTable } from "@workspace/db";
@@ -159,7 +189,21 @@ describe("buildTradeAdjustmentPreview", () => {
     let userId: string;
     let tradeId: number;
 
+    // Frozen to a single, empirically re-verified calendar date (see the
+    // file header comment above) so the shortDelta=0.45 fixture reliably
+    // reproduces a "roll_threatened" recommendation regardless of which
+    // real day this suite happens to run on. Only Date is faked — real
+    // timers (and this file's own live Postgres connection) are
+    // untouched. Freezing starts before the fixture is built and ends
+    // only after this whole describe block's tests (and its own
+    // afterAll cleanup) have finished, so every buildTradeAdjustmentPreview()
+    // call in between — including its own internal, unparameterized
+    // getSnapshot() calls inside evaluateTradeAdjustment()/
+    // buildAdjustmentTicket() — resolves the exact same day-seeded
+    // market snapshot the fixture itself was built from.
     beforeAll(async () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date("2026-01-01T12:00:00.000Z"));
       userId = await createUser("roll");
       const t = await insertRollThreatenedPosition(userId);
       tradeId = t.id;
@@ -167,6 +211,7 @@ describe("buildTradeAdjustmentPreview", () => {
 
     afterAll(async () => {
       await cleanupUser(userId);
+      vi.useRealTimers();
     });
 
     it("computes a full, available preview reusing buildAdjustmentTicket() for a position the real engine flags as roll-eligible", async () => {
