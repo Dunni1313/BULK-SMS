@@ -46,7 +46,7 @@ function needsAttention(a: TradeAdjustment): boolean {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
-  const { data: session } = useSession();
+  const { data: session, isPending: sessionPending } = useSession();
   // Owned once, here, and passed down to SidebarNav — see that file's own
   // header comment on why two independent useSidebarPreferences() calls
   // would desync (the compact toggle button lives in this header, outside
@@ -118,10 +118,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarNav attentionCount={attentionCount} preferences={preferences} />
           {/* Phase 1, Sprint 6 — session status. Signing in does not gate
               any other page yet (Sprint 7's job); this only demonstrates
-              that a real Better-Auth session works end-to-end. */}
+              that a real Better-Auth session works end-to-end.
+              v1.6.0 UX Polish Phase 1 — fixed a real, trust-eroding bug:
+              this footer used to render "Sign in" for ANY falsy `session`,
+              including the brief, ordinary moment before useSession()'s
+              own fetch resolves. On pages that fire a large burst of
+              concurrent requests on mount (e.g. Trading Research), that
+              momentary pending state could be visibly prolonged, making an
+              authenticated user's sidebar read "Sign in" even though their
+              own personalized data was already rendering on the page.
+              Checking isPending explicitly and rendering a neutral
+              skeleton while it's true (never "Sign in") fixes this for
+              every page, since AppLayout mounts once for the whole app. */}
           <SidebarFooter className="border-t border-sidebar-border group-data-[collapsible=icon]:hidden">
             <div className="px-2 py-1 text-xs text-muted-foreground">
-              {session ? (
+              {sessionPending ? (
+                <div className="h-4 w-32 animate-pulse rounded bg-muted/60" data-testid="skeleton-session-status" />
+              ) : session ? (
                 <div className="flex items-center justify-between gap-2">
                   <span className="truncate">Signed in as {session.user.email}</span>
                   <button

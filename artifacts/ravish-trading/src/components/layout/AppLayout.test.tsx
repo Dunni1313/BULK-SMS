@@ -30,11 +30,15 @@ vi.mock("@workspace/api-client-react", async () => {
   };
 });
 
+// v1.6.0 UX Polish Phase 1 — mutable per-test session mock (was a static
+// `{ data: null }`) so the new isPending-aware footer state can be tested
+// alongside the existing "signed out" default every other test here relies on.
+const sessionMock = vi.hoisted(() => ({ data: null as { user: { email: string } } | null, isPending: false }));
 vi.mock("@/lib/auth-client", async () => {
   const actual = await vi.importActual<typeof import("@/lib/auth-client")>("@/lib/auth-client");
   return {
     ...actual,
-    useSession: () => ({ data: null }),
+    useSession: () => sessionMock,
   };
 });
 
@@ -43,6 +47,44 @@ import { AppLayout } from "./AppLayout";
 beforeEach(() => {
   window.localStorage.clear();
   window.history.pushState(null, "", "/");
+  sessionMock.data = null;
+  sessionMock.isPending = false;
+});
+
+describe("AppLayout — session status footer (v1.6.0 UX Polish Phase 1, Priority 4)", () => {
+  it("never shows 'Sign in' while the session is still loading — the real, previously-reported trust bug", () => {
+    sessionMock.isPending = true;
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.queryByText("Sign in")).not.toBeInTheDocument();
+    expect(screen.getByTestId("skeleton-session-status")).toBeInTheDocument();
+  });
+
+  it("shows 'Sign in' once loading has genuinely finished and there is no session", () => {
+    sessionMock.isPending = false;
+    sessionMock.data = null;
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByText("Sign in")).toBeInTheDocument();
+  });
+
+  it("shows 'Signed in as ...' once a real session resolves", () => {
+    sessionMock.isPending = false;
+    sessionMock.data = { user: { email: "trader@example.com" } };
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByText("Signed in as trader@example.com")).toBeInTheDocument();
+    expect(screen.queryByText("Sign in")).not.toBeInTheDocument();
+  });
 });
 
 describe("AppLayout — Command Palette wiring", () => {
@@ -328,6 +370,26 @@ describe("AppLayout — sidebar accessibility (v1.3.2, Version 1 Polish Sprint)"
     expect(screen.queryByTestId("sidebar-link-/trading-journal")).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId("sidebar-group-trigger-trading-workbench"));
     await waitFor(() => expect(screen.getByTestId("sidebar-link-/trading-journal")).toBeInTheDocument());
+  });
+});
+
+describe("AppLayout — sidebar tooltips for truncated labels (v1.6.0 UX Polish Phase 1, Priority 5)", () => {
+  it("gives every nav link a native title attribute with its full name, reachable on hover even when the visible label is truncated", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("sidebar-link-/trades")).toHaveAttribute("title", "Trades");
+  });
+
+  it("gives every group header a native title attribute with its full name", () => {
+    renderWithClient(
+      <AppLayout>
+        <div>page content</div>
+      </AppLayout>,
+    );
+    expect(screen.getByTestId("sidebar-group-trigger-options-trading")).toHaveAttribute("title", "Options Trading");
   });
 });
 

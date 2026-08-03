@@ -168,7 +168,19 @@ export default function InstitutionalMentor() {
                     <p className="text-xs text-muted-foreground mt-1" data-testid={`scorecard-why-${entry.category}`}>
                       {entry.why}
                     </p>
-                    <p className="text-[10px] text-muted-foreground/70 mt-1">{entry.sourceModule}</p>
+                    {/* v1.6.0 UX Polish Phase 1, Priority 7 — the Product
+                        Experience Review found this raw source-module
+                        reference (e.g. "portfolioDashboard.ts —
+                        healthFactors.position_sizing_quality") read as
+                        leaked debug text with no framing. The reference
+                        itself is a deliberate transparency feature (see
+                        this card's own subtitle, "hover the source module
+                        ... to trace it") and is kept, unmodified — only a
+                        plain-English "Source:" label was added so it reads
+                        as an intentional citation instead of an accident. */}
+                    <p className="text-[10px] text-muted-foreground/70 mt-1">
+                      <span className="font-medium">Source:</span> {entry.sourceModule}
+                    </p>
                   </div>
                 ))}
               </div>

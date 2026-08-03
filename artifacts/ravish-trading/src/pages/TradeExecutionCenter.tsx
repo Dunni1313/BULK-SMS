@@ -36,7 +36,7 @@
 //
 // See docs/v1.2.0-Trade-Execution-Center.md for the full design writeup.
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetScannerResults,
@@ -339,6 +339,26 @@ export default function TradeExecutionCenter() {
             <Badge variant="outline" className="text-amber-400 border-amber-400/40 uppercase text-[10px] ml-1">
               Paper Trading only
             </Badge>
+          </p>
+          {/* v1.6.0 UX Polish Phase 1, Priority 2 — the Product Experience
+              Review found this page and Execution & Lifecycle Manager
+              near-indistinguishable on sight (same coach panel, similar
+              name). They genuinely do different jobs: this page finds and
+              submits a real Paper Trading options order end-to-end
+              (Scanner -> Preview -> Submit -> Monitor), specific to the
+              Options Income Engine; Execution & Lifecycle Manager instead
+              tracks a Trade Plan's lifecycle AFTER you've executed it
+              yourself, manually, with your own broker, for any instrument.
+              They are not duplicates of each other and are not being
+              merged — this one line makes the distinction explicit right
+              where the confusion was found, rather than leaving it
+              implicit in two similar sidebar labels. */}
+          <p className="text-[11px] text-muted-foreground/80 mt-1 max-w-xl" data-testid="tec-page-disambiguation">
+            Finds and submits a real Paper Trading options order, start to finish. Already executed a trade
+            manually with your own broker instead?{" "}
+            <Link href="/execution-lifecycle" className="underline hover:text-foreground">
+              Track it in the Execution &amp; Lifecycle Manager.
+            </Link>
           </p>
         </div>
         {selected && (

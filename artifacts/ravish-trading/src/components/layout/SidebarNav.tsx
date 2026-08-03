@@ -83,6 +83,14 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
     return (
       <SidebarMenuItem key={item.href}>
         <SidebarMenuButton asChild isActive={active} tooltip={compact ? item.title : undefined}>
+          {/* v1.6.0 UX Polish Phase 1, Priority 5 — the native `title`
+              attribute gives a real hover tooltip with the item's full
+              name whenever the visible label is truncated (long labels
+              like "Execution & Lifecycle Manager" or "Portfolio & Risk
+              Intelligence" ellipsis in the sidebar's fixed width even in
+              expanded, non-compact mode — the SidebarMenuButton `tooltip`
+              prop above only fires in compact/icon-only mode, so this
+              closes that gap without adding a new UI pattern. */}
           <Link
             href={item.href}
             onClick={handleNavigate}
@@ -90,6 +98,7 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
             data-testid={`sidebar-link-${item.href}`}
             data-active={active || undefined}
             aria-current={active ? "page" : undefined}
+            title={item.title}
           >
             <item.icon className="h-4 w-4 shrink-0" />
             <span className="truncate">{item.title}</span>
@@ -139,6 +148,7 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
                       className="flex items-center gap-3 px-4 py-2 text-sm font-medium"
                       data-testid={`sidebar-pinned-link-${item.href}`}
                       aria-current={location === item.href ? "page" : undefined}
+                      title={item.title}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span className="truncate">{item.title}</span>
@@ -213,6 +223,7 @@ export function SidebarNav({ attentionCount, preferences }: SidebarNavProps) {
                   theme={group.theme}
                   open={open}
                   data-testid={`sidebar-group-trigger-${group.id}`}
+                  title={group.label}
                 />
               </CollapsibleTrigger>
               <CollapsibleContent>

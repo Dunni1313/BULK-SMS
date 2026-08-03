@@ -150,6 +150,16 @@ describe("TradeExecutionCenter page", () => {
     expect(screen.getByText("Paper Trading only")).toBeInTheDocument();
   });
 
+  it("v1.6.0 UX Polish Phase 1 — disambiguates itself from Execution & Lifecycle Manager", () => {
+    renderWithClient(<TradeExecutionCenter />);
+    const note = screen.getByTestId("tec-page-disambiguation");
+    expect(note).toHaveTextContent(/paper trading options order/i);
+    expect(screen.getByText("Track it in the Execution & Lifecycle Manager.")).toHaveAttribute(
+      "href",
+      "/execution-lifecycle",
+    );
+  });
+
   it("progresses through the workflow: Scanner -> AI Score -> Strategy -> Order Preview", async () => {
     const user = userEvent.setup();
     renderWithClient(<TradeExecutionCenter />);

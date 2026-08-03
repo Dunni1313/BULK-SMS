@@ -12,6 +12,14 @@
 // section, the contextual Learn trigger, the ?workflowStep= context
 // banner (via an extended wouter mock also overriding useSearch), and
 // accessibility attributes.
+//
+// v1.6.0 UX Polish Phase 1 — the full step checklist now defaults to
+// collapsed (see AiTradingCoachPanel.tsx's own header comment), so every
+// test that asserts on a `row-step-*`/`list-daily-workflow-steps` element
+// now clicks `button-toggle-step-list` first via the new expandSteps()
+// helper below — the same real user action a real user would take, not a
+// test-only shortcut. Nothing about what the step list itself renders
+// changed; only its default visibility did.
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, fireEvent } from "@testing-library/react";
@@ -85,6 +93,12 @@ beforeEach(() => {
   mockState.beginnerModeEnabled = true;
 });
 
+/** The full step list defaults to collapsed (v1.6.0 UX Polish Phase 1) —
+ * expand it the same way a real user would, via the toggle button. */
+function expandSteps() {
+  fireEvent.click(screen.getByTestId("button-toggle-step-list"));
+}
+
 describe("AiTradingCoachPanel — loading state", () => {
   it("shows a skeleton while loading, not fabricated content", () => {
     mockState.loading = true;
@@ -156,11 +170,13 @@ describe("AiTradingCoachPanel — waiting-reason explanations for not-started st
       })),
     });
     renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
     expect(screen.getByTestId("text-waiting-reason-opportunity-review")).toHaveTextContent(/waiting for "market scan"/i);
   });
 
   it("never shows a waitingReason for the active or ready step", () => {
     renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
     expect(screen.queryByTestId("text-waiting-reason-morning-brief")).not.toBeInTheDocument();
     expect(screen.queryByTestId("text-waiting-reason-market-scan")).not.toBeInTheDocument();
   });
@@ -318,6 +334,7 @@ describe("AiTradingCoachPanel — responsive/collapsible", () => {
 describe("AiTradingCoachPanel — step checklist ordering (#2)", () => {
   it("renders all 11 steps in canonical order", () => {
     renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
     const rows = DAILY_WORKFLOW_STEP_ORDER.map((id) => screen.getByTestId(`row-step-${id}`));
     expect(rows).toHaveLength(11);
   });
@@ -326,12 +343,99 @@ describe("AiTradingCoachPanel — step checklist ordering (#2)", () => {
 describe("AiTradingCoachPanel — accessibility (Sprint 2 #9)", () => {
   it("marks the active step with aria-current=step", () => {
     renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
     expect(screen.getByTestId("row-step-morning-brief")).toHaveAttribute("aria-current", "step");
     expect(screen.getByTestId("row-step-market-scan")).not.toHaveAttribute("aria-current");
   });
 
   it("the step list carries an accessible list role and label", () => {
     renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
     expect(screen.getByRole("list", { name: /today's workflow steps/i })).toBeInTheDocument();
+  });
+});
+
+describe("AiTradingCoachPanel — honest, non-broken-looking wording for not-applicable steps (v1.6.0 UX Polish Phase 1, Priority 7)", () => {
+  it("states the real reason (market closed) instead of a bare 'Not applicable today'", () => {
+    mockState.marketIsOpen = false;
+    mockState.workflow = buildWorkflow({
+      steps: DAILY_WORKFLOW_STEP_ORDER.map((id, i) => ({
+        id,
+        label: DAILY_WORKFLOW_STEP_LABELS[id],
+        status: (i === 0 ? "not-applicable" : i === 1 ? "active" : "not-started") as DailyWorkflowResult["steps"][number]["status"],
+        estimatedMinutes: 5,
+        blockedReason: null,
+        waitingReason: null,
+      })),
+    });
+    renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
+    expect(screen.getByText("Not applicable — market closed")).toBeInTheDocument();
+  });
+
+  it("falls back to the generic wording when a step is not-applicable for a reason other than market closure", () => {
+    mockState.marketIsOpen = true;
+    mockState.workflow = buildWorkflow({
+      steps: DAILY_WORKFLOW_STEP_ORDER.map((id, i) => ({
+        id,
+        label: DAILY_WORKFLOW_STEP_LABELS[id],
+        status: (i === 0 ? "not-applicable" : i === 1 ? "active" : "not-started") as DailyWorkflowResult["steps"][number]["status"],
+        estimatedMinutes: 5,
+        blockedReason: null,
+        waitingReason: null,
+      })),
+    });
+    renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
+    expect(screen.getByText("Not applicable today")).toBeInTheDocument();
+  });
+});
+
+describe("AiTradingCoachPanel — blocked-step reason shown inline (v1.6.0 UX Polish Phase 1, Priority 7)", () => {
+  it("shows the real blockedReason inline under any blocked step, not only the primary next step", () => {
+    mockState.workflow = buildWorkflow({
+      steps: DAILY_WORKFLOW_STEP_ORDER.map((id) => ({
+        id,
+        label: DAILY_WORKFLOW_STEP_LABELS[id],
+        status: id === "execution" ? "blocked" : "not-started",
+        estimatedMinutes: 5,
+        blockedReason: id === "execution" ? "Market is closed — execution is unavailable until the market reopens." : null,
+        waitingReason: null,
+      })),
+      primaryNextStepId: "execution",
+      primaryReason: "Market is closed — execution is unavailable until the market reopens.",
+    });
+    renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
+    expect(screen.getByTestId("text-blocked-reason-execution")).toHaveTextContent(/market is closed/i);
+  });
+
+  it("never fabricates a blocked-reason line for a step that isn't actually blocked", () => {
+    renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
+    expect(screen.queryByTestId("text-blocked-reason-morning-brief")).not.toBeInTheDocument();
+  });
+});
+
+describe("AiTradingCoachPanel — full step list defaults to collapsed (v1.6.0 UX Polish Phase 1)", () => {
+  it("keeps the full step checklist hidden until the user asks for it, so page content isn't buried below it", () => {
+    renderWithClient(<AiTradingCoachPanel />);
+    expect(screen.queryByTestId("list-daily-workflow-steps")).not.toBeInTheDocument();
+    expect(screen.getByTestId("button-toggle-step-list")).toHaveTextContent(/view all 11 steps/i);
+  });
+
+  it("still shows the always-on Progress summary and Next Recommended Step without expanding anything", () => {
+    renderWithClient(<AiTradingCoachPanel />);
+    expect(screen.getByTestId("text-completion-pct")).toBeInTheDocument();
+    expect(screen.getByTestId("section-next-recommended-step")).toBeInTheDocument();
+  });
+
+  it("expanding reveals the step list; collapsing hides it again", () => {
+    renderWithClient(<AiTradingCoachPanel />);
+    expandSteps();
+    expect(screen.getByTestId("list-daily-workflow-steps")).toBeInTheDocument();
+    expect(screen.getByTestId("button-toggle-step-list")).toHaveTextContent(/hide steps/i);
+    fireEvent.click(screen.getByTestId("button-toggle-step-list"));
+    expect(screen.queryByTestId("list-daily-workflow-steps")).not.toBeInTheDocument();
   });
 });

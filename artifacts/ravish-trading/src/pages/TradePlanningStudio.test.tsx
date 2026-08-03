@@ -155,6 +155,13 @@ describe("TradePlanningStudio", () => {
     expect(screen.getByText(/Select an instrument above to begin/)).toBeInTheDocument();
   });
 
+  it("v1.6.0 UX Polish Phase 1 — disambiguates this page's own symbol-specific trade setups from the AI Assistant's Trade Plan system", () => {
+    renderWithClient(<TradePlanningStudio />);
+    const note = screen.getByTestId("studio-plan-disambiguation");
+    expect(note).toHaveTextContent(/symbol-specific/i);
+    expect(screen.getByText("See Decision Workflow.")).toHaveAttribute("href", "/decision-workflow");
+  });
+
   it("selecting an instrument navigates to the studio's own deep-link URL", async () => {
     renderWithClient(<TradePlanningStudio />);
     fireEvent.change(screen.getByTestId("studio-symbol-search"), { target: { value: "AAPL" } });
