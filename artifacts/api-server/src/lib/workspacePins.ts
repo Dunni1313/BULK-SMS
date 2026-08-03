@@ -41,24 +41,30 @@ export interface PinResourceInput {
   linkPath: string;
 }
 
+// Database-maintenance fix (not part of any UX/feature sprint) — see
+// docs/Database-Concurrency-Fixes.md. Was a plain INSERT relying on
+// catching a thrown unique-violation exception (identified by Postgres
+// error code 23505 on err.cause) to detect an already-pinned resource —
+// correct in outcome but noisy: Postgres logs a full ERROR at the
+// database level for every such exception regardless of whether the
+// application catches it. ON CONFLICT DO NOTHING is silent at the
+// database level on a genuine duplicate; the caller distinguishes that
+// case from success by whether a row was returned, with identical
+// external behavior (the "duplicate" sentinel, and the 409 the one
+// caller of this function already maps it to).
 export async function pinResource(userId: string, input: PinResourceInput): Promise<PinnedResourceView | "duplicate"> {
-  try {
-    const [row] = await db
-      .insert(workspacePinnedResourcesTable)
-      .values({ ...input, userId })
-      .returning();
-    return pinToApi(row);
-  } catch (err) {
-    // Unique (user_id, resource_type, resource_key) constraint violation —
-    // this resource is already pinned. A real, expected 409, never a 500.
-    // Drizzle wraps the underlying pg driver error in a DrizzleQueryError
-    // whose own .message is the raw SQL text, not the Postgres error
-    // message — the real Postgres error (code 23505 for a unique
-    // violation) lives on .cause instead.
-    const cause = err && typeof err === "object" && "cause" in err ? (err as { cause?: unknown }).cause : undefined;
-    if (cause && typeof cause === "object" && "code" in cause && (cause as { code?: unknown }).code === "23505") return "duplicate";
-    throw err;
-  }
+  const [row] = await db
+    .insert(workspacePinnedResourcesTable)
+    .values({ ...input, userId })
+    .onConflictDoNothing({
+      target: [
+        workspacePinnedResourcesTable.userId,
+        workspacePinnedResourcesTable.resourceType,
+        workspacePinnedResourcesTable.resourceKey,
+      ],
+    })
+    .returning();
+  return row ? pinToApi(row) : "duplicate";
 }
 
 export async function unpinResource(userId: string, id: number): Promise<boolean> {

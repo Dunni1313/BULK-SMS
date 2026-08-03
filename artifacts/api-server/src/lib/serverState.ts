@@ -1,7 +1,7 @@
 // Shared server-side state helpers: settings singleton, account valuation,
 // per-trade greeks computed from stored legs, and demo-trade seeding.
 import { db, tradesTable, settingsTable } from "@workspace/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import {
   getSnapshot,
   bs,
@@ -29,16 +29,32 @@ export interface StoredLeg {
 // deliberately keeps calling this with no argument — per the approved plan's
 // §4.4, its real per-user multi-tenancy design is an explicit owner decision
 // for a later, dedicated sprint, not something this sprint changes.
+// Database-maintenance fix (not part of any UX/feature sprint) — see
+// docs/Database-Concurrency-Fixes.md. Was a check-then-insert: a SELECT
+// for an existing row, then an unconditional INSERT if none was found.
+// Two concurrent callers for the same brand-new user (e.g. several
+// widgets on the Institutional Home page each independently resolving
+// this user's settings on first mount) could both pass the SELECT before
+// either INSERT committed, so the second INSERT threw an uncaught
+// unique-constraint violation on settings_user_id_unique — an uncaught
+// 500, not a caught/handled duplicate. Replaced with a single atomic
+// INSERT ... ON CONFLICT (user_id) DO UPDATE, which always RETURNING
+// exactly one row in one round trip regardless of which concurrent
+// caller's own INSERT statement actually wins the race — the losing
+// caller's "update" is a genuine no-op (it writes user_id back to its
+// own already-correct value), so no data is ever changed by the conflict
+// path itself, only guaranteed-returned.
 export async function getSettingsRow(userId?: string) {
   const resolvedUserId = userId ?? (await getLegacyOwnerUserId());
-  const existing = await db
-    .select()
-    .from(settingsTable)
-    .where(eq(settingsTable.userId, resolvedUserId))
-    .limit(1);
-  if (existing[0]) return existing[0];
-  const [created] = await db.insert(settingsTable).values({ userId: resolvedUserId }).returning();
-  return created;
+  const [row] = await db
+    .insert(settingsTable)
+    .values({ userId: resolvedUserId })
+    .onConflictDoUpdate({
+      target: settingsTable.userId,
+      set: { userId: sql`excluded.user_id` },
+    })
+    .returning();
+  return row;
 }
 
 export async function getAccountValue(userId: string): Promise<number> {
