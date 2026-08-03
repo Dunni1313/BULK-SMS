@@ -79,6 +79,39 @@ export const MODULE_LEARN_REGISTRY: Record<string, ModuleLearnEntry> = {
     label: "Portfolio Impact",
     pathKey: "portfolio",
   },
+  // v1.6.0, Sprint 3 — UX Transformation. 5 new entries wiring Contextual
+  // Help into golden-path pages that had none — every pathKey/topicKey
+  // below already exists in lib/learningPaths.ts; none is a new lesson.
+  "command-centre": {
+    id: "command-centre",
+    label: "Institutional Command Centre",
+    pathKey: "platform-basics",
+    topicKey: "command-centre-overview",
+  },
+  discover: {
+    id: "discover",
+    label: "Discover (Market Scanner)",
+    pathKey: "professional-workflows",
+    topicKey: "workflow-morning-preparation",
+  },
+  "decision-workflow": {
+    id: "decision-workflow",
+    label: "Decision & Risk Review",
+    pathKey: "professional-workflows",
+    topicKey: "workflow-professional-trade",
+  },
+  "execution-lifecycle": {
+    id: "execution-lifecycle",
+    label: "Execution Lifecycle Manager",
+    pathKey: "professional-workflows",
+    topicKey: "workflow-professional-trade",
+  },
+  "portfolio-review": {
+    id: "portfolio-review",
+    label: "Portfolio & Performance Review",
+    pathKey: "professional-workflows",
+    topicKey: "workflow-portfolio-review",
+  },
 };
 
 export function getModuleLearnEntry(id: string): ModuleLearnEntry | undefined {

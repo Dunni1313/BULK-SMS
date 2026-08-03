@@ -40,10 +40,22 @@
 // exists), both new stages now have a real page to link to: the new
 // /execution-lifecycle Pipeline + per-trade lifecycle tracker. Every
 // pre-existing stage id/label/href is otherwise unchanged.
+//
+// v1.6.0, Sprint 3 — UX Transformation. One new "Discover" stage inserted
+// at the very FRONT of the journey, per the approved scope's explicit
+// instruction to "reuse the existing PlatformJourneyNav, expand it where
+// appropriate, do NOT create another workflow component." Every prior
+// stage id/label/href is unchanged — this is the same incremental,
+// disclosed insertion pattern Sprints 12-14 already used three times.
+// Links to the Scanner (the platform's own opportunity-discovery surface,
+// also the first step of the separate day-level Daily Workflow engine's
+// own step order) — a genuinely missing front-of-journey stage, not a
+// cosmetic rename of anything that already existed.
 import { Link } from "wouter";
 import { CheckCircle2, Circle, Ban } from "lucide-react";
 
 export type PlatformJourneyStageId =
+  | "discover"
   | "research"
   | "notebook"
   | "strategy"
@@ -71,6 +83,7 @@ export interface PlatformJourneyStage {
 // stages and where do they link," this component's own compact stepper
 // rendering is unchanged.
 export const PLATFORM_JOURNEY_STAGES: PlatformJourneyStage[] = [
+  { id: "discover", label: "Discover", href: "/scanner" },
   { id: "research", label: "Research", href: "/stock-analyst" },
   { id: "notebook", label: "Notebook", href: "/assistant" },
   { id: "strategy", label: "Strategy", href: "/assistant" },

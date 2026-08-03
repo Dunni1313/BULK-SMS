@@ -59,6 +59,7 @@ import { PLATFORM_JOURNEY_STAGES, type PlatformJourneyStageId } from "@/componen
 import { DailyBriefingCard } from "@/components/briefing/DailyBriefingCard";
 import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 import { AskCoachLauncher } from "@/components/learn/AskCoachLauncher";
+import { GuidedTourTrigger } from "@/components/tour/GuidedTourTrigger";
 import { COMMAND_CENTRE_QUICK_ACTIONS } from "@/lib/quick-actions";
 import { useWorkflowSnapshot } from "@/lib/useWorkflowSnapshot";
 import { useActiveDecisionSummary } from "@/lib/useDecisionWorkflow";
@@ -155,10 +156,22 @@ function useStageStatuses(
   learningInProgress: number | undefined,
   decisionSummary: ReturnType<typeof useActiveDecisionSummary>,
   pipeline: ReturnType<typeof useTradeLifecyclePipeline>,
+  discoverPipeline: ReturnType<typeof useOpportunityPipeline>,
 ): Record<PlatformJourneyStageId, StageStatus> {
   const openPositionCount = pipeline.records.filter((r) => r.currentStage === "open-position").length;
   const managingCount = pipeline.records.filter((r) => r.currentStage === "managing").length;
   return {
+    // v1.6.0, Sprint 3 — UX Transformation. Reuses useOpportunityPipeline()
+    // directly (the exact same hook backing OpportunityPipelineCard below)
+    // — never a second, duplicate discovery computation for this new stage.
+    discover: {
+      detail: discoverPipeline.loading
+        ? "Loading…"
+        : discoverPipeline.discovered.length === 0
+          ? "Nothing new to discover right now"
+          : `${discoverPipeline.discovered.length} discovered opportunit${discoverPipeline.discovered.length === 1 ? "y" : "ies"} to review`,
+      pendingCount: discoverPipeline.loading ? null : discoverPipeline.discovered.length,
+    },
     research: {
       detail: watchlistCount === undefined ? "Loading…" : `${watchlistCount} symbol${watchlistCount === 1 ? "" : "s"} on your watchlist`,
       pendingCount: watchlistCount ?? null,
@@ -1582,6 +1595,11 @@ export default function InstitutionalCommandCentre() {
   // fetches full trade-plan detail per plan across all coachIds — a real,
   // disclosed cost not worth doubling for a second card on the same page.
   const pipeline = useTradeLifecyclePipeline();
+  // v1.6.0, Sprint 3 — UX Transformation. Reused here (main component) AND
+  // again inside <OpportunityPipelineCard /> further down — the same
+  // intentional duplicate-fetch-for-a-second-card pattern this file
+  // already established for useGetPortfolioDashboard()/useActiveDecisionSummary().
+  const discoverPipeline = useOpportunityPipeline();
 
   const journalOutstanding = useMemo(() => {
     if (!closedTrades || !journalEntries) return null;
@@ -1600,6 +1618,7 @@ export default function InstitutionalCommandCentre() {
     undefined,
     decisionSummary,
     pipeline,
+    discoverPipeline,
   );
 
   return (
@@ -1656,6 +1675,19 @@ export default function InstitutionalCommandCentre() {
             </Link>
           ))}
           <AskCoachLauncher label="Ask AI Coach" />
+        </div>
+      </div>
+
+      {/* v1.6.0, Sprint 3 — UX Transformation. Guided Tours ("learn by
+          doing") live here, alongside Quick Actions, reinforcing the
+          Command Centre as the one place every workflow naturally begins. */}
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-2">Guided Tours</h2>
+        <div className="flex flex-wrap gap-2" data-testid="command-centre-guided-tours">
+          <GuidedTourTrigger tourId="first-trade" />
+          <GuidedTourTrigger tourId="first-research" />
+          <GuidedTourTrigger tourId="first-journal" />
+          <GuidedTourTrigger tourId="first-portfolio-review" />
         </div>
       </div>
 

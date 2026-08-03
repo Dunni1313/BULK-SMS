@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GraduationCap } from "lucide-react";
+import { PageShell } from "@/components/layout/PageShell";
 
 function fmtUsd(n: number | null | undefined): string {
   if (n === null || n === undefined) return "—";
@@ -76,40 +77,49 @@ export default function InstitutionalMentor() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl font-bold text-foreground">Institutional Mentor</h1>
-          <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30" data-testid="badge-institutional-mentor">
-            Institutional Mentor
-          </Badge>
-          <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30" data-testid="badge-behaviour-analysis-mentor">
-            Professional Portfolio Review
-          </Badge>
-          <Badge className="bg-sky-500/15 text-sky-400 border-sky-500/30" data-testid="badge-deterministic-analysis-mentor">
-            Deterministic Analysis
-          </Badge>
-          <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30" data-testid="badge-paper-trading-mentor">
-            Paper Trading
-          </Badge>
-          <Badge className="bg-muted text-muted-foreground border-border" data-testid="badge-educational-only-mentor">
-            Educational Only
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Teaches you how a professional portfolio manager would evaluate your own existing Paper Trading
-          portfolio — a 9-category Scorecard, a Professional Review, a Decision Review, and narrative Capital
-          Allocation, Risk, Income, and Behaviour reviews. Not an LLM, a chatbot, predictive AI, financial
-          advice, portfolio optimisation, or a trade recommendation engine — every statement below references
-          an existing, already-computed calculation.
-        </p>
-        <Link
-          href="/institutional-ai-coach"
-          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-2"
-          data-testid="link-mentor-institutional-ai-coach"
-        >
-          <GraduationCap className="w-3.5 h-3.5" /> Ask the Institutional AI Coach about a specific symbol →
-        </Link>
-      </div>
+      <PageShell
+        icon={GraduationCap}
+        title="Institutional Mentor"
+        journeyStage="learning"
+        learnEntryId="portfolio-review"
+        whyItMatters="Visit after a batch of trades to see how a professional portfolio manager would grade your own recent decisions — a periodic review habit, not a per-trade tool."
+        badges={
+          <>
+            <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30" data-testid="badge-institutional-mentor">
+              Institutional Mentor
+            </Badge>
+            <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30" data-testid="badge-behaviour-analysis-mentor">
+              Professional Portfolio Review
+            </Badge>
+            <Badge className="bg-sky-500/15 text-sky-400 border-sky-500/30" data-testid="badge-deterministic-analysis-mentor">
+              Deterministic Analysis
+            </Badge>
+            <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30" data-testid="badge-paper-trading-mentor">
+              Paper Trading
+            </Badge>
+            <Badge className="bg-muted text-muted-foreground border-border" data-testid="badge-educational-only-mentor">
+              Educational Only
+            </Badge>
+          </>
+        }
+        description={
+          <>
+            Teaches you how a professional portfolio manager would evaluate your own existing Paper Trading
+            portfolio — a 9-category Scorecard, a Professional Review, a Decision Review, and narrative Capital
+            Allocation, Risk, Income, and Behaviour reviews. Not an LLM, a chatbot, predictive AI, financial
+            advice, portfolio optimisation, or a trade recommendation engine — every statement below references
+            an existing, already-computed calculation.
+            <br />
+            <Link
+              href="/institutional-ai-coach"
+              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-2"
+              data-testid="link-mentor-institutional-ai-coach"
+            >
+              <GraduationCap className="w-3.5 h-3.5" /> Ask the Institutional AI Coach about a specific symbol →
+            </Link>
+          </>
+        }
+      />
 
       {isLoading && (
         <Card className="bg-card border-border" data-testid="mentor-loading">

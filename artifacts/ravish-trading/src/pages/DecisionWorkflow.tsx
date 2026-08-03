@@ -56,6 +56,7 @@ import { AskCoachLauncher } from "@/components/learn/AskCoachLauncher";
 import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
 import { Milestone, Gavel, Bot, GraduationCap, ShieldAlert, BookOpen, Briefcase, CheckCircle2, AlertTriangle, Circle, Eye } from "lucide-react";
 import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
+import { PageShell } from "@/components/layout/PageShell";
 
 const COACH_IDS: CoachId[] = ["investing", "trading", "options"];
 
@@ -470,26 +471,30 @@ export default function DecisionWorkflow() {
   return (
     <div className="space-y-6 max-w-7xl" data-testid="page-decision-workflow">
       <AiTradingCoachPanel />
-      <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Milestone className="h-6 w-6 text-indigo-400" /> Decision Workflow
-          </h1>
+      <PageShell
+        icon={Milestone}
+        title="Decision Workflow"
+        journeyStage="decision"
+        learnEntryId="decision-workflow"
+        whyItMatters="Use this once research is done and you're weighing a real trade — it turns your Trade Plan, Strategy, Journal, and Portfolio context into one structured, evidence-driven read, never a buy/sell instruction on its own."
+        badges={
           <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30" data-testid="badge-decision-workflow">
             Institutional Decision Engine
           </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Transforms research into a structured, evidence-driven decision — orchestrating your existing Trade Plan,
-          Strategy, Journal, and Portfolio, never replacing them. Guidance only, never a buy/sell instruction.{" "}
-          <Link href="/decision-engine" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-decision-engine">
-            Looking for a single-symbol Buy/Hold/Sell verdict? See the Decision Engine.
-          </Link>{" "}
-          <Link href="/execution-lifecycle" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-execution-lifecycle">
-            Once this decision is ready, track it through execution in the Execution &amp; Lifecycle Manager.
-          </Link>
-        </p>
-      </div>
+        }
+        description={
+          <>
+            Transforms research into a structured, evidence-driven decision — orchestrating your existing Trade Plan,
+            Strategy, Journal, and Portfolio, never replacing them. Guidance only, never a buy/sell instruction.{" "}
+            <Link href="/decision-engine" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-decision-engine">
+              Looking for a single-symbol Buy/Hold/Sell verdict? See the Decision Engine.
+            </Link>{" "}
+            <Link href="/execution-lifecycle" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-execution-lifecycle">
+              Once this decision is ready, track it through execution in the Execution &amp; Lifecycle Manager.
+            </Link>
+          </>
+        }
+      />
 
       {!activeSummary.loading && activeSummary.tradePlan && tradePlanId === null && (
         <Card className="bg-card border-border" data-testid="decision-workflow-active-suggestion">

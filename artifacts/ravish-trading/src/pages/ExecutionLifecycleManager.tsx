@@ -47,6 +47,7 @@ import { Input } from "@/components/ui/input";
 import { AskCoachLauncher } from "@/components/learn/AskCoachLauncher";
 import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
 import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
+import { PageShell } from "@/components/layout/PageShell";
 import {
   Route,
   Milestone,
@@ -528,23 +529,27 @@ export default function ExecutionLifecycleManager() {
   return (
     <div className="space-y-6 max-w-7xl" data-testid="page-execution-lifecycle-manager">
       <AiTradingCoachPanel />
-      <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Route className="h-6 w-6 text-indigo-400" /> Execution & Lifecycle Manager
-          </h1>
+      <PageShell
+        icon={Route}
+        title="Execution & Lifecycle Manager"
+        journeyStage="open-position"
+        learnEntryId="execution-lifecycle"
+        whyItMatters="Come here right after you've executed a trade manually with your own broker — track it from a freshly opened position through active management to close, without this platform ever placing an order for you."
+        badges={
           <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30" data-testid="badge-lifecycle-manager">
             Institutional Workflow
           </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Manages the complete lifecycle of every trade before and after execution — this platform never places, closes, or
-          modifies a real order. Execution stays with your own external broker.{" "}
-          <Link href="/decision-workflow" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-decision-workflow">
-            Looking for one decision's readiness? See the Decision Workflow.
-          </Link>
-        </p>
-      </div>
+        }
+        description={
+          <>
+            Manages the complete lifecycle of every trade before and after execution — this platform never places, closes, or
+            modifies a real order. Execution stays with your own external broker.{" "}
+            <Link href="/decision-workflow" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-decision-workflow">
+              Looking for one decision's readiness? See the Decision Workflow.
+            </Link>
+          </>
+        }
+      />
 
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
