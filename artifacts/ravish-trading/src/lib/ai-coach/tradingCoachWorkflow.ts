@@ -158,6 +158,13 @@ export interface DailyWorkflowStep {
   estimatedMinutes: number;
   /** Why this step is currently blocked, when status === "blocked". Never fabricated. */
   blockedReason: string | null;
+  /**
+   * v1.6.0 Sprint 2 — Guided Workflow UX. Why a "not-started" step isn't
+   * yet actionable — a real, sequence-or-signal-derived explanation, never
+   * a blocked reason (those stay in blockedReason) and never fabricated.
+   * Null for active/ready/completed/skipped/not-applicable/blocked steps.
+   */
+  waitingReason: string | null;
 }
 
 export interface DailyWorkflowResult {
@@ -260,6 +267,37 @@ function stepBlockedReason(stepId: DailyWorkflowStepId, signals: WorkflowSignals
   return null;
 }
 
+/**
+ * v1.6.0 Sprint 2 — Guided Workflow UX (#4, "better blocked-state
+ * explanations"). Derives an honest, non-fabricated reason a "not-started"
+ * step isn't yet actionable — either the real, signal-based reason
+ * Position Monitoring/Trade Journal have no work yet, or, for every other
+ * step, the real nearest earlier still-incomplete step in the canonical
+ * sequence. Never a generic "please wait" filler — always names the real
+ * blocking step or condition.
+ */
+function stepWaitingReason(
+  step: DailyWorkflowStep,
+  allStepsInOrder: DailyWorkflowStep[],
+  signals: WorkflowSignals,
+): string | null {
+  if (step.id === "position-monitoring" && !hasOpenPositionNeedingMonitoring(signals)) {
+    return "No open position to monitor yet.";
+  }
+  if (step.id === "trade-journal" && !hasClosedTradeAwaitingJournal(signals)) {
+    return "No closed trade awaiting a journal entry yet.";
+  }
+  const index = allStepsInOrder.findIndex((s) => s.id === step.id);
+  for (let i = index - 1; i >= 0; i--) {
+    const earlier = allStepsInOrder[i];
+    const isDone = earlier.status === "completed" || earlier.status === "skipped" || earlier.status === "not-applicable";
+    if (!isDone) {
+      return `Waiting for "${earlier.label}" to be completed first.`;
+    }
+  }
+  return null;
+}
+
 export function computeDailyWorkflow(signals: WorkflowSignals, progress: WorkflowDailyProgress): DailyWorkflowResult {
   const completed = new Set(progress.completedStepIds);
   const skipped = new Set(progress.skippedStepIds);
@@ -268,16 +306,23 @@ export function computeDailyWorkflow(signals: WorkflowSignals, progress: Workflo
     const estimatedMinutes = DAILY_WORKFLOW_STEP_ESTIMATED_MINUTES[id];
     const label = DAILY_WORKFLOW_STEP_LABELS[id];
 
-    if (skipped.has(id)) return { id, label, status: "skipped", estimatedMinutes, blockedReason: null };
-    if (completed.has(id)) return { id, label, status: "completed", estimatedMinutes, blockedReason: null };
+    if (skipped.has(id)) return { id, label, status: "skipped", estimatedMinutes, blockedReason: null, waitingReason: null };
+    if (completed.has(id)) return { id, label, status: "completed", estimatedMinutes, blockedReason: null, waitingReason: null };
     if (isNotApplicableToday(id, signals, progress)) {
-      return { id, label, status: "not-applicable", estimatedMinutes, blockedReason: null };
+      return { id, label, status: "not-applicable", estimatedMinutes, blockedReason: null, waitingReason: null };
     }
     const auto = autoDetectedStatus(id, signals);
-    if (auto === "completed") return { id, label, status: "completed", estimatedMinutes, blockedReason: null };
+    if (auto === "completed") return { id, label, status: "completed", estimatedMinutes, blockedReason: null, waitingReason: null };
 
     const blockedReason = stepBlockedReason(id, signals);
-    return { id, label, status: blockedReason ? "blocked" : "not-started", estimatedMinutes, blockedReason };
+    return {
+      id,
+      label,
+      status: blockedReason ? "blocked" : "not-started",
+      estimatedMinutes,
+      blockedReason,
+      waitingReason: null,
+    };
   });
 
   const isDone = (s: DailyWorkflowStep) => s.status === "completed" || s.status === "skipped" || s.status === "not-applicable";
@@ -323,6 +368,14 @@ export function computeDailyWorkflow(signals: WorkflowSignals, progress: Workflo
     const next = finalSteps[primaryIndex + 1];
     if (next && next.status === "not-started") {
       finalSteps[primaryIndex + 1] = { ...next, status: "ready" };
+    }
+  }
+
+  // Sprint 2 (#4): every remaining "not-started" step gets a real,
+  // non-fabricated waitingReason — never left as a silent blank.
+  for (let i = 0; i < finalSteps.length; i++) {
+    if (finalSteps[i].status === "not-started") {
+      finalSteps[i] = { ...finalSteps[i], waitingReason: stepWaitingReason(finalSteps[i], finalSteps, signals) };
     }
   }
 

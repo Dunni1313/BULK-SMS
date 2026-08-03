@@ -250,6 +250,58 @@ describe("computeDailyWorkflow — applicable-steps-only progress (#11)", () => 
   });
 });
 
+describe("computeDailyWorkflow — waitingReason for not-started steps (Sprint 2 #4)", () => {
+  it("gives every not-started step a real, sequence-derived reason — never a silent blank", () => {
+    const result = computeDailyWorkflow(baseSignals(), baseProgress());
+    // Morning Brief is active, Market Scan is "ready" (no reason needed) — everything
+    // further out in the sequence must honestly name the real step still blocking it.
+    const opportunityReview = result.steps.find((s) => s.id === "opportunity-review")!;
+    expect(opportunityReview.status).toBe("not-started");
+    expect(opportunityReview.waitingReason).toMatch(/waiting for "market scan"/i);
+
+    const dailyReview = result.steps.find((s) => s.id === "daily-review")!;
+    expect(dailyReview.waitingReason).toMatch(/waiting for "trade journal"/i);
+  });
+
+  it("never assigns a waitingReason to the active or ready step", () => {
+    const result = computeDailyWorkflow(baseSignals(), baseProgress());
+    expect(result.steps.find((s) => s.id === "morning-brief")!.waitingReason).toBeNull();
+    expect(result.steps.find((s) => s.id === "market-scan")!.waitingReason).toBeNull();
+  });
+
+  it("Position Monitoring honestly says there's no open position yet, not a generic sequence reason", () => {
+    const result = computeDailyWorkflow(baseSignals(), baseProgress({ completedStepIds: ["morning-brief"] }));
+    // market-scan becomes active; position-monitoring is far out of sequence but has its
+    // OWN honest, signal-based reason rather than "waiting for research."
+    const positionMonitoring = result.steps.find((s) => s.id === "position-monitoring");
+    if (positionMonitoring?.status === "not-started") {
+      expect(positionMonitoring.waitingReason).toMatch(/no open position to monitor yet/i);
+    }
+  });
+
+  it("Trade Journal honestly says there's no closed trade awaiting review yet, not a generic sequence reason", () => {
+    const result = computeDailyWorkflow(baseSignals(), baseProgress({ completedStepIds: ["morning-brief"] }));
+    const tradeJournal = result.steps.find((s) => s.id === "trade-journal");
+    if (tradeJournal?.status === "not-started") {
+      expect(tradeJournal.waitingReason).toMatch(/no closed trade awaiting a journal entry yet/i);
+    }
+  });
+
+  it("never fabricates a waitingReason for a completed, skipped, not-applicable, or blocked step", () => {
+    const progress = baseProgress({
+      completedStepIds: ["morning-brief"],
+      skippedStepIds: ["market-scan"],
+      noTradeReason: "No qualifying setups today.",
+    });
+    const result = computeDailyWorkflow(baseSignals({ marketClock: { isOpen: false } }), progress);
+    for (const step of result.steps) {
+      if (["completed", "skipped", "not-applicable", "blocked"].includes(step.status)) {
+        expect(step.waitingReason).toBeNull();
+      }
+    }
+  });
+});
+
 describe("computeAchievements — rewards process, never trade count/risk/frequency (#gamification)", () => {
   it("earns 'first' achievements at exactly the 1-count threshold", () => {
     const statuses = computeAchievements({
