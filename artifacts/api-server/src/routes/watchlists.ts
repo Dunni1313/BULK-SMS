@@ -203,18 +203,22 @@ router.post("/investing/watchlists/:id/items", async (req, res): Promise<void> =
     return;
   }
   const userId = await getScopedUserId(req);
-  try {
-    const row = await addItem(userId, id, parsed.data);
-    if (!row) {
-      res.status(404).json({ error: "Watchlist not found" });
-      return;
-    }
-    res.status(201).json(UpdateInvestingWatchlistItemResponse.parse(itemToJson(row)));
-  } catch (err) {
-    // A unique (watchlist_id, symbol) constraint violation — the symbol is
-    // already on this watchlist. A real, expected 400, never a 500.
-    res.status(400).json({ error: `${parsed.data.symbol} is already on this watchlist`, cause: err instanceof Error ? err.message : String(err) });
+  // addItem() now signals "watchlist not found" (null) and "already on
+  // this watchlist" ("duplicate") via explicit return values (an atomic
+  // ON CONFLICT DO NOTHING insert internally) rather than throwing — same
+  // honest 404/400 the route has always returned for these two cases,
+  // just no longer relying on catching a driver exception. See
+  // docs/Database-Concurrency-Fixes.md.
+  const row = await addItem(userId, id, parsed.data);
+  if (row === null) {
+    res.status(404).json({ error: "Watchlist not found" });
+    return;
   }
+  if (row === "duplicate") {
+    res.status(400).json({ error: `${parsed.data.symbol} is already on this watchlist` });
+    return;
+  }
+  res.status(201).json(UpdateInvestingWatchlistItemResponse.parse(itemToJson(row)));
 });
 
 router.post("/investing/watchlists/:id/items/reorder", async (req, res): Promise<void> => {

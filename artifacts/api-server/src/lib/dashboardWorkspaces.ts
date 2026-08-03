@@ -8,7 +8,7 @@
 // this module only reads/writes UI layout preferences.
 
 import { db, dashboardWorkspacesTable } from "@workspace/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 export interface WidgetConfigEntry {
   id: string;
@@ -90,9 +90,28 @@ export async function getOrCreateActiveWorkspace(userId: string) {
     return toApi(reactivated);
   }
 
+  // Database-maintenance fix (not part of any UX/feature sprint) — see
+  // docs/Database-Concurrency-Fixes.md. This branch is only reached once
+  // both prior SELECTs above found zero rows for this user — the classic
+  // check-then-insert race window: several widgets on the Institutional
+  // Home page each call this function independently on first mount, so
+  // two (or more) concurrent callers for the very same brand-new user can
+  // all pass both checks before any of their own INSERTs commit. A plain
+  // INSERT here previously threw an uncaught unique-violation on
+  // dashboard_workspaces_user_name_idx for every caller but the first —
+  // an uncaught 500 from GET /workspaces and GET /workspaces/active,
+  // neither of which had a try/catch around this call. ON CONFLICT DO
+  // UPDATE makes the insert atomic and always RETURNING one row — the
+  // "update" on the losing side is a genuine no-op (user_id written back
+  // to its own value), so whichever caller actually wins the race, every
+  // caller gets back the same, single, correctly-active Default row.
   const [created] = await db
     .insert(dashboardWorkspacesTable)
     .values({ userId, name: "Default", isDefault: true, isActive: true, widgetConfig: defaultWidgetConfig() })
+    .onConflictDoUpdate({
+      target: [dashboardWorkspacesTable.userId, dashboardWorkspacesTable.name],
+      set: { userId: sql`excluded.user_id` },
+    })
     .returning();
   return toApi(created);
 }
@@ -109,7 +128,25 @@ export async function listWorkspaces(userId: string) {
   return rows.map(toApi);
 }
 
-export async function createWorkspace(userId: string, name: string, widgetConfig?: WidgetConfigEntry[]) {
+// Database-maintenance fix (not part of any UX/feature sprint) — see
+// docs/Database-Concurrency-Fixes.md. Was a plain INSERT relying on the
+// caller catching a thrown unique-violation exception to detect a
+// duplicate (user_id, name) — correct in outcome (the route already
+// mapped that exception to an honest 409) but noisy: every duplicate
+// still logged a full Postgres ERROR at the database level. ON CONFLICT
+// DO NOTHING is silent at the database level on a genuine duplicate — no
+// row is returned, and the caller distinguishes that case from success
+// via the explicit "duplicate" sentinel instead of a caught exception,
+// with identical external behavior (a duplicate name still refuses to
+// create a second workspace under that name — this is not the "idempotent
+// return the existing row" pattern, since a user explicitly naming a
+// second workspace the same as an existing one is a genuine input error
+// worth surfacing, not something to silently paper over).
+export async function createWorkspace(
+  userId: string,
+  name: string,
+  widgetConfig?: WidgetConfigEntry[],
+): Promise<ReturnType<typeof toApi> | "duplicate"> {
   const [created] = await db
     .insert(dashboardWorkspacesTable)
     .values({
@@ -119,8 +156,9 @@ export async function createWorkspace(userId: string, name: string, widgetConfig
       isActive: false,
       widgetConfig: widgetConfig ?? defaultWidgetConfig(),
     })
+    .onConflictDoNothing({ target: [dashboardWorkspacesTable.userId, dashboardWorkspacesTable.name] })
     .returning();
-  return toApi(created);
+  return created ? toApi(created) : "duplicate";
 }
 
 export async function updateWorkspace(
@@ -136,7 +174,15 @@ export async function updateWorkspace(
   return row ? toApi(row) : null;
 }
 
-export async function duplicateWorkspace(userId: string, id: number, newName: string) {
+// Same ON CONFLICT DO NOTHING + sentinel pattern as createWorkspace()
+// above, same rationale — a duplicate target name is a genuine, expected
+// 409 the route already surfaces, just via an explicit return value
+// instead of a caught exception now.
+export async function duplicateWorkspace(
+  userId: string,
+  id: number,
+  newName: string,
+): Promise<ReturnType<typeof toApi> | "duplicate" | null> {
   const [source] = await db
     .select()
     .from(dashboardWorkspacesTable)
@@ -152,8 +198,9 @@ export async function duplicateWorkspace(userId: string, id: number, newName: st
       isActive: false,
       widgetConfig: source.widgetConfig,
     })
+    .onConflictDoNothing({ target: [dashboardWorkspacesTable.userId, dashboardWorkspacesTable.name] })
     .returning();
-  return toApi(created);
+  return created ? toApi(created) : "duplicate";
 }
 
 export async function deleteWorkspace(userId: string, id: number): Promise<"deleted" | "not_found" | "is_last"> {

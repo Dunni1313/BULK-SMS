@@ -108,14 +108,31 @@ export interface AddItemInput extends Omit<InsertInvestingWatchlistItem, "symbol
   symbol: string;
 }
 
-export async function addItem(userId: string, watchlistId: number, input: AddItemInput): Promise<InvestingWatchlistItemRow | null> {
+// Database-maintenance fix (not part of any UX/feature sprint) — see
+// docs/Database-Concurrency-Fixes.md. Was a plain INSERT that threw an
+// uncaught unique-violation on investing_watchlist_items_watchlist_symbol_unique
+// for a duplicate symbol; the route's own try/catch mapped ANY thrown
+// error here to "already on this watchlist," which was both noisy at the
+// database level (a logged Postgres ERROR for an outcome the app already
+// expected) and imprecise (a genuinely different failure would have been
+// mis-reported the same way). ON CONFLICT DO NOTHING is silent at the
+// database level; the caller distinguishes "already on this list" from
+// success via the explicit "duplicate" sentinel instead.
+export async function addItem(
+  userId: string,
+  watchlistId: number,
+  input: AddItemInput,
+): Promise<InvestingWatchlistItemRow | "duplicate" | null> {
   const owned = await getWatchlist(userId, watchlistId);
   if (!owned) return null;
   const [row] = await db
     .insert(investingWatchlistItemsTable)
     .values({ ...input, symbol: input.symbol.toUpperCase().trim(), watchlistId, userId })
+    .onConflictDoNothing({
+      target: [investingWatchlistItemsTable.watchlistId, investingWatchlistItemsTable.symbol],
+    })
     .returning();
-  return row;
+  return row ?? "duplicate";
 }
 
 export async function updateItem(

@@ -64,15 +64,17 @@ router.post("/workspaces", async (req, res): Promise<void> => {
     return;
   }
   const userId = await getScopedUserId(req);
-  try {
-    const row = await createWorkspace(userId, parsed.data.name, parsed.data.widgetConfig);
-    res.status(201).json(CreateWorkspaceResponse.parse(row));
-  } catch (err) {
-    // A duplicate (userId, name) violates the partial-independent unique
-    // index — surface it as an honest 409, never a generic 500.
+  // createWorkspace() now signals a duplicate (userId, name) via an
+  // explicit "duplicate" return value (an atomic ON CONFLICT DO NOTHING
+  // insert internally) rather than throwing — same honest 409 the route
+  // has always returned for this case, just no longer relying on catching
+  // a driver exception. See docs/Database-Concurrency-Fixes.md.
+  const row = await createWorkspace(userId, parsed.data.name, parsed.data.widgetConfig);
+  if (row === "duplicate") {
     res.status(409).json({ error: `A workspace named "${parsed.data.name}" already exists.` });
-    void err;
+    return;
   }
+  res.status(201).json(CreateWorkspaceResponse.parse(row));
 });
 
 router.patch("/workspaces/:id", async (req, res): Promise<void> => {
@@ -112,17 +114,19 @@ router.post("/workspaces/:id/duplicate", async (req, res): Promise<void> => {
     return;
   }
   const userId = await getScopedUserId(req);
-  try {
-    const row = await duplicateWorkspace(userId, id, parsed.data.name);
-    if (!row) {
-      res.status(404).json({ error: "Workspace not found" });
-      return;
-    }
-    res.status(201).json(DuplicateWorkspaceResponse.parse(row));
-  } catch (err) {
-    res.status(409).json({ error: `A workspace named "${parsed.data.name}" already exists.` });
-    void err;
+  // duplicateWorkspace() now signals a duplicate target name via an
+  // explicit "duplicate" return value, same rationale as createWorkspace()
+  // above — see docs/Database-Concurrency-Fixes.md.
+  const row = await duplicateWorkspace(userId, id, parsed.data.name);
+  if (row === null) {
+    res.status(404).json({ error: "Workspace not found" });
+    return;
   }
+  if (row === "duplicate") {
+    res.status(409).json({ error: `A workspace named "${parsed.data.name}" already exists.` });
+    return;
+  }
+  res.status(201).json(DuplicateWorkspaceResponse.parse(row));
 });
 
 router.delete("/workspaces/:id", async (req, res): Promise<void> => {
