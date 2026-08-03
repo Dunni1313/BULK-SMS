@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Compass, Bot, Inbox, ListChecks, Archive, Flame } from "lucide-react";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 
 const CATEGORY_LABELS: Record<OpportunityCategory, string> = {
   watchlist_event: "Watchlist Event",
@@ -191,6 +192,7 @@ export default function OpportunityPipeline() {
 
   return (
     <div className="space-y-6 max-w-6xl" data-testid="page-opportunity-pipeline">
+      <AiTradingCoachPanel />
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-bold text-foreground">Opportunity Pipeline</h1>

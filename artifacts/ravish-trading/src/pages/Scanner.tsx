@@ -13,6 +13,7 @@ import { TradeExplanationSheet } from "@/components/ui/trade-explanation-sheet";
 import { EventRiskBadge } from "@/components/ui/event-risk-badge";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromScannerCandidate } from "@/lib/trading-coach-context";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 
 export default function Scanner() {
   const [strategy, setStrategy] = useState<GetScannerResultsStrategy | "all">("all");
@@ -49,6 +50,7 @@ export default function Scanner() {
 
   return (
     <div className="space-y-6">
+      <AiTradingCoachPanel />
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-foreground">Market Scanner</h1>
         <div className="flex gap-4 items-center">

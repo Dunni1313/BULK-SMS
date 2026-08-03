@@ -19,6 +19,7 @@ import brokerReconciliationRouter from "./brokerReconciliation";
 import eventsRouter from "./events";
 import marketIntelligenceRouter from "./marketIntelligence";
 import opportunityPipelineRouter from "./opportunityPipeline";
+import aiTradingCoachWorkflowRouter from "./aiTradingCoachWorkflow";
 import stockAnalystRouter from "./stockAnalyst";
 import portfolioConstructionRouter from "./portfolioConstruction";
 import tradingJournalRouter from "./tradingJournal";
@@ -164,5 +165,6 @@ router.use(aiStrategiesRouter);
 router.use(tradePlansRouter);
 router.use(marketIntelligenceRouter);
 router.use(opportunityPipelineRouter);
+router.use(aiTradingCoachWorkflowRouter);
 
 export default router;

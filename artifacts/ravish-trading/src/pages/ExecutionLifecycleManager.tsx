@@ -46,6 +46,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { AskCoachLauncher } from "@/components/learn/AskCoachLauncher";
 import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 import {
   Route,
   Milestone,
@@ -526,6 +527,7 @@ export default function ExecutionLifecycleManager() {
 
   return (
     <div className="space-y-6 max-w-7xl" data-testid="page-execution-lifecycle-manager">
+      <AiTradingCoachPanel />
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">

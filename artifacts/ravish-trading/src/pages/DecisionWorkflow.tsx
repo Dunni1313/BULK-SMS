@@ -55,6 +55,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AskCoachLauncher } from "@/components/learn/AskCoachLauncher";
 import { ModuleLearnTrigger } from "@/components/learn/ModuleLearnTrigger";
 import { Milestone, Gavel, Bot, GraduationCap, ShieldAlert, BookOpen, Briefcase, CheckCircle2, AlertTriangle, Circle, Eye } from "lucide-react";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 
 const COACH_IDS: CoachId[] = ["investing", "trading", "options"];
 
@@ -468,6 +469,7 @@ export default function DecisionWorkflow() {
 
   return (
     <div className="space-y-6 max-w-7xl" data-testid="page-decision-workflow">
+      <AiTradingCoachPanel />
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">

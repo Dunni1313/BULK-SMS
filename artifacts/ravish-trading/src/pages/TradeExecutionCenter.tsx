@@ -74,6 +74,7 @@ import { TradeExplanationSheet } from "@/components/ui/trade-explanation-sheet";
 import { useToast } from "@/hooks/use-toast";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromScannerCandidate } from "@/lib/trading-coach-context";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
 import {
   Play,
   Bot,
@@ -329,6 +330,7 @@ export default function TradeExecutionCenter() {
 
   return (
     <div className="space-y-5 max-w-6xl">
+      <AiTradingCoachPanel />
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white">TRADE EXECUTION CENTER</h1>
