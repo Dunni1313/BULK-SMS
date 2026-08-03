@@ -62,6 +62,34 @@ export default defineConfig({
         // frontend's own origin or Better-Auth rejects every sign-in with
         // "Invalid origin", and plain CORS blocks every other /api call.
         CORS_ALLOWED_ORIGINS: frontendUrl,
+        // Branch fix/e2e-signup-login-timeout — root cause, directly proven
+        // (see docs/E2E-Rate-Limit-Fix.md): middlewares/rateLimit.ts's two
+        // limiters (Phase 4, Sprint 52) key strictly by IP, with no override
+        // here or anywhere else — that production algorithm is untouched by
+        // this file and is correct for a real deployment. But every
+        // Playwright worker/spec in this suite runs from ONE machine against
+        // ONE long-lived api-server process, so they all share a single IP
+        // and therefore a single rate-limit bucket — many independent
+        // simulated users colliding in one bucket, not real abuse. A direct
+        // repro measured a genuine peak of 303 general API requests and 21
+        // /api/auth/* requests inside one 60s window from this suite's own
+        // legitimate traffic; both defaults (300 and 20) sit right at or
+        // under that. RATE_LIMIT_MAX_REQUESTS/AUTH_RATE_LIMIT_MAX_REQUESTS
+        // are the exact, already-existing, already-documented
+        // environment-var overrides middlewares/rateLimit.ts's own doc
+        // comment names for "a real production deployment [to] retune them"
+        // — used here for the mirror-image, equally-intended case: a
+        // same-machine, multi-simulated-user test topology retuning them for
+        // ITS OWN legitimate traffic. Set only in this webServer's own env
+        // block, so only the process Playwright itself starts and manages
+        // ever receives them — no real deployment sources this file, and
+        // unset (every real deployment, always) falls straight back to the
+        // unmodified production defaults (300/20, still fully enforced,
+        // still IP-keyed). ~10x headroom over the measured peaks, matching
+        // Sprint 52's own "measured baseline, not a guess" convention for
+        // these exact two variables.
+        RATE_LIMIT_MAX_REQUESTS: "3000",
+        AUTH_RATE_LIMIT_MAX_REQUESTS: "300",
       },
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
