@@ -14,6 +14,7 @@ import { EventRiskBadge } from "@/components/ui/event-risk-badge";
 import { useTradingCoach } from "@/hooks/use-trading-coach";
 import { focusFromScannerCandidate } from "@/lib/trading-coach-context";
 import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function Scanner() {
   const [strategy, setStrategy] = useState<GetScannerResultsStrategy | "all">("all");
@@ -51,37 +52,44 @@ export default function Scanner() {
   return (
     <div className="space-y-6">
       <AiTradingCoachPanel />
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-foreground">Market Scanner</h1>
-        <div className="flex gap-4 items-center">
-          <Select value={strategy} onValueChange={(v: any) => setStrategy(v)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Strategy" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Strategies</SelectItem>
-              <SelectItem value="iron_condor">Iron Condor</SelectItem>
-              <SelectItem value="iron_fly">Iron Fly</SelectItem>
-              <SelectItem value="calendar_spread">Calendar Spread</SelectItem>
-              <SelectItem value="earnings">Earnings</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button 
-            onClick={handleRunScanner} 
-            disabled={runScanner.isPending}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {runScanner.isPending ? (
-              <span className="animate-pulse">Scanning...</span>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                Run Scan
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
+      <PageShell
+        icon={Play}
+        title="Market Scanner"
+        description="Ranks every eligible options-income opportunity across the platform's own strategy universe right now."
+        whyItMatters="This is the platform's own front door — the first place to look before researching or planning a new trade. Run a fresh scan whenever the market moves; a stale scan can miss a real opportunity."
+        journeyStage="discover"
+        learnEntryId="discover"
+        actions={
+          <>
+            <Select value={strategy} onValueChange={(v: any) => setStrategy(v)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Strategy" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Strategies</SelectItem>
+                <SelectItem value="iron_condor">Iron Condor</SelectItem>
+                <SelectItem value="iron_fly">Iron Fly</SelectItem>
+                <SelectItem value="calendar_spread">Calendar Spread</SelectItem>
+                <SelectItem value="earnings">Earnings</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={handleRunScanner}
+              disabled={runScanner.isPending}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {runScanner.isPending ? (
+                <span className="animate-pulse">Scanning...</span>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  Run Scan
+                </>
+              )}
+            </Button>
+          </>
+        }
+      />
 
       <Card className="bg-card border-border">
         <CardHeader>

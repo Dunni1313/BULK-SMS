@@ -8,11 +8,12 @@ import { render, screen } from "@testing-library/react";
 import { PlatformJourneyNav } from "./PlatformJourneyNav";
 
 describe("PlatformJourneyNav", () => {
-  it("renders all 12 requested stages, in order (9 original + Decision [Sprint 13] + Open Position/Trade Management [Sprint 14])", () => {
+  it("renders all 13 requested stages, in order (9 original + Decision [Sprint 13] + Open Position/Trade Management [Sprint 14] + Discover [v1.6.0 Sprint 3])", () => {
     render(<PlatformJourneyNav current="research" />);
     const nav = screen.getByTestId("nav-platform-journey");
     expect(nav).toBeInTheDocument();
     for (const id of [
+      "discover",
       "research",
       "notebook",
       "strategy",
@@ -50,6 +51,12 @@ describe("PlatformJourneyNav", () => {
     expect(stage.textContent).toContain("Trade Journal");
     // The current stage's own inner content span carries the highlighted styling.
     expect(screen.getByTestId("journey-stage-content-trade-journal").className).toContain("bg-indigo-500/20");
+  });
+
+  it("links the new Discover stage to /scanner (v1.6.0 Sprint 3)", () => {
+    render(<PlatformJourneyNav current="research" />);
+    const discoverLink = screen.getByTestId("journey-stage-discover").querySelector("a");
+    expect(discoverLink).toHaveAttribute("href", "/scanner");
   });
 
   it("renders every clickable stage except the current one as a real link to its own route", () => {

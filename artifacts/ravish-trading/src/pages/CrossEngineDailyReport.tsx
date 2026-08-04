@@ -31,6 +31,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fmtUsd, riskGradeBadgeClass } from "@/lib/trading-format";
 import { DailyBriefingCard } from "@/components/briefing/DailyBriefingCard";
 import { Landmark, Scale, Briefcase, Newspaper } from "lucide-react";
+import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
+import { PageShell } from "@/components/layout/PageShell";
 
 // Engine 1's own macro/rate-regime vocabulary (rising_rates/falling_rates/
 // stable_rates, lib/investingMacro.ts) — kept local rather than imported
@@ -50,15 +52,14 @@ export default function CrossEngineDailyReport() {
 
   return (
     <div className="space-y-6 p-6" data-testid="page-cross-engine-daily-report">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Cross-Engine Daily Report</h1>
-        <p className="text-sm text-muted-foreground">
-          Your day across all 3 engines — Engine 1's macro regime and watchlist target crossings, Engine 2's
-          trading risk, and Engine 3's options income portfolio health — in one on-demand summary. SIMULATED
-          market data, advisory only. Generated only when you open this page; never scheduled, emailed, or
-          pushed.
-        </p>
-      </div>
+      <AiTradingCoachPanel />
+      <PageShell
+        icon={Newspaper}
+        title="Cross-Engine Daily Report"
+        journeyStage="performance"
+        whyItMatters="The natural closing stop of a trading day — one place to see how all 3 engines read the same day before you log off."
+        description="Your day across all 3 engines — Engine 1's macro regime and watchlist target crossings, Engine 2's trading risk, and Engine 3's options income portfolio health — in one on-demand summary. SIMULATED market data, advisory only. Generated only when you open this page; never scheduled, emailed, or pushed."
+      />
 
       {isLoading && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3" data-testid="daily-report-loading">

@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Compass, Bot, Inbox, ListChecks, Archive, Flame } from "lucide-react";
 import { AiTradingCoachPanel } from "@/components/coach/AiTradingCoachPanel";
+import { PageShell } from "@/components/layout/PageShell";
 
 const CATEGORY_LABELS: Record<OpportunityCategory, string> = {
   watchlist_event: "Watchlist Event",
@@ -193,19 +194,19 @@ export default function OpportunityPipeline() {
   return (
     <div className="space-y-6 max-w-6xl" data-testid="page-opportunity-pipeline">
       <AiTradingCoachPanel />
-      <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl font-bold text-foreground">Opportunity Pipeline</h1>
+      <PageShell
+        icon={Compass}
+        title="Opportunity Pipeline"
+        description="The disciplined front door to the platform — every institutional workflow should begin with discovering, capturing, and prioritising opportunities. Never a trading signal, never a buy/sell recommendation, never a market prediction."
+        whyItMatters="Use this right after (or alongside) the Market Scanner to triage what's genuinely worth researching today, before committing time to deeper analysis."
+        journeyStage="discover"
+        learnEntryId="discover"
+        badges={
           <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30">
             <Compass className="h-3 w-3 mr-1" /> Institutional Opportunity Discovery Engine
           </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          The disciplined front door to the platform — every institutional workflow should begin with discovering,
-          capturing, and prioritising opportunities. Never a trading signal, never a buy/sell recommendation, never a
-          market prediction.
-        </p>
-      </div>
+        }
+      />
 
       <div className="flex items-center gap-2" data-testid="opportunity-tabs">
         <Button variant={tab === "discovered" ? "secondary" : "outline"} size="sm" onClick={() => setTab("discovered")} data-testid="opportunity-tab-discovered">

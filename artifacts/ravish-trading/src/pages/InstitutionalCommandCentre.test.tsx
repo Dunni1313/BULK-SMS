@@ -143,9 +143,19 @@ describe("InstitutionalCommandCentre", () => {
     expect(screen.getByTestId("badge-command-centre")).toBeInTheDocument();
   });
 
-  it("renders all 12 workflow stages with real status detail, never a blank stage (9 original + Decision [Sprint 13] + Open Position/Trade Management [Sprint 14])", async () => {
+  it("shows all 4 Guided Tour triggers (v1.6.0 Sprint 3 — UX Transformation)", async () => {
+    renderWithClient(<InstitutionalCommandCentre />);
+    const section = await screen.findByTestId("command-centre-guided-tours");
+    expect(section).toBeInTheDocument();
+    for (const tourId of ["first-trade", "first-research", "first-journal", "first-portfolio-review"]) {
+      expect(screen.getByTestId(`button-guided-tour-${tourId}`)).toBeInTheDocument();
+    }
+  });
+
+  it("renders all 13 workflow stages with real status detail, never a blank stage (9 original + Decision [Sprint 13] + Open Position/Trade Management [Sprint 14] + Discover [v1.6.0 Sprint 3])", async () => {
     renderWithClient(<InstitutionalCommandCentre />);
     for (const id of [
+      "discover",
       "research",
       "notebook",
       "strategy",
