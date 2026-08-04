@@ -122,6 +122,24 @@ function TradePlanPicker({ onSelect }: { onSelect: (id: number) => void }) {
           <Link href="/assistant" className="text-sm font-medium text-primary hover:underline" data-testid="decision-workflow-create-plan-link">
             Open the AI Assistant to create a Trade Plan →
           </Link>
+          {/* v1.6.0 UX Polish Phase 1, Priority 3 — the Product Experience
+              Review found this page's own "create a Trade Plan" link and
+              Trade Planning & Risk Studio's own "Save Trade Plan" button
+              read as two ways to do the same thing, when they're actually
+              two distinct, non-interoperating records: this page tracks
+              the AI Assistant's own Trade Plan (created here, via the
+              link above); Trade Planning & Risk Studio's is a separate,
+              symbol-specific technical trade setup. Naming a single
+              backend around both is a genuine architecture change, out of
+              scope for a polish pass — this one line disambiguates which
+              is which instead. */}
+          <p className="text-xs text-muted-foreground/80" data-testid="decision-workflow-plan-disambiguation">
+            This tracks Trade Plans created via the AI Assistant. Looking for a symbol-specific entry/stop/target
+            setup instead?{" "}
+            <Link href="/trade-planning-studio" className="underline hover:text-foreground">
+              Open the Trade Planning &amp; Risk Studio.
+            </Link>
+          </p>
         </CardContent>
       </Card>
     );

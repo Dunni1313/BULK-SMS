@@ -56,6 +56,31 @@
 //     workflow step they're continuing.
 //   - Accessibility (#9): aria-labels on the progress bar and step list,
 //     aria-current on the active step.
+//
+// v1.6.0 UX Polish Phase 1 — the Product Experience Review's own #1
+// highest-priority finding: on 6 of the 9 pages this panel mounts on
+// (Scanner, Opportunity Pipeline, Execution & Lifecycle Manager, Trade
+// Execution Center, Trading Journal, Daily Report), the panel's full,
+// always-expanded onboarding welcome + 11-item step list filled the
+// entire above-the-fold viewport — a first-time user saw only this panel,
+// never the page's own title or content, without scrolling. Fixed by
+// re-balancing what's always visible vs. what requires one explicit click:
+//   - ALWAYS VISIBLE (per the explicit "keep: Next Action, Progress,
+//     Status" instruction): the compact status row (market open/closed +
+//     ?workflowStep= context), a one-line progress summary + bar, and the
+//     full, unchanged "Next Recommended Step" section (Start/Mark
+//     Complete/No Trade/Skip) — this is the panel's actual job.
+//   - MOVED BEHIND A CLICK: the full 11-item step checklist (by far the
+//     tallest element) now lives in a Collapsible, collapsed by default,
+//     reusing the exact same Collapsible/CollapsibleTrigger/
+//     CollapsibleContent primitive and "small ghost button + chevron"
+//     idiom PageShell's own "About this page" disclosure already
+//     established — not a new interaction pattern. The onboarding
+//     welcome banner was condensed from a multi-line paragraph card to a
+//     single compact row for the same reason (it's dismissible and
+//     one-time, but still contributed real height on a first visit).
+// No information was removed — every one of Sprint 1/2's own testids and
+// data still renders, just not all expanded by default.
 
 import { useState } from "react";
 import { useLocation, useSearch } from "wouter";
@@ -115,6 +140,9 @@ export function AiTradingCoachPanel({ collapsible = true }: { collapsible?: bool
   const [, setLocation] = useLocation();
   const search = useSearch();
   const [open, setOpen] = useState(true);
+  // v1.6.0 UX Polish Phase 1 — the full step list defaults to collapsed
+  // so the panel's default height stays small; see the file header comment.
+  const [stepsOpen, setStepsOpen] = useState(false);
   const [noTradeDraft, setNoTradeDraft] = useState("");
   const [showNoTradeForm, setShowNoTradeForm] = useState(false);
   const [onboardingDismissed, setOnboardingDismissed] = useState(hasSeenOnboarding);
@@ -148,22 +176,45 @@ export function AiTradingCoachPanel({ collapsible = true }: { collapsible?: bool
   const isResuming = workflow.completedApplicableCount > 0 && !workflow.isDoneForToday;
 
   const body = (
-    <CardContent className="space-y-4">
+    <CardContent className="space-y-3">
+      {/* Status — always visible, compact (market state + smart-nav arrival context). */}
+      {(coach.marketIsOpen != null || arrivedForLabel) && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1" data-testid="text-coach-status-row">
+          {coach.marketIsOpen != null && (
+            <Badge
+              variant={coach.marketIsOpen ? "default" : "secondary"}
+              className="text-[10px]"
+              data-testid="text-market-status"
+            >
+              Market {coach.marketIsOpen ? "Open" : "Closed"}
+            </Badge>
+          )}
+          {arrivedForLabel && (
+            <span
+              className="flex items-center gap-1 text-xs text-muted-foreground"
+              data-testid="text-workflow-step-context"
+            >
+              <MapPin className="h-3 w-3" /> Continuing: <span className="font-medium text-foreground">{arrivedForLabel}</span>
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Onboarding — one compact, dismissible row (was a multi-line card),
+          first-time Beginner Mode users only. */}
       {coach.beginnerModeEnabled && !onboardingDismissed && (
         <div
-          className="rounded-md border border-primary/30 bg-primary/5 p-3 space-y-2"
+          className="flex items-center justify-between gap-3 rounded-md border border-primary/30 bg-primary/5 px-3 py-2"
           data-testid="section-onboarding-welcome"
         >
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-            <Sparkles className="h-3.5 w-3.5 text-primary" /> Welcome to your AI Trading Coach
-          </div>
-          <p className="text-xs text-muted-foreground">
-            I'll guide you through today's workflow one step at a time and always recommend a single next
-            action — grounded in your own real data, never a prediction. "No Trade" is always a fine outcome.
+          <p className="flex items-center gap-1.5 text-xs text-foreground">
+            <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" /> I'll guide you one step at a time, grounded
+            in your own real data. "No Trade" is always a fine outcome.
           </p>
           <Button
             size="sm"
             variant="outline"
+            className="shrink-0"
             onClick={() => {
               dismissOnboarding();
               setOnboardingDismissed(true);
@@ -175,82 +226,118 @@ export function AiTradingCoachPanel({ collapsible = true }: { collapsible?: bool
         </div>
       )}
 
-      {arrivedForLabel && (
-        <div
-          className="flex items-center gap-1.5 text-xs text-muted-foreground"
-          data-testid="text-workflow-step-context"
-        >
-          <MapPin className="h-3 w-3" /> Continuing today's workflow: <span className="font-medium text-foreground">{arrivedForLabel}</span>
-        </div>
-      )}
-
-      {isResuming && (
-        <p className="text-xs text-muted-foreground" data-testid="text-resuming-session">
-          Resuming today's session — {workflow.completedApplicableCount} of {workflow.applicableStepIds.length} steps
-          already done.
-        </p>
-      )}
-
-      {coach.marketIsOpen != null && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground" data-testid="text-market-status">
-          <Badge variant={coach.marketIsOpen ? "default" : "secondary"} className="text-[10px]">
-            Market {coach.marketIsOpen ? "Open" : "Closed"}
-          </Badge>
-        </div>
-      )}
-
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-medium text-muted-foreground">Today's Progress</span>
-          <span className="text-xs text-muted-foreground" data-testid="text-completion-pct">
-            {workflow.completionPct}%
-          </span>
-        </div>
-        <Progress
-          value={workflow.completionPct}
-          className="h-1.5 mb-3"
-          aria-label={`Today's workflow progress: ${workflow.completionPct}% complete`}
-        />
-        <ul className="space-y-1.5" role="list" aria-label="Today's workflow steps" data-testid="list-daily-workflow-steps">
-          {workflow.steps.map((step) => {
-            const Icon = STATUS_ICON[step.status];
-            return (
-              <li
-                key={step.id}
-                className="flex flex-col gap-0.5 text-sm"
-                data-testid={`row-step-${step.id}`}
-                data-step-status={step.status}
-                aria-current={step.status === "active" ? "step" : undefined}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon className={`h-3.5 w-3.5 shrink-0 ${STATUS_ICON_CLASS[step.status]}`} aria-hidden="true" />
-                  <span className={step.status === "active" ? "font-medium text-foreground" : "text-muted-foreground"}>
-                    {step.label}
+      {/* Progress — the one-line summary + bar stay always visible; the
+          full step-by-step checklist (the tallest part of this panel) is
+          one click away instead of always expanded, so the page's own
+          content is visible without scrolling. Same Collapsible primitive
+          PageShell's own "About this page" disclosure already uses. */}
+      <Collapsible open={stepsOpen} onOpenChange={setStepsOpen}>
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-muted-foreground">
+                Today's Progress
+                {isResuming && (
+                  <span data-testid="text-resuming-session">
+                    {" "}
+                    — {workflow.completedApplicableCount} of {workflow.applicableStepIds.length} steps done
                   </span>
-                  {step.status === "blocked" && (
-                    <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500">
-                      Blocked
-                    </Badge>
-                  )}
-                  {step.status === "not-applicable" && (
-                    <Badge variant="outline" className="text-[10px]">
-                      Not applicable today
-                    </Badge>
-                  )}
-                </div>
-                {step.status === "not-started" && step.waitingReason && (
-                  <p
-                    className="pl-6 text-[11px] text-muted-foreground/80"
-                    data-testid={`text-waiting-reason-${step.id}`}
-                  >
-                    {step.waitingReason}
-                  </p>
                 )}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+              </span>
+              <span className="text-xs text-muted-foreground" data-testid="text-completion-pct">
+                {workflow.completionPct}%
+              </span>
+            </div>
+            <Progress
+              value={workflow.completionPct}
+              className="h-1.5"
+              aria-label={`Today's workflow progress: ${workflow.completionPct}% complete`}
+            />
+          </div>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 shrink-0 gap-1 px-2 text-[11px] text-muted-foreground"
+              data-testid="button-toggle-step-list"
+            >
+              {stepsOpen ? "Hide steps" : `View all ${workflow.steps.length} steps`}
+              {stepsOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+        <CollapsibleContent>
+          <ul
+            className="mt-3 space-y-1.5"
+            role="list"
+            aria-label="Today's workflow steps"
+            data-testid="list-daily-workflow-steps"
+          >
+            {workflow.steps.map((step) => {
+              const Icon = STATUS_ICON[step.status];
+              return (
+                <li
+                  key={step.id}
+                  className="flex flex-col gap-0.5 text-sm"
+                  data-testid={`row-step-${step.id}`}
+                  data-step-status={step.status}
+                  aria-current={step.status === "active" ? "step" : undefined}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className={`h-3.5 w-3.5 shrink-0 ${STATUS_ICON_CLASS[step.status]}`} aria-hidden="true" />
+                    <span className={step.status === "active" ? "font-medium text-foreground" : "text-muted-foreground"}>
+                      {step.label}
+                    </span>
+                    {step.status === "blocked" && (
+                      <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500">
+                        Blocked
+                      </Badge>
+                    )}
+                    {step.status === "not-applicable" && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {/* v1.6.0 UX Polish Phase 1, Priority 7 — the Product
+                            Experience Review found an after-hours visitor
+                            sees most of this list read "Not applicable
+                            today" with no stated reason, making the
+                            workflow look broken rather than honestly
+                            reflecting that markets are closed. coach.marketIsOpen
+                            is a real, already-available signal (used
+                            elsewhere in this panel) — reusing it here to
+                            say why, never inventing a new one. */}
+                        {coach.marketIsOpen === false ? "Not applicable — market closed" : "Not applicable today"}
+                      </Badge>
+                    )}
+                  </div>
+                  {step.status === "not-started" && step.waitingReason && (
+                    <p
+                      className="pl-6 text-[11px] text-muted-foreground/80"
+                      data-testid={`text-waiting-reason-${step.id}`}
+                    >
+                      {step.waitingReason}
+                    </p>
+                  )}
+                  {/* v1.6.0 UX Polish Phase 1, Priority 7 — the Product
+                      Experience Review found "Execution [Blocked]" shown
+                      with no inline reason, forcing the user to hunt for a
+                      separate badge elsewhere on the page. blockedReason
+                      already existed on every step's own real data (used
+                      only for the primary step's reason before); this
+                      makes it visible for ANY blocked step, not just the
+                      one currently promoted to "Next Recommended Step". */}
+                  {step.status === "blocked" && step.blockedReason && (
+                    <p
+                      className="pl-6 text-[11px] text-amber-600/90"
+                      data-testid={`text-blocked-reason-${step.id}`}
+                    >
+                      {step.blockedReason}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </CollapsibleContent>
+      </Collapsible>
 
       {primaryStep && navTarget && (
         <div className="rounded-md border border-border bg-muted/30 p-3 space-y-2" data-testid="section-next-recommended-step">

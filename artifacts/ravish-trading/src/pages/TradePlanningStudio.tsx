@@ -37,7 +37,7 @@
 // outputs only — it never invents entries/stops/targets/directional calls.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useSearch } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetTradingStructure,
@@ -420,6 +420,17 @@ export default function TradePlanningStudio() {
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-indigo-400" /> Trade Planning &amp; Risk Studio
           </h1>
+          {/* v1.6.0 UX Polish Phase 1, Priority 3 — see DecisionWorkflow.tsx's
+              own disambiguation note for the full reasoning: this page's own
+              Trade Plan is a symbol-specific entry/stop/target setup, a
+              separate record from the AI Assistant's own Trade Plan system
+              (used by Decision Workflow / Execution & Lifecycle Manager). */}
+          <p className="text-[11px] text-muted-foreground/80 mt-0.5" data-testid="studio-plan-disambiguation">
+            Symbol-specific entry/stop/target setups. Looking for an AI Assistant Trade Plan instead?{" "}
+            <Link href="/decision-workflow" className="underline hover:text-foreground">
+              See Decision Workflow.
+            </Link>
+          </p>
           <div className="flex flex-wrap gap-1.5 mt-1.5" data-testid="studio-permanent-labels">
             <Badge variant="outline" className="text-[10px] uppercase tracking-wider border-border">
               Institutional Trading Engine

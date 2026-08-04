@@ -105,6 +105,16 @@ describe("DecisionWorkflow", () => {
     expect(screen.getByTestId("decision-workflow-create-plan-link")).toHaveAttribute("href", "/assistant");
   });
 
+  it("v1.6.0 UX Polish Phase 1 — disambiguates this AI Assistant Trade Plan from Trade Planning & Risk Studio's own, separate trade setups", async () => {
+    renderWithClient(<DecisionWorkflow />);
+    const note = await screen.findByTestId("decision-workflow-plan-disambiguation");
+    expect(note).toHaveTextContent(/ai assistant/i);
+    expect(within(note).getByText("Open the Trade Planning & Risk Studio.")).toHaveAttribute(
+      "href",
+      "/trade-planning-studio",
+    );
+  });
+
   it("lists real trade plans across all 3 coaches and lets the user pick one", async () => {
     listTradePlansMock.mockImplementation(async (coachId: string) =>
       coachId === "trading" ? [{ id: 7, coachId: "trading", title: "AAPL breakout", status: "draft", plannedAsset: "AAPL", updatedAt: "2026-07-29T00:00:00Z" }] : [],

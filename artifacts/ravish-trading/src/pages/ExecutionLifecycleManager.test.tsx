@@ -103,9 +103,20 @@ describe("ExecutionLifecycleManager", () => {
     window.history.pushState({}, "", "/execution-lifecycle");
   });
 
+  it("v1.6.0 UX Polish Phase 1 — links out to the Trade Execution Center, disambiguating itself from that page", async () => {
+    renderWithClient(<ExecutionLifecycleManager />);
+    expect(await screen.findByTestId("link-to-trade-execution-center")).toHaveAttribute(
+      "href",
+      "/trade-execution-center",
+    );
+  });
+
   it("shows an honest empty pipeline and a 'no trade plans' prompt when none exist", async () => {
     renderWithClient(<ExecutionLifecycleManager />);
     expect(await screen.findByTestId("lifecycle-no-plans")).toBeInTheDocument();
+    // v1.6.0 UX Polish Phase 1 — disambiguates this AI Assistant Trade Plan
+    // pipeline from Trade Planning & Risk Studio's own, separate trade setups.
+    expect(screen.getByTestId("lifecycle-plan-disambiguation")).toHaveTextContent(/ai assistant/i);
     for (const stage of ["ideas", "ready-to-execute", "reviewed", "archived"]) {
       expect(screen.getByTestId(`pipeline-column-empty-${stage}`)).toBeInTheDocument();
       expect(screen.getByTestId(`pipeline-column-count-${stage}`)).toHaveTextContent("0");

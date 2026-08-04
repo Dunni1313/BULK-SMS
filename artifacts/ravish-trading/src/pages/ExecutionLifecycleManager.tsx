@@ -453,6 +453,18 @@ function TradePlanPicker({
           <Link href="/assistant" className="text-sm font-medium text-primary hover:underline">
             Open the AI Assistant to create a Trade Plan →
           </Link>
+          {/* v1.6.0 UX Polish Phase 1, Priority 3 — see DecisionWorkflow.tsx's
+              own identical note for the full disclosed reasoning: this
+              pipeline tracks the AI Assistant's Trade Plan system, a
+              separate record from Trade Planning & Risk Studio's own
+              symbol-specific trade setups. */}
+          <p className="text-xs text-muted-foreground/80" data-testid="lifecycle-plan-disambiguation">
+            This pipeline tracks Trade Plans created via the AI Assistant. Looking for a symbol-specific
+            entry/stop/target setup instead?{" "}
+            <Link href="/trade-planning-studio" className="underline hover:text-foreground">
+              Open the Trade Planning &amp; Risk Studio.
+            </Link>
+          </p>
         </CardContent>
       </Card>
     );
@@ -546,6 +558,11 @@ export default function ExecutionLifecycleManager() {
             modifies a real order. Execution stays with your own external broker.{" "}
             <Link href="/decision-workflow" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-decision-workflow">
               Looking for one decision's readiness? See the Decision Workflow.
+            </Link>{" "}
+            {/* v1.6.0 UX Polish Phase 1, Priority 2 — see TradeExecutionCenter.tsx's
+                own disambiguation note for the full reasoning. */}
+            <Link href="/trade-execution-center" className="text-indigo-400 underline-offset-2 hover:underline" data-testid="link-to-trade-execution-center">
+              Want this platform to submit a real Paper Trading order instead? See the Trade Execution Center.
             </Link>
           </>
         }
